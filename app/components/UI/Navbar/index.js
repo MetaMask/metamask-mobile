@@ -124,10 +124,10 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 export default function getNavbarOptions(title, disableNetwork = false, drawerRef, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 
@@ -475,10 +475,10 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
 export function getBrowserViewNavbarOptions(navigation, route, drawerRef, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 
@@ -754,10 +754,10 @@ export function getOfflineModalNavbar() {
 export function getWalletNavbarOptions(title, navigation, drawerRef, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
-			backgroundColor: themeColors.backgroundDefault,
+			backgroundColor: themeColors.background.default,
 		},
 		headerIcon: {
-			color: themeColors.primary,
+			color: themeColors.primary.default,
 		},
 	});
 

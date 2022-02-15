@@ -578,6 +578,7 @@ class Login extends PureComponent {
 								value={this.state.deleteText}
 								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
+								placeholderTextColor={colors.text.muted}
 								onSubmitEditing={this.submitDelete}
 							/>
 							{this.state.showDeleteWarning && (
@@ -605,6 +606,7 @@ class Login extends PureComponent {
 								<OutlinedTextField
 									style={styles.input}
 									placeholder={strings('login.password')}
+									placeholderTextColor={colors.text.muted}
 									testID={'login-password-input'}
 									returnKeyType={'done'}
 									autoCapitalize="none"

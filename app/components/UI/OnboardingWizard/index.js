@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, View, StyleSheet, Text, Dimensions, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors as importedColors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
@@ -19,58 +19,60 @@ import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
-const styles = StyleSheet.create({
-	root: {
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0,
-		flex: 1,
-		margin: 0,
-		position: 'absolute',
-		backgroundColor: colors.transparent,
-	},
-	main: {
-		flex: 1,
-		backgroundColor: colors.transparent,
-	},
-	smallSkipWrapper: {
-		alignItems: 'center',
-		alignSelf: 'center',
-		bottom: Device.isIos() ? 30 : 35,
-	},
-	largeSkipWrapper: {
-		alignItems: 'center',
-		alignSelf: 'center',
-		bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
-	},
-	skip: {
-		height: 30,
-		borderRadius: 30,
-		backgroundColor: colors.white,
-		alignItems: 'center',
-	},
-	androidElevated: {
-		width: 120,
-		borderRadius: 30,
-	},
-	iosTouchable: {
-		width: 120,
-	},
-	skipTextWrapper: {
-		flex: 1,
-		flexDirection: 'column',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	skipText: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.blue,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			top: 0,
+			bottom: 0,
+			left: 0,
+			right: 0,
+			flex: 1,
+			margin: 0,
+			position: 'absolute',
+			backgroundColor: importedColors.transparent,
+		},
+		main: {
+			flex: 1,
+			backgroundColor: importedColors.transparent,
+		},
+		smallSkipWrapper: {
+			alignItems: 'center',
+			alignSelf: 'center',
+			bottom: Device.isIos() ? 30 : 35,
+		},
+		largeSkipWrapper: {
+			alignItems: 'center',
+			alignSelf: 'center',
+			bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
+		},
+		skip: {
+			height: 30,
+			borderRadius: 30,
+			backgroundColor: colors.background.default,
+			alignItems: 'center',
+		},
+		androidElevated: {
+			width: 120,
+			borderRadius: 30,
+		},
+		iosTouchable: {
+			width: 120,
+		},
+		skipTextWrapper: {
+			flex: 1,
+			flexDirection: 'column',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		skipText: {
+			...fontStyles.normal,
+			fontSize: 12,
+			color: colors.primary.default,
+		},
+	});
 
 const OnboardingWizard = (props) => {
 	const {
@@ -80,6 +82,8 @@ const OnboardingWizard = (props) => {
 		coachmarkRef,
 	} = props;
 	const { drawerRef } = useContext(DrawerContext);
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	/**
 	 * Close onboarding wizard setting step to 0 and closing drawer

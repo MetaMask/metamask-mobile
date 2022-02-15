@@ -517,9 +517,9 @@ class ResetPassword extends PureComponent {
 								value={biometryChoice}
 								style={styles.biometrySwitch}
 								trackColor={
-									Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null
+									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
 								}
-								ios_backgroundColor={colors.grey300}
+								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
 					</>
@@ -530,8 +530,10 @@ class ResetPassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={Device.isIos() ? { true: colors.success.default, false: colors.grey300 } : null}
-							ios_backgroundColor={colors.grey300}
+							trackColor={
+								Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
+							}
+							ios_backgroundColor={colors.border.muted}
 						/>
 					</>
 				)}
@@ -671,10 +673,7 @@ class ResetPassword extends PureComponent {
 							{/** Disable animated fox since not yet theme compatible */}
 							{/* <AnimatedFox /> */}
 						</View>
-						<ActivityIndicator
-							size="large"
-							color={Device.isAndroid() ? colors.primary.default : colors.grey}
-						/>
+						<ActivityIndicator size="large" color={colors.text.alternative} />
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING

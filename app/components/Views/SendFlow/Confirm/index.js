@@ -158,7 +158,7 @@ const createStyles = (colors) =>
 			paddingHorizontal: 36,
 			paddingBottom: 24,
 			paddingTop: 16,
-			backgroundColor: colors.grey000,
+			backgroundColor: colors.background.default,
 			borderRadius: 8,
 			width: '100%',
 		},

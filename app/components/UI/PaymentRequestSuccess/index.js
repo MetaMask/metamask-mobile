@@ -145,7 +145,7 @@ const createStyles = (colors) =>
 			paddingHorizontal: 36,
 			paddingBottom: 24,
 			paddingTop: 16,
-			backgroundColor: colors.background.alternative,
+			backgroundColor: colors.background.default,
 			borderRadius: 8,
 		},
 		qrCodeWrapper: {
@@ -349,7 +349,12 @@ class PaymentRequestSuccess extends PureComponent {
 								</TouchableOpacity>
 							</View>
 							<View style={styles.qrCodeWrapper}>
-								<QRCode value={this.state.qrLink} size={Dimensions.get('window').width - 160} />
+								<QRCode
+									value={this.state.qrLink}
+									size={Dimensions.get('window').width - 160}
+									color={colors.text.default}
+									backgroundColor={colors.background.default}
+								/>
 							</View>
 						</View>
 					</View>

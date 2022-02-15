@@ -100,12 +100,14 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 			fontSize: 18,
 			textAlign: 'center',
+			color: colors.text.default,
 		},
 		modalTitle: {
 			...fontStyles.bold,
 			fontSize: 22,
 			textAlign: 'center',
 			marginBottom: 20,
+			color: colors.text.default,
 		},
 		confirm: {
 			marginTop: 18,

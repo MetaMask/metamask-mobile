@@ -104,6 +104,7 @@ class Collectible extends PureComponent {
 		});
 
 		const ownerOf = filteredCollectibles.length;
+
 		return (
 			<View style={styles.wrapper}>
 				<ScrollView

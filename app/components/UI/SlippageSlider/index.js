@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Text, Image } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const SlippageSliderBgImg = require('../../../images/slippage-slider-bg.png');
@@ -14,92 +15,95 @@ const TOOLTIP_HEIGHT = 29;
 const TAIL_WIDTH = 10;
 const COMPONENT_HEIGHT = DIAMETER + TOOLTIP_HEIGHT + 10;
 
-const styles = StyleSheet.create({
-	root: {
-		position: 'relative',
-		justifyContent: 'center',
-		height: COMPONENT_HEIGHT,
-	},
-	rootDisabled: {
-		opacity: 0.5,
-	},
-	slider: {
-		position: 'absolute',
-		width: DIAMETER,
-		height: DIAMETER,
-		borderRadius: DIAMETER,
-		borderWidth: 1,
-		borderColor: colors.white,
-		bottom: 0,
-		shadowColor: colors.black,
-		shadowOffset: {
-			width: 0,
-			height: 0,
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			position: 'relative',
+			justifyContent: 'center',
+			height: COMPONENT_HEIGHT,
 		},
-		shadowOpacity: 0.18,
-		shadowRadius: 14,
-	},
-	trackBackContainer: {
-		position: 'absolute',
-		paddingHorizontal: DIAMETER / 2 - 2 * TRACK_PADDING,
-		bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2,
-	},
-	trackBack: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		height: TICK_DIAMETER + 2 * TRACK_PADDING,
-		backgroundColor: colors.blue000,
-		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
-		borderWidth: TRACK_PADDING,
-		borderColor: colors.blue000,
-	},
-	tick: {
-		height: TICK_DIAMETER,
-		width: TICK_DIAMETER,
-		borderRadius: TICK_DIAMETER,
-		backgroundColor: colors.spinnerColor,
-		opacity: 0.5,
-	},
-	trackFront: {
-		position: 'absolute',
-		overflow: 'hidden',
-		bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2,
-		left: DIAMETER / 2 - 2 * TRACK_PADDING,
-		height: TICK_DIAMETER + 2 * TRACK_PADDING,
-		borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
-	},
-	tooltipContainer: {
-		position: 'absolute',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: colors.grey700,
-		padding: 5,
-		borderRadius: 8,
-		minHeight: TOOLTIP_HEIGHT,
-		minWidth: 40,
-		top: 0,
-	},
-	tooltipTail: {
-		position: 'absolute',
-		left: 0,
-		right: 0,
-		bottom: -5,
-		width: TAIL_WIDTH,
-		height: TAIL_WIDTH,
-		backgroundColor: colors.grey700,
-		transform: [{ rotate: '45deg' }],
-	},
-	tooltipText: {
-		...fontStyles.normal,
-		color: colors.white,
-		fontSize: 12,
-	},
-});
+		rootDisabled: {
+			opacity: 0.5,
+		},
+		slider: {
+			position: 'absolute',
+			width: DIAMETER,
+			height: DIAMETER,
+			borderRadius: DIAMETER,
+			borderWidth: 1,
+			borderColor: colors.background.default,
+			bottom: 0,
+			shadowColor: colors.black,
+			shadowOffset: {
+				width: 0,
+				height: 0,
+			},
+			shadowOpacity: 0.18,
+			shadowRadius: 14,
+		},
+		trackBackContainer: {
+			position: 'absolute',
+			paddingHorizontal: DIAMETER / 2 - 2 * TRACK_PADDING,
+			bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2,
+		},
+		trackBack: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			height: TICK_DIAMETER + 2 * TRACK_PADDING,
+			backgroundColor: colors.primary.muted,
+			borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
+			borderWidth: TRACK_PADDING,
+			borderColor: colors.primary.muted,
+		},
+		tick: {
+			height: TICK_DIAMETER,
+			width: TICK_DIAMETER,
+			borderRadius: TICK_DIAMETER,
+			backgroundColor: colors.primary.default,
+			opacity: 0.5,
+		},
+		trackFront: {
+			position: 'absolute',
+			overflow: 'hidden',
+			bottom: DIAMETER / 2 - (TICK_DIAMETER + 2 * TRACK_PADDING) / 2,
+			left: DIAMETER / 2 - 2 * TRACK_PADDING,
+			height: TICK_DIAMETER + 2 * TRACK_PADDING,
+			borderRadius: TICK_DIAMETER + 2 * TRACK_PADDING,
+		},
+		tooltipContainer: {
+			position: 'absolute',
+			justifyContent: 'center',
+			alignItems: 'center',
+			backgroundColor: colors.grey700,
+			padding: 5,
+			borderRadius: 8,
+			minHeight: TOOLTIP_HEIGHT,
+			minWidth: 40,
+			top: 0,
+		},
+		tooltipTail: {
+			position: 'absolute',
+			left: 0,
+			right: 0,
+			bottom: -5,
+			width: TAIL_WIDTH,
+			height: TAIL_WIDTH,
+			backgroundColor: colors.grey700,
+			transform: [{ rotate: '45deg' }],
+		},
+		tooltipText: {
+			...fontStyles.normal,
+			color: colors.white,
+			fontSize: 12,
+		},
+	});
 
 const setAnimatedValue = (animatedValue, value) => animatedValue.setValue(value);
 
 const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, disabled, changeOnRelease }) => {
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 	/* Reusable/truncated references to the range prop values */
 	const [r0, r1] = useMemo(() => range, [range]);
 	const fullRange = useMemo(() => r1 - r0, [r0, r1]);
@@ -126,7 +130,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 
 	const sliderColor = sliderPosition.interpolate({
 		inputRange: [0, trackWidth],
-		outputRange: [colors.spinnerColor, colors.red],
+		outputRange: [colors.primary.default, colors.error.default],
 		extrapolate: 'clamp',
 	});
 

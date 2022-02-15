@@ -10,6 +10,7 @@ import { fontStyles, colors } from '../../../../styles/common';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	main: {
@@ -35,6 +36,8 @@ const Step4 = (props) => {
 	const { coachmarkRef, setOnboardingWizardStep } = props;
 	const [viewTop, setViewTop] = useState(0);
 	const { drawerRef } = useContext(DrawerContext);
+	const { colors } = useAppThemeFromContext();
+	const dynamicOnboardingStyles = onboardingStyles(colors);
 
 	/**
 	 * Sets coachmark top position getting AccountOverview component ref from Wallet
@@ -82,12 +85,12 @@ const Step4 = (props) => {
 	 * Returns content for this step
 	 */
 	const content = () => (
-		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content} testID={'step4-title'}>
+		<View style={dynamicOnboardingStyles.contentContainer}>
+			<Text style={dynamicOnboardingStyles.content} testID={'step4-title'}>
 				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step4.content1')} </Text>
 				{strings('onboarding_wizard.step4.content2')}
 			</Text>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step4.content3')}</Text>
+			<Text style={dynamicOnboardingStyles.content}>{strings('onboarding_wizard.step4.content3')}</Text>
 		</View>
 	);
 
@@ -108,7 +111,7 @@ const Step4 = (props) => {
 					content={content()}
 					onNext={onNext}
 					onBack={onBack}
-					style={onboardingStyles.coachmarkLeft}
+					style={dynamicOnboardingStyles.coachmarkLeft}
 					topIndicatorPosition={'topLeftCorner'}
 					currentStep={3}
 				/>

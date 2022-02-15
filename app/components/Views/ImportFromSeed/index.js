@@ -113,6 +113,7 @@ const createStyles = (colors) =>
 			borderColor: colors.border.default,
 			backgroundColor: colors.background.default,
 			...fontStyles.normal,
+			color: colors.text.default,
 		},
 		padding: {
 			paddingRight: 46,
@@ -522,6 +523,7 @@ class ImportFromSeed extends PureComponent {
 								containerStyle={inputWidth}
 								inputContainerStyle={styles.padding}
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
+								placeholderTextColor={colors.text.muted}
 								testID="input-seed-phrase"
 								returnKeyType="next"
 								autoCapitalize="none"
@@ -574,8 +576,9 @@ class ImportFromSeed extends PureComponent {
 							<OutlinedTextField
 								style={styles.input}
 								containerStyle={inputWidth}
-								ref={this.passwordInput}
+								// ref={this.passwordInput}
 								placeholder={strings('import_from_seed.new_password')}
+								placeholderTextColor={colors.text.muted}
 								testID={'input-password-field'}
 								returnKeyType={'next'}
 								autoCapitalize="none"
@@ -603,7 +606,7 @@ class ImportFromSeed extends PureComponent {
 							<OutlinedTextField
 								style={styles.input}
 								containerStyle={inputWidth}
-								ref={this.confirmPasswordInput}
+								// ref={this.confirmPasswordInput}
 								testID={'input-password-field-confirm'}
 								onChangeText={this.onPasswordConfirmChange}
 								returnKeyType={'next'}
@@ -614,6 +617,7 @@ class ImportFromSeed extends PureComponent {
 								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.onPressImport}
+								placeholderTextColor={colors.text.muted}
 							/>
 
 							<View style={styles.showMatchingPasswords}>

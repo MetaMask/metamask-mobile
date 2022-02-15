@@ -6,56 +6,59 @@ import { StyleSheet, Text, View, InteractionManager } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		minHeight: 200,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-	},
-	accountCardWrapper: {
-		paddingHorizontal: 24,
-	},
-	intro: {
-		...fontStyles.bold,
-		textAlign: 'center',
-		color: colors.fontPrimary,
-		fontSize: Device.isSmallDevice() ? 16 : 20,
-		marginBottom: 8,
-		marginTop: 16,
-	},
-	warning: {
-		...fontStyles.thin,
-		color: colors.fontPrimary,
-		paddingHorizontal: 24,
-		marginBottom: 16,
-		fontSize: 14,
-		width: '100%',
-		textAlign: 'center',
-	},
-	actionContainer: {
-		flex: 0,
-		flexDirection: 'row',
-		paddingVertical: 16,
-		paddingHorizontal: 24,
-	},
-	button: {
-		flex: 1,
-	},
-	cancel: {
-		marginRight: 8,
-	},
-	confirm: {
-		marginLeft: 8,
-	},
-});
+import { ThemeContext } from '../../../util/theme';
+
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			backgroundColor: colors.background.default,
+			paddingTop: 24,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			minHeight: 200,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+		},
+		accountCardWrapper: {
+			paddingHorizontal: 24,
+		},
+		intro: {
+			...fontStyles.bold,
+			textAlign: 'center',
+			color: colors.text.default,
+			fontSize: Device.isSmallDevice() ? 16 : 20,
+			marginBottom: 8,
+			marginTop: 16,
+		},
+		warning: {
+			...fontStyles.thin,
+			color: colors.text.default,
+			paddingHorizontal: 24,
+			marginBottom: 16,
+			fontSize: 14,
+			width: '100%',
+			textAlign: 'center',
+		},
+		actionContainer: {
+			flex: 0,
+			flexDirection: 'row',
+			paddingVertical: 16,
+			paddingHorizontal: 24,
+		},
+		button: {
+			flex: 1,
+		},
+		cancel: {
+			marginRight: 8,
+		},
+		confirm: {
+			marginLeft: 8,
+		},
+	});
 
 /**
  * Account access approval component
@@ -179,6 +182,9 @@ class AccountApproval extends PureComponent {
 
 	render = () => {
 		const { currentPageInformation } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.root} testID={'account-approval-modal-container'}>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
@@ -216,5 +222,7 @@ const mapStateToProps = (state) => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
+
+AccountApproval.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(AccountApproval);

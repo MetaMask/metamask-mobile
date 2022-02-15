@@ -159,7 +159,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								autoCorrect={false}
 								onChangeText={onChangeText}
 								placeholder={String(proposedNonce)}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								spellCheck={false}
 								editable
 								style={styles.nonceInput}

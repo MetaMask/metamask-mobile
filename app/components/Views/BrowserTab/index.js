@@ -26,7 +26,7 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import { colors, baseStyles, fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -59,6 +59,7 @@ import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -66,158 +67,159 @@ const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const ANIMATION_TIMING = 300;
 
-const styles = StyleSheet.create({
-	wrapper: {
-		...baseStyles.flexGrow,
-		backgroundColor: colors.white,
-	},
-	hide: {
-		flex: 0,
-		opacity: 0,
-		display: 'none',
-		width: 0,
-		height: 0,
-	},
-	progressBarWrapper: {
-		height: 3,
-		width: '100%',
-		left: 0,
-		right: 0,
-		top: 0,
-		position: 'absolute',
-		zIndex: 999999,
-	},
-	optionsOverlay: {
-		position: 'absolute',
-		zIndex: 99999998,
-		top: 0,
-		bottom: 0,
-		left: 0,
-		right: 0,
-	},
-	optionsWrapper: {
-		position: 'absolute',
-		zIndex: 99999999,
-		width: 200,
-		borderWidth: 1,
-		borderColor: colors.grey100,
-		backgroundColor: colors.white,
-		borderRadius: 10,
-		paddingBottom: 5,
-		paddingTop: 10,
-	},
-	optionsWrapperAndroid: {
-		shadowColor: colors.grey400,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
-		bottom: 65,
-		right: 5,
-	},
-	optionsWrapperIos: {
-		shadowColor: colors.grey400,
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.5,
-		shadowRadius: 3,
-		bottom: 90,
-		right: 5,
-	},
-	option: {
-		paddingVertical: 10,
-		height: 'auto',
-		minHeight: 44,
-		paddingHorizontal: 15,
-		backgroundColor: colors.white,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'flex-start',
-		marginTop: Device.isAndroid() ? 0 : -5,
-	},
-	optionText: {
-		fontSize: 16,
-		lineHeight: 16,
-		alignSelf: 'center',
-		justifyContent: 'center',
-		marginTop: 3,
-		color: colors.blue,
-		flex: 1,
-		...fontStyles.fontPrimary,
-	},
-	optionIconWrapper: {
-		flex: 0,
-		borderRadius: 5,
-		backgroundColor: colors.blue000,
-		padding: 3,
-		marginRight: 10,
-		alignSelf: 'center',
-	},
-	optionIcon: {
-		color: colors.blue,
-		textAlign: 'center',
-		alignSelf: 'center',
-		fontSize: 18,
-	},
-	webview: {
-		...baseStyles.flexGrow,
-		zIndex: 1,
-	},
-	urlModalContent: {
-		flexDirection: 'row',
-		paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
-		paddingHorizontal: 10,
-		backgroundColor: colors.white,
-		height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
-	},
-	urlModal: {
-		justifyContent: 'flex-start',
-		margin: 0,
-	},
-	urlInput: {
-		...fontStyles.normal,
-		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
-		borderRadius: 30,
-		fontSize: Device.isAndroid() ? 16 : 14,
-		padding: 8,
-		paddingLeft: 15,
-		textAlign: 'left',
-		flex: 1,
-		height: Device.isAndroid() ? 40 : 30,
-	},
-	cancelButton: {
-		marginTop: 7,
-		marginLeft: 10,
-	},
-	cancelButtonText: {
-		fontSize: 14,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	iconCloseButton: {
-		borderRadius: 300,
-		backgroundColor: colors.fontSecondary,
-		color: colors.white,
-		fontSize: 18,
-		padding: 0,
-		height: 20,
-		width: 20,
-		paddingBottom: 0,
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginTop: 10,
-		marginRight: 5,
-	},
-	iconClose: {
-		color: colors.white,
-		fontSize: 18,
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	fullScreenModal: {
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			...baseStyles.flexGrow,
+			backgroundColor: colors.background.default,
+		},
+		hide: {
+			flex: 0,
+			opacity: 0,
+			display: 'none',
+			width: 0,
+			height: 0,
+		},
+		progressBarWrapper: {
+			height: 3,
+			width: '100%',
+			left: 0,
+			right: 0,
+			top: 0,
+			position: 'absolute',
+			zIndex: 999999,
+		},
+		optionsOverlay: {
+			position: 'absolute',
+			zIndex: 99999998,
+			top: 0,
+			bottom: 0,
+			left: 0,
+			right: 0,
+		},
+		optionsWrapper: {
+			position: 'absolute',
+			zIndex: 99999999,
+			width: 200,
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			backgroundColor: colors.background.default,
+			borderRadius: 10,
+			paddingBottom: 5,
+			paddingTop: 10,
+		},
+		optionsWrapperAndroid: {
+			shadowColor: colors.grey400,
+			shadowOffset: { width: 0, height: 2 },
+			shadowOpacity: 0.5,
+			shadowRadius: 3,
+			bottom: 65,
+			right: 5,
+		},
+		optionsWrapperIos: {
+			shadowColor: colors.grey400,
+			shadowOffset: { width: 0, height: 2 },
+			shadowOpacity: 0.5,
+			shadowRadius: 3,
+			bottom: 90,
+			right: 5,
+		},
+		option: {
+			paddingVertical: 10,
+			height: 'auto',
+			minHeight: 44,
+			paddingHorizontal: 15,
+			backgroundColor: colors.background.default,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'flex-start',
+			marginTop: Device.isAndroid() ? 0 : -5,
+		},
+		optionText: {
+			fontSize: 16,
+			lineHeight: 16,
+			alignSelf: 'center',
+			justifyContent: 'center',
+			marginTop: 3,
+			color: colors.primary.default,
+			flex: 1,
+			...fontStyles.fontPrimary,
+		},
+		optionIconWrapper: {
+			flex: 0,
+			borderRadius: 5,
+			backgroundColor: colors.primary.muted,
+			padding: 3,
+			marginRight: 10,
+			alignSelf: 'center',
+		},
+		optionIcon: {
+			color: colors.primary.default,
+			textAlign: 'center',
+			alignSelf: 'center',
+			fontSize: 18,
+		},
+		webview: {
+			...baseStyles.flexGrow,
+			zIndex: 1,
+		},
+		urlModalContent: {
+			flexDirection: 'row',
+			paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
+			paddingHorizontal: 10,
+			backgroundColor: colors.background.default,
+			height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
+		},
+		urlModal: {
+			justifyContent: 'flex-start',
+			margin: 0,
+		},
+		urlInput: {
+			...fontStyles.normal,
+			backgroundColor: colors.background.alternative,
+			borderRadius: 30,
+			fontSize: Device.isAndroid() ? 16 : 14,
+			padding: 8,
+			paddingLeft: 15,
+			textAlign: 'left',
+			flex: 1,
+			height: Device.isAndroid() ? 40 : 30,
+			color: colors.text.default,
+		},
+		cancelButton: {
+			marginTop: 7,
+			marginLeft: 10,
+		},
+		cancelButtonText: {
+			fontSize: 14,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		iconCloseButton: {
+			borderRadius: 300,
+			backgroundColor: colors.text.alternative,
+			fontSize: 18,
+			padding: 0,
+			height: 20,
+			width: 20,
+			paddingBottom: 0,
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginTop: 10,
+			marginRight: 5,
+		},
+		iconClose: {
+			fontSize: 18,
+			color: colors.text.default,
+		},
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		fullScreenModal: {
+			flex: 1,
+		},
+	});
 
 const sessionENSNames = {};
 const ensIgnoreList = [];
@@ -261,6 +263,9 @@ export const BrowserTab = (props) => {
 	const addCustomNetworkRequest = useRef(null);
 	const switchCustomNetworkRequest = useRef(null);
 	const wizardScrollAdjusted = useRef(false);
+
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	/**
 	 * Gets the url to be displayed to the user
@@ -879,7 +884,7 @@ export const BrowserTab = (props) => {
 			animationOut="slideOutDown"
 			style={styles.fullScreenModal}
 			backdropOpacity={1}
-			backdropColor={colors.red}
+			backdropColor={colors.error.default}
 			animationInTiming={300}
 			animationOutTiming={300}
 			useNativeDriver
@@ -1095,7 +1100,7 @@ export const BrowserTab = (props) => {
 						onChangeText={onURLChange}
 						onSubmitEditing={onUrlInputSubmit}
 						placeholder={strings('autocomplete.placeholder')}
-						placeholderTextColor={colors.grey400}
+						placeholderTextColor={colors.text.muted}
 						returnKeyType="go"
 						style={styles.urlInput}
 						value={autocompleteValue}

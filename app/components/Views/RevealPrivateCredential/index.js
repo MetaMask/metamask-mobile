@@ -34,6 +34,9 @@ const createStyles = (colors) =>
 			backgroundColor: colors.background.default,
 			flex: 1,
 		},
+		headerText: {
+			color: colors.text.default,
+		},
 		header: {
 			borderBottomColor: colors.border.muted,
 			borderBottomWidth: 1,
@@ -52,10 +55,13 @@ const createStyles = (colors) =>
 			color: colors.text.default,
 			...fontStyles.normal,
 		},
+		seedPhraseTitle: {
+			color: colors.text.default,
+		},
 		seedPhraseView: {
 			borderRadius: 10,
 			borderWidth: 1,
-			borderColor: colors.grey400,
+			borderColor: colors.border.default,
 			marginTop: 10,
 			alignItems: 'center',
 		},
@@ -86,6 +92,7 @@ const createStyles = (colors) =>
 			borderRadius: 5,
 			borderColor: colors.border.default,
 			padding: 10,
+			color: colors.text.default,
 		},
 		icon: {
 			margin: 10,
@@ -106,6 +113,7 @@ const createStyles = (colors) =>
 		},
 		enterPassword: {
 			marginBottom: 15,
+			color: colors.text.default,
 		},
 		tabContent: {
 			padding: 20,
@@ -122,7 +130,7 @@ const createStyles = (colors) =>
 		},
 		tabStyle: {
 			paddingBottom: 0,
-			backgroundColor: colors.beige,
+			backgroundColor: colors.background.default,
 		},
 		textStyle: {
 			fontSize: 12,
@@ -179,6 +187,7 @@ class RevealPrivateCredential extends PureComponent {
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
 		const { colors } = this.context;
+
 		navigation.setOptions(
 			getNavigationOptionsTitle(
 				strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
@@ -289,7 +298,7 @@ class RevealPrivateCredential extends PureComponent {
 				underlineStyle={styles.tabUnderlineStyle}
 				activeTextColor={colors.primary.default}
 				inactiveTextColor={colors.text.muted}
-				backgroundColor={colors.white}
+				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
@@ -314,7 +323,9 @@ class RevealPrivateCredential extends PureComponent {
 				>
 					<View>
 						<View style={[styles.rowWrapper, styles.header]}>
-							<Text>{strings(`reveal_credential.${privateCredentialName}_explanation`)}</Text>
+							<Text style={styles.headerText}>
+								{strings(`reveal_credential.${privateCredentialName}_explanation`)}
+							</Text>
 						</View>
 						<View style={styles.warningWrapper}>
 							<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
@@ -327,9 +338,11 @@ class RevealPrivateCredential extends PureComponent {
 
 						<View style={styles.rowWrapper}>
 							{unlocked ? (
-								<ScrollableTabView renderTabBar={this.renderTabBar}>
+								<ScrollableTabView renderTabBar={() => this.renderTabBar()}>
 									<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
-										<Text>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
+										<Text style={styles.seedPhraseTitle}>
+											{strings(`reveal_credential.${privateCredentialName}`)}
+										</Text>
 										<View style={styles.seedPhraseView}>
 											<TextInput
 												value={privateCredential}
@@ -357,6 +370,8 @@ class RevealPrivateCredential extends PureComponent {
 											<QRCode
 												value={privateCredential}
 												size={Dimensions.get('window').width - 160}
+												color={colors.text.default}
+												backgroundColor={colors.background.default}
 											/>
 										</View>
 									</View>
