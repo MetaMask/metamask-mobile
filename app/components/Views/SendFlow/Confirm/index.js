@@ -739,12 +739,14 @@ class Confirm extends PureComponent {
 	/**
 	 * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
 	 */
-	checkRemoveCollectible = () => {
+	 checkRemoveCollectible = () => {
 		const {
-			transactionState: { selectedAsset, assetType },
+			transactionState: { assetType, selectedAsset },
 			chainId,
 		} = this.props;
+
 		const { fromSelectedAddress } = this.state;
+		
 		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { CollectiblesController } = Engine.context;
 			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
@@ -835,6 +837,7 @@ class Confirm extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
+			
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise((resolve) => resolve(result));
 
@@ -847,12 +850,17 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType,
 				});
-				this.checkRemoveCollectible();
-				AnalyticsV2.trackEvent(
-					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
-					this.getAnalyticsParams()
-				);
-				resetTransaction();
+
+				//Listening if the transaction it's confirmed to remove the collectible
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, () => {
+					this.checkRemoveCollectible();
+					AnalyticsV2.trackEvent(
+						AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+						this.getAnalyticsParams()
+					);
+					resetTransaction();
+				});
+			
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
