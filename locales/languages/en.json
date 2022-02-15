@@ -1829,6 +1829,8 @@
 		"save_nickname": "Confirm",
 		"address": "Address",
 		"name": "Name",
-		"name_placeholder": "Add a nickname to this address"
+		"name_placeholder": "Add a nickname to this address",
+		"contract": "Contract",
+		"nickname": "nickname"
 	}
 }
