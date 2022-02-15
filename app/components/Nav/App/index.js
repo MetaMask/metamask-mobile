@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, useSelector } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -29,7 +29,7 @@ import Device from '../../../util/device';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { setCurrentRoute } from '../../../actions/navigation';
