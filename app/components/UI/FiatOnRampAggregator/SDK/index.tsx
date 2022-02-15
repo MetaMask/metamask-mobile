@@ -15,10 +15,23 @@ export const useFiatOnRampSDK = () => {
 	const sdk = useContext(SDKContext);
 	const dispatch = useDispatch();
 
-	const initialSelectedCountry = useSelector(fiatOrdersCountrySelectorAgg);
+	const INITIAL_SELECTED_COUNTRY = useSelector(fiatOrdersCountrySelectorAgg);
+	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
+	// const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
+	const INITIAL_SELECTED_ASSET = {
+		address: '',
+		aggregators: ['aave'],
+		decimals: 18,
+		iconUrl: 'https://crypto.com/price/coin-data/icon/ETH/color_icon.png',
+		name: 'Ethereum',
+		occurrences: 11,
+		symbol: 'ETH',
+		network: 'ethereum',
+	};
 
-	const [selectedCountry, setSelectedCountry] = useState<string>(initialSelectedCountry);
-	const [selectedRegion, setSelectedRegion] = useState<string>(initialSelectedCountry);
+	const [selectedCountry, setSelectedCountry] = useState<string>(INITIAL_SELECTED_COUNTRY);
+	const [selectedRegion, setSelectedRegion] = useState<string>(INITIAL_SELECTED_REGION);
+	const [selectedAsset, setSelectedAsset] = useState<any>(INITIAL_SELECTED_ASSET);
 	const [regionCurrency, setRegionCurrency] = useState<string>('USD');
 
 	const setSelectedCountryCallback = useCallback(
@@ -57,6 +70,8 @@ export const useFiatOnRampSDK = () => {
 		selectedRegion,
 		setRegionCurrency: setRegionCurrencyCallback,
 		regionCurrency,
+		setSelectedAsset,
+		selectedAsset,
 	};
 };
 
