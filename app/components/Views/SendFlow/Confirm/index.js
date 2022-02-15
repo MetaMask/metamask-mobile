@@ -739,9 +739,8 @@ class Confirm extends PureComponent {
 	/**
 	 * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
 	 */
-	checkRemoveCollectible = () => {
+	checkRemoveCollectible = (assetType, selectedAsset) => {
 		const {
-			transactionState: { selectedAsset, assetType },
 			chainId,
 		} = this.props;
 		const { fromSelectedAddress } = this.state;
@@ -808,7 +807,7 @@ class Confirm extends PureComponent {
 	onNext = async () => {
 		const { TransactionController } = Engine.context;
 		const {
-			transactionState: { assetType },
+			transactionState: { assetType, selectedAsset },
 			navigation,
 			resetTransaction,
 			gasEstimateType,
@@ -848,13 +847,14 @@ class Confirm extends PureComponent {
 					assetType,
 				});
 				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, () => {
-					this.checkRemoveCollectible();
-					AnalyticsV2.trackEvent(
-						AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
-						this.getAnalyticsParams()
-					);
-					resetTransaction();
+					this.checkRemoveCollectible(assetType, selectedAsset);
+				
 				});
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+					this.getAnalyticsParams()
+				);
+				resetTransaction();
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
