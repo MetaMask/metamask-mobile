@@ -257,7 +257,7 @@ class TransactionEditor extends PureComponent {
 
 	componentDidMount = async () => {
 		const { transaction } = this.props;
-
+		console.log('TEST');
 		const zeroGas = new BN('00');
 		const hasGasPrice = Boolean(transaction.gasPrice) && !new BN(transaction.gasPrice).eq(zeroGas);
 		const hasGasLimit = Boolean(transaction.gas) && !new BN(transaction.gas).eq(zeroGas);
@@ -481,7 +481,6 @@ class TransactionEditor extends PureComponent {
 				if (transaction.data) {
 					return transaction.data;
 				}
-
 				const tokenAmountToSend = selectedAsset && value && value.toString(16);
 				return to && tokenAmountToSend
 					? generateTransferData('transfer', { toAddress: to, amount: tokenAmountToSend })

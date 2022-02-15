@@ -16,12 +16,11 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
@@ -35,13 +34,13 @@ import {
 	parseVaultValue,
 } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import { BIOMETRY_CHOICE_DISABLED, ONBOARDING_WIZARD, TRUE } from '../../../constants/storage';
+import { BIOMETRY_CHOICE_DISABLED, PASSCODE_DISABLED, ONBOARDING_WIZARD, TRUE } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService from '../../../core/AuthenticationService';
+import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 const styles = StyleSheet.create({
@@ -199,6 +198,10 @@ class ImportFromSeed extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * 
+		 */
+		passwordSet: PropTypes.func,
 	};
 
 	state = {
@@ -220,15 +223,20 @@ class ImportFromSeed extends PureComponent {
 	confirmPasswordInput = React.createRef();
 
 	async componentDidMount() {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
-			let enabled = true;
-			const previouslyDisabled = await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-			if (previouslyDisabled && previouslyDisabled === TRUE) {
-				enabled = false;
-			}
-			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: enabled });
-		}
+		const type = await AuthenticationService.getType();
+		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+		if (type === AuthenticationType.BIOMETRIC)
+			this.setState({
+				biometryType: type,
+				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+			});
+		else if (type === AuthenticationType.PASSCODE)
+			this.setState({
+				biometryType: type,
+				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+			});
+
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		setTimeout(() => {
 			this.setState({ inputWidth: { width: '100%' } });
@@ -276,12 +284,14 @@ class ImportFromSeed extends PureComponent {
 					this.state.biometryChoice,
 					this.state.rememberMe
 				);
-				await AuthenticationService.newWalletAuth(password, type, parsedSeed);
+
+				await AuthenticationService.newWalletAndRestore(password, type, parsedSeed, true);
 
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 				this.setState({ loading: false });
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+				this.props.passwordSet();
 				this.props.seedphraseBackedUp();
 				InteractionManager.runAfterInteractions(() => {
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
@@ -623,7 +633,6 @@ const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 	passwordSet: () => dispatch(passwordSet()),
 	seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-	logIn: () => dispatch(logIn()),
 });
 
 export default connect(null, mapDispatchToProps)(ImportFromSeed);

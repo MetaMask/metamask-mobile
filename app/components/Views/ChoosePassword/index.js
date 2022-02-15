@@ -313,13 +313,6 @@ class ChoosePassword extends PureComponent {
 		this.setState(() => ({ isSelected: !isSelected }));
 	};
 
-	createNewVaultAndKeychain = async (password) => {
-		const { KeyringController } = Engine.context;
-		await Engine.resetState();
-		await KeyringController.createNewVaultAndKeychain(password);
-		this.keyringControllerPasswordSet = true;
-	};
-
 	onPressCreate = async () => {
 		const { loading, isSelected, password, confirmPassword } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
@@ -342,39 +335,24 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
+			const authType = await AuthenticationService.componentAuthenticationType(
+				this.state.biometryChoice,
+				this.state.rememberMe
+			);
+			
+			console.log('Before If', authType);
 			if (previous_screen === ONBOARDING) {
-				await this.createNewVaultAndKeychain(password);
+				console.log('Create New Vault', authType);
+				await AuthenticationService.newWalletAndKeyChain(password, authType);
+				this.keyringControllerPasswordSet = true;
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-				await AsyncStorage.setItem(EXISTING_USER, TRUE);
-				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			} else {
-				await this.recreateVault(password);
+				console.log('Recreate  Vault');
+				await this.recreateVault(password, authType);
 			}
 
-			try {
-				let type;
-				console.log('ChoosePassword this.state.biometryType', this.state.biometryType);
-				console.log('ChoosePassword this.state.biometryChoice', this.state.biometryChoice);
-				console.log('ChoosePassword this.state.rememberMe', this.state.rememberMe);
-				if (this.state.biometryType && this.state.biometryChoice) {
-					type = AuthenticationType.BIOMETRIC;
-				} else if (this.state.rememberMe) {
-					type = AuthenticationType.REMEMBER_ME;
-				} else {
-					type = AuthenticationType.PASSWORD;
-				}
-				console.log('ChoosePassword type', type);
-				await AuthenticationService.storePassword(password, type);
-			} catch (error) {
-				if (Device.isIos) await this.handleRejectedOsBiometricPrompt(error);
-				throw error;
-			}
-
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.props.passwordSet();
-			this.props.logIn();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.setState({ loading: false });
 			this.props.navigation.replace('AccountBackupStep1');
@@ -390,7 +368,6 @@ class ChoosePassword extends PureComponent {
 		} catch (error) {
 			await this.recreateVault('');
 			// Set state in app as it was with no password
-			await SecureKeychain.resetGenericPassword();
 			await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -437,7 +414,7 @@ class ChoosePassword extends PureComponent {
 	 *
 	 * @param password - Password to recreate and set the vault with
 	 */
-	recreateVault = async (password) => {
+	recreateVault = async (password, authType) => {
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
 
@@ -458,13 +435,9 @@ class ChoosePassword extends PureComponent {
 		} catch (e) {
 			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 		}
-
+		
 		// Recreate keyring with password given to this method
-		const type = await AuthenticationService.componentAuthenticationType(
-			this.state.biometryChoice,
-			this.state.rememberMe
-		);
-		await AuthenticationService.newWalletAuth(password, type, seedPhrase);
+		await AuthenticationService.newWalletAndRestore(password, authType, seedPhrase, true);
 		// Keyring is set with empty password or not
 		this.keyringControllerPasswordSet = password !== '';
 

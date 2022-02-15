@@ -28,13 +28,12 @@ import Device from '../../../util/device';
 import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
-import { EXISTING_USER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constants/storage';
+import { TRUE, BIOMETRY_CHOICE_DISABLED, PASSCODE_DISABLED } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
@@ -302,13 +301,24 @@ class ResetPassword extends PureComponent {
 	confirmPasswordInput = React.createRef();
 
 	async componentDidMount() {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-
 		const state = { view: CONFIRM_PASSWORD };
-		if (biometryType) {
-			state.biometryType = Device.isAndroid() ? 'biometrics' : biometryType;
-			state.biometryChoice = true;
-		}
+
+		//Setup UI to handle Biometric
+		const type = await AuthenticationService.getType();
+		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+		if (type === AuthenticationType.BIOMETRIC)
+			this.setState({
+				biometryType: type,
+				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+			});
+		else if (type === AuthenticationType.PASSCODE)
+			this.setState({
+				biometryType: type,
+				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+			});
+
+		console.log('Reset Password', type, !(previouslyDisabled && previouslyDisabled === TRUE));
 
 		this.setState(state);
 
@@ -359,8 +369,16 @@ class ResetPassword extends PureComponent {
 
 			await this.recreateVault(originalPassword);
 
-			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+			// Recreate keyring with password given to this method
+			const type = await AuthenticationService.componentAuthenticationType(
+				this.state.biometryChoice,
+				this.state.rememberMe
+			);
 
+			await AuthenticationService.storePassword(password, type);
+
+			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+			this.props.passwordSet();
 			this.setState({ loading: false });
 			InteractionManager.runAfterInteractions(() => {
 				this.props.navigation.navigate('SecuritySettings');
@@ -388,7 +406,6 @@ class ResetPassword extends PureComponent {
 	/**
 	 * Recreates a vault
 	 *
-	 * @param password - Password to recreate and set the vault with
 	 */
 	recreateVault = async (password) => {
 		const { originalPassword, password: newPassword } = this.state;
@@ -414,12 +431,7 @@ class ResetPassword extends PureComponent {
 			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 		}
 
-		// Recreate keyring with password given to this method
-		const type = await AuthenticationService.componentAuthenticationType(
-			this.state.biometryChoice,
-			this.state.rememberMe
-		);
-		await AuthenticationService.newWalletAuth(newPassword, type, seedPhrase);
+		await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];
