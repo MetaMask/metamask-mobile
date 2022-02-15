@@ -69,6 +69,13 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		...(fontStyles.normal as any),
 	},
+	animatedCircle: {
+		transform: [
+			{
+				rotate: '-90deg',
+			},
+		],
+	},
 });
 
 interface Props {
@@ -230,7 +237,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 					strokeLinecap={'round'}
 				/>
 			</Svg>
-			<Svg style={styles.absoluteFill}>
+			<Svg style={[styles.absoluteFill, styles.animatedCircle]}>
 				<AnimatedCircle
 					animatedProps={animatedProps}
 					cx={radius}

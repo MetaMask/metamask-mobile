@@ -16,7 +16,7 @@ import Animated, {
 	set,
 	Extrapolate,
 } from 'react-native-reanimated';
-import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash';
+import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash/src/v1';
 import { colors } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
 const screenWidth = Dimensions.get('window').width;
