@@ -7,6 +7,7 @@ const CREATE_PASSWORD_INPUT_BOX_ID = 'input-password-field';
 const CONFIRM_PASSWORD_INPUT_BOX_ID = 'input-password-field-confirm';
 const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
 const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
+const REMEMBER_ME_ID = 'remember-me-toggle';
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
 
 // use i18n for these
@@ -51,6 +52,10 @@ export default class ImportWalletView {
 	}
 	static async clearSecretRecoveryPhraseInputBox() {
 		await TestHelpers.clearField(SECRET_RECOVERY_PHRASE_INPUT_BOX_ID);
+	}
+
+	static async toggleRememberMe() {
+		await TestHelpers.tap(REMEMBER_ME_ID);
 	}
 
 	// Assertions

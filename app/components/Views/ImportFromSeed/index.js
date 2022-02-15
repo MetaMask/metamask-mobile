@@ -42,6 +42,7 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import AuthenticationService from '../../../core/AuthenticationService';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -324,8 +325,27 @@ class ImportFromSeed extends PureComponent {
 		this.setState({ biometryChoice: value });
 	};
 
-	onSeedWordsChange = (seed) => {
+	clearSecretRecoveryPhrase = async (seed) => {
+		// get clipboard contents
+		const clipboardContents = await Clipboard.getString();
+		const parsedClipboardContents = parseSeedPhrase(clipboardContents);
+		if (
+			// only clear clipboard if contents isValidMnemonic
+			!failedSeedPhraseRequirements(parsedClipboardContents) &&
+			isValidMnemonic(parsedClipboardContents) &&
+			// only clear clipboard if the seed phrase entered matches what's in the clipboard
+			parseSeedPhrase(seed) === parsedClipboardContents
+		) {
+			await Clipboard.clearString();
+		}
+	};
+
+	onSeedWordsChange = async (seed) => {
 		this.setState({ seed });
+		// only clear on android since iOS will notify users when we getString()
+		if (Device.isAndroid()) {
+			await this.clearSecretRecoveryPhrase(seed);
+		}
 	};
 
 	onPasswordChange = (val) => {
@@ -384,6 +404,7 @@ class ImportFromSeed extends PureComponent {
 					style={styles.biometrySwitch}
 					trackColor={Device.isIos() ? { true: colors.green300, false: colors.grey300 } : null}
 					ios_backgroundColor={colors.grey300}
+					testID={'remember-me-toggle'}
 				/>
 			</View>
 		);

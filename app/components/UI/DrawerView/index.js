@@ -748,7 +748,7 @@ class DrawerView extends PureComponent {
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
 				{
-					name: strings('drawer.transaction_history'),
+					name: strings('drawer.transaction_activity'),
 					icon: this.getFeatherIcon('list'),
 					selectedIcon: this.getSelectedFeatherIcon('list'),
 					action: this.goToTransactionHistory,
@@ -778,7 +778,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					name: strings('drawer.help'),
-					icon: this.getFeatherIcon('help-circle'),
+					icon: this.getIcon('comments'),
 					action: this.showHelp,
 				},
 				{

@@ -170,7 +170,7 @@ describe('Wallet Tests', () => {
 		// Tap on Crypto Kitty
 		await WalletView.tapOnNFTInWallet('CryptoKitties');
 
-		await WalletView.isNFTAppearing('1 CryptoKitties');
+		await WalletView.isNFTNameVisible('1 CryptoKitties');
 	});
 
 	it('should add a token', async () => {
@@ -241,6 +241,7 @@ describe('Wallet Tests', () => {
 		// Type correct token address
 
 		await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
+		await AddCustomTokenView.tapTokenSymbolInputBox();
 		await AddCustomTokenView.tapTokenSymbolText();
 		await AddCustomTokenView.tapCustomTokenImportButton();
 

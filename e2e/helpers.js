@@ -90,8 +90,12 @@ export default class TestHelpers {
 		await element(by.id(elementId)).scroll(distance, direction);
 	}
 
-	static async goToURL(inputURL) {
-		await device.openURL({ url: inputURL, sourceApp: 'io.metamask' });
+	static async openDeepLink(inputURL) {
+		await device.launchApp({
+			newInstance: true,
+			url: inputURL,
+			sourceApp: 'io.metamask',
+		});
 	}
 
 	static checkIfVisible(elementId) {
