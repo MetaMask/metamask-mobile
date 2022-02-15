@@ -123,7 +123,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		const autoAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				if (existingUser && !userLoggedIn && !locked.current) {
+				console.log('APP AUTH', existingUser, !userLoggedIn, !locked.current);
+				if (existingUser && !userLoggedIn && !locked.current && selectedAddress) {
 					await AuthenticationService.autoAuth(selectedAddress);
 					locked.current = true;
 				}

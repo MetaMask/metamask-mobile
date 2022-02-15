@@ -369,14 +369,6 @@ class ResetPassword extends PureComponent {
 
 			await this.recreateVault(originalPassword);
 
-			// Recreate keyring with password given to this method
-			const type = await AuthenticationService.componentAuthenticationType(
-				this.state.biometryChoice,
-				this.state.rememberMe
-			);
-
-			await AuthenticationService.storePassword(password, type);
-
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.passwordSet();
 			this.setState({ loading: false });
@@ -431,7 +423,13 @@ class ResetPassword extends PureComponent {
 			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 		}
 
-		await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
+		// Recreate keyring with password given to this method
+		const type = await AuthenticationService.componentAuthenticationType(
+			this.state.biometryChoice,
+			this.state.rememberMe
+		);
+
+		await AuthenticationService.newWalletAndRestore(newPassword, type, seedPhrase, false);
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];

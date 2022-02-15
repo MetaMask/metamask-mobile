@@ -51,10 +51,10 @@ class AuthenticationService {
 	 * @param password
 	 * @param type
 	 */
-	_newWalletVaultAndRestore = async (password: string, parsedSeed: string) => {
+	_newWalletVaultAndRestore = async (password: string, parsedSeed: string, clearEngine: boolean) => {
 		// Restore vault with user entered password
 		const { KeyringController }: any = Engine.context;
-		await Engine.resetState();
+		if (clearEngine) await Engine.resetState();
 		await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 		await KeyringController.createNewVaultAndRestore(password, parsedSeed);
 	};
@@ -172,11 +172,16 @@ class AuthenticationService {
 	 * @param selectedAddress
 	 * @returns
 	 */
-	newWalletAndRestore = async (password: string, authType: AuthenticationType, parsedSeed: string) => {
+	newWalletAndRestore = async (
+		password: string,
+		authType: AuthenticationType,
+		parsedSeed: string,
+		clearEngine: boolean
+	) => {
 		console.log('Authservice newWalletAndRestore');
 
 		try {
-			await this._newWalletVaultAndRestore(password, parsedSeed);
+			await this._newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 			await this.storePassword(password, authType);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
@@ -276,8 +281,13 @@ export default {
 	newWalletAndKeyChain: async (password: string, type: AuthenticationType) => {
 		await instance?.newWalletAndKeyChain(password, type);
 	},
-	newWalletAndRestore: async (password: string, type: AuthenticationType, parsedSeed: string) => {
-		await instance?.newWalletAndRestore(password, type, parsedSeed);
+	newWalletAndRestore: async (
+		password: string,
+		type: AuthenticationType,
+		parsedSeed: string,
+		clearEngine: boolean
+	) => {
+		await instance?.newWalletAndRestore(password, type, parsedSeed, clearEngine);
 	},
 	logout: async () => instance?.logout(),
 	resetVault: async () => instance?.resetVault(),
