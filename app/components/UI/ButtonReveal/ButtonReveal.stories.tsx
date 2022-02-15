@@ -8,5 +8,12 @@ import ButtonReveal from './index';
 storiesOf('UI / ButtonReveal', module)
 	.addDecorator((getStory) => getStory())
 	.add('Default', () => {
-		return <ButtonReveal label="Hold to reveal SRP" />;
+		return (
+			<ButtonReveal
+				label={'Hold to reveal SRP'}
+				onLongPress={() => {
+					console.log('Revealing SRP');
+				}}
+			/>
+		);
 	});

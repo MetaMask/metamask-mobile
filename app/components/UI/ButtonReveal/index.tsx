@@ -1,73 +1,283 @@
-import React, { useState } from 'react';
-import { StyleSheet, Pressable, View } from 'react-native';
-import Text from '../../Base/Text';
+import React from 'react';
+import { StyleSheet, View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { colors } from '../../../styles/common';
-import { AnimatedSVGPath } from 'react-native-svg-animations';
+import { colors, fontStyles } from '../../../styles/common';
+import Svg, { Circle } from 'react-native-svg';
+import Animated, {
+	useSharedValue,
+	useAnimatedProps,
+	withTiming,
+	useAnimatedGestureHandler,
+	runOnJS,
+	useAnimatedStyle,
+	useAnimatedReaction,
+	interpolate,
+	Extrapolate,
+	runOnUI,
+} from 'react-native-reanimated';
+import { TapGestureHandlerGestureEvent } from 'react-native-gesture-handler';
+import { TapGestureHandler } from 'react-native-gesture-handler';
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+const radius = 14;
+const strokeWidth = 2;
+const iconSize = radius - 4;
+const innerRadius = radius - strokeWidth / 2;
+const circumference = 2 * Math.PI * innerRadius;
+const animationDuration = 1200;
 
 const styles = StyleSheet.create({
-	holdButton: {
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexDirection: 'row',
-		alignSelf: 'center',
+	container: {
 		backgroundColor: colors.blue,
-		borderRadius: 100,
-		paddingLeft: 8,
-		paddingRight: 16,
-		height: 40,
-	},
-	buttonText: {
-		color: colors.white,
-	},
-	buttonIcon: {
-		justifyContent: 'center',
 		alignItems: 'center',
-		height: 28,
-		width: 28,
-		borderWidth: 3,
-		borderRadius: 20,
-		borderColor: colors.black + '66',
-		paddingLeft: 1,
-		paddingBottom: 1,
-		marginRight: 8,
-		position: 'relative',
+		justifyContent: 'center',
+		flexDirection: 'row',
+		paddingVertical: 12,
+		paddingHorizontal: 24,
+		borderRadius: 99,
 	},
-	progress: {
-		position: 'absolute',
+	progressContainer: {
+		height: radius * 2,
+		width: radius * 2,
+		marginRight: 12,
+	},
+	absoluteFillWithCenter: {
+		...StyleSheet.absoluteFillObject,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	absoluteFill: {
+		...StyleSheet.absoluteFillObject,
+	},
+	preCompletedContainerStyle: {
+		...StyleSheet.absoluteFillObject,
+		borderRadius: radius,
+		backgroundColor: colors.blue,
+	},
+	outerCircle: {
+		...StyleSheet.absoluteFillObject,
+		borderRadius: radius,
+		backgroundColor: colors.white,
+	},
+	innerCircle: {
+		flex: 1,
+		borderRadius: radius - strokeWidth,
+		margin: strokeWidth,
+		backgroundColor: colors.blue,
+	},
+	label: {
+		color: colors.white,
+		fontSize: 18,
+		...(fontStyles.normal as any),
 	},
 });
 
-const ButtonReveal = ({ onLongPress, delayLongPress = 2000, testID, label, onPress = () => {} }) => {
-	const [pressed, setPressed] = useState(false);
-	const handleOnPressIn = () => {
-		setPressed(true);
+interface Props {
+	onLongPress: () => void;
+	label: string;
+}
+
+const ButtonReveal = ({ onLongPress, label }: Props) => {
+	// Values for animating the stroke
+	const progressOrigin = useSharedValue(innerRadius * 2 * Math.PI);
+	const progressDestination = useSharedValue(0);
+	const preCompleteControl = useSharedValue(progressOrigin.value);
+	// Value for animating the icon & button
+	const pressControl = useSharedValue(1);
+	// Value for animating the progress container
+	const progressContainerOpacity = useSharedValue(1);
+	// Value for scaling down the progress container
+	const postCompleteControl = useSharedValue(0);
+
+	// Animate SVG via props
+	const animatedProps = useAnimatedProps(() => {
+		return {
+			strokeDashoffset: preCompleteControl.value,
+		};
+	});
+
+	const resetButton = () => {
+		setTimeout(() => {
+			runOnUI(resetAnimatedValues)();
+		}, 1500);
 	};
-	const handleOnPressOut = () => {
-		setPressed(false);
+
+	// Reset button to original state
+	const resetAnimatedValues = () => {
+		'worklet';
+		progressOrigin.value = innerRadius * 2 * Math.PI;
+		progressDestination.value = 0;
+		preCompleteControl.value = innerRadius * 2 * Math.PI;
+		pressControl.value = 1;
+		postCompleteControl.value = withTiming(
+			0,
+			{
+				duration: 300,
+			},
+			() => {
+				progressContainerOpacity.value = withTiming(1, {
+					duration: 150,
+				});
+			}
+		);
 	};
-	return (
-		<Pressable style={styles.holdButton} onPressIn={handleOnPressIn} onPressOut={handleOnPressOut} testID={testID}>
-			<View style={styles.buttonIcon}>
-				<Icon name={'lock'} size={10} color={colors.white} />
-				<View style={styles.progress}>
-					{pressed && (
-						<AnimatedSVGPath
-							d="M14 1.50001C20.9036 1.50001 26.5 7.09645 26.5 14C26.5 20.9036 20.9036 26.5 14 26.5C7.09644 26.5 1.5 20.9036 1.5 14C1.5 13.8502 1.50263 13.701 1.50784 13.5526C1.74288 6.85681 7.24618 1.50001 14 1.50001Z"
-							strokeWidth={3}
-							strokeColor={colors.white}
-							duration={delayLongPress}
-							delay={0}
-							width={24}
-							height={24}
-							viewBox="0 0 24 24"
-							fill="none"
-						/>
-					)}
-				</View>
+
+	// Post animation from long press
+	useAnimatedReaction(
+		() => preCompleteControl.value,
+		(val) => {
+			if (val === progressDestination.value) {
+				// Trigger post long press animation
+				progressContainerOpacity.value = 0;
+				postCompleteControl.value = withTiming(1, {
+					duration: 400,
+				});
+				pressControl.value = withTiming(1, {
+					duration: 400,
+				});
+			}
+		}
+	);
+
+	// Trigger action from long press
+	useAnimatedReaction(
+		() => postCompleteControl.value,
+		(val) => {
+			if (val === 1) {
+				// Trigger long press action
+				runOnJS(onLongPress)();
+				runOnJS(resetButton)();
+			}
+		}
+	);
+
+	// Button is pressed
+	const triggerPressStart = () => {
+		const duration = (preCompleteControl.value / progressOrigin.value) * animationDuration;
+		preCompleteControl.value = withTiming(progressDestination.value, {
+			duration,
+		});
+		pressControl.value = withTiming(0, {
+			duration: 200,
+		});
+	};
+
+	// Button is released
+	const triggerPressEnd = () => {
+		const duration = ((progressOrigin.value - preCompleteControl.value) / progressOrigin.value) * animationDuration;
+		preCompleteControl.value = withTiming(progressOrigin.value, {
+			duration,
+		});
+		pressControl.value = withTiming(1, {
+			duration: 400,
+		});
+	};
+
+	// Button state handler
+	const tapGestureHandler = useAnimatedGestureHandler<TapGestureHandlerGestureEvent>({
+		onStart: () => {
+			runOnJS(triggerPressStart)();
+		},
+		onEnd: () => {
+			runOnJS(triggerPressEnd)();
+		},
+	});
+
+	const outerCircleStyle = useAnimatedStyle(() => {
+		return {
+			transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
+		};
+	});
+
+	const innerCircleStyle = useAnimatedStyle(() => {
+		return {
+			transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
+		};
+	});
+
+	const preCompletedContainerStyle = useAnimatedStyle(() => {
+		return {
+			opacity: progressContainerOpacity.value,
+		};
+	});
+
+	const lockIconStyle = useAnimatedStyle(() => {
+		return {
+			opacity: pressControl.value,
+		};
+	});
+
+	const checkIconStyle = useAnimatedStyle(() => {
+		return {
+			transform: [{ scale: interpolate(postCompleteControl.value, [0.5, 1], [0, 1], Extrapolate.CLAMP) }],
+		};
+	});
+
+	const containerStyle = useAnimatedStyle(() => {
+		return {
+			transform: [{ scale: interpolate(pressControl.value, [0, 1], [0.97, 1], Extrapolate.CLAMP) }],
+		};
+	});
+
+	const renderPostCompletedContent = () => {
+		return (
+			<View style={styles.absoluteFill}>
+				<Animated.View style={[styles.outerCircle, outerCircleStyle]}>
+					<Animated.View style={[styles.innerCircle, innerCircleStyle]} />
+				</Animated.View>
+				<Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
+					<Icon name={'check'} color={'white'} size={iconSize * 1.5} />
+				</Animated.View>
 			</View>
-			<Text style={styles.buttonText}>{label}</Text>
-		</Pressable>
+		);
+	};
+
+	const renderPreCompletedContent = () => {
+		return (
+			<Animated.View style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}>
+				<Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
+					<Icon name={'lock'} color={'white'} size={iconSize} />
+				</Animated.View>
+				<Svg style={styles.absoluteFill}>
+					<Circle
+						cx={radius}
+						cy={radius}
+						r={innerRadius}
+						stroke={colors.blue600}
+						strokeWidth={strokeWidth}
+						strokeLinecap={'round'}
+					/>
+				</Svg>
+				<Svg style={styles.absoluteFill}>
+					<AnimatedCircle
+						animatedProps={animatedProps}
+						cx={radius}
+						cy={radius}
+						r={innerRadius}
+						stroke={colors.white}
+						strokeWidth={strokeWidth}
+						strokeLinecap={'round'}
+						strokeDasharray={`${circumference} ${circumference}`}
+					/>
+				</Svg>
+			</Animated.View>
+		);
+	};
+
+	const renderLabel = () => {
+		return <Text style={styles.label}>{label}</Text>;
+	};
+
+	return (
+		<TapGestureHandler onGestureEvent={tapGestureHandler}>
+			<Animated.View style={[styles.container, containerStyle]}>
+				<View style={styles.progressContainer}>
+					{renderPostCompletedContent()}
+					{renderPreCompletedContent()}
+				</View>
+				{renderLabel()}
+			</Animated.View>
+		</TapGestureHandler>
 	);
 };
 
