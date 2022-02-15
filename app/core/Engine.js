@@ -26,6 +26,15 @@ import {
 	ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+
+import { PermissionController } from '@metamask/snap-controllers';
+
+import {
+	getCaveatSpecifications,
+	getPermissionSpecifications,
+	unrestrictedMethods,
+} from './permissions/specifications';
+
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -167,21 +176,81 @@ class Engine {
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
 
-			const controllers = [
-				new KeyringController(
-					{
-						removeIdentity: preferencesController.removeIdentity.bind(preferencesController),
-						syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
-						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
-						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
-					},
-					{ encryptor },
-					initialState.KeyringController
-				),
-				new AccountTrackerController({
-					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
-					getIdentities: () => preferencesController.state.identities,
+			this.approvalController = new ApprovalController({
+				messenger: this.controllerMessenger.getRestricted({
+					name: 'ApprovalController',
 				}),
+				showApprovalRequest: () => null,
+			});
+
+			const keyringController = new KeyringController(
+				{
+					removeIdentity: preferencesController.removeIdentity.bind(preferencesController),
+					syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
+					updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
+					setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
+				},
+				{ encryptor },
+				initialState.KeyringController
+			);
+
+			const accountTrackerController = new AccountTrackerController({
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+				getIdentities: () => preferencesController.state.identities,
+			});
+
+			const getIdentities = () => {
+				const identities = preferencesController.state.identities;
+				const newIdentities = {};
+				Object.keys(identities).forEach((key) => {
+					newIdentities[key.toLowerCase()] = identities[key];
+				});
+				return newIdentities;
+			};
+
+			this.permissionController = new PermissionController({
+				messenger: this.controllerMessenger.getRestricted({
+					name: 'PermissionController',
+					allowedActions: [
+						`${this.approvalController.name}:addRequest`,
+						`${this.approvalController.name}:hasRequest`,
+						`${this.approvalController.name}:acceptRequest`,
+						`${this.approvalController.name}:rejectRequest`,
+					],
+				}),
+				state: initialState.PermissionController,
+				caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+				permissionSpecifications: {
+					...getPermissionSpecifications({
+						getIdentities,
+						getAllAccounts: () => keyringController.getAccounts(),
+						captureKeyringTypesWithMissingIdentities: (identities = {}, accounts = []) => {
+							/*const accountsMissingIdentities = accounts.filter((address) => !identities[address]);
+							const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
+								(address) => keyringController.getKeyringForAccount(address)?.type
+							);
+
+							const identitiesCount = Object.keys(identities || {}).length;
+
+							const accountTrackerCount = Object.keys(
+								accountTrackerController.state.accounts || {}
+							).length;
+
+							console.warn(
+								`Attempt to get permission specifications failed because their were ${accounts.length} accounts, but ${identitiesCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`
+							);*/
+						},
+					}),
+					/*
+					...this.getSnapPermissionSpecifications(),
+					*/
+				},
+				unrestrictedMethods,
+			});
+
+			const controllers = [
+				keyringController,
+				accountTrackerController,
 				new AddressBookController(),
 				assetsContractController,
 				collectiblesController,
@@ -241,12 +310,8 @@ class Engine {
 					}
 				),
 				gasFeeController,
-				new ApprovalController({
-					messenger: this.controllerMessenger.getRestricted({
-						name: 'ApprovalController',
-					}),
-					showApprovalRequest: () => null,
-				}),
+				this.approvalController,
+				this.permissionController,
 			];
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead

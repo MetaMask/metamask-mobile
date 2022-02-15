@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { errorCodes as rpcErrorCodes, ethErrors } from 'eth-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controllers';
@@ -14,6 +14,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
+import { RestrictedMethods } from '../permissions/constants';
 
 let appVersion = '';
 
@@ -55,8 +56,6 @@ export const getRpcMethodMiddleware = ({
 	getProviderState,
 	navigation,
 	getApprovedHosts,
-	setApprovedHosts,
-	approveHost,
 	// Website info
 	url,
 	title,
@@ -75,15 +74,19 @@ export const getRpcMethodMiddleware = ({
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
 		const Engine = ImportedEngine as any;
-		const getAccounts = async () => {
-			const {
-				privacy: { privacyMode },
-			} = store.getState();
 
-			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-			const isEnabled = !privacyMode || getApprovedHosts()[hostname];
-
-			return isEnabled && selectedAddress ? [selectedAddress] : [];
+		const getPermittedAccounts = async (origin: string) => {
+			try {
+				return await Engine.context.PermissionController.executeRestrictedMethod(
+					origin,
+					RestrictedMethods.eth_accounts
+				);
+			} catch (error: any) {
+				if (error.code === rpcErrorCodes.provider.unauthorized) {
+					return [];
+				}
+				throw error;
+			}
 		};
 
 		const checkTabActive = () => {
@@ -160,23 +163,32 @@ export const getRpcMethodMiddleware = ({
 					res.result = [selectedAddress];
 				} else {
 					try {
-						await requestUserApproval({ type: ApprovalTypes.CONNECT_ACCOUNTS, requestData: { hostname } });
-						const fullHostname = new URL(url.current).hostname;
+						//await requestUserApproval({ type: ApprovalTypes.CONNECT_ACCOUNTS, requestData: { hostname } });
+						/*const fullHostname = new URL(url.current).hostname;
 						approveHost?.(fullHostname);
 						setApprovedHosts?.({ ...getApprovedHosts?.(), [fullHostname]: true });
 
-						res.result = selectedAddress ? [selectedAddress] : [];
+						res.result = selectedAddress ? [selectedAddress] : [];*/
+
+						await Engine.context.PermissionController.requestPermissions(
+							{ origin: hostname },
+							{ eth_accounts: {} },
+							{ id: random() }
+						);
+
+						res.result = await getPermittedAccounts(hostname);
 					} catch (e) {
 						throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
 					}
 				}
 			},
 			eth_accounts: async () => {
-				res.result = await getAccounts();
+				res.result = await getPermittedAccounts(hostname);
+				//res.result = await getAccounts();
 			},
 
 			eth_coinbase: async () => {
-				const accounts = await getAccounts();
+				const accounts = await getPermittedAccounts(hostname);
 				res.result = accounts.length > 0 ? accounts[0] : null;
 			},
 			eth_signTransaction: async () => {
@@ -480,7 +492,7 @@ export const getRpcMethodMiddleware = ({
 			metamask_getProviderState: async () => {
 				res.result = {
 					...getProviderState(),
-					accounts: await getAccounts(),
+					accounts: await getPermittedAccounts(hostname),
 				};
 			},
 

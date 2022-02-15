@@ -511,8 +511,19 @@ const RootRPCMethodsUI = (props) => {
 	/**
 	 * When user clicks on approve to connect with a dapp
 	 */
-	const onAccountsConfirm = () => {
-		acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+	const onAccountsConfirm = async () => {
+		if (hostToApprove.data) {
+			const request = {
+				...hostToApprove.data,
+				permissions: { ...hostToApprove.data.permissions },
+				approvedAccounts: ['0x9e7208260958ea183e641513F1e58b7a5E1893e9'.toLowerCase()],
+			};
+
+			await Engine.context.PermissionController.acceptPermissionsRequest(request);
+		} else {
+			acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
+		}
+
 		setShowPendingApproval(false);
 	};
 
@@ -591,7 +602,6 @@ const RootRPCMethodsUI = (props) => {
 
 	const handlePendingApprovals = async (approval) => {
 		//TODO: IF WE RECEIVE AN APPROVAL REQUEST, AND WE HAVE ONE ACTIVE, SHOULD WE HIDE THE CURRENT ONE OR NOT?
-
 		if (approval.pendingApprovalCount > 0) {
 			const key = Object.keys(approval.pendingApprovals)[0];
 			const request = approval.pendingApprovals[key];
@@ -600,6 +610,12 @@ const RootRPCMethodsUI = (props) => {
 				setCurrentPageMeta(requestData.pageMeta);
 			}
 			switch (request.type) {
+				case 'wallet_requestPermissions':
+					if (requestData?.permissions?.eth_accounts) {
+						setHostToApprove({ data: requestData, id: request.id });
+						showPendingApprovalModal({ type: ApprovalTypes.CONNECT_ACCOUNTS, origin: request.origin });
+					}
+					break;
 				case ApprovalTypes.CONNECT_ACCOUNTS:
 					setHostToApprove({ data: requestData, id: request.id });
 					showPendingApprovalModal({ type: ApprovalTypes.CONNECT_ACCOUNTS, origin: request.origin });
