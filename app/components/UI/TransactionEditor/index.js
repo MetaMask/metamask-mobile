@@ -523,14 +523,14 @@ class TransactionEditor extends PureComponent {
 		let error = '';
 		const {
 			ticker,
-			transaction: { value, from, assetType },
+			transaction: { value, from, assetType, gasPrice },
 		} = this.props;
 
 		const checksummedFrom = safeToChecksumAddress(from) || '';
 		const fromAccount = this.props.accounts[checksummedFrom];
 		const { balance } = fromAccount;
 		const weiBalance = hexToBN(balance);
-		const totalGasValue = hexToBN(totalGas);
+		const totalGasValue = gasPrice ? hexToBN(gasPrice) : hexToBN(totalGas);
 		let valueBN = hexToBN('0x0');
 		if (assetType === 'ETH') {
 			valueBN = hexToBN(value);
