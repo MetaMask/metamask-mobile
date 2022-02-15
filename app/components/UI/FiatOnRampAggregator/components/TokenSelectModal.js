@@ -19,9 +19,6 @@ import { connect } from 'react-redux';
 import { isValidAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/device';
-import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiat } from '../../../../util/number';
-import { safeToChecksumAddress } from '../../../../util/address';
-import { isSwapsNativeAsset } from '../../Swaps/utils';
 import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
@@ -100,6 +97,24 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		flexDirection: 'row',
 	},
+	networkLabel: {
+		backgroundColor: colors.grey500,
+		paddingVertical: 5,
+		borderRadius: 5,
+		alignItems: 'center',
+		justifyContent: 'center',
+		flexDirection: 'row',
+	},
+	networkLabelText: {
+		fontSize: 10,
+		color: colors.white,
+	},
+	listItem: {
+		paddingHorizontal: 24,
+	},
+	symbolName: {
+		paddingRight: 15,
+	},
 });
 
 const MAX_TOKENS_RESULTS = 20;
@@ -171,41 +186,29 @@ function TokenSelectModal({
 	);
 
 	const renderItem = useCallback(
-		({ item }) => {
-			const itemAddress = safeToChecksumAddress(item.address);
-
-			let balance, balanceFiat;
-			if (isSwapsNativeAsset(item)) {
-				balance = renderFromWei(accounts[selectedAddress] && accounts[selectedAddress].balance);
-				balanceFiat = weiToFiat(hexToBN(accounts[selectedAddress].balance), conversionRate, currentCurrency);
-			} else {
-				const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
-				balance =
-					itemAddress in balances ? renderFromTokenMinimalUnit(balances[itemAddress], item.decimals) : 0;
-				balanceFiat = balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency);
-			}
-
-			return (
-				<TouchableOpacity onPress={() => onItemPress(item)}>
-					<ListItem>
-						<ListItem.Content>
-							<ListItem.Icon>
-								<TokenIcon medium icon={item.iconUrl} symbol={item.symbol} />
-							</ListItem.Icon>
-							<ListItem.Body>
-								<ListItem.Title>{item.symbol}</ListItem.Title>
-								{item.name && <Text>{item.name}</Text>}
-							</ListItem.Body>
-							<ListItem.Amounts>
-								<ListItem.Amount>{balance}</ListItem.Amount>
-								{balanceFiat && <ListItem.FiatAmount>{balanceFiat}</ListItem.FiatAmount>}
-							</ListItem.Amounts>
-						</ListItem.Content>
-					</ListItem>
-				</TouchableOpacity>
-			);
-		},
-		[balances, accounts, selectedAddress, conversionRate, currentCurrency, tokenExchangeRates, onItemPress]
+		({ item }) => (
+			<TouchableOpacity onPress={() => onItemPress(item)}>
+				<ListItem style={styles.listItem}>
+					<ListItem.Content>
+						<ListItem.Icon>
+							<TokenIcon medium icon={item.iconUrl} symbol={item.symbol} />
+						</ListItem.Icon>
+						<ListItem.Body>
+							<ListItem.Title>{item.symbol}</ListItem.Title>
+							{item.name && <Text style={styles.symbolName}>{item.name}</Text>}
+						</ListItem.Body>
+						<ListItem.Amounts style={styles.networkLabel}>
+							<ListItem.Amount>
+								<Text bold style={styles.networkLabelText}>
+									{item.network?.toUpperCase()}
+								</Text>
+							</ListItem.Amount>
+						</ListItem.Amounts>
+					</ListItem.Content>
+				</ListItem>
+			</TouchableOpacity>
+		),
+		[onItemPress]
 	);
 
 	const handleSearchPress = () => searchInput?.current?.focus();
@@ -373,18 +376,16 @@ function TokenSelectModal({
 								)}
 							</View>
 						) : (
-							<ScreenLayout.Content grow>
-								<FlatList
-									ref={list}
-									style={styles.resultsView}
-									keyboardDismissMode="none"
-									keyboardShouldPersistTaps="always"
-									data={tokenSearchResults}
-									renderItem={renderItem}
-									keyExtractor={(item) => item.address}
-									ListEmptyComponent={renderEmptyList}
-								/>
-							</ScreenLayout.Content>
+							<FlatList
+								ref={list}
+								style={styles.resultsView}
+								keyboardDismissMode="none"
+								keyboardShouldPersistTaps="always"
+								data={tokenSearchResults}
+								renderItem={renderItem}
+								keyExtractor={(item) => item.address}
+								ListEmptyComponent={renderEmptyList}
+							/>
 						)}
 					</ScreenLayout.Body>
 				</ScreenLayout>

@@ -80,6 +80,7 @@ class MockedOnRampSdk implements IOnRampSdk {
 				name: 'Synthetix Network Token',
 				occurrences: 12,
 				symbol: 'SNX',
+				network: 'ethereum',
 			},
 			{
 				address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -101,6 +102,7 @@ class MockedOnRampSdk implements IOnRampSdk {
 				name: 'Dai Stablecoin',
 				occurrences: 11,
 				symbol: 'DAI',
+				network: 'ethereum',
 			},
 			{
 				address: '0x514910771af9ca656af840dff83e8264ecf986ca',
@@ -122,6 +124,7 @@ class MockedOnRampSdk implements IOnRampSdk {
 				name: 'Chainlink Token',
 				occurrences: 11,
 				symbol: 'LINK',
+				network: 'ethereum',
 			},
 			{
 				address: '0x9f8f72aa9304c8b593d555f12ef6589cc3a579a2',
@@ -143,6 +146,7 @@ class MockedOnRampSdk implements IOnRampSdk {
 				name: 'Maker',
 				occurrences: 11,
 				symbol: 'MKR',
+				network: 'ethereum',
 			},
 			{
 				address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
@@ -165,6 +169,7 @@ class MockedOnRampSdk implements IOnRampSdk {
 				name: 'Wrapped BTC',
 				occurrences: 11,
 				symbol: 'WBTC',
+				network: 'ethereum',
 			},
 		]);
 	}

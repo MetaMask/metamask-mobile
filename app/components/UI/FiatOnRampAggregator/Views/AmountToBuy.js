@@ -52,7 +52,7 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal] = useModalHandler(false);
-	const sdk = useFiatOnRampSDK();
+	const { sdk, selectedCountry, setSelectedCountry } = useFiatOnRampSDK();
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -79,9 +79,10 @@ const AmountToBuy = ({ navigation }) => {
 		keyboardHeight.current = height;
 	}, []);
 
-	const handleCountryPress = useCallback((newAmount) => {
+	const handleCountryPress = useCallback(() => {
 		// TODO: handle
-	}, []);
+		setSelectedCountry('USA');
+	}, [setSelectedCountry]);
 	const handleAssetSelectorPress = useCallback(
 		(newAmount) => {
 			// TODO: handle
@@ -121,7 +122,7 @@ const AmountToBuy = ({ navigation }) => {
 							<AccountSelector />
 							<View style={styles.spacer} />
 							<SelectorButton onPress={handleCountryPress}>
-								<Text reset>🇺🇸</Text>
+								<Text reset>{selectedCountry} - 🇺🇸</Text>
 							</SelectorButton>
 						</View>
 						<View style={styles.row}>
