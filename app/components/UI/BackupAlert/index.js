@@ -4,67 +4,69 @@ import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { ThemeContext } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
 
-const styles = StyleSheet.create({
-	backupAlertWrapper: {
-		flex: 1,
-		backgroundColor: colors.orange000,
-		borderColor: colors.yellow300,
-		borderWidth: 1,
-		position: 'absolute',
-		left: 16,
-		right: 16,
-		borderRadius: 8,
-		padding: 14,
-	},
-	backupAlertIconWrapper: {
-		marginRight: 10,
-	},
-	backupAlertIcon: {
-		fontSize: 22,
-		...fontStyles.bold,
-		color: colors.black,
-	},
-	backupAlertTitle: {
-		fontSize: 14,
-		marginBottom: 14,
-		color: colors.black,
-		...fontStyles.bold,
-	},
-	backupAlertMessage: {
-		fontSize: 12,
-		color: colors.blue,
-		marginLeft: 14,
-		flex: 1,
-		textAlign: 'right',
-		...fontStyles.normal,
-	},
-	touchableView: {
-		flexDirection: 'row',
-	},
-	modalViewInBrowserView: {
-		bottom: Device.isIphoneX() ? 90 : 80,
-	},
-	modalViewNotInBrowserView: {
-		bottom: Device.isIphoneX() ? 20 : 10,
-	},
-	buttonsWrapper: {
-		flexDirection: 'row-reverse',
-		alignContent: 'flex-end',
-		flex: 1,
-	},
-	dismissButton: {
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		backupAlertWrapper: {
+			flex: 1,
+			backgroundColor: colors.orange000,
+			borderColor: colors.yellow300,
+			borderWidth: 1,
+			position: 'absolute',
+			left: 16,
+			right: 16,
+			borderRadius: 8,
+			padding: 14,
+		},
+		backupAlertIconWrapper: {
+			marginRight: 10,
+		},
+		backupAlertIcon: {
+			fontSize: 22,
+			...fontStyles.bold,
+			color: colors.text.default,
+		},
+		backupAlertTitle: {
+			fontSize: 14,
+			marginBottom: 14,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		backupAlertMessage: {
+			fontSize: 12,
+			color: colors.primary.default,
+			marginLeft: 14,
+			flex: 1,
+			textAlign: 'right',
+			...fontStyles.normal,
+		},
+		touchableView: {
+			flexDirection: 'row',
+		},
+		modalViewInBrowserView: {
+			bottom: Device.isIphoneX() ? 90 : 80,
+		},
+		modalViewNotInBrowserView: {
+			bottom: Device.isIphoneX() ? 20 : 10,
+		},
+		buttonsWrapper: {
+			flexDirection: 'row-reverse',
+			alignContent: 'flex-end',
+			flex: 1,
+		},
+		dismissButton: {
+			flex: 1,
+		},
+	});
 
 const BLOCKED_LIST = [
 	'ImportPrivateKey',
@@ -151,6 +153,9 @@ class BackupAlert extends PureComponent {
 	render() {
 		const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
 		const { inBrowserView, blockedView } = this.state;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;
 		return (
 			<ElevatedView
@@ -193,5 +198,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	backUpSeedphraseAlertNotVisible: () => dispatch(backUpSeedphraseAlertNotVisible()),
 });
+
+BackupAlert.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(BackupAlert);
