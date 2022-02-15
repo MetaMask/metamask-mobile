@@ -210,7 +210,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 				<Animated.View style={[styles.innerCircle, innerCircleStyle]} />
 			</Animated.View>
 			<Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
-				<Icon name={'check'} color={'white'} size={iconSize * 1.5} />
+				<Icon name={'check'} color={colors.white} size={iconSize * 1.5} />
 			</Animated.View>
 		</View>
 	);
@@ -218,7 +218,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 	const renderPreCompletedContent = () => (
 		<Animated.View style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}>
 			<Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
-				<Icon name={'lock'} color={'white'} size={iconSize} />
+				<Icon name={'lock'} color={colors.white} size={iconSize} />
 			</Animated.View>
 			<Svg style={styles.absoluteFill}>
 				<Circle
