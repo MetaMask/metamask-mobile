@@ -847,12 +847,14 @@ class Confirm extends PureComponent {
 					...transactionMeta,
 					assetType,
 				});
-				this.checkRemoveCollectible();
-				AnalyticsV2.trackEvent(
-					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
-					this.getAnalyticsParams()
-				);
-				resetTransaction();
+				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, () => {
+					this.checkRemoveCollectible();
+					AnalyticsV2.trackEvent(
+						AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+						this.getAnalyticsParams()
+					);
+					resetTransaction();
+				});
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
