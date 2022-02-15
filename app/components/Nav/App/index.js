@@ -120,12 +120,13 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	useEffect(() => {
 		const autoAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-
 			try {
 				if (existingUser && !userLoggedIn && !locked.current) {
 					await AuthenticationService.autoAuth(selectedAddress);
 					locked.current = true;
 				}
+				//Cancel auth if the existing user has not been set
+				if (existingUser == null) setAuthCancelled(true);
 			} catch (error) {
 				trackErrorAsAnalytics('Lockscreen: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
 				setAuthCancelled(true);

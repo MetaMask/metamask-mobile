@@ -39,6 +39,7 @@ import {
 	TRUE,
 	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE_DISABLED,
+	PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 
@@ -270,10 +271,20 @@ class ChoosePassword extends PureComponent {
 	keyringControllerPasswordSet = false;
 
 	async componentDidMount() {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (biometryType) {
-			this.setState({ biometryType: Device.isAndroid() ? 'biometrics' : biometryType, biometryChoice: true });
-		}
+		//Setup UI to handle Biometric
+		const type = await AuthenticationService.getType();
+		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+		if (type === AuthenticationType.BIOMETRIC)
+			this.setState({
+				biometryType: type,
+				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+			});
+		else if (type === AuthenticationType.PASSCODE)
+			this.setState({
+				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+			});
 		setTimeout(() => {
 			this.setState({
 				inputWidth: { width: '100%' },
@@ -449,7 +460,11 @@ class ChoosePassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+		const type = await AuthenticationService.componentAuthenticationType(
+			this.state.biometryChoice,
+			this.state.rememberMe
+		);
+		await AuthenticationService.newWalletAuth(password, type, seedPhrase);
 		// Keyring is set with empty password or not
 		this.keyringControllerPasswordSet = password !== '';
 

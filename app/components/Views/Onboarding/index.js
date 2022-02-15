@@ -18,8 +18,6 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
-import SecureKeychain from '../../../core/SecureKeychain';
-import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics';
@@ -246,21 +244,14 @@ class Onboarding extends PureComponent {
 		}
 	}
 
-	logOut = async () => {
-		this.props.navigation.navigate('Login');
-		await AuthenticationService.logout();
-	};
-
 	onLogin = async () => {
 		const { passwordSet } = this.props;
 		if (!passwordSet) {
-			const { KeyringController } = Engine.context;
-			// Restore vault with empty password
-			await KeyringController.submitPassword('');
-			await SecureKeychain.resetGenericPassword();
+			await AuthenticationService.resetVault();
 			this.props.navigation.navigate('HomeNav');
 		} else {
-			this.logOut();
+			await AuthenticationService.logout();
+			this.props.navigation.navigate('Login');
 		}
 	};
 

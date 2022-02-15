@@ -358,22 +358,7 @@ class ResetPassword extends PureComponent {
 			this.setState({ loading: true });
 
 			await this.recreateVault(originalPassword);
-			try {
-				let type;
-				if (this.state.biometryType && this.state.biometryChoice) {
-					type = AuthenticationType.BIOMETRIC;
-				} else if (this.state.rememberMe) {
-					type = AuthenticationType.REMEMBER_ME;
-				} else {
-					type = AuthenticationType.PASSWORD;
-				}
-				await AuthenticationService.storePassword(password, type);
-			} catch (error) {
-				Logger.error(error);
-			}
 
-			await AsyncStorage.setItem(EXISTING_USER, TRUE);
-			this.props.passwordSet();
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 
 			this.setState({ loading: false });
@@ -430,7 +415,11 @@ class ResetPassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
+		const type = await AuthenticationService.componentAuthenticationType(
+			this.state.biometryChoice,
+			this.state.rememberMe
+		);
+		await AuthenticationService.newWalletAuth(newPassword, type, seedPhrase);
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];

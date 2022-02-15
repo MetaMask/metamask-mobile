@@ -19,7 +19,6 @@ import { connect } from 'react-redux';
 import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
-import Engine from '../../../core/Engine';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -36,20 +35,13 @@ import {
 	parseVaultValue,
 } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
-import {
-	SEED_PHRASE_HINTS,
-	BIOMETRY_CHOICE_DISABLED,
-	NEXT_MAKER_REMINDER,
-	ONBOARDING_WIZARD,
-	EXISTING_USER,
-	TRUE,
-} from '../../../constants/storage';
+import { BIOMETRY_CHOICE_DISABLED, ONBOARDING_WIZARD, TRUE } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
 import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -283,13 +275,10 @@ class ImportFromSeed extends PureComponent {
 					this.state.biometryChoice,
 					this.state.rememberMe
 				);
-				await AuthenticationService.walletSetup(password, parsedSeed, type);
+				await AuthenticationService.newWalletAuth(password, type, parsedSeed);
 
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-				// mark the user as existing so it doesn't see the create password screen again
-				await AsyncStorage.setItem(EXISTING_USER, TRUE);
-				await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 				this.setState({ loading: false });
 				this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 				this.props.seedphraseBackedUp();
