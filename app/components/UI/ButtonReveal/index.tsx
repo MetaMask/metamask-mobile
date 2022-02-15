@@ -15,8 +15,7 @@ import Animated, {
 	Extrapolate,
 	runOnUI,
 } from 'react-native-reanimated';
-import { TapGestureHandlerGestureEvent } from 'react-native-gesture-handler';
-import { TapGestureHandler } from 'react-native-gesture-handler';
+import { TapGestureHandlerGestureEvent, TapGestureHandler } from 'react-native-gesture-handler';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const radius = 14;
@@ -90,19 +89,10 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 	const postCompleteControl = useSharedValue(0);
 
 	// Animate SVG via props
-	const animatedProps = useAnimatedProps(() => {
-		return {
-			strokeDashoffset: preCompleteControl.value,
-		};
-	});
+	const animatedProps = useAnimatedProps(() => ({
+		strokeDashoffset: preCompleteControl.value,
+	}));
 
-	const resetButton = () => {
-		setTimeout(() => {
-			runOnUI(resetAnimatedValues)();
-		}, 1500);
-	};
-
-	// Reset button to original state
 	const resetAnimatedValues = () => {
 		'worklet';
 		progressOrigin.value = innerRadius * 2 * Math.PI;
@@ -121,6 +111,12 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 			}
 		);
 	};
+
+	// Reset button to original state
+	const resetButton = () =>
+		setTimeout(() => {
+			runOnUI(resetAnimatedValues)();
+		}, 1500);
 
 	// Post animation from long press
 	useAnimatedReaction(
@@ -183,90 +179,71 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 		},
 	});
 
-	const outerCircleStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
-		};
-	});
+	const outerCircleStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
+	}));
 
-	const innerCircleStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
-		};
-	});
+	const innerCircleStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
+	}));
 
-	const preCompletedContainerStyle = useAnimatedStyle(() => {
-		return {
-			opacity: progressContainerOpacity.value,
-		};
-	});
+	const preCompletedContainerStyle = useAnimatedStyle(() => ({
+		opacity: progressContainerOpacity.value,
+	}));
 
-	const lockIconStyle = useAnimatedStyle(() => {
-		return {
-			opacity: pressControl.value,
-		};
-	});
+	const lockIconStyle = useAnimatedStyle(() => ({
+		opacity: pressControl.value,
+		// transform: [{ scale: pressControl.value }],
+	}));
 
-	const checkIconStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{ scale: interpolate(postCompleteControl.value, [0.5, 1], [0, 1], Extrapolate.CLAMP) }],
-		};
-	});
+	const checkIconStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: interpolate(postCompleteControl.value, [0.5, 1], [0, 1], Extrapolate.CLAMP) }],
+	}));
 
-	const containerStyle = useAnimatedStyle(() => {
-		return {
-			transform: [{ scale: interpolate(pressControl.value, [0, 1], [0.97, 1], Extrapolate.CLAMP) }],
-		};
-	});
+	const containerStyle = useAnimatedStyle(() => ({
+		transform: [{ scale: interpolate(pressControl.value, [0, 1], [0.97, 1], Extrapolate.CLAMP) }],
+	}));
 
-	const renderPostCompletedContent = () => {
-		return (
-			<View style={styles.absoluteFill}>
-				<Animated.View style={[styles.outerCircle, outerCircleStyle]}>
-					<Animated.View style={[styles.innerCircle, innerCircleStyle]} />
-				</Animated.View>
-				<Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
-					<Icon name={'check'} color={'white'} size={iconSize * 1.5} />
-				</Animated.View>
-			</View>
-		);
-	};
-
-	const renderPreCompletedContent = () => {
-		return (
-			<Animated.View style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}>
-				<Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
-					<Icon name={'lock'} color={'white'} size={iconSize} />
-				</Animated.View>
-				<Svg style={styles.absoluteFill}>
-					<Circle
-						cx={radius}
-						cy={radius}
-						r={innerRadius}
-						stroke={colors.blue600}
-						strokeWidth={strokeWidth}
-						strokeLinecap={'round'}
-					/>
-				</Svg>
-				<Svg style={styles.absoluteFill}>
-					<AnimatedCircle
-						animatedProps={animatedProps}
-						cx={radius}
-						cy={radius}
-						r={innerRadius}
-						stroke={colors.white}
-						strokeWidth={strokeWidth}
-						strokeLinecap={'round'}
-						strokeDasharray={`${circumference} ${circumference}`}
-					/>
-				</Svg>
+	const renderPostCompletedContent = () => (
+		<View style={styles.absoluteFill}>
+			<Animated.View style={[styles.outerCircle, outerCircleStyle]}>
+				<Animated.View style={[styles.innerCircle, innerCircleStyle]} />
 			</Animated.View>
-		);
-	};
+			<Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
+				<Icon name={'check'} color={'white'} size={iconSize * 1.5} />
+			</Animated.View>
+		</View>
+	);
 
-	const renderLabel = () => {
-		return <Text style={styles.label}>{label}</Text>;
-	};
+	const renderPreCompletedContent = () => (
+		<Animated.View style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}>
+			<Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
+				<Icon name={'lock'} color={'white'} size={iconSize} />
+			</Animated.View>
+			<Svg style={styles.absoluteFill}>
+				<Circle
+					cx={radius}
+					cy={radius}
+					r={innerRadius}
+					stroke={colors.blue600}
+					strokeWidth={strokeWidth}
+					strokeLinecap={'round'}
+				/>
+			</Svg>
+			<Svg style={styles.absoluteFill}>
+				<AnimatedCircle
+					animatedProps={animatedProps}
+					cx={radius}
+					cy={radius}
+					r={innerRadius}
+					stroke={colors.white}
+					strokeWidth={strokeWidth}
+					strokeLinecap={'round'}
+					strokeDasharray={`${circumference} ${circumference}`}
+				/>
+			</Svg>
+		</Animated.View>
+	);
 
 	return (
 		<TapGestureHandler onGestureEvent={tapGestureHandler}>
@@ -275,7 +252,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 					{renderPostCompletedContent()}
 					{renderPreCompletedContent()}
 				</View>
-				{renderLabel()}
+				<Text style={styles.label}>{label}</Text>
 			</Animated.View>
 		</TapGestureHandler>
 	);
