@@ -177,7 +177,6 @@ const styles = StyleSheet.create({
 		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
 		borderRadius: 30,
 		fontSize: Device.isAndroid() ? 16 : 14,
-		padding: 8,
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
