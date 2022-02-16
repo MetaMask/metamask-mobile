@@ -11,7 +11,7 @@ import scaling from '../../../util/scaling';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext } from '../../../util/theme';
 
-const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
+const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
 const createStyles = (colors) =>
 	StyleSheet.create({

@@ -1,11 +1,15 @@
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React from 'react';
 import { Animated, Dimensions, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, useAssetFromTheme } from '../../../util/theme';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
+
+const wordmarkLight = require('../../../animations/wordmark-light.json');
+const wordmarkDark = require('../../../animations/wordmark-dark.json');
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -22,7 +26,6 @@ const createStyles = (colors: any) =>
 			justifyContent: 'center',
 		},
 		logoWrapper: {
-			backgroundColor: colors.background.default,
 			paddingTop: 50,
 			marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2 - LOGO_PADDING,
 			height: LOGO_SIZE + LOGO_PADDING * 2,
@@ -61,6 +64,8 @@ const MetaMaskAnimation = ({
 }): JSX.Element => {
 	const { colors } = useAppThemeFromContext();
 	const styles = createStyles(colors);
+	const wordmark = useAssetFromTheme(wordmarkLight, wordmarkDark);
+
 	return (
 		<View style={styles.main}>
 			<Animated.View style={[styles.logoWrapper, { opacity }]}>
@@ -79,7 +84,7 @@ const MetaMaskAnimation = ({
 							style={styles.metamaskName}
 							loop={false}
 							// eslint-disable-next-line
-							source={require('../../../animations/wordmark.json')}
+							source={wordmark}
 						/>
 					</View>
 				</View>

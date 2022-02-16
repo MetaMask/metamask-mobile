@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { useAppThemeFromContext } from '../../../util/theme';
 
@@ -20,7 +20,7 @@ const createStyles = (colors) =>
 		container: {
 			shadowRadius: 8,
 			shadowOpacity: 0.5,
-			shadowColor: importedColors.blue200,
+			shadowColor: colors.primary.default,
 			shadowOffset: { width: 0, height: 3 },
 			elevation: 0, // shadow colors not supported on Android. nothing > gray shadow
 		},

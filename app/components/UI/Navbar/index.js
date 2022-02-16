@@ -45,9 +45,6 @@ const styles = StyleSheet.create({
 		height: 40,
 		marginRight: 10,
 	},
-	backIcon: {
-		color: colors.blue,
-	},
 	backIconIOS: {
 		marginHorizontal: 4,
 		marginTop: -4,
@@ -75,11 +72,6 @@ const styles = StyleSheet.create({
 		paddingRight: Device.isAndroid() ? 22 : 18,
 		marginTop: 5,
 	},
-	closeButtonText: {
-		color: colors.blue,
-		fontSize: 14,
-		...fontStyles.normal,
-	},
 	browserRightButton: {
 		flex: 1,
 		marginRight: Device.isAndroid() ? 10 : 0,
@@ -100,13 +92,6 @@ const styles = StyleSheet.create({
 	metamaskNameWrapper: {
 		marginLeft: Device.isAndroid() ? 20 : 0,
 	},
-	// centeredTitle: {
-	// 	fontSize: 20,
-	// 	color: colors.fontPrimary,
-	// 	textAlign: 'center',
-	// 	...fontStyles.normal,
-	// 	alignItems: 'center',
-	// },
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line

@@ -29,15 +29,13 @@ import CountrySelector from '../components/CountrySelector';
 import Keypad, { KEYS } from '../../../Base/Keypad';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '../../../../reducers/fiatOrders';
 import { useAppThemeFromContext } from '../../../../util/theme';
 
 //* styles and components  */
 
-const applePayBackgroundColor = 'black';
-const applePayTextColor = 'white';
 const createStyles = (colors) =>
 	StyleSheet.create({
 		screen: {
@@ -108,7 +106,7 @@ const createStyles = (colors) =>
 		},
 		applePayButton: {
 			// FIXED APPLE BUTTON COLOR. DO NOT CHANGE
-			backgroundColor: applePayBackgroundColor,
+			backgroundColor: importedColors.black,
 			padding: 10,
 			margin: Device.isIphone5() ? 5 : 10,
 			marginHorizontal: 25,
@@ -116,7 +114,7 @@ const createStyles = (colors) =>
 		},
 		applePayButtonText: {
 			// FIXED APPLE BUTTON COLOR. DO NOT CHANGE
-			color: applePayTextColor,
+			color: importedColors.white,
 		},
 		applePayButtonContentDisabled: {
 			opacity: 0.6,

@@ -8,7 +8,7 @@ const createStyles = (colors) =>
 	StyleSheet.create({
 		text: {
 			...fontStyles.normal,
-			color: colors.text.alternative,
+			color: colors.text.default,
 			marginVertical: 2,
 			fontSize: 14,
 		},

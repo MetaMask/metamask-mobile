@@ -6,11 +6,12 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, useAssetFromTheme } from '../../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const onboardingDeviceImage = require('../../../../images/swaps_onboard_device.png');
-const swapsAggregators = require('../../../../images/swaps_aggs.png');
+const swapsAggregatorsLight = require('../../../../images/swaps_aggs-light.png');
+const swapsAggregatorsDark = require('../../../../images/swaps_aggs-dark.png');
 /* eslint-enable import/no-commonjs */
 
 const createStyles = (colors) =>
@@ -62,6 +63,7 @@ function Onboarding({ setHasOnboarded }) {
 	const navigation = useNavigation();
 	const { colors } = useAppThemeFromContext();
 	const styles = createStyles(colors);
+	const swapsAggregators = useAssetFromTheme(swapsAggregatorsLight, swapsAggregatorsDark);
 
 	const handleStartSwapping = useCallback(() => {
 		LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

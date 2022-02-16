@@ -14,14 +14,6 @@ export default class Screen extends PureComponent {
 		children: PropTypes.node,
 	};
 
-	// With theme, this probably isn't needed anymore
-	// componentDidMount() {
-	// 	StatusBar.setBarStyle('dark-content', true);
-	// 	if (Device.isAndroid()) {
-	// 		StatusBar.setBackgroundColor(colors.grey100);
-	// 	}
-	// }
-
 	render() {
 		return (
 			<View style={baseStyles.flexGrow}>
