@@ -26,7 +26,6 @@ import Device from '../../../util/device';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -696,7 +695,7 @@ class ChoosePassword extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
 });
 
 const mapDispatchToProps = (dispatch) => ({

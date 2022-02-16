@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
-import SecureKeychain from '../../../../core/SecureKeychain';
 import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
@@ -315,29 +314,32 @@ class Settings extends PureComponent {
 	scrollView = undefined;
 
 	componentDidMount = async () => {
-		const biometryType = await await AuthenticationService.compone(password, authType);
 		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
 
-		if (biometryType) {
-			let passcodeEnabled = false;
-			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-			if (!biometryChoice) {
-				const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
-				if (passcodeChoice !== '' && passcodeChoice === TRUE) {
-					passcodeEnabled = true;
-				}
-			}
+		const type = await AuthenticationService.getType();
+		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+
+		if (type === AuthenticationType.BIOMETRIC)
 			this.setState({
-				biometryType: biometryType && Device.isAndroid() ? 'biometrics' : biometryType,
-				biometryChoice: !!biometryChoice,
+				biometryType: type,
+				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 				analyticsEnabled,
-				passcodeChoice: passcodeEnabled,
+				passcodeChoice: false,
 				hintText: manualBackup,
 			});
-		} else {
+		else if (type === AuthenticationType.PASSCODE)
+			this.setState({
+				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+				analyticsEnabled,
+				passcodeChoice: true,
+				hintText: manualBackup,
+			});
+		else {
 			this.setState({
 				analyticsEnabled,
 				hintText: manualBackup,
