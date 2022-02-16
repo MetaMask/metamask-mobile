@@ -8,11 +8,7 @@ const SDKContext = createContext<IOnRampSdk | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRampSdk>) => {
 	const sdk = useMemo(() => new SDK(), []);
-	return <SDKContext.Provider value={value || sdk} {...props} />;
-};
 
-export const useFiatOnRampSDK = () => {
-	const sdk = useContext(SDKContext);
 	const dispatch = useDispatch();
 
 	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
@@ -72,7 +68,7 @@ export const useFiatOnRampSDK = () => {
 		})();
 	}, [sdk, selectedCountry, selectedRegion]);
 
-	return {
+	const contextValue = {
 		sdk,
 		setSelectedCountry: setSelectedCountryCallback,
 		selectedCountry,
@@ -85,6 +81,13 @@ export const useFiatOnRampSDK = () => {
 		setSelectedAsset,
 		selectedAsset,
 	};
+
+	return <SDKContext.Provider value={value || contextValue} {...props} />;
+};
+
+export const useFiatOnRampSDK = () => {
+	const contextValue = useContext(SDKContext);
+	return contextValue;
 };
 
 export function useSDKMethod<T extends keyof IOnRampSdk>(
