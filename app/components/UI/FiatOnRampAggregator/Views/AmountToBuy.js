@@ -115,6 +115,10 @@ const AmountToBuy = ({ navigation }) => {
 		[hideTokenSelectorModal, setSelectedAsset]
 	);
 
+	const handleGetQuotePress = useCallback(() => {
+		navigation.navigate('GetQuotes', { amount });
+	}, [amount, navigation]);
+
 	useEffect(() => {
 		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
 	}, [amountFocused, keyboardHeight, keypadOffset]);
@@ -176,7 +180,7 @@ const AmountToBuy = ({ navigation }) => {
 						</Box>
 					</View>
 					<View style={styles.row}>
-						<StyledButton type="confirm" onPress={() => navigation.navigate('AmountToBuy')}>
+						<StyledButton type="confirm" onPress={handleGetQuotePress}>
 							Get Quotes
 						</StyledButton>
 					</View>
