@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-color-literals */
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import { storiesOf } from '@storybook/react-native';

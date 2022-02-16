@@ -1,6 +1,3 @@
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
 import Box from './Box';
@@ -13,9 +10,11 @@ import { Image } from 'react-native-animatable';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 
+/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const visa = require('./images/visa.png');
 const sepa = require('./images/sepa.png');
 const mastercard = require('./images/mastercard.png');
+/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
@@ -59,7 +58,8 @@ export const PaymentIcon: React.FC<iconParams> = ({ iconType, style, size }: ico
 };
 
 const styles = StyleSheet.create({
-	// eslint-disable-next-line react-native/no-color-literals
+	//TODO: remove hardcoded color later
+	/* eslint-disable react-native/no-color-literals */
 	icon: {
 		width: 38,
 		height: 38,
@@ -79,17 +79,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey050,
 		height: 1,
 		marginVertical: 12,
-	},
-	title: {
-		fontSize: 15,
-		fontWeight: 'bold',
-		color: colors.black,
-	},
-	id: {
-		color: colors.grey500,
-		fontSize: 10.5,
-		fontFamily: 'Euclid Circular B',
-		marginTop: 5,
 	},
 });
 
@@ -111,9 +100,13 @@ const PaymentOption: React.FC<Props> = ({
 			</ListItem.Icon>
 			<ListItem.Body>
 				<ListItem.Title>
-					<Text style={styles.title}>{title}</Text>
+					<Text big primary bold>
+						{title}
+					</Text>
 				</ListItem.Title>
-				<Text style={styles.id}>{idRequired ? 'ID required' : 'No ID required'}</Text>
+				<Text small grey>
+					{idRequired ? 'ID required' : 'No ID required'}
+				</Text>
 			</ListItem.Body>
 			<ListItem.Amounts>
 				<ListItem.Amount>
