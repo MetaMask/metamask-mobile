@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PropTypes from 'prop-types';
 import { StyleSheet, Pressable, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import useModalHandler from '../../../Base/hooks/useModalHandler';
+import TokenSelectModal from '../components/TokenSelectModal';
+import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
 
 import ScreenLayout from '../components/ScreenLayout';
 import Text from '../../../Base/Text';
@@ -15,6 +17,7 @@ import Box from '../components/Box';
 import QuickAmounts from '../components/QuickAmounts';
 import SelectorButton from '../../../Base/SelectorButton';
 import AccountSelector from '../components/AccountSelector';
+import TokenIcon from '../../Swaps/components/TokenIcon';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -45,8 +48,16 @@ const styles = StyleSheet.create({
 const AmountToBuy = ({ navigation }) => {
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
+	const [tokens, setTokens] = useState([]);
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
+	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
+	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset } = useFiatOnRampSDK();
+	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
+		'getCryptoCurrencies',
+		{ countryId: 'US', regionId: 'USA' },
+		'/payments/debit-credit-card'
+	);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -73,15 +84,28 @@ const AmountToBuy = ({ navigation }) => {
 		keyboardHeight.current = height;
 	}, []);
 
-	const handleCountryPress = useCallback((newAmount) => {
+	const handleCountryPress = useCallback(() => {
 		// TODO: handle
-	}, []);
-	const handleAssetSelectorPress = useCallback((newAmount) => {
-		// TODO: handle
-	}, []);
+		setSelectedCountry('USA');
+	}, [setSelectedCountry]);
+	const handleAssetSelectorPress = useCallback(
+		(newAmount) => {
+			// TODO: handle
+			toggleTokenSelectorModal();
+		},
+		[toggleTokenSelectorModal]
+	);
 	const handleAmountCurrencyPress = useCallback((newAmount) => {
 		// TODO: handle
 	}, []);
+
+	const handleAssetPress = useCallback(
+		(newAsset) => {
+			setSelectedAsset(newAsset);
+			hideTokenSelectorModal();
+		},
+		[hideTokenSelectorModal, setSelectedAsset]
+	);
 
 	useEffect(() => {
 		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
@@ -92,6 +116,13 @@ const AmountToBuy = ({ navigation }) => {
 		[amount, amountFocused]
 	);
 
+	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
+	useEffect(() => {
+		if (!isFetchingDataTokens && !errorDataTokens && dataTokens) {
+			setTokens(dataTokens);
+		}
+	}, [errorDataTokens, isFetchingDataTokens, dataTokens]);
+
 	return (
 		<ScreenLayout>
 			<ScreenLayout.Body>
@@ -101,15 +132,15 @@ const AmountToBuy = ({ navigation }) => {
 							<AccountSelector />
 							<View style={styles.spacer} />
 							<SelectorButton onPress={handleCountryPress}>
-								<Text reset>🇺🇸</Text>
+								<Text reset>{selectedCountry} - 🇺🇸</Text>
 							</SelectorButton>
 						</View>
 						<View style={styles.row}>
 							<AssetSelectorButton
 								label={'You want to buy'}
-								icon={<FontAwesome5Icon name="circle" size={32} />}
-								assetSymbol={'ETH'}
-								assetName={'Ethereum'}
+								icon={<TokenIcon medium icon={selectedAsset?.iconUrl} symbol={selectedAsset?.symbol} />}
+								assetSymbol={selectedAsset?.symbol}
+								assetName={selectedAsset?.name}
 								onPress={handleAssetSelectorPress}
 							/>
 						</View>
@@ -159,6 +190,14 @@ const AmountToBuy = ({ navigation }) => {
 					</StyledButton>
 				</ScreenLayout.Content>
 			</Animated.View>
+			<TokenSelectModal
+				isVisible={isTokenSelectorModalVisible}
+				dismiss={toggleTokenSelectorModal}
+				title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
+				description={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency_description')}
+				tokens={tokens}
+				onItemPress={handleAssetPress}
+			/>
 		</ScreenLayout>
 	);
 };

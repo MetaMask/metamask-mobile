@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, ScrollView, ViewStyle } from 'react-native';
+import { StyleSheet, View, SafeAreaView, ScrollView, ViewStyle, TextStyle } from 'react-native';
 import { colors } from '../../../../styles/common';
 import TextJS from '../../../Base/Text';
 
@@ -11,6 +11,7 @@ interface Style {
 	content: ViewStyle;
 	header: ViewStyle;
 	body: ViewStyle;
+	grow: ViewStyle;
 }
 
 const styles = StyleSheet.create<Style>({
@@ -23,6 +24,9 @@ const styles = StyleSheet.create<Style>({
 	},
 	content: {
 		padding: 15,
+	},
+	grow: {
+		flex: 1,
 	},
 	header: {
 		marginVertical: 16,
@@ -48,6 +52,8 @@ interface IStaticComponents {
 interface IPropsHeader {
 	title?: string;
 	description?: string;
+	titleStyle?: TextStyle;
+	descriptionStyle?: TextStyle;
 	bold?: boolean;
 	children?: React.ReactNode;
 	style?: ViewStyle;
@@ -62,6 +68,7 @@ interface IPropsFooter {
 }
 
 interface IPropsContent {
+	grow?: boolean;
 	style?: ViewStyle;
 }
 
@@ -78,14 +85,27 @@ const ScreenLayout: React.FC<IPropsScreenLayout> & IStaticComponents = ({
 	);
 };
 
-const Header: React.FC<IPropsHeader> = ({ title, description, bold, children, style, ...props }: IPropsHeader) => (
+const Header: React.FC<IPropsHeader> = ({
+	title,
+	description,
+	bold,
+	children,
+	style,
+	titleStyle,
+	descriptionStyle,
+	...props
+}: IPropsHeader) => (
 	<View style={[styles.header, style]} {...props}>
 		{title && (
-			<Text big black centered bold={bold}>
+			<Text style={titleStyle} big black centered bold={bold}>
 				{title}
 			</Text>
 		)}
-		{description && <Text centered>{description}</Text>}
+		{description && (
+			<Text style={descriptionStyle} centered>
+				{description}
+			</Text>
+		)}
 		{children}
 	</View>
 );
@@ -95,8 +115,8 @@ const Body: React.FC<IPropsBody> = ({ style, ...props }: IPropsBody) => (
 );
 
 const Footer: React.FC<IPropsFooter> = ({ style, ...props }: IPropsFooter) => <View style={style} {...props} />;
-const Content: React.FC<IPropsContent> = ({ style, ...props }: IPropsContent) => (
-	<View style={[styles.content, style]} {...props} />
+const Content: React.FC<IPropsContent> = ({ style, grow, ...props }: IPropsContent) => (
+	<View style={grow ? [styles.content, styles.grow, style] : [styles.content, style]} {...props} />
 );
 
 ScreenLayout.Header = Header;
