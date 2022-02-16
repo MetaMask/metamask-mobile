@@ -99,7 +99,7 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@metamask/controllers": "^22.0.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^6.3.0",
+    "@metamask/swaps-controller": "^6.5.0",
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
