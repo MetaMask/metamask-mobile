@@ -80,9 +80,11 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	...params: Parameters<IOnRampSdk[T]>
 ): [{ data: any; error: string | null; isFetching: boolean }, () => Promise<void>] {
 	const { sdk }: { sdk: IOnRampSdk } = useFiatOnRampSDK() as any;
-	const [data, setData] = useState(null);
+	const [data, setData] = useState<any | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isFetching, setIsFetching] = useState(false);
+	const [isFetching, setIsFetching] = useState<boolean>(false);
+	const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
+
 	const query = useCallback(async () => {
 		try {
 			setIsFetching(true);
@@ -96,7 +98,8 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 		} finally {
 			setIsFetching(false);
 		}
-	}, [method, params, sdk]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [method, stringifiedParams, sdk]);
 
 	useEffect(() => {
 		query();

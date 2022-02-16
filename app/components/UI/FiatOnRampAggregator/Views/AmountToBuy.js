@@ -6,7 +6,7 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenSelectModal from '../components/TokenSelectModal';
-import { useFiatOnRampSDK } from '../SDK';
+import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
 
 import ScreenLayout from '../components/ScreenLayout';
 import Text from '../../../Base/Text';
@@ -52,7 +52,12 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { sdk, selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset } = useFiatOnRampSDK();
+	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset } = useFiatOnRampSDK();
+	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
+		'getCryptoCurrencies',
+		{ countryId: 'US', regionId: 'USA' },
+		'/payments/debit-credit-card'
+	);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -110,16 +115,13 @@ const AmountToBuy = ({ navigation }) => {
 		() => (amountFocused ? amount : new Intl.NumberFormat().format(amount)),
 		[amount, amountFocused]
 	);
-	// pre-fetch sdk methods
+
+	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
 	useEffect(() => {
-		(async () => {
-			const tokens = await sdk.getCryptoCurrencies(
-				{ countryId: 'US', regionId: 'USA' },
-				'/payments/debit-credit-card'
-			);
-			setTokens(tokens);
-		})();
-	}, [sdk]);
+		if (!isFetchingDataTokens && !errorDataTokens && dataTokens) {
+			setTokens(dataTokens);
+		}
+	}, [errorDataTokens, isFetchingDataTokens, dataTokens]);
 
 	return (
 		<ScreenLayout>
