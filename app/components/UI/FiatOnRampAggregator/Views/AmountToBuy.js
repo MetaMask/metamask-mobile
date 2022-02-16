@@ -52,7 +52,8 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset } = useFiatOnRampSDK();
+	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset, selectedPaymentMethod } =
+		useFiatOnRampSDK();
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
 		{ countryId: 'US', regionId: 'USA' },
@@ -128,6 +129,7 @@ const AmountToBuy = ({ navigation }) => {
 			<ScreenLayout.Body>
 				<Pressable onPress={handleKeypadDone} style={styles.viewContainer}>
 					<ScreenLayout.Content>
+						<Text>{selectedPaymentMethod}</Text>
 						<View style={[styles.selectors, styles.row]}>
 							<AccountSelector />
 							<View style={styles.spacer} />

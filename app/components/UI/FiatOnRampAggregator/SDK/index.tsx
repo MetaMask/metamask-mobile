@@ -15,15 +15,16 @@ export const useFiatOnRampSDK = () => {
 	const sdk = useContext(SDKContext);
 	const dispatch = useDispatch();
 
-	const INITIAL_SELECTED_COUNTRY = useSelector(fiatOrdersCountrySelectorAgg);
+	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
 	const INITIAL_SELECTED_ASSET = null;
 
-	const [selectedCountry, setSelectedCountry] = useState<string>(INITIAL_SELECTED_COUNTRY);
-	const [selectedRegion, setSelectedRegion] = useState<string>(INITIAL_SELECTED_REGION);
+	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
+	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState<any>(INITIAL_SELECTED_ASSET);
-	const [regionCurrency, setRegionCurrency] = useState<string>('USD');
+	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
+	const [regionCurrency, setRegionCurrency] = useState('USD');
 
 	const setSelectedCountryCallback = useCallback(
 		(countryCode) => {
@@ -53,6 +54,10 @@ export const useFiatOnRampSDK = () => {
 		// TODO: dispatch(setRegionCurrency(currency));
 	}, []);
 
+	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
+		setSelectedPaymentMethod(paymentMethod);
+	}, []);
+
 	useEffect(() => {
 		(async () => {
 			const assets = await sdk?.getCryptoCurrencies(
@@ -73,6 +78,8 @@ export const useFiatOnRampSDK = () => {
 		selectedCountry,
 		setSelectedRegion: setSelectedRegionCallback,
 		selectedRegion,
+		selectedPaymentMethod,
+		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
 		setRegionCurrency: setRegionCurrencyCallback,
 		regionCurrency,
 		setSelectedAsset,
@@ -87,7 +94,7 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	const { sdk }: { sdk: IOnRampSdk } = useFiatOnRampSDK() as any;
 	const [data, setData] = useState<any | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isFetching, setIsFetching] = useState<boolean>(false);
+	const [isFetching, setIsFetching] = useState<boolean>(true);
 	const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
 
 	const query = useCallback(async () => {

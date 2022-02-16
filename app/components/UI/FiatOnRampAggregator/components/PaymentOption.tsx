@@ -29,6 +29,7 @@ interface Props {
 	paymentType: Icon;
 	paymentNetworks: [string];
 	onPress?: () => any;
+	highlighted?: boolean;
 }
 
 interface iconParams {
@@ -90,8 +91,9 @@ const PaymentOption: React.FC<Props> = ({
 	idRequired,
 	paymentType,
 	onPress,
+	highlighted,
 }: Props) => (
-	<Box onPress={onPress}>
+	<Box onPress={onPress} highlighted={highlighted}>
 		<ListItem.Content>
 			<ListItem.Icon>
 				<View style={styles.icon}>
