@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { useRoute } from '@react-navigation/native';
@@ -6,11 +6,13 @@ import Text from '../../../Base/Text';
 import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
 import { useSelector } from 'react-redux';
 import { CHAIN_ID_NETWORKS } from '../constants';
-import LoadingAnimation from '../../Swaps/components/LoadingAnimation';
+import LoadingAnimation from '../components/LoadingAnimation';
 import Box from '../components/Box';
 
 const GetQuotes = () => {
 	const { params } = useRoute();
+	const [isLoading, setIsLoading] = useState(true);
+	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 
 	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
 	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset } = useFiatOnRampSDK();
@@ -24,17 +26,19 @@ const GetQuotes = () => {
 		params.amount
 	);
 
-	if (isFetchingQuotes) {
+	useEffect(() => {
+		if (isFetchingQuotes) return;
+		setShouldFinishAnimation(true);
+	}, [isFetchingQuotes]);
+
+	if (isLoading) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
 					<LoadingAnimation
-						finish
-						// eslint-disable-next-line no-empty-function
-						onAnimationEnd={() => {}}
-						// eslint-disable-next-line no-empty-function
-						aggregatorMetadata={() => {}}
-						headPan={false}
+						title="Fetching Quotes"
+						finish={shouldFinishAnimation}
+						onAnimationEnd={() => setIsLoading(false)}
 					/>
 				</ScreenLayout.Body>
 			</ScreenLayout>
