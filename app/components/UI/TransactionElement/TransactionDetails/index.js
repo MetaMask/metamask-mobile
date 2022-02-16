@@ -179,12 +179,12 @@ class TransactionDetails extends PureComponent {
 		const {
 			chainId,
 			transactionDetails,
-			transactionObject,
 			transactionObject: { status, time, transaction },
 		} = this.props;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
-		return (
+
+		return transactionDetails ? (
 			<DetailsModal.Body>
 				<DetailsModal.Section borderBottom>
 					<DetailsModal.Column>
@@ -240,7 +240,7 @@ class TransactionDetails extends PureComponent {
 				</View>
 
 				{transactionDetails.transactionHash &&
-					transactionObject.status !== 'cancelled' &&
+					status !== 'cancelled' &&
 					rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
 						<TouchableOpacity onPress={this.viewOnEtherscan} style={styles.touchableViewOnEtherscan}>
 							<Text reset style={styles.viewOnEtherscan}>
@@ -251,7 +251,7 @@ class TransactionDetails extends PureComponent {
 						</TouchableOpacity>
 					)}
 			</DetailsModal.Body>
-		);
+		) : null;
 	};
 }
 

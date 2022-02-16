@@ -8,6 +8,7 @@ import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
+import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
@@ -121,10 +122,15 @@ class DeeplinkManager {
 				TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 			}
 		} catch (e) {
-			Alert.alert(
-				strings('send.network_not_found_title'),
-				strings('send.network_not_found_description', { chain_id: ethUrl.chain_id })
-			);
+			let alertMessage;
+			switch (e.message) {
+				case NETWORK_ERROR_MISSING_NETWORK_ID:
+					alertMessage = strings('send.network_missing_id');
+					break;
+				default:
+					alertMessage = strings('send.network_not_found_description', { chain_id: ethUrl.chain_id });
+			}
+			Alert.alert(strings('send.network_not_found_title'), alertMessage);
 		}
 	}
 
