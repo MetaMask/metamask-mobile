@@ -687,7 +687,6 @@ const Main = (props) => {
 					onCancel={skipAccountModalSecureNow}
 					onConfirm={skipAccountModalSkip}
 					skipCheckbox={skipCheckbox}
-					onPress={skipAccountModalSkip}
 					toggleSkipCheckbox={toggleSkipCheckbox}
 				/>
 				<ProtectYourWalletModal navigation={props.navigation} />

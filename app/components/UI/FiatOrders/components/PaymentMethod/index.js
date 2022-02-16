@@ -51,7 +51,7 @@ const createStyles = (colors) =>
 		},
 		infoIcon: {
 			margin: 5,
-			color: colors.grey007,
+			color: colors.icon.muted,
 		},
 	});
 

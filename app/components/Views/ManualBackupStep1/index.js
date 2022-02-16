@@ -8,9 +8,10 @@ import {
 	InteractionManager,
 	TextInput,
 	KeyboardAvoidingView,
-	TouchableOpacity,
+	Appearance,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -72,22 +73,21 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 			paddingHorizontal: 6,
 		},
+		seedPhraseConcealerContainer: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+			borderRadius: 8,
+		},
 		seedPhraseConcealer: {
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
-			backgroundColor: colors.grey700,
-			opacity: 0.7,
+			backgroundColor: colors.overlay.default,
 			alignItems: 'center',
 			borderRadius: 8,
 			paddingHorizontal: 24,
 			paddingVertical: 45,
-		},
-		touchableOpacity: {
-			position: 'absolute',
-			width: '100%',
-			height: '100%',
-			borderRadius: 8,
 		},
 		blurView: {
 			position: 'absolute',
@@ -100,21 +100,21 @@ const createStyles = (colors) =>
 		icon: {
 			width: 24,
 			height: 24,
-			color: colors.text.default,
+			color: colors.overlay.inverse,
 			textAlign: 'center',
 			marginBottom: 32,
 		},
 		reveal: {
 			fontSize: Device.isMediumDevice() ? 13 : 16,
 			...fontStyles.bold,
-			color: colors.white,
+			color: colors.overlay.inverse,
 			lineHeight: 22,
 			marginBottom: 8,
 			textAlign: 'center',
 		},
 		watching: {
 			fontSize: Device.isMediumDevice() ? 10 : 12,
-			color: colors.white,
+			color: colors.overlay.inverse,
 			lineHeight: 17,
 			marginBottom: 32,
 			textAlign: 'center',
@@ -217,7 +217,7 @@ const createStyles = (colors) =>
  * View that's shown during the second step of
  * the backup seed phrase flow
  */
-export default class ManualBackupStep1 extends PureComponent {
+class ManualBackupStep1 extends PureComponent {
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -227,6 +227,10 @@ export default class ManualBackupStep1 extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		/**
+		 * Theme that app is set to
+		 */
+		appTheme: PropTypes.string,
 	};
 
 	steps = MANUAL_BACKUP_STEPS;
@@ -325,14 +329,34 @@ export default class ManualBackupStep1 extends PureComponent {
 		);
 	};
 
+	getBlurType = () => {
+		const { appTheme } = this.props;
+		let blurType = 'light';
+		switch (appTheme) {
+			case 'light':
+				blurType = 'light';
+				break;
+			case 'dark':
+				blurType = 'dark';
+				break;
+			case 'os':
+				blurType = Appearance.getColorScheme();
+				break;
+			default:
+				blurType = 'light';
+		}
+		return blurType;
+	};
+
 	renderSeedPhraseConcealer = () => {
 		const { colors } = this.context;
 		const styles = createStyles(colors);
+		const blurType = this.getBlurType();
 
 		return (
 			<React.Fragment>
-				<TouchableOpacity onPress={this.revealSeedPhrase} style={styles.touchableOpacity}>
-					<BlurView blurType="light" blurAmount={5} style={styles.blurView} />
+				<View style={styles.seedPhraseConcealerContainer}>
+					<BlurView blurType={blurType} blurAmount={5} style={styles.blurView} />
 					<View style={styles.seedPhraseConcealer}>
 						<FeatherIcons name="eye-off" size={24} style={styles.icon} />
 						<Text style={styles.reveal}>{strings('manual_backup_step_1.reveal')}</Text>
@@ -348,7 +372,7 @@ export default class ManualBackupStep1 extends PureComponent {
 							</StyledButton>
 						</View>
 					</View>
-				</TouchableOpacity>
+				</View>
 			</React.Fragment>
 		);
 	};
@@ -456,4 +480,10 @@ export default class ManualBackupStep1 extends PureComponent {
 	}
 }
 
+const mapStateToProps = (state) => ({
+	appTheme: state.user.appTheme,
+});
+
 ManualBackupStep1.contextType = ThemeContext;
+
+export default connect(mapStateToProps)(ManualBackupStep1);

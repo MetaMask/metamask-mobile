@@ -62,8 +62,9 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 					<TouchableOpacity onPress={showModal}>
 						<PaymentMethod.InfoIconLine>
 							<Text>
-								<Text small>{strings('fiat_on_ramp.wyre_countries')}</Text> <PaymentMethod.InfoIcon />
+								<Text small>{strings('fiat_on_ramp.wyre_countries')}</Text>
 							</Text>
+							<PaymentMethod.InfoIcon />
 						</PaymentMethod.InfoIconLine>
 					</TouchableOpacity>
 

@@ -77,13 +77,15 @@ const SkipAccountSecurityModal = ({ modalVisible, onConfirm, onCancel, onPress, 
 			onConfirmPress={onConfirm}
 		>
 			<View style={styles.skipModalContainer}>
-				<TouchableOpacity
-					onPress={onPress}
-					style={styles.skipModalXButton}
-					hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-				>
-					<Icon name="times" style={styles.skipModalXIcon} />
-				</TouchableOpacity>
+				{onPress && (
+					<TouchableOpacity
+						onPress={onPress}
+						style={styles.skipModalXButton}
+						hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+					>
+						<Icon name="times" style={styles.skipModalXIcon} />
+					</TouchableOpacity>
+				)}
 				<FeatherIcon
 					name="alert-triangle"
 					size={38}
@@ -113,7 +115,7 @@ const propTypes = {
 	modalVisible: PropTypes.bool.isRequired,
 	onConfirm: PropTypes.func.isRequired,
 	onCancel: PropTypes.func.isRequired,
-	onPress: PropTypes.func.isRequired,
+	onPress: PropTypes.func,
 	toggleSkipCheckbox: PropTypes.func.isRequired,
 	skipCheckbox: PropTypes.bool.isRequired,
 };

@@ -61,27 +61,27 @@ const createStyles = (colors) =>
 		},
 		searchWrapper: {
 			marginVertical: 8,
-		},
-		searchInput: {
-			marginHorizontal: 0,
-			paddingTop: Device.isAndroid() ? 12 : 2,
-			borderRadius: 8,
-			paddingHorizontal: 38,
-			fontSize: 16,
-			backgroundColor: colors.background.default,
-			height: 40,
-			width: '100%',
-			color: colors.text.default,
 			borderColor: colors.border.default,
 			borderWidth: 1,
+			borderRadius: 8,
+			flexDirection: 'row',
+			backgroundColor: colors.background.default,
+		},
+		searchInput: {
+			paddingTop: Device.isAndroid() ? 12 : 0,
+			paddingLeft: 8,
+			fontSize: 16,
+			height: 40,
+			flex: 1,
+			color: colors.text.default,
 			...fontStyles.normal,
 		},
 		searchIcon: {
-			position: 'absolute',
 			textAlignVertical: 'center',
 			marginTop: Device.isAndroid() ? 9 : 10,
 			marginLeft: 12,
 		},
+		clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
 		input: {
 			...fontStyles.normal,
 			backgroundColor: colors.background.default,
@@ -280,6 +280,7 @@ class PaymentRequest extends PureComponent {
 	};
 
 	amountInput = React.createRef();
+	searchInput = React.createRef();
 
 	state = {
 		searchInputValue: '',
@@ -373,6 +374,12 @@ class PaymentRequest extends PureComponent {
 		this.setState({ searchInputValue, results });
 	};
 
+	/** Clear search input and focus */
+	clearSearchInput = () => {
+		this.setState({ searchInputValue: '' });
+		this.searchInput.current?.focus?.();
+	};
+
 	/**
 	 * Renders a view that allows user to select assets to build the payment request
 	 * Either top picks and user's assets are available to select
@@ -404,11 +411,12 @@ class PaymentRequest extends PureComponent {
 				</View>
 				{chainId === '1' && (
 					<View style={styles.searchWrapper}>
+						<FeatherIcon name="search" size={18} color={colors.icon.muted} style={styles.searchIcon} />
 						<TextInput
+							ref={this.searchInput}
 							style={[styles.searchInput, inputWidth]}
 							autoCapitalize="none"
 							autoCorrect={false}
-							clearButtonMode="while-editing"
 							onChangeText={this.handleSearch}
 							onSubmitEditing={this.handleSearch}
 							placeholder={strings('payment_request.search_assets')}
@@ -418,13 +426,11 @@ class PaymentRequest extends PureComponent {
 							blurOnSubmit
 							testID={'request-search-asset-input'}
 						/>
-						<FeatherIcon
-							onPress={this.focusInput}
-							name="search"
-							size={18}
-							color={colors.grey007}
-							style={styles.searchIcon}
-						/>
+						{this.state.searchInputValue ? (
+							<TouchableOpacity onPress={this.clearSearchInput} style={styles.clearButton}>
+								<FontAwesome name="times-circle" size={18} color={colors.icon.default} />
+							</TouchableOpacity>
+						) : null}
 					</View>
 				)}
 				<View style={styles.assetsWrapper} testID={'searched-asset-results'}>
@@ -661,10 +667,9 @@ class PaymentRequest extends PureComponent {
 										style={styles.switchTouchable}
 									>
 										<FontAwesome
-											onPress={this.focusInput}
 											name="exchange"
 											size={18}
-											color={colors.grey700}
+											color={colors.icon.default}
 											style={{ transform: [{ rotate: '270deg' }] }}
 										/>
 									</TouchableOpacity>

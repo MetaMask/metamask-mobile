@@ -98,7 +98,7 @@ const createStyles = (colors) =>
 			alignItems: 'flex-end',
 		},
 		arrowIcon: {
-			color: colors.grey200,
+			color: colors.icon.muted,
 		},
 	});
 

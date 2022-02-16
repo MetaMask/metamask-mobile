@@ -29,7 +29,7 @@ const createStyles = (colors) =>
 		},
 		arrowIcon: {
 			...baseStyles.flexGrow,
-			color: colors.grey200,
+			color: colors.icon.muted,
 		},
 		iconHidden: {
 			...baseStyles.flexGrow,

@@ -131,7 +131,7 @@ const createStyles = (colors) =>
 			color: colors.text.default,
 		},
 		arrowDown: {
-			color: colors.grey700,
+			color: colors.icon.default,
 			fontSize: Device.isSmallDevice() ? 22 : 25,
 			marginHorizontal: 15,
 			marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -194,7 +194,7 @@ const createStyles = (colors) =>
 		infoIcon: {
 			fontSize: 12,
 			margin: 3,
-			color: colors.grey700,
+			color: colors.icon.default,
 		},
 		ctaButton: {
 			width: '100%',
@@ -205,7 +205,7 @@ const createStyles = (colors) =>
 			color: colors.error.default,
 		},
 		expiredIcon: {
-			color: colors.grey700,
+			color: colors.icon.default,
 		},
 		disabled: {
 			opacity: 0.4,
@@ -218,7 +218,7 @@ const createStyles = (colors) =>
 			paddingHorizontal: 2,
 		},
 		gasInfoIcon: {
-			color: colors.grey700,
+			color: colors.icon.default,
 		},
 		hitSlop: {
 			top: 10,

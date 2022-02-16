@@ -75,7 +75,7 @@ const createStyles = (colors) =>
 			position: 'absolute',
 			justifyContent: 'center',
 			alignItems: 'center',
-			backgroundColor: colors.grey700,
+			backgroundColor: colors.icon.default,
 			padding: 5,
 			borderRadius: 8,
 			minHeight: TOOLTIP_HEIGHT,
@@ -89,7 +89,7 @@ const createStyles = (colors) =>
 			bottom: -5,
 			width: TAIL_WIDTH,
 			height: TAIL_WIDTH,
-			backgroundColor: colors.grey700,
+			backgroundColor: colors.icon.default,
 			transform: [{ rotate: '45deg' }],
 		},
 		tooltipText: {

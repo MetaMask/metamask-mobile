@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '../../../../styles/common';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AnimatedSpinner from '../../AnimatedSpinner';
 import { strings } from '../../../../../locales/i18n';
@@ -10,50 +10,51 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useAppThemeFromContext } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	defaultFlashFloating: {
-		backgroundColor: colors.normalAlert,
-		padding: 16,
-		marginHorizontal: 16,
-		flexDirection: 'row',
-		borderRadius: 8,
-	},
-	flashLabel: {
-		flex: 1,
-		flexDirection: 'column',
-		color: colors.white,
-	},
-	flashText: {
-		flex: 1,
-		fontSize: 12,
-		lineHeight: 18,
-		color: colors.white,
-	},
-	flashTitle: {
-		flex: 1,
-		fontSize: 14,
-		marginBottom: 2,
-		lineHeight: 18,
-		color: colors.white,
-		...fontStyles.bold,
-	},
-	flashIcon: {
-		marginRight: 15,
-	},
-	closeTouchable: {
-		flex: 0.1,
-		flexDirection: 'column',
-		alignItems: 'flex-end',
-	},
-	closeIcon: {
-		flex: 1,
-		color: colors.white,
-		alignItems: 'flex-start',
-		marginTop: -8,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		defaultFlashFloating: {
+			backgroundColor: colors.overlay.default,
+			padding: 16,
+			marginHorizontal: 16,
+			flexDirection: 'row',
+			borderRadius: 8,
+		},
+		flashLabel: {
+			flex: 1,
+			flexDirection: 'column',
+			color: colors.overlay.inverse,
+		},
+		flashText: {
+			flex: 1,
+			fontSize: 12,
+			lineHeight: 18,
+			color: colors.overlay.inverse,
+		},
+		flashTitle: {
+			flex: 1,
+			fontSize: 14,
+			marginBottom: 2,
+			lineHeight: 18,
+			color: colors.overlay.inverse,
+			...fontStyles.bold,
+		},
+		flashIcon: {
+			marginRight: 15,
+		},
+		closeTouchable: {
+			flex: 0.1,
+			flexDirection: 'column',
+			alignItems: 'flex-end',
+		},
+		closeIcon: {
+			flex: 1,
+			color: colors.overlay.inverse,
+			alignItems: 'flex-start',
+			marginTop: -8,
+		},
+	});
 
-const getIcon = (status, colors) => {
+const getIcon = (status, colors, styles) => {
 	switch (status) {
 		case 'pending':
 		case 'pending_withdrawal':
@@ -132,6 +133,7 @@ const BaseNotification = ({
 	autoDismiss,
 }) => {
 	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	return (
 		<View style={baseStyles.flexGrow}>
@@ -141,7 +143,7 @@ const BaseNotification = ({
 				onPress={onPress}
 				activeOpacity={0.8}
 			>
-				<View style={styles.flashIcon}>{getIcon(status, colors)}</View>
+				<View style={styles.flashIcon}>{getIcon(status, colors, styles)}</View>
 				<View style={styles.flashLabel}>
 					<Text style={styles.flashTitle} testID={'notification-title'}>
 						{!title ? getTitle(status, data) : title}

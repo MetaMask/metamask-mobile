@@ -67,7 +67,7 @@ const createStyles = (colors) =>
 		},
 		modalTypeViewDetailsVisible: {
 			height: '100%',
-			backgroundColor: colors.greytransparent,
+			backgroundColor: colors.overlay.default,
 		},
 		modalTypeViewBrowser: {
 			bottom: Device.isIphoneX() ? 70 : 60,

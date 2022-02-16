@@ -136,7 +136,6 @@ const createStyles = (colors) =>
 			fontSize: 12,
 			letterSpacing: 0.5,
 			...fontStyles.bold,
-			color: colors.text.default,
 		},
 	});
 

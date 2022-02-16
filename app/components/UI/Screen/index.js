@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { SafeAreaView, StatusBar, View } from 'react-native';
-import { colors, baseStyles } from '../../../styles/common';
-import Device from '../../../util/device';
+import { SafeAreaView, View } from 'react-native';
+import { baseStyles } from '../../../styles/common';
+
 /**
  * Base view component providing consistent styling meant to wrap other views
  */
@@ -14,12 +14,13 @@ export default class Screen extends PureComponent {
 		children: PropTypes.node,
 	};
 
-	componentDidMount() {
-		StatusBar.setBarStyle('dark-content', true);
-		if (Device.isAndroid()) {
-			StatusBar.setBackgroundColor(colors.grey100);
-		}
-	}
+	// With theme, this probably isn't needed anymore
+	// componentDidMount() {
+	// 	StatusBar.setBarStyle('dark-content', true);
+	// 	if (Device.isAndroid()) {
+	// 		StatusBar.setBackgroundColor(colors.grey100);
+	// 	}
+	// }
 
 	render() {
 		return (

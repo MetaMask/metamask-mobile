@@ -324,7 +324,12 @@ class ContactForm extends PureComponent {
 
 							{editable && (
 								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-									<AntIcon name="scan1" size={20} color={colors.grey700} style={styles.scanIcon} />
+									<AntIcon
+										name="scan1"
+										size={20}
+										color={colors.icon.default}
+										style={styles.scanIcon}
+									/>
 								</TouchableOpacity>
 							)}
 						</View>

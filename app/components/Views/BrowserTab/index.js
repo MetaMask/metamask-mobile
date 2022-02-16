@@ -21,7 +21,6 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect } from 'react-redux';
-
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
@@ -167,23 +166,26 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 			paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
 			paddingHorizontal: 10,
-			backgroundColor: colors.background.default,
 			height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
+			backgroundColor: colors.background.default,
 		},
+		searchWrapper: {
+			flexDirection: 'row',
+			borderRadius: 30,
+			backgroundColor: colors.background.alternative,
+			height: Device.isAndroid() ? 40 : 30,
+			flex: 1,
+		},
+		clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
 		urlModal: {
 			justifyContent: 'flex-start',
 			margin: 0,
 		},
 		urlInput: {
 			...fontStyles.normal,
-			backgroundColor: colors.background.alternative,
-			borderRadius: 30,
 			fontSize: Device.isAndroid() ? 16 : 14,
-			padding: 8,
 			paddingLeft: 15,
-			textAlign: 'left',
 			flex: 1,
-			height: Device.isAndroid() ? 40 : 30,
 			color: colors.text.default,
 		},
 		cancelButton: {
@@ -197,7 +199,7 @@ const createStyles = (colors) =>
 		},
 		iconCloseButton: {
 			borderRadius: 300,
-			backgroundColor: colors.grey700,
+			backgroundColor: colors.icon.default,
 			fontSize: 18,
 			padding: 0,
 			height: 20,
@@ -1063,6 +1065,12 @@ export const BrowserTab = (props) => {
 		toggleUrlModal();
 	};
 
+	/** Clear search input and focus */
+	const clearSearchInput = () => {
+		setAutocompleteValue('');
+		inputRef.current?.focus?.();
+	};
+
 	/**
 	 * Render url input modal
 	 */
@@ -1090,22 +1098,33 @@ export const BrowserTab = (props) => {
 				useNativeDriver
 			>
 				<View style={styles.urlModalContent} testID={'url-modal'}>
-					<TextInput
-						keyboardType="web-search"
-						ref={inputRef}
-						autoCapitalize="none"
-						autoCorrect={false}
-						clearButtonMode="while-editing"
-						testID={'url-input'}
-						onChangeText={onURLChange}
-						onSubmitEditing={onUrlInputSubmit}
-						placeholder={strings('autocomplete.placeholder')}
-						placeholderTextColor={colors.text.muted}
-						returnKeyType="go"
-						style={styles.urlInput}
-						value={autocompleteValue}
-						selectTextOnFocus
-					/>
+					<View style={styles.searchWrapper}>
+						<TextInput
+							keyboardType="web-search"
+							ref={inputRef}
+							autoCapitalize="none"
+							autoCorrect={false}
+							testID={'url-input'}
+							onChangeText={onURLChange}
+							onSubmitEditing={onUrlInputSubmit}
+							placeholder={strings('autocomplete.placeholder')}
+							placeholderTextColor={colors.text.muted}
+							returnKeyType="go"
+							style={styles.urlInput}
+							value={autocompleteValue}
+							selectTextOnFocus
+						/>
+						{autocompleteValue ? (
+							<TouchableOpacity onPress={clearSearchInput} style={styles.clearButton}>
+								<Icon
+									name="times-circle"
+									size={18}
+									color={colors.icon.default}
+									style={styles.clearIcon}
+								/>
+							</TouchableOpacity>
+						) : null}
+					</View>
 
 					{Device.isAndroid() ? (
 						<TouchableOpacity

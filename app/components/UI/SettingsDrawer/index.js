@@ -39,7 +39,7 @@ const createStyles = (colors) =>
 		},
 		icon: {
 			bottom: 8,
-			color: colors.grey700,
+			color: colors.icon.muted,
 			left: 4,
 			position: 'relative',
 		},

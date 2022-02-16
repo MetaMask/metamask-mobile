@@ -32,7 +32,7 @@ const createStyles = (colors) =>
 			paddingLeft: 2,
 		},
 		gasInfoIcon: (hasOrigin) => ({
-			color: hasOrigin ? colors.orange : colors.grey007,
+			color: hasOrigin ? colors.secondary.default : colors.icon.muted,
 		}),
 		amountContainer: {
 			flex: 1,

@@ -76,7 +76,7 @@ const createStyles = (colors) =>
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
-			borderColor: colors.grey700,
+			borderColor: colors.icon.default,
 		},
 	});
 

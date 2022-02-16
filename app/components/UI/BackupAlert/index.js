@@ -16,15 +16,18 @@ const BROWSER_ROUTE = 'BrowserView';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
-		backupAlertWrapper: {
-			flex: 1,
-			backgroundColor: colors.orange000,
-			borderColor: colors.yellow300,
-			borderWidth: 1,
+		container: {
+			backgroundColor: colors.background.default,
 			position: 'absolute',
 			left: 16,
 			right: 16,
 			borderRadius: 8,
+			borderColor: colors.warning.default,
+			borderWidth: 1,
+		},
+		backupAlertWrapper: {
+			flex: 1,
+			backgroundColor: colors.warning.muted,
 			padding: 14,
 		},
 		backupAlertIconWrapper: {
@@ -161,27 +164,29 @@ class BackupAlert extends PureComponent {
 			<ElevatedView
 				elevation={99}
 				style={[
-					styles.backupAlertWrapper,
+					styles.container,
 					inBrowserView ? styles.modalViewInBrowserView : styles.modalViewNotInBrowserView,
 				]}
 			>
-				<View style={styles.touchableView} testID={'backup-alert'}>
-					<View style={styles.backupAlertIconWrapper}>
-						<EvilIcons name="bell" style={styles.backupAlertIcon} />
-					</View>
-					<View style={baseStyles.flexGrow}>
-						<Text style={styles.backupAlertTitle}>{strings('backup_alert.title')}</Text>
-						<View style={styles.buttonsWrapper}>
-							<TouchableOpacity onPress={this.goToBackupFlow}>
-								<Text style={[styles.backupAlertMessage, fontStyles.bold]}>
-									{strings('backup_alert.right_button')}
-								</Text>
-							</TouchableOpacity>
-							<TouchableOpacity onPress={this.onDismiss} style={styles.dismissButton}>
-								<Text style={styles.backupAlertMessage} testID={'notification-remind-later-button'}>
-									{strings('backup_alert.left_button')}
-								</Text>
-							</TouchableOpacity>
+				<View style={styles.backupAlertWrapper}>
+					<View style={styles.touchableView} testID={'backup-alert'}>
+						<View style={styles.backupAlertIconWrapper}>
+							<EvilIcons name="bell" style={styles.backupAlertIcon} />
+						</View>
+						<View style={baseStyles.flexGrow}>
+							<Text style={styles.backupAlertTitle}>{strings('backup_alert.title')}</Text>
+							<View style={styles.buttonsWrapper}>
+								<TouchableOpacity onPress={this.goToBackupFlow}>
+									<Text style={[styles.backupAlertMessage, fontStyles.bold]}>
+										{strings('backup_alert.right_button')}
+									</Text>
+								</TouchableOpacity>
+								<TouchableOpacity onPress={this.onDismiss} style={styles.dismissButton}>
+									<Text style={styles.backupAlertMessage} testID={'notification-remind-later-button'}>
+										{strings('backup_alert.left_button')}
+									</Text>
+								</TouchableOpacity>
+							</View>
 						</View>
 					</View>
 				</View>

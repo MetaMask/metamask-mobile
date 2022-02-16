@@ -116,11 +116,11 @@ const createStyles = (colors) =>
 		viewText: {
 			fontSize: 18,
 			...fontStyles.bold,
-			color: colors.white,
+			color: colors.overlay.inverse,
 		},
 		view: {
 			borderWidth: 1,
-			borderColor: colors.white,
+			borderColor: colors.overlay.inverse,
 		},
 	});
 

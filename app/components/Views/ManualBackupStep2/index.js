@@ -129,9 +129,9 @@ const createStyles = (colors) =>
 			marginLeft: 4,
 		},
 		selectedWord: {
-			backgroundColor: colors.border.muted,
+			backgroundColor: colors.icon.muted,
 			borderWidth: 1,
-			borderColor: colors.border.muted,
+			borderColor: colors.icon.muted,
 		},
 		selectedWordText: {
 			color: colors.text.default,
