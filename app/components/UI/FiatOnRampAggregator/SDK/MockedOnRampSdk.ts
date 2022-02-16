@@ -60,6 +60,16 @@ class MockedOnRampSdk implements IOnRampSdk {
 	getCryptoCurrencies(location: Location, paymentMethodId: string): Promise<any[]> {
 		return Promise.resolve([
 			{
+				address: '',
+				aggregators: ['aave'],
+				decimals: 18,
+				iconUrl: 'https://crypto.com/price/coin-data/icon/ETH/color_icon.png',
+				name: 'Ethereum',
+				occurrences: 11,
+				symbol: 'ETH',
+				network: 'ethereum',
+			},
+			{
 				address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
 				aggregators: [
 					'aave',

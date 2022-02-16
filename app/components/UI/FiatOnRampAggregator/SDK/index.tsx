@@ -17,17 +17,8 @@ export const useFiatOnRampSDK = () => {
 
 	const INITIAL_SELECTED_COUNTRY = useSelector(fiatOrdersCountrySelectorAgg);
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
-	// const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
-	const INITIAL_SELECTED_ASSET = {
-		address: '',
-		aggregators: ['aave'],
-		decimals: 18,
-		iconUrl: 'https://crypto.com/price/coin-data/icon/ETH/color_icon.png',
-		name: 'Ethereum',
-		occurrences: 11,
-		symbol: 'ETH',
-		network: 'ethereum',
-	};
+	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
+	const INITIAL_SELECTED_ASSET = null;
 
 	const [selectedCountry, setSelectedCountry] = useState<string>(INITIAL_SELECTED_COUNTRY);
 	const [selectedRegion, setSelectedRegion] = useState<string>(INITIAL_SELECTED_REGION);
@@ -61,6 +52,20 @@ export const useFiatOnRampSDK = () => {
 		// dispatch an action to redux store to update region currency
 		// TODO: dispatch(setRegionCurrency(currency));
 	}, []);
+
+	useEffect(() => {
+		(async () => {
+			const assets = await sdk?.getCryptoCurrencies(
+				{ countryId: selectedCountry, regionId: selectedRegion },
+				INITIAL_PAYMENT_METHOD
+			);
+
+			assets?.length &&
+				setSelectedAsset(
+					assets.some((a) => a.symbol === 'ETH') ? assets.find((a) => a.symbol === 'ETH') : assets[0]
+				);
+		})();
+	}, [sdk, selectedCountry, selectedRegion]);
 
 	return {
 		sdk,
