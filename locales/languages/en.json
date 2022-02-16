@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sync or import wallet",
 		"new_to_crypto": "New to crypto?",
 		"start_exploring_now": "Create a new wallet",
-		"login": "Log in",
+		"unlock": "Unlock",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
@@ -128,8 +128,8 @@
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",
-		"login_button": "LOG IN",
-		"go_back": "Can’t login? You can ERASE your current wallet and setup a new one",
+		"unlock_button": "UNLOCK",
+		"go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
 		"reset_wallet": "Reset Wallet",
 		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
 		"invalid_password": "Invalid password",
@@ -247,10 +247,10 @@
 		"settings_warning": "Wallet unprotected",
 		"settings_warning_short": "Unprotected",
 		"help": "Support",
-		"logout": "Log Out",
-		"logout_title": "Do you really want to log out?",
-		"logout_ok": "YES",
-		"logout_cancel": "NO",
+		"lock": "Lock",
+		"lock_title": "Do you really want to lock your wallet?",
+		"lock_ok": "YES",
+		"lock_cancel": "NO",
 		"feedback": "Feedback",
 		"metamask_support": "MetaMask Support",
 		"public_address": "Public Address"
@@ -1000,12 +1000,12 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Sign in with Touch ID?",
-		"enable_faceid": "Sign in with Face ID?",
-		"enable_fingerprint": "Sign in with Fingerprint?",
-		"enable_biometrics": "Sign in with Biometrics?",
-		"enable_device_passcode_ios": "Sign in with device passcode?",
-		"enable_device_passcode_android": "Sign in with device PIN?"
+		"enable_touchid": "Unlock with Touch ID?",
+		"enable_faceid": "Unlock with Face ID?",
+		"enable_fingerprint": "Unlock with Fingerprint?",
+		"enable_biometrics": "Unlock with Biometrics?",
+		"enable_device_passcode_ios": "Unlock with device passcode?",
+		"enable_device_passcode_android": "Unlock with device PIN?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Authentication required",
