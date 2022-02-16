@@ -261,7 +261,9 @@
 		"warn_network_change": "Network changed to ",
 		"send_to": "Send to",
 		"amount": "Amount",
-		"confirm": "Confirm"
+		"confirm": "Confirm",
+		"network_not_found_title": "Network not found",
+		"network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first."
 	},
 	"deposit": {
 		"title": "Deposit"
@@ -281,7 +283,7 @@
 		"no_tokens": "You don't have any tokens!",
 		"no_nfts_yet": "No NFTs yet",
 		"nfts_autodetection_title": "NFT detection",
-		"nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpeaSea and display in your MetaMask wallet.",
+		"nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
 		"nfts_autodetection_cta": "Turn on NFT detection in Settings",
 		"learn_more": "Learn more",
 		"add_collectibles": "Import NFTs",
@@ -1340,6 +1342,7 @@
 	},
 	"fiat_on_ramp": {
 		"buy_eth": "Buy ETH",
+		"buy": "Buy {{ticker}}",
 		"purchased_currency": "Purchased {{currency}}",
 		"network_not_supported": "Current network not supported",
 		"switch_network": "Please switch to Mainnet",
@@ -1367,6 +1370,7 @@
 		"modal_transak_support": "Transak Support & fees",
 		"modal_wyre_support": "Wyre Support & fees",
 		"transak_cta": "Buy ETH with Transak",
+		"transak_cta_ticker": "Buy {{ticker}} with Transak",
 		"transak_modal_text": "Exact payment methods and fees vary depending on location. Fees are shown in Transak.",
 		"apple_pay": "Apple Pay",
 		"via": "via",
@@ -1518,6 +1522,7 @@
 		"more_to_complete": "more to complete this swap.",
 		"more_gas_to_complete": "more for gas to complete this swap.",
 		"buy_more_eth": "Buy more ETH.",
+		"buy_more": "Buy more {{ticker}}.",
 		"market_price_unavailable_title": "Check your rate before proceeding",
 		"market_price_unavailable": "Market price is unavailable and price impact is therefore unknown. Please verify that you are comfortable with the amount of tokens you will receive before swapping.",
 		"price_difference": "Price difference of {{amount}}",
