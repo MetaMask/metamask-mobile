@@ -37,6 +37,7 @@ import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
+import AnimatedFox from 'react-native-animated-fox';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -471,13 +472,15 @@ class Onboarding extends PureComponent {
 						<View style={styles.wrapper}>
 							{loading && (
 								<View style={styles.foxWrapper}>
-									<Image
-										source={require('../../../images/fox.png')}
-										style={styles.image}
-										resizeMethod={'auto'}
-									/>
-									{/** Disable animated fox since not yet theme compatible */}
-									{/* <AnimatedFox /> */}
+									{Device.isAndroid() ? (
+										<Image
+											source={require('../../../images/fox.png')}
+											style={styles.image}
+											resizeMethod={'auto'}
+										/>
+									) : (
+										<AnimatedFox bgColor={colors.background.default} />
+									)}
 								</View>
 							)}
 							{loading ? this.renderLoader() : this.renderContent()}

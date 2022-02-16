@@ -47,6 +47,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
+import AnimatedFox from 'react-native-animated-fox';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -592,13 +593,15 @@ class Login extends PureComponent {
 					<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
 						<View testID={'login'}>
 							<View style={styles.foxWrapper}>
-								<Image
-									source={require('../../../images/fox.png')}
-									style={styles.image}
-									resizeMethod={'auto'}
-								/>
-								{/** Disable animated fox since not yet theme compatible */}
-								{/* <AnimatedFox /> */}
+								{Device.isAndroid() ? (
+									<Image
+										source={require('../../../images/fox.png')}
+										style={styles.image}
+										resizeMethod={'auto'}
+									/>
+								) : (
+									<AnimatedFox bgColor={colors.background.default} />
+								)}
 							</View>
 							<Text style={styles.title}>{strings('login.title')}</Text>
 							<View style={styles.field}>

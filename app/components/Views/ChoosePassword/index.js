@@ -44,6 +44,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext } from '../../../util/theme';
+import AnimatedFox from 'react-native-animated-fox';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -594,13 +595,15 @@ class ChoosePassword extends PureComponent {
 				{loading ? (
 					<View style={styles.loadingWrapper}>
 						<View style={styles.foxWrapper}>
-							<Image
-								source={require('../../../images/fox.png')}
-								style={styles.image}
-								resizeMethod={'auto'}
-							/>
-							{/** Disable animated fox since not yet theme compatible */}
-							{/* <AnimatedFox /> */}
+							{Device.isAndroid() ? (
+								<Image
+									source={require('../../../images/fox.png')}
+									style={styles.image}
+									resizeMethod={'auto'}
+								/>
+							) : (
+								<AnimatedFox bgColor={colors.background.default} />
+							)}
 						</View>
 						<ActivityIndicator size="large" color={colors.text.default} />
 						<Text style={styles.title}>
