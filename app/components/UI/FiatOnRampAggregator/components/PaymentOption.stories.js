@@ -2,9 +2,8 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import PaymentOption from './PaymentOption';
+import PaymentOption, { Icon } from './PaymentOption';
 import { text, boolean } from '@storybook/addon-knobs';
-import { Icon } from './PaymentOption';
 
 storiesOf('FiatOnRamp / PaymentOption', module)
 	.addDecorator((getStory) => getStory())
@@ -23,21 +22,16 @@ storiesOf('FiatOnRamp / PaymentOption', module)
 					lowestLimit={lowestLimit}
 					paymentType={Icon.Apple}
 					idRequired={idRequired}
-				></PaymentOption>
+				/>
 				<PaymentOption
 					title="Debit or Credit"
 					time="5-10 mins"
-					cardImage={true}
-					lowestLimit={true}
-					idRequired={true}
+					cardImage
+					lowestLimit
+					idRequired
 					paymentType={Icon.Card}
-				></PaymentOption>
-				<PaymentOption
-					title="Bank Account"
-					time="1-5 business days"
-					idRequired={true}
-					paymentType={Icon.Bank}
-				></PaymentOption>
+				/>
+				<PaymentOption title="Bank Account" time="1-5 business days" idRequired paymentType={Icon.Bank} />
 			</SafeAreaView>
 		);
 	});
