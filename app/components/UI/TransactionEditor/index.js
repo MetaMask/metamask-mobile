@@ -530,7 +530,7 @@ class TransactionEditor extends PureComponent {
 		const fromAccount = this.props.accounts[checksummedFrom];
 		const { balance } = fromAccount;
 		const weiBalance = hexToBN(balance);
-		const totalGasValue = gasPrice ? hexToBN(gasPrice) : hexToBN(totalGas);
+		const totalGasValue = hexToBN(gasPrice | totalGas);
 		let valueBN = hexToBN('0x0');
 		if (assetType === 'ETH') {
 			valueBN = hexToBN(value);
