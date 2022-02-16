@@ -144,18 +144,15 @@ const createStyles = (colors) =>
 		},
 		confusableTitle: {
 			marginTop: -3,
-			color: colors.error.default,
+			color: colors.text.default,
 			...fontStyles.bold,
 			fontSize: 14,
 		},
 		confusableMsg: {
-			color: colors.error.default,
+			color: colors.text.default,
 			fontSize: 12,
 			lineHeight: 16,
 			paddingRight: 10,
-		},
-		black: {
-			color: colors.text.default,
 		},
 		warningIcon: {
 			marginRight: 8,
@@ -664,15 +661,15 @@ class SendFlow extends PureComponent {
 									<View style={styles.warningIcon}>
 										<Icon
 											size={16}
-											color={displayAsWarning ? colors.text.default : colors.error.default}
+											color={displayAsWarning ? colors.warning.default : colors.error.default}
 											name="exclamation-triangle"
 										/>
 									</View>
 									<View>
-										<Text style={[styles.confusableTitle, displayAsWarning && styles.black]}>
+										<Text style={styles.confusableTitle}>
 											{strings('transaction.confusable_title')}
 										</Text>
-										<Text style={[styles.confusableMsg, displayAsWarning && styles.black]}>
+										<Text style={styles.confusableMsg}>
 											{strings('transaction.confusable_msg')}
 										</Text>
 									</View>

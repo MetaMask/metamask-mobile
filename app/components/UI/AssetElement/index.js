@@ -69,7 +69,7 @@ export default class AssetElement extends PureComponent {
 			>
 				{children}
 				<View styles={styles.arrow}>
-					<Icon name="ios-arrow-forward" size={24} color={colors.text.muted} style={styles.arrowIcon} />
+					<Icon name="ios-arrow-forward" size={24} color={colors.grey007} style={styles.arrowIcon} />
 				</View>
 			</TouchableOpacity>
 		);

@@ -676,7 +676,7 @@ class ResetPassword extends PureComponent {
 								<AnimatedFox bgColor={colors.background.default} />
 							)}
 						</View>
-						<ActivityIndicator size="large" color={colors.text.alternative} />
+						<ActivityIndicator size="large" color={colors.grey700} />
 						<Text style={styles.title}>
 							{strings(
 								previousScreen === ONBOARDING

@@ -47,9 +47,9 @@ function Loader({ error, onClose }) {
 			<View style={styles.content}>
 				<View style={styles.item}>
 					{error ? (
-						<FA5Icon name="video-slash" color={colors.text.alternative} size={40} />
+						<FA5Icon name="video-slash" color={colors.grey700} size={40} />
 					) : (
-						<ActivityIndicator color={colors.text.alternative} size="large" />
+						<ActivityIndicator color={colors.grey700} size="large" />
 					)}
 				</View>
 				<View style={styles.item}>

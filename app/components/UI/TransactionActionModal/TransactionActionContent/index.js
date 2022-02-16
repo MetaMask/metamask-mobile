@@ -49,7 +49,7 @@ const createStyles = (colors) =>
 		warningText: {
 			...fontStyles.normal,
 			fontSize: 12,
-			color: colors.red,
+			color: colors.error.default,
 			paddingVertical: 8,
 			textAlign: 'center',
 		},

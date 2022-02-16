@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-
+import { colors as importedColors } from '../../../../styles/common';
 import Title from '../../../Base/Title';
 import { useAppThemeFromContext } from '../../../../util/theme';
 
@@ -15,7 +15,7 @@ const createStyles = (colors) =>
 			alignItems: 'center',
 			marginVertical: 50,
 			borderRadius: 10,
-			shadowColor: colors.black,
+			shadowColor: importedColors.black,
 			shadowOffset: {
 				width: 0,
 				height: 5,

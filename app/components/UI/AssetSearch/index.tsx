@@ -30,7 +30,7 @@ const createStyles = (colors: any) =>
 		} as StyleSheet.NamedStyles<any>,
 		icon: {
 			padding: 16,
-			color: colors.text.alternative,
+			color: colors.grey700,
 		},
 	});
 

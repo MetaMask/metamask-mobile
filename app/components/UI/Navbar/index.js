@@ -361,7 +361,17 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
  * @param {string} title - Title in string format
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
-export function getTransactionOptionsTitle(_title, navigation, route) {
+export function getTransactionOptionsTitle(_title, navigation, route, themeColors) {
+	const innerStyles = StyleSheet.create({
+		headerStyle: {
+			backgroundColor: themeColors.background.default,
+		},
+		headerButtonText: {
+			color: colors.primary.default,
+			fontSize: 14,
+			...fontStyles.normal,
+		},
+	});
 	const transactionMode = route.params?.mode ?? '';
 	const { name } = route;
 	const leftText = transactionMode === 'edit' ? strings('transaction.cancel') : strings('transaction.edit');
@@ -383,7 +393,11 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 					testID={'confirm-txn-edit-button'}
 				>
 					<Text
-						style={disableModeChange ? [styles.closeButtonText, styles.disabled] : [styles.closeButtonText]}
+						style={
+							disableModeChange
+								? [innerStyles.headerButtonText, styles.disabled]
+								: innerStyles.headerButtonText
+						}
 					>
 						{leftText}
 					</Text>
@@ -395,11 +409,12 @@ export function getTransactionOptionsTitle(_title, navigation, route) {
 			name === 'Send' ? (
 				// eslint-disable-next-line react/jsx-no-bind
 				<TouchableOpacity onPress={rightAction} style={styles.closeButton} testID={'send-back-button'}>
-					<Text style={styles.closeButtonText}>{rightText}</Text>
+					<Text style={innerStyles.headerButtonText}>{rightText}</Text>
 				</TouchableOpacity>
 			) : (
 				<View />
 			),
+		headerStyle: innerStyles.headerStyle,
 	};
 }
 

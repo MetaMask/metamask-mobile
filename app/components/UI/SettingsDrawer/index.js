@@ -39,7 +39,7 @@ const createStyles = (colors) =>
 		},
 		icon: {
 			bottom: 8,
-			color: colors.text.alternative,
+			color: colors.grey700,
 			left: 4,
 			position: 'relative',
 		},
@@ -51,7 +51,7 @@ const createStyles = (colors) =>
 			marginTop: 20,
 		},
 		menuItemWarningText: {
-			color: colors.error.default,
+			color: colors.text.default,
 			fontSize: 12,
 			...fontStyles.normal,
 		},

@@ -187,7 +187,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								<View style={styles.nonceWarning}>
 									<Icon
 										name="exclamation-circle"
-										color={colors.yellow}
+										color={colors.warning.default}
 										size={16}
 										style={styles.icon}
 									/>

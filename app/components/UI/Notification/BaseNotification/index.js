@@ -8,6 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
+import { useAppThemeFromContext } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	defaultFlashFloating: {
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const getIcon = (status) => {
+const getIcon = (status, colors) => {
 	switch (status) {
 		case 'pending':
 		case 'pending_withdrawal':
@@ -64,14 +65,21 @@ const getIcon = (status) => {
 		case 'success':
 		case 'received':
 		case 'received_payment':
-			return <IonicIcon color={colors.green500} size={36} name="md-checkmark" style={styles.checkIcon} />;
+			return <IonicIcon color={colors.success.default} size={36} name="md-checkmark" style={styles.checkIcon} />;
 		case 'cancelled':
 		case 'error':
-			return <MaterialIcon color={colors.red} size={36} name="alert-circle-outline" style={styles.checkIcon} />;
+			return (
+				<MaterialIcon
+					color={colors.error.default}
+					size={36}
+					name="alert-circle-outline"
+					style={styles.checkIcon}
+				/>
+			);
 		case 'simple_notification_rejected':
-			return <AntIcon color={colors.red} size={36} name="closecircleo" style={styles.checkIcon} />;
+			return <AntIcon color={colors.error.default} size={36} name="closecircleo" style={styles.checkIcon} />;
 		case 'simple_notification':
-			return <AntIcon color={colors.green500} size={36} name="checkcircleo" style={styles.checkIcon} />;
+			return <AntIcon color={colors.success.default} size={36} name="checkcircleo" style={styles.checkIcon} />;
 	}
 };
 
@@ -122,31 +130,35 @@ const BaseNotification = ({
 	onPress,
 	onHide,
 	autoDismiss,
-}) => (
-	<View style={baseStyles.flexGrow}>
-		<TouchableOpacity
-			style={styles.defaultFlashFloating}
-			testID={'press-notification-button'}
-			onPress={onPress}
-			activeOpacity={0.8}
-		>
-			<View style={styles.flashIcon}>{getIcon(status)}</View>
-			<View style={styles.flashLabel}>
-				<Text style={styles.flashTitle} testID={'notification-title'}>
-					{!title ? getTitle(status, data) : title}
-				</Text>
-				<Text style={styles.flashText}>{!description ? getDescription(status, data) : description}</Text>
-			</View>
-			<View>
-				{autoDismiss && (
-					<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-						<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
-					</TouchableOpacity>
-				)}
-			</View>
-		</TouchableOpacity>
-	</View>
-);
+}) => {
+	const { colors } = useAppThemeFromContext();
+
+	return (
+		<View style={baseStyles.flexGrow}>
+			<TouchableOpacity
+				style={styles.defaultFlashFloating}
+				testID={'press-notification-button'}
+				onPress={onPress}
+				activeOpacity={0.8}
+			>
+				<View style={styles.flashIcon}>{getIcon(status, colors)}</View>
+				<View style={styles.flashLabel}>
+					<Text style={styles.flashTitle} testID={'notification-title'}>
+						{!title ? getTitle(status, data) : title}
+					</Text>
+					<Text style={styles.flashText}>{!description ? getDescription(status, data) : description}</Text>
+				</View>
+				<View>
+					{autoDismiss && (
+						<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
+							<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
+						</TouchableOpacity>
+					)}
+				</View>
+			</TouchableOpacity>
+		</View>
+	);
+};
 
 BaseNotification.propTypes = {
 	status: PropTypes.string,

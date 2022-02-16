@@ -74,7 +74,7 @@ const createStyles = (colors) =>
 		},
 		warning: {
 			borderRadius: 8,
-			color: colors.warning.inverse,
+			color: colors.text.default,
 			...fontStyles.normal,
 			fontSize: 14,
 			lineHeight: 20,

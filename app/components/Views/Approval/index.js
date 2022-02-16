@@ -18,6 +18,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { ThemeContext } from '../../../util/theme';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -34,10 +35,11 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getTransactionOptionsTitle('approval.title', navigation, route);
-
 	static propTypes = {
+		/**
+		 * Route from react navigatino
+		 */
+		route: PropTypes.object.isRequired,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -85,6 +87,20 @@ class Approval extends PureComponent {
 		mode: REVIEW,
 		transactionHandled: false,
 		transactionConfirmed: false,
+	};
+
+	updateNavBar = () => {
+		const { colors } = this.context;
+		const { navigation, route } = this.props;
+		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, route, colors));
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	componentWillUnmount = () => {
@@ -385,5 +401,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	resetTransaction: () => dispatch(resetTransaction()),
 });
+
+Approval.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Approval);

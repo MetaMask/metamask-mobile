@@ -109,7 +109,7 @@ const createStyles = (colors) =>
 			marginLeft: 10,
 			marginRight: 40,
 			...fontStyles.normal,
-			color: colors.error.default,
+			color: colors.text.default,
 		},
 		enterPassword: {
 			marginBottom: 15,

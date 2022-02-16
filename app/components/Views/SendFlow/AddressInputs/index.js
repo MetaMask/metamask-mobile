@@ -98,7 +98,7 @@ const createStyles = (colors) =>
 			alignItems: 'center',
 		},
 		iconOpaque: {
-			color: colors.text.alternative,
+			color: colors.grey700,
 		},
 		iconHighlighted: {
 			color: colors.primary.default,

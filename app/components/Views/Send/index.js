@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { InteractionManager, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
-import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -29,30 +28,30 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
+import { ThemeContext } from '../../../util/theme';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
 const SEND = 'Send';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+	});
 
 /**
  * View that wraps the wraps the "Send" screen
  */
 class Send extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getTransactionOptionsTitle('send.confirm', navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -168,6 +167,12 @@ class Send extends PureComponent {
 		}
 	}
 
+	updateNavBar = () => {
+		const { colors } = this.context;
+		const { navigation, route } = this.props;
+		navigation.setOptions(getTransactionOptionsTitle('send.confirm', navigation, route, colors));
+	};
+
 	/**
 	 * Sets state mounted to true, resets transaction and check for deeplinks
 	 */
@@ -179,6 +184,7 @@ class Send extends PureComponent {
 			dappTransactionModalVisible,
 			toggleDappTransactionModal,
 		} = this.props;
+		this.updateNavBar();
 		navigation &&
 			navigation.setParams({
 				mode: REVIEW,
@@ -212,6 +218,7 @@ class Send extends PureComponent {
 			contractBalances,
 			navigation,
 		} = this.props;
+		this.updateNavBar();
 		if (prevRoute && route) {
 			const prevTxMeta = prevRoute.params?.txMeta;
 			const currentTxMeta = route.params?.txMeta;
@@ -633,7 +640,13 @@ class Send extends PureComponent {
 
 	changeToReviewMode = () => this.onModeChange(REVIEW);
 
+	getStyles = () => {
+		const { colors } = this.context;
+		return createStyles(colors);
+	};
+
 	renderLoader() {
+		const styles = this.getStyles();
 		return (
 			<View style={styles.loader}>
 				<ActivityIndicator size="small" />
@@ -655,9 +668,12 @@ class Send extends PureComponent {
 		}
 	}
 
-	render = () => (
-		<View style={styles.wrapper}>{this.state.ready ? this.renderModeComponent() : this.renderLoader()}</View>
-	);
+	render = () => {
+		const styles = this.getStyles();
+		return (
+			<View style={styles.wrapper}>{this.state.ready ? this.renderModeComponent() : this.renderLoader()}</View>
+		);
+	};
 }
 
 const mapStateToProps = (state) => ({
@@ -681,5 +697,7 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 	toggleDappTransactionModal: () => dispatch(toggleDappTransactionModal()),
 });
+
+Send.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Send);

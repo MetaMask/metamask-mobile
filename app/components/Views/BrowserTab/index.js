@@ -26,7 +26,7 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import { baseStyles, fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles, colors as importedColors } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -109,7 +109,7 @@ const createStyles = (colors) =>
 			paddingTop: 10,
 		},
 		optionsWrapperAndroid: {
-			shadowColor: colors.grey400,
+			shadowColor: importedColors.grey400,
 			shadowOffset: { width: 0, height: 2 },
 			shadowOpacity: 0.5,
 			shadowRadius: 3,
@@ -117,7 +117,7 @@ const createStyles = (colors) =>
 			right: 5,
 		},
 		optionsWrapperIos: {
-			shadowColor: colors.grey400,
+			shadowColor: importedColors.grey400,
 			shadowOffset: { width: 0, height: 2 },
 			shadowOpacity: 0.5,
 			shadowRadius: 3,
@@ -197,7 +197,7 @@ const createStyles = (colors) =>
 		},
 		iconCloseButton: {
 			borderRadius: 300,
-			backgroundColor: colors.text.alternative,
+			backgroundColor: colors.grey700,
 			fontSize: 18,
 			padding: 0,
 			height: 20,

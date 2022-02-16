@@ -168,7 +168,7 @@ const createStyles = (colors) =>
 			marginTop: 8,
 		},
 		errorText: {
-			color: colors.error.default,
+			color: colors.text.default,
 			alignSelf: 'center',
 		},
 		assetsWrapper: {
@@ -422,7 +422,7 @@ class PaymentRequest extends PureComponent {
 							onPress={this.focusInput}
 							name="search"
 							size={18}
-							color={colors.text.muted}
+							color={colors.grey007}
 							style={styles.searchIcon}
 						/>
 					</View>
@@ -664,7 +664,7 @@ class PaymentRequest extends PureComponent {
 											onPress={this.focusInput}
 											name="exchange"
 											size={18}
-											color={colors.text.muted}
+											color={colors.grey700}
 											style={{ transform: [{ rotate: '270deg' }] }}
 										/>
 									</TouchableOpacity>

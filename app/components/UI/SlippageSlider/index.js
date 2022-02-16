@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Text, Image } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { useAppThemeFromContext } from '../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
@@ -33,7 +33,7 @@ const createStyles = (colors) =>
 			borderWidth: 1,
 			borderColor: colors.background.default,
 			bottom: 0,
-			shadowColor: colors.black,
+			shadowColor: importedColors.black,
 			shadowOffset: {
 				width: 0,
 				height: 0,

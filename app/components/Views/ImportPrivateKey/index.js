@@ -26,6 +26,10 @@ const createStyles = (colors) =>
 	StyleSheet.create({
 		mainWrapper: {
 			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		topOverlay: {
+			flex: 1,
 			backgroundColor: colors.primary.muted,
 		},
 		wrapper: {
@@ -210,7 +214,7 @@ export default class ImportPrivateKey extends PureComponent {
 			<View style={styles.mainWrapper}>
 				<KeyboardAwareScrollView
 					contentContainerStyle={styles.wrapper}
-					style={styles.mainWrapper}
+					style={styles.topOverlay}
 					testID={'first-incoming-transaction-screen'}
 					resetScrollToCoords={{ x: 0, y: 0 }}
 				>

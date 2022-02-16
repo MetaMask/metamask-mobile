@@ -105,7 +105,7 @@ const createStyles = (colors) =>
 			alignItems: 'center',
 		},
 		error: {
-			color: colors.error.default,
+			color: colors.text.default,
 			fontSize: 12,
 			lineHeight: 16,
 			...fontStyles.normal,

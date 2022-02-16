@@ -62,7 +62,7 @@ const createStyles = (colors) =>
 		},
 		closeIcon: {
 			fontSize: 28,
-			color: colors.text.alternative,
+			color: colors.text.default,
 		},
 	});
 

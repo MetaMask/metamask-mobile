@@ -294,7 +294,7 @@ const CollectibleOverview = ({
 							<View style={styles.userContainer}>
 								<RemoteImage
 									fadeIn
-									placeholderStyle={{ backgroundColor: colors.border.muted }}
+									placeholderStyle={{ backgroundColor: colors.background.alternative }}
 									source={{ uri: collectible.creator.profile_img_url }}
 									style={styles.userImage}
 								/>

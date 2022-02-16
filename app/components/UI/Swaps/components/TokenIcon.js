@@ -43,7 +43,7 @@ const createStyles = (colors) =>
 			borderRadius: BIGGEST_RADIUS,
 		},
 		emptyIcon: {
-			backgroundColor: colors.border.default,
+			backgroundColor: colors.background.alternative,
 			alignItems: 'center',
 			justifyContent: 'center',
 		},

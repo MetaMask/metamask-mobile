@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors } from '../../../styles/common';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import Collectibles from '../../UI/Collectibles';
@@ -14,12 +13,13 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+	});
 
 /**
  * View that displays a specific collectible
@@ -90,6 +90,8 @@ class Collectible extends PureComponent {
 		const collectibleContract = params;
 		const address = params.address;
 		const { collectibles } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
 		const filteredCollectibles = collectibles.filter((collectible) =>
 			toLowerCaseEquals(collectible.address, address)
 		);
@@ -146,8 +148,6 @@ class Collectible extends PureComponent {
 	};
 }
 
-Collectible.contextType = ThemeContext;
-
 const mapStateToProps = (state) => ({
 	collectibles: collectiblesSelector(state),
 	collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
@@ -156,5 +156,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
 });
+
+Collectible.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Collectible);

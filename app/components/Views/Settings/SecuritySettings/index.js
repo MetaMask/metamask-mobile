@@ -642,13 +642,7 @@ class Settings extends PureComponent {
 						<SeedPhraseVideo onClose={this.onBack} />
 						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
 						<SettingsNotification isWarning={!seedphraseBackedUp}>
-							<Text
-								style={[
-									styles.warningText,
-									seedphraseBackedUp ? styles.warningTextGreen : styles.warningTextRed,
-									styles.marginLeft,
-								]}
-							>
+							<Text style={[styles.warningText, styles.marginLeft]}>
 								{strings(
 									seedphraseBackedUp
 										? 'app_settings.seedphrase_backed_up'

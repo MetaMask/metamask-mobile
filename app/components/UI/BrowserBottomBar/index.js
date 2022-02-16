@@ -44,12 +44,12 @@ const createStyles = (colors) =>
 			height: 24,
 		},
 		disabledIcon: {
-			color: colors.text.muted,
+			color: colors.grey007,
 		},
 		icon: {
 			width: 24,
 			height: 24,
-			color: colors.text.alternative,
+			color: colors.grey700,
 			textAlign: 'center',
 		},
 	});

@@ -60,6 +60,7 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 			justifyContent: 'center',
 			alignItems: 'center',
+			// This yellow doesn't change colors between themes
 			backgroundColor: importedColors.yellow,
 			width: 32,
 			height: 32,

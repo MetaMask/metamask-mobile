@@ -71,7 +71,7 @@ const createStyles = (colors) =>
 		},
 		address: {
 			fontSize: 12,
-			color: colors.text.alternative,
+			color: colors.text.default,
 			...fontStyles.normal,
 			letterSpacing: 0.8,
 		},

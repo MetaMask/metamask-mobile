@@ -558,7 +558,7 @@ class ImportFromSeed extends PureComponent {
 							/>
 						)}
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
-							<Icon name="qrcode" size={20} color={colors.text.alternative} />
+							<Icon name="qrcode" size={20} color={colors.grey700} />
 						</TouchableOpacity>
 						<View style={styles.field}>
 							<View style={styles.fieldRow}>

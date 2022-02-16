@@ -76,7 +76,7 @@ const createStyles = (colors) =>
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
-			borderColor: colors.text.alternative,
+			borderColor: colors.grey700,
 		},
 	});
 

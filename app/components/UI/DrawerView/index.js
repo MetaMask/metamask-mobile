@@ -202,7 +202,7 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 		},
 		menuItemWarningText: {
-			color: colors.error.default,
+			color: colors.text.default,
 			fontSize: 12,
 			...fontStyles.normal,
 		},
@@ -212,7 +212,7 @@ const createStyles = (colors) =>
 		menuItemIconImage: {
 			width: 22,
 			height: 22,
-			tintColor: colors.text.alternative,
+			tintColor: colors.grey700,
 		},
 		selectedMenuItemIconImage: {
 			width: 22,
@@ -230,10 +230,10 @@ const createStyles = (colors) =>
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
-			color: colors.text.alternative,
+			color: colors.grey700,
 		},
 		importedText: {
-			color: colors.text.alternative,
+			color: colors.grey700,
 			fontSize: 10,
 			...fontStyles.bold,
 		},
@@ -714,19 +714,19 @@ class DrawerView extends PureComponent {
 	getIcon(name, size) {
 		const { colors } = this.context;
 
-		return <Icon name={name} size={size || 24} color={colors.text.alternative} />;
+		return <Icon name={name} size={size || 24} color={colors.grey700} />;
 	}
 
 	getFeatherIcon(name, size) {
 		const { colors } = this.context;
 
-		return <FeatherIcon name={name} size={size || 24} color={colors.text.alternative} />;
+		return <FeatherIcon name={name} size={size || 24} color={colors.grey700} />;
 	}
 
 	getMaterialIcon(name, size) {
 		const { colors } = this.context;
 
-		return <MaterialIcon name={name} size={size || 24} color={colors.text.alternative} />;
+		return <MaterialIcon name={name} size={size || 24} color={colors.grey700} />;
 	}
 
 	getImageIcon(name) {

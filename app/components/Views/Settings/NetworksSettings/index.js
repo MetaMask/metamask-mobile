@@ -33,7 +33,7 @@ const createStyles = (colors) =>
 			height: 15,
 			borderRadius: 100,
 			marginTop: 2,
-			backgroundColor: colors.text.muted,
+			backgroundColor: colors.grey007,
 		},
 		network: {
 			flex: 1,

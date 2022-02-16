@@ -131,7 +131,7 @@ const createStyles = (colors) =>
 			color: colors.text.default,
 		},
 		arrowDown: {
-			color: colors.text.muted,
+			color: colors.grey700,
 			fontSize: Device.isSmallDevice() ? 22 : 25,
 			marginHorizontal: 15,
 			marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -165,6 +165,9 @@ const createStyles = (colors) =>
 			alignItems: 'center',
 			flexWrap: 'wrap',
 		},
+		bestQuoteText: {
+			color: colors.text.default,
+		},
 		quotesRow: {
 			flexDirection: 'row',
 			flexWrap: 'wrap',
@@ -191,7 +194,7 @@ const createStyles = (colors) =>
 		infoIcon: {
 			fontSize: 12,
 			margin: 3,
-			color: colors.primary.default,
+			color: colors.grey700,
 		},
 		ctaButton: {
 			width: '100%',
@@ -202,7 +205,7 @@ const createStyles = (colors) =>
 			color: colors.error.default,
 		},
 		expiredIcon: {
-			color: colors.primary.default,
+			color: colors.grey700,
 		},
 		disabled: {
 			opacity: 0.4,
@@ -215,7 +218,7 @@ const createStyles = (colors) =>
 			paddingHorizontal: 2,
 		},
 		gasInfoIcon: {
-			color: colors.primary.default,
+			color: colors.grey700,
 		},
 		hitSlop: {
 			top: 10,
@@ -1383,7 +1386,7 @@ function SwapsQuotesView({
 				{selectedQuote && (
 					<QuotesSummary style={styles.quotesSummary}>
 						<QuotesSummary.Header style={styles.quotesSummaryHeader} savings={isSaving}>
-							<QuotesSummary.HeaderText bold>
+							<QuotesSummary.HeaderText style={styles.bestQuoteText} bold>
 								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
 							{allQuotes.length > 1 && (

@@ -280,7 +280,7 @@ class ReceiveRequest extends PureComponent {
 							<EvilIcons
 								name={Device.isIos() ? 'share-apple' : 'share-google'}
 								size={25}
-								color={colors.text.alternative}
+								color={colors.grey700}
 							/>
 						</TouchableOpacity>
 					</TouchableOpacity>

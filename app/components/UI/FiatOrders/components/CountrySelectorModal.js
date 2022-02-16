@@ -46,7 +46,7 @@ const createStyles = (colors) =>
 		},
 		searchIcon: {
 			marginHorizontal: 8,
-			color: colors.text.muted,
+			color: colors.grey007,
 		},
 		input: {
 			...fontStyles.normal,

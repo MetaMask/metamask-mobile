@@ -147,7 +147,7 @@ export default class TransactionReviewDetailsCard extends Component {
 							<IonicIcon
 								name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
 								size={16}
-								color={colors.text.alternative}
+								color={colors.grey700}
 							/>
 						</View>
 					</TouchableOpacity>

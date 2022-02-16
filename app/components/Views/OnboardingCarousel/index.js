@@ -85,7 +85,7 @@ const createStyles = (colors) =>
 			width: 8,
 			height: 8,
 			borderRadius: 8 / 2,
-			backgroundColor: colors.text.alternative,
+			backgroundColor: colors.grey700,
 			opacity: 0.4,
 			marginHorizontal: 8,
 		},

@@ -63,7 +63,7 @@ const createStyles = (colors) =>
 		},
 		searchIcon: {
 			marginHorizontal: 8,
-			color: colors.border.default,
+			color: colors.grey700,
 		},
 		input: {
 			...fontStyles.normal,
@@ -80,7 +80,7 @@ const createStyles = (colors) =>
 		},
 		resultRow: {
 			borderTopWidth: StyleSheet.hairlineWidth,
-			borderColor: colors.border.default,
+			borderColor: colors.border.muted,
 		},
 		emptyList: {
 			marginVertical: 10,

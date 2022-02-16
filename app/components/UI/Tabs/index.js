@@ -73,7 +73,7 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 			marginBottom: Device.isIphoneX() ? 0 : 0,
 			paddingTop: 17,
-			shadowColor: colors.black,
+			shadowColor: importedColors.black,
 			shadowOffset: {
 				width: 0,
 				height: 12,

@@ -20,7 +20,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n, { strings } from '../../../../locales/i18n';
-import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import { hexToBN, fromWei } from '../../../util/number';
@@ -73,25 +72,27 @@ import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
+import { useAppThemeFromContext } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 const hstInterface = new ethers.utils.Interface(abi);
 
-const styles = StyleSheet.create({
-	flex: {
-		flex: 1,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		flex: {
+			flex: 1,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+	});
 const Main = (props) => {
 	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
@@ -105,6 +106,8 @@ const Main = (props) => {
 	const [currentPageUrl, setCurrentPageUrl] = useState('');
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
+	const { colors } = useAppThemeFromContext();
+	const styles = createStyles(colors);
 
 	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);

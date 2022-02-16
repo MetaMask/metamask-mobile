@@ -3,38 +3,40 @@ import { ViewPropTypes, StyleSheet, View, Text } from 'react-native';
 import PropTypes from 'prop-types';
 import Modal from 'react-native-modal';
 import StyledButton from '../StyledButton';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
+import { ThemeContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		padding: 20,
-	},
-	content: {
-		backgroundColor: colors.white,
-		borderRadius: 16,
-	},
-	header: {
-		paddingVertical: 15,
-		height: 130,
-		alignItems: 'center',
-		borderTopEndRadius: 16,
-		borderTopLeftRadius: 16,
-	},
-	body: {
-		paddingVertical: 20,
-		paddingHorizontal: 35,
-	},
-	title: {
-		textAlign: 'center',
-		fontSize: 16,
-		...fontStyles.bold,
-		marginBottom: 15,
-	},
-	footer: {
-		padding: 20,
-		paddingTop: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			padding: 20,
+		},
+		content: {
+			backgroundColor: colors.background.default,
+			borderRadius: 16,
+		},
+		header: {
+			paddingVertical: 15,
+			height: 130,
+			alignItems: 'center',
+			borderTopEndRadius: 16,
+			borderTopLeftRadius: 16,
+		},
+		body: {
+			paddingVertical: 20,
+			paddingHorizontal: 35,
+		},
+		title: {
+			textAlign: 'center',
+			fontSize: 16,
+			...fontStyles.bold,
+			marginBottom: 15,
+		},
+		footer: {
+			padding: 20,
+			paddingTop: 10,
+		},
+	});
 
 /**
 /* PureComponent that renders our custom alerts, which contains
@@ -89,6 +91,9 @@ export default class CustomAlert extends PureComponent {
 	};
 
 	render() {
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
 		return (
 			<Modal
 				style={styles.modal}
@@ -112,3 +117,5 @@ export default class CustomAlert extends PureComponent {
 		);
 	}
 }
+
+CustomAlert.contextType = ThemeContext;

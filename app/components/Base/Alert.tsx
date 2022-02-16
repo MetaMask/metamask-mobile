@@ -60,9 +60,9 @@ const createStyles = (colors: any) =>
 			color: colors.text.default,
 		},
 		baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
-		textInfo: { color: colors.primary.default },
-		textWarning: { color: colors.warning.default },
-		textError: { color: colors.error.default },
+		textInfo: { color: colors.text.default },
+		textWarning: { color: colors.text.default },
+		textError: { color: colors.text.default },
 		textIconStyle: { marginRight: 12 },
 		iconWrapper: {
 			alignItems: 'center',
