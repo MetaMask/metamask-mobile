@@ -223,17 +223,17 @@ class ImportFromSeed extends PureComponent {
 	confirmPasswordInput = React.createRef();
 
 	async componentDidMount() {
-		const type = await AuthenticationService.getType();
+		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AuthenticationType.BIOMETRIC)
 			this.setState({
-				biometryType: type,
+				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 			});
-		else if (type === AuthenticationType.PASSCODE)
+		else if (authType.type === AuthenticationType.PASSCODE)
 			this.setState({
-				biometryType: type,
+				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 			});
 

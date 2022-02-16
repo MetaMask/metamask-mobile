@@ -271,17 +271,17 @@ class ChoosePassword extends PureComponent {
 
 	async componentDidMount() {
 		//Setup UI to handle Biometric
-		const type = await AuthenticationService.getType();
+		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AuthenticationType.BIOMETRIC)
 			this.setState({
-				biometryType: type,
+				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 			});
-		else if (type === AuthenticationType.PASSCODE)
+		else if (authType.type === AuthenticationType.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 			});
 		setTimeout(() => {
@@ -338,7 +338,7 @@ class ChoosePassword extends PureComponent {
 				this.state.biometryChoice,
 				this.state.rememberMe
 			);
-			
+
 			console.log('Before If', authType);
 			if (previous_screen === ONBOARDING) {
 				console.log('Create New Vault', authType);

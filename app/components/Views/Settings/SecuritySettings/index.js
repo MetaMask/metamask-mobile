@@ -319,28 +319,30 @@ class Settings extends PureComponent {
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
 
-		const type = await AuthenticationService.getType();
+		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
-		if (type === AuthenticationType.BIOMETRIC)
+		console.log('SecuritySettings', authType, previouslyDisabled, passcodePreviouslyDisabled);
+		if (authType.type === AuthenticationType.BIOMETRIC)
 			this.setState({
-				biometryType: type,
+				biometryType: Device.isAndroid() ? authType.type : authType.biometryType,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-				analyticsEnabled,
 				passcodeChoice: false,
+				analyticsEnabled,
 				hintText: manualBackup,
 			});
-		else if (type === AuthenticationType.PASSCODE)
+		else if (authType.type === AuthenticationType.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
-				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+				biometryType: authType.biometryType,
+				biometryChoice: false,
 				analyticsEnabled,
-				passcodeChoice: true,
+				passcodeChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 				hintText: manualBackup,
 			});
 		else {
 			this.setState({
+				biometryType: authType.biometryType,
 				analyticsEnabled,
 				hintText: manualBackup,
 			});

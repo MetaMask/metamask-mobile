@@ -234,19 +234,19 @@ class Login extends PureComponent {
 		}
 
 		//Setup UI to handle Biometric
-		const type = await AuthenticationService.getType();
+		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AuthenticationType.BIOMETRIC)
 			this.setState({
-				biometryType: type,
+				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!previouslyDisabled,
 				hasBiometricCredentials: true,
 			});
-		else if (type === AuthenticationType.PASSCODE)
+		else if (authType.type === AuthenticationType.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
 				hasBiometricCredentials: true,
@@ -394,8 +394,10 @@ class Login extends PureComponent {
 	updateBiometryChoice = async (biometryChoice) => {
 		if (!biometryChoice) {
 			await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+			await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		} else {
 			await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
+			await AsyncStorage.removeItem(PASSCODE_DISABLED);
 		}
 		this.setState({ biometryChoice });
 	};

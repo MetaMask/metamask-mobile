@@ -25,8 +25,13 @@ export enum AuthenticationType {
 	UNKNOWN = 'UNKNOWN',
 }
 
+interface AuthData {
+	type: AuthenticationType;
+	biometryType: string;
+}
+
 class AuthenticationService {
-	type = AuthenticationType.UNKNOWN;
+	authData: AuthData = { type: AuthenticationType.UNKNOWN, biometryType: '' };
 	store: any;
 
 	/**
@@ -117,13 +122,13 @@ class AuthenticationService {
 		console.log('CHECK AUTH', biometryType, biometryPreviouslyDisabled, passcodePreviouslyDisabled);
 
 		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
-			return AuthenticationType.BIOMETRIC;
+			return { type: AuthenticationType.BIOMETRIC, biometryType };
 		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
-			return AuthenticationType.PASSCODE;
+			return { type: AuthenticationType.PASSCODE, biometryType };
 		} else if (credentials) {
-			return AuthenticationType.REMEMBER_ME;
+			return { type: AuthenticationType.REMEMBER_ME, biometryType };
 		}
-		return AuthenticationType.PASSWORD;
+		return { type: AuthenticationType.PASSWORD, biometryType };
 	};
 
 	/**
@@ -134,20 +139,22 @@ class AuthenticationService {
 	 */
 	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean) => {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
+		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
 		console.log('componentAuthenticationType', biometryType, biometryChoice, rememberMe);
 
-		if (biometryType && biometryChoice) {
+		if (biometryType && biometryChoice && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
 			console.log('BIOMETRIC FAKE SET');
-			return AuthenticationType.BIOMETRIC;
+			return { type: AuthenticationType.BIOMETRIC, biometryType };
 		} else if (rememberMe) {
 			console.log('REMEMBER_ME FAKE SET');
-			return AuthenticationType.REMEMBER_ME;
-		} else if (biometryType) {
+			return { type: AuthenticationType.REMEMBER_ME, biometryType };
+		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
 			console.log('PASSCODE FAKE SET');
-			return AuthenticationType.PASSCODE;
+			return { type: AuthenticationType.PASSCODE, biometryType };
 		}
-		return AuthenticationType.PASSWORD;
+		return { type: AuthenticationType.PASSWORD, biometryType };
 	};
 
 	/**
@@ -155,16 +162,16 @@ class AuthenticationService {
 	 * @param selectedAddress
 	 * @returns
 	 */
-	newWalletAndKeyChain = async (password: string, authType: AuthenticationType) => {
-		console.log('Authservice newWalletAndKeyChain', authType);
+	newWalletAndKeyChain = async (password: string, authData: AuthData) => {
+		console.log('Authservice newWalletAndKeyChain', authData);
 
 		try {
 			await this._createWalletVaultAndKeychain(password);
-			await this.storePassword(password, authType);
+			await this.storePassword(password, authData?.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.store?.dispatch(logIn());
-			this.type = authType;
+			this.authData = authData;
 			return;
 		} catch (e: any) {
 			this.logout();
@@ -179,21 +186,16 @@ class AuthenticationService {
 	 * @param selectedAddress
 	 * @returns
 	 */
-	newWalletAndRestore = async (
-		password: string,
-		authType: AuthenticationType,
-		parsedSeed: string,
-		clearEngine: boolean
-	) => {
+	newWalletAndRestore = async (password: string, authData: AuthData, parsedSeed: string, clearEngine: boolean) => {
 		console.log('Authservice newWalletAndRestore');
 
 		try {
 			await this._newWalletVaultAndRestore(password, parsedSeed, clearEngine);
-			await this.storePassword(password, authType);
+			await this.storePassword(password, authData.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
 			this.store?.dispatch(logIn());
-			this.type = authType;
+			this.authData = authData;
 			return;
 		} catch (e: any) {
 			this.logout();
@@ -207,17 +209,16 @@ class AuthenticationService {
 	 * @param selectedAddress
 	 * @returns
 	 */
-	manualAuth = async (password: string, authType: AuthenticationType, selectedAddress: string) => {
-		console.log('Authservice manualAuth');
+	manualAuth = async (password: string, authData: AuthData, selectedAddress: string) => {
+		console.log('Authservice manualAuth', authData);
 		if (!password) throw new Error('Password not found');
 		const locked = !passwordRequirementsMet(password);
 		if (locked) throw new Error(strings('login.invalid_password'));
 
 		try {
 			await this._loginVaultCreation(password, selectedAddress);
-			await this.storePassword(password, authType);
+			await this.storePassword(password, authData.type);
 			this.store?.dispatch(logIn());
-			this.type = authType;
 			return;
 		} catch (e: any) {
 			this.logout();
@@ -235,9 +236,9 @@ class AuthenticationService {
 		console.log('Authservice autoAuth');
 		const credentials: any = await SecureKeychain.getGenericPassword();
 		console.log('Authservice autoAuth cred', credentials);
-		this.type = await this.checkAuthenticationMethod(credentials);
+		this.authData = await this.checkAuthenticationMethod(credentials);
 
-		console.log('Authservice autoAuth type', this.type);
+		console.log('Authservice autoAuth type', this.authData);
 
 		const password = credentials?.password;
 
@@ -247,7 +248,7 @@ class AuthenticationService {
 
 		try {
 			await this._loginVaultCreation(password, selectedAddress);
-			if (!credentials) await this.storePassword(password, this.type);
+			if (!credentials) await this.storePassword(password, this.authData.type);
 			this.store?.dispatch(logIn());
 		} catch (e: any) {
 			console.log('Authservice autoAuth', e);
@@ -282,18 +283,13 @@ export default {
 		}
 		return instance;
 	},
-	manualAuth: async (password: string, authType: AuthenticationType, selectedAddress: string) =>
+	manualAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
 		instance?.manualAuth(password, authType, selectedAddress),
 	autoAuth: async (selectedAddress: string) => instance?.autoAuth(selectedAddress),
-	newWalletAndKeyChain: async (password: string, type: AuthenticationType) => {
+	newWalletAndKeyChain: async (password: string, type: AuthData) => {
 		await instance?.newWalletAndKeyChain(password, type);
 	},
-	newWalletAndRestore: async (
-		password: string,
-		type: AuthenticationType,
-		parsedSeed: string,
-		clearEngine: boolean
-	) => {
+	newWalletAndRestore: async (password: string, type: AuthData, parsedSeed: string, clearEngine: boolean) => {
 		await instance?.newWalletAndRestore(password, type, parsedSeed, clearEngine);
 	},
 	logout: async () => instance?.logout(),
