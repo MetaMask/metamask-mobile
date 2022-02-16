@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
 	},
 	networkLabel: {
 		backgroundColor: colors.grey500,
-		paddingVertical: 5,
+		paddingVertical: 6,
+		paddingHorizontal: 9,
 		borderRadius: 5,
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -123,11 +124,13 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 							<ListItem.Title>{item.symbol}</ListItem.Title>
 							{item.name && <Text style={styles.symbolName}>{item.name}</Text>}
 						</ListItem.Body>
-						<ListItem.Amounts style={styles.networkLabel}>
+						<ListItem.Amounts>
 							<ListItem.Amount>
-								<Text bold style={styles.networkLabelText}>
-									{item.network?.toUpperCase()}
-								</Text>
+								<View style={styles.networkLabel}>
+									<Text bold upper style={styles.networkLabelText}>
+										{item.network}
+									</Text>
+								</View>
 							</ListItem.Amount>
 						</ListItem.Amounts>
 					</ListItem.Content>
