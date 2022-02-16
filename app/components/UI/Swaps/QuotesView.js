@@ -194,7 +194,7 @@ const createStyles = (colors) =>
 		infoIcon: {
 			fontSize: 12,
 			margin: 3,
-			color: colors.icon.default,
+			color: colors.icon.muted,
 		},
 		ctaButton: {
 			width: '100%',
@@ -218,7 +218,7 @@ const createStyles = (colors) =>
 			paddingHorizontal: 2,
 		},
 		gasInfoIcon: {
-			color: colors.icon.default,
+			color: colors.icon.muted,
 		},
 		hitSlop: {
 			top: 10,

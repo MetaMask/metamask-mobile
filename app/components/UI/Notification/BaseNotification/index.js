@@ -12,11 +12,16 @@ import { useAppThemeFromContext } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
+		floatingBackground: {
+			backgroundColor: colors.background.default,
+			marginHorizontal: 16,
+			borderRadius: 8,
+		},
 		defaultFlashFloating: {
 			backgroundColor: colors.overlay.default,
 			padding: 16,
-			marginHorizontal: 16,
 			flexDirection: 'row',
+			flex: 1,
 			borderRadius: 8,
 		},
 		flashLabel: {
@@ -137,27 +142,31 @@ const BaseNotification = ({
 
 	return (
 		<View style={baseStyles.flexGrow}>
-			<TouchableOpacity
-				style={styles.defaultFlashFloating}
-				testID={'press-notification-button'}
-				onPress={onPress}
-				activeOpacity={0.8}
-			>
-				<View style={styles.flashIcon}>{getIcon(status, colors, styles)}</View>
-				<View style={styles.flashLabel}>
-					<Text style={styles.flashTitle} testID={'notification-title'}>
-						{!title ? getTitle(status, data) : title}
-					</Text>
-					<Text style={styles.flashText}>{!description ? getDescription(status, data) : description}</Text>
-				</View>
-				<View>
-					{autoDismiss && (
-						<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
-							<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
-						</TouchableOpacity>
-					)}
-				</View>
-			</TouchableOpacity>
+			<View style={styles.floatingBackground}>
+				<TouchableOpacity
+					style={styles.defaultFlashFloating}
+					testID={'press-notification-button'}
+					onPress={onPress}
+					activeOpacity={0.8}
+				>
+					<View style={styles.flashIcon}>{getIcon(status, colors, styles)}</View>
+					<View style={styles.flashLabel}>
+						<Text style={styles.flashTitle} testID={'notification-title'}>
+							{!title ? getTitle(status, data) : title}
+						</Text>
+						<Text style={styles.flashText}>
+							{!description ? getDescription(status, data) : description}
+						</Text>
+					</View>
+					<View>
+						{autoDismiss && (
+							<TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
+								<IonicIcon name="ios-close" size={36} style={styles.closeIcon} />
+							</TouchableOpacity>
+						)}
+					</View>
+				</TouchableOpacity>
+			</View>
 		</View>
 	);
 };
