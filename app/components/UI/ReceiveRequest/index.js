@@ -54,7 +54,7 @@ const createStyles = (colors) =>
 			borderRadius: 30,
 		},
 		copyButton: {
-			backgroundColor: colors.border.muted,
+			backgroundColor: colors.icon.muted,
 			color: colors.text.default,
 			borderRadius: 12,
 			overflow: 'hidden',

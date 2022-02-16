@@ -22,7 +22,7 @@ const createStyles = (colors) =>
 			color: colors.error.default,
 		},
 		orange: {
-			color: colors.orange,
+			color: colors.secondary.default,
 		},
 		black: {
 			color: colors.text.default,

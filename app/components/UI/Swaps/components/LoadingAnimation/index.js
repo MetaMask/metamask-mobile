@@ -56,7 +56,7 @@ const createStyles = (colors) =>
 		},
 		aggContainer: {
 			position: 'absolute',
-			backgroundColor: colors.black,
+			backgroundColor: colors.background.default,
 			paddingHorizontal: 10,
 			paddingVertical: 5,
 			borderRadius: 20,

@@ -20,11 +20,11 @@ const createStyles = (colors) =>
 			color: colors.primary.inverse,
 		},
 		orange: {
-			borderColor: colors.orange,
+			borderColor: colors.secondary.default,
 			borderWidth: 1,
 		},
 		orangeText: {
-			color: colors.orange,
+			color: colors.secondary.default,
 		},
 		infoText: {
 			color: colors.primary.default,
@@ -111,7 +111,7 @@ const createStyles = (colors) =>
 		},
 		whiteText: {
 			...fontStyles.bold,
-			color: colors.white,
+			color: colors.overlay.inverse,
 		},
 		viewText: {
 			fontSize: 18,
@@ -121,6 +121,12 @@ const createStyles = (colors) =>
 		view: {
 			borderWidth: 1,
 			borderColor: colors.overlay.inverse,
+		},
+		inverseBackground: {
+			backgroundColor: colors.primary.inverse,
+		},
+		inverseText: {
+			color: colors.primary.default,
 		},
 	});
 
@@ -141,6 +147,10 @@ function getStyles(type, colors) {
 		case 'confirm':
 			fontStyle = styles.confirmText;
 			containerStyle = styles.confirm;
+			break;
+		case 'inverse':
+			fontStyle = styles.inverseText;
+			containerStyle = styles.inverseBackground;
 			break;
 		case 'normal':
 			fontStyle = styles.normalText;

@@ -115,7 +115,7 @@ const createStyles = (colors) =>
 			marginLeft: 7,
 			marginTop: 3,
 			fontSize: 18,
-			color: colors.text.default,
+			color: colors.icon.default,
 		},
 		accountBalance: {
 			fontSize: 14,

@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Text from './Text';
-import { colors } from '../../styles/common';
 import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
@@ -16,7 +15,10 @@ const styles = StyleSheet.create({
 });
 
 export const ConfirmedText = (props) => <Text bold green style={styles.status} {...props} />;
-export const PendingText = (props) => <Text bold style={[styles.status, { color: colors.orange }]} {...props} />;
+export const PendingText = (props) => {
+	const { colors } = useAppThemeFromContext();
+	return <Text bold style={[styles.status, { color: colors.secondary.default }]} {...props} />;
+};
 export const FailedText = (props) => {
 	const { colors } = useAppThemeFromContext();
 	return <Text bold style={[styles.status, { color: colors.error.default }]} {...props} />;

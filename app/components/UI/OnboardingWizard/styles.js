@@ -14,7 +14,7 @@ export default (colors) =>
 		},
 		content: {
 			...fontStyles.normal,
-			color: colors.text.default,
+			color: colors.primary.inverse,
 			fontSize: 14,
 			textAlign: 'center',
 			marginBottom: SMALL_DEVICE ? 5 : 20,
