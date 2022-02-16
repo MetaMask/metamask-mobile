@@ -2,6 +2,11 @@ import { colors } from '../../styles/common';
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/constants/network';
+import {
+	NETWORK_ERROR_MISSING_NETWORK_ID,
+	NETWORK_ERROR_UNKNOWN_NETWORK_ID,
+	NETWORK_ERROR_MISSING_CHAIN_ID,
+} from '../../../app/constants/error';
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
@@ -88,19 +93,19 @@ export const getNetworkName = (id) => NetworkListKeys.find((key) => NetworkList[
 
 export function getNetworkTypeById(id) {
 	if (!id) {
-		throw new Error('Missing network Id');
+		throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);
 	}
 	const network = NetworkListKeys.filter((key) => NetworkList[key].networkId === parseInt(id, 10));
 	if (network.length > 0) {
 		return network[0];
 	}
 
-	throw new Error(`Unknown network with id ${id}`);
+	throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
 }
 
 export function getDefaultNetworkByChainId(chainId) {
 	if (!chainId) {
-		throw new Error('Missing chain Id');
+		throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
 	}
 
 	let returnNetwork;
