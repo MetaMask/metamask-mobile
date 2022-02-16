@@ -740,9 +740,7 @@ class Confirm extends PureComponent {
 	 * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
 	 */
 	checkRemoveCollectible = (assetType, selectedAsset) => {
-		const {
-			chainId,
-		} = this.props;
+		const { chainId } = this.props;
 		const { fromSelectedAddress } = this.state;
 		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
 			const { CollectiblesController } = Engine.context;
@@ -848,7 +846,6 @@ class Confirm extends PureComponent {
 				});
 				TransactionController.hub.once(`${transactionMeta.id}:confirmed`, () => {
 					this.checkRemoveCollectible(assetType, selectedAsset);
-				
 				});
 				AnalyticsV2.trackEvent(
 					AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
