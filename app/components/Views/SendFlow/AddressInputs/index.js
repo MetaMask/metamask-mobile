@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -9,6 +9,8 @@ import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/validators';
+import Engine from '../../../../core/Engine';
+import { QR_HARDWARE_WALLET_DEVICE } from '../../../../constants/keyringTypes';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -28,15 +30,6 @@ const styles = StyleSheet.create({
 	inputWrapper: {
 		flex: 1,
 		marginLeft: 8,
-		padding: 10,
-		minHeight: 52,
-		flexDirection: 'row',
-		borderWidth: 1,
-		borderRadius: 8,
-		marginTop: 8,
-	},
-	inputWrapperWithoutLeftSpacing: {
-		flex: 1,
 		padding: 10,
 		minHeight: 52,
 		flexDirection: 'row',
@@ -77,11 +70,6 @@ const styles = StyleSheet.create({
 		color: colors.black,
 		fontSize: 14,
 	},
-	textAddressHighlighted: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-	},
 	accountNameLabel: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -89,19 +77,6 @@ const styles = StyleSheet.create({
 	},
 	accountNameLabelText: {
 		marginLeft: 4,
-		paddingHorizontal: 8,
-		fontWeight: '700',
-		color: colors.grey500,
-		borderWidth: 1,
-		borderRadius: 8,
-		borderColor: colors.grey500,
-		fontSize: 10,
-	},
-	accountLabel: {
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	accountLabelText: {
 		paddingHorizontal: 8,
 		fontWeight: '700',
 		color: colors.grey500,
@@ -367,50 +342,40 @@ AddressTo.propTypes = {
 };
 
 export const AddressFrom = (props) => {
-	const {
-		highlighted,
-		onPressIcon,
-		fromAccountName,
-		fromAccountBalance,
-		fromAccountAddress,
-		shouldShowFromLabel = true,
-		accountNameLabel,
-		accountLabel,
-		accountNameHighlighted,
-	} = props;
+	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
+
+	const KeyringController = useMemo(() => {
+		const { KeyringController: keyring } = Engine.context;
+		return keyring;
+	}, []);
+	const [isHardwareAccount, setIsHardwareAccount] = useState(false);
+	useEffect(() => {
+		KeyringController.getAccountKeyringType(fromAccountAddress).then((type) => {
+			if (type === QR_HARDWARE_WALLET_DEVICE) {
+				setIsHardwareAccount(true);
+			}
+		});
+	}, [KeyringController, fromAccountAddress]);
 	return (
 		<View style={styles.wrapper}>
-			{shouldShowFromLabel && (
-				<View style={styles.label}>
-					<Text style={styles.labelText}>From:</Text>
-				</View>
-			)}
-			<View
-				style={[
-					shouldShowFromLabel ? styles.inputWrapper : styles.inputWrapperWithoutLeftSpacing,
-					highlighted ? styles.borderHighlighted : styles.borderOpaque,
-				]}
-			>
+			<View style={styles.label}>
+				<Text style={styles.labelText}>From:</Text>
+			</View>
+			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 				<View style={styles.identiconWrapper}>
 					<Identicon address={fromAccountAddress} diameter={30} />
 				</View>
 				<View style={[baseStyles.flexGrow, styles.address]}>
 					<View style={styles.accountNameLabel}>
-						<Text style={accountNameHighlighted ? styles.textAddressHighlighted : styles.textAddress}>
-							{fromAccountName}
-						</Text>
-						{accountNameLabel && <Text style={styles.accountNameLabelText}>{accountNameLabel}</Text>}
+						<Text style={styles.textAddress}>{fromAccountName}</Text>
+						{isHardwareAccount && (
+							<Text style={styles.accountNameLabelText}>{strings('transaction.hardware')}</Text>
+						)}
 					</View>
 					<Text style={styles.textBalance}>{`${strings(
 						'transactions.address_from_balance'
 					)} ${fromAccountBalance}`}</Text>
 				</View>
-
-				{accountLabel && (
-					<View style={styles.accountLabel}>
-						<Text style={styles.accountLabelText}>{accountLabel}</Text>
-					</View>
-				)}
 
 				{!!onPressIcon && (
 					<TouchableOpacity onPress={onPressIcon} style={styles.iconWrapper}>
@@ -449,20 +414,4 @@ AddressFrom.propTypes = {
 	 * Account balance of selected address as string
 	 */
 	fromAccountBalance: PropTypes.string,
-	/**
-	 * Should show label "From:"
-	 */
-	shouldShowFromLabel: PropTypes.bool,
-	/**
-	 * Label of account name as string
-	 */
-	accountNameLabel: PropTypes.string,
-	/**
-	 * Label of account as string
-	 */
-	accountLabel: PropTypes.string,
-	/**
-	 * Whether the account name is highlighted
-	 */
-	accountNameHighlighted: PropTypes.bool,
 };

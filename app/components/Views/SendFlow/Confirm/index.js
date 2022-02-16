@@ -1252,7 +1252,6 @@ class Confirm extends PureComponent {
 						fromAccountAddress={fromSelectedAddress}
 						fromAccountName={fromAccountName}
 						fromAccountBalance={fromAccountBalance}
-						accountNameLabel={isQRHardwareWalletDevice ? strings('transactions.sign_account_label') : null}
 					/>
 					<AdressToComponentWrap />
 				</View>
