@@ -54,10 +54,17 @@ const AmountToBuy = ({ navigation }) => {
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
 	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset, selectedPaymentMethod } =
 		useFiatOnRampSDK();
+
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
 		{ countryId: 'US', regionId: 'USA' },
 		'/payments/debit-credit-card'
+	);
+
+	const [{ data: currentPaymentMethod }] = useSDKMethod(
+		'getPaymentMethod',
+		{ countryId: 'US', regionId: 'USA' },
+		selectedPaymentMethod
 	);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
@@ -129,7 +136,6 @@ const AmountToBuy = ({ navigation }) => {
 			<ScreenLayout.Body>
 				<Pressable onPress={handleKeypadDone} style={styles.viewContainer}>
 					<ScreenLayout.Content>
-						<Text>{selectedPaymentMethod}</Text>
 						<View style={[styles.selectors, styles.row]}>
 							<AccountSelector />
 							<View style={styles.spacer} />
@@ -164,7 +170,9 @@ const AmountToBuy = ({ navigation }) => {
 				<ScreenLayout.Content>
 					<View style={styles.row}>
 						<Box label="Select payment method">
-							<Text>Placeholder</Text>
+							<Text black bold>
+								{currentPaymentMethod?.name}
+							</Text>
 						</Box>
 					</View>
 					<View style={styles.row}>

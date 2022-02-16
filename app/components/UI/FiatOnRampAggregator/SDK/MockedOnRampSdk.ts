@@ -68,7 +68,7 @@ class MockedOnRampSdk implements IOnRampSdk {
 	}
 
 	async getPaymentMethod(location: Location, id: string): Promise<any[]> {
-		return (await this.getPaymentMethods(location)).filter((p) => p.id === id)[0];
+		return (await this.getPaymentMethods(location)).find((p) => p.id === id);
 	}
 
 	getCryptoCurrencies(location: Location, paymentMethodId: string): Promise<any[]> {
