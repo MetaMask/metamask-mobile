@@ -18,7 +18,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../../core/Engine';
 import { connect } from 'react-redux';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { showAlert } from '../../../actions/alert';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -26,6 +25,7 @@ import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -180,13 +180,13 @@ class RevealPrivateCredential extends PureComponent {
 	async componentDidMount() {
 		// Try to use biometrics to unloc
 		// (if available)
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		const biometryType = await AuthenticationService.getType();
 		if (!this.props.passwordSet) {
 			this.tryUnlockWithPassword('');
 		} else if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
-				const credentials = await SecureKeychain.getGenericPassword();
+				const credentials = await AuthenticationService.getPassword();
 				if (credentials) {
 					this.tryUnlockWithPassword(credentials.password);
 				}

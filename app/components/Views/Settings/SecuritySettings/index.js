@@ -315,7 +315,7 @@ class Settings extends PureComponent {
 	scrollView = undefined;
 
 	componentDidMount = async () => {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
+		const biometryType = await await AuthenticationService.compone(password, authType);
 		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
@@ -351,7 +351,7 @@ class Settings extends PureComponent {
 		this.setState({ loading: true }, async () => {
 			let credentials;
 			try {
-				credentials = await SecureKeychain.getGenericPassword();
+				credentials = await AuthenticationService.getPassword();
 			} catch (error) {
 				Logger.error(error);
 			}
@@ -373,7 +373,7 @@ class Settings extends PureComponent {
 		this.setState({ loading: true }, async () => {
 			let credentials;
 			try {
-				credentials = await SecureKeychain.getGenericPassword();
+				credentials = await AuthenticationService.getPassword();
 			} catch (error) {
 				Logger.error(error);
 			}
@@ -392,7 +392,7 @@ class Settings extends PureComponent {
 
 	storeCredentials = async (password, enabled, type) => {
 		try {
-			await SecureKeychain.resetGenericPassword();
+			await AuthenticationService.storePassword();
 
 			await Engine.context.KeyringController.exportSeedPhrase(password);
 
@@ -409,15 +409,7 @@ class Settings extends PureComponent {
 				return;
 			}
 
-			// if (type === 'passcodeChoice')
-			// 	await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
-			// else if (type === 'biometryChoice')
-			// 	await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
-
 			try {
-				console.log('ChoosePassword this.state.biometryType', this.state.biometryType);
-				console.log('ChoosePassword this.state.biometryChoice', this.state.biometryChoice);
-				console.log('ChoosePassword this.state.rememberMe', this.state.rememberMe);
 				let authType;
 				if (type === 'biometryChoice') {
 					authType = AuthenticationType.BIOMETRIC;

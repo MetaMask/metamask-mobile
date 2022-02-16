@@ -21,7 +21,6 @@ import ActionView from '../../UI/ActionView';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -31,6 +30,7 @@ import {
 	WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -245,7 +245,7 @@ export default class ManualBackupStep1 extends PureComponent {
 
 		if (!this.words.length) {
 			try {
-				const credentials = await SecureKeychain.getGenericPassword();
+				const credentials = await AuthenticationService.getPassowrd();
 				if (credentials) {
 					this.words = await this.tryExportSeedPhrase(credentials.password);
 				} else {

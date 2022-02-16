@@ -398,10 +398,10 @@ class ChoosePassword extends PureComponent {
 	 * @param {*} error - error provide from try catch wrapping the biometric set password attempt
 	 */
 	handleRejectedOsBiometricPrompt = async (error) => {
-		const biometryType = await SecureKeychain.getSupportedBiometryType();
-		if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !biometryType) {
+		const type = await AuthenticationService.getType();
+		if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !type) {
 			this.setState({
-				biometryType,
+				biometryType: type,
 				biometryChoice: true,
 			});
 			this.updateBiometryChoice();
@@ -435,7 +435,7 @@ class ChoosePassword extends PureComponent {
 		} catch (e) {
 			Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 		}
-		
+
 		// Recreate keyring with password given to this method
 		await AuthenticationService.newWalletAndRestore(password, authType, seedPhrase, true);
 		// Keyring is set with empty password or not

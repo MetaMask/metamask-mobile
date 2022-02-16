@@ -98,6 +98,13 @@ class AuthenticationService {
 
 	/**
 	 *
+	 * @param password
+	 * @param type
+	 */
+	getPassword = async () => await SecureKeychain.getGenericPassword();
+
+	/**
+	 *
 	 * @param biometryType
 	 * @param credentials
 	 * @returns
@@ -295,6 +302,7 @@ export default {
 	storePassword: async (password: string, authType: AuthenticationType) => {
 		await instance?.storePassword(password, authType);
 	},
+	getPassword: async () => await instance?.getPassword(),
 	componentAuthenticationType: async (biometryChoice: boolean, rememberMe: boolean) =>
 		await instance?.componentAuthenticationType(biometryChoice, rememberMe),
 };
