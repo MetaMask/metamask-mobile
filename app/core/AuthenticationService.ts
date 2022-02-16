@@ -284,7 +284,7 @@ export default {
 		return instance;
 	},
 	manualAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
-		instance?.manualAuth(password, authType, selectedAddress),
+		await instance?.manualAuth(password, authType, selectedAddress),
 	autoAuth: async (selectedAddress: string) => instance?.autoAuth(selectedAddress),
 	newWalletAndKeyChain: async (password: string, type: AuthData) => {
 		await instance?.newWalletAndKeyChain(password, type);

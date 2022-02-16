@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View, AppState } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -156,6 +156,18 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
 	}, []);
+
+	const _handleAppStateChange = async (nextAppState) => {
+		if (!userLoggedIn && nextAppState === 'background') await AuthenticationService.logout();
+	};
+
+	useEffect(() => {
+		AppState.addEventListener('change', _handleAppStateChange);
+
+		return () => {
+			AppState.removeEventListener('change', _handleAppStateChange);
+		};
+	});
 
 	useEffect(
 		() =>
