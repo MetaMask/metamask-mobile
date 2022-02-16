@@ -180,11 +180,7 @@ class TransactionDetails extends PureComponent {
 			chainId,
 			transactionDetails,
 			transactionObject,
-			transactionObject: {
-				status,
-				time,
-				transaction: { nonce },
-			},
+			transactionObject: { status, time, transaction },
 		} = this.props;
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
@@ -208,7 +204,7 @@ class TransactionDetails extends PureComponent {
 						</Text>
 					</DetailsModal.Column>
 				</DetailsModal.Section>
-				<DetailsModal.Section borderBottom={!!nonce}>
+				<DetailsModal.Section borderBottom={!!transaction?.nonce}>
 					<DetailsModal.Column>
 						<DetailsModal.SectionTitle>{strings('transactions.from')}</DetailsModal.SectionTitle>
 						<Text small primary>
@@ -222,15 +218,15 @@ class TransactionDetails extends PureComponent {
 						</Text>
 					</DetailsModal.Column>
 				</DetailsModal.Section>
-				{!!nonce && (
-					<DetailsModal.Section>
-						<DetailsModal.Column>
-							<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
-							<Text small primary>{`#${parseInt(nonce.replace(/^#/, ''), 16)}`}</Text>
-						</DetailsModal.Column>
-					</DetailsModal.Section>
-				)}
-				<View style={[styles.summaryWrapper, !nonce && styles.touchableViewOnEtherscan]}>
+				<DetailsModal.Section>
+					<DetailsModal.Column>
+						<DetailsModal.SectionTitle upper>{strings('transactions.nonce')}</DetailsModal.SectionTitle>
+						{!!transaction?.nonce && (
+							<Text small primary>{`#${parseInt(transaction.nonce.replace(/^#/, ''), 16)}`}</Text>
+						)}
+					</DetailsModal.Column>
+				</DetailsModal.Section>
+				<View style={[styles.summaryWrapper, !transaction?.nonce && styles.touchableViewOnEtherscan]}>
 					<TransactionSummary
 						amount={transactionDetails.summaryAmount}
 						fee={transactionDetails.summaryFee}

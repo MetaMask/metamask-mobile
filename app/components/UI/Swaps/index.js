@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import numberToBN from 'number-to-bn';
 import Logger from '../../../util/Logger';
 import {
 	balanceToFiat,
@@ -13,6 +12,7 @@ import {
 	renderFromTokenMinimalUnit,
 	toTokenMinimalUnit,
 	weiToFiat,
+	safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -176,7 +176,7 @@ function SwapsAmountView({
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
 	const [contractBalance, setContractBalance] = useState(null);
-	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(numberToBN(0));
+	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(safeNumberToBN(0));
 	const [isDirectWrapping, setIsDirectWrapping] = useState(false);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
@@ -270,7 +270,7 @@ function SwapsAmountView({
 		(async () => {
 			if (sourceToken && !isSwapsNativeAsset(sourceToken) && !isTokenInBalances) {
 				setContractBalance(null);
-				setContractBalanceAsUnits(numberToBN(0));
+				setContractBalanceAsUnits(safeNumberToBN(0));
 				const { AssetsContractController } = Engine.context;
 				try {
 					const balance = await AssetsContractController.getBalanceOf(sourceToken.address, selectedAddress);
