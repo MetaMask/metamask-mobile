@@ -165,25 +165,9 @@ export default class SelectComponent extends PureComponent {
 					/**
 					 * Select value always comes first
 					 */
-					.sort((a, b) => {
-						if (a.value === this.props.selectedValue) {
-							return -1;
-						}
-
-						if (b.value === this.props.selectedValue) {
-							return 0;
-						}
-
-						if (a.value > b.value) {
-							return 1;
-						}
-
-						if (a.value < b.value) {
-							return -1;
-						}
-
-						return 0;
-					})
+					.sort((a, b) =>
+						a.value === this.props.selectedValue || a.value < b.value ? -1 : a.value > b.value ? 1 : 0
+					)
 					.map((option) => (
 						<PickerItem value={option.value} label={option.label} key={option.key} />
 					))}
