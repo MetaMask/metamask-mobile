@@ -61,6 +61,10 @@ LogBox.ignoreLogs([
 	'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
 ]);
 
+/* Uncomment and comment regular registration below */
+// import Storybook from './storybook';
+// AppRegistry.registerComponent(name, () => Storybook);
+
 /**
  * Application entry point responsible for registering root component
  */

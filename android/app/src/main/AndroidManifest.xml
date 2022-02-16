@@ -51,10 +51,16 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="metamask.app.link" />
-				<data android:scheme="https" android:host="metamask-alternate.app.link" />
-				<data android:scheme="https" android:host="metamask.test-app.link" />
-				<data android:scheme="https" android:host="metamask-alternate.test-app.link" />
+				<!-- The following document explains reasons behind this strange subdomain declarations -->
+				<!-- https://developer.android.com/training/app-links/verify-site-associations#multi-subdomain -->
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:scheme="https" />
+				<data android:host="metamask.app.link" />
+				<data android:host="metamask-alternate.app.link" />
+				<data android:host="metamask.test-app.link" />
+				<data android:host="metamask-alternate.test-app.link" />
 			</intent-filter>
 			<intent-filter>
 				<data android:scheme="metamask" />
