@@ -7,7 +7,7 @@ import Engine from '../../../../core/Engine';
 import I18n, { strings, getLanguages, setLocale } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
 	setSearchEngine,
@@ -17,7 +17,6 @@ import {
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
-import Device from '../../../../util/device';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext } from '../../../../util/theme';
 import { AppThemeLabelsObject } from '../../../../util/theme/models';
@@ -71,6 +70,9 @@ const createStyles = (colors) =>
 		},
 		setting: {
 			marginTop: 50,
+		},
+		switch: {
+			alignSelf: 'flex-start',
 		},
 		firstSetting: {
 			marginTop: 0,
@@ -329,9 +331,9 @@ class Settings extends PureComponent {
 							<Switch
 								value={hideZeroBalanceTokens}
 								onValueChange={this.toggleHideZeroBalanceTokens}
-								trackColor={
-									Device.isIos() && { true: colors.primary.default, false: colors.border.muted }
-								}
+								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+								thumbColor={importedColors.white}
+								style={styles.switch}
 								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>

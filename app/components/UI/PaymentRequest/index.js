@@ -78,8 +78,8 @@ const createStyles = (colors) =>
 		},
 		searchIcon: {
 			textAlignVertical: 'center',
-			marginTop: Device.isAndroid() ? 9 : 10,
 			marginLeft: 12,
+			alignSelf: 'center',
 		},
 		clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
 		input: {

@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, View, Switch, InteractionManager } from 'react-native';
 import StyledButton from '../../../UI/StyledButton';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import Device from '../../../../util/device';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
@@ -40,6 +39,7 @@ const createStyles = (colors: any) =>
 		},
 		switchElement: {
 			marginTop: 18,
+			alignItems: 'flex-start',
 		},
 	});
 
@@ -114,11 +114,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 						<Switch
 							value={isTokenDetectionEnabled}
 							onValueChange={toggleTokenDetection}
-							trackColor={
-								Device.isIos()
-									? { true: colors.primary.default, false: colors.border.muted }
-									: undefined
-							}
+							trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+							thumbColor={importedColors.white}
 							ios_backgroundColor={colors.border.muted}
 						/>
 					</View>

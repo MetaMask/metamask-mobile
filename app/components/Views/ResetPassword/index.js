@@ -24,7 +24,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -517,9 +517,8 @@ class ResetPassword extends PureComponent {
 								onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
 								value={biometryChoice}
 								style={styles.biometrySwitch}
-								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
-								}
+								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+								thumbColor={importedColors.white}
 								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
@@ -531,9 +530,8 @@ class ResetPassword extends PureComponent {
 							onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 							value={rememberMe}
 							style={styles.biometrySwitch}
-							trackColor={
-								Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
-							}
+							trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+							thumbColor={importedColors.white}
 							ios_backgroundColor={colors.border.muted}
 						/>
 					</>

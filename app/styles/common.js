@@ -7,14 +7,11 @@
  */
 export const colors = {
 	black: '#24292E',
+	blackTransparent: 'rgba(0, 0, 0, 0.5)',
 	white: '#FFFFFF',
 	yellow: '#FFD33D',
-	grey500: '#6a737d',
-	grey400: '#848c96',
-	greytransparent100: 'rgba(115, 115, 115, 0.5)',
-	red000: '#fcf2f3',
-	blue: '#037dd6',
 	transparent: 'transparent',
+	shadow: '#6a737d',
 };
 
 /**

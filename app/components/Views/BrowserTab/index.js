@@ -108,7 +108,7 @@ const createStyles = (colors) =>
 			paddingTop: 10,
 		},
 		optionsWrapperAndroid: {
-			shadowColor: importedColors.grey400,
+			shadowColor: importedColors.shadow,
 			shadowOffset: { width: 0, height: 2 },
 			shadowOpacity: 0.5,
 			shadowRadius: 3,
@@ -116,7 +116,7 @@ const createStyles = (colors) =>
 			right: 5,
 		},
 		optionsWrapperIos: {
-			shadowColor: importedColors.grey400,
+			shadowColor: importedColors.shadow,
 			shadowOffset: { width: 0, height: 2 },
 			shadowOpacity: 0.5,
 			shadowRadius: 3,

@@ -6,7 +6,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
-import { fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles, colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setShowCustomNonce, setShowHexData } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -48,6 +48,9 @@ const createStyles = (colors) =>
 		},
 		marginTop: {
 			marginTop: 18,
+		},
+		switch: {
+			alignSelf: 'flex-start',
 		},
 		setting: {
 			marginTop: 50,
@@ -306,9 +309,9 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showHexData}
 									onValueChange={setShowHexData}
-									trackColor={
-										Device.isIos() && { true: colors.primary.default, false: colors.border.muted }
-									}
+									trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+									thumbColor={importedColors.white}
+									style={styles.switch}
 									ios_backgroundColor={colors.border.muted}
 								/>
 							</View>
@@ -320,9 +323,9 @@ class AdvancedSettings extends PureComponent {
 								<Switch
 									value={showCustomNonce}
 									onValueChange={setShowCustomNonce}
-									trackColor={
-										Device.isIos() && { true: colors.primary.default, false: colors.border.muted }
-									}
+									trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+									thumbColor={importedColors.white}
+									style={styles.switch}
 									ios_backgroundColor={colors.border.muted}
 								/>
 							</View>

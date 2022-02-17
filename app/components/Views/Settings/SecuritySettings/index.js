@@ -22,7 +22,7 @@ import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -82,6 +82,7 @@ const createStyles = (colors) =>
 		},
 		switchElement: {
 			marginTop: 18,
+			alignSelf: 'flex-start',
 		},
 		setting: {
 			marginTop: 50,
@@ -794,9 +795,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={privacyMode}
 								onValueChange={this.togglePrivacy}
-								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
-								}
+								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+								thumbColor={importedColors.white}
 								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
@@ -808,9 +808,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={analyticsEnabled}
 								onValueChange={this.toggleMetricsOptIn}
-								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
-								}
+								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+								thumbColor={importedColors.white}
 								ios_backgroundColor={colors.border.muted}
 								testID={'metametrics-switch'}
 							/>
@@ -823,9 +822,8 @@ class Settings extends PureComponent {
 							<Switch
 								value={thirdPartyApiMode}
 								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={
-									Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
-								}
+								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+								thumbColor={importedColors.white}
 								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
@@ -884,11 +882,8 @@ class Settings extends PureComponent {
 									<Switch
 										value={openSeaEnabled}
 										onValueChange={this.toggleOpenSeaApi}
-										trackColor={
-											Device.isIos()
-												? { true: colors.primary.default, false: colors.border.muted }
-												: null
-										}
+										trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+										thumbColor={importedColors.white}
 										ios_backgroundColor={colors.border.muted}
 									/>
 								</View>
@@ -900,11 +895,8 @@ class Settings extends PureComponent {
 									<Switch
 										value={useCollectibleDetection}
 										onValueChange={this.toggleNftAutodetect}
-										trackColor={
-											Device.isIos()
-												? { true: colors.primary.default, false: colors.border.muted }
-												: null
-										}
+										trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+										thumbColor={importedColors.white}
 										ios_backgroundColor={colors.border.muted}
 										disabled={!openSeaEnabled}
 									/>

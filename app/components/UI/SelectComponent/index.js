@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-community/picker';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
@@ -10,7 +9,6 @@ import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext } from '../../../util/theme';
 
-const PickerItem = Picker.Item;
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -67,7 +65,7 @@ const createStyles = (colors) =>
 			paddingHorizontal: 15,
 			paddingVertical: 5,
 			flexDirection: 'row',
-			height: ROW_HEIGHT,
+			height: Device.isIos() ? ROW_HEIGHT : undefined,
 		},
 		optionLabel: {
 			paddingVertical: 10,
@@ -158,21 +156,7 @@ export default class SelectComponent extends PureComponent {
 		return '';
 	};
 
-	renderAndroid = () => (
-		<View style={baseStyles.flexGrow}>
-			<Picker
-				selectedValue={this.props.selectedValue}
-				onValueChange={this.onValueChange}
-				prompt={this.props.label}
-			>
-				{this.props.options.map((option) => (
-					<PickerItem value={option.value} label={option.label} key={option.key} />
-				))}
-			</Picker>
-		</View>
-	);
-
-	renderIOS = () => {
+	renderDropdownSelector = () => {
 		const { colors } = this.context;
 		const styles = createStyles(colors);
 
@@ -186,7 +170,7 @@ export default class SelectComponent extends PureComponent {
 						<Icon
 							name={'arrow-drop-down'}
 							size={24}
-							color={colors.text.default}
+							color={colors.icon.default}
 							style={styles.iconDropdown}
 						/>
 					</View>
@@ -234,9 +218,7 @@ export default class SelectComponent extends PureComponent {
 		);
 	};
 
-	render = () => (
-		<View style={baseStyles.flexGrow}>{Device.isAndroid() ? this.renderAndroid() : this.renderIOS()}</View>
-	);
+	render = () => <View style={baseStyles.flexGrow}>{this.renderDropdownSelector()}</View>;
 }
 
 SelectComponent.contextType = ThemeContext;

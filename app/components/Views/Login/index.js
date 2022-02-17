@@ -19,7 +19,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Button from 'react-native-button';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import SecureKeychain from '../../../core/SecureKeychain';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -469,9 +469,8 @@ class Login extends PureComponent {
 						onValueChange={(biometryChoice) => this.updateBiometryChoice(biometryChoice)} // eslint-disable-line react/jsx-no-bind
 						value={this.state.biometryChoice}
 						style={styles.biometrySwitch}
-						trackColor={
-							Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null
-						}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
 						ios_backgroundColor={colors.border.muted}
 					/>
 				</View>
@@ -485,7 +484,8 @@ class Login extends PureComponent {
 					onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
 					value={this.state.rememberMe}
 					style={styles.biometrySwitch}
-					trackColor={Device.isIos() ? { true: colors.primary.default, false: colors.border.muted } : null}
+					trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+					thumbColor={importedColors.white}
 					ios_backgroundColor={colors.border.muted}
 				/>
 			</View>

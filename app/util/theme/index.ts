@@ -3,6 +3,7 @@ import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
 import { Colors, AppThemeNames, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { colors as colorTheme } from '@metamask/design-tokens';
+import Device from '../device';
 
 export const ThemeContext = React.createContext<any>(undefined);
 
@@ -12,23 +13,42 @@ export const useAppTheme = (): Theme => {
 	const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
 	let colors: Colors;
 
+	const setDarkStatusBar = () => {
+		StatusBar.setBarStyle('light-content', true);
+		Device.isAndroid() && StatusBar.setBackgroundColor(colorTheme.dark.background.default);
+	};
+
+	const setLightStatusBar = () => {
+		StatusBar.setBarStyle('dark-content', true);
+		Device.isAndroid() && StatusBar.setBackgroundColor(colorTheme.light.background.default);
+	};
+
 	switch (appTheme) {
-		case AppThemeNames.OS:
-			colors = osThemeName === 'dark' ? colorTheme.dark : colorTheme.light;
-			StatusBar.setBarStyle('default', true);
-			break;
+		/* eslint-disable */
+		case AppThemeNames.OS: {
+			if (osThemeName === 'light') {
+				colors = colorTheme.light;
+				setLightStatusBar();
+				break;
+			} else if (osThemeName === 'dark') {
+				colors = colorTheme.dark;
+				setDarkStatusBar();
+				break;
+			}
+		}
 		case AppThemeNames.Light:
+			/* eslint-enable */
 			colors = colorTheme.light;
-			StatusBar.setBarStyle('dark-content', true);
+			setLightStatusBar();
 			break;
 		case AppThemeNames.Dark:
 			colors = colorTheme.dark;
-			StatusBar.setBarStyle('light-content', true);
+			setDarkStatusBar();
 			break;
 		default:
 			// Default uses light theme
 			colors = colorTheme.light;
-			StatusBar.setBarStyle('dark-content', true);
+			setLightStatusBar();
 	}
 
 	return { colors };
@@ -49,21 +69,21 @@ export const useAppThemeFromContext = (): Theme => {
  * @returns
  */
 export const getAssetFromTheme = (appTheme: AppThemeNames, osColorScheme: ColorSchemeName, light: any, dark: any) => {
-	let image;
+	let asset;
 	switch (appTheme) {
 		case 'light':
-			image = light;
+			asset = light;
 			break;
 		case 'dark':
-			image = dark;
+			asset = dark;
 			break;
 		case 'os':
-			image = osColorScheme === 'dark' ? dark : light;
+			asset = osColorScheme === 'dark' ? dark : light;
 			break;
 		default:
-			image = light;
+			asset = light;
 	}
-	return image;
+	return asset;
 };
 
 /**

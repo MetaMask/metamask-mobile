@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-import { baseStyles } from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { useAppThemeFromContext } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -35,7 +35,7 @@ const createStyles = (colors) =>
 			right: 0,
 			bottom: 0,
 			left: 0,
-			backgroundColor: colors.black,
+			backgroundColor: colors.background.alternative,
 			borderRadius: 12,
 		},
 		errorContainer: {
@@ -115,11 +115,11 @@ const createStyles = (colors) =>
 			height: 4,
 			width: '100%',
 			borderRadius: 2,
-			backgroundColor: colors.white,
+			backgroundColor: importedColors.white,
 		},
 		seekbarPermanentFill: {
 			width: '100%',
-			backgroundColor: colors.grey400,
+			backgroundColor: importedColors.blackTransparent,
 		},
 		seekbarHandle: {
 			marginLeft: -10,
@@ -135,7 +135,7 @@ const createStyles = (colors) =>
 		actionButton: {
 			width: 44,
 			height: 44,
-			backgroundColor: colors.greytransparent100,
+			backgroundColor: importedColors.blackTransparent,
 			borderRadius: 8,
 		},
 		actionSeeker: {
@@ -422,11 +422,11 @@ export default function VideoPlayer({
 	const renderMuteUnmuteControl = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
+				<FA5Icon color={importedColors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
 				toggleMuted,
 				styles.controlsMuteUnmute
 			),
-		[muted, toggleMuted, colors, styles, renderControl]
+		[muted, toggleMuted, styles, renderControl]
 	);
 
 	const onLayoutSeekerWidth = useCallback((event) => setSeekerWidth(event.nativeEvent.layout.width), []);
@@ -452,21 +452,24 @@ export default function VideoPlayer({
 				</View>
 
 				<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
-					<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+					<View
+						style={[styles.seekbarCircle, { backgroundColor: importedColors.white }]}
+						pointerEvents={'none'}
+					/>
 				</View>
 			</View>
 		),
-		[seekerPosition, seekPanResponder.panHandlers, seekerFillWidth, onLayoutSeekerWidth, styles, colors]
+		[seekerPosition, seekPanResponder.panHandlers, seekerFillWidth, onLayoutSeekerWidth, styles]
 	);
 
 	const renderPlayPause = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
+				<FA5Icon color={importedColors.white} size={16} name={paused ? 'play' : 'pause'} />,
 				togglePlayPause,
 				styles.controlsPlayPause
 			),
-		[paused, togglePlayPause, colors, styles, renderControl]
+		[paused, togglePlayPause, styles, renderControl]
 	);
 
 	const renderLoader = useCallback(() => {
@@ -502,8 +505,8 @@ export default function VideoPlayer({
 	};
 
 	const renderClose = useCallback(
-		() => renderControl(<AntIcon color={colors.white} size={16} name={'close'} />, onClose, {}),
-		[onClose, colors, renderControl]
+		() => renderControl(<AntIcon color={importedColors.white} size={16} name={'close'} />, onClose, {}),
+		[onClose, renderControl]
 	);
 
 	const renderTopControls = () => (
