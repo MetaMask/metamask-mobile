@@ -118,7 +118,7 @@ const Quotes: React.FC<Props> = ({
 				<ListItem.Amounts>
 					<Text black small>
 						${amountIn}
-						{amountOut % 1 != 0 && '.00'}
+						{amountOut % 1 !== 0 && '.00'}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>

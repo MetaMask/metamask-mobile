@@ -32,7 +32,6 @@ const GetQuotes = () => {
 	);
 
 	useEffect(() => {
-		console.log(quotes);
 		if (isFetchingQuotes) return;
 		setShouldFinishAnimation(true);
 	}, [isFetchingQuotes]);
@@ -68,7 +67,7 @@ const GetQuotes = () => {
 								amountIn={quote.amountIn}
 								onPress={() => setCurrentQuote(quote.providerId)}
 								highlighted={quote.providerId === currentQuote}
-							></Quotes>
+							/>
 						</View>
 					))}
 				</ScreenLayout.Content>
