@@ -35,6 +35,15 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		marginTop: 8,
 	},
+	inputWrapperWithoutLeftSpacing: {
+		flex: 1,
+		padding: 10,
+		minHeight: 52,
+		flexDirection: 'row',
+		borderWidth: 1,
+		borderRadius: 8,
+		marginTop: 8,
+	},
 	input: {
 		flex: 1,
 		flexDirection: 'row',
@@ -67,6 +76,39 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 14,
+	},
+	textAddressHighlighted: {
+		...fontStyles.bold,
+		color: colors.black,
+		fontSize: 14,
+	},
+	accountNameLabel: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	accountNameLabelText: {
+		marginLeft: 4,
+		paddingHorizontal: 8,
+		fontWeight: '700',
+		color: colors.grey500,
+		borderWidth: 1,
+		borderRadius: 8,
+		borderColor: colors.grey500,
+		fontSize: 10,
+	},
+	accountLabel: {
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	accountLabelText: {
+		paddingHorizontal: 8,
+		fontWeight: '700',
+		color: colors.grey500,
+		borderWidth: 1,
+		borderRadius: 8,
+		borderColor: colors.grey500,
+		fontSize: 10,
 	},
 	textBalance: {
 		...fontStyles.normal,
@@ -325,22 +367,50 @@ AddressTo.propTypes = {
 };
 
 export const AddressFrom = (props) => {
-	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
+	const {
+		highlighted,
+		onPressIcon,
+		fromAccountName,
+		fromAccountBalance,
+		fromAccountAddress,
+		shouldShowFromLabel = true,
+		accountNameLabel,
+		accountLabel,
+		accountNameHighlighted,
+	} = props;
 	return (
 		<View style={styles.wrapper}>
-			<View style={styles.label}>
-				<Text style={styles.labelText}>From:</Text>
-			</View>
-			<View style={[styles.inputWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+			{shouldShowFromLabel && (
+				<View style={styles.label}>
+					<Text style={styles.labelText}>From:</Text>
+				</View>
+			)}
+			<View
+				style={[
+					shouldShowFromLabel ? styles.inputWrapper : styles.inputWrapperWithoutLeftSpacing,
+					highlighted ? styles.borderHighlighted : styles.borderOpaque,
+				]}
+			>
 				<View style={styles.identiconWrapper}>
 					<Identicon address={fromAccountAddress} diameter={30} />
 				</View>
 				<View style={[baseStyles.flexGrow, styles.address]}>
-					<Text style={styles.textAddress}>{fromAccountName}</Text>
+					<View style={styles.accountNameLabel}>
+						<Text style={accountNameHighlighted ? styles.textAddressHighlighted : styles.textAddress}>
+							{fromAccountName}
+						</Text>
+						{accountNameLabel && <Text style={styles.accountNameLabelText}>{accountNameLabel}</Text>}
+					</View>
 					<Text style={styles.textBalance}>{`${strings(
 						'transactions.address_from_balance'
 					)} ${fromAccountBalance}`}</Text>
 				</View>
+
+				{accountLabel && (
+					<View style={styles.accountLabel}>
+						<Text style={styles.accountLabelText}>{accountLabel}</Text>
+					</View>
+				)}
 
 				{!!onPressIcon && (
 					<TouchableOpacity onPress={onPressIcon} style={styles.iconWrapper}>
@@ -379,4 +449,20 @@ AddressFrom.propTypes = {
 	 * Account balance of selected address as string
 	 */
 	fromAccountBalance: PropTypes.string,
+	/**
+	 * Should show label "From:"
+	 */
+	shouldShowFromLabel: PropTypes.bool,
+	/**
+	 * Label of account name as string
+	 */
+	accountNameLabel: PropTypes.string,
+	/**
+	 * Label of account as string
+	 */
+	accountLabel: PropTypes.string,
+	/**
+	 * Whether the account name is highlighted
+	 */
+	accountNameHighlighted: PropTypes.bool,
 };
