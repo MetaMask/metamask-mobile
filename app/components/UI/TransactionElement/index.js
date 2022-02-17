@@ -374,6 +374,8 @@ class TransactionElement extends PureComponent {
 						onBackButtonPress={this.onCloseDetailsModal}
 						onSwipeComplete={this.onCloseDetailsModal}
 						swipeDirection={'down'}
+						backdropColor={colors.overlay.default}
+						backdropOpacity={1}
 					>
 						<DetailsModal>
 							<DetailsModal.Header>
@@ -396,6 +398,8 @@ class TransactionElement extends PureComponent {
 					onBackButtonPress={this.onCloseImportWalletModal}
 					onSwipeComplete={this.onCloseImportWalletModal}
 					swipeDirection={'down'}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<DetailsModal>
 						<DetailsModal.Header>

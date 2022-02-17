@@ -932,6 +932,8 @@ class Amount extends PureComponent {
 				onSwipeComplete={this.toggleAssetsModal}
 				swipeDirection={'down'}
 				propagateSwipe
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 			>
 				<SafeAreaView style={styles.assetsModalWrapper}>
 					<View style={styles.titleWrapper}>

@@ -231,6 +231,8 @@ function QuotesModal({
 			swipeDirection="down"
 			propagateSwipe
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>

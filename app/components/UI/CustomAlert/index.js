@@ -100,6 +100,8 @@ export default class CustomAlert extends PureComponent {
 				isVisible={this.propTypes}
 				onBackButtonPress={this.props.onPress}
 				{...this.props}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 			>
 				<View style={styles.content}>
 					<View style={[styles.header, this.props.headerStyle]}>{this.props.headerContent}</View>

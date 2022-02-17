@@ -34,7 +34,7 @@ export default function BlockingActionModal({ children, modalVisible, isLoadingA
 	const styles = createStyles(colors);
 
 	return (
-		<Modal isVisible={modalVisible} style={styles.modal}>
+		<Modal backdropColor={colors.overlay.default} backdropOpacity={1} isVisible={modalVisible} style={styles.modal}>
 			<View style={styles.modalView}>
 				<View style={baseStyles.flexGrow}>
 					{children}

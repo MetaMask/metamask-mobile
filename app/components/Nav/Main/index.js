@@ -465,7 +465,8 @@ const Main = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={onSignAction}
@@ -532,7 +533,8 @@ const Main = (props) => {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={onWalletConnectSessionRejected}

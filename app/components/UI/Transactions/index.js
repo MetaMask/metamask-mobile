@@ -499,7 +499,8 @@ class Transactions extends PureComponent {
 					animationIn="slideInUp"
 					animationOut="slideOutDown"
 					style={styles.bottomModal}
-					backdropOpacity={0.7}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 					animationInTiming={600}
 					animationOutTiming={600}
 					onBackdropPress={isCancel ? this.onCancelCompleted : this.onSpeedUpCompleted}

@@ -51,6 +51,8 @@ function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
 			swipeDirection="down"
 			propagateSwipe
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />

@@ -136,6 +136,8 @@ class Collectible extends PureComponent {
 					onBackButtonPress={this.hideCollectibleContractModal}
 					onSwipeComplete={this.hideCollectibleContractModal}
 					swipeDirection={'down'}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<CollectibleContractInformation
 						navigation={navigation}

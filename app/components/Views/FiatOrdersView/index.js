@@ -48,6 +48,8 @@ function FiatOrdersView({ orders, ...props }) {
 						onBackButtonPress={toggleModal}
 						onSwipeComplete={toggleModal}
 						swipeDirection="down"
+						backdropColor={colors.overlay.default}
+						backdropOpacity={1}
 					>
 						<OrderDetails order={item} closeModal={toggleModal} />
 					</Modal>

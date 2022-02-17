@@ -334,6 +334,8 @@ class PaymentRequestSuccess extends PureComponent {
 					onSwipeComplete={this.closeQRModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<View style={styles.detailsWrapper}>
 						<View style={styles.qrCode} testID={'payment-request-qrcode'}>

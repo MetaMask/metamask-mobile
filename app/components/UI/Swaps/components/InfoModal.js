@@ -63,6 +63,8 @@ function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
 			swipeDirection={'down'}
 			style={styles.modal}
 			propagateSwipe={propagateSwipe}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>

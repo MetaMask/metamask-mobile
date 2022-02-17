@@ -69,6 +69,8 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 			swipeDirection="down"
 			propagateSwipe
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger borderless />

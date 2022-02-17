@@ -256,6 +256,8 @@ class ReceiveRequest extends PureComponent {
 									swipeDirection={'down'}
 									propagateSwipe
 									testID={'qr-modal'}
+									backdropColor={colors.overlay.default}
+									backdropOpacity={1}
 								>
 									<AddressQRCode closeQrModal={() => this.closeQrModal(toggleModal)} />
 								</Modal>

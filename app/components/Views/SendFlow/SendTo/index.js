@@ -536,6 +536,8 @@ class SendFlow extends PureComponent {
 				onSwipeComplete={this.toggleFromAccountModal}
 				swipeDirection={'down'}
 				propagateSwipe
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 			>
 				<AccountList
 					enableAccountsAddition={false}

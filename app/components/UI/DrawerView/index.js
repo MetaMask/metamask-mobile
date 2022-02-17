@@ -911,7 +911,8 @@ class DrawerView extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 			>
@@ -1125,6 +1126,8 @@ class DrawerView extends PureComponent {
 					onSwipeComplete={this.toggleNetworksModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<NetworkList
 						navigation={this.props.navigation}
@@ -1132,7 +1135,7 @@ class DrawerView extends PureComponent {
 						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
 					/>
 				</Modal>
-				<Modal isVisible={!!invalidCustomNetwork}>
+				<Modal backdropColor={colors.overlay.default} backdropOpacity={1} isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
 						navigation={this.props.navigation}
 						network={invalidCustomNetwork}
@@ -1147,6 +1150,8 @@ class DrawerView extends PureComponent {
 					onSwipeComplete={this.toggleAccountsModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<AccountList
 						enableAccountsAddition
@@ -1167,6 +1172,8 @@ class DrawerView extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 					style={styles.bottomModal}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<ReceiveRequest
 						navigation={this.props.navigation}

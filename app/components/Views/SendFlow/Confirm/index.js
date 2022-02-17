@@ -961,7 +961,8 @@ class Confirm extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.cancelGasEdition}
@@ -1014,7 +1015,8 @@ class Confirm extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.cancelGasEdition}
@@ -1075,6 +1077,8 @@ class Confirm extends PureComponent {
 				onSwipeComplete={this.toggleHexDataModal}
 				swipeDirection={'down'}
 				propagateSwipe
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 			>
 				<View style={styles.hexDataWrapper}>
 					<TouchableOpacity style={styles.hexDataClose} onPress={this.toggleHexDataModal}>
@@ -1104,6 +1108,8 @@ class Confirm extends PureComponent {
 				onSwipeComplete={this.toggleFromAccountModal}
 				swipeDirection={'down'}
 				propagateSwipe
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 			>
 				<AccountList
 					enableAccountsAddition={false}

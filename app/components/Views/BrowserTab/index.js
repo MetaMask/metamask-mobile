@@ -1092,7 +1092,8 @@ export const BrowserTab = (props) => {
 				onBackButtonPress={toggleUrlModal}
 				animationIn="slideInDown"
 				animationOut="slideOutUp"
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={ANIMATION_TIMING}
 				animationOutTiming={ANIMATION_TIMING}
 				useNativeDriver
@@ -1413,7 +1414,8 @@ export const BrowserTab = (props) => {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={onAccountsReject}
@@ -1452,7 +1454,8 @@ export const BrowserTab = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onAddCustomNetworkReject}
@@ -1490,7 +1493,8 @@ export const BrowserTab = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onSwitchCustomNetworkReject}
@@ -1527,7 +1531,8 @@ export const BrowserTab = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={onCancelWatchAsset}

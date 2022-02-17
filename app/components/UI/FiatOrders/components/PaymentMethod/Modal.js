@@ -83,6 +83,8 @@ const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => {
 			swipeDirection="down"
 			style={styles.modal}
 			propagateSwipe
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>

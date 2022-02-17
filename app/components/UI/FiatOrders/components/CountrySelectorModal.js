@@ -147,6 +147,8 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 			avoidKeyboard
 			onModalHide={() => setSearchString('')}
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />

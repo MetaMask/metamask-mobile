@@ -29,6 +29,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
+import { ThemeContext } from '../../../../util/theme';
 
 const { BNToHex, hexToBN } = util;
 
@@ -533,6 +534,7 @@ class Approve extends PureComponent {
 			transactionConfirmed,
 		} = this.state;
 		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
+		const { colors } = this.context;
 
 		if (!transaction.id) return null;
 		return (
@@ -541,7 +543,8 @@ class Approve extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onCancel}
@@ -653,5 +656,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 });
+
+Approve.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Approve);

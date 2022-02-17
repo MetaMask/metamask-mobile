@@ -359,13 +359,16 @@ class Approval extends PureComponent {
 	render = () => {
 		const { transaction, dappTransactionModalVisible } = this.props;
 		const { mode, transactionConfirmed } = this.state;
+		const { colors } = this.context;
+
 		return (
 			<Modal
 				isVisible={dappTransactionModalVisible}
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onCancel}

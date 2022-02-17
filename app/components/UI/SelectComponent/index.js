@@ -197,6 +197,8 @@ export default class SelectComponent extends PureComponent {
 					onBackButtonPress={this.hidePicker}
 					style={styles.modal}
 					useNativeDriver
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<View style={styles.modalView}>
 						<View style={styles.accesoryBar}>
