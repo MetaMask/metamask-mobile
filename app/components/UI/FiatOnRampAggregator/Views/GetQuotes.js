@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { useRoute } from '@react-navigation/native';
-import Text from '../../../Base/Text';
 import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
 import { useSelector } from 'react-redux';
 import { CHAIN_ID_NETWORKS } from '../constants';
 import LoadingAnimation from '../components/LoadingAnimation';
-import Box from '../components/Box';
+import Quotes from '../components/Quotes';
+
+const styles = StyleSheet.create({
+	row: {
+		marginVertical: 8,
+	},
+});
 
 const GetQuotes = () => {
 	const { params } = useRoute();
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
-
+	const [currentQuote, setCurrentQuote] = useState(null);
 	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
 	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset } = useFiatOnRampSDK();
 
@@ -27,6 +32,7 @@ const GetQuotes = () => {
 	);
 
 	useEffect(() => {
+		console.log(quotes);
 		if (isFetchingQuotes) return;
 		setShouldFinishAnimation(true);
 	}, [isFetchingQuotes]);
@@ -51,12 +57,19 @@ const GetQuotes = () => {
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					{quotes?.map((quote) => (
-						<Box key={quote.id}>
-							<View>
-								<Text>{quote.providerId}</Text>
-								<Text>{quote.buyURL}</Text>
-							</View>
-						</Box>
+						<View key={quote.providerId} style={styles.row}>
+							<Quotes
+								providerName={quote.providerName}
+								amountOut={quote.amountOut}
+								crypto={quote.crypto}
+								fiat={quote.fiat}
+								networkFee={quote.netwrokFee}
+								processingFee={quote.providerFee}
+								amountIn={quote.amountIn}
+								onPress={() => setCurrentQuote(quote.providerId)}
+								highlighted={quote.providerId === currentQuote}
+							></Quotes>
+						</View>
 					))}
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
