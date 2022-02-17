@@ -403,11 +403,29 @@
 	"accounts": {
 		"create_new_account": "Create New Account",
 		"import_account": "Import an Account",
+		"connect_hardware": "Connect Hardware",
 		"imported": "IMPORTED",
 		"remove_account_title": "Account removal",
 		"remove_account_message": "Do you really want to remove this account?",
 		"no": "No",
 		"yes_remove_it": "Yes, remove it"
+	},
+	"connect_qr_hardware": {
+		"title": "Connect a QR-based hardware wallet",
+		"description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",
+		"description2": "How it works?",
+		"description3": "Officially supported airgapped hardware wallets include:",
+		"description4": "Keystone (tutorial)",
+		"button_continue": "Continue",
+		"hint_text": "Scan your Keystone wallet to ",
+		"purpose_connect": "connect",
+		"purpose_sign": "confirm the transaction",
+		"select_accounts": "Select an Account",
+		"prev": "PREV",
+		"next": "NEXT",
+		"unlock": "Unlock",
+		"forget": "Forget this device",
+		"please_wait": "Please wait"
 	},
 	"app_settings": {
 		"title": "Settings",

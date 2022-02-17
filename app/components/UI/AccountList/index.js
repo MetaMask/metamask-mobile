@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	footer: {
-		height: Device.isIphoneX() ? 140 : 110,
+		height: Device.isIphoneX() ? 200 : 170,
 		paddingBottom: Device.isIphoneX() ? 30 : 0,
 		justifyContent: 'center',
 		flexDirection: 'column',
@@ -100,6 +100,10 @@ class AccountList extends PureComponent {
 		 * function to be called when importing an account
 		 */
 		onImportAccount: PropTypes.func,
+		/**
+		 * function to be called when connect to a QR hardware
+		 */
+		onConnectHardware: PropTypes.func,
 		/**
 		 * Current provider ticker
 		 */
@@ -218,6 +222,13 @@ class AccountList extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
 		});
+	};
+
+	connectHardware = () => {
+		this.props.onConnectHardware();
+		// InteractionManager.runAfterInteractions(() => {
+		// 	Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+		// });
 	};
 
 	addAccount = async () => {
@@ -386,6 +397,13 @@ class AccountList extends PureComponent {
 							testID={'import-account-button'}
 						>
 							<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={this.connectHardware}
+							style={styles.footerButton}
+							testID={'connect-hardware'}
+						>
+							<Text style={styles.btnText}>{strings('accounts.connect_hardware')}</Text>
 						</TouchableOpacity>
 					</View>
 				)}

@@ -679,6 +679,12 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	};
 
+	onConnectHardware = () => {
+		this.toggleAccountsModal();
+		this.props.navigation.navigate('ConnectQRHardwareFlow');
+		this.hideDrawer();
+	};
+
 	hasBlockExplorer = (providerType) => {
 		const { frequentRpcList } = this.props;
 		if (providerType === RPC) {
@@ -1114,6 +1120,7 @@ class DrawerView extends PureComponent {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						onConnectHardware={this.onConnectHardware}
 						ticker={ticker}
 					/>
 				</Modal>
