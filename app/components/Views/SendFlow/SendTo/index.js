@@ -323,10 +323,12 @@ class SendFlow extends PureComponent {
 		const networkAddressBook = addressBook[network] || {};
 		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning, confusableCollection;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
+
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
 			toSelectedAddressReady = true;
 			const ens = await doENSReverseLookup(toSelectedAddress);
+
 			if (ens) {
 				toAddressName = ens;
 				if (!networkAddressBook[checksummedToSelectedAddress] && !identities[checksummedToSelectedAddress]) {
@@ -338,6 +340,8 @@ class SendFlow extends PureComponent {
 						networkAddressBook[checksummedToSelectedAddress].name) ||
 					(identities[checksummedToSelectedAddress] && identities[checksummedToSelectedAddress].name);
 			} else {
+				toAddressName = await doENSReverseLookup(toSelectedAddress, network);
+
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
@@ -392,6 +396,7 @@ class SendFlow extends PureComponent {
 		} else if (toSelectedAddress && toSelectedAddress.length >= 42) {
 			addressError = strings('transaction.invalid_address');
 		}
+
 		this.setState({
 			addressError,
 			toSelectedAddress,
