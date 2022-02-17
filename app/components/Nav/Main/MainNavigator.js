@@ -50,6 +50,7 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+import ThemeSettings from '../../Views/ThemeSettings';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -198,6 +199,17 @@ const SettingsView = () => (
 	</Stack.Navigator>
 );
 
+const SettingsModalStack = () => (
+	<Stack.Navigator
+		initialRouteName={'Settings'}
+		mode={'modal'}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+	>
+		<Stack.Screen name={'Settings'} component={SettingsView} />
+		<Stack.Screen name={'ThemeSettings'} component={ThemeSettings} options={{ animationEnabled: false }} />
+	</Stack.Navigator>
+);
+
 const ImportPrivateKeyView = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -329,7 +341,7 @@ const MainNavigator = () => (
 		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
-		<Stack.Screen name="SettingsView" component={SettingsView} />
+		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />

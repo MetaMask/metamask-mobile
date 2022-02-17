@@ -135,6 +135,7 @@ export default function getNavbarOptions(title, disableNetwork = false, drawerRe
 		),
 		headerRight: () => <AccountRightButton />,
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -166,7 +167,6 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 	return {
 		title,
 		headerTitleStyle: innerStyles.headerTitleStyle,
-		headerTintColor: themeColors.primary.default,
 		headerRight: () =>
 			isFullScreenModal ? (
 				<TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
@@ -184,6 +184,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 				</TouchableOpacity>
 			),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -223,7 +224,6 @@ export function getEditableOptions(title, navigation, route, themeColors) {
 	return {
 		title,
 		headerTitleStyle: innerStyles.headerTitleStyle,
-		headerTintColor: themeColors.primary.default,
 		headerLeft: () => (
 			<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'edit-contact-back-button'}>
 				<IonicIcon
@@ -244,6 +244,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
 				<View />
 			),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -274,7 +275,6 @@ export function getPaymentRequestOptionsTitle(title, navigation, route, themeCol
 	return {
 		title,
 		headerTitleStyle: innerStyles.headerTitleStyle,
-		headerTintColor: themeColors.primary.default,
 		headerLeft: () =>
 			goBack ? (
 				// eslint-disable-next-line react/jsx-no-bind
@@ -299,6 +299,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route, themeCol
 			</TouchableOpacity>
 		),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -324,7 +325,6 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
 	return {
 		headerStyle: innerStyles.headerStyle,
 		title: null,
-		headerTintColor: themeColors.primary.default,
 		headerLeft: () => <View />,
 		headerRight: () => (
 			<TouchableOpacity
@@ -336,6 +336,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
 				<IonicIcon name="ios-close" size={38} style={[innerStyles.headerIcon, styles.backIconIOS]} />
 			</TouchableOpacity>
 		),
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -366,6 +367,7 @@ export function getTransactionOptionsTitle(_title, navigation, route, themeColor
 	const rightAction = () => navigation.pop();
 	const rightText = strings('transaction.cancel');
 	const title = transactionMode === 'edit' ? 'transaction.edit' : _title;
+
 	return {
 		headerTitle: () => <NavbarTitle title={title} disableNetwork />,
 		headerLeft: () =>
@@ -400,6 +402,7 @@ export function getTransactionOptionsTitle(_title, navigation, route, themeColor
 				<View />
 			),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -588,6 +591,7 @@ export function getOnboardingNavbarOptions(route, { headerLeft } = {}, themeColo
 		headerBackTitle: strings('navigation.back'),
 		headerRight: () => <View />,
 		headerLeft: headerLeftHide,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -648,6 +652,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
 		headerBackTitle: strings('navigation.back'),
 		headerRight: () => <View />,
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -686,6 +691,7 @@ export function getOptinMetricsNavbarOptions(themeColors) {
 				</View>
 			</View>
 		),
+		headerTintColor: themeColors.primary.default,
 	};
 }
 /**
@@ -730,6 +736,7 @@ export function getClosableNavigationOptions(title, backButtonText, navigation, 
 				</TouchableOpacity>
 			),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -831,6 +838,7 @@ export function getWalletNavbarOptions(title, navigation, drawerRef, themeColors
 			</TouchableOpacity>
 		),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 
@@ -1059,6 +1067,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
 				</TouchableOpacity>
 			),
 		headerStyle: innerStyles.headerStyle,
+		headerTintColor: themeColors.primary.default,
 	};
 }
 

@@ -20,6 +20,8 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Device from '../../../../util/device';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext } from '../../../../util/theme';
+import { AppThemeLabelsObject } from '../../../../util/theme/models';
+import StyledButton from '../../../UI/StyledButton';
 
 const diameter = 40;
 const spacing = 8;
@@ -74,7 +76,7 @@ const createStyles = (colors) =>
 			marginTop: 0,
 		},
 		inner: {
-			paddingBottom: 48,
+			paddingBottom: 100,
 		},
 		identicon_container: {
 			marginVertical: 16,
@@ -164,6 +166,10 @@ class Settings extends PureComponent {
 		 * Called to toggle zero balance token display
 		 */
 		setHideZeroBalanceTokens: PropTypes.func,
+		/**
+		 * App theme
+		 */
+		appTheme: PropTypes.string,
 	};
 
 	state = {
@@ -220,6 +226,29 @@ class Settings extends PureComponent {
 
 	componentDidUpdate = () => {
 		this.updateNavBar();
+	};
+
+	goToThemeSettings = () => {
+		const { navigation } = this.props;
+		navigation.navigate('ThemeSettings');
+	};
+
+	renderThemeSettingsSection = () => {
+		const { appTheme } = this.props;
+		const { colors } = this.context;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.setting}>
+				<View>
+					<Text style={styles.title}>{`Theme (${AppThemeLabelsObject[appTheme]})`}</Text>
+					<Text style={styles.desc}>{'Change your app appearance by setting the theme.'}</Text>
+					<StyledButton type="normal" onPress={this.goToThemeSettings} containerStyle={styles.marginTop}>
+						{'CHANGE THEME'}
+					</StyledButton>
+				</View>
+			</View>
+		);
 	};
 
 	render() {
@@ -329,6 +358,7 @@ class Settings extends PureComponent {
 							</TouchableOpacity>
 						</View>
 					</View>
+					{this.renderThemeSettingsSection()}
 				</View>
 			</ScrollView>
 		);
@@ -344,6 +374,7 @@ const mapStateToProps = (state) => ({
 	useBlockieIcon: state.settings.useBlockieIcon,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+	appTheme: state.user.appTheme,
 });
 
 const mapDispatchToProps = (dispatch) => ({

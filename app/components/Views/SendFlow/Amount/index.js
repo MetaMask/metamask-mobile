@@ -217,7 +217,6 @@ const createStyles = (colors) =>
 			height: 5,
 			borderRadius: 4,
 			backgroundColor: colors.border.default,
-			opacity: Device.isAndroid() ? 0.6 : 0.5,
 		},
 		textAssetTitle: {
 			...fontStyles.normal,
