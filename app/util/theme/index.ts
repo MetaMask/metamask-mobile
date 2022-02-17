@@ -24,7 +24,7 @@ export const useAppTheme = (): Theme => {
 	};
 
 	switch (appTheme) {
-		/* eslint-disable */
+		/* eslint-disable no-fallthrough */
 		case AppThemeNames.OS: {
 			if (osThemeName === 'light') {
 				colors = colorTheme.light;
@@ -37,7 +37,6 @@ export const useAppTheme = (): Theme => {
 			}
 		}
 		case AppThemeNames.Light:
-			/* eslint-enable */
 			colors = colorTheme.light;
 			setLightStatusBar();
 			break;
