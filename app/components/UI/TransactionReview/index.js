@@ -31,6 +31,8 @@ import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -51,6 +53,9 @@ const styles = StyleSheet.create({
 	},
 	actionViewChildren: {
 		height: 330,
+	},
+	actionViewQRObject: {
+		height: 600,
 	},
 	accountInfoCardWrapper: {
 		paddingHorizontal: 24,
@@ -191,6 +196,14 @@ class TransactionReview extends PureComponent {
 		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 		 */
 		dappSuggestedGasWarning: PropTypes.bool,
+		/**
+		 * QR hardware state
+		 */
+		QRState: PropTypes.object,
+		/**
+		 * Whether current is signing QR hardware tx or message
+		 */
+		isSigningQRObject: PropTypes.bool,
 	};
 
 	state = {
@@ -326,7 +339,7 @@ class TransactionReview extends PureComponent {
 		return url;
 	}
 
-	render = () => {
+	renderTransactionReview = () => {
 		const {
 			transactionConfirmed,
 			primaryCurrency,
@@ -413,6 +426,22 @@ class TransactionReview extends PureComponent {
 			</>
 		);
 	};
+
+	renderQRDetails() {
+		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		const { QRState } = this.props;
+		return (
+			<View style={styles.actionViewQRObject}>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<QRSigningDetails QRState={QRState} tighten showCancelButton />
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderTransactionReview();
+	}
 }
 
 const mapStateToProps = (state) => ({
@@ -430,4 +459,4 @@ const mapStateToProps = (state) => ({
 	tokenList: getTokenList(state),
 });
 
-export default connect(mapStateToProps)(TransactionReview);
+export default connect(mapStateToProps)(withQRHardwareAwareness(TransactionReview));

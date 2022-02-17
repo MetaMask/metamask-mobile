@@ -1,36 +1,28 @@
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import Engine from '../../../core/Engine';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
 import { colors, fontStyles } from '../../../styles/common';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
+import { IQRState } from './types';
 
 interface IQRSigningDetails {
-	QRState: {
-		sign: {
-			request?: {
-				requestId: string;
-				payload: {
-					cbor: string;
-					type: string;
-				};
-			};
-		};
-	};
+	QRState: IQRState;
 	successCallback?: () => void;
 	failureCallback?: (error: string) => void;
 	cancelCallback?: () => void;
 	confirmButtonMode?: 'normal' | 'sign' | 'confirm';
 	showCancelButton?: boolean;
+	tighten?: boolean;
 }
 
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
-		backgroundColor: colors.white,
+		paddingBottom: 48,
 	},
 	container: {
 		flex: 1,
@@ -40,11 +32,18 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 32,
 		backgroundColor: colors.white,
 	},
+	containerTighten: {
+		paddingHorizontal: 8,
+	},
 	title: {
 		flexDirection: 'row',
 		justifyContent: 'center',
 		marginTop: 54,
 		marginBottom: 30,
+	},
+	titleTighten: {
+		marginTop: 12,
+		marginBottom: 6,
 	},
 	titleStrong: {
 		fontFamily: fontStyles.normal.fontFamily,
@@ -77,6 +76,7 @@ const QRSigningDetails = ({
 	cancelCallback,
 	confirmButtonMode = 'confirm',
 	showCancelButton = false,
+	tighten = false,
 }: IQRSigningDetails) => {
 	const KeyringController = useMemo(() => {
 		const { KeyringController: keyring } = Engine.context as any;
@@ -111,11 +111,10 @@ const QRSigningDetails = ({
 		},
 		[failureCallback, hideScanner]
 	);
-
 	return (
 		<Fragment>
 			{QRState?.sign?.request && (
-				<View style={styles.wrapper}>
+				<ScrollView contentContainerStyle={styles.wrapper}>
 					<ActionView
 						showCancelButton={showCancelButton}
 						confirmButtonMode={confirmButtonMode}
@@ -124,9 +123,9 @@ const QRSigningDetails = ({
 						onCancelPress={onCancel}
 						onConfirmPress={showScanner}
 					>
-						<View style={styles.container}>
+						<View style={[styles.container, tighten ? styles.containerTighten : undefined]}>
 							<AccountInfoCard />
-							<View style={styles.title}>
+							<View style={[styles.title, tighten ? styles.titleTighten : undefined]}>
 								<Text style={styles.titleStrong}>{strings('transactions.sign_title_scan')}</Text>
 								<Text style={styles.titleText}>{strings('transactions.sign_title_device')}</Text>
 							</View>
@@ -134,13 +133,19 @@ const QRSigningDetails = ({
 								cbor={QRState.sign.request.payload.cbor}
 								type={QRState.sign.request.payload.type}
 							/>
-							<View style={styles.description}>
-								<Text style={styles.descriptionText}>{strings('transactions.sign_description_1')}</Text>
-								<Text style={styles.descriptionText}>{strings('transactions.sign_description_2')}</Text>
-							</View>
+							{!tighten && (
+								<View style={styles.description}>
+									<Text style={styles.descriptionText}>
+										{strings('transactions.sign_description_1')}
+									</Text>
+									<Text style={styles.descriptionText}>
+										{strings('transactions.sign_description_2')}
+									</Text>
+								</View>
+							)}
 						</View>
 					</ActionView>
-				</View>
+				</ScrollView>
 			)}
 			<AnimatedQRScannerModal
 				visible={scannerVisible}
