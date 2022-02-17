@@ -29,7 +29,7 @@ const createStyles = (colors: any, safeAreaPaddingBottom: number) =>
 		},
 		option: {
 			height: 60,
-			borderTopWidth: 0.5,
+			borderTopWidth: StyleSheet.hairlineWidth,
 			borderColor: colors.border.muted,
 		},
 		optionButton: {
