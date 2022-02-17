@@ -3,6 +3,7 @@ import { View, Animated, PanResponder, StyleSheet, Text, Image } from 'react-nat
 import PropTypes from 'prop-types';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { useAppThemeFromContext } from '../../../util/theme';
+import Svg, { Path } from 'react-native-svg';
 
 /* eslint-disable import/no-commonjs */
 const SlippageSliderBgImg = require('../../../images/slippage-slider-bg.png');
@@ -11,8 +12,8 @@ const SlippageSliderBgImg = require('../../../images/slippage-slider-bg.png');
 const DIAMETER = 30;
 const TRACK_PADDING = 2;
 const TICK_DIAMETER = 5;
-const TOOLTIP_HEIGHT = 29;
-const TAIL_WIDTH = 10;
+const TOOLTIP_HEIGHT = 36;
+const TOOLTIP_WIDTH = 40;
 const COMPONENT_HEIGHT = DIAMETER + TOOLTIP_HEIGHT + 10;
 
 const createStyles = (colors) =>
@@ -75,26 +76,16 @@ const createStyles = (colors) =>
 			position: 'absolute',
 			justifyContent: 'center',
 			alignItems: 'center',
-			backgroundColor: colors.overlay.default,
-			padding: 5,
-			borderRadius: 8,
 			minHeight: TOOLTIP_HEIGHT,
-			minWidth: 40,
-			top: 0,
-		},
-		tooltipTail: {
-			position: 'absolute',
-			left: 0,
-			right: 0,
-			bottom: -5,
-			width: TAIL_WIDTH,
-			height: TAIL_WIDTH,
-			backgroundColor: colors.overlay.default,
-			transform: [{ rotate: '45deg' }],
+			minWidth: TOOLTIP_WIDTH,
+			top: 4,
 		},
 		tooltipText: {
+			...StyleSheet.absoluteFillObject,
+			textAlign: 'center',
 			...fontStyles.normal,
 			color: colors.overlay.inverse,
+			paddingTop: 6,
 			fontSize: 12,
 		},
 	});
@@ -111,7 +102,6 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 
 	/* Layout State */
 	const [trackWidth, setTrackWidth] = useState(0);
-	const [tooltipWidth, setTooltipWidth] = useState(0);
 	const [componentWidth, setComponentWidth] = useState(0);
 
 	/* State */
@@ -226,11 +216,17 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 			<Animated.View
 				style={[
 					styles.tooltipContainer,
-					{ left: Animated.subtract(sliderPosition, (tooltipWidth - DIAMETER) / 2) },
+					{ left: Animated.subtract(sliderPosition, (TOOLTIP_WIDTH - DIAMETER) / 2) },
 				]}
-				onLayout={(e) => setTooltipWidth(e.nativeEvent.layout.width)}
 			>
-				<View style={[styles.tooltipTail, { left: (tooltipWidth - TAIL_WIDTH) / 2 }]} />
+				<Svg width={TOOLTIP_WIDTH} height={TOOLTIP_HEIGHT} viewBox={`0 0 ${TOOLTIP_WIDTH} ${TOOLTIP_HEIGHT}`}>
+					<Path
+						d={
+							'M0 8C0 3.58172 3.58172 0 8 0H32C36.4183 0 40 3.58172 40 8V20.6866C40 25.1049 36.4183 28.6866 32 28.6866H27.7778L20 36L12.2222 28.6866H8C3.58172 28.6866 0 25.1049 0 20.6866V8Z'
+						}
+						fill={colors.overlay.default}
+					></Path>
+				</Svg>
 				<Text style={styles.tooltipText}>{formatTooltipText(displayValue)}</Text>
 			</Animated.View>
 			<Animated.View
