@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sincronizar ou importar carteira",
 		"new_to_crypto": "A criptomoeda é uma novidade para você?",
 		"start_exploring_now": "Criar nova carteira",
-		"login": "Entrar",
+		"unlock": "Desbloquear",
 		"new_to_metamask": "O MetaMask é uma novidade para você?",
 		"already_have_wallet": "Já tem uma carteira?",
 		"optin_back_title": "Fique de olho!",
@@ -128,8 +128,8 @@
 	"login": {
 		"title": "Bem-vindo(a) novamente!",
 		"password": "Senha",
-		"login_button": "ENTRAR",
-		"go_back": "Não consegue fazer o login? Você pode EXCLUIR sua carteira atual e configurar uma nova",
+		"unlock_button": "DESBLOQUEAR",
+		"go_back": "Não consegue desbloquear a carteira? Você pode EXCLUIR sua carteira atual e configurar uma nova",
 		"reset_wallet": "Redefinir Carteira",
 		"cant_proceed": "Você não pode prosseguir antes de digitar a palavra 'Delete'. Desta forma você está optando por excluir sua carteira atual.",
 		"invalid_password": "Senha inválida",
@@ -242,10 +242,10 @@
 		"settings_warning": "Carteira desprotegida",
 		"settings_warning_short": "Desprotegida",
 		"help": "Pedir ajuda",
-		"logout": "Sair",
-		"logout_title": "Quer mesmo sair?",
-		"logout_ok": "SIM",
-		"logout_cancel": "NÃO",
+		"lock": "Bloquear",
+		"lock_title": "Quer mesmo bloquear a sua carteira?",
+		"lock_ok": "SIM",
+		"lock_cancel": "NÃO",
 		"feedback": "Feedback",
 		"metamask_support": "Suporte do MetaMask",
 		"public_address": "Endereço público"
@@ -961,12 +961,12 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Acessar com Touch ID?",
-		"enable_faceid": "Acessar com Face ID?",
-		"enable_fingerprint": "Acessar com digital?",
-		"enable_biometrics": "Acessar com dados biométricos?",
-		"enable_device_passcode_ios": "Acessar com senha do dispositivo?",
-		"enable_device_passcode_android": "Acessar com PIN do dispositivo?"
+		"enable_touchid": "Desbloquear com Touch ID?",
+		"enable_faceid": "Desbloquear com Face ID?",
+		"enable_fingerprint": "Desbloquear com digital?",
+		"enable_biometrics": "Desbloquear com dados biométricos?",
+		"enable_device_passcode_ios": "Desbloquear com senha do dispositivo?",
+		"enable_device_passcode_android": "Desbloquear com PIN do dispositivo?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticação obrigatória",

@@ -48,6 +48,7 @@ export default function ActionModal({
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
 			propagateSwipe={propagateSwipe}
+			avoidKeyboard
 		>
 			<ActionContent
 				cancelTestID={cancelTestID}
