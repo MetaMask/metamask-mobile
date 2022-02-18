@@ -290,7 +290,14 @@ class Transactions extends PureComponent {
 		return (
 			<ScrollView
 				contentContainerStyle={styles.emptyContainer}
-				refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+				refreshControl={
+					<RefreshControl
+						colors={[colors.primary.default]}
+						tintColor={colors.icon.default}
+						refreshing={this.state.refreshing}
+						onRefresh={this.onRefresh}
+					/>
+				}
 			>
 				{this.props.header ? this.props.header : null}
 				<View style={styles.emptyContainer}>
@@ -554,7 +561,14 @@ class Transactions extends PureComponent {
 					data={transactions}
 					extraData={this.state}
 					keyExtractor={this.keyExtractor}
-					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					refreshControl={
+						<RefreshControl
+							colors={[colors.primary.default]}
+							tintColor={colors.icon.default}
+							refreshing={this.state.refreshing}
+							onRefresh={this.onRefresh}
+						/>
+					}
 					renderItem={this.renderItem}
 					initialNumToRender={10}
 					maxToRenderPerBatch={2}

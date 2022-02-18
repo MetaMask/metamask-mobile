@@ -87,7 +87,15 @@ export default class Collectibles extends PureComponent {
 		const styles = createStyles(colors);
 
 		return (
-			<ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} />}>
+			<ScrollView
+				refreshControl={
+					<RefreshControl
+						colors={[colors.primary.default]}
+						tintColor={colors.icon.default}
+						refreshing={this.state.refreshing}
+					/>
+				}
+			>
 				<View style={styles.emptyView}>
 					<Text style={styles.text}>{strings('wallet.no_collectibles')}</Text>
 				</View>

@@ -110,7 +110,14 @@ class Collectible extends PureComponent {
 		return (
 			<View style={styles.wrapper}>
 				<ScrollView
-					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					refreshControl={
+						<RefreshControl
+							colors={[colors.primary.default]}
+							tintColor={colors.icon.default}
+							refreshing={this.state.refreshing}
+							onRefresh={this.onRefresh}
+						/>
+					}
 					style={styles.wrapper}
 				>
 					<View testID={'collectible'}>

@@ -251,7 +251,14 @@ const Wallet = ({ navigation }: any) => {
 			<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
 				<ScrollView
 					style={styles.wrapper}
-					refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+					refreshControl={
+						<RefreshControl
+							colors={[colors.primary.default]}
+							tintColor={colors.icon.default}
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
+					}
 				>
 					{selectedAddress ? renderContent() : renderLoader()}
 				</ScrollView>
