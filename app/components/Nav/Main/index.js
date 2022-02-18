@@ -73,6 +73,7 @@ import abi from 'human-standard-token-abi';
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import usePrevious from '../../hooks/usePrevious';
 
 const Stack = createStackNavigator();
 const hstInterface = new ethers.utils.Interface(abi);
@@ -121,14 +122,6 @@ const Main = (props) => {
 	const toggleDappTransactionModal = props.toggleDappTransactionModal;
 	const setEtherTransaction = props.setEtherTransaction;
 	const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-
-	const usePrevious = (value) => {
-		const ref = useRef();
-		useEffect(() => {
-			ref.current = value;
-		});
-		return ref.current;
-	};
 
 	const prevLockTime = usePrevious(props.lockTime);
 

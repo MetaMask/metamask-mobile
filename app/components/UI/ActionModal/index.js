@@ -53,6 +53,7 @@ export default function ActionModal({
 			propagateSwipe={propagateSwipe}
 			backdropColor={colors.overlay.default}
 			backdropOpacity={1}
+			avoidKeyboard
 		>
 			<ActionContent
 				cancelTestID={cancelTestID}

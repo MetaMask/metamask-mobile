@@ -447,6 +447,7 @@ class ImportFromSeed extends PureComponent {
 					trackColor={{ true: colors.primary.default, false: colors.border.muted }}
 					thumbColor={importedColors.white}
 					ios_backgroundColor={colors.border.muted}
+					testID={'remember-me-toggle'}
 				/>
 			</View>
 		);

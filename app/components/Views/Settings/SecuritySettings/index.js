@@ -64,6 +64,8 @@ const createStyles = (colors) =>
 			color: colors.text.default,
 			fontSize: 20,
 			lineHeight: 20,
+			paddingTop: 4,
+			marginTop: -4,
 		},
 		bump: {
 			marginBottom: 10,
