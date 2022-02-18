@@ -284,7 +284,7 @@ class SignatureRequest extends PureComponent {
 		const { QRState } = this.props;
 		return (
 			<View style={[styles.root, styles.actionViewQRObject]}>
-				<QRSigningDetails QRState={QRState} />
+				<QRSigningDetails QRState={QRState} tighten showCancelButton />
 			</View>
 		);
 	}

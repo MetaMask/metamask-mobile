@@ -128,10 +128,14 @@ export default class PersonalSign extends PureComponent {
 		this.props.onCancel();
 	};
 
-	confirmSignature = () => {
-		this.signMessage();
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
-		this.props.onConfirm();
+	confirmSignature = async () => {
+		try {
+			await this.signMessage();
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
+			this.props.onConfirm();
+		} catch (e) {
+			this.props.onCancel();
+		}
 	};
 
 	renderMessageText = () => {
