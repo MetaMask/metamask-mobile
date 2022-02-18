@@ -533,7 +533,6 @@ const RootRPCMethodsUI = (props) => {
 		};
 
 		await Engine.context.PermissionController.acceptPermissionsRequest(request);
-		//rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
 		setShowPendingApproval(false);
 	};
 

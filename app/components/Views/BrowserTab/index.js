@@ -1370,16 +1370,14 @@ export const BrowserTab = (props) => {
 	useEffect(() => {
 		const { selectedAddress } = props;
 
-		const permittedAccountsMap = getPermittedAccountsByOrigin(Engine.context.PermissionController.state);
-
 		const hostname = new URL(url.current).hostname;
 
+		const permittedAccountsMap = getPermittedAccountsByOrigin(Engine.context.PermissionController.state, hostname);
+
 		// NO ACCOUNTS CONNECTED
-		if (!permittedAccountsMap?.[hostname]) return;
+		if (!permittedAccountsMap) return;
 		if (
-			permittedAccountsMap?.[hostname]?.find(
-				(account) => toChecksumAddress(account) === toChecksumAddress(selectedAddress)
-			)
+			permittedAccountsMap?.find((account) => toChecksumAddress(account) === toChecksumAddress(selectedAddress))
 		) {
 			sendActiveAccount();
 		} else {

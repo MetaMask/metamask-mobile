@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { connect } from 'react-redux';
-import { FlatList, SafeAreaView, StyleSheet, View } from 'react-native';
+import { FlatList, SafeAreaView, StyleSheet, View, InteractionManager } from 'react-native';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { orderBy } from 'lodash';
 import Device from '../../../util/device';
@@ -9,6 +9,7 @@ import ImportedEngine from '../../../core/Engine';
 import { addPermittedAccount, getPermittedAccountsByOrigin, removePermittedAccount } from '../../../core/Permissions';
 import AccountElement from './AccountElement';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
+import Text from '../../../components/Base/Text';
 
 const Engine = ImportedEngine as any;
 
@@ -23,6 +24,7 @@ interface Props {
 	network: string;
 	onAccountConnect: (address: string) => void;
 	onAccountsChange: (close: boolean) => void;
+	thirdPartyApiMode: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -60,16 +62,29 @@ const AccountListPermissions = ({
 	permittedAccountsMap,
 	ticker,
 	network,
+	thirdPartyApiMode,
 	onAccountConnect,
 	onAccountsChange,
 }: Props) => {
 	const flatList = useRef();
-	const [orderedAccounts, setOrderedAccounts] = useState<any[]>([]);
+	const [orderedAccounts, setOrderedAccounts] = useState<any[] | null>([]);
 	const [, setAccountsENS] = useState({});
 
 	const keyExtractor = (item: any) => item.address;
 
+	const switchToAccount = (address: string) => {
+		const { PreferencesController } = Engine.context;
+
+		PreferencesController.setSelectedAddress(address);
+
+		thirdPartyApiMode &&
+			InteractionManager.runAfterInteractions(async () => {
+				Engine.refreshTransactionHistory();
+			});
+	};
+
 	const onConnect = (address: string) => {
+		switchToAccount(address);
 		if (onAccountConnect) {
 			return onAccountConnect(address);
 		}
@@ -85,7 +100,7 @@ const AccountListPermissions = ({
 	const renderItem = ({ item, index }: { item: string; index: number }) => {
 		const selectedIsConnected = orderedAccounts?.[0]?.isSelected && orderedAccounts?.[0]?.isConnected;
 		const isLastConnected =
-			orderedAccounts.length !== index + 1 &&
+			orderedAccounts?.length !== index + 1 &&
 			orderedAccounts?.[index]?.isConnected &&
 			!orderedAccounts?.[index + 1]?.isConnected;
 
@@ -120,14 +135,18 @@ const AccountListPermissions = ({
 	);
 
 	useEffect(() => {
+		const permittedAccountsByOrigin = getPermittedAccountsByOrigin(permittedAccountsMap, hostname);
+
+		if (!onAccountConnect && (!permittedAccountsByOrigin || !permittedAccountsByOrigin.length)) {
+			return setOrderedAccounts(null);
+		}
+
 		const allKeyrings = keyrings?.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 		const accountsTracker = Engine.context.AccountTrackerController.state.accounts;
 
 		const accountsOrdered = allKeyrings
 			.reduce((list: any[], keyring: { accounts: any }) => list.concat(keyring.accounts), [])
 			.filter((address: string) => !!identities[toChecksumAddress(address)]);
-
-		const permittedAccountsByOrigin = getPermittedAccountsByOrigin(permittedAccountsMap);
 
 		const newOrderedAccounts = orderBy(
 			accountsOrdered.map((addr: string) => {
@@ -136,7 +155,7 @@ const AccountListPermissions = ({
 				const { name, address } = identity;
 				const identityAddressChecksummed = toChecksumAddress(address);
 				const isConnected = Boolean(
-					permittedAccountsByOrigin[hostname]?.find(
+					permittedAccountsByOrigin?.find(
 						(item: string) => toChecksumAddress(item) === identityAddressChecksummed
 					)
 				);
@@ -165,22 +184,26 @@ const AccountListPermissions = ({
 		setOrderedAccounts(newOrderedAccounts);
 
 		assignENSToAccounts(newOrderedAccounts);
-	}, [assignENSToAccounts, hostname, identities, keyrings, permittedAccountsMap, selectedAddress]);
+	}, [assignENSToAccounts, hostname, identities, keyrings, onAccountConnect, permittedAccountsMap, selectedAddress]);
 
 	return (
 		<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 			<View style={styles.titleWrapper}>
 				<View style={styles.dragger} testID={'account-list-dragger'} />
 			</View>
-			<FlatList
-				data={orderedAccounts}
-				keyExtractor={keyExtractor}
-				renderItem={renderItem}
-				ref={flatList}
-				style={styles.accountsWrapper}
-				testID={'account-number-button'}
-				getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
-			/>
+			{!orderedAccounts ? (
+				<Text>OLA</Text>
+			) : (
+				<FlatList
+					data={orderedAccounts}
+					keyExtractor={keyExtractor}
+					renderItem={renderItem}
+					ref={flatList}
+					style={styles.accountsWrapper}
+					testID={'account-number-button'}
+					getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
+				/>
+			)}
 		</SafeAreaView>
 	);
 };
@@ -200,7 +223,6 @@ const mapStateToProps = (state: {
 	keyrings: state.engine.backgroundState.KeyringController.keyrings,
 	network: state.engine.backgroundState.NetworkController.network,
 	permittedAccountsMap: state.engine.backgroundState.PermissionController,
-
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

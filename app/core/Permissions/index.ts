@@ -23,15 +23,17 @@ function getAccountsFromSubject(subject: any) {
 	return getAccountsFromPermission(getAccountsPermissionFromSubject(subject));
 }
 
-export const getPermittedAccountsByOrigin = (state: any) => {
+export const getPermittedAccountsByOrigin = (state: any, origin: string) => {
 	const subjects = state.subjects;
-	return Object.keys(subjects).reduce((acc: any, subjectKey) => {
+	const accountsByOrigign = Object.keys(subjects).reduce((acc: any, subjectKey) => {
 		const accounts = getAccountsFromSubject(subjects[subjectKey]);
 		if (accounts.length > 0) {
 			acc[subjectKey] = accounts;
 		}
 		return acc;
 	}, {});
+
+	return accountsByOrigign?.[origin];
 };
 
 export const addPermittedAccount = (origin: string, account: string) => {
