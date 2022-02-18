@@ -52,7 +52,7 @@ import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -162,7 +162,7 @@ function SwapsAmountView({
 }) {
 	const navigation = useNavigation();
 	const route = useRoute();
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const explorer = useBlockExplorer(provider, frequentRpcList);

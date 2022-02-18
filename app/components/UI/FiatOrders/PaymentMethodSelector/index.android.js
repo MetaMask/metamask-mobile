@@ -17,7 +17,7 @@ import Title from '../components/Title';
 import TransakPaymentMethod from './transak';
 
 import { setGasEducationCarouselSeen } from '../../../../actions/user';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
@@ -27,7 +27,7 @@ function PaymentMethodSelectorView({
 }) {
 	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 
 	useEffect(() => {
 		navigation.setOptions(

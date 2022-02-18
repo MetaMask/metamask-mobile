@@ -10,7 +10,7 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -135,7 +135,7 @@ export default class MessageSign extends PureComponent {
 	};
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 

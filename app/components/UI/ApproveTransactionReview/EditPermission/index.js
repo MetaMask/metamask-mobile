@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 export const MINIMUM_VALUE = '1';
 
@@ -112,7 +112,7 @@ function EditPermission({
 	toggleEditPermission,
 }) {
 	const [initialState] = useState({ spendLimitUnlimitedSelected, spendLimitCustomValue });
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const displayErrorMessage = useMemo(

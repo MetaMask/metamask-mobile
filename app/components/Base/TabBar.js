@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { fontStyles } from '../../styles/common';
-import { useAppThemeFromContext } from '../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -20,7 +20,7 @@ const createStyles = (colors) =>
 	});
 
 function TabBar({ ...props }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (

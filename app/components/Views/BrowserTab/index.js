@@ -58,7 +58,7 @@ import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -266,7 +266,7 @@ export const BrowserTab = (props) => {
 	const switchCustomNetworkRequest = useRef(null);
 	const wizardScrollAdjusted = useRef(false);
 
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	/**

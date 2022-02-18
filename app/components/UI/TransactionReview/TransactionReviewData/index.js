@@ -7,7 +7,7 @@ import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import Device from '../../../../util/device';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -101,7 +101,7 @@ class TransactionReviewData extends PureComponent {
 			actionKey,
 			toggleDataView,
 		} = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

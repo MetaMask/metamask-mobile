@@ -6,7 +6,7 @@ import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -79,7 +79,7 @@ const createStyles = (colors) =>
  * Account access approval component
  */
 const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation, onCancel, onConfirm, type }) => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	/**

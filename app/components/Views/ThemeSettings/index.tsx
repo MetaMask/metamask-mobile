@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppThemeNames, AppThemeLabels } from '../../../util/theme/models';
 import { setAppTheme } from '../../../actions/user';
@@ -53,7 +53,7 @@ const ThemeSettings = () => {
 	const triggerSetAppTheme = (theme: AppThemeNames) => dispatch(setAppTheme(theme));
 
 	const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors, safeAreaInsets.bottom);
 
 	/* eslint-disable-next-line */

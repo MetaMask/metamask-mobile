@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash';
 import createStyles from './styles';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 const screenHeight = Dimensions.get('window').height;
 
 type DismissModal = () => void;
@@ -42,7 +42,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 	const navigation = useNavigation();
 	const safeAreaInsets = useSafeAreaInsets();
 	const trigger = useRef<DismissModal>();
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	// Animation config

@@ -3,7 +3,7 @@ import React from 'react';
 import { Animated, Dimensions, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
-import { useAppThemeFromContext, useAssetFromTheme } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors, useAssetFromTheme } from '../../../util/theme';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -62,7 +62,7 @@ const MetaMaskAnimation = ({
 	animationName: any;
 	onAnimationFinish: () => void;
 }): JSX.Element => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 	const wordmark = useAssetFromTheme(wordmarkLight, wordmarkDark);
 

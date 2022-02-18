@@ -12,7 +12,7 @@ import Text from '../../Base/Text';
 import { getBasicGasEstimates, getRenderableFiatGasFee } from '../../../util/custom-gas';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const IMAGE_3_RATIO = 281 / 354;
 const IMAGE_2_RATIO = 353 / 416;
@@ -117,7 +117,7 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	useEffect(() => {

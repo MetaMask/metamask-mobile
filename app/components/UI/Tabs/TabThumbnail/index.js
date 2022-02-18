@@ -9,7 +9,7 @@ import { fontStyles, colors as importedColors } from '../../../../styles/common'
 import Device from '../../../../util/device';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
@@ -135,7 +135,7 @@ export default class TabThumbnail extends PureComponent {
 
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 		const Container = this.getContainer();
 		const hostname = getHost(tab.url);

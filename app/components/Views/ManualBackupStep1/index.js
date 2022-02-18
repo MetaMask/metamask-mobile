@@ -32,7 +32,7 @@ import {
 	WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -246,7 +246,7 @@ class ManualBackupStep1 extends PureComponent {
 
 	updateNavBar = () => {
 		const { route, navigation } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
 	};
 
@@ -319,7 +319,7 @@ class ManualBackupStep1 extends PureComponent {
 	};
 
 	renderLoader = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -349,7 +349,7 @@ class ManualBackupStep1 extends PureComponent {
 	};
 
 	renderSeedPhraseConcealer = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 		const blurType = this.getBlurType();
 
@@ -379,7 +379,7 @@ class ManualBackupStep1 extends PureComponent {
 
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -424,7 +424,7 @@ class ManualBackupStep1 extends PureComponent {
 		const words = this.words || [];
 		const wordLength = words.length;
 		const half = wordLength / 2 || 6;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -465,7 +465,7 @@ class ManualBackupStep1 extends PureComponent {
 
 	render() {
 		const { ready, currentStep, view } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (!ready) return this.renderLoader();

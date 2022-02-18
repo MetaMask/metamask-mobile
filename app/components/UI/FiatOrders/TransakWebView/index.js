@@ -14,7 +14,7 @@ import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 class TransakWebView extends PureComponent {
 	static propTypes = {
@@ -39,7 +39,7 @@ class TransakWebView extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(
 			getTransakWebviewNavbar(
 				navigation,

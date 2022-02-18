@@ -8,7 +8,7 @@ import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { passwordRequirementsMet } from '../../../util/password';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -83,7 +83,7 @@ export default class EnterPasswordSimple extends PureComponent {
 	};
 
 	render() {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

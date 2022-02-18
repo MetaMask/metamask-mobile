@@ -28,7 +28,7 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -168,7 +168,7 @@ class Send extends PureComponent {
 	}
 
 	updateNavBar = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const { navigation, route } = this.props;
 		navigation.setOptions(getTransactionOptionsTitle('send.confirm', navigation, route, colors));
 	};
@@ -641,7 +641,7 @@ class Send extends PureComponent {
 	changeToReviewMode = () => this.onModeChange(REVIEW);
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 

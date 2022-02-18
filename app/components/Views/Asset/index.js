@@ -10,7 +10,7 @@ import Engine from '../../../core/Engine';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -99,7 +99,7 @@ class Asset extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation, colors));
 	};
 
@@ -272,7 +272,7 @@ class Asset extends PureComponent {
 	}
 
 	renderLoader = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -298,7 +298,7 @@ class Asset extends PureComponent {
 			selectedAddress,
 			chainId,
 		} = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

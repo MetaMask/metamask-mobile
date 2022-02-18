@@ -8,7 +8,7 @@ import scaling from '../../../util/scaling';
 import { toLowerCaseEquals } from '../../../util/general';
 import Text from '../../Base/Text';
 import Device from '../../../util/device';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 
@@ -63,7 +63,7 @@ const createStyles = (colors) =>
 export default function CollectibleMedia({ collectible, renderAnimation, style, tiny, small, big, cover, onClose }) {
 	const [sourceUri, setSourceUri] = useState(null);
 	const [isUniV3NFT, setIsUniV3NFT] = useState(false);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const fallback = () => setSourceUri(null);

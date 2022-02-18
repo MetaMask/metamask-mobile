@@ -7,7 +7,7 @@ import { getOrders } from '../../../reducers/fiatOrders';
 import ModalHandler from '../../Base/ModalHandler';
 import OrderListItem from './OrderListItem';
 import OrderDetails from './OrderDetails';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -23,7 +23,7 @@ const createStyles = (colors) =>
 		},
 	});
 function FiatOrdersView({ orders, ...props }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const keyExtractor = (item) => item.id;

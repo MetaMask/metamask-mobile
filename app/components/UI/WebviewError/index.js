@@ -5,7 +5,7 @@ import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -82,7 +82,7 @@ export default class WebviewError extends PureComponent {
 
 	render() {
 		const { error } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return error ? (

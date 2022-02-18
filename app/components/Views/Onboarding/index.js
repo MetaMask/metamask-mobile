@@ -36,7 +36,7 @@ import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
@@ -216,7 +216,7 @@ class Onboarding extends PureComponent {
 
 	updateNavBar = () => {
 		const { route, navigation } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(
 			route.params?.delete
 				? getTransparentOnboardingNavbarOptions(colors)
@@ -381,7 +381,7 @@ class Onboarding extends PureComponent {
 	};
 
 	renderLoader = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -395,7 +395,7 @@ class Onboarding extends PureComponent {
 	};
 
 	renderContent() {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -440,7 +440,7 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (!this.props.route.params?.delete) return;
@@ -462,7 +462,7 @@ class Onboarding extends PureComponent {
 	render() {
 		const { loading } = this.props;
 		const { existingUser } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

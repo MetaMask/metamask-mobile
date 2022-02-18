@@ -4,7 +4,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Alert, { AlertType } from '../../../Base/Alert';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 const AlertTypeKeys = Object.keys(AlertType);
 
 const VERTICAL_DISPLACEMENT = 12;
@@ -79,7 +79,7 @@ const getInfoIconStyle = (type, styles) => {
 };
 
 function Button({ type, onPress, children }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (
@@ -98,7 +98,7 @@ Button.propTypes = {
 };
 
 function ActionAlert({ type, style, action, onInfoPress, onPress, children }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (

@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -156,7 +156,7 @@ class BackupAlert extends PureComponent {
 	render() {
 		const { seedphraseBackedUp, backUpSeedphraseVisible } = this.props;
 		const { inBrowserView, blockedView } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (seedphraseBackedUp || blockedView || !backUpSeedphraseVisible) return null;

@@ -9,7 +9,7 @@ import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks'
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MAINNET, RPC } from '../../../constants/network';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -199,7 +199,7 @@ export class NetworkList extends PureComponent {
 	};
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 
@@ -223,7 +223,7 @@ export class NetworkList extends PureComponent {
 
 	renderOtherNetworks = () => {
 		const { provider } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return this.getOtherNetworks().map((network, i) => {
 			const { color, name } = Networks[network];
@@ -235,7 +235,7 @@ export class NetworkList extends PureComponent {
 
 	renderRpcNetworks = () => {
 		const { frequentRpcList, provider } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return frequentRpcList.map(({ nickname, rpcUrl }, i) => {
 			const { color, name } = { name: nickname || rpcUrl, color: null };
@@ -249,7 +249,7 @@ export class NetworkList extends PureComponent {
 
 	renderMainnet() {
 		const { provider } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = this.getStyles();
 		const isMainnet =
 			provider.type === MAINNET ? <Icon name="check" size={15} color={colors.icon.default} /> : null;

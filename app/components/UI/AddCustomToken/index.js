@@ -10,7 +10,7 @@ import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import AppConstants from '../../../core/AppConstants';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -199,7 +199,7 @@ export default class AddCustomToken extends PureComponent {
 	};
 
 	renderWarning = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -233,7 +233,7 @@ export default class AddCustomToken extends PureComponent {
 
 	render = () => {
 		const { address, symbol, decimals } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

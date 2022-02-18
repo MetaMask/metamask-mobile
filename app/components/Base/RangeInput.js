@@ -4,7 +4,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
-import { useAppThemeFromContext } from '../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -99,7 +99,7 @@ const RangeInput = ({
 }) => {
 	const textInput = useRef(null);
 	const [errorState, setErrorState] = useState();
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const handleClickUnit = useCallback(() => {

@@ -11,7 +11,7 @@ import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;
@@ -38,7 +38,7 @@ const Step5 = (props) => {
 	const [coachmarkTop, setCoachmarkTop] = useState(0);
 	const [coachmarkBottom, setCoachmarkBottom] = useState(0);
 	const { drawerRef } = useContext(DrawerContext);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const dynamicOnboardingStyles = onboardingStyles(colors);
 
 	/**

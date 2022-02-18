@@ -22,7 +22,7 @@ import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -156,7 +156,7 @@ class TransactionDetails extends PureComponent {
 	};
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 

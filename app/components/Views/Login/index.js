@@ -46,7 +46,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
 const deviceHeight = Device.getDeviceHeight();
@@ -456,7 +456,7 @@ class Login extends PureComponent {
 	};
 
 	renderSwitch = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (this.state.biometryType && !this.state.biometryPreviouslyDisabled) {
@@ -522,7 +522,7 @@ class Login extends PureComponent {
 	};
 
 	render = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

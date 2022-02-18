@@ -26,7 +26,7 @@ import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ONBOARDING_WIZARD, SEED_PHRASE_HINTS } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -110,7 +110,7 @@ class ManualBackupStep3 extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
 	};
 
@@ -200,7 +200,7 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	render() {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

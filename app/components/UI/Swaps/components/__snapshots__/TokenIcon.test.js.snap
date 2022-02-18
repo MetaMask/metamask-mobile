@@ -46,6 +46,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     style={
       Array [
         Object {
+          "color": "hsla(210, 8%, 15%, 1)",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
@@ -143,11 +144,13 @@ exports[`TokenIcon component should Render correctly 7`] = `
     style={
       Array [
         Object {
+          "color": "hsla(210, 8%, 15%, 1)",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
         },
         Object {
+          "color": "hsla(210, 8%, 15%, 1)",
           "fontSize": 22,
         },
         undefined,

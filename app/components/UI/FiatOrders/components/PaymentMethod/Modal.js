@@ -8,7 +8,7 @@ import Title from '../Title';
 import { colors as importedColors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
 import Device from '../../../../../util/device';
-import { useAppThemeFromContext } from '../../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -64,14 +64,14 @@ const createStyles = (colors) =>
 	});
 
 const CloseIcon = (props) => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return <IonicIcon name="ios-close" style={styles.closeIcon} size={30} {...props} />;
 };
 
 const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (

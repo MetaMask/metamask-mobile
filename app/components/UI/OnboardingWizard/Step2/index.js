@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
@@ -79,7 +79,7 @@ class Step2 extends PureComponent {
 	};
 
 	getOnboardingStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return onboardingStyles(colors);
 	};
 

@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../locales/i18n';
 import ActionContent from './ActionContent';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -40,7 +40,7 @@ export default function ActionModal({
 	propagateSwipe,
 	cancelButtonDisabled,
 }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 
 	return (
 		<Modal

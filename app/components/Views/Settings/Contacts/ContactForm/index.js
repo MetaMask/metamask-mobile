@@ -14,7 +14,7 @@ import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
-import { ThemeContext } from '../../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -137,7 +137,7 @@ class ContactForm extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(
 			getEditableOptions(
 				strings(`address_book.${route.params?.mode ?? ADD}_contact_title`),
@@ -274,7 +274,7 @@ class ContactForm extends PureComponent {
 
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

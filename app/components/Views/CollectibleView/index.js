@@ -9,7 +9,7 @@ import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -59,7 +59,7 @@ class CollectibleView extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation, colors);
 	};
 
@@ -85,7 +85,7 @@ class CollectibleView extends PureComponent {
 			navigation,
 		} = this.props;
 		const collectible = params;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const lowerAddress = collectible.address.toLowerCase();

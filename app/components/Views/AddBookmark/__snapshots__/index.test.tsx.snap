@@ -4,7 +4,7 @@ exports[`AddBookmark should render correctly 1`] = `
 <ForwardRef(SafeAreaView)
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "hsla(0, 0%, 100%, 1)",
       "flex": 1,
     }
   }
@@ -33,6 +33,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -44,13 +45,14 @@ exports[`AddBookmark should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder=""
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="hsla(210, 8%, 75%, 1)"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "hsla(210, 8%, 75%, 1)",
               "borderRadius": 4,
               "borderWidth": 1,
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -62,7 +64,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "hsla(354, 66%, 54%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -79,6 +81,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -92,9 +95,10 @@ exports[`AddBookmark should render correctly 1`] = `
           returnKeyType="done"
           style={
             Object {
-              "borderColor": "#d6d9dc",
+              "borderColor": "hsla(210, 8%, 75%, 1)",
               "borderRadius": 4,
               "borderWidth": 1,
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -106,7 +110,7 @@ exports[`AddBookmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#D73A49",
+              "color": "hsla(354, 66%, 54%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }

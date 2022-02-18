@@ -59,7 +59,7 @@ import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
 import { collectibleContractsSelector, collectiblesSelector } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const { hexToBN, BNToHex } = util;
 
@@ -404,7 +404,7 @@ class Amount extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(getSendFlowTitle('send.amount', navigation, route, colors));
 	};
 
@@ -824,7 +824,7 @@ class Amount extends PureComponent {
 			this.props;
 		let balance, balanceFiat;
 		const { address, decimals, symbol } = token;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (token.isETH) {
@@ -863,7 +863,7 @@ class Amount extends PureComponent {
 
 	renderCollectible = (collectible, index) => {
 		const { name } = collectible;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -919,7 +919,7 @@ class Amount extends PureComponent {
 	renderAssetsModal = () => {
 		const { assetsModalVisible } = this.state;
 		const tradableCollectibles = this.collectibles.filter(({ standard }) => standard === 'ERC721');
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -964,7 +964,7 @@ class Amount extends PureComponent {
 			currentBalance,
 		} = this.state;
 		const { currentCurrency } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -1020,7 +1020,7 @@ class Amount extends PureComponent {
 	renderCollectibleInput = () => {
 		const { amountError } = this.state;
 		const { selectedAsset } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -1052,7 +1052,7 @@ class Amount extends PureComponent {
 			selectedAsset,
 			transactionState: { isPaymentRequest },
 		} = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

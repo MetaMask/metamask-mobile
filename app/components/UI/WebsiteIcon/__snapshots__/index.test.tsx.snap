@@ -5,7 +5,7 @@ exports[`WebsiteIcon should render correctly 1`] = `
   <FadeIn
     placeholderStyle={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "hsla(210, 18%, 96%, 1)",
       }
     }
     useNativeDriver={true}

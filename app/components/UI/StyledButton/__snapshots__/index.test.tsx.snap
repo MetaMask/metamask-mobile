@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
-<TouchableNativeFeedback>
+<TouchableOpacity>
   <View
     style={
       Array [
@@ -11,8 +11,8 @@ exports[`StyledButton should render correctly on Android the button with type ca
           "padding": 15,
         },
         Object {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#848c96",
+          "backgroundColor": "hsla(0, 0%, 100%, 1)",
+          "borderColor": "hsla(210, 8%, 35%, 1)",
           "borderWidth": 1,
         },
         null,
@@ -20,11 +20,11 @@ exports[`StyledButton should render correctly on Android the button with type ca
       ]
     }
   />
-</TouchableNativeFeedback>
+</TouchableOpacity>
 `;
 
 exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
-<TouchableNativeFeedback>
+<TouchableOpacity>
   <View
     style={
       Array [
@@ -34,7 +34,7 @@ exports[`StyledButton should render correctly on Android the button with type co
           "padding": 15,
         },
         Object {
-          "backgroundColor": "#037dd6",
+          "backgroundColor": "hsla(205, 97%, 43%, 1)",
           "minHeight": 50,
         },
         null,
@@ -42,11 +42,11 @@ exports[`StyledButton should render correctly on Android the button with type co
       ]
     }
   />
-</TouchableNativeFeedback>
+</TouchableOpacity>
 `;
 
 exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
-<TouchableNativeFeedback>
+<TouchableOpacity>
   <View
     style={
       Array [
@@ -56,8 +56,8 @@ exports[`StyledButton should render correctly on Android the button with type no
           "padding": 15,
         },
         Object {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#037dd6",
+          "backgroundColor": "hsla(0, 0%, 100%, 1)",
+          "borderColor": "hsla(205, 97%, 43%, 1)",
           "borderWidth": 1,
         },
         null,
@@ -65,11 +65,11 @@ exports[`StyledButton should render correctly on Android the button with type no
       ]
     }
   />
-</TouchableNativeFeedback>
+</TouchableOpacity>
 `;
 
 exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
-<TouchableNativeFeedback>
+<TouchableOpacity>
   <View
     style={
       Array [
@@ -79,7 +79,7 @@ exports[`StyledButton should render correctly on Android the button with type or
           "padding": 15,
         },
         Object {
-          "borderColor": "#f66a0a",
+          "borderColor": "hsla(24, 93%, 50%, 1)",
           "borderWidth": 1,
         },
         null,
@@ -87,7 +87,7 @@ exports[`StyledButton should render correctly on Android the button with type or
       ]
     }
   />
-</TouchableNativeFeedback>
+</TouchableOpacity>
 `;
 
 exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
@@ -100,8 +100,8 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "padding": 15,
       },
       Object {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#848c96",
+        "backgroundColor": "hsla(0, 0%, 100%, 1)",
+        "borderColor": "hsla(210, 8%, 35%, 1)",
         "borderWidth": 1,
       },
       undefined,
@@ -117,7 +117,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "textAlign": "center",
       },
       Object {
-        "color": "#848c96",
+        "color": "hsla(210, 8%, 35%, 1)",
       },
       undefined,
     ]
@@ -136,7 +136,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "padding": 15,
       },
       Object {
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "hsla(205, 97%, 43%, 1)",
         "minHeight": 50,
       },
       undefined,
@@ -152,7 +152,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "textAlign": "center",
       },
       Object {
-        "color": "#FFFFFF",
+        "color": "hsla(0, 0%, 99%, 1)",
       },
       undefined,
     ]
@@ -171,8 +171,8 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "padding": 15,
       },
       Object {
-        "backgroundColor": "#FFFFFF",
-        "borderColor": "#037dd6",
+        "backgroundColor": "hsla(0, 0%, 100%, 1)",
+        "borderColor": "hsla(205, 97%, 43%, 1)",
         "borderWidth": 1,
       },
       undefined,
@@ -188,7 +188,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "textAlign": "center",
       },
       Object {
-        "color": "#037dd6",
+        "color": "hsla(205, 97%, 43%, 1)",
       },
       undefined,
     ]
@@ -207,7 +207,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "padding": 15,
       },
       Object {
-        "borderColor": "#f66a0a",
+        "borderColor": "hsla(24, 93%, 50%, 1)",
         "borderWidth": 1,
       },
       undefined,
@@ -223,7 +223,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "textAlign": "center",
       },
       Object {
-        "color": "#f66a0a",
+        "color": "hsla(24, 93%, 50%, 1)",
       },
       undefined,
     ]

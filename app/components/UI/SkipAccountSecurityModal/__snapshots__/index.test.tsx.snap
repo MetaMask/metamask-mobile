@@ -43,7 +43,6 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-end",
-          "flex": 1,
         }
       }
     >
@@ -53,6 +52,7 @@ exports[`HintModal should render correctly 1`] = `
         size={12}
         style={
           Object {
+            "color": "hsla(210, 8%, 15%, 1)",
             "fontSize": 16,
           }
         }
@@ -65,7 +65,7 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "center",
-          "color": "#D73A49",
+          "color": "hsla(354, 66%, 54%, 1)",
         }
       }
       testID="skip_backup_warning"
@@ -73,7 +73,7 @@ exports[`HintModal should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#000000",
+          "color": "hsla(210, 8%, 15%, 1)",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 24,
           "fontWeight": "600",
@@ -108,7 +108,7 @@ exports[`HintModal should render correctly 1`] = `
         testID="skip-backup-check"
         tintColors={
           Object {
-            "true": "#037dd6",
+            "true": "hsla(205, 97%, 43%, 1)",
           }
         }
         value={false}
@@ -117,6 +117,7 @@ exports[`HintModal should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
+            "color": "hsla(210, 8%, 15%, 1)",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,

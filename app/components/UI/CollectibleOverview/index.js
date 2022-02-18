@@ -21,7 +21,7 @@ import { isCollectibleInFavoritesSelector } from '../../../reducers/collectibles
 import Share from 'react-native-share';
 import { PanGestureHandler, gestureHandlerRootHOC, ScrollView } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -130,7 +130,7 @@ const CollectibleOverview = ({
 	const [position, setPosition] = useState(0);
 	const positionAnimated = useRef(new Animated.Value(0)).current;
 	const scrollViewRef = useRef(null);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const translationHeight = useMemo(

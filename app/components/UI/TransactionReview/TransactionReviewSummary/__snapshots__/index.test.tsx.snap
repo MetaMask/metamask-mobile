@@ -6,7 +6,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     style={
       Object {
         "alignItems": "center",
-        "backgroundColor": undefined,
+        "backgroundColor": "hsla(0, 0%, 100%, 1)",
         "padding": 24,
         "paddingBottom": 16,
         "paddingTop": 12,
@@ -18,10 +18,10 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "borderColor": "#848c96",
+          "borderColor": "hsla(210, 8%, 75%, 1)",
           "borderRadius": 12,
           "borderWidth": 1,
-          "color": "#24292E",
+          "color": "hsla(210, 8%, 15%, 1)",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 10,
           "fontWeight": "400",
@@ -34,7 +34,7 @@ exports[`TransactionReviewSummary should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#000000",
+          "color": "hsla(210, 8%, 15%, 1)",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 44,
           "fontWeight": "400",

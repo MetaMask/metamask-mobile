@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { connect } from 'react-redux';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -37,7 +37,7 @@ class Settings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(
 			getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation, colors)
 		);
@@ -88,7 +88,7 @@ class Settings extends PureComponent {
 
 	render = () => {
 		const { seedphraseBackedUp } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

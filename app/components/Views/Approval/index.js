@@ -18,7 +18,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -90,7 +90,7 @@ class Approval extends PureComponent {
 	};
 
 	updateNavBar = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const { navigation, route } = this.props;
 		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, route, colors));
 	};
@@ -359,7 +359,7 @@ class Approval extends PureComponent {
 	render = () => {
 		const { transaction, dappTransactionModalVisible } = this.props;
 		const { mode, transactionConfirmed } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return (
 			<Modal

@@ -29,7 +29,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const { BNToHex, hexToBN } = util;
 
@@ -534,7 +534,7 @@ class Approve extends PureComponent {
 			transactionConfirmed,
 		} = this.state;
 		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		if (!transaction.id) return null;
 		return (

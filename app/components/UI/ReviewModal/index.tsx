@@ -7,7 +7,7 @@ import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
 import { createStyles } from './styles';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 interface HelpOption {
 	label: string;
@@ -36,7 +36,7 @@ const ReviewModal = () => {
 	const navigation = useNavigation();
 	const modalRef = useRef<ReusableModalRef>(null);
 	const [showHelpOptions, setShowHelpOptions] = useState(false);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const dismissModal = (cb?: () => void) => modalRef?.current?.dismissModal(cb);

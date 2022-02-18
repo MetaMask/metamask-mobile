@@ -15,7 +15,7 @@ import { parseTransactionEIP1559, parseTransactionLegacy } from '../../../../uti
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
 
@@ -72,7 +72,7 @@ function GasEditModal({
 	const [isGasFeeRecommendationVisible, , showGasFeeRecommendation, hideGasFeeRecommendation] =
 		useModalHandler(false);
 	const [isAnimating, setIsAnimating] = useState(false);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 
 	useEffect(() => {
 		setGasSelected(customGasFee?.selected);

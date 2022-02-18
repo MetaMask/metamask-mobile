@@ -72,7 +72,7 @@ import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 const hstInterface = new ethers.utils.Interface(abi);
@@ -106,7 +106,7 @@ const Main = (props) => {
 	const [currentPageUrl, setCurrentPageUrl] = useState('');
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const backgroundMode = useRef(false);

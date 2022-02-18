@@ -20,6 +20,7 @@ const initialState = {
 			PreferencesController: { selectedAddress: '0x0' },
 		},
 	},
+	user: { appTheme: 'light' },
 };
 const store = mockStore(initialState);
 

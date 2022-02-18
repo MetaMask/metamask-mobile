@@ -27,7 +27,7 @@ import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const isIos = Device.isIos();
 
@@ -189,7 +189,7 @@ class PaymentRequestSuccess extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(getPaymentRequestSuccessOptionsTitle(navigation, colors));
 	};
 
@@ -258,7 +258,7 @@ class PaymentRequestSuccess extends PureComponent {
 
 	render() {
 		const { link, amount, symbol, qrModalVisible } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

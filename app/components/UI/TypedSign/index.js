@@ -11,7 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -158,7 +158,7 @@ export default class TypedSign extends PureComponent {
 	};
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 

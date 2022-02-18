@@ -8,7 +8,7 @@ exports[`Browser should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "hsla(0, 0%, 100%, 1)",
           "flex": 1,
         },
         false,
@@ -46,7 +46,7 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="#D73A49"
+      backdropColor="hsla(354, 66%, 54%, 1)"
       backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
@@ -98,8 +98,8 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutUp"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}
@@ -140,7 +140,7 @@ exports[`Browser should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "hsla(0, 0%, 100%, 1)",
             "flexDirection": "row",
             "height": 87,
             "paddingHorizontal": 10,
@@ -149,34 +149,41 @@ exports[`Browser should render correctly 1`] = `
         }
         testID="url-modal"
       >
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-          keyboardType="web-search"
-          onChangeText={[Function]}
-          onSubmitEditing={[Function]}
-          placeholder="Search or Type URL"
-          placeholderTextColor="#848c96"
-          returnKeyType="go"
-          selectTextOnFocus={true}
+        <View
           style={
             Object {
-              "backgroundColor": "#f2f3f4",
+              "backgroundColor": "hsla(210, 18%, 96%, 1)",
               "borderRadius": 30,
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
+              "flexDirection": "row",
               "height": 30,
-              "padding": 8,
-              "paddingLeft": 15,
-              "textAlign": "left",
             }
           }
-          testID="url-input"
-          value=""
-        />
+        >
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="web-search"
+            onChangeText={[Function]}
+            onSubmitEditing={[Function]}
+            placeholder="Search or Type URL"
+            placeholderTextColor="hsla(210, 8%, 75%, 1)"
+            returnKeyType="go"
+            selectTextOnFocus={true}
+            style={
+              Object {
+                "color": "hsla(210, 8%, 15%, 1)",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "paddingLeft": 15,
+              }
+            }
+            testID="url-input"
+            value=""
+          />
+        </View>
         <TouchableOpacity
           onPress={[Function]}
           style={
@@ -190,7 +197,7 @@ exports[`Browser should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#037dd6",
+                "color": "hsla(205, 97%, 43%, 1)",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -213,8 +220,8 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}
@@ -272,8 +279,8 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={600}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}
@@ -341,8 +348,8 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}
@@ -400,8 +407,8 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}

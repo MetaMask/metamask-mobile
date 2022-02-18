@@ -4,7 +4,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "hsla(0, 0%, 100%, 1)",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -38,7 +38,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="hsla(210, 8%, 15%, 1)"
                 name="ios-arrow-back"
                 size={24}
               />
@@ -65,7 +65,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             </Text>
             <Icon
               allowFontScaling={false}
-              color="#FFFFFF"
+              color="hsla(0, 0%, 100%, 1)"
               name="ios-arrow-back"
               size={24}
             />
@@ -262,7 +262,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "hsla(210, 8%, 75%, 1)",
                             }
                           }
                         />
@@ -332,7 +332,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "hsla(210, 8%, 75%, 1)",
                             }
                           }
                         />

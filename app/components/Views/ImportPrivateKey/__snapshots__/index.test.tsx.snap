@@ -4,7 +4,8 @@ exports[`ImportPrivateKey should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "#eaf6ff",
+      "backgroundColor": "hsla(0, 0%, 100%, 1)",
+      "flex": 1,
     }
   }
 >
@@ -28,7 +29,8 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#eaf6ff",
+        "backgroundColor": "hsla(205, 97%, 43%, .1)",
+        "flex": 1,
       }
     }
     testID="first-incoming-transaction-screen"
@@ -60,7 +62,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           size={15}
           style={
             Object {
-              "color": "#777777",
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontSize": 28,
             }
           }
@@ -80,6 +82,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           size={12}
           style={
             Object {
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontSize": 50,
               "marginLeft": 0,
               "marginTop": 0,
@@ -90,7 +93,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 32,
               "fontWeight": "400",
@@ -113,7 +116,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#000000",
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -135,7 +138,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             onPress={[Function]}
             style={
               Object {
-                "color": "#000000",
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -150,7 +153,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "hsla(0, 0%, 100%, 1)",
             "padding": 30,
             "width": "100%",
           }
@@ -159,6 +162,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <View
           style={
             Object {
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -168,6 +172,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 18,
                 "fontWeight": "600",
@@ -185,15 +190,16 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
-          placeholderTextColor="#d6d9dc"
+          placeholderTextColor="hsla(210, 8%, 75%, 1)"
           returnKeyType="next"
           style={
             Array [
               Object {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#d6d9dc",
+                "backgroundColor": "hsla(0, 0%, 100%, 1)",
+                "borderColor": "hsla(210, 8%, 75%, 1)",
                 "borderRadius": 4,
                 "borderWidth": 0.5,
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 15,
                 "fontWeight": "400",
@@ -226,7 +232,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
             <Text
               style={
                 Object {
-                  "color": "#037dd6",
+                  "color": "hsla(205, 97%, 43%, 1)",
                   "fontSize": 14,
                 }
               }
@@ -240,7 +246,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     <View
       style={
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "hsla(0, 0%, 100%, 1)",
           "flex": 1,
           "justifyContent": "flex-end",
           "padding": 20,

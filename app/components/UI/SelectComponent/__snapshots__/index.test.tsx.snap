@@ -30,7 +30,7 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-start",
-              "color": "#000000",
+              "color": "hsla(210, 8%, 15%, 1)",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -43,7 +43,7 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Icon
           allowFontScaling={false}
-          color="#000000"
+          color="hsla(212, 8%, 45%, 1)"
           name="arrow-drop-down"
           size={24}
           style={
@@ -64,8 +64,8 @@ exports[`SelectComponent should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="black"
-      backdropOpacity={0.7}
+      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
       coverScreen={true}
@@ -108,7 +108,7 @@ exports[`SelectComponent should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
+            "backgroundColor": "hsla(0, 0%, 100%, 1)",
             "borderRadius": 10,
             "justifyContent": "center",
           }
@@ -117,7 +117,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <View
           style={
             Object {
-              "borderBottomColor": "#d6d9dc",
+              "borderBottomColor": "hsla(210, 8%, 85%, 1)",
               "borderBottomWidth": 1,
               "height": 50,
               "paddingTop": 5,
@@ -128,6 +128,7 @@ exports[`SelectComponent should render correctly 1`] = `
           <Text
             style={
               Object {
+                "color": "hsla(210, 8%, 15%, 1)",
                 "flex": 1,
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 17,
@@ -171,6 +172,7 @@ exports[`SelectComponent should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   Object {
+                    "color": "hsla(210, 8%, 15%, 1)",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
@@ -198,6 +200,7 @@ exports[`SelectComponent should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   Object {
+                    "color": "hsla(210, 8%, 15%, 1)",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,

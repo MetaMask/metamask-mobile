@@ -7,8 +7,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={600}
   avoidKeyboard={false}
-  backdropColor="black"
-  backdropOpacity={0.7}
+  backdropColor="hsla(0, 0%, 0%, .6)"
+  backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
   coverScreen={true}
@@ -66,7 +66,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
     <ForwardRef(SafeAreaView)
       style={
         Object {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "hsla(0, 0%, 100%, 1)",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "minHeight": 200,
@@ -98,7 +98,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#24292E",
+              "color": "hsla(210, 8%, 15%, 1)",
               "fontSize": 14,
             }
           }
@@ -127,12 +127,12 @@ exports[`CustomNonceModal should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="26"
-            placeholderTextColor="#d6d9dc"
+            placeholderTextColor="hsla(210, 8%, 75%, 1)"
             showSoftInputOnFocus={false}
             spellCheck={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
                 "fontWeight": "600",
@@ -161,7 +161,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#6a737d",
+              "color": "hsla(210, 8%, 35%, 1)",
               "fontSize": 14,
               "marginBottom": 10,
             }
@@ -216,7 +216,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037dd6",
+                  "color": "hsla(205, 97%, 43%, 1)",
                 }
               }
             />
@@ -235,7 +235,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037dd6",
+                  "color": "hsla(205, 97%, 43%, 1)",
                 }
               }
             />
@@ -251,8 +251,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#fffcdb",
-                "borderColor": "#FFD33D",
+                "backgroundColor": "hsla(46, 100%, 62%, .1)",
+                "borderColor": "hsla(46, 100%, 62%, 1)",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "display": "flex",
@@ -265,7 +265,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           >
             <Icon
               allowFontScaling={false}
-              color="#FFD33D"
+              color="hsla(46, 100%, 62%, 1)"
               name="exclamation-circle"
               size={16}
               style={
@@ -293,7 +293,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               strikethrough={false}
               style={
                 Object {
-                  "color": "#24292E",
+                  "color": "hsla(210, 8%, 15%, 1)",
                   "flex": 1,
                   "fontSize": 12,
                   "lineHeight": 16,
@@ -323,7 +323,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             strikethrough={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -351,7 +351,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             strikethrough={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "hsla(210, 8%, 15%, 1)",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,

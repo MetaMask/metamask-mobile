@@ -5,7 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import Summary from '../../Base/Summary';
 import Text from '../../Base/Text';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -28,7 +28,7 @@ export default class TransactionSummary extends PureComponent {
 
 	renderIfGastEstimationReady = (children) => {
 		const { gasEstimationReady } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return !gasEstimationReady ? (

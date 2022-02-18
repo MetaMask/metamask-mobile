@@ -29,7 +29,7 @@ exports[`PhishingModal should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "hsla(0, 0%, 100%, 1)",
         "borderRadius": 4,
         "height": 495,
       }
@@ -39,7 +39,7 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "hsla(0, 0%, 100%, 1)",
           "flexDirection": "row",
           "justifyContent": "center",
           "paddingVertical": 20,
@@ -52,7 +52,7 @@ exports[`PhishingModal should render correctly 1`] = `
         size={15}
         style={
           Object {
-            "color": "#D73A49",
+            "color": "hsla(354, 66%, 54%, 1)",
             "marginRight": 10,
           }
         }
@@ -60,7 +60,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#D73A49",
+            "color": "hsla(354, 66%, 54%, 1)",
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
             "textAlign": "center",
@@ -78,7 +78,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
       style={
         Object {
-          "backgroundColor": "#f2f3f4",
+          "backgroundColor": "hsla(210, 18%, 96%, 1)",
           "paddingHorizontal": 20,
           "paddingTop": 20,
         }
@@ -87,7 +87,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "hsla(210, 8%, 15%, 1)",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -108,7 +108,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "hsla(210, 8%, 15%, 1)",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -120,7 +120,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "hsla(210, 8%, 15%, 1)",
               "textDecorationLine": "underline",
             }
           }
@@ -133,7 +133,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "hsla(210, 8%, 15%, 1)",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -145,7 +145,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "hsla(210, 8%, 15%, 1)",
               "textDecorationLine": "underline",
             }
           }
@@ -156,7 +156,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "hsla(210, 8%, 15%, 1)",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -168,7 +168,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "hsla(210, 8%, 15%, 1)",
               "textDecorationLine": "underline",
             }
           }
@@ -179,7 +179,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "hsla(210, 8%, 15%, 1)",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -191,7 +191,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "hsla(210, 8%, 15%, 1)",
               "textDecorationLine": "underline",
             }
           }
@@ -223,7 +223,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
       style={
         Object {
-          "color": "#D73A49",
+          "color": "hsla(354, 66%, 54%, 1)",
           "fontSize": 12,
         }
       }

@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ProgressBar from 'react-native-progress/Bar';
 import FadeView from '../FadeView';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 /**
  * PureComponent that wraps the ProgressBar
@@ -49,7 +49,7 @@ export default class WebviewProgressBar extends PureComponent {
 	}
 
 	render = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return (
 			<FadeView visible={this.state.visible}>

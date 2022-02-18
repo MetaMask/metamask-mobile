@@ -9,7 +9,7 @@ import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';
@@ -123,7 +123,7 @@ class AccountElement extends PureComponent {
 	render() {
 		const { disabled, updatedBalanceFromStore, ticker } = this.props;
 		const { address, name, ens, isSelected, isImported, balanceError } = this.props.item;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary.default} /> : null;

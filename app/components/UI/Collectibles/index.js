@@ -7,7 +7,7 @@ import ActionSheet from 'react-native-actionsheet';
 import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -83,7 +83,7 @@ export default class Collectibles extends PureComponent {
 	longPressedCollectible = null;
 
 	renderEmpty = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -148,7 +148,7 @@ export default class Collectibles extends PureComponent {
 	keyExtractor = (item) => `${item.address}_${item.tokenId}`;
 
 	renderItem = ({ item }) => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -182,7 +182,7 @@ export default class Collectibles extends PureComponent {
 
 	render() {
 		const { collectibles } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

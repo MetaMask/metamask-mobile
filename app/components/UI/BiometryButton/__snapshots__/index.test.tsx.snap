@@ -13,7 +13,7 @@ exports[`BiometryButton should render correctly 1`] = `
 >
   <Icon
     allowFontScaling={false}
-    color="#24292E"
+    color="hsla(210, 8%, 15%, 1)"
     name="ios-finger-print"
     size={28}
     style={

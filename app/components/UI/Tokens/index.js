@@ -17,7 +17,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -138,7 +138,7 @@ class Tokens extends PureComponent {
 	tokenToRemove = null;
 
 	renderEmpty = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -153,7 +153,7 @@ class Tokens extends PureComponent {
 	};
 
 	renderFooter = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -169,7 +169,7 @@ class Tokens extends PureComponent {
 	renderItem = (asset) => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency, tokenList } =
 			this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const itemAddress = safeToChecksumAddress(asset.address);
@@ -284,7 +284,7 @@ class Tokens extends PureComponent {
 
 	render = () => {
 		const { tokens } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

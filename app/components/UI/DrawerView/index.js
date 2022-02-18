@@ -45,7 +45,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -712,50 +712,50 @@ class DrawerView extends PureComponent {
 	};
 
 	getIcon(name, size) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return <Icon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getFeatherIcon(name, size) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return <FeatherIcon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getMaterialIcon(name, size) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return <MaterialIcon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getImageIcon(name) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
 	getSelectedIcon(name, size) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return <Icon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return <FeatherIcon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 
 		return <MaterialIcon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedImageIcon(name) {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.selectedMenuItemIconImage} />;
@@ -902,7 +902,7 @@ class DrawerView extends PureComponent {
 	};
 
 	renderProtectModal = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -948,7 +948,7 @@ class DrawerView extends PureComponent {
 			seedphraseBackedUp,
 			currentRoute,
 		} = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const {

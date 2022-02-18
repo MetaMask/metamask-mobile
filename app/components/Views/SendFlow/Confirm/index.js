@@ -62,7 +62,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -426,7 +426,7 @@ class Confirm extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(getSendFlowTitle('send.confirm', navigation, route, colors));
 	};
 
@@ -952,7 +952,7 @@ class Confirm extends PureComponent {
 	renderCustomGasModalEIP1559 = () => {
 		const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
 		const { EIP1559TransactionDataTemp, gasSelected, isAnimating, animateOnChange } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -1006,7 +1006,7 @@ class Confirm extends PureComponent {
 	renderCustomGasModalLegacy = () => {
 		const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } = this.props;
 		const { LegacyTransactionDataTemp, gasSelected, isAnimating, animateOnChange } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -1066,7 +1066,7 @@ class Confirm extends PureComponent {
 	renderHexDataModal = () => {
 		const { hexDataModalVisible } = this.state;
 		const { data } = this.props.transactionState.transaction;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -1096,7 +1096,7 @@ class Confirm extends PureComponent {
 	renderFromAccountModal = () => {
 		const { identities, keyrings, ticker } = this.props;
 		const { fromAccountModalVisible, fromSelectedAddress } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -1206,7 +1206,7 @@ class Confirm extends PureComponent {
 			isAnimating,
 			animateOnChange,
 		} = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const showFeeMarket =

@@ -17,7 +17,7 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -52,7 +52,7 @@ const Wallet = ({ navigation }: any) => {
 	const { drawerRef } = useContext(DrawerContext);
 	const [refreshing, setRefreshing] = useState(false);
 	const accountOverviewRef = useRef(null);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 	/**
 	 * Map of accounts to information objects including balances
@@ -93,7 +93,7 @@ const Wallet = ({ navigation }: any) => {
 	 */
 	const wizardStep = useSelector((state: any) => state.wizard.step);
 
-	const { colors: themeColors } = useAppThemeFromContext();
+	const { colors: themeColors } = useAppThemeFromContext() || mockColors;
 
 	useEffect(
 		() => {

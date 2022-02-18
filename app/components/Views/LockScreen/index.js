@@ -10,7 +10,7 @@ import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { logOut } from '../../../actions/user';
-import { getAssetFromTheme, ThemeContext } from '../../../util/theme';
+import { getAssetFromTheme, mockColors, ThemeContext } from '../../../util/theme';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -171,7 +171,7 @@ class LockScreen extends PureComponent {
 	};
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 

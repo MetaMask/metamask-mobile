@@ -14,7 +14,7 @@ import { connect } from 'react-redux';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -153,7 +153,7 @@ class OnboardingCarousel extends PureComponent {
 	};
 
 	updateNavBar = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		this.props.navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
 	};
 
@@ -168,7 +168,7 @@ class OnboardingCarousel extends PureComponent {
 
 	render() {
 		const { currentTab } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

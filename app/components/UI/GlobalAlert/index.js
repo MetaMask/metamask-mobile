@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ElevatedView from 'react-native-elevated-view';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -86,12 +86,12 @@ class GlobalAlert extends PureComponent {
 	}
 
 	getStyles = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		return createStyles(colors);
 	};
 
 	renderClipboardAlert = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = this.getStyles(colors);
 
 		return (
@@ -106,7 +106,7 @@ class GlobalAlert extends PureComponent {
 
 	render = () => {
 		const { content, isVisible } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = this.getStyles(colors);
 
 		return (

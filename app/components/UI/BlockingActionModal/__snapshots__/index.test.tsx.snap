@@ -7,8 +7,8 @@ exports[`BlockingActionModal should render correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={300}
   avoidKeyboard={false}
-  backdropColor="black"
-  backdropOpacity={0.7}
+  backdropColor="hsla(0, 0%, 0%, .6)"
+  backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
   coverScreen={true}
@@ -51,7 +51,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
       Object {
         "alignItems": "center",
         "alignSelf": "center",
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "hsla(0, 0%, 100%, 1)",
         "borderRadius": 6,
         "justifyContent": "center",
         "minHeight": 200,

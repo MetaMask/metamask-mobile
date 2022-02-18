@@ -9,7 +9,7 @@ import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const HOME_INDICATOR_HEIGHT = 18;
 const defaultBottomBarPadding = 0;
@@ -111,7 +111,7 @@ export default class BrowserBottomBar extends PureComponent {
 	render() {
 		const { canGoBack, goBack, canGoForward, goForward, showTabs, goHome, showUrlModal, toggleOptions } =
 			this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const onSearchPress = () => {

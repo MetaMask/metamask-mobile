@@ -6,7 +6,7 @@ import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -108,7 +108,7 @@ export default class PhishingModal extends PureComponent {
 	};
 
 	render() {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 		const urlObj = new URL(this.props.fullUrl);
 		const host = urlObj.hostname;

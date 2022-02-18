@@ -32,7 +32,7 @@ import StyledButton from '../../StyledButton';
 import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '../../../../reducers/fiatOrders';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 //* styles and components  */
 
@@ -127,7 +127,7 @@ const createStyles = (colors) =>
 /* eslint-disable import/no-commonjs */
 const ApplePayLogo = require('../../../../images/ApplePayLogo.png');
 const ApplePay = ({ disabled }) => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (
@@ -140,7 +140,7 @@ ApplePay.propTypes = {
 };
 
 const QuickAmount = ({ amount, current, currencySymbol, placeholder, ...props }) => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	if (placeholder) {
@@ -193,7 +193,7 @@ function PaymentMethodApplePay({
 }) {
 	const navigation = useNavigation();
 	const [amount, setAmount] = useState('0');
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const {

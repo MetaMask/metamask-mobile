@@ -5,7 +5,7 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors as importedColors } from '../../../../styles/common';
 import Title from '../../../Base/Title';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -51,7 +51,7 @@ const createStyles = (colors) =>
 	});
 
 function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (

@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -175,7 +175,7 @@ class AddressList extends PureComponent {
 	renderMyAccounts = () => {
 		const { identities, onAccountPress, inputSearch, onAccountLongPress } = this.props;
 		const { myAccountsOpened } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (inputSearch) return;
@@ -205,7 +205,7 @@ class AddressList extends PureComponent {
 
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (typeof element === 'string') {
@@ -225,7 +225,7 @@ class AddressList extends PureComponent {
 
 	renderRecents = () => {
 		const { recents, onAccountPress, onAccountLongPress, inputSearch } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (!recents.length || inputSearch) return;
@@ -249,7 +249,7 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

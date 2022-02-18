@@ -9,7 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
 import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
@@ -36,7 +36,7 @@ function ApprovalTransactionEditionModal({
 	const [approvalTransactionAmount, setApprovalTransactionAmount] = useState('');
 	const [approvalCustomValue, setApprovalCustomValue] = useState(minimumSpendLimit);
 	const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] = useState(true);
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 
 	const onSpendLimitCustomValueChange = useCallback(
 		(approvalCustomValue) => setApprovalCustomValue(approvalCustomValue),

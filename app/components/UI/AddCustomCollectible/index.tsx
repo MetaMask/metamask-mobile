@@ -9,7 +9,7 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -55,7 +55,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 	const [warningTokenId, setWarningTokenId] = useState<string>('');
 	const [inputWidth, setInputWidth] = useState<string | undefined>(Device.isAndroid() ? '99%' : undefined);
 	const assetTokenIdInput = React.createRef() as any;
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const selectedAddress = useSelector(

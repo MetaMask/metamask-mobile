@@ -17,7 +17,7 @@ import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice, util } from '@metamask/controllers/';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const createStyles = (colors) =>
@@ -188,7 +188,7 @@ class TransactionElement extends PureComponent {
 	 */
 	renderImportTime = () => {
 		const { tx, identities, selectedAddress } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const accountImportTime = identities[selectedAddress]?.importTime;
@@ -210,7 +210,7 @@ class TransactionElement extends PureComponent {
 
 	renderTxElementIcon = (transactionElement, status) => {
 		const { transactionType } = transactionElement;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		const isFailedTransaction = status === 'cancelled' || status === 'failed';
@@ -282,7 +282,7 @@ class TransactionElement extends PureComponent {
 	};
 
 	renderCancelButton = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -335,7 +335,7 @@ class TransactionElement extends PureComponent {
 	};
 
 	renderSpeedUpButton = () => {
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -353,7 +353,7 @@ class TransactionElement extends PureComponent {
 	render() {
 		const { tx } = this.props;
 		const { detailsModalVisible, importModalVisible, transactionElement, transactionDetails } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (!transactionElement || !transactionDetails) return null;

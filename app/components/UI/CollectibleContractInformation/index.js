@@ -15,7 +15,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { connect } from 'react-redux';
 import { isMainNet } from '../../../util/networks';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -155,7 +155,7 @@ class CollectibleContractInformation extends PureComponent {
 			collectibleContract: { name, description, totalSupply, address },
 			network,
 		} = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 		const is_main_net = isMainNet(network);
 

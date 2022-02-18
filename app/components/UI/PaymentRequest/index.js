@@ -41,7 +41,7 @@ import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
-import { ThemeContext } from '../../../util/theme';
+import { ThemeContext, mockColors } from '../../../util/theme';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -298,7 +298,7 @@ class PaymentRequest extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(
 			getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route, colors)
 		);
@@ -388,7 +388,7 @@ class PaymentRequest extends PureComponent {
 		const { tokens, chainId, ticker, tokenList } = this.props;
 		const { inputWidth } = this.state;
 		let results;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (chainId === '1') {
@@ -609,7 +609,7 @@ class PaymentRequest extends PureComponent {
 		const currencySymbol = currencySymbols[currentCurrency];
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let switchable = true;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (!conversionRate) {
@@ -709,7 +709,7 @@ class PaymentRequest extends PureComponent {
 
 	render() {
 		const { mode } = this.state;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

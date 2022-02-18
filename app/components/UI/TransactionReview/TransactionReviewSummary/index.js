@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
-import { ThemeContext } from '../../../../util/theme';
+import { ThemeContext, mockColors } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -85,7 +85,7 @@ class TransactionReviewSummary extends PureComponent {
 
 	render = () => {
 		const { actionKey, assetAmount, conversionRate, fiatValue, approveTransaction, primaryCurrency } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		return (

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { baseStyles } from '../../../styles/common';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -30,7 +30,7 @@ const createStyles = (colors) =>
  * View that renders an action modal
  */
 export default function BlockingActionModal({ children, modalVisible, isLoadingAction }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (

@@ -47,7 +47,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import { ThemeContext, useAppThemeFromContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors, ThemeContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
 
@@ -156,7 +156,7 @@ const createStyles = (colors) =>
 	});
 
 const Heading = ({ children, first }) => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (
@@ -167,7 +167,7 @@ const Heading = ({ children, first }) => {
 };
 
 const WarningIcon = () => {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockColors;
 
 	return <Icon size={16} color={colors.error.default} name="exclamation-triangle" />;
 };
@@ -324,7 +324,7 @@ class Settings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.security_title'), navigation, false, colors)
 		);
@@ -611,7 +611,7 @@ class Settings extends PureComponent {
 		} = this.state;
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-		const { colors } = this.context;
+		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
 		if (loading)
