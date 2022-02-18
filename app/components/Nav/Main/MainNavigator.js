@@ -56,6 +56,7 @@ import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetSta
 import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
+import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -284,7 +285,8 @@ const FiatOnRampAggregator = () => (
 			<Stack.Screen name="GetStarted" component={GetStarted} options={GetStarted.navigationOptions} />
 			<Stack.Screen name="PaymentMethod" component={PaymentMethod} options={PaymentMethod.navigationOptions} />
 			<Stack.Screen name="AmountToBuy" component={AmountToBuy} options={AmountToBuy.navigationOptions} />
-			<Stack.Screen name="GetQuotes" component={GetQuotes} />
+			<Stack.Screen name="GetQuotes" component={GetQuotes} options={GetQuotes.navigationOptions} />
+			<Stack.Screen name="Checkout" component={CheckoutWebView} options={CheckoutWebView.navigationOptions} />
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
 );

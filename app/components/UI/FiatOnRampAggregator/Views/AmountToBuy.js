@@ -52,11 +52,19 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset } = useFiatOnRampSDK();
+	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset, selectedPaymentMethod } =
+		useFiatOnRampSDK();
+
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
 		{ countryId: 'US', regionId: 'USA' },
 		'/payments/debit-credit-card'
+	);
+
+	const [{ data: currentPaymentMethod }] = useSDKMethod(
+		'getPaymentMethod',
+		{ countryId: 'US', regionId: 'USA' },
+		selectedPaymentMethod
 	);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
@@ -106,6 +114,10 @@ const AmountToBuy = ({ navigation }) => {
 		},
 		[hideTokenSelectorModal, setSelectedAsset]
 	);
+
+	const handleGetQuotePress = useCallback(() => {
+		navigation.navigate('GetQuotes', { amount });
+	}, [amount, navigation]);
 
 	useEffect(() => {
 		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
@@ -162,11 +174,13 @@ const AmountToBuy = ({ navigation }) => {
 				<ScreenLayout.Content>
 					<View style={styles.row}>
 						<Box label="Select payment method">
-							<Text>Placeholder</Text>
+							<Text black bold>
+								{currentPaymentMethod?.name}
+							</Text>
 						</Box>
 					</View>
 					<View style={styles.row}>
-						<StyledButton type="confirm" onPress={() => navigation.navigate('AmountToBuy')}>
+						<StyledButton type="confirm" onPress={handleGetQuotePress} disabled={Number(amount) <= 0}>
 							Get Quotes
 						</StyledButton>
 					</View>
@@ -202,7 +216,7 @@ const AmountToBuy = ({ navigation }) => {
 	);
 };
 
-AmountToBuy.navigationOptions = ({ navigation, route }) => ({
+AmountToBuy.navigationOptions = () => ({
 	title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
 });
 
