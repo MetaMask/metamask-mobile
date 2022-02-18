@@ -15,7 +15,6 @@ import {
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
@@ -189,30 +188,14 @@ const createStyles = (colors) =>
 			color: colors.text.default,
 		},
 		cancelButton: {
-			marginTop: 7,
+			marginTop: -6,
 			marginLeft: 10,
+			justifyContent: 'center',
 		},
 		cancelButtonText: {
 			fontSize: 14,
 			color: colors.primary.default,
 			...fontStyles.normal,
-		},
-		iconCloseButton: {
-			borderRadius: 300,
-			backgroundColor: colors.icon.default,
-			fontSize: 18,
-			padding: 0,
-			height: 20,
-			width: 20,
-			paddingBottom: 0,
-			alignItems: 'center',
-			justifyContent: 'center',
-			marginTop: 10,
-			marginRight: 5,
-		},
-		iconClose: {
-			fontSize: 18,
-			color: colors.text.default,
 		},
 		bottomModal: {
 			justifyContent: 'flex-end',
@@ -1126,28 +1109,9 @@ export const BrowserTab = (props) => {
 							</TouchableOpacity>
 						) : null}
 					</View>
-
-					{Device.isAndroid() ? (
-						<TouchableOpacity
-							onPress={() => (!autocompleteValue ? setShowUrlModal(false) : setAutocompleteValue(''))}
-							style={styles.iconCloseButton}
-						>
-							<MaterialIcon
-								name="close"
-								size={20}
-								style={[styles.icon, styles.iconClose]}
-								testID={'android-cancel-url-button'}
-							/>
-						</TouchableOpacity>
-					) : (
-						<TouchableOpacity
-							style={styles.cancelButton}
-							testID={'ios-cancel-url-button'}
-							onPress={toggleUrlModal}
-						>
-							<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
-						</TouchableOpacity>
-					)}
+					<TouchableOpacity style={styles.cancelButton} testID={'cancel-url-button'} onPress={toggleUrlModal}>
+						<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
+					</TouchableOpacity>
 				</View>
 				<UrlAutocomplete onSubmit={onUrlInputSubmit} input={autocompleteValue} onDismiss={toggleUrlModal} />
 			</Modal>

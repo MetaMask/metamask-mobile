@@ -112,7 +112,7 @@ export default class EnterPasswordSimple extends PureComponent {
 									}
 								>
 									{this.state.loading ? (
-										<ActivityIndicator size="small" color="white" />
+										<ActivityIndicator size="small" color={colors.primary.inverse} />
 									) : (
 										strings('enter_password.confirm_button')
 									)}

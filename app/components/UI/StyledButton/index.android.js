@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text, TouchableOpacity, View, ViewPropTypes } from 'react-native';
+import { Text, View, ViewPropTypes, TouchableNativeFeedback } from 'react-native';
 import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockColors } from '../../../util/theme';
@@ -109,9 +109,9 @@ export default class StyledButton extends PureComponent {
 		}
 
 		return (
-			<TouchableOpacity {...touchableProps} testID={this.props.testID} disabled={this.props.disabled}>
+			<TouchableNativeFeedback {...touchableProps} testID={this.props.testID} disabled={this.props.disabled}>
 				<View style={containerStyles}>{this.renderGroupedChildren(fontStyle, containerStyles)}</View>
-			</TouchableOpacity>
+			</TouchableNativeFeedback>
 		);
 	};
 }

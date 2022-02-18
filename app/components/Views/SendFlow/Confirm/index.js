@@ -1370,7 +1370,7 @@ class Confirm extends PureComponent {
 						testID={'txn-confirm-send-button'}
 					>
 						{transactionConfirmed ? (
-							<ActivityIndicator size="small" color="white" />
+							<ActivityIndicator size="small" color={colors.primary.inverse} />
 						) : (
 							strings('transaction.send')
 						)}

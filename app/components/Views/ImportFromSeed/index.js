@@ -647,7 +647,7 @@ class ImportFromSeed extends PureComponent {
 								disabled={!(password !== '' && password === confirmPassword)}
 							>
 								{loading ? (
-									<ActivityIndicator size="small" color="white" />
+									<ActivityIndicator size="small" color={colors.primary.inverse} />
 								) : (
 									strings('import_from_seed.import_button')
 								)}

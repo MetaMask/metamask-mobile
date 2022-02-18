@@ -124,7 +124,7 @@ const createStyles = (colors) =>
 			marginBottom: 32,
 		},
 		buyEth: {
-			color: colors.warning.inverse,
+			color: colors.primary.default,
 			textDecorationLine: 'underline',
 		},
 		confusabeError: {

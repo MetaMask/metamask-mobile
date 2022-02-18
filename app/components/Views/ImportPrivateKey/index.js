@@ -269,7 +269,7 @@ export default class ImportPrivateKey extends PureComponent {
 							testID={'import-button'}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color="white" />
+								<ActivityIndicator size="small" color={colors.primary.inverse} />
 							) : (
 								strings('import_private_key.cta_text')
 							)}
