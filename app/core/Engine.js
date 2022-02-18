@@ -680,6 +680,7 @@ export default {
 			TokensController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			PermissionController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -710,6 +711,7 @@ export default {
 			GasFeeController,
 			TokenDetectionController,
 			CollectibleDetectionController,
+			PermissionController,
 		};
 	},
 	get datamodel() {

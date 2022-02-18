@@ -27,7 +27,7 @@ class AccountRightButton extends PureComponent {
 		/**
 		 * Selected address as string
 		 */
-		address: PropTypes.string,
+		selectedAddress: PropTypes.string,
 		/**
 		 * Action that toggles the account modal
 		 */
@@ -36,6 +36,8 @@ class AccountRightButton extends PureComponent {
 		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
+		address: PropTypes.string,
+		onPress: PropTypes.func,
 	};
 
 	animating = false;
@@ -56,21 +58,21 @@ class AccountRightButton extends PureComponent {
 	};
 
 	render = () => {
-		const { address } = this.props;
+		const { address, selectedAddress, onPress } = this.props;
 		return (
 			<TouchableOpacity
 				style={styles.leftButton}
-				onPress={this.toggleAccountsModal}
+				onPress={onPress || this.toggleAccountsModal}
 				testID={'navbar-account-button'}
 			>
-				<Identicon diameter={28} address={address} />
+				<Identicon diameter={28} address={address || selectedAddress} />
 			</TouchableOpacity>
 		);
 	};
 }
 
 const mapStateToProps = (state) => ({
-	address: state.engine.backgroundState.PreferencesController.selectedAddress,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
 });
 

@@ -1,3 +1,4 @@
+import { toChecksumAddress } from '@ethereumjs/common/node_modules/ethereumjs-util';
 import { constructPermission, PermissionType } from '@metamask/snap-controllers';
 import { v1 as random } from 'uuid';
 import { CaveatTypes, RestrictedMethods } from './constants';
@@ -51,7 +52,7 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
 
 		decorator: (method, caveat) => async (args) => {
 			const result = await method(args);
-			const res = result.filter((account) => caveat.value.includes(account)).slice(0, 1);
+			const res = result.filter((account) => caveat.value.includes(toChecksumAddress(account))).slice(0, 1);
 			return res;
 		},
 
@@ -108,7 +109,7 @@ export const getPermissionSpecifications = ({
 		methodImplementation: async (_args) => {
 			const accounts = await getAllAccounts();
 			const identities = getIdentities();
-			return accounts.sort((firstAddress, secondAddress) => {
+			const acc = accounts.sort((firstAddress, secondAddress) => {
 				if (!identities[firstAddress]) {
 					captureKeyringTypesWithMissingIdentities(identities, accounts);
 					throw new Error(`Missing identity for address: "${firstAddress}".`);
@@ -125,6 +126,7 @@ export const getPermissionSpecifications = ({
 
 				return identities[secondAddress].lastSelected - identities[firstAddress].lastSelected;
 			});
+			return acc;
 		},
 
 		validator: (permission, _origin, _target) => {

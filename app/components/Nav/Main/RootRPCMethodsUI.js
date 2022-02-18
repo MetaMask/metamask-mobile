@@ -27,7 +27,7 @@ import {
 	calcTokenAmount,
 	getTokenValueParamAsHex,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
+import { BN, toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
@@ -45,6 +45,7 @@ import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import AccountListPermissions from '../../../components/UI/AccountListPermissions';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -511,12 +512,12 @@ const RootRPCMethodsUI = (props) => {
 	/**
 	 * When user clicks on approve to connect with a dapp
 	 */
-	const onAccountsConfirm = async () => {
+	const onAccountsConfirm = async (address) => {
 		if (hostToApprove.data) {
 			const request = {
 				...hostToApprove.data,
 				permissions: { ...hostToApprove.data.permissions },
-				approvedAccounts: ['0x9e7208260958ea183e641513F1e58b7a5E1893e9'.toLowerCase()],
+				approvedAccounts: [toChecksumAddress(address)],
 			};
 
 			await Engine.context.PermissionController.acceptPermissionsRequest(request);
@@ -551,10 +552,12 @@ const RootRPCMethodsUI = (props) => {
 			onBackdropPress={onAccountsReject}
 			swipeDirection={'down'}
 		>
-			<AccountApproval
-				onCancel={onAccountsReject}
-				onConfirm={onAccountsConfirm}
-				currentPageInformation={currentPageMeta}
+			<AccountListPermissions
+				enableAccountsAddition
+				onAccountChange={onAccountsConfirm}
+				onImportAccount={() => null}
+				hostname={currentPageMeta?.url && new URL(currentPageMeta?.url).hostname}
+				isRequest
 			/>
 		</Modal>
 	);

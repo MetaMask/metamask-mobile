@@ -56,6 +56,11 @@ import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
+import AccountListPermissions from '../../../components/UI/AccountListPermissions';
+import getPermittedAccountsByOrigin from '../../../core/permissions/selectors';
+import { toChecksumAddress } from '@ethereumjs/common/node_modules/ethereumjs-util';
+import getPermittedAccounts from '../../../core/permissions/getAccounts';
+
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
@@ -233,6 +238,8 @@ export const BrowserTab = (props) => {
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
+	const [accountsPermissionsVisible, setAccountsPermissionsVisible] = useState(false);
+	const accountsPermissionsShown = useRef(false);
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
@@ -314,53 +321,27 @@ export const BrowserTab = (props) => {
 		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
-	const notifyAllConnections = useCallback(
-		(payload, restricted = true) => {
-			const fullHostname = new URL(url.current).hostname;
+	const notifyAllConnections = useCallback((payload, restricted = true) => {
+		const fullHostname = new URL(url.current).hostname;
 
-			// TODO:permissions move permissioning logic elsewhere
-			backgroundBridges.current.forEach((bridge) => {
-				if (
-					bridge.hostname === fullHostname &&
-					(!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
-				) {
-					bridge.sendNotification(payload);
-				}
-			});
-		},
-		[props.privacyMode]
-	);
+		// TODO:permissions move permissioning logic elsewhere
+		backgroundBridges.current.forEach((bridge) => {
+			if (bridge.hostname === fullHostname) {
+				bridge.sendNotification(payload);
+			}
+		});
+	}, []);
 
-	/**
-	 * Manage hosts that were approved to connect with the user accounts
-	 */
 	useEffect(() => {
-		const { approvedHosts: approvedHostsProps, selectedAddress } = props;
-
-		approvedHosts = approvedHostsProps;
-
-		const numApprovedHosts = Object.keys(approvedHosts).length;
-
-		// this will happen if the approved hosts were cleared
-		if (numApprovedHosts === 0) {
-			notifyAllConnections(
-				{
-					method: NOTIFICATION_NAMES.accountsChanged,
-					params: [],
-				},
-				false
-			); // notification should be sent regardless of approval status
-		}
-
-		if (numApprovedHosts > 0) {
-			notifyAllConnections({
-				method: NOTIFICATION_NAMES.accountsChanged,
-				params: [selectedAddress],
-			});
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
+		/*setTimeout(() => {
+			Engine.context.PermissionController.updateCaveat(
+				new URL(url.current).hostname,
+				RestrictedMethods.eth_accounts,
+				CaveatTypes.restrictReturnedAccounts,
+				[toChecksumAddress(props.selectedAddress)]
+			);
+		}, 4000);*/
+	}, []);
 
 	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
 		const newBridge = new BackgroundBridge({
@@ -687,6 +668,7 @@ export const BrowserTab = (props) => {
 				url: getMaskedUrl(url.current),
 				icon: icon.current,
 				error,
+				setAccountsPermissionsVisible,
 			});
 		}
 
@@ -858,6 +840,32 @@ export const BrowserTab = (props) => {
 		return true;
 	};
 
+	const toggleAccountsModal = async () => {
+		setAccountsPermissionsVisible((res) => !res);
+	};
+
+	const sendActiveAccount = async () => {
+		const hostname = new URL(url.current).hostname;
+		const accounts = await getPermittedAccounts(hostname);
+
+		notifyAllConnections({
+			method: NOTIFICATION_NAMES.accountsChanged,
+			params: accounts,
+		});
+
+		if (accounts.length && toChecksumAddress(accounts?.[0]) !== toChecksumAddress(props.selectedAddress)) {
+			if (accountsPermissionsShown.current !== hostname) {
+				toggleAccountsModal();
+			}
+		}
+
+		props.navigation.setParams({
+			connectedAccounts: accounts,
+		});
+
+		accountsPermissionsShown.current = hostname;
+	};
+
 	/**
 	 * Website started to load
 	 */
@@ -870,6 +878,7 @@ export const BrowserTab = (props) => {
 		setError(false);
 
 		changeUrl(nativeEvent, 'start');
+		sendActiveAccount();
 
 		//For Android url on the navigation bar should only update upon load.
 		if (Device.isAndroid()) {
@@ -1347,6 +1356,62 @@ export const BrowserTab = (props) => {
 		return null;
 	};
 
+	const onAccountConnect = async () => {
+		sendActiveAccount();
+		setAccountsPermissionsVisible(false);
+	};
+
+	/**
+	 * Manage hosts that were approved to connect with the user accounts
+	 */
+	useEffect(() => {
+		const { selectedAddress } = props;
+
+		const permittedAccountsMap = getPermittedAccountsByOrigin(Engine.context.PermissionController.state);
+
+		const hostname = new URL(url.current).hostname;
+
+		// NO ACCOUNTS CONNECTED
+		if (!permittedAccountsMap?.[hostname]) return;
+		if (
+			permittedAccountsMap?.[hostname]?.find(
+				(account) => toChecksumAddress(account) === toChecksumAddress(selectedAddress)
+			)
+		) {
+			sendActiveAccount();
+		} else {
+			// ACCOUNT NOT CONNECTED
+			setTimeout(() => {
+				InteractionManager.runAfterInteractions(() => setAccountsPermissionsVisible(true));
+			}, 1000);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [notifyAllConnections, props.selectedAddress]);
+
+	const onImportAccount = (address) => {
+		console.warn(address);
+	};
+
+	const renderAccountsApprovalModal = () => (
+		<Modal
+			isVisible={accountsPermissionsVisible}
+			style={styles.bottomModal}
+			onBackdropPress={toggleAccountsModal}
+			onBackButtonPress={toggleAccountsModal}
+			onSwipeComplete={toggleAccountsModal}
+			swipeDirection={'down'}
+			propagateSwipe
+			useNativeDriver
+		>
+			<AccountListPermissions
+				enableAccountsAddition
+				onAccountChange={onAccountConnect}
+				onImportAccount={onImportAccount}
+				hostname={new URL(url.current).hostname}
+			/>
+		</Modal>
+	);
+
 	/**
 	 * Main render
 	 */
@@ -1387,6 +1452,7 @@ export const BrowserTab = (props) => {
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
+				{isTabActive() && renderAccountsApprovalModal()}
 			</View>
 		</ErrorBoundary>
 	);

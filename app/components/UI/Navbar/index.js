@@ -424,6 +424,9 @@ export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
 	const error = route.params?.error ?? '';
 	const icon = route.params?.icon;
 
+	const setAccountsPermissionsVisible = route.params?.setAccountsPermissionsVisible;
+	const connectedAccounts = route.params?.connectedAccounts;
+
 	if (url && !isHomepage(url)) {
 		isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
 		const urlObj = new URL(url);
@@ -469,7 +472,7 @@ export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
 		),
 		headerRight: () => (
 			<View style={styles.browserRightButton}>
-				<AccountRightButton />
+				<AccountRightButton address={connectedAccounts?.[0]} onPress={setAccountsPermissionsVisible} />
 			</View>
 		),
 	};

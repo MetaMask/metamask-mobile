@@ -27,7 +27,6 @@ class EngineService {
 			{ name: 'TokenDetectionController' },
 			{ name: 'CollectibleDetectionController' },
 			{ name: 'KeyringController' },
-			{ name: 'AccountTrackerController' },
 			{ name: 'NetworkController' },
 			{ name: 'PhishingController' },
 			{ name: 'PreferencesController' },
@@ -40,6 +39,7 @@ class EngineService {
 			{ name: 'CurrencyRateController', key: `${Engine.context.CurrencyRateController.name}:stateChange` },
 			{ name: 'GasFeeController', key: `${Engine.context.GasFeeController.name}:stateChange` },
 			{ name: 'ApprovalController', key: `${Engine.context.ApprovalController.name}:stateChange` },
+			{ name: 'PermissionController', key: `${Engine.context.PermissionController.name}:stateChange` },
 		];
 
 		Engine?.datamodel?.subscribe?.(() => {
