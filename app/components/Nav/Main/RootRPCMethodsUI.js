@@ -556,7 +556,6 @@ const RootRPCMethodsUI = (props) => {
 			<AccountListPermissions
 				enableAccountsAddition
 				onAccountConnect={onAccountsConfirm}
-				onImportAccount={() => null}
 				hostname={currentPageMeta?.url && new URL(currentPageMeta?.url).hostname}
 			/>
 		</Modal>
