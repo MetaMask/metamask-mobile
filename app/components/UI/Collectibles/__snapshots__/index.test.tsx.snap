@@ -13,7 +13,13 @@ exports[`Collectibles should render correctly 1`] = `
   <ScrollView
     refreshControl={
       <RefreshControlMock
+        colors={
+          Array [
+            "hsla(205, 97%, 43%, 1)",
+          ]
+        }
         refreshing={false}
+        tintColor="hsla(212, 8%, 45%, 1)"
       />
     }
   >
