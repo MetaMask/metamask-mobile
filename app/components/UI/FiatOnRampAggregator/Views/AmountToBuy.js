@@ -52,13 +52,19 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { selectedCountry, setSelectedCountry, selectedAsset, setSelectedAsset, selectedPaymentMethod } =
-		useFiatOnRampSDK();
+	const {
+		selectedCountry,
+		selectedRegion,
+		setSelectedCountry,
+		selectedAsset,
+		setSelectedAsset,
+		selectedPaymentMethod,
+	} = useFiatOnRampSDK();
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
-		{ countryId: 'US', regionId: 'USA' },
-		'/payments/debit-credit-card'
+		{ countryId: selectedCountry, regionId: selectedRegion },
+		selectedPaymentMethod
 	);
 
 	const [{ data: currentPaymentMethod }] = useSDKMethod(
@@ -132,8 +138,11 @@ const AmountToBuy = ({ navigation }) => {
 	useEffect(() => {
 		if (!isFetchingDataTokens && !errorDataTokens && dataTokens) {
 			setTokens(dataTokens);
+			setSelectedAsset(
+				dataTokens.some((a) => a.symbol === 'ETH') ? dataTokens.find((a) => a.symbol === 'ETH') : dataTokens[0]
+			);
 		}
-	}, [errorDataTokens, isFetchingDataTokens, dataTokens]);
+	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
 
 	return (
 		<ScreenLayout>

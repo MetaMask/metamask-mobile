@@ -1,13 +1,17 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { OnRampSdk } from '@codefi/on-ramp-sdk';
+import { IOnRampSdk } from '@codefi/on-ramp-sdk/dist/IOnRampSdk';
+import axios from 'axios';
 import { fiatOrdersCountrySelectorAgg, setFiatOrdersCountryAGG } from '../../../../reducers/fiatOrders';
-import { IOnRampSdk } from './IOnRampSdk';
-import SDK from './MockedOnRampSdk';
-
 const SDKContext = createContext<IOnRampSdk | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRampSdk>) => {
-	const sdk = useMemo(() => new SDK(), []);
+	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk('https://localhost:3000/', axios), []);
+
+	useEffect(() => {
+		if (sdk) sdk.init();
+	}, [sdk]);
 
 	const dispatch = useDispatch();
 
@@ -53,20 +57,6 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRamp
 	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
 		setSelectedPaymentMethod(paymentMethod);
 	}, []);
-
-	useEffect(() => {
-		(async () => {
-			const assets = await sdk?.getCryptoCurrencies(
-				{ countryId: selectedCountry, regionId: selectedRegion },
-				INITIAL_PAYMENT_METHOD
-			);
-
-			assets?.length &&
-				setSelectedAsset(
-					assets.some((a) => a.symbol === 'ETH') ? assets.find((a) => a.symbol === 'ETH') : assets[0]
-				);
-		})();
-	}, [sdk, selectedCountry, selectedRegion]);
 
 	const contextValue = {
 		sdk,
