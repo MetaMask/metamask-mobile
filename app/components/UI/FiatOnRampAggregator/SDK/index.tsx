@@ -106,7 +106,7 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 
 			// simulate delay for fetching quotes (3 seconds)
 			if (method === 'getQuotes') {
-				await new Promise((resolve) => setTimeout(resolve, 3000));
+				await new Promise((resolve) => setTimeout(resolve, 2000));
 			}
 
 			// @ts-expect-error spreading params error

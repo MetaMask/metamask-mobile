@@ -1,19 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
-import { useRoute } from '@react-navigation/native';
-import Text from '../../../Base/Text';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
 import { useSelector } from 'react-redux';
 import { CHAIN_ID_NETWORKS } from '../constants';
 import LoadingAnimation from '../components/LoadingAnimation';
-import Box from '../components/Box';
+import Quotes from '../components/Quotes';
+import { strings } from '../../../../../locales/i18n';
+
+const styles = StyleSheet.create({
+	row: {
+		marginVertical: 8,
+	},
+});
 
 const GetQuotes = () => {
 	const { params } = useRoute();
+	const navigation = useNavigation();
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
-
+	const [providerId, setProviderId] = useState(null);
 	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
 	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset } = useFiatOnRampSDK();
 
@@ -30,6 +37,17 @@ const GetQuotes = () => {
 		if (isFetchingQuotes) return;
 		setShouldFinishAnimation(true);
 	}, [isFetchingQuotes]);
+
+	const handleOnPress = useCallback((quote) => {
+		setProviderId(quote.providerId);
+	}, []);
+
+	const handleOnPressBuy = useCallback(
+		(quote) => {
+			quote?.providerId && navigation.navigate('Checkout', { ...quote });
+		},
+		[navigation]
+	);
 
 	if (isLoading) {
 		return (
@@ -51,17 +69,29 @@ const GetQuotes = () => {
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					{quotes?.map((quote) => (
-						<Box key={quote.id}>
-							<View>
-								<Text>{quote.providerId}</Text>
-								<Text>{quote.buyURL}</Text>
-							</View>
-						</Box>
+						<View key={quote.providerId} style={styles.row}>
+							<Quotes
+								providerName={quote.providerName}
+								amountOut={quote.amountOut}
+								crypto={quote.crypto}
+								fiat={quote.fiat}
+								networkFee={quote.netwrokFee}
+								processingFee={quote.providerFee}
+								amountIn={quote.amountIn}
+								onPress={() => handleOnPress(quote)}
+								onPressBuy={() => handleOnPressBuy(quote)}
+								highlighted={quote.providerId === providerId}
+							/>
+						</View>
 					))}
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
 		</ScreenLayout>
 	);
 };
+
+GetQuotes.navigationOptions = () => ({
+	title: strings('fiat_on_ramp_aggregator.select_a_quote'),
+});
 
 export default GetQuotes;
