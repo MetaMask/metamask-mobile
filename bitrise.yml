@@ -323,10 +323,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 4.2.0
+          VERSION_NAME: 4.1.1
         - opts:
               is_expand: false
-          VERSION_NUMBER: 818
+          VERSION_NUMBER: 820
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
