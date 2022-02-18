@@ -28,6 +28,7 @@ interface Props {
 	processingFee: number;
 	providerName: string;
 	onPress?: () => any;
+	onPressBuy?: () => any;
 	highlighted?: boolean;
 }
 const Quotes: React.FC<Props> = ({
@@ -39,6 +40,7 @@ const Quotes: React.FC<Props> = ({
 	processingFee,
 	providerName,
 	onPress,
+	onPressBuy,
 	highlighted,
 }: Props) => {
 	const totalFees = networkFee + processingFee;
@@ -125,7 +127,9 @@ const Quotes: React.FC<Props> = ({
 
 			{highlighted && (
 				<View style={styles.buyButton}>
-					<StyledButton type={'blue'}> Buy with {providerName}</StyledButton>
+					<StyledButton type={'blue'} onPress={onPressBuy}>
+						Buy with {providerName}
+					</StyledButton>
 				</View>
 			)}
 		</Box>

@@ -180,7 +180,7 @@ const AmountToBuy = ({ navigation }) => {
 						</Box>
 					</View>
 					<View style={styles.row}>
-						<StyledButton type="confirm" onPress={handleGetQuotePress}>
+						<StyledButton type="confirm" onPress={handleGetQuotePress} disabled={Number(amount) <= 0}>
 							Get Quotes
 						</StyledButton>
 					</View>
@@ -216,7 +216,7 @@ const AmountToBuy = ({ navigation }) => {
 	);
 };
 
-AmountToBuy.navigationOptions = ({ navigation, route }) => ({
+AmountToBuy.navigationOptions = () => ({
 	title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
 });
 
