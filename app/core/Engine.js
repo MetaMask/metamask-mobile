@@ -33,7 +33,7 @@ import {
 	getCaveatSpecifications,
 	getPermissionSpecifications,
 	unrestrictedMethods,
-} from './permissions/specifications';
+} from './Permissions/specifications';
 
 import AsyncStorage from '@react-native-community/async-storage';
 import Encryptor from './Encryptor';

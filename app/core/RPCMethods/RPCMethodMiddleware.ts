@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from 'json-rpc-engine';
-import { ethErrors } from 'eth-rpc-errors';
+import { ethErrors } from 'eth-json-rpc-errors';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { NetworksChainId, NetworkType } from '@metamask/controllers';
@@ -14,7 +14,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import getPermittedAccounts from '../permissions/getAccounts';
+import { getPermittedAccounts } from '../Permissions';
 
 let appVersion = '';
 

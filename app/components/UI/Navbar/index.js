@@ -472,7 +472,10 @@ export function getBrowserViewNavbarOptions(navigation, route, drawerRef) {
 		),
 		headerRight: () => (
 			<View style={styles.browserRightButton}>
-				<AccountRightButton address={connectedAccounts?.[0]} onPress={setAccountsPermissionsVisible} />
+				<AccountRightButton
+					address={connectedAccounts?.[0]}
+					onPress={() => setAccountsPermissionsVisible(true)}
+				/>
 			</View>
 		),
 	};

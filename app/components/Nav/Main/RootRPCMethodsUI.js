@@ -513,17 +513,13 @@ const RootRPCMethodsUI = (props) => {
 	 * When user clicks on approve to connect with a dapp
 	 */
 	const onAccountsConfirm = async (address) => {
-		if (hostToApprove.data) {
-			const request = {
-				...hostToApprove.data,
-				permissions: { ...hostToApprove.data.permissions },
-				approvedAccounts: [toChecksumAddress(address)],
-			};
+		const request = {
+			...hostToApprove.data,
+			permissions: { ...hostToApprove.data.permissions },
+			approvedAccounts: [toChecksumAddress(address)],
+		};
 
-			await Engine.context.PermissionController.acceptPermissionsRequest(request);
-		} else {
-			acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
-		}
+		await Engine.context.PermissionController.acceptPermissionsRequest(request);
 
 		setShowPendingApproval(false);
 	};
@@ -531,8 +527,13 @@ const RootRPCMethodsUI = (props) => {
 	/**
 	 * When user clicks on reject to connect with a dapp
 	 */
-	const onAccountsReject = () => {
-		rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+	const onAccountsReject = async () => {
+		const request = {
+			...hostToApprove.data,
+		};
+
+		await Engine.context.PermissionController.acceptPermissionsRequest(request);
+		//rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
 		setShowPendingApproval(false);
 	};
 
@@ -554,10 +555,9 @@ const RootRPCMethodsUI = (props) => {
 		>
 			<AccountListPermissions
 				enableAccountsAddition
-				onAccountChange={onAccountsConfirm}
+				onAccountConnect={onAccountsConfirm}
 				onImportAccount={() => null}
 				hostname={currentPageMeta?.url && new URL(currentPageMeta?.url).hostname}
-				isRequest
 			/>
 		</Modal>
 	);

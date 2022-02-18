@@ -57,9 +57,8 @@ import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
 import AccountListPermissions from '../../../components/UI/AccountListPermissions';
-import getPermittedAccountsByOrigin from '../../../core/permissions/selectors';
 import { toChecksumAddress } from '@ethereumjs/common/node_modules/ethereumjs-util';
-import getPermittedAccounts from '../../../core/permissions/getAccounts';
+import { getPermittedAccounts, getPermittedAccountsByOrigin } from '../../../core/Permissions';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -213,6 +212,10 @@ const styles = StyleSheet.create({
 	},
 	fullScreenModal: {
 		flex: 1,
+	},
+	bottomModal: {
+		justifyContent: 'flex-end',
+		margin: 0,
 	},
 });
 
@@ -1356,9 +1359,9 @@ export const BrowserTab = (props) => {
 		return null;
 	};
 
-	const onAccountConnect = async () => {
+	const onAccountsChange = async (close = true) => {
 		sendActiveAccount();
-		setAccountsPermissionsVisible(false);
+		if (close) setAccountsPermissionsVisible(false);
 	};
 
 	/**
@@ -1388,29 +1391,23 @@ export const BrowserTab = (props) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.selectedAddress]);
 
-	const onImportAccount = (address) => {
-		console.warn(address);
+	const renderAccountsApprovalModal = () => {
+		const hostname = new URL(url.current).hostname;
+		return (
+			<Modal
+				isVisible={accountsPermissionsVisible}
+				style={styles.bottomModal}
+				onBackdropPress={toggleAccountsModal}
+				onBackButtonPress={toggleAccountsModal}
+				onSwipeComplete={toggleAccountsModal}
+				swipeDirection={'down'}
+				propagateSwipe
+				useNativeDriver
+			>
+				<AccountListPermissions onAccountsChange={onAccountsChange} hostname={hostname} />
+			</Modal>
+		);
 	};
-
-	const renderAccountsApprovalModal = () => (
-		<Modal
-			isVisible={accountsPermissionsVisible}
-			style={styles.bottomModal}
-			onBackdropPress={toggleAccountsModal}
-			onBackButtonPress={toggleAccountsModal}
-			onSwipeComplete={toggleAccountsModal}
-			swipeDirection={'down'}
-			propagateSwipe
-			useNativeDriver
-		>
-			<AccountListPermissions
-				enableAccountsAddition
-				onAccountChange={onAccountConnect}
-				onImportAccount={onImportAccount}
-				hostname={new URL(url.current).hostname}
-			/>
-		</Modal>
-	);
 
 	/**
 	 * Main render
