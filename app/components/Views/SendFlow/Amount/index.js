@@ -188,7 +188,7 @@ const createStyles = (colors) =>
 		},
 		assetElementWrapper: {
 			height: 70,
-			borderBottomWidth: 1,
+			borderBottomWidth: StyleSheet.hairlineWidth,
 			borderColor: colors.border.muted,
 			flexDirection: 'row',
 			alignItems: 'center',
@@ -209,7 +209,7 @@ const createStyles = (colors) =>
 			height: 33,
 			alignItems: 'center',
 			justifyContent: 'center',
-			borderBottomWidth: 1,
+			borderBottomWidth: StyleSheet.hairlineWidth,
 			borderColor: colors.border.muted,
 		},
 		dragger: {

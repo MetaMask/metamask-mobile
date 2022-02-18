@@ -42,7 +42,7 @@ const createStyles = (colors) =>
 			marginVertical: 15,
 		},
 		progressWrapper: {
-			backgroundColor: colors.background.alternative,
+			backgroundColor: colors.primary.muted,
 			height: 3,
 			borderRadius: 3,
 			marginVertical: 15,

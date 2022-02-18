@@ -2,7 +2,8 @@ import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext } from '../../../util/theme';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -13,15 +14,29 @@ const createStyles = (colors) =>
 	});
 
 function Fox({ style, customStyle, customContent = '', forwardedRef, ...props }) {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext();
 	const styles = createStyles(colors);
+	const opacityControl = useSharedValue(0);
+
+	/* eslint-disable-next-line */
+	const webViewStyle = useAnimatedStyle(() => {
+		return {
+			opacity: opacityControl.value,
+		};
+	});
+
+	const showWebView = () => {
+		opacityControl.value = withTiming(1, { duration: 500 });
+	};
 
 	return (
-		<WebView
-			ref={forwardedRef}
-			style={[styles.webView, style]}
-			source={{
-				html: `
+		<Animated.View style={[styles.webView, webViewStyle]}>
+			<WebView
+				ref={forwardedRef}
+				style={[styles.webView, style]}
+				onLoadEnd={showWebView}
+				source={{
+					html: `
 					<!DOCTYPE html>
 					<html>
 					<head>
@@ -1508,12 +1523,13 @@ function Fox({ style, customStyle, customContent = '', forwardedRef, ...props })
 					</body>
 					</html>
 				`,
-			}}
-			javaScriptEnabled
-			bounces={false}
-			scrollEnabled={false}
-			{...props}
-		/>
+				}}
+				javaScriptEnabled
+				bounces={false}
+				scrollEnabled={false}
+				{...props}
+			/>
+		</Animated.View>
 	);
 }
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, DevSettings } from 'react-native';
+import { Animated } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -32,11 +32,10 @@ import Analytics from '../../../core/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import { checkedAuth, setAppTheme } from '../../../actions/user';
+import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { useAppTheme, ThemeContext } from '../../../util/theme';
-import { AppThemeNames } from '../../../util/theme/models';
+import { ThemeContext, useAppTheme } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -252,19 +251,7 @@ const App = ({ userLoggedIn }) => {
 		return null;
 	};
 
-	/**
-	 * Temporary React Native dev menu to toggle theme between light and dark mode
-	 */
-	const appTheme = useSelector((state) => state.user.appTheme);
 	const theme = useAppTheme();
-	useEffect(() => {
-		const newAppTheme = appTheme === AppThemeNames.Light ? AppThemeNames.Dark : AppThemeNames.Light;
-		if (__DEV__) {
-			DevSettings.addMenuItem('Toggle Theme', () => {
-				dispatch(setAppTheme(newAppTheme));
-			});
-		}
-	}, [appTheme, dispatch]);
 
 	return (
 		// do not render unless a route is defined
