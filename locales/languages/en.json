@@ -1075,7 +1075,8 @@
 		"switch_network": "Switch to network",
 		"new_network": "New network added",
 		"network_name": "{{networkName}} Network",
-		"network_added": " is now available in the network selector."
+		"network_added": " is now available in the network selector.",
+    "provider": "A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully"
   },
   "select": {
     "cancel": "Cancel",

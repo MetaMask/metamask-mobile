@@ -197,9 +197,7 @@ const NetworkModals = (props: NetworkProps) => {
 							<InfoModal
 								isVisible
 								toggleModal={showToolTip}
-								message={
-									'A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully'
-								}
+								message={strings('networks.provider')}
 								clickText={undefined}
 								clickPress={undefined}
 							/>
