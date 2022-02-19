@@ -1,13 +1,8 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  StyleSheet,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, ScrollView, TouchableOpacity, View, TextInput } from 'react-native';
 import { connect } from 'react-redux';
+import Icon from 'react-native-vector-icons/Ionicons';
 import ActionSheet from 'react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -16,52 +11,73 @@ import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import { MAINNET, RPC } from '../../../../constants/network';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      paddingBottom: 36,
-    },
-    networkIcon: {
-      width: 15,
-      height: 15,
-      borderRadius: 100,
-      marginTop: 2,
-      marginRight: 16,
-    },
-    otherNetworkIcon: {
-      width: 15,
-      height: 15,
-      borderRadius: 100,
-      marginTop: 2,
-      backgroundColor: colors.icon.muted,
-    },
-    network: {
-      flex: 1,
-      flexDirection: 'row',
-      paddingVertical: 12,
-    },
-    networkWrapper: {
-      flex: 0,
-      flexDirection: 'row',
-    },
-    networkLabel: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    sectionLabel: {
-      fontSize: 14,
-      paddingVertical: 12,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-  });
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			paddingVertical: 12,
+			paddingHorizontal: 24,
+			marginBottom: 24,
+		},
+		networkIcon: {
+			width: 15,
+			height: 15,
+			borderRadius: 100,
+			marginTop: 2,
+			marginRight: 16,
+		},
+		otherNetworkIcon: {
+			width: 15,
+			height: 15,
+			borderRadius: 100,
+			marginTop: 2,
+			backgroundColor: colors.icon.muted,
+		},
+		network: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingVertical: 12,
+			alignItems: 'center',
+		},
+		networkWrapper: {
+			flex: 0,
+			flexDirection: 'row',
+		},
+		networkLabel: {
+			fontSize: 16,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		sectionLabel: {
+			fontSize: 14,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		inputWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			paddingHorizontal: 10,
+			paddingVertical: 10,
+			borderRadius: 5,
+			borderWidth: 1,
+			borderColor: colors.grey100,
+		},
+		input: {
+			flex: 1,
+			fontSize: 14,
+			color: colors.black,
+			...fontStyles.normal,
+			paddingLeft: 10,
+		},
+		icon: {
+			marginLeft: 8,
+		},
+	});
 
 /**
  * Main view for app configurations
@@ -89,7 +105,12 @@ class NetworksSettings extends PureComponent {
   actionSheet = null;
   networkToRemove = null;
 
-  state = {};
+	static navigationOptions = ({ navigation }) =>
+		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
+
+	state = {
+		searchString: '',
+	};
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -114,10 +135,10 @@ class NetworksSettings extends PureComponent {
 
   getOtherNetworks = () => getAllNetworks().slice(1);
 
-  onPress = (network) => {
-    const { navigation } = this.props;
-    navigation.navigate('NetworkSettings', { network });
-  };
+	onNetworkPress = (network) => {
+		const { navigation } = this.props;
+		navigation.navigate('NetworkSettings', { network });
+	};
 
   onAddNetwork = () => {
     const { navigation } = this.props;
@@ -159,27 +180,21 @@ class NetworksSettings extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    return (
-      <TouchableOpacity
-        key={`network-${i}`}
-        onPress={() => this.onPress(network)} // eslint-disable-line
-        onLongPress={() => isCustomRPC && this.showRemoveMenu(network)} // eslint-disable-line
-        testID={'select-network'}
-      >
-        <View style={styles.network}>
-          <View
-            style={[
-              styles.networkIcon,
-              color ? { backgroundColor: color } : styles.otherNetworkIcon,
-            ]}
-          />
-          <View style={styles.networkInfo}>
-            <Text style={styles.networkLabel}>{name}</Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }
+		return (
+			<TouchableOpacity
+				key={`network-${i}`}
+				onPress={() => this.onNetworkPress(network)} // eslint-disable-line
+				onLongPress={() => isCustomRPC && this.showRemoveMenu(network)} // eslint-disable-line
+				testID={'select-network'}
+			>
+				<View style={styles.network}>
+					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
+					<Text style={styles.networkLabel}>{name}</Text>
+					{!isCustomRPC && <FontAwesome name="lock" size={20} color={colors.grey100} style={styles.icon} />}
+				</View>
+			</TouchableOpacity>
+		);
+	}
 
   renderOtherNetworks() {
     return this.getOtherNetworks().map((network, i) => {
@@ -188,95 +203,104 @@ class NetworksSettings extends PureComponent {
     });
   }
 
-  renderRpcNetworks = () => {
-    const { frequentRpcList } = this.props;
-    return frequentRpcList.map(({ rpcUrl, nickname }, i) => {
-      const { color, name } = { name: nickname || rpcUrl, color: null };
-
-      return this.networkElement(name, color, i, rpcUrl, true);
-    });
-  };
+	renderRpcNetworks = () => {
+		const { frequentRpcList } = this.props;
+		return frequentRpcList.map(({ rpcUrl, nickname }, i) => {
+			const { color, name } = { name: nickname || rpcUrl, color: null };
+			return this.networkElement(name, color, i, rpcUrl, true);
+		});
+	};
 
   renderRpcNetworksView = () => {
     const { frequentRpcList } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (frequentRpcList.length > 0) {
-      return (
-        <View testID={'rpc-networks'}>
-          <Text style={styles.sectionLabel}>
-            {strings('app_settings.network_rpc_networks')}
-          </Text>
-          {this.renderRpcNetworks()}
-        </View>
-      );
-    }
-  };
+		if (frequentRpcList.length > 0) {
+			return (
+				<View testID={'rpc-networks'}>
+					<Text style={styles.sectionLabel}>{strings('app_settings.custom_network_name')}</Text>
+					{this.renderRpcNetworks()}
+				</View>
+			);
+		}
+	};
 
   renderMainnet() {
     const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    return (
-      <View style={styles.mainnetHeader}>
-        <TouchableOpacity
-          style={styles.network}
-          key={`network-${MAINNET}`}
-          onPress={() => this.onPress(MAINNET)} // eslint-disable-line
-        >
-          <View style={styles.networkWrapper}>
-            <View
-              style={[styles.networkIcon, { backgroundColor: mainnetColor }]}
-            />
-            <View style={styles.networkInfo}>
-              <Text style={styles.networkLabel}>{mainnetName}</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+		return (
+			<View style={styles.mainnetHeader}>
+				<TouchableOpacity
+					style={styles.network}
+					key={`network-${MAINNET}`}
+					onPress={() => this.onNetworkPress(MAINNET)} // eslint-disable-line
+				>
+					<View style={styles.networkWrapper}>
+						<View style={[styles.networkIcon, { backgroundColor: mainnetColor }]} />
+						<View style={styles.networkInfo}>
+							<Text style={styles.networkLabel}>{mainnetName}</Text>
+						</View>
+					</View>
+					<FontAwesome name="lock" size={20} color={colors.grey100} style={styles.icon} />
+				</TouchableOpacity>
+			</View>
+		);
+	}
 
-  render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance;
-    const styles = createStyles(colors);
+	handleSearchTextChange = (text) => this.setState({ searchString: text });
 
-    return (
-      <View style={styles.wrapper} testID={'networks-screen'}>
-        <ScrollView style={styles.networksWrapper}>
-          {this.renderMainnet()}
-          <Text style={styles.sectionLabel}>
-            {strings('app_settings.network_other_networks')}
-          </Text>
-          {this.renderOtherNetworks()}
-          {this.renderRpcNetworksView()}
-        </ScrollView>
-        <StyledButton
-          type="confirm"
-          onPress={this.onAddNetwork}
-          containerStyle={styles.syncConfirm}
-          testID={'add-network-button'}
-        >
-          {strings('app_settings.network_add_network')}
-        </StyledButton>
-        <ActionSheet
-          ref={this.createActionSheetRef}
-          title={strings('app_settings.remove_network_title')}
-          options={[
-            strings('app_settings.remove_network'),
-            strings('app_settings.cancel_remove_network'),
-          ]}
-          cancelButtonIndex={1}
-          destructiveButtonIndex={0}
-          onPress={this.onActionSheetPress}
-          theme={themeAppearance}
-        />
-      </View>
-    );
-  }
+	clearSearchInput = () => this.setState({ searchString: '' });
+
+	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.wrapper} testID={'networks-screen'}>
+				<View style={styles.inputWrapper}>
+					<Icon name="ios-search" size={20} color={colors.grey100} />
+					<TextInput
+						style={styles.input}
+						placeholder={strings('networks.search')}
+						placeholderTextColor={colors.grey500}
+						value={this.state.searchString}
+						onChangeText={this.handleSearchTextChange}
+					/>
+					{this.state.searchString.length > 0 && (
+						<Icon name="ios-close" size={20} color={colors.grey300} onPress={this.clearSearchInput} />
+					)}
+				</View>
+				<ScrollView style={styles.networksWrapper}>
+					<Text style={styles.sectionLabel}>{strings('app_settings.mainnet')}</Text>
+					{this.renderMainnet()}
+					{this.renderRpcNetworksView()}
+					<Text style={styles.sectionLabel}>{strings('app_settings.test_network_name')}</Text>
+					{this.renderOtherNetworks()}
+				</ScrollView>
+				<StyledButton
+					type="confirm"
+					onPress={this.onAddNetwork}
+					containerStyle={styles.syncConfirm}
+					testID={'add-network-button'}
+				>
+					{strings('app_settings.network_add_network')}
+				</StyledButton>
+				<ActionSheet
+					ref={this.createActionSheetRef}
+					title={strings('app_settings.remove_network_title')}
+					options={[strings('app_settings.remove_network'), strings('app_settings.cancel_remove_network')]}
+					cancelButtonIndex={1}
+					destructiveButtonIndex={0}
+					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
+				/>
+			</View>
+		);
+	}
 }
 
 NetworksSettings.contextType = ThemeContext;

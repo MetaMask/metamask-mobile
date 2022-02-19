@@ -17,7 +17,9 @@ import Networks, {
   isSafeChainId,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   NETWORK_LIST_MODAL_CONTAINER_ID,
@@ -134,40 +136,44 @@ const createStyles = (colors) =>
  * View that contains the list of all the available networks
  */
 export class NetworkList extends PureComponent {
-  static propTypes = {
-    /**
-     * An function to handle the close event
-     */
-    onClose: PropTypes.func,
-    /**
-     * A list of custom RPCs to provide the user
-     */
-    frequentRpcList: PropTypes.array,
-    /**
-     * NetworkController povider object
-     */
-    provider: PropTypes.object,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
-    /**
-     * Show invalid custom network alert for networks without a chain ID
-     */
-    showInvalidCustomNetworkAlert: PropTypes.func,
-    /**
-     * A function that handles the network selection
-     */
-    onNetworkSelected: PropTypes.func,
-    /**
-     *   A function that handles switching to info modal
-     */
-    switchModalContent: PropTypes.func,
-    /**
-     *   returns the network onboarding state
-     */
-    networkOnboardedState: PropTypes.array,
-  };
+	static propTypes = {
+		/**
+		 * An function to handle the close event
+		 */
+		onClose: PropTypes.func,
+		/**
+		 * A list of custom RPCs to provide the user
+		 */
+		frequentRpcList: PropTypes.array,
+		/**
+		 * NetworkController povider object
+		 */
+		provider: PropTypes.object,
+		/**
+		 * Indicates whether third party API mode is enabled
+		 */
+		thirdPartyApiMode: PropTypes.bool,
+		/**
+		 * Show invalid custom network alert for networks without a chain ID
+		 */
+		showInvalidCustomNetworkAlert: PropTypes.func,
+		/**
+		 * A function that handles the network selection
+		 */
+		onNetworkSelected: PropTypes.func,
+		/**
+		 * 	A function that handles switching to info modal
+		 */
+		switchModalContent: PropTypes.func,
+		/**
+		 * 	returns the network onboarding state
+		 */
+		networkOnboardedState: PropTypes.array,
+		/**
+		 * react-navigation object used for switching between screens
+		 */
+		navigation: PropTypes.object,
+	};
 
   getOtherNetworks = () => getAllNetworks().slice(1);
 
@@ -352,47 +358,44 @@ export class NetworkList extends PureComponent {
     );
   }
 
-  render = () => {
-    const styles = this.getStyles();
+	goToNetworkSettings = () => {
+		this.props.onClose(false);
+		this.props.navigation.navigate('NetworkSettings');
+	};
 
-    return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={NETWORK_LIST_MODAL_CONTAINER_ID}
-      >
-        <View style={styles.titleWrapper}>
-          <Text
-            testID={'networks-list-title'}
-            style={styles.title}
-            onPress={this.closeSideBar}
-          >
-            {strings('networks.title')}
-          </Text>
-        </View>
-        <ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
-          {this.renderMainnet()}
-          <View style={styles.otherNetworksHeader}>
-            <Text
-              style={styles.otherNetworksText}
-              testID={OTHER_NETWORK_LIST_ID}
-            >
-              {strings('networks.other_networks')}
-            </Text>
-          </View>
-          {this.renderOtherNetworks()}
-          {this.renderRpcNetworks()}
-        </ScrollView>
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.footerButton}
-            onPress={this.closeModal}
-          >
-            <Text style={styles.closeButton}>{strings('networks.close')}</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  };
+	render = () => {
+		const styles = this.getStyles();
+		return (
+		<SafeAreaView style={styles.wrapper} testID={NETWORK_LIST_MODAL_CONTAINER_ID}>
+			<View style={styles.titleWrapper}>
+				<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
+					{strings('networks.title')}
+				</Text>
+				<Ionicons onPress={this.closeModal} name={'ios-close'} size={30} style={styles.closeIcon} />
+			</View>
+			<ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
+				{this.renderMainnet()}
+				<View style={styles.otherNetworksHeader}>
+					<Text style={styles.otherNetworksText} testID={OTHER_NETWORK_LIST_ID}>
+						{strings('networks.other_networks')}
+					</Text>
+				</View>
+				{this.renderOtherNetworks()}
+				{this.renderRpcNetworks()}
+			</ScrollView>
+			<View style={styles.footer}>
+				<StyledButton
+					type="confirm"
+					onPress={this.goToNetworkSettings}
+					containerStyle={styles.footerButton}
+					testID={'add-network-button'}
+				>
+					{strings('app_settings.add_network_title')}
+				</StyledButton>
+			</View>
+		</SafeAreaView>
+		);
+	};
 }
 
 const mapStateToProps = (state) => ({

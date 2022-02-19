@@ -83,34 +83,23 @@ const styles = StyleSheet.create({
  */
 
 const WalletTabHome = () => (
-  <Stack.Navigator initialRouteName={'WalletView'}>
-    <Stack.Screen name="WalletView" component={Wallet} />
-    <Stack.Screen
-      name="Asset"
-      component={Asset}
-      options={Asset.navigationOptions}
-    />
-    <Stack.Screen
-      name="AddAsset"
-      component={AddAsset}
-      options={AddAsset.navigationOptions}
-    />
-    <Stack.Screen
-      name="Collectible"
-      component={Collectible}
-      options={Collectible.navigationOptions}
-    />
-    <Stack.Screen
-      name="RevealPrivateCredentialView"
-      component={RevealPrivateCredential}
-      options={RevealPrivateCredential.navigationOptions}
-    />
-    <Stack.Screen
-      name="ExperimentalSettings"
-      component={ExperimentalSettings}
-      options={ExperimentalSettings.navigationOptions}
-    />
-  </Stack.Navigator>
+	<Stack.Navigator initialRouteName={'WalletView'}>
+		<Stack.Screen name="WalletView" component={Wallet} />
+		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
+		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
+		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
+		<Stack.Screen
+			name="RevealPrivateCredentialView"
+			component={RevealPrivateCredential}
+			options={RevealPrivateCredential.navigationOptions}
+		/>
+		<Stack.Screen
+			name="ExperimentalSettings"
+			component={ExperimentalSettings}
+			options={ExperimentalSettings.navigationOptions}
+		/>
+		<Stack.Screen name="NetworkSettings" component={NetworkSettings} options={NetworkSettings.navigationOptions} />
+	</Stack.Navigator>
 );
 
 const BrowserFlow = () => (
