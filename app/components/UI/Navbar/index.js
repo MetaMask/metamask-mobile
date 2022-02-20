@@ -362,7 +362,7 @@ export function getTransactionOptionsTitle(_title, navigation, route, themeColor
 			elevation: 0,
 		},
 		headerButtonText: {
-			color: colors.primary.default,
+			color: themeColors.primary.default,
 			fontSize: 14,
 			...fontStyles.normal,
 		},

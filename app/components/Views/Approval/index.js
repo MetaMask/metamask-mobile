@@ -37,10 +37,6 @@ const styles = StyleSheet.create({
 class Approval extends PureComponent {
 	static propTypes = {
 		/**
-		 * Route from react navigatino
-		 */
-		route: PropTypes.object.isRequired,
-		/**
 		 * react-navigation object used for switching between screens
 		 */
 		navigation: PropTypes.object.isRequired,
@@ -91,8 +87,8 @@ class Approval extends PureComponent {
 
 	updateNavBar = () => {
 		const colors = this.context.colors || mockColors.colors;
-		const { navigation, route } = this.props;
-		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, route, colors));
+		const { navigation } = this.props;
+		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, {}, colors));
 	};
 
 	componentDidMount = () => {
