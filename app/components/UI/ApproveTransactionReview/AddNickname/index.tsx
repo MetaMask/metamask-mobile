@@ -1,5 +1,5 @@
-import React from 'react';
-import { SafeAreaView, View, StyleSheet, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, View, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import { colors, fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../EthereumAddress';
@@ -7,10 +7,13 @@ import Engine from '../../../../core/Engine';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
+import { WebView } from 'react-native-webview';
 import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
 import { showSimpleNotification } from '../../../../actions/notification';
 import Identicon from '../../../UI/Identicon';
+import WebviewProgressBar from '../../../UI/WebviewProgressBar';
+import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Feather from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
 import GlobalAlert from '../../../UI/GlobalAlert';
@@ -92,6 +95,15 @@ const styles = StyleSheet.create({
 	actionIcon: {
 		color: colors.blue,
 	},
+	progressBarWrapper: {
+		height: 3,
+		width: '100%',
+		left: 0,
+		right: 0,
+		bottom: 0,
+		position: 'absolute',
+		zIndex: 999999,
+	},
 });
 
 interface HeaderProps {
@@ -108,6 +120,14 @@ interface AddNicknameProps {
 	addressBook: [];
 	showModalAlert: (config: any) => void;
 	protectWalletVisible: () => void;
+	networkState: any;
+	type: string;
+}
+
+interface ShowBlockExplorerProps {
+	contractAddress: string;
+	type: string;
+	setIsBlockExplorerVisible: (isBlockExplorerVisible: boolean) => void;
 }
 
 const Header = (props: HeaderProps) => {
@@ -119,6 +139,41 @@ const Header = (props: HeaderProps) => {
 			</Text>
 			<AntDesignIcon name={'close'} size={20} style={styles.icon} onPress={() => onUpdateContractNickname()} />
 		</View>
+	);
+};
+
+const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
+	const { type, contractAddress, setIsBlockExplorerVisible } = props;
+	const [loading, setLoading] = useState(0);
+	const url = getEtherscanAddressUrl(type, contractAddress);
+	const etherscan_url = getEtherscanBaseUrl(type).replace('https://', '');
+
+	const onLoadProgress = ({ nativeEvent: { progress } }: { nativeEvent: { progress: number } }) => {
+		setLoading(progress);
+	};
+
+	const renderProgressBar = () => (
+		<View style={styles.progressBarWrapper}>
+			<WebviewProgressBar progress={loading} />
+		</View>
+	);
+
+	return (
+		<>
+			<View style={styles.headerWrapper}>
+				<Text bold style={styles.headerText}>
+					{etherscan_url}
+				</Text>
+				<AntDesignIcon
+					name={'close'}
+					size={20}
+					style={styles.icon}
+					onPress={() => setIsBlockExplorerVisible(false)}
+				/>
+			</View>
+			<WebView source={{ uri: url }} onLoadProgress={onLoadProgress} />
+			{renderProgressBar()}
+		</>
 	);
 };
 
@@ -138,13 +193,18 @@ const AddNickname = (props: AddNicknameProps) => {
 	const {
 		onUpdateContractNickname,
 		contractAddress,
-		network,
 		nicknameExists,
 		nickname,
 		showModalAlert,
 		protectWalletVisible,
+		networkState: {
+			network,
+			provider: { type },
+		},
 	} = props;
-	const [newNickname, setNewNickname] = React.useState(nickname);
+
+	const [newNickname, setNewNickname] = useState(nickname);
+	const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
 
 	const copyContractAddress = async () => {
 		await ClipboardManager.setString(contractAddress);
@@ -166,59 +226,70 @@ const AddNickname = (props: AddNicknameProps) => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_NICKNAME, getAnalyticsParams());
 	};
 
+	const toggleBlockExplorer = () => setIsBlockExplorerVisible(true);
+
 	return (
 		<SafeAreaView style={styles.container}>
-			<Header onUpdateContractNickname={onUpdateContractNickname} nicknameExists={nicknameExists} />
-			<View style={styles.bodyWrapper}>
-				<View style={styles.addressIdenticon}>
-					<Identicon address={contractAddress} diameter={25} />
-				</View>
-				<Text style={styles.label}>{strings('nickname.address')}</Text>
-				<View style={styles.addressWrapperPrimary}>
-					<View style={styles.addressWrapper}>
-						<Feather
-							name="copy"
-							size={18}
-							color={colors.blue}
-							style={styles.actionIcon}
-							onPress={copyContractAddress}
-						/>
-						<EthereumAddress address={contractAddress} type="mid" style={styles.address} />
-					</View>
-					<AntDesignIcon style={styles.actionIcon} name="export" size={22} />
-				</View>
-				<Text style={styles.label}>{strings('nickname.name')}</Text>
-				<TextInput
-					autoCapitalize={'none'}
-					autoCorrect={false}
-					onChangeText={setNewNickname}
-					placeholder={strings('nickname.name_placeholder')}
-					placeholderTextColor={colors.grey100}
-					spellCheck={false}
-					numberOfLines={1}
-					style={styles.input}
-					value={newNickname}
-					testID={'contact-name-input'}
+			{isBlockExplorerVisible ? (
+				<ShowBlockExplorer
+					setIsBlockExplorerVisible={setIsBlockExplorerVisible}
+					type={type}
+					contractAddress={contractAddress}
 				/>
-			</View>
-			<View style={styles.updateButton}>
-				<StyledButton
-					type={'confirm'}
-					disabled={!newNickname}
-					onPress={saveTokenNickname}
-					testID={'nickname.save_nickname'}
-				>
-					{strings('nickname.save_nickname')}
-				</StyledButton>
-			</View>
-			<GlobalAlert />
+			) : (
+				<>
+					<Header onUpdateContractNickname={onUpdateContractNickname} nicknameExists={nicknameExists} />
+					<View style={styles.bodyWrapper}>
+						<View style={styles.addressIdenticon}>
+							<Identicon address={contractAddress} diameter={25} />
+						</View>
+						<Text style={styles.label}>{strings('nickname.address')}</Text>
+						<View style={styles.addressWrapperPrimary}>
+							<TouchableOpacity style={styles.addressWrapper} onPress={copyContractAddress}>
+								<Feather name="copy" size={18} color={colors.blue} style={styles.actionIcon} />
+								<EthereumAddress address={contractAddress} type="mid" style={styles.address} />
+							</TouchableOpacity>
+							<AntDesignIcon
+								style={styles.actionIcon}
+								name="export"
+								size={22}
+								onPress={toggleBlockExplorer}
+							/>
+						</View>
+						<Text style={styles.label}>{strings('nickname.name')}</Text>
+						<TextInput
+							autoCapitalize={'none'}
+							autoCorrect={false}
+							onChangeText={setNewNickname}
+							placeholder={strings('nickname.name_placeholder')}
+							placeholderTextColor={colors.grey100}
+							spellCheck={false}
+							numberOfLines={1}
+							style={styles.input}
+							value={newNickname}
+							testID={'contact-name-input'}
+						/>
+					</View>
+					<View style={styles.updateButton}>
+						<StyledButton
+							type={'confirm'}
+							disabled={!newNickname}
+							onPress={saveTokenNickname}
+							testID={'nickname.save_nickname'}
+						>
+							{strings('nickname.save_nickname')}
+						</StyledButton>
+					</View>
+					<GlobalAlert />
+				</>
+			)}
 		</SafeAreaView>
 	);
 };
 
 const mapStateToProps = (state: any) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-	network: state.engine.backgroundState.NetworkController.network,
+	networkState: state.engine.backgroundState.NetworkController,
 });
 
 const mapDispatchToProps = (dispatch: any) => ({
