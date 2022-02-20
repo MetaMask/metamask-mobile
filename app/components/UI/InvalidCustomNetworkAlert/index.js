@@ -60,7 +60,10 @@ const InvalidCustomNetworkAlert = (props) => {
 
 	const goToEditNetwork = () => {
 		closeModal();
-		props.navigation.navigate('SettingsView', { screen: 'NetworkSettings', params: { network: props.network } });
+		props.navigation.navigate('SettingsView', {
+			screen: 'SettingsFlow',
+			params: { screen: 'NetworkSettings', params: { network: props.network } },
+		});
 	};
 
 	const openLink = () => {

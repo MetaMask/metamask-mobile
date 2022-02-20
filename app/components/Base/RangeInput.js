@@ -71,6 +71,9 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 			alignItems: 'center',
 		},
+		errorText: {
+			color: colors.text.default,
+		},
 		errorIcon: {
 			paddingRight: 4,
 			color: colors.error.default,
@@ -201,7 +204,7 @@ const RangeInput = ({
 			{hasError && (
 				<View style={styles.errorContainer}>
 					<FontAwesomeIcon name="exclamation-circle" size={14} style={styles.errorIcon} />
-					<Text red noMargin small>
+					<Text red noMargin small style={styles.errorText}>
 						{error || errorState}
 					</Text>
 				</View>

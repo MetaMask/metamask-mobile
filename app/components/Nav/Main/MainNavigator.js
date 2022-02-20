@@ -132,8 +132,8 @@ const Webview = () => (
 	</Stack.Navigator>
 );
 
-const SettingsView = () => (
-	<Stack.Navigator>
+const SettingsFlow = () => (
+	<Stack.Navigator initialRouteName={'Settings'}>
 		<Stack.Screen name="Settings" component={Settings} options={Settings.navigationOptions} />
 		<Stack.Screen name="GeneralSettings" component={GeneralSettings} options={GeneralSettings.navigationOptions} />
 		<Stack.Screen
@@ -201,11 +201,11 @@ const SettingsView = () => (
 
 const SettingsModalStack = () => (
 	<Stack.Navigator
-		initialRouteName={'Settings'}
+		initialRouteName={'SettingsFlow'}
 		mode={'modal'}
 		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
 	>
-		<Stack.Screen name={'Settings'} component={SettingsView} />
+		<Stack.Screen name={'SettingsFlow'} component={SettingsFlow} />
 		<Stack.Screen name={'ThemeSettings'} component={ThemeSettings} options={{ animationEnabled: false }} />
 	</Stack.Navigator>
 );

@@ -98,6 +98,7 @@ const createStyles = (colors) =>
 		},
 		warningText: {
 			lineHeight: 20,
+			color: colors.text.default,
 		},
 	});
 

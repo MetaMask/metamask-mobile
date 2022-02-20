@@ -116,6 +116,7 @@ const createStyles = (colors) =>
 		warningText: {
 			lineHeight: 20,
 			flex: 1,
+			color: colors.text.default,
 		},
 		warningContainer: {
 			marginBottom: 20,

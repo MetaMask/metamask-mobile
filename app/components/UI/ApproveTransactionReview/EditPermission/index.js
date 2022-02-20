@@ -72,6 +72,7 @@ const createStyles = (colors) =>
 			borderColor: colors.border.default,
 			borderRadius: 10,
 			borderWidth: 2,
+			color: colors.text.default,
 		},
 		spendLimitContent: {
 			marginLeft: 8,
