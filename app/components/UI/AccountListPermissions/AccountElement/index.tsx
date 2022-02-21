@@ -176,7 +176,7 @@ const AccountElement = ({
 									{isDefaultAccountName(name) && ens ? ens : name}
 									<Text style={styles.notConnectedText}>
 										{selectedIsNotConnected
-											? ` (${strings('accountApprovalPermissions.account_not_connected')})`
+											? ` (${strings('account_approval_permissions.account_not_connected')})`
 											: ''}
 									</Text>
 								</Text>
@@ -184,7 +184,7 @@ const AccountElement = ({
 									<View style={styles.isActiveContainer}>
 										<View style={styles.isActiveLabel} />
 										<Text style={styles.isActiveText}>
-											{strings('accountApprovalPermissions.active')}
+											{strings('account_approval_permissions.active')}
 										</Text>
 									</View>
 								) : null}
@@ -206,14 +206,14 @@ const AccountElement = ({
 									containerStyle={styles.connectTextContainer}
 									onPress={() => onConnect(address)}
 								>
-									{strings('accountApprovalPermissions.connect')}
+									{strings('account_approval_permissions.connect')}
 								</StyledButton>
 							</View>
 						)}
 						{!viewPermissions && isActive && isSelected ? (
 							<View style={styles.activeContainer}>
 								<View style={styles.activeLabel} />
-								<Text style={styles.activeText}>{strings('accountApprovalPermissions.active')}</Text>
+								<Text style={styles.activeText}>{strings('account_approval_permissions.active')}</Text>
 							</View>
 						) : null}
 						{!viewPermissions && !isSelected && !!isConnected ? (
@@ -224,7 +224,7 @@ const AccountElement = ({
 									containerStyle={styles.buttonContainer}
 									onPress={() => onSwitch(address)}
 								>
-									{strings('accountApprovalPermissions.switch_to_accounts')}
+									{strings('account_approval_permissions.switch_to_accounts')}
 								</StyledButton>
 							</View>
 						) : null}
@@ -236,7 +236,7 @@ const AccountElement = ({
 									containerStyle={styles.buttonContainer}
 									onPress={() => onRevoke(address)}
 								>
-									{strings('accountApprovalPermissions.revoke')}
+									{strings('account_approval_permissions.revoke')}
 								</StyledButton>
 							</View>
 						) : null}

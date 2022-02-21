@@ -29,9 +29,6 @@ interface RPCMethodsMiddleParameters {
 	hostname: string;
 	getProviderState: () => any;
 	navigation: any;
-	getApprovedHosts: any;
-	setApprovedHosts: (approvedHosts: any) => void;
-	approveHost: (fullHostname: string) => void;
 	url: { current: string };
 	title: { current: string };
 	icon: { current: string };
@@ -135,13 +132,10 @@ export const getRpcMethodMiddleware = ({
 				}
 			},
 			eth_requestAccounts: async () => {
-				const {
-					privacy: { privacyMode },
-				} = store.getState();
+				const { params } = req;
 
 				const permittedAccounts = await getPermittedAccounts(hostname);
-
-				if (!privacyMode || permittedAccounts.length) {
+				if (!params?.force && permittedAccounts.length) {
 					res.result = permittedAccounts;
 				} else {
 					try {

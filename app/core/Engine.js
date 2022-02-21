@@ -46,6 +46,7 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
+import { getPermittedAccounts } from './Permissions';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -109,13 +110,17 @@ class Engine {
 							}
 						},
 					},
-					getAccounts: (end: (arg0: null, arg1: any[]) => void, payload: { hostname: string | number }) => {
-						const { approvedHosts, privacyMode } = store.getState();
-						const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+					getAccounts: async (
+						end: (arg0: null, arg1: any[]) => void,
+						payload: { hostname: string | number }
+					) => {
 						const { KeyringController } = this.context;
+
 						const isUnlocked = KeyringController.isUnlocked();
-						const selectedAddress = this.context.PreferencesController.state.selectedAddress;
-						end(null, isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : []);
+
+						const accounts = await getPermittedAccounts(payload.hostname);
+
+						end(null, isUnlocked && accounts);
 					},
 				},
 			});

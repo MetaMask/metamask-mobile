@@ -130,6 +130,9 @@ const styles = StyleSheet.create({
 	cancelButton: {
 		height: 44,
 	},
+	revokeAllAccountsButton: {
+		marginBottom: 18,
+	},
 });
 
 const AccountListPermissions = ({
@@ -179,6 +182,11 @@ const AccountListPermissions = ({
 
 	const onRevoke = (address: string) => {
 		removePermittedAccount(hostname, address);
+		onAccountsChange(false);
+	};
+
+	const revokeAllAccounts = () => {
+		Engine.context.PermissionController.revokeAllPermissions(hostname);
 		onAccountsChange(false);
 	};
 
@@ -297,10 +305,10 @@ const AccountListPermissions = ({
 
 					<Text style={styles.titleText}>
 						{viewPermissions
-							? strings('accountApprovalPermissions.view_permissions_title')
+							? strings('account_approval_permissions.view_permissions_title')
 							: isConnectRequest
-							? strings('accountApprovalPermissions.connect_title')
-							: strings('accountApprovalPermissions.connected_accounts_tilte')}
+							? strings('account_approval_permissions.connect_title')
+							: strings('account_approval_permissions.connected_accounts_tilte')}
 					</Text>
 					{viewPermissions && <View style={styles.flex} />}
 				</View>
@@ -327,7 +335,7 @@ const AccountListPermissions = ({
 								testID={'view-permissions-button'}
 								containerStyle={styles.viewPermissionsContainer}
 							>
-								{strings('accountApprovalPermissions.view_permissions_title')}
+								{strings('account_approval_permissions.view_permissions_title')}
 							</StyledButton>
 						)}
 					</View>
@@ -335,13 +343,13 @@ const AccountListPermissions = ({
 				</View>
 				{viewPermissions ? (
 					<Text style={styles.permissionItemText}>
-						{strings('accountApprovalPermissions.permission_description')}
+						{strings('account_approval_permissions.permission_description')}
 					</Text>
 				) : null}
 
 				{!orderedAccounts ? (
 					<View style={styles.noAccountsConnected}>
-						<Text>{'not_connected_description'}</Text>
+						<Text>{strings('account_approval_permissions.not_connected_description')}</Text>
 					</View>
 				) : (
 					<FlatList
@@ -353,6 +361,13 @@ const AccountListPermissions = ({
 						getItemLayout={(_, index) => ({ length: 80, offset: 80 * index, index })} // eslint-disable-line
 					/>
 				)}
+				{viewPermissions && (
+					<TouchableOpacity style={styles.revokeAllAccountsButton} onPress={revokeAllAccounts}>
+						<Text centered red bold small>
+							{strings('account_approval_permissions.revoke_button')}
+						</Text>
+					</TouchableOpacity>
+				)}
 				<View style={styles.cancelButton}>
 					<StyledButton
 						type={'cancel'}
@@ -360,7 +375,7 @@ const AccountListPermissions = ({
 						containerStyle={styles.button}
 						testID={'connect-cancel-button'}
 					>
-						{strings('accountApprovalPermissions.cancel')}
+						{strings('account_approval_permissions.cancel')}
 					</StyledButton>
 				</View>
 			</View>

@@ -21,7 +21,7 @@ import SelectComponent from '../../../UI/SelectComponent';
 import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
-import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
+import { setThirdPartyApiMode } from '../../../../actions/privacy';
 import { colors, fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
@@ -171,14 +171,6 @@ Heading.propTypes = {
 class Settings extends PureComponent {
 	static propTypes = {
 		/**
-		 * Indicates whether privacy mode is enabled
-		 */
-		privacyMode: PropTypes.bool,
-		/**
-		 * Called to toggle privacy mode
-		 */
-		setPrivacyMode: PropTypes.func,
-		/**
 		 * Called to toggle set party api mode
 		 */
 		setThirdPartyApiMode: PropTypes.func,
@@ -194,14 +186,6 @@ class Settings extends PureComponent {
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
-		/**
-		 * Map of hostnames with approved account access
-		 */
-		approvedHosts: PropTypes.object,
-		/**
-		 * Called to clear all hostnames with account access
-		 */
-		clearHosts: PropTypes.func,
 		/**
 		 * Array of visited websites
 		 */
@@ -444,7 +428,7 @@ class Settings extends PureComponent {
 	};
 
 	clearApprovals = () => {
-		this.props.clearHosts();
+		Engine.context.PermissionController.clearState();
 		this.toggleClearApprovalsModal();
 	};
 
@@ -458,10 +442,6 @@ class Settings extends PureComponent {
 			Logger.log('Browser cookies cleared');
 			this.toggleClearCookiesModal();
 		});
-	};
-
-	togglePrivacy = (value) => {
-		this.props.setPrivacyMode(value);
 	};
 
 	toggleThirdPartyAPI = (value) => {
@@ -569,15 +549,8 @@ class Settings extends PureComponent {
 	onBack = () => this.props.navigation.goBack();
 
 	render = () => {
-		const {
-			approvedHosts,
-			seedphraseBackedUp,
-			browserHistory,
-			privacyMode,
-			thirdPartyApiMode,
-			openSeaEnabled,
-			useCollectibleDetection,
-		} = this.props;
+		const { seedphraseBackedUp, browserHistory, thirdPartyApiMode, openSeaEnabled, useCollectibleDetection } =
+			this.props;
 		const {
 			approvalModalVisible,
 			biometryType,
@@ -737,7 +710,6 @@ class Settings extends PureComponent {
 						<StyledButton
 							type="normal"
 							onPress={this.toggleClearApprovalsModal}
-							disabled={Object.keys(approvedHosts).length === 0}
 							containerStyle={styles.confirm}
 						>
 							{strings('app_settings.clear_privacy_title')}
@@ -765,18 +737,6 @@ class Settings extends PureComponent {
 						>
 							{strings('app_settings.clear_browser_cookies_desc')}
 						</StyledButton>
-					</View>
-					<View style={styles.setting} testID={'privacy-mode-section'}>
-						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={privacyMode}
-								onValueChange={this.togglePrivacy}
-								trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-								ios_backgroundColor={colors.grey000}
-							/>
-						</View>
 					</View>
 					<View style={styles.setting} testID={'metametrics-section'}>
 						<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
@@ -889,10 +849,8 @@ class Settings extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	approvedHosts: state.privacy.approvedHosts,
 	browserHistory: state.browser.history,
 	lockTime: state.settings.lockTime,
-	privacyMode: state.privacy.privacyMode,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
@@ -907,9 +865,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
 	clearBrowserHistory: () => dispatch(clearHistory()),
-	clearHosts: () => dispatch(clearHosts()),
 	setLockTime: (lockTime) => dispatch(setLockTime(lockTime)),
-	setPrivacyMode: (enabled) => dispatch(setPrivacyMode(enabled)),
 	setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
 	passwordSet: () => dispatch(passwordSet()),
 });

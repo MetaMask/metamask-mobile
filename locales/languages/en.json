@@ -1797,7 +1797,7 @@
 		"help_description_2": "contact support",
 		"help_description_3": " for help!"
 	},
-	"accountApprovalPermissions": {
+	"account_approval_permissions": {
 		"view_permissions_title": "View permissions",
 		"connect_title": "Connect to website",
 		"connected_accounts_tilte": "Connected accounts",
@@ -1808,6 +1808,7 @@
 		"account_not_connected": "Not connected",
 		"switch_to_accounts": "Switch to account",
 		"active": "Active",
-		"revoke": "Revoke"
+		"revoke": "Revoke",
+		"revoke_button": "Revoke all accounts permissions for this site"
 	}
 }

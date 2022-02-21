@@ -37,7 +37,6 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import WebviewError from '../../UI/WebviewError';
-import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
@@ -221,12 +220,6 @@ const styles = StyleSheet.create({
 
 const sessionENSNames = {};
 const ensIgnoreList = [];
-let approvedHosts = {};
-
-const getApprovedHosts = () => approvedHosts;
-const setApprovedHosts = (hosts) => {
-	approvedHosts = hosts;
-};
 
 export const BrowserTab = (props) => {
 	const [backEnabled, setBackEnabled] = useState(false);
@@ -355,9 +348,6 @@ export const BrowserTab = (props) => {
 					hostname,
 					getProviderState,
 					navigation: props.navigation,
-					getApprovedHosts,
-					setApprovedHosts,
-					approveHost: props.approveHost,
 					// Website info
 					url,
 					title,
@@ -639,7 +629,6 @@ export const BrowserTab = (props) => {
 	 * Set initial url, dapp scripts and engine. Similar to componentDidMount
 	 */
 	useEffect(() => {
-		approvedHosts = props.approvedHosts;
 		const initialUrl = props.initialUrl || HOMEPAGE_URL;
 		go(initialUrl, true);
 
@@ -847,7 +836,7 @@ export const BrowserTab = (props) => {
 		setAccountsPermissionsVisible((res) => !res);
 	};
 
-	const sendActiveAccount = async () => {
+	const sendActiveAccount = useCallback(async () => {
 		const hostname = new URL(url.current).hostname;
 		const accounts = await getPermittedAccounts(hostname);
 
@@ -867,7 +856,8 @@ export const BrowserTab = (props) => {
 		});
 
 		accountsPermissionsShown.current = hostname;
-	};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [notifyAllConnections, props.selectedAddress]);
 
 	/**
 	 * Website started to load
@@ -1360,9 +1350,15 @@ export const BrowserTab = (props) => {
 	};
 
 	const onAccountsChange = async (close = true) => {
-		sendActiveAccount();
 		if (close) setAccountsPermissionsVisible(false);
 	};
+
+	/**
+	 * Check whenever permissions change
+	 */
+	useEffect(() => {
+		sendActiveAccount();
+	}, [props.permittedAccounts, sendActiveAccount]);
 
 	/**
 	 * Manage hosts that were approved to connect with the user accounts
@@ -1375,7 +1371,10 @@ export const BrowserTab = (props) => {
 		const permittedAccountsMap = getPermittedAccountsByOrigin(Engine.context.PermissionController.state, hostname);
 
 		// NO ACCOUNTS CONNECTED
-		if (!permittedAccountsMap) return;
+		if (!permittedAccountsMap?.length) {
+			return;
+		}
+
 		if (
 			permittedAccountsMap?.find((account) => toChecksumAddress(account) === toChecksumAddress(selectedAddress))
 		) {
@@ -1387,7 +1386,7 @@ export const BrowserTab = (props) => {
 			}, 1000);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [notifyAllConnections, props.selectedAddress]);
+	}, [props.selectedAddress, sendActiveAccount]);
 
 	const renderAccountsApprovalModal = () => {
 		const hostname = new URL(url.current).hostname;
@@ -1475,14 +1474,6 @@ BrowserTab.propTypes = {
 	 */
 	initialUrl: PropTypes.string,
 	/**
-	 * Called to approve account access for a given hostname
-	 */
-	approveHost: PropTypes.func,
-	/**
-	 * Map of hostnames with approved account access
-	 */
-	approvedHosts: PropTypes.object,
-	/**
 	 * Protocol string to append to URLs that have none
 	 */
 	defaultProtocol: PropTypes.string,
@@ -1502,10 +1493,6 @@ BrowserTab.propTypes = {
 	 * A string representing the network id
 	 */
 	network: PropTypes.string,
-	/**
-	 * Indicates whether privacy mode is enabled
-	 */
-	privacyMode: PropTypes.bool,
 	/**
 	 * A string that represents the selected address
 	 */
@@ -1567,6 +1554,10 @@ BrowserTab.propTypes = {
 	 * the current version of the app
 	 */
 	app_version: PropTypes.string,
+	/**
+	 * Permissions state
+	 */
+	permittedAccounts: PropTypes.object,
 };
 
 BrowserTab.defaultProps = {
@@ -1574,20 +1565,18 @@ BrowserTab.defaultProps = {
 };
 
 const mapStateToProps = (state) => ({
-	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
-	privacyMode: state.privacy.privacyMode,
 	searchEngine: state.settings.searchEngine,
 	whitelist: state.browser.whitelist,
 	activeTab: state.browser.activeTab,
 	wizardStep: state.wizard.step,
+	permittedAccounts: state.engine.backgroundState.PermissionController,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-	approveHost: (hostname) => dispatch(approveHost(hostname)),
 	addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: (url) => dispatch(addToWhitelist(url)),

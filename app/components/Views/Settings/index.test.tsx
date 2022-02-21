@@ -7,7 +7,6 @@ import { Provider } from 'react-redux';
 const mockStore = configureMockStore();
 const initialState = {
 	user: { seedphraseBackedUp: true },
-	privacy: { approvedHosts: [], privacyMode: true },
 	browser: { history: [] },
 	settings: { lockTime: 1000, searchEngine: 'DuckDuckGo', useBlockieIcon: true },
 	engine: {
