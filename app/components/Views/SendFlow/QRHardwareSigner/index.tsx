@@ -8,7 +8,7 @@ interface IConnectQRHardwareProps {
 }
 
 const QRHardwareSigner = ({ navigation, route }: IConnectQRHardwareProps) => {
-	const QRState = route.params?.QRState;
+	const QRState = route.params.QRState;
 
 	const cancelCallback = useCallback(() => {
 		navigation.goBack();

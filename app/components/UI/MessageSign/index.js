@@ -128,7 +128,9 @@ export default class MessageSign extends PureComponent {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 			this.props.onConfirm();
 		} catch (e) {
-			this.props.onCancel();
+			if (e.message.startsWith('KeystoneError#Tx_canceled')) {
+				this.props.onCancel();
+			}
 		}
 	};
 

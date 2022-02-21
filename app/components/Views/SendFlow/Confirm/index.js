@@ -452,15 +452,9 @@ class Confirm extends PureComponent {
 		});
 		KeyringController.getQRKeyringState().then((memstore) => {
 			memstore.subscribe((value) => {
-				const { fromSelectedAddress, fromAccountName, fromAccountBalance } = this.state;
 				if (value && value.sign && value.sign.request) {
 					navigation.navigate('QRHardwareSigner', {
 						QRState: value,
-						from: {
-							fromSelectedAddress,
-							fromAccountName,
-							fromAccountBalance,
-						},
 					});
 				}
 			});
