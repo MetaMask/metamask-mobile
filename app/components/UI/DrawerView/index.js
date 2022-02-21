@@ -47,7 +47,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
-import onboardNetworkAction from '../../../actions/onboardNetwork';
+import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -402,6 +402,10 @@ class DrawerView extends PureComponent {
 		 * handles action for onboarding to a network
 		 */
 		onboardNetworkAction: PropTypes.func,
+		/**
+		 * returns network onboarding state
+		 */
+		networkOnboarding: PropTypes.object,
 	};
 
 	state = {
@@ -416,6 +420,7 @@ class DrawerView extends PureComponent {
 		networkType: undefined,
 		networkCurrency: undefined,
 		showModal: false,
+		networkUrl: undefined,
 	};
 
 	browserSectionRef = React.createRef();
@@ -538,9 +543,13 @@ class DrawerView extends PureComponent {
 	};
 
 	onInfoNetworksModalClose = async (manualClose) => {
+		const {
+			networkOnboarding: { showNetworkOnboarding, networkUrl },
+			onboardNetworkAction,
+		} = this.props;
 		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
-		this.toggleNetworksModal();
-		this.props.onboardNetworkAction(this.state.networkType);
+		!showNetworkOnboarding && this.toggleNetworksModal();
+		onboardNetworkAction(networkUrl || this.state.networkUrl);
 		if (!manualClose) {
 			await this.hideDrawer();
 		}
@@ -556,9 +565,10 @@ class DrawerView extends PureComponent {
 		}
 	};
 
-	onNetworkSelected = (type, currency) => {
+	onNetworkSelected = (type, currency, url) => {
 		this.setState({
 			networkType: type,
+			networkUrl: url || type,
 			networkCurrency: currency,
 			networkSelected: true,
 		});
@@ -978,6 +988,7 @@ class DrawerView extends PureComponent {
 			ticker,
 			seedphraseBackedUp,
 			currentRoute,
+			networkOnboarding,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -1151,7 +1162,7 @@ class DrawerView extends PureComponent {
 					</View>
 				</ScrollView>
 				<Modal
-					isVisible={this.props.networkModalVisible}
+					isVisible={this.props.networkModalVisible || networkOnboarding.showNetworkOnboarding}
 					onBackdropPress={this.state.showModal ? null : this.toggleNetworksModal}
 					onBackButtonPress={this.state.showModal ? null : this.toggleNetworksModa}
 					onSwipeComplete={this.state.showModal ? null : this.toggleNetworksModa}
@@ -1160,11 +1171,11 @@ class DrawerView extends PureComponent {
 					backdropColor={colors.overlay.default}
 					backdropOpacity={1}
 				>
-					{this.state.showModal ? (
+					{this.state.showModal || networkOnboarding.showNetworkOnboarding ? (
 						<NetworkInfo
 							onClose={this.onInfoNetworksModalClose}
-							type={this.state.networkType}
-							nativeToken={this.state.networkCurrency}
+							type={this.state.networkType || networkOnboarding.networkType}
+							nativeToken={this.state.networkCurrency || networkOnboarding.nativeToken}
 						/>
 					) : (
 						<NetworkList
@@ -1248,6 +1259,7 @@ const mapStateToProps = (state) => ({
 	collectibles: collectiblesSelector(state),
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	currentRoute: getCurrentRoute(state),
+	networkOnboarding: state.networkOnboarded.networkState,
 });
 
 const mapDispatchToProps = (dispatch) => ({

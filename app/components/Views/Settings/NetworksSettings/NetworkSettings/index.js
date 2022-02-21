@@ -19,6 +19,8 @@ import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { PRIVATENETWORK } from '../../../../../constants/network';
+import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -103,6 +105,10 @@ class NetworkSettings extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		/**
+		 * handles action for onboarding to a network
+		 */
+		showNetworkOnboardingAction: PropTypes.func,
 	};
 
 	state = {
@@ -287,6 +293,10 @@ class NetworkSettings extends PureComponent {
 		// Conditionally check existence of network (Only check in Add Mode)
 		const isNetworkExists = editable ? [] : await this.checkIfNetworkExists(rpcUrl);
 
+		const nativeToken = ticker || PRIVATENETWORK;
+		const networkType = nickname || rpcUrl;
+		const networkUrl = rpcUrl;
+
 		const formChainId = stateChainId.trim().toLowerCase();
 
 		// Ensure chainId is a 0x-prefixed, lowercase hex string
@@ -320,7 +330,7 @@ class NetworkSettings extends PureComponent {
 				network_name: 'rpc',
 			};
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
-
+			this.props.showNetworkOnboardingAction({ networkUrl, networkType, nativeToken });
 			navigation.navigate('WalletView');
 		}
 	};
@@ -623,9 +633,13 @@ class NetworkSettings extends PureComponent {
 }
 
 NetworkSettings.contextType = ThemeContext;
+const mapDispatchToProps = (dispatch) => ({
+	showNetworkOnboardingAction: ({ networkUrl, networkType, nativeToken }) =>
+		dispatch(showNetworkOnboardingAction({ networkUrl, networkType, nativeToken })),
+});
 
 const mapStateToProps = (state) => ({
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
-export default connect(mapStateToProps)(NetworkSettings);
+export default connect(mapStateToProps, mapDispatchToProps)(NetworkSettings);

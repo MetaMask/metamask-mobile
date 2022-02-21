@@ -156,15 +156,15 @@ export class NetworkList extends PureComponent {
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
-	handleNetworkSelected = (type, ticker) => {
+	handleNetworkSelected = (type, ticker, url) => {
 		const { networkOnboardedState, switchModalContent, onClose, onNetworkSelected } = this.props;
 		const networkOnboarded = networkOnboardedState.filter((item) => item.network === type);
-		if (!networkOnboarded.length === 0) {
+		if (networkOnboarded.length === 0) {
 			switchModalContent();
 		} else {
 			onClose(false);
 		}
-		return onNetworkSelected(type, ticker, networkOnboardedState);
+		return onNetworkSelected(type, ticker, url, networkOnboardedState);
 	};
 
 	onNetworkChange = (type) => {
@@ -201,7 +201,7 @@ export class NetworkList extends PureComponent {
 		} = rpc;
 		const useRpcName = nickname || rpcUrl;
 		const useTicker = ticker || PRIVATENETWORK;
-		this.handleNetworkSelected(useRpcName, useTicker);
+		this.handleNetworkSelected(useRpcName, useTicker, rpcUrl);
 
 		// If the network does not have chainId then show invalid custom network alert
 		const chainIdNumber = parseInt(chainId, 10);
