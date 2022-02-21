@@ -31,6 +31,7 @@ import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	tabUnderlineStyle: {
@@ -345,9 +346,11 @@ class TransactionReview extends PureComponent {
 			dappSuggestedGas,
 			navigation,
 			dappSuggestedGasWarning,
+			transaction: { from },
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
+
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
@@ -371,7 +374,7 @@ class TransactionReview extends PureComponent {
 						>
 							<View style={styles.actionViewChildren}>
 								<View style={styles.accountInfoCardWrapper}>
-									<AccountInfoCard />
+									<AccountInfoCard fromAddress={toChecksumAddress(from)} />
 								</View>
 								<TransactionReviewInformation
 									navigation={navigation}

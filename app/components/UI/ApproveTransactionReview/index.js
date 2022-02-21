@@ -41,6 +41,7 @@ import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -514,7 +515,7 @@ class ApproveTransactionReview extends PureComponent {
 			primaryCurrency,
 			gasError,
 			activeTabUrl,
-			transaction: { origin },
+			transaction: { origin, from },
 			network,
 			over,
 			EIP1559GasData,
@@ -573,7 +574,7 @@ class ApproveTransactionReview extends PureComponent {
 									</Text>
 								</TouchableOpacity>
 								<View style={styles.paddingHorizontal}>
-									<AccountInfoCard />
+									<AccountInfoCard fromAddress={toChecksumAddress(from)} />
 									<View style={styles.section}>
 										{showFeeMarket ? (
 											<TransactionReviewEIP1559

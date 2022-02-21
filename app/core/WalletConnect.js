@@ -278,10 +278,9 @@ class WalletConnect {
 		this.dappScheme.current = sessionData.peerMeta?.dappScheme;
 
 		this.hostname = new URL(this.url.current).hostname;
-
 		this.backgroundBridge = new BackgroundBridge({
 			webview: null,
-			url: this.hostname,
+			url: this.url.current,
 			isWalletConnect: true,
 			wcWalletConnector: this.walletConnector,
 			wcRequestActions: {

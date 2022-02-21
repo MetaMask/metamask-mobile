@@ -194,7 +194,13 @@ export default class TypedSign extends PureComponent {
 	};
 
 	render() {
-		const { messageParams, currentPageInformation, showExpandedMessage, toggleExpandedMessage } = this.props;
+		const {
+			messageParams,
+			currentPageInformation,
+			showExpandedMessage,
+			toggleExpandedMessage,
+			messageParams: { from },
+		} = this.props;
 		const { truncateMessage } = this.state;
 		const messageWrapperStyles = [];
 		let domain;
@@ -226,6 +232,7 @@ export default class TypedSign extends PureComponent {
 				currentPageInformation={currentPageInformation}
 				truncateMessage={truncateMessage}
 				type="typedSign"
+				fromAddress={from}
 			>
 				<View style={messageWrapperStyles} onLayout={truncateMessage ? null : this.shouldTruncateMessage}>
 					{this.renderTypedMessage()}

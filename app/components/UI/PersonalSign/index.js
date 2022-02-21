@@ -170,7 +170,13 @@ export default class PersonalSign extends PureComponent {
 	};
 
 	render() {
-		const { currentPageInformation, toggleExpandedMessage, showExpandedMessage } = this.props;
+		const {
+			currentPageInformation,
+			toggleExpandedMessage,
+			showExpandedMessage,
+			messageParams: { from },
+		} = this.props;
+
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
@@ -187,6 +193,7 @@ export default class PersonalSign extends PureComponent {
 				toggleExpandedMessage={toggleExpandedMessage}
 				truncateMessage={this.state.truncateMessage}
 				type="personalSign"
+				fromAddress={from}
 			>
 				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>
 			</SignatureRequest>

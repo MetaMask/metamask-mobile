@@ -14,6 +14,7 @@ import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
 	root: {
@@ -143,6 +144,10 @@ class SignatureRequest extends PureComponent {
 		 * Expands the message box on press.
 		 */
 		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * Current active address
+		 */
+		fromAddress: PropTypes.string,
 	};
 
 	/**
@@ -200,14 +205,14 @@ class SignatureRequest extends PureComponent {
 	);
 
 	renderActionViewChildren = () => {
-		const { children, currentPageInformation, truncateMessage, toggleExpandedMessage } = this.props;
+		const { children, currentPageInformation, truncateMessage, toggleExpandedMessage, fromAddress } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
 		const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
 		return (
 			<View style={styles.actionViewChild}>
 				<View style={styles.accountInfoCardWrapper}>
-					<AccountInfoCard operation="signing" />
+					<AccountInfoCard operation="signing" fromAddress={toChecksumAddress(fromAddress)} />
 				</View>
 				<TouchableOpacity style={styles.children} onPress={truncateMessage ? toggleExpandedMessage : null}>
 					<WebsiteIcon style={styles.domainLogo} title={title} url={url} />

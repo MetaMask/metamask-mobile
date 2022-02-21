@@ -94,6 +94,10 @@ class AccountApproval extends PureComponent {
 		 * A string representing the network chainId
 		 */
 		chainId: PropTypes.string,
+		/**
+		 * Current selected address
+		 */
+		selectedAddress: PropTypes.string,
 	};
 
 	state = {
@@ -178,14 +182,14 @@ class AccountApproval extends PureComponent {
 	};
 
 	render = () => {
-		const { currentPageInformation } = this.props;
+		const { currentPageInformation, selectedAddress } = this.props;
 		return (
 			<View style={styles.root} testID={'account-approval-modal-container'}>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
 				<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
 				<View style={styles.accountCardWrapper}>
-					<AccountInfoCard />
+					<AccountInfoCard fromAddress={selectedAddress} />
 				</View>
 				<View style={styles.actionContainer}>
 					<StyledButton
@@ -215,6 +219,7 @@ const mapStateToProps = (state) => ({
 	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
 export default connect(mapStateToProps)(AccountApproval);

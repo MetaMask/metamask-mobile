@@ -65,9 +65,9 @@ class AccountInfoCard extends PureComponent {
 		 */
 		identities: PropTypes.object,
 		/**
-		 * A string that represents the selected address
+		 * A string that represents the from address
 		 */
-		selectedAddress: PropTypes.string,
+		fromAddress: PropTypes.string.isRequired,
 		/**
 		 * A number that specifies the ETH/USD conversion rate
 		 */
@@ -87,16 +87,16 @@ class AccountInfoCard extends PureComponent {
 	};
 
 	render() {
-		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation, ticker } =
-			this.props;
-		const weiBalance = hexToBN(accounts[selectedAddress].balance);
+		const { accounts, fromAddress, identities, conversionRate, currentCurrency, operation, ticker } = this.props;
+		const weiBalance = hexToBN(accounts[fromAddress].balance);
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
-		const accountLabel = renderAccountName(selectedAddress, identities);
-		const address = renderShortAddress(selectedAddress);
+		const accountLabel = renderAccountName(fromAddress, identities);
+		const address = renderShortAddress(fromAddress);
 		const dollarBalance = weiToFiat(weiBalance, conversionRate, currentCurrency, 2)?.toUpperCase();
+
 		return (
 			<View style={styles.accountInformation}>
-				<Identicon address={selectedAddress} diameter={40} customStyle={styles.identicon} />
+				<Identicon address={fromAddress} diameter={40} customStyle={styles.identicon} />
 				<View style={styles.accountInfoRow}>
 					<View style={styles.accountNameAndAddress}>
 						<Text numberOfLines={1} style={styles.accountName}>
@@ -119,7 +119,6 @@ class AccountInfoCard extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	identities: state.engine.backgroundState.PreferencesController.identities,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,

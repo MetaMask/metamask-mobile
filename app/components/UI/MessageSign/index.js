@@ -156,7 +156,13 @@ export default class MessageSign extends PureComponent {
 	};
 
 	render() {
-		const { currentPageInformation, navigation, showExpandedMessage, toggleExpandedMessage } = this.props;
+		const {
+			currentPageInformation,
+			navigation,
+			showExpandedMessage,
+			toggleExpandedMessage,
+			messageParams: { from },
+		} = this.props;
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
@@ -174,6 +180,7 @@ export default class MessageSign extends PureComponent {
 				toggleExpandedMessage={toggleExpandedMessage}
 				type="ethSign"
 				showWarning
+				fromAddress={from}
 			>
 				<View style={styles.messageWrapper}>{this.renderMessageText()}</View>
 			</SignatureRequest>
