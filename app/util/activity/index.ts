@@ -36,7 +36,7 @@ export const sortTransactions = (transactions: any[]): any[] =>
  * 1. The transaction is from/to the current address
  * 2. The transaction was executed in the current chain
  * 3. The status of the transaction is different to 'unapproved'
- * 4. if the transaction is a token transfer, the user has that token in the wallet
+ * 4. If the transaction is a token transfer, the user must have that token in the wallet
  * @param tx - Transaction to evaluate
  * @param tokens - Arrays of tokens
  * @param selectedAddress - Current wallet address
