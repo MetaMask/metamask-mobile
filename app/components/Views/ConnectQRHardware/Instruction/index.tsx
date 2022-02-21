@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 
@@ -17,6 +17,9 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'column',
 		alignItems: 'center',
+	},
+	scrollWrapper: {
+		width: '100%',
 	},
 	title: {
 		width: '100%',
@@ -58,7 +61,7 @@ const styles = StyleSheet.create({
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 	const { onConnect } = props;
 	return (
-		<View style={styles.container}>
+		<ScrollView contentContainerStyle={styles.container} style={styles.scrollWrapper}>
 			<Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
 			<View style={styles.textContainer}>
 				<Text style={styles.text}>{strings('connect_qr_hardware.description1')}</Text>
@@ -70,7 +73,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 			<TouchableOpacity onPress={onConnect} style={styles.button}>
 				<Text style={styles.buttonText}>{strings('connect_qr_hardware.button_continue')}</Text>
 			</TouchableOpacity>
-		</View>
+		</ScrollView>
 	);
 };
 
