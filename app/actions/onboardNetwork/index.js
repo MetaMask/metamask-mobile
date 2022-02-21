@@ -4,9 +4,14 @@
  * @param {object} data object containing the event data
  * @returns
  */
-const onboardNetworkAction = (data) => ({
+export const onboardNetworkAction = (data) => ({
 	type: 'NETWORK_ONBOARDED',
 	payload: data,
 });
 
-export default onboardNetworkAction;
+export const showNetworkOnboardingAction = ({ networkUrl, networkType, nativeToken }) => ({
+	type: 'SHOW_NETWORK_ONBOARDING',
+	networkUrl,
+	networkType,
+	nativeToken,
+});
