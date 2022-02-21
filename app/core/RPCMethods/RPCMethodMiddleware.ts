@@ -42,7 +42,8 @@ interface RPCMethodsMiddleParameters {
 	// Wizard
 	wizardScrollAdjusted: { current: boolean };
 	// For the browser
-	isTabActive: () => boolean;
+	tabId: number;
+	isPermissionsModalActive: () => boolean;
 }
 
 /**
@@ -65,18 +66,26 @@ export const getRpcMethodMiddleware = ({
 	// Wizard
 	wizardScrollAdjusted,
 	// For the browser
-	isTabActive,
+	tabId,
+	isPermissionsModalActive,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
 		const Engine = ImportedEngine as any;
 
 		const checkTabActive = () => {
-			if (!isTabActive()) throw ethErrors.provider.userRejectedRequest();
+			if (!tabId) return true;
+			const { browser } = store.getState();
+			if (tabId !== browser.activeTab) throw ethErrors.provider.userRejectedRequest();
+		};
+
+		const checkPermissionsModalActive = () => {
+			if (isPermissionsModalActive()) throw ethErrors.provider.userRejectedRequest();
 		};
 
 		const requestUserApproval = async ({ type = '', requestData = {} }) => {
 			checkTabActive();
+			checkPermissionsModalActive();
 			await Engine.context.ApprovalController.clear(ethErrors.provider.userRejectedRequest());
 
 			const responseData = await Engine.context.ApprovalController.add({
@@ -139,6 +148,9 @@ export const getRpcMethodMiddleware = ({
 					res.result = permittedAccounts;
 				} else {
 					try {
+						checkTabActive();
+						checkPermissionsModalActive();
+						await Engine.context.ApprovalController.clear(ethErrors.provider.userRejectedRequest());
 						await Engine.context.PermissionController.requestPermissions(
 							{
 								origin: hostname,

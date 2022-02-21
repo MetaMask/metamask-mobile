@@ -297,7 +297,7 @@ class WalletConnect {
 					setShowUrlModal: () => null,
 					// Wizard
 					wizardScrollAdjusted: () => null,
-					isTabActive: () => true,
+					isPermissionsModalActive: () => false,
 				}),
 			isMainFrame: true,
 		});

@@ -172,22 +172,22 @@ const AccountListPermissions = ({
 			return onAccountConnect(address);
 		}
 		addPermittedAccount(hostname, address);
-		onAccountsChange(true);
+		onAccountsChange?.(true);
 	};
 
 	const onSwitch = (address: string) => {
 		switchToAccount(address);
-		onAccountsChange(true);
+		onAccountsChange?.(true);
 	};
 
 	const onRevoke = (address: string) => {
 		removePermittedAccount(hostname, address);
-		onAccountsChange(false);
+		onAccountsChange?.(false);
 	};
 
 	const revokeAllAccounts = () => {
 		Engine.context.PermissionController.revokeAllPermissions(hostname);
-		onAccountsChange(false);
+		onAccountsChange?.(false);
 	};
 
 	const togglePermissions = () => {

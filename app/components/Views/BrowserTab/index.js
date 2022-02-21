@@ -248,6 +248,13 @@ export const BrowserTab = (props) => {
 	const fromHomepage = useRef(false);
 	const wizardScrollAdjusted = useRef(false);
 
+	const permissionsModalActive = useRef(false);
+
+	const isPermissionsModalActive = () => permissionsModalActive.current;
+	useEffect(() => {
+		permissionsModalActive.current = accountsPermissionsVisible;
+	}, [accountsPermissionsVisible]);
+
 	/**
 	 * Is the current tab the active tab
 	 */
@@ -360,7 +367,8 @@ export const BrowserTab = (props) => {
 					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
-					isTabActive,
+					tabId: props.id,
+					isPermissionsModalActive,
 				}),
 			isMainFrame,
 		});
