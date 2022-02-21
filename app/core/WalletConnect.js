@@ -13,6 +13,7 @@ import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
+import { ethErrors } from 'eth-json-rpc-errors';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -151,6 +152,14 @@ class WalletConnect {
 					// We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
 					if (payload.method === 'eth_sendTransaction') {
 						const { TransactionController } = Engine.context;
+
+						const selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
+						if (payload.params[0].from.toLowerCase() !== selectedAddress.toLowerCase()) {
+							throw ethErrors.rpc.invalidParams({
+								message: `Invalid parameters: must provide an Ethereum address.`,
+							});
+						}
+
 						try {
 							const hash = await (
 								await TransactionController.addTransaction(
@@ -298,6 +307,7 @@ class WalletConnect {
 					// Wizard
 					wizardScrollAdjusted: () => null,
 					isPermissionsModalActive: () => false,
+					isWalletConnect: true,
 				}),
 			isMainFrame: true,
 		});

@@ -44,6 +44,8 @@ interface RPCMethodsMiddleParameters {
 	// For the browser
 	tabId: number;
 	isPermissionsModalActive: () => boolean;
+	// For WalletConnect
+	isWalletConnect: boolean;
 }
 
 /**
@@ -68,6 +70,8 @@ export const getRpcMethodMiddleware = ({
 	// For the browser
 	tabId,
 	isPermissionsModalActive,
+	// For WalletConnect
+	isWalletConnect,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -81,6 +85,31 @@ export const getRpcMethodMiddleware = ({
 
 		const checkPermissionsModalActive = () => {
 			if (isPermissionsModalActive()) throw ethErrors.provider.userRejectedRequest();
+		};
+
+		const isActiveAccount = async (address: string) => {
+			if (address) {
+				// For WalletConnect is still selectedAddress
+				if (isWalletConnect) {
+					const selectedAddress = Engine.context.PreferencesController.state.selectedAddress;
+					if (address.toLowerCase() === selectedAddress.toLowerCase()) {
+						return true;
+					}
+				} else {
+					// For Browser use permissions
+					const accounts = await getPermittedAccounts(hostname);
+					const normalizedAccounts = accounts.map((_address: string) => _address.toLowerCase());
+					const normalizedAddress = address.toLowerCase();
+
+					if (normalizedAccounts.includes(normalizedAddress)) {
+						return true;
+					}
+				}
+			}
+
+			throw ethErrors.rpc.invalidParams({
+				message: `Invalid parameters: must provide an Ethereum address.`,
+			});
 		};
 
 		const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -177,6 +206,13 @@ export const getRpcMethodMiddleware = ({
 				// eth-json-rpc-middleware – but our UI does not support it.
 				throw ethErrors.rpc.methodNotSupported();
 			},
+			eth_sendTransaction: async () => {
+				// Basic checks
+				checkTabActive();
+				checkPermissionsModalActive();
+				await isActiveAccount(req.params[0].from);
+				next();
+			},
 			eth_sign: async () => {
 				const { MessageManager } = Engine.context;
 				const pageMeta = {
@@ -190,6 +226,8 @@ export const getRpcMethodMiddleware = ({
 				checkTabActive();
 
 				if (req.params[1].length === 66 || req.params[1].length === 67) {
+					await isActiveAccount(req.params[0]);
+
 					const rawSig = await MessageManager.addUnapprovedMessageAsync({
 						data: req.params[1],
 						from: req.params[0],
@@ -226,6 +264,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				await isActiveAccount(params.from);
+
 				const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 					...params,
 					...pageMeta,
@@ -246,6 +286,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				await isActiveAccount(req.params[1]);
+
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[0],
@@ -294,6 +336,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				await isActiveAccount(req.params[0]);
+
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
@@ -342,6 +386,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				await isActiveAccount(req.params[0]);
+
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
