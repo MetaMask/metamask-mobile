@@ -662,16 +662,23 @@ export const BrowserTab = (props) => {
 	 * Enable the header to toggle the url modal and update other header data
 	 */
 	useEffect(() => {
-		if (props.activeTab === props.id) {
-			props.navigation.setParams({
-				showUrlModal: toggleUrlModal,
-				url: getMaskedUrl(url.current),
-				icon: icon.current,
-				error,
-				setAccountsPermissionsVisible,
-			});
-		}
+		const updateNavbar = async () => {
+			if (props.activeTab === props.id) {
+				const hostname = new URL(url.current).hostname;
+				const accounts = await getPermittedAccounts(hostname);
 
+				props.navigation.setParams({
+					showUrlModal: toggleUrlModal,
+					url: getMaskedUrl(url.current),
+					icon: icon.current,
+					error,
+					setAccountsPermissionsVisible,
+					connectedAccounts: accounts,
+				});
+			}
+		};
+
+		updateNavbar();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error, props.activeTab, props.id, toggleUrlModal]);
 
