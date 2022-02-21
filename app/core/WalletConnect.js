@@ -140,7 +140,7 @@ class WalletConnect {
 			if (payload.method) {
 				const payloadUrl = this.walletConnector.session.peerMeta.url;
 
-				if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+				if (new URL(payloadUrl).hostname === this.backgroundBridge.hostname) {
 					if (METHODS_TO_REDIRECT[payload.method]) {
 						this.requestsToRedirect[payload.id] = true;
 					}
