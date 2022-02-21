@@ -158,10 +158,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		navigation.goBack();
 	}, [KeyringController, checkedAccounts, navigation, resetError]);
 
-	const onForget = useCallback(() => {
+	const onForget = useCallback(async () => {
 		resetError();
-		KeyringController.forgetQRDevice();
-	}, [KeyringController, resetError]);
+		await KeyringController.forgetQRDevice();
+		navigation.goBack();
+	}, [KeyringController, navigation, resetError]);
 
 	return (
 		<Fragment>
