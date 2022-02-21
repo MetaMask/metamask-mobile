@@ -5,9 +5,9 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { colors } from '../../../../styles/common';
+import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Fragment, useMemo, useCallback } from 'react';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import Engine from '../../../core/Engine';
-import AnimatedQRScannerModal from './AnimatedQRScanner';
+import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';

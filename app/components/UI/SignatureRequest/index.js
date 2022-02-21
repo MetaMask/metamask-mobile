@@ -14,6 +14,8 @@ import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const styles = StyleSheet.create({
 	root: {
@@ -29,6 +31,9 @@ const styles = StyleSheet.create({
 	},
 	expandedHeight1: {
 		minHeight: '90%',
+	},
+	actionViewQRObject: {
+		height: 480,
 	},
 	signingInformation: {
 		alignItems: 'center',
@@ -143,6 +148,14 @@ class SignatureRequest extends PureComponent {
 		 * Expands the message box on press.
 		 */
 		toggleExpandedMessage: PropTypes.func,
+		/**
+		 * QR hardware state
+		 */
+		QRState: PropTypes.object,
+		/**
+		 * Whether current is signing QR hardware tx or message
+		 */
+		isSigningQRObject: PropTypes.bool,
 	};
 
 	/**
@@ -230,7 +243,7 @@ class SignatureRequest extends PureComponent {
 		</View>
 	);
 
-	render() {
+	renderSignatureRequest() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		let expandedHeight;
 		if (Device.isMediumDevice()) {
@@ -266,10 +279,24 @@ class SignatureRequest extends PureComponent {
 			</View>
 		);
 	}
+
+	renderQRDetails() {
+		const { QRState } = this.props;
+		return (
+			<View style={[styles.root, styles.actionViewQRObject]}>
+				<QRSigningDetails QRState={QRState} tighten showCancelButton />
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderSignatureRequest();
+	}
 }
 
 const mapStateToProps = (state) => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
-export default connect(mapStateToProps)(SignatureRequest);
+export default connect(mapStateToProps)(withQRHardwareAwareness(SignatureRequest));

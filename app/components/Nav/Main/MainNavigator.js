@@ -52,6 +52,7 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+import QRHardwareSigner from '../../Views/SendFlow/QRHardwareSigner';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -227,6 +228,11 @@ const SendFlowView = () => (
 		<Stack.Screen name="SendTo" component={SendTo} options={SendTo.navigationOptions} />
 		<Stack.Screen name="Amount" component={Amount} options={Amount.navigationOptions} />
 		<Stack.Screen name="Confirm" component={Confirm} options={Confirm.navigationOptions} />
+		<Stack.Screen
+			name="QRHardwareSigner"
+			component={QRHardwareSigner}
+			options={QRHardwareSigner.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 

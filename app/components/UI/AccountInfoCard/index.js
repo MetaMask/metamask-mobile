@@ -9,6 +9,8 @@ import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
 import Device from '../../../util/device';
+import Engine from '../../../core/Engine';
+import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
 
 const styles = StyleSheet.create({
 	accountInformation: {
@@ -18,6 +20,7 @@ const styles = StyleSheet.create({
 		borderColor: colors.grey200,
 		borderRadius: 10,
 		padding: 16,
+		alignItems: 'center',
 	},
 	identicon: {
 		marginRight: 8,
@@ -40,17 +43,36 @@ const styles = StyleSheet.create({
 		marginRight: 2,
 		color: colors.black,
 	},
+	accountNameSmall: {
+		fontSize: 12,
+	},
 	accountAddress: {
 		flexGrow: 1,
 		...fontStyles.bold,
 		fontSize: 16,
 		color: colors.black,
 	},
+	accountAddressSmall: {
+		fontSize: 12,
+	},
 	balanceText: {
 		...fontStyles.thin,
 		fontSize: 14,
 		alignSelf: 'flex-start',
 		color: colors.black,
+	},
+	balanceTextSmall: {
+		fontSize: 12,
+	},
+	tag: {
+		borderRadius: 14,
+		borderWidth: 1,
+		borderColor: colors.greyAssetVisibility,
+		padding: 4,
+	},
+	tagText: {
+		fontSize: 8,
+		fontWeight: 'bold',
 	},
 });
 
@@ -86,9 +108,24 @@ class AccountInfoCard extends PureComponent {
 		ticker: PropTypes.string,
 	};
 
+	state = {
+		isHardwareKeyring: false,
+	};
+
+	componentDidMount() {
+		const { KeyringController } = Engine.context;
+		const { selectedAddress } = this.props;
+		KeyringController.getAccountKeyringType(selectedAddress).then((type) => {
+			if (type === QR_HARDWARE_WALLET_DEVICE) {
+				this.setState({ isHardwareKeyring: true });
+			}
+		});
+	}
+
 	render() {
 		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation, ticker } =
 			this.props;
+		const { isHardwareKeyring } = this.state;
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
@@ -99,19 +136,33 @@ class AccountInfoCard extends PureComponent {
 				<Identicon address={selectedAddress} diameter={40} customStyle={styles.identicon} />
 				<View style={styles.accountInfoRow}>
 					<View style={styles.accountNameAndAddress}>
-						<Text numberOfLines={1} style={styles.accountName}>
+						<Text
+							numberOfLines={1}
+							style={[styles.accountName, isHardwareKeyring ? styles.accountNameSmall : undefined]}
+						>
 							{accountLabel}
 						</Text>
-						<Text numberOfLines={1} style={styles.accountAddress}>
+						<Text
+							numberOfLines={1}
+							style={[styles.accountAddress, isHardwareKeyring ? styles.accountAddressSmall : undefined]}
+						>
 							({address})
 						</Text>
 					</View>
 					{operation === 'signing' ? null : (
-						<Text numberOfLines={1} style={styles.balanceText}>
+						<Text
+							numberOfLines={1}
+							style={[styles.balanceText, isHardwareKeyring ? styles.balanceTextSmall : undefined]}
+						>
 							{strings('signature_request.balance_title')} {dollarBalance} {balance}
 						</Text>
 					)}
 				</View>
+				{isHardwareKeyring && (
+					<View style={styles.tag}>
+						<Text style={styles.tagText}>{strings('transaction.hardware')}</Text>
+					</View>
+				)}
 			</View>
 		);
 	}

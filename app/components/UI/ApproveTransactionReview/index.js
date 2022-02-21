@@ -41,6 +41,8 @@ import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 
 const { hexToBN } = util;
 const styles = StyleSheet.create({
@@ -245,6 +247,14 @@ class ApproveTransactionReview extends PureComponent {
 		 * Whether the transaction was confirmed or not
 		 */
 		transactionConfirmed: PropTypes.bool,
+		/**
+		 * QR hardware state
+		 */
+		QRState: PropTypes.object,
+		/**
+		 * Whether current is signing QR hardware tx or message
+		 */
+		isSigningQRObject: PropTypes.bool,
 	};
 
 	state = {
@@ -718,8 +728,26 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
+	renderQRDetails() {
+		const { host, spenderAddress } = this.state;
+		const {
+			activeTabUrl,
+			transaction: { origin },
+			QRState,
+		} = this.props;
+		return (
+			<View style={styles.section} testID={'qr-details'}>
+				<TransactionHeader
+					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+				/>
+				<QRSigningDetails QRState={QRState} />;
+			</View>
+		);
+	}
+
 	render = () => {
 		const { viewDetails, editPermissionVisible } = this.state;
+		const { isSigningQRObject } = this.props;
 
 		return (
 			<View>
@@ -727,6 +755,8 @@ class ApproveTransactionReview extends PureComponent {
 					? this.renderTransactionReview()
 					: editPermissionVisible
 					? this.renderEditPermission()
+					: isSigningQRObject
+					? this.renderQRDetails()
 					: this.renderDetails()}
 			</View>
 		);
@@ -753,4 +783,7 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(withQRHardwareAwareness(ApproveTransactionReview)));

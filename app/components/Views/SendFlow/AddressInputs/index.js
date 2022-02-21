@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { colors, fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -9,6 +9,8 @@ import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/validators';
+import Engine from '../../../../core/Engine';
+import { QR_HARDWARE_WALLET_DEVICE } from '../../../../constants/keyringTypes';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -67,6 +69,21 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 		color: colors.black,
 		fontSize: 14,
+	},
+	accountNameLabel: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	accountNameLabelText: {
+		marginLeft: 4,
+		paddingHorizontal: 8,
+		fontWeight: '700',
+		color: colors.grey500,
+		borderWidth: 1,
+		borderRadius: 8,
+		borderColor: colors.grey500,
+		fontSize: 10,
 	},
 	textBalance: {
 		...fontStyles.normal,
@@ -326,6 +343,19 @@ AddressTo.propTypes = {
 
 export const AddressFrom = (props) => {
 	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
+
+	const KeyringController = useMemo(() => {
+		const { KeyringController: keyring } = Engine.context;
+		return keyring;
+	}, []);
+	const [isHardwareAccount, setIsHardwareAccount] = useState(false);
+	useEffect(() => {
+		KeyringController.getAccountKeyringType(fromAccountAddress).then((type) => {
+			if (type === QR_HARDWARE_WALLET_DEVICE) {
+				setIsHardwareAccount(true);
+			}
+		});
+	}, [KeyringController, fromAccountAddress]);
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -336,7 +366,12 @@ export const AddressFrom = (props) => {
 					<Identicon address={fromAccountAddress} diameter={30} />
 				</View>
 				<View style={[baseStyles.flexGrow, styles.address]}>
-					<Text style={styles.textAddress}>{fromAccountName}</Text>
+					<View style={styles.accountNameLabel}>
+						<Text style={styles.textAddress}>{fromAccountName}</Text>
+						{isHardwareAccount && (
+							<Text style={styles.accountNameLabelText}>{strings('transaction.hardware')}</Text>
+						)}
+					</View>
 					<Text style={styles.textBalance}>{`${strings(
 						'transactions.address_from_balance'
 					)} ${fromAccountBalance}`}</Text>

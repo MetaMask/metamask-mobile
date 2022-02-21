@@ -68,6 +68,12 @@ const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
 
+const KEYRING_TYPE = {
+	simpleKeyPair: 'Simple Key Pair',
+	hdKeyTree: 'HD Key Tree',
+	qrHardwareWalletDevice: 'QR Hardware Wallet Device',
+};
+
 const EMPTY_LEGACY_TRANSACTION_DATA = {
 	transactionFeeFiat: '',
 	transactionFee: '',
@@ -365,6 +371,7 @@ class Confirm extends PureComponent {
 		LegacyTransactionData: EMPTY_LEGACY_TRANSACTION_DATA,
 		LegacyTransactionDataTemp: {},
 		gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM,
+		keyringType: KEYRING_TYPE.simpleKeyPair,
 	};
 
 	setNetworkNonce = async () => {
@@ -418,14 +425,17 @@ class Confirm extends PureComponent {
 	toggleWarningModal = () => this.setState((state) => ({ warningModalVisible: !state.warningModalVisible }));
 
 	componentWillUnmount = () => {
-		const { GasFeeController } = Engine.context;
+		const { GasFeeController, KeyringController } = Engine.context;
 		GasFeeController.stopPolling(this.state.pollToken);
+		const isQRHardwareWalletDevice = this.state.keyringType === KEYRING_TYPE.qrHardwareWalletDevice;
+		const shouldCancelQRHardwareSignRequest = isQRHardwareWalletDevice && this.state.transactionConfirmed;
+		shouldCancelQRHardwareSignRequest && KeyringController.cancelQRHardwareSignRequest();
 	};
 
 	componentDidMount = async () => {
 		this.getGasLimit();
 
-		const { GasFeeController } = Engine.context;
+		const { GasFeeController, KeyringController } = Engine.context;
 		const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(this.state.pollToken);
 		this.setState({ pollToken });
 		// For analytics
@@ -436,6 +446,19 @@ class Confirm extends PureComponent {
 		navigation.setParams({ providerType, isPaymentRequest });
 		this.handleConfusables();
 		this.parseTransactionDataHeader();
+
+		KeyringController.getAccountKeyringType(this.state.fromSelectedAddress).then((keyringType) => {
+			this.setState({ keyringType });
+		});
+		KeyringController.getQRKeyringState().then((memstore) => {
+			memstore.subscribe((value) => {
+				if (value && value.sign && value.sign.request) {
+					navigation.navigate('QRHardwareSigner', {
+						QRState: value,
+					});
+				}
+			});
+		});
 	};
 
 	componentDidUpdate = (prevProps, prevState) => {
@@ -1174,6 +1197,7 @@ class Confirm extends PureComponent {
 			LegacyTransactionData,
 			isAnimating,
 			animateOnChange,
+			keyringType,
 		} = this.state;
 
 		const showFeeMarket =
@@ -1183,6 +1207,7 @@ class Confirm extends PureComponent {
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
+		const isQRHardwareWalletDevice = keyringType === KEYRING_TYPE.qrHardwareWalletDevice;
 
 		const AdressToComponent = () => (
 			<AddressTo
@@ -1338,6 +1363,8 @@ class Confirm extends PureComponent {
 					>
 						{transactionConfirmed ? (
 							<ActivityIndicator size="small" color="white" />
+						) : isQRHardwareWalletDevice ? (
+							strings('transaction.confirm_with_qr_hardware')
 						) : (
 							strings('transaction.send')
 						)}

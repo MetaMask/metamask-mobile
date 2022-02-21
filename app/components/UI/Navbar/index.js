@@ -383,7 +383,7 @@ export function getSendFlowTitle(title, navigation, route) {
 	};
 	const leftAction = () => navigation.pop();
 
-	const canGoBack = title !== 'send.send_to' && !route?.params?.isPaymentRequest;
+	const canGoBack = title !== 'send.send_to' && !route?.params?.isPaymentRequest && title !== 'send.sign';
 
 	const titleToRender = title;
 
