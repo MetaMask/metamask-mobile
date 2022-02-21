@@ -1796,5 +1796,18 @@
 		"help_description_1": "We're here to help! Check out the FAQs below or ",
 		"help_description_2": "contact support",
 		"help_description_3": " for help!"
+	},
+	"accountApprovalPermissions": {
+		"view_permissions_title": "View permissions",
+		"connect_title": "Connect to website",
+		"connected_accounts_tilte": "Connected accounts",
+		"permission_description": "Allow site to see your address, account balance, activity, and suggest transactions.",
+		"not_connected_description": "MetaMask is not connected to this site. To connect to a web3 site, find the connect button on their site.",
+		"connect": "Connect",
+		"cancel": "Cancel",
+		"account_not_connected": "Not connected",
+		"switch_to_accounts": "Switch to account",
+		"active": "Active",
+		"revoke": "Revoke"
 	}
 }

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Identicon from '../Identicon';
 import { toggleAccountsModal } from '../../../actions/modals';
 import Device from '../../../util/device';
@@ -15,6 +15,12 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 		alignItems: 'center',
 		justifyContent: 'center',
+	},
+	notConnected: {
+		opacity: 0.4,
+	},
+	connected: {
+		opacity: 1,
 	},
 });
 
@@ -36,7 +42,13 @@ class AccountRightButton extends PureComponent {
 		 * List of accounts from the AccountTrackerController
 		 */
 		accounts: PropTypes.object,
+		/**
+		 * Address to show instead of the default selected address
+		 */
 		address: PropTypes.string,
+		/**
+		 * Action to take when clicked the button instead of the default action
+		 */
 		onPress: PropTypes.func,
 	};
 
@@ -60,13 +72,15 @@ class AccountRightButton extends PureComponent {
 	render = () => {
 		const { address, selectedAddress, onPress } = this.props;
 		return (
-			<TouchableOpacity
-				style={styles.leftButton}
-				onPress={onPress || this.toggleAccountsModal}
-				testID={'navbar-account-button'}
-			>
-				<Identicon diameter={28} address={address || selectedAddress} />
-			</TouchableOpacity>
+			<View style={!address ? styles.notConnected : styles.connected}>
+				<TouchableOpacity
+					style={[styles.leftButton]}
+					onPress={onPress || this.toggleAccountsModal}
+					testID={'navbar-account-button'}
+				>
+					<Identicon diameter={28} address={address || selectedAddress} />
+				</TouchableOpacity>
+			</View>
 		);
 	};
 }

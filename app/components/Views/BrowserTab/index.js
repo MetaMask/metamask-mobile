@@ -1402,7 +1402,15 @@ export const BrowserTab = (props) => {
 				propagateSwipe
 				useNativeDriver
 			>
-				<AccountListPermissions onAccountsChange={onAccountsChange} hostname={hostname} />
+				<AccountListPermissions
+					onAccountsChange={onAccountsChange}
+					hostname={hostname}
+					onCancel={toggleAccountsModal}
+					currentPageInformation={{
+						url: url.current,
+						icon: icon.current,
+					}}
+				/>
 			</Modal>
 		);
 	};

@@ -146,7 +146,9 @@ export const getRpcMethodMiddleware = ({
 				} else {
 					try {
 						await Engine.context.PermissionController.requestPermissions(
-							{ origin: hostname },
+							{
+								origin: hostname,
+							},
 							{ eth_accounts: {} },
 							{ id: random() }
 						);

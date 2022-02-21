@@ -121,6 +121,15 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.white,
 	},
+	alternativeConfirmText: {
+		color: colors.blue,
+		...fontStyles.normal,
+	},
+	alternativeConfirm: {
+		backgroundColor: colors.white,
+		borderWidth: 2,
+		borderColor: colors.grey000,
+	},
 });
 
 function getStyles(type) {
@@ -189,6 +198,10 @@ function getStyles(type) {
 		case 'view':
 			fontStyle = styles.viewText;
 			containerStyle = styles.view;
+			break;
+		case 'confirm-alternative':
+			fontStyle = styles.alternativeConfirmText;
+			containerStyle = styles.alternativeConfirm;
 			break;
 		default:
 			throw new Error('Unknown button type');
