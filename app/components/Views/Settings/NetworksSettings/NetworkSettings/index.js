@@ -41,6 +41,7 @@ const createStyles = (colors) =>
 			borderRadius: 5,
 			borderWidth: 2,
 			padding: 10,
+			color: colors.text.default,
 		},
 		warningText: {
 			...fontStyles.normal,
