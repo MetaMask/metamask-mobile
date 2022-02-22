@@ -3,7 +3,12 @@ import axios from 'axios';
 import qs from 'query-string';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES, NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
+import {
+	FIAT_ORDER_PROVIDERS,
+	FIAT_ORDER_STATES,
+	NETWORKS_CHAIN_ID,
+	NETWORK_PARAMETERS,
+} from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -103,15 +108,6 @@ export const TRANSAK_ORDER_STATES = {
 	EXPIRED: 'EXPIRED',
 	FAILED: 'FAILED',
 	CANCELLED: 'CANCELLED',
-};
-
-const NETWORK_CRYPTOCURRENCIES = {
-	[NETWORKS_CHAIN_ID.MAINNET]: ['ethereum', 'ETH', 'ETH,USDT,USDC,DAI'],
-	[NETWORKS_CHAIN_ID.BSC]: ['bsc', 'BNB', 'BNB,BUSD'],
-	[NETWORKS_CHAIN_ID.POLYGON]: ['polygon', 'MATIC', 'MATIC,USDT,USDC,DAI'],
-	[NETWORKS_CHAIN_ID.AVAXCCHAIN]: ['avaxcchain', 'AVAX', 'AVAX'],
-	[NETWORKS_CHAIN_ID.CELO]: ['celo', 'CELO', 'CELO'],
-	[NETWORKS_CHAIN_ID.FANTOM]: ['fantom', 'FTM', 'FTM'],
 };
 
 //* API
@@ -240,7 +236,7 @@ export async function processTransakOrder(order) {
 export const useTransakFlowURL = (address, chainId) => {
 	const params = useMemo(() => {
 		const selectedChainId = isTransakAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
-		const [network, defaultCryptoCurrency, cryptoCurrencyList] = NETWORK_CRYPTOCURRENCIES[selectedChainId];
+		const [network, defaultCryptoCurrency, cryptoCurrencyList] = NETWORK_PARAMETERS[selectedChainId];
 		return qs.stringify({
 			apiKey: TRANSAK_API_KEY,
 			defaultCryptoCurrency,
