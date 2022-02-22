@@ -259,8 +259,8 @@ class NetworksSettings extends PureComponent {
 			return { name, color, network, isCustomRPC: false };
 		});
 		const customRPC = this.props.frequentRpcList.map((network, i) => {
-			const { color, name } = { name: network.nickname || network.rpcUrl, color: null };
-			return { name, color, network, isCustomRPC: true };
+			const { color, name, url } = { name: network.nickname || network.rpcUrl, url: network.rpcUrl, color: null };
+			return { name, color, i, network: url, isCustomRPC: true };
 		});
 
 		const allActiveNetworks = defaultNetwork.concat(customRPC);
@@ -270,7 +270,7 @@ class NetworksSettings extends PureComponent {
 
 	clearSearchInput = () => this.setState({ searchString: '', filteredNetworks: [] });
 
-	searchResult = () => {
+	filteredResult = () => {
 		if (this.state.filteredNetworks.length > 0) {
 			return this.state.filteredNetworks.map((network, i) =>
 				this.networkElement(network.name, network.color || null, i, network.network, network.isCustomRPC)
@@ -301,7 +301,7 @@ class NetworksSettings extends PureComponent {
 				</View>
 				<ScrollView style={styles.networksWrapper}>
 					{this.state.searchString.length > 0 ? (
-						this.searchResult()
+						this.filteredResult()
 					) : (
 						<>
 							<Text style={styles.sectionLabel}>{strings('app_settings.mainnet')}</Text>
