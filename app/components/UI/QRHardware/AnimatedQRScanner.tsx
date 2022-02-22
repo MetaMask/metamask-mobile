@@ -10,6 +10,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
+import { UR } from '@ngraveio/bc-ur';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -74,20 +75,27 @@ const frameImage = require('images/frame.png'); // eslint-disable-line import/no
 interface AnimatedQRScannerProps {
 	visible: boolean;
 	purpose: 'sync' | 'sign';
-	onScanSuccess: (ur: string) => void;
+	onScanSuccess: (ur: UR) => void;
 	onScanError: (error: string) => void;
 	hideModal: () => void;
 }
 
+export const SupportedURType = {
+	CRYPTO_HDKEY: 'crypto-hdkey',
+	CRYPTO_ACCOUNT: 'crypto-account',
+	ETH_SIGNATURE: 'eth-signature',
+};
+
 const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 	const { visible, onScanError, purpose, onScanSuccess, hideModal } = props;
 	const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
+	const [progress, setProgress] = useState(0);
 
 	let expectedURTypes: string[];
 	if (purpose === 'sync') {
-		expectedURTypes = ['crypto-hdkey'];
+		expectedURTypes = [SupportedURType.CRYPTO_HDKEY, SupportedURType.CRYPTO_ACCOUNT];
 	} else {
-		expectedURTypes = ['eth-signature'];
+		expectedURTypes = [SupportedURType.ETH_SIGNATURE];
 	}
 
 	const hintText = useMemo(
@@ -116,23 +124,33 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
 	const onBarCodeRead = useCallback(
 		(response) => {
-			const content = response.data;
-			urDecoder.receivePart(content);
-			if (urDecoder.isError()) {
-				onScanError(urDecoder.resultError());
-			}
-			if (urDecoder.isSuccess()) {
-				const ur = urDecoder.resultUR();
-				if (expectedURTypes.includes(ur.type)) {
-					onScanSuccess(urDecoder.resultUR().cbor.toString('hex'));
-					setURDecoder(new URRegistryDecoder());
-				} else {
-					onScanError('Unexpected QR Code');
-					setURDecoder(new URRegistryDecoder());
+			try {
+				const content = response.data;
+				urDecoder.receivePart(content);
+				setProgress(Math.ceil(urDecoder.getProgress() * 100));
+				if (urDecoder.isError()) {
+					onScanError(strings('transaction.unknown_qr_code'));
 				}
+				if (urDecoder.isSuccess()) {
+					const ur = urDecoder.resultUR();
+					if (expectedURTypes.includes(ur.type)) {
+						onScanSuccess(ur);
+						setProgress(0);
+						setURDecoder(new URRegistryDecoder());
+					} else {
+						if (purpose === 'sync') {
+							onScanError(strings('transaction.invalid_qr_code_sync'));
+						} else {
+							onScanError(strings('transaction.invalid_qr_code_sign'));
+						}
+						setURDecoder(new URRegistryDecoder());
+					}
+				}
+			} catch (e) {
+				onScanError(strings('transaction.unknown_qr_code'));
 			}
 		},
-		[urDecoder, onScanError, expectedURTypes, onScanSuccess]
+		[urDecoder, onScanError, expectedURTypes, onScanSuccess, purpose]
 	);
 
 	return (
@@ -157,7 +175,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 							<Icon name={'ios-close'} size={50} color={'white'} />
 						</TouchableOpacity>
 						<Image source={frameImage} style={styles.frame} />
-						<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>
+						<Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${
+							progress ? `${progress.toString()}%` : ''
+						}`}</Text>
 					</SafeAreaView>
 				</RNCamera>
 			</View>

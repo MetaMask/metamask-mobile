@@ -1,7 +1,7 @@
-import React, { useEffect, useState, Fragment, useMemo, useCallback } from 'react';
-import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '../../../core/Engine';
-import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
+import AnimatedQRScannerModal, { SupportedURType } from '../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -9,6 +9,8 @@ import { colors } from '../../../styles/common';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
+import { UR } from '@ngraveio/bc-ur';
+import Alert, { AlertType } from '../../Base/Alert';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -91,9 +93,13 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		setAccounts(_accounts);
 	}, [KeyringController, resetError]);
 	const onScanSuccess = useCallback(
-		(ur: string) => {
+		(ur: UR) => {
 			hideScanner();
-			KeyringController.submitQRCryptoHDKey(ur);
+			if (ur.type === SupportedURType.CRYPTO_HDKEY) {
+				KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
+			} else {
+				KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
+			}
 			resetError();
 		},
 		[KeyringController, hideScanner, resetError]
@@ -165,6 +171,13 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		navigation.goBack();
 	}, [KeyringController, navigation, resetError]);
 
+	const renderAlert = () =>
+		errorMsg !== '' && (
+			<Alert type={AlertType.Error} onPress={resetError}>
+				<Text style={styles.error}>{errorMsg}</Text>
+			</Alert>
+		);
+
 	return (
 		<Fragment>
 			<View style={styles.container}>
@@ -172,9 +185,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 					<Icon name="close" size={18} />
 				</TouchableOpacity>
 				<Icon name="qrcode" size={42} style={styles.qrcode} />
-				{errorMsg !== '' && <Text style={styles.error}>{errorMsg}</Text>}
 				{accounts.length <= 0 ? (
-					<ConnectQRInstruction onConnect={onConnectHardware} />
+					<ConnectQRInstruction onConnect={onConnectHardware} renderAlert={renderAlert} />
 				) : (
 					<SelectQRAccounts
 						accounts={enhancedAccounts}

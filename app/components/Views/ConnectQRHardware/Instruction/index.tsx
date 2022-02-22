@@ -8,6 +8,7 @@ import { colors } from '../../../../styles/common';
 
 interface IConnectQRInstructionProps {
 	onConnect: () => void;
+	renderAlert: () => Element;
 }
 
 const connectQRHardwareImg = require('images/connect-qr-hardware.png'); // eslint-disable-line import/no-commonjs
@@ -25,10 +26,11 @@ const styles = StyleSheet.create({
 		width: '100%',
 		marginTop: 40,
 		fontSize: 24,
+		marginBottom: 20,
 	},
 	textContainer: {
 		width: '100%',
-		marginTop: 40,
+		marginTop: 20,
 	},
 	text: {
 		fontSize: 14,
@@ -53,16 +55,17 @@ const styles = StyleSheet.create({
 	image: {
 		width: 300,
 		height: 120,
-		marginTop: 60,
+		marginTop: 40,
 		marginBottom: 40,
 	},
 });
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
-	const { onConnect } = props;
+	const { onConnect, renderAlert } = props;
 	return (
 		<ScrollView contentContainerStyle={styles.container} style={styles.scrollWrapper}>
 			<Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
+			{renderAlert()}
 			<View style={styles.textContainer}>
 				<Text style={styles.text}>{strings('connect_qr_hardware.description1')}</Text>
 				<Text style={[styles.text, styles.link]}>{strings('connect_qr_hardware.description2')}</Text>

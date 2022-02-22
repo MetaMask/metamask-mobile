@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 		minHeight: '90%',
 	},
 	actionViewQRObject: {
-		height: 480,
+		height: 320,
 	},
 	signingInformation: {
 		alignItems: 'center',
@@ -284,7 +284,7 @@ class SignatureRequest extends PureComponent {
 		const { QRState } = this.props;
 		return (
 			<View style={[styles.root, styles.actionViewQRObject]}>
-				<QRSigningDetails QRState={QRState} tighten showCancelButton />
+				<QRSigningDetails QRState={QRState} showCancelButton showHint={false} />
 			</View>
 		);
 	}

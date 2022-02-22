@@ -30,6 +30,7 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { KeyringTypes } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -57,6 +58,24 @@ const styles = StyleSheet.create({
 	},
 	labelInput: {
 		marginBottom: Device.isAndroid() ? -10 : 0,
+	},
+	labelWrapper: {
+		flexDirection: 'row',
+	},
+	tag: {
+		marginTop: 2,
+		padding: 4,
+		paddingHorizontal: 8,
+		borderWidth: 1,
+		borderColor: colors.greyAssetVisibility,
+		height: 28,
+		borderRadius: 14,
+	},
+	tagText: {
+		fontSize: 12,
+		fontWeight: 'bold',
+		minWidth: 32,
+		textAlign: 'center',
 	},
 	addressWrapper: {
 		backgroundColor: colors.blue000,
@@ -177,6 +196,7 @@ class AccountOverview extends PureComponent {
 		accountLabel: '',
 		originalAccountLabel: '',
 		ens: undefined,
+		keyringType: KeyringTypes.hd,
 	};
 
 	editableLabelRef = React.createRef();
@@ -198,6 +218,8 @@ class AccountOverview extends PureComponent {
 
 	input = React.createRef();
 
+	KeyringController = Engine.context.KeyringController;
+
 	componentDidMount = () => {
 		const { identities, selectedAddress, onRef } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
@@ -206,12 +228,20 @@ class AccountOverview extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.doENSLookup();
 		});
+		this.KeyringController.getAccountKeyringType(this.props.account.address).then((keyringType) => {
+			this.setState({ keyringType });
+		});
 	};
 
 	componentDidUpdate(prevProps) {
 		if (prevProps.account.address !== this.props.account.address || prevProps.network !== this.props.network) {
 			requestAnimationFrame(() => {
 				this.doENSLookup();
+			});
+		}
+		if (prevProps.account.address !== this.props.account.address) {
+			this.KeyringController.getAccountKeyringType(this.props.account.address).then((keyringType) => {
+				this.setState({ keyringType });
 			});
 		}
 	}
@@ -306,7 +336,9 @@ class AccountOverview extends PureComponent {
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
-		const { accountLabelEditable, accountLabel, ens } = this.state;
+		const { accountLabelEditable, accountLabel, ens, keyringType } = this.state;
+
+		const isQRHardwareWalletAccount = keyringType === KeyringTypes.qr;
 
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
@@ -349,21 +381,28 @@ class AccountOverview extends PureComponent {
 									numberOfLines={1}
 								/>
 							) : (
-								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-									<Text
-										style={[
-											styles.label,
-											styles.onboardingWizardLabel,
-											onboardingWizard
-												? { borderColor: colors.blue }
-												: { borderColor: colors.white },
-										]}
-										numberOfLines={1}
-										testID={'edit-account-label'}
-									>
-										{isDefaultAccountName(name) && ens ? ens : name}
-									</Text>
-								</TouchableOpacity>
+								<View style={styles.labelWrapper}>
+									<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+										<Text
+											style={[
+												styles.label,
+												styles.onboardingWizardLabel,
+												onboardingWizard
+													? { borderColor: colors.blue }
+													: { borderColor: colors.white },
+											]}
+											numberOfLines={1}
+											testID={'edit-account-label'}
+										>
+											{isDefaultAccountName(name) && ens ? ens : name}
+										</Text>
+									</TouchableOpacity>
+									{isQRHardwareWalletAccount && (
+										<View style={styles.tag}>
+											<Text style={styles.tagText}>{strings('transaction.hardware')}</Text>
+										</View>
+									)}
+								</View>
 							)}
 						</View>
 						<Text style={styles.amountFiat}>{fiatBalance}</Text>
