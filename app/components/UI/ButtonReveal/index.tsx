@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { colors, fontStyles } from '../../../styles/common';
 import Svg, { Circle } from 'react-native-svg';
@@ -7,7 +7,6 @@ import Animated, {
 	useSharedValue,
 	useAnimatedProps,
 	withTiming,
-	useAnimatedGestureHandler,
 	runOnJS,
 	useAnimatedStyle,
 	useAnimatedReaction,
@@ -15,7 +14,6 @@ import Animated, {
 	Extrapolate,
 	runOnUI,
 } from 'react-native-reanimated';
-import { TapGestureHandlerGestureEvent, TapGestureHandler } from 'react-native-gesture-handler';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const radius = 14;
@@ -176,16 +174,6 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 		});
 	};
 
-	// Button state handler
-	const tapGestureHandler = useAnimatedGestureHandler<TapGestureHandlerGestureEvent>({
-		onStart: () => {
-			runOnJS(triggerPressStart)();
-		},
-		onEnd: () => {
-			runOnJS(triggerPressEnd)();
-		},
-	});
-
 	const outerCircleStyle = useAnimatedStyle(() => ({
 		transform: [{ scale: interpolate(postCompleteControl.value, [0, 0.5], [1, 0], Extrapolate.CLAMP) }],
 	}));
@@ -253,7 +241,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 	);
 
 	return (
-		<TapGestureHandler onGestureEvent={tapGestureHandler}>
+		<TouchableOpacity onPressIn={triggerPressStart} onPressOut={triggerPressEnd} activeOpacity={1}>
 			<Animated.View style={[styles.container, containerStyle]}>
 				<View style={styles.progressContainer}>
 					{renderPostCompletedContent()}
@@ -261,7 +249,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 				</View>
 				<Text style={styles.label}>{label}</Text>
 			</Animated.View>
-		</TapGestureHandler>
+		</TouchableOpacity>
 	);
 };
 
