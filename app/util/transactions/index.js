@@ -329,13 +329,13 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming
 			? selfSent
-				? ticker
+				? tokenUnit
 					? strings('transactions.self_sent_unit', { unit: tokenUnit })
 					: strings('transactions.self_sent_ether')
-				: ticker
+				: tokenUnit
 				? strings('transactions.received_unit', { unit: tokenUnit })
 				: strings('transactions.received_ether')
-			: ticker
+			: tokenUnit
 			? strings('transactions.sent_unit', { unit: tokenUnit })
 			: strings('transactions.sent_ether');
 	}
