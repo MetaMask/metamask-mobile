@@ -30,7 +30,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRamp
 		(countryCode) => {
 			setSelectedCountry(countryCode);
 			// we need always to replicate the country selection and mirror it to region selection for all countries excpet USA.
-			if (countryCode !== 'USA') {
+			if (countryCode !== 'us') {
 				setSelectedRegion(countryCode);
 				// update redux store by dispatching an action
 				dispatch(setFiatOrdersCountryAGG(countryCode));

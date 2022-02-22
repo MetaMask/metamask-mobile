@@ -62,7 +62,7 @@ export const getProviderName = (provider) => {
 		}
 	}
 };
-const INITIAL_SELECTED_COUNTRY = 'USA';
+const INITIAL_SELECTED_COUNTRY = 'us';
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
 const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
