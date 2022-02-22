@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.yellow100,
 		borderColor: colors.yellow,
 		borderWidth: 1,
+		marginBottom: 8,
 	},
 	accountNameContainer: {
 		flexDirection: 'row',
