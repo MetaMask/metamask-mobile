@@ -60,7 +60,7 @@ describe('Import wallet with 24 word seedphrase and delete wallet flow', () => {
 		await WalletView.tapDrawerButton();
 
 		await DrawerView.isVisible();
-		await DrawerView.tapLogOut();
+		await DrawerView.tapLockAccount();
 		await DrawerView.tapYesAlertButton();
 		await LoginView.isVisible();
 	});
