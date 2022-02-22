@@ -865,9 +865,11 @@ export const BrowserTab = (props) => {
 			}
 		}
 
-		props.navigation.setParams({
-			connectedAccounts: accounts,
-		});
+		if (isTabActive()) {
+			props.navigation.setParams({
+				connectedAccounts: accounts,
+			});
+		}
 
 		accountsPermissionsShown.current = hostname;
 		// eslint-disable-next-line react-hooks/exhaustive-deps

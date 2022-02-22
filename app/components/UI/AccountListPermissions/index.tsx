@@ -185,8 +185,8 @@ const AccountListPermissions = ({
 		onAccountsChange?.(false);
 	};
 
-	const revokeAllAccounts = () => {
-		Engine.context.PermissionController.revokeAllPermissions(hostname);
+	const revokeAllAccounts = async () => {
+		await Engine.context.PermissionController.revokeAllPermissions(hostname);
 		onAccountsChange?.(false);
 	};
 
