@@ -558,7 +558,7 @@ class Login extends PureComponent {
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									strings('login.login_button')
+									strings('login.unlock_button')
 								)}
 							</StyledButton>
 						</View>
