@@ -78,6 +78,9 @@ const createStyles = (colors) =>
 		icon: {
 			marginLeft: 8,
 		},
+		no_match_text: {
+			marginVertical: 10,
+		},
 	});
 
 /**
@@ -276,7 +279,7 @@ class NetworksSettings extends PureComponent {
 				this.networkElement(network.name, network.color || null, i, network.network, network.isCustomRPC)
 			);
 		}
-		return <CustomText>No matching results found.</CustomText>;
+		return <CustomText style={styles.no_match_text}>{strings('networks.no_match')}</CustomText>;
 	};
 
 	render() {

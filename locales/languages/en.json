@@ -1076,7 +1076,8 @@
 		"new_network": "New network added",
 		"network_name": "{{networkName}} Network",
 		"network_added": " is now available in the network selector.",
-    "provider": "A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully"
+    "provider": "A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully",
+    "no_match": "No matching results found."
   },
   "select": {
     "cancel": "Cancel",
