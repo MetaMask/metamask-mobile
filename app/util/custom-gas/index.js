@@ -114,7 +114,7 @@ export async function fetchBasicGasEstimates() {
 	// Timeout in 7 seconds
 	const timeout = 7000;
 
-	const fetchPromise = fetch(`https://api.metaswap.codefi.network/gasPrices`, {
+	const fetchPromise = fetch(`https://gas.metaswap.codefi.network/networks/1/gasPrices`, {
 		headers: {},
 		referrerPolicy: 'no-referrer-when-downgrade',
 		body: null,
