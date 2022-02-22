@@ -26,7 +26,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
-import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReivewDetailsCard';
+import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -256,7 +256,7 @@ class ApproveTransactionReview extends PureComponent {
 		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
-		spendLimitCustomValue: undefined,
+		spendLimitCustomValue: MINIMUM_VALUE,
 		ticker: getTicker(this.props.ticker),
 		viewDetails: false,
 		spenderAddress: '0x...',
@@ -388,7 +388,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	onPressSpendLimitUnlimitedSelected = () => {
-		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: undefined });
+		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: MINIMUM_VALUE });
 	};
 
 	onPressSpendLimitCustomSelected = () => {
@@ -489,14 +489,12 @@ class ApproveTransactionReview extends PureComponent {
 		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount } =
 			this.state;
 
-		const _spendLimitCustomValue = spendLimitCustomValue ?? MINIMUM_VALUE;
-
 		return (
 			<EditPermission
 				host={host}
 				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 				tokenSymbol={tokenSymbol}
-				spendLimitCustomValue={_spendLimitCustomValue}
+				spendLimitCustomValue={spendLimitCustomValue}
 				originalApproveAmount={originalApproveAmount}
 				onSetApprovalAmount={this.onEditPermissionSetAmount}
 				onSpendLimitCustomValueChange={this.onSpendLimitCustomValueChange}
