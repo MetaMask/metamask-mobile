@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
+	privacy: { thirdPartyApiMode: true },
 	engine: {
 		backgroundState: {
 			NetworkController: {

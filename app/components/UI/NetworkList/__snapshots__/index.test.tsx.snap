@@ -14,5 +14,6 @@ exports[`NetworkList should render correctly 1`] = `
       "type": "mainnet",
     }
   }
+  thirdPartyApiMode={true}
 />
 `;

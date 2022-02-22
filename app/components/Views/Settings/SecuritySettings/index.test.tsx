@@ -9,6 +9,7 @@ const initialState = {
 	browser: { history: [] },
 	settings: { lockTime: 1000 },
 	user: { passwordSet: true },
+	privacy: { thirdPartyApiMode: true },
 	engine: {
 		backgroundState: {
 			PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
