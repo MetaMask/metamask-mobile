@@ -11,24 +11,25 @@ import {
 	Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-import { colors, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
-import { strings } from '../../../../locales/i18n';
-import ActionView from '../../UI/ActionView';
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import Engine from '../../../core/Engine';
-import { connect } from 'react-redux';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
-import { showAlert } from '../../../actions/alert';
 import QRCode from 'react-native-qrcode-svg';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import ScrollableTabView, { DefaultTabBar } from 'react-native-scrollable-tab-view';
+import Icon from 'react-native-vector-icons/FontAwesome5';
+import { connect } from 'react-redux';
+
+import ActionView from '../../UI/ActionView';
+import ButtonReveal from '../../UI/ButtonReveal';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import InfoModal from '../../UI/Swaps/components/InfoModal';
+import { showAlert } from '../../../actions/alert';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
-import InfoModal from '../../UI/Swaps/components/InfoModal';
+import Engine from '../../../core/Engine';
+import PreventScreenshot from '../../../core/PreventScreenshot';
+import SecureKeychain from '../../../core/SecureKeychain';
+import { colors, fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -138,31 +139,8 @@ const styles = StyleSheet.create({
 		letterSpacing: 0.5,
 		...fontStyles.bold,
 	},
-	holdButton: {
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexDirection: 'row',
-		width: 180,
-		alignSelf: 'center',
-		backgroundColor: colors.blue,
-		borderRadius: 100,
-		marginTop: 30,
-		padding: 8,
-		paddingRight: 15,
-	},
-	buttonText: {
-		color: colors.white,
-	},
-	buttonIcon: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		height: 30,
-		width: 30,
-		borderWidth: 3,
-		borderRadius: 20,
-		borderColor: colors.black + '66',
-		paddingLeft: 1,
-		paddingBottom: 1,
+	revealModalText: {
+		marginBottom: 20,
 	},
 });
 
@@ -421,7 +399,7 @@ class RevealPrivateCredential extends PureComponent {
 				toggleModal={this.closeModal}
 				body={
 					<>
-						<Text style={styles.normalText}>
+						<Text style={[styles.normalText, styles.revealModalText]}>
 							{strings('reveal_credential.seed_phrase_modal')[0]}
 							<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_modal')[1]}</Text>
 							{strings('reveal_credential.seed_phrase_modal')[2]}
@@ -432,20 +410,13 @@ class RevealPrivateCredential extends PureComponent {
 							</TouchableOpacity>
 						</Text>
 
-						<TouchableOpacity
-							style={styles.holdButton}
+						<ButtonReveal
+							label={strings('reveal_credential.hold_to_reveal_srp')}
 							onLongPress={this.revearlSRP}
-							delayLongPress={2000}
-							testID={'seed-phrase-hold-to-reveal'}
-						>
-							<View style={styles.buttonIcon}>
-								<Icon name={'lock'} size={10} color={colors.white} />
-							</View>
-							<Text style={styles.buttonText}>{strings('reveal_credential.hold_to_reveal_srp')}</Text>
-						</TouchableOpacity>
+						/>
 					</>
 				}
-				title={'Keep your SRP safe'}
+				title={strings('reveal_credential.keep_srp_safe')}
 			/>
 		);
 	}
