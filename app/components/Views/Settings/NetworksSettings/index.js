@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ActionSheet from 'react-native-actionsheet';
 import { fontStyles } from '../../../../styles/common';
+import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../../util/networks';
@@ -110,6 +111,7 @@ class NetworksSettings extends PureComponent {
 
 	state = {
 		searchString: '',
+		filteredNetworks: [],
 	};
 
   updateNavBar = () => {
@@ -250,9 +252,32 @@ class NetworksSettings extends PureComponent {
 		);
 	}
 
-	handleSearchTextChange = (text) => this.setState({ searchString: text });
+	handleSearchTextChange = (text) => {
+		this.setState({ searchString: text });
+		const defaultNetwork = getAllNetworks().map((network, i) => {
+			const { color, name } = Networks[network];
+			return { name, color, network, isCustomRPC: false };
+		});
+		const customRPC = this.props.frequentRpcList.map((network, i) => {
+			const { color, name } = { name: network.nickname || network.rpcUrl, color: null };
+			return { name, color, network, isCustomRPC: true };
+		});
 
-	clearSearchInput = () => this.setState({ searchString: '' });
+		const allActiveNetworks = defaultNetwork.concat(customRPC);
+		const searchResult = allActiveNetworks.filter(({ name }) => name.toLowerCase().includes(text.toLowerCase()));
+		this.setState({ filteredNetworks: searchResult });
+	};
+
+	clearSearchInput = () => this.setState({ searchString: '', filteredNetworks: [] });
+
+	searchResult = () => {
+		if (this.state.filteredNetworks.length > 0) {
+			return this.state.filteredNetworks.map((network, i) =>
+				this.networkElement(network.name, network.color || null, i, network.network, network.isCustomRPC)
+			);
+		}
+		return <CustomText>No matching results found.</CustomText>;
+	};
 
 	render() {
 		const colors = this.context.colors || mockTheme.colors;
@@ -275,11 +300,17 @@ class NetworksSettings extends PureComponent {
 					)}
 				</View>
 				<ScrollView style={styles.networksWrapper}>
-					<Text style={styles.sectionLabel}>{strings('app_settings.mainnet')}</Text>
-					{this.renderMainnet()}
-					{this.renderRpcNetworksView()}
-					<Text style={styles.sectionLabel}>{strings('app_settings.test_network_name')}</Text>
-					{this.renderOtherNetworks()}
+					{this.state.searchString.length > 0 ? (
+						this.searchResult()
+					) : (
+						<>
+							<Text style={styles.sectionLabel}>{strings('app_settings.mainnet')}</Text>
+							{this.renderMainnet()}
+							{this.renderRpcNetworksView()}
+							<Text style={styles.sectionLabel}>{strings('app_settings.test_network_name')}</Text>
+							{this.renderOtherNetworks()}
+						</>
+					)}
 				</ScrollView>
 				<StyledButton
 					type="confirm"
