@@ -1099,10 +1099,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@codefi/on-ramp-sdk@^0.0.1":
-  version "0.0.1"
-  resolved "https://nexus.eu-west-3.codefi.network/repository/npm-hosted/@codefi/on-ramp-sdk/-/on-ramp-sdk-0.0.1.tgz#ec1430f6b5c9c3c9a4d4ef4d6018ae7217213ee5"
-  integrity sha512-c44fz05Wv2+IC8uqzE/vBoBR2VTn9bxf8VDN5aBu+9i7LyOu+n+V0Cd/6UA7f7JawWrydu2i4RrAE1dUrIfaxw==
+"@codefi/on-ramp-sdk@^0.0.4":
+  version "0.0.4"
+  resolved "https://nexus.eu-west-3.codefi.network/repository/npm-hosted/@codefi/on-ramp-sdk/-/on-ramp-sdk-0.0.4.tgz#a00a8b874b98185cbbfc936b6348841afdfe5293"
+  integrity sha512-/oYWdbtsst7IHOOtpD8BZgdzgI+Z2ogzKYLDUqNmHBPGzIOpy02Do/7ITWucMpebE/mb4rJmTDkoe/c7U5bLGg==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"

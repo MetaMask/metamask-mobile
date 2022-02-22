@@ -1,13 +1,11 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk } from '@codefi/on-ramp-sdk';
-import { IOnRampSdk } from '@codefi/on-ramp-sdk/dist/IOnRampSdk';
-import axios from 'axios';
+import { OnRampSdk, IOnRampSdk } from '@codefi/on-ramp-sdk';
 import { fiatOrdersCountrySelectorAgg, setFiatOrdersCountryAGG } from '../../../../reducers/fiatOrders';
 const SDKContext = createContext<IOnRampSdk | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRampSdk>) => {
-	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk('https://localhost:3000/', axios), []);
+	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk(), []);
 
 	useEffect(() => {
 		if (sdk) sdk.init();

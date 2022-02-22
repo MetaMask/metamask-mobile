@@ -95,7 +95,7 @@
     "simple-get": "4.0.1"
   },
   "dependencies": {
-    "@codefi/on-ramp-sdk": "^0.0.1",
+    "@codefi/on-ramp-sdk": "^0.0.4",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@metamask/contract-metadata": "^1.30.0",
     "@metamask/controllers": "^22.0.0",
