@@ -315,16 +315,18 @@ export async function getTransactionActionKey(transaction, chainId) {
  * @returns {string} - Transaction type message
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
-	let tokenUnit = ticker;
-	if (tx?.isTransfer) {
-		// Third party sending wrong token symbol
-		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) {
-			tx.transferInformation.symbol = 'SAI';
-		}
-		tokenUnit = tx.transferInformation.symbol;
-	}
 	const actionKey = await getTransactionActionKey(tx, chainId);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
+		let tokenUnit = ticker;
+
+		if (tx?.isTransfer) {
+			// Third party sending wrong token symbol
+			if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) {
+				tx.transferInformation.symbol = 'SAI';
+			}
+			tokenUnit = tx.transferInformation.symbol;
+		}
+
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming
