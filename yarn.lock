@@ -2148,6 +2148,17 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+"@keystonehq/base-eth-keyring@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.3.2.tgz#71efe1495d4931fab5fd0016c8722fe5d9657da9"
+  integrity sha512-y/kv8XNRSzqcSl7fvZklBKr4MVir1OJHzqM5vC+3yvzkh3mVtN8vUjAAxHtmVVVyM8rsdqK7aYZ7paexYdpnag==
+  dependencies:
+    "@ethereumjs/tx" "3.0.0"
+    "@keystonehq/bc-ur-registry-eth" "^0.7.7"
+    ethereumjs-util "^7.0.8"
+    hdkey "^2.0.1"
+    uuid "^8.3.2"
+
 "@keystonehq/base-eth-keyring@^0.3.2-alpha.2":
   version "0.3.2-alpha.2"
   resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.3.2-alpha.2.tgz#e3ff00eb468e26f1676503e060f7ab3ea453120e"
@@ -2179,6 +2190,16 @@
     hdkey "^2.0.1"
     uuid "^8.3.2"
 
+"@keystonehq/bc-ur-registry-eth@^0.7.7":
+  version "0.7.7"
+  resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry-eth/-/bc-ur-registry-eth-0.7.7.tgz#45267510900049050ef860a1e78fde9087b75972"
+  integrity sha512-2gZf18ogSCLjsn3PxGqwiOMz/G11v7byRnTLv5/wNJGzCqkMf86OKaVbUgsVokq0B5KAZtpCFQxj96rrFhPRiQ==
+  dependencies:
+    "@keystonehq/bc-ur-registry" "^0.4.4"
+    ethereumjs-util "^7.0.8"
+    hdkey "^2.0.1"
+    uuid "^8.3.2"
+
 "@keystonehq/bc-ur-registry@^0.4.4":
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry/-/bc-ur-registry-0.4.4.tgz#3073fdd4b33cdcbd04526a313a7685891a4b4583"
@@ -2187,6 +2208,18 @@
     "@ngraveio/bc-ur" "^1.1.5"
     base58check "^2.0.0"
     tslib "^2.3.0"
+
+"@keystonehq/metamask-airgapped-keyring@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@keystonehq/metamask-airgapped-keyring/-/metamask-airgapped-keyring-0.2.2.tgz#8beb3e3fddf814be05e3c3178f973769b3ab40d7"
+  integrity sha512-1tuSNpc98jEoJ/9sptasxG6hm8KzESx0ShbKtPkNNKP+XxcDuMi632n03E748X98leCscI+M1WlRvsTryiEB8Q==
+  dependencies:
+    "@ethereumjs/tx" "^3.3.0"
+    "@keystonehq/base-eth-keyring" "^0.3.2"
+    "@keystonehq/bc-ur-registry-eth" "^0.7.7"
+    "@metamask/obs-store" "^7.0.0"
+    rlp "^2.2.6"
+    uuid "^8.3.2"
 
 "@keystonehq/metamask-airgapped-keyring@^0.2.2-alpha.2":
   version "0.2.2-alpha.2"
@@ -2231,42 +2264,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.30.0.tgz#fa8e1b0c3e7aaa963986088f691fb553ffbe3904"
   integrity sha512-b2usYW/ptQYnE6zhUmr4T+nvOAQJK5ABcpKudyQANpy4K099elpv4aN0WcrcOcwV99NHOdMzFP3ZuG0HoAyOBQ==
 
-"@metamask/controllers@25.1.0":
-  version "25.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-25.1.0.tgz#2efee24a9a2b03ab2a2b0422c8f250931c269560"
-  integrity sha512-syndn2lIhtlACzaqjDrw23dJzw8pZ6en4Cr35C7B9RRS87EhahUqkPP73moAzLtvbyqtBlAUO1HHrqV3lw4E5g==
-  dependencies:
-    "@ethereumjs/common" "^2.3.1"
-    "@ethereumjs/tx" "^3.2.1"
-    "@metamask/contract-metadata" "^1.31.0"
-    "@metamask/metamask-eth-abis" "^2.1.0"
-    "@types/uuid" "^8.3.0"
-    abort-controller "^3.0.0"
-    async-mutex "^0.2.6"
-    babel-runtime "^6.26.0"
-    eth-ens-namehash "^2.0.8"
-    eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^6.2.1"
-    eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.14"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.0"
-    eth-sig-util "^3.0.0"
-    ethereumjs-util "^7.0.10"
-    ethereumjs-wallet "^1.0.1"
-    ethers "^5.4.1"
-    ethjs-unit "^0.1.6"
-    immer "^9.0.6"
-    isomorphic-fetch "^3.0.0"
-    jsonschema "^1.2.4"
-    multiformats "^9.5.2"
-    nanoid "^3.1.31"
-    punycode "^2.1.1"
-    single-call-balance-checker-abi "^1.0.0"
-    uuid "^8.3.2"
-    web3 "^0.20.7"
-    web3-provider-engine "^16.0.3"
-
 "@metamask/controllers@^15.0.1":
   version "15.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-15.1.0.tgz#f480e7bdfb8c4a31ea8b21214b919478df507cab"
@@ -2304,6 +2301,42 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
+"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#82b84327bd79122a0bc55cff679df94c270b7333":
+  version "25.1.0"
+  resolved "git+https://github.com/MetaMask/controllers.git#82b84327bd79122a0bc55cff679df94c270b7333"
+  dependencies:
+    "@ethereumjs/common" "^2.3.1"
+    "@ethereumjs/tx" "^3.2.1"
+    "@keystonehq/metamask-airgapped-keyring" "^0.2.2"
+    "@metamask/contract-metadata" "^1.31.0"
+    "@metamask/metamask-eth-abis" "3.0.0"
+    "@types/uuid" "^8.3.0"
+    abort-controller "^3.0.0"
+    async-mutex "^0.2.6"
+    babel-runtime "^6.26.0"
+    eth-ens-namehash "^2.0.8"
+    eth-json-rpc-infura "^5.1.0"
+    eth-keyring-controller "^6.2.1"
+    eth-method-registry "1.1.0"
+    eth-phishing-detect "^1.1.14"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^4.0.0"
+    eth-sig-util "^3.0.0"
+    ethereumjs-util "^7.0.10"
+    ethereumjs-wallet "^1.0.1"
+    ethers "^5.4.1"
+    ethjs-unit "^0.1.6"
+    immer "^9.0.6"
+    isomorphic-fetch "^3.0.0"
+    jsonschema "^1.2.4"
+    multiformats "^9.5.2"
+    nanoid "^3.1.31"
+    punycode "^2.1.1"
+    single-call-balance-checker-abi "^1.0.0"
+    uuid "^8.3.2"
+    web3 "^0.20.7"
+    web3-provider-engine "^16.0.3"
+
 "@metamask/eslint-config-typescript@^7.0.0":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/eslint-config-typescript/-/eslint-config-typescript-7.0.1.tgz#e013f7f0505741b9321cab21351136f651abbba6"
@@ -2319,10 +2352,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/etherscan-link/-/etherscan-link-2.1.0.tgz#c0be8e68445b7b83cf85bcc03a56cdf8e256c973"
   integrity sha512-ADuWlTUkFfN2vXlz81Bg/0BA+XRor+CdK1055p6k7H6BLIPoDKn9SBOFld9haQFuR9cKh/JYHcnlSIv5R4fUEw==
 
-"@metamask/metamask-eth-abis@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-2.1.0.tgz#316c2e72373506f1a0120b76e432760a27eb6806"
-  integrity sha512-T8LBEB0PQo0N1tZQKZ2K8BGmv+IDLcXkzt8Pn7x0YnwZD6YpCIvKqYM3iy2fJ6wFXeCvRKqpn4K6EqwnkSJAbQ==
+"@metamask/metamask-eth-abis@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.0.0.tgz#eccc0746b3ab1ab63000444403819c16e88b5272"
+  integrity sha512-YtIl4e1VzqwwHGafuLIVPqbcWWWqQ0Ezo8/Ci5m5OGllqE2oTTx9iVHdUmXNkgCVD37SBfwn/fm/S1IGkM8BQA==
 
 "@metamask/mobile-provider@^2.1.0":
   version "2.1.0"
@@ -12018,11 +12051,6 @@ nano-json-stream-parser@^0.1.2:
   integrity sha1-DMj20OK2IrR5xA1JnEbWS3Vcb18=
 
 nanoid@^3.1.12, nanoid@^3.1.15, nanoid@^3.1.31:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.2.0.tgz#62667522da6673971cca916a6d3eff3f415ff80c"
-  integrity sha512-fmsZYa9lpn69Ad5eDn7FMcnnSR+8R34W9qJEijxYhTbfOWzr22n1QxCMzXLK+ODyW2973V3Fux959iQoUxzUIA==
-
-nanoid@^3.1.31:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.2.0.tgz#62667522da6673971cca916a6d3eff3f415ff80c"
   integrity sha512-fmsZYa9lpn69Ad5eDn7FMcnnSR+8R34W9qJEijxYhTbfOWzr22n1QxCMzXLK+ODyW2973V3Fux959iQoUxzUIA==
