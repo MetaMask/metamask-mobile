@@ -55,7 +55,7 @@ class TransakWebView extends PureComponent {
 		route: PropTypes.object,
 	};
 
-	addTokenToAssetsController = async (symbol, chainId) => {
+	addTokenToTokensController = async (symbol, chainId) => {
 		const { TokensController } = Engine.context;
 		if (NETWORK_NATIVE_SYMBOL[chainId] !== symbol) {
 			const newToken = (NETWORK_ALLOWED_TOKENS[chainId] || []).find(
@@ -74,7 +74,7 @@ class TransakWebView extends PureComponent {
 	handleNavigationStateChange = async (navState) => {
 		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.TRANSAK_REDIRECT_URL) > -1) {
 			const order = handleTransakRedirect(navState.url, this.props.network);
-			this.addTokenToAssetsController(order.cryptocurrency, this.props.network);
+			this.addTokenToTokensController(order.cryptocurrency, this.props.network);
 			this.props.addOrder(order);
 			this.props.protectWalletModalVisible();
 			this.props.navigation.dangerouslyGetParent()?.pop();
