@@ -106,58 +106,24 @@ export function parseWaitTime(min) {
 }
 
 /**
- * Fetches gas estimated from gas station
- *
- * @returns {Object} - Object containing basic estimates
- */
-export async function fetchBasicGasEstimates() {
-	// Timeout in 7 seconds
-	const timeout = 7000;
-
-	const fetchPromise = fetch(`https://gas.metaswap.codefi.network/networks/1/gasPrices`, {
-		headers: {},
-		referrerPolicy: 'no-referrer-when-downgrade',
-		body: null,
-		method: 'GET',
-		mode: 'cors',
-	})
-		.then((r) => r.json())
-		.then(({ SafeGasPrice, ProposeGasPrice, FastGasPrice }) => {
-			const basicEstimates = {
-				average: ProposeGasPrice,
-				safeLow: SafeGasPrice,
-				fast: FastGasPrice,
-			};
-
-			return basicEstimates;
-		});
-
-	return Promise.race([
-		fetchPromise,
-		new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout)),
-	]);
-}
-
-/**
  * Sanitize gas estimates into formatted wait times
  *
- * @returns {Object} - Object containing formatted wait times
+ * @returns {Promise<Object>} - Object containing formatted wait times
  */
 export async function getBasicGasEstimates() {
-	const basicGasEstimates = await fetchBasicGasEstimates();
+	try {
+		const { GasFeeController } = Engine.context;
+		const { gasFeeEstimates } = await GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false });
 
-	// Handle api failure returning same gas prices
-	const { average, fast, safeLow } = basicGasEstimates;
-
-	if (average === fast && average === safeLow) {
-		throw new Error('Api returned same gas prices');
+		return {
+			averageGwei: gasFeeEstimates.estimatedBaseFee,
+			fastGwei: gasFeeEstimates.high.suggestedMaxFeePerGas,
+			safeLowGwei: gasFeeEstimates.low.suggestedMaxFeePerGas,
+		};
+	} catch (error) {
+		Logger.error('Error while trying to get gas estimates', error);
+		throw new Error(error);
 	}
-
-	return {
-		averageGwei: convertApiValueToGWEI(average),
-		fastGwei: convertApiValueToGWEI(fast),
-		safeLowGwei: convertApiValueToGWEI(safeLow),
-	};
 }
 
 export async function getGasLimit(transaction) {
@@ -199,37 +165,23 @@ export async function getGasPriceByChainId(transaction) {
 		Logger.log('Error while trying to get gas price from the network', error);
 	}
 
+	const gas = hexToBN(estimation.gas);
+	//The transaction controller returns custom network values in hex
+	let gasPrice = NetworkController.state.isCustomNetwork
+		? hexToBN(estimation.gasPrice)
+		: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
+
 	if (isMainnetByChainId(chainId)) {
 		try {
-			basicGasEstimates = await fetchBasicGasEstimates();
+			const mainnetBasicGasEstimates = await getBasicGasEstimates();
+			gasPrice = mainnetBasicGasEstimates.averageGwei;
 		} catch (error) {
 			Logger.log('Error while trying to get gas limit estimates', error);
 			// Will use gas price from network that was fetched above
 		}
 	}
 
-	const gas = hexToBN(estimation.gas);
-	//The transaction controller returns custom network values in hex
-	const gasPrice = NetworkController.state.isCustomNetwork
-		? hexToBN(estimation.gasPrice)
-		: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
-
 	return { gas, gasPrice };
-}
-
-export async function getBasicGasEstimatesByChainId() {
-	const { NetworkController } = Engine.context;
-	const chainId = NetworkController.state.provider.chainId;
-
-	if (!isMainnetByChainId(chainId)) {
-		return null;
-	}
-	try {
-		const basicGasEstimates = await getBasicGasEstimates();
-		return basicGasEstimates;
-	} catch (e) {
-		return null;
-	}
 }
 
 export function getValueFromWeiHex({
