@@ -127,7 +127,7 @@ class Approve extends PureComponent {
 		/**
 		 * The current network of the app
 		 */
-		network: PropTypes.number,
+		network: PropTypes.string,
 	};
 
 	state = {
@@ -145,8 +145,6 @@ class Approve extends PureComponent {
 		LegacyGasDataTemp: {},
 		transactionConfirmed: false,
 		addNickname: false,
-		nicknameExists: false,
-		nickname: '',
 	};
 
 	computeGasEstimates = (overrideGasPrice, overrideGasLimit, gasEstimateTypeChanged) => {
@@ -544,22 +542,20 @@ class Approve extends PureComponent {
 	checkIfAddressIsSaved = () => {
 		const { addressBook, network, transaction } = this.props;
 		for (const [key, value] of Object.entries(addressBook)) {
-			if (key === network) {
-				Object.entries(value).forEach(([address, data]) => {
-					if (toChecksumAddress(address) === toChecksumAddress(transaction.to)) {
-						this.setState({ nicknameExists: true, nickname: data.name });
-					} else {
-						this.setState({ nicknameExists: false });
-					}
-				});
-			} else {
-				return this.setState({ nicknameExists: false });
+			const addressValues = Object.values(value).map((x) => ({
+				address: toChecksumAddress(x.address),
+				nickname: x.name,
+			}));
+
+			if (addressValues.some((x) => x.address === toChecksumAddress(transaction.to) && key === network)) {
+				return addressValues.filter((x) => x.address === toChecksumAddress(transaction.to));
 			}
+			return [];
 		}
 	};
 
 	render = () => {
-		this.checkIfAddressIsSaved();
+		const addressData = this.checkIfAddressIsSaved();
 		const {
 			mode,
 			ready,
@@ -595,8 +591,8 @@ class Approve extends PureComponent {
 					<AddNickname
 						onUpdateContractNickname={this.onUpdateContractNickname}
 						contractAddress={transaction.to}
-						nicknameExists={this.state.nicknameExists}
-						nickname={this.state.nickname}
+						nicknameExists={!!addressData.length}
+						nickname={addressData.length ? addressData[0].nickname : ''}
 					/>
 				) : (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
@@ -622,8 +618,8 @@ class Approve extends PureComponent {
 									gasEstimationReady={ready}
 									transactionConfirmed={transactionConfirmed}
 									onUpdateContractNickname={this.onUpdateContractNickname}
-									nicknameExists={this.state.nicknameExists}
-									nickname={this.state.nickname}
+									nicknameExists={!!addressData.length}
+									nickname={addressData.length ? addressData[0].nickname : ''}
 								/>
 								{/** View fixes layout issue after removing <CustomGas/> */}
 								<View />
