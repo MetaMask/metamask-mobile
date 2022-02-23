@@ -237,6 +237,13 @@ class Engine {
 						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
 						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+						supportedChainIds: [
+							swapsUtils.ETH_CHAIN_ID,
+							swapsUtils.BSC_CHAIN_ID,
+							swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+							swapsUtils.POLYGON_CHAIN_ID,
+							swapsUtils.AVALANCHE_CHAIN_ID,
+						],
 					}
 				),
 				gasFeeController,
