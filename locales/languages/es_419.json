@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sincronizar o importar cartera",
 		"new_to_crypto": "¿Primera vez que usa criptomonedas?",
 		"start_exploring_now": "Crear una cartera nueva",
-		"unlock": "Desbloquear",
+		"unlock": "",
 		"new_to_metamask": "¿Es nuevo en MetaMask?",
 		"already_have_wallet": "¿Ya tiene una cartera?",
 		"optin_back_title": "¡Atención!",
@@ -97,7 +97,7 @@
 		"step4": {
 			"title": "Navegación principal",
 			"content1": "Presione aquí",
-			"content2": "para acceder a su cartera, explorador e historial de transacciones.",
+			"content2": "",
 			"content3": "Puede hacer más acciones con sus cuentas y acceder a la configuración de MetaMask."
 		},
 		"step5": {
@@ -128,8 +128,8 @@
 	"login": {
 		"title": "Hola de nuevo",
 		"password": "Contraseña",
-		"unlock_button": "DESBLOQUEAR",
-		"go_back": "¿No puedes desbloquear tu cartera? Puedes BORRAR la cartera actual y configurar una nueva",
+		"unlock_button": "",
+		"go_back": "",
 		"reset_wallet": "Restablecer cartera",
 		"cant_proceed": "No puede seguir hasta que escriba la palabra “Eliminar”. Con esta acción, opta por borrar la cartera actual.",
 		"invalid_password": "Contraseña no válida",
@@ -246,9 +246,9 @@
 		"settings": "Configuración",
 		"settings_warning": "Cartera no protegida",
 		"settings_warning_short": "No protegida",
-		"help": "Obtener ayuda",
-		"lock": "Bloquear",
-		"lock_title": "¿Está seguro de que quieres bloquear tu cartera?",
+		"help": "",
+		"lock": "",
+		"lock_title": "",
 		"lock_ok": "SÍ",
 		"lock_cancel": "",
 		"feedback": "Comentarios",
@@ -441,7 +441,7 @@
 		"clear_browser_history_modal_message": "Estamos a punto de quitar todo el historial del explorador. ¿Está seguro?",
 		"clear_cookies_modal_title": "Borrar cookies del explorador",
 		"clear_cookies_modal_message": "Estamos a punto de quitar todas las cookies del explorador. ¿Está seguro?",
-		"reset_account_modal_message": "Restablecer la cuenta borrará el historial de transacciones.",
+		"reset_account_modal_message": "",
 		"save_rpc_url": "GUARDAR",
 		"invalid_rpc_prefix": "Los identificadores URI requieren el prefijo HTTPS adecuado",
 		"invalid_rpc_url": "Dirección URL de RPC no válida",
@@ -480,7 +480,7 @@
 		"general_title": "",
 		"general_desc": "Conversión de moneda, moneda principal, idioma y motor de búsqueda",
 		"advanced_title": "Avanzado",
-		"advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, registros de estado, puerta de enlace de IPFS y RPC personalizada",
+		"advanced_desc": "",
 		"contacts_title": "Contactos",
 		"contacts_desc": "Agregar, editar, quitar y administrar sus cuentas",
 		"security_title": "Seguridad y privacidad",
@@ -519,7 +519,7 @@
 		"primary_currency_text_second": "Fiduciaria",
 		"language_desc": "Traduzca la aplicación a otro idioma compatible.",
 		"engine_desc": "Cambie el motor de búsqueda predeterminado que se usa al escribir términos de búsqueda en la barra de direcciones URL.",
-		"reset_desc": "Esta acción borrará el historial de transacciones. Es posible que no se puedan recuperar los datos.",
+		"reset_desc": "",
 		"rpc_desc": "Use una red compatible con RPC personalizada a través de URL en lugar de una de las redes proporcionadas.",
 		"hex_desc": "Seleccione esta opción para mostrar el campo de datos hexadecimales en la pantalla de envío.",
 		"clear_privacy_title": "Borrar datos de privacidad",
@@ -930,7 +930,7 @@
 		"error_title": "Lo sentimos,",
 		"error_message": "se produjo un error… vuelva a intentarlo",
 		"warning_title": "Advertencia",
-		"warning_message": "Esto anulará todas las cuentas actuales y el historial de transacciones en su celular. ¿Está seguro?",
+		"warning_message": "",
 		"warning_ok_button": "SÍ",
 		"warning_cancel_button": "",
 		"invalid_qr_code": "Código QR no válido",
@@ -1000,12 +1000,12 @@
 		"empty_data": ""
 	},
 	"biometrics": {
-		"enable_touchid": "Desbloquear con Touch ID?",
-		"enable_faceid": "Desbloquear con Face ID?",
-		"enable_fingerprint": "Desbloquear con huella dactilar?",
-		"enable_biometrics": "Desbloquear con datos biométricos?",
-		"enable_device_passcode_ios": "Desbloquear con el código de acceso del dispositivo?",
-		"enable_device_passcode_android": "Desbloquear con el PIN del dispositivo?"
+		"enable_touchid": "",
+		"enable_faceid": "",
+		"enable_fingerprint": "",
+		"enable_biometrics": "",
+		"enable_device_passcode_ios": "",
+		"enable_device_passcode_android": ""
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticación requerida",
@@ -1256,7 +1256,7 @@
 	"transaction_update_retry_modal": {
 		"title": "",
 		"text": "",
-		"cancel_button": "",
+		"cancel_button": "Cancelar",
 		"retry_button": ""
 	},
 	"payment_request": {
@@ -1590,7 +1590,7 @@
 			"3": "que encuentra el mejor precio dividiendo el pedido entre diferentes intercambios descentralizados."
 		},
 		"quote_source_cnt": {
-			"1": "",
+			"1": "Esta cotización proviene directamente de",
 			"2": "",
 			"3": ""
 		},
@@ -1705,7 +1705,7 @@
 	"secret_phrase_video_subtitle": {
 		"title": "ES CC",
 		"language": "es",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-es.vtt?raw=true"
+		"uri": ""
 	},
 	"edit_gas_fee_eip1559": {
 		"advanced_options": "",
@@ -1727,7 +1727,7 @@
 			"low_text": "",
 			"link": ""
 		},
-		"save": "",
+		"save": "Guardar",
 		"submit": "",
 		"max_priority_fee_low": "",
 		"max_priority_fee_high": "",
@@ -1757,18 +1757,18 @@
 		"gas_price_high": ""
 	},
 	"transaction_review_eip1559": {
-		"estimated_gas_fee": "",
+		"estimated_gas_fee": "Cuota de Gas estimada",
 		"suggested_gas_fee": "",
 		"max_fee": "",
 		"total": "",
 		"max_amount": "",
-		"estimated_gas_fee_tooltip": "",
+		"estimated_gas_fee_tooltip": "¿Qué son las cuotas de Gas?",
 		"estimated_gas_fee_tooltip_text_1": "",
 		"estimated_gas_fee_tooltip_text_2": "",
 		"estimated_gas_fee_tooltip_text_3": "",
-		"estimated_gas_fee_tooltip_text_4": "",
+		"estimated_gas_fee_tooltip_text_4": "MetaMask no se beneficia de las cuotas de Gas.",
 		"estimated_gas_fee_tooltip_text_5": "",
-		"learn_more": "",
+		"learn_more": "Obtenga más información sobre las cuotas de Gas",
 		"legacy_gas_suggestion_tooltip": ""
 	},
 	"times_eip1559": {
