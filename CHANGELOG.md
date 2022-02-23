@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v4.1.1 - February 23, 2022
+- [3810](https://github.com/MetaMask/metamask-mobile/pull/3810) [FIX] Avalanche token crash
+
 ## v4.1.0 - February 9, 2022
 - [#3725](https://github.com/MetaMask/metamask-mobile/pull/3725): [FIX] Login decrypt bug
 - [#3721](https://github.com/MetaMask/metamask-mobile/pull/3721): [FIX] Fixes deeplinks on Android 12 and other deeplinks minor fixes
