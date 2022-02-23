@@ -34,7 +34,7 @@
 		"import_wallet_button": "同步或导入钱包",
 		"new_to_crypto": "新接触加密币？",
 		"start_exploring_now": "创建新钱包",
-		"login": "登录",
+		"unlock": "登录",
 		"new_to_metamask": "MetaMask 的新用户？",
 		"already_have_wallet": "已有钱包？",
 		"optin_back_title": "注意！",
@@ -125,7 +125,7 @@
 	"login": {
 		"title": "欢迎回来！",
 		"password": "密码",
-		"login_button": "登录",
+		"unlock_button": "登录",
 		"go_back": "返回",
 		"invalid_password": "密码无效"
 	},
@@ -227,10 +227,10 @@
 		"settings": "设置",
 		"settings_warning": "钱包未受保护",
 		"help": "获取帮助",
-		"logout": "注销",
-		"logout_title": "是否确实想要注销？",
-		"logout_ok": "是",
-		"logout_cancel": "否",
+		"lock": "注销",
+		"lock_title": "是否确实想要注销？",
+		"lock_ok": "是",
+		"lock_cancel": "否",
 		"feedback": "反馈",
 		"metamask_support": "MetaMask 支持",
 		"public_address": "公共地址"

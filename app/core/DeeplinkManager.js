@@ -8,6 +8,7 @@ import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
+import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
@@ -121,10 +122,15 @@ class DeeplinkManager {
 				TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
 			}
 		} catch (e) {
-			Alert.alert(
-				strings('send.network_not_found_title'),
-				strings('send.network_not_found_description', { chain_id: ethUrl.chain_id })
-			);
+			let alertMessage;
+			switch (e.message) {
+				case NETWORK_ERROR_MISSING_NETWORK_ID:
+					alertMessage = strings('send.network_missing_id');
+					break;
+				default:
+					alertMessage = strings('send.network_not_found_description', { chain_id: ethUrl.chain_id });
+			}
+			Alert.alert(strings('send.network_not_found_title'), alertMessage);
 		}
 	}
 
@@ -147,12 +153,13 @@ class DeeplinkManager {
 	parse(url, { browserCallBack, origin, onHandled }) {
 		const urlObj = new URL(url.replace('dapp/https://', 'dapp/').replace('dapp/http://', 'dapp/'));
 		let params;
+		let wcCleanUrl;
 
 		if (urlObj.query.length) {
 			try {
 				params = qs.parse(urlObj.query.substring(1));
 			} catch (e) {
-				Alert.alert(strings('deeplink.invalid'), e.toString());
+				if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
 			}
 		}
 
@@ -210,13 +217,13 @@ class DeeplinkManager {
 			// address, transactions, etc
 			case 'wc':
 				handled();
-				if (!WalletConnect.isValidUri(url)) return;
-				// eslint-disable-next-line no-case-declarations
-				const redirect = params && params.redirect;
-				// eslint-disable-next-line no-case-declarations
-				const autosign = params && params.autosign;
-				WalletConnect.newSession(url, redirect, autosign);
+
+				wcCleanUrl = url.replace('wc://wc?uri=', '');
+				if (!WalletConnect.isValidUri(wcCleanUrl)) return;
+
+				WalletConnect.newSession(wcCleanUrl, params?.redirect, params?.autosign, origin);
 				break;
+
 			case 'ethereum':
 				handled();
 				this.handleEthereumUrl(url, origin);
@@ -235,7 +242,7 @@ class DeeplinkManager {
 			// For ex. go to settings
 			case 'metamask':
 				handled();
-				if (urlObj.origin === 'metamask://wc') {
+				if (url.startsWith('metamask://wc')) {
 					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
 					const href = cleanUrlObj.href;
 					if (!WalletConnect.isValidUri(href)) return;
