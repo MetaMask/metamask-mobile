@@ -349,8 +349,8 @@ const Main = (props) => {
 						if (!asset) {
 							try {
 								asset = {};
-								asset.decimals = await AssetsContractController.getTokenDecimals(to);
-								asset.symbol = await AssetsContractController.getAssetSymbol(to);
+								asset.decimals = await AssetsContractController.getERC20TokenDecimals(to);
+								asset.symbol = await AssetsContractController.getERC721AssetSymbol(to);
 								// adding `to` here as well
 								asset.address = to;
 							} catch (e) {
