@@ -243,6 +243,20 @@ class NetworkSettings extends PureComponent {
 		return true;
 	};
 
+	checkIfChainIdExists = async (chainId) => {
+		const checkCustomNetworks = this.props.frequentRpcList.filter((item) => item.chainId === chainId);
+		if (checkCustomNetworks.length > 0) {
+			this.setState({ warningChainId: strings('app_settings.chain_id_exists') });
+			return checkCustomNetworks;
+		}
+		const defaultNetworksChainIds = getAllNetworks().map((item) => Networks[item]);
+		const checkDefaultNetworks = defaultNetworksChainIds.filter((item) => Number(item.chainId) === Number(chainId));
+		if (checkDefaultNetworks.length > 0) {
+			return checkDefaultNetworks;
+		}
+		return [];
+	};
+
 	/**
 	 * Add rpc url and parameters to PreferencesController
 	 * Setting NetworkController provider to this custom rpc
@@ -254,6 +268,8 @@ class NetworkSettings extends PureComponent {
 		const { navigation } = this.props;
 
 		const formChainId = stateChainId.trim().toLowerCase();
+
+		const isChainIdExists = await this.checkIfChainIdExists(formChainId);
 		// Ensure chainId is a 0x-prefixed, lowercase hex string
 		let chainId = formChainId;
 		if (!chainId.startsWith('0x')) {
@@ -264,7 +280,7 @@ class NetworkSettings extends PureComponent {
 			return;
 		}
 
-		if (this.validateRpcUrl()) {
+		if (this.validateRpcUrl() && isChainIdExists.length === 0) {
 			const url = new URL(rpcUrl);
 			const decimalChainId = this.getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
