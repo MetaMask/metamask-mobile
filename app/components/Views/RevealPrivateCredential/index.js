@@ -302,10 +302,8 @@ class RevealPrivateCredential extends PureComponent {
 						`reveal_credential.${privateCredentialName}_copied_time`
 				  )}`
 				: // for SRP on Android it doesn't show clipboard time limit
-				  `${
-						strings(`reveal_credential.${privateCredentialName}_copied_${Platform.OS}`) + Device.isIos
-							? strings(`reveal_credential.${privateCredentialName}_copied_time`)
-							: null
+				  `${strings(`reveal_credential.${privateCredentialName}_copied_${Platform.OS}`)}${
+						Device.isIos() ? strings(`reveal_credential.${privateCredentialName}_copied_time`) : ''
 				  }`;
 
 		this.props.showAlert({
