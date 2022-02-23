@@ -1,3 +1,4 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 import React, { PureComponent } from 'react';
 import {
 	Dimensions,
@@ -9,6 +10,7 @@ import {
 	TouchableOpacity,
 	InteractionManager,
 	Linking,
+	Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import PropTypes from 'prop-types';
@@ -29,6 +31,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { colors, fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -293,14 +296,24 @@ class RevealPrivateCredential extends PureComponent {
 		const { clipboardPrivateCredential } = this.state;
 		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
+		const msg =
+			privateCredentialName === PRIVATE_KEY
+				? `${strings(`reveal_credential.${privateCredentialName}_copied`)}\n${strings(
+						`reveal_credential.${privateCredentialName}_copied_time`
+				  )}`
+				: // for SRP on Android it doesn't show clipboard time limit
+				  `${
+						strings(`reveal_credential.${privateCredentialName}_copied_${Platform.OS}`) + Device.isIos
+							? strings(`reveal_credential.${privateCredentialName}_copied_time`)
+							: null
+				  }`;
+
 		this.props.showAlert({
 			isVisible: true,
 			autodismiss: 1500,
 			content: 'clipboard-alert',
 			data: {
-				msg: `${strings(`reveal_credential.${privateCredentialName}_copied`)}\n${strings(
-					`reveal_credential.${privateCredentialName}_copied_time`
-				)}`,
+				msg,
 				width: '70%',
 			},
 		});
