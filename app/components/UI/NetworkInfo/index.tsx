@@ -88,7 +88,7 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 	const { onClose, type, nativeToken } = props;
 	return (
 		<View style={styles.wrapper}>
-			<View style={styles.modalContentView}>
+			<View style={styles.modalContentView} testID={'education-modal-container-id'}>
 				<Text style={styles.title}>You have switched to</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
