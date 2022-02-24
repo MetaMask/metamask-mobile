@@ -23,6 +23,7 @@ import {
 	CollectiblesController,
 	TokenDetectionController,
 	CollectibleDetectionController,
+	ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -247,6 +248,12 @@ class Engine {
 					}
 				),
 				gasFeeController,
+				new ApprovalController({
+					messenger: this.controllerMessenger.getRestricted({
+						name: 'ApprovalController',
+					}),
+					showApprovalRequest: () => null,
+				}),
 			];
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
