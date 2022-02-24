@@ -17,7 +17,7 @@ import Animated, {
 	useCode,
 	set,
 } from 'react-native-reanimated';
-import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash';
+import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash/src/v1';
 import styles from './styles';
 const screenHeight = Dimensions.get('window').height;
 
