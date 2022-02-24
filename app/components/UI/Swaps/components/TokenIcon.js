@@ -97,41 +97,41 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 		return { uri: null };
 	}, [symbol, icon]);
 
-	if (showFallback) {
-		if (symbol) {
-			return (
-				<EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
-					<Text
-						style={[
-							styles.tokenSymbol,
-							medium && styles.tokenSymbolMedium,
-							(big || biggest) && styles.tokenSymbolBig,
-							biggest && styles.tokenSymbolBiggest,
-						]}
-					>
-						{symbol[0].toUpperCase()}
-					</Text>
-				</EmptyIcon>
-			);
-		}
-
-		return <EmptyIcon medium={medium} style={style} />;
+	if (!showFallback) {
+		return (
+			<RemoteImage
+				fadeIn
+				source={getSource()}
+				onError={() => setShowFallback(true)}
+				style={[
+					styles.icon,
+					medium && styles.iconMedium,
+					big && styles.iconBig,
+					biggest && styles.iconBiggest,
+					style,
+				]}
+			/>
+		);
 	}
 
-	return (
-		<RemoteImage
-			fadeIn
-			source={getSource()}
-			onError={() => setShowFallback(true)}
-			style={[
-				styles.icon,
-				medium && styles.iconMedium,
-				big && styles.iconBig,
-				biggest && styles.iconBiggest,
-				style,
-			]}
-		/>
-	);
+	if (symbol) {
+		return (
+			<EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
+				<Text
+					style={[
+						styles.tokenSymbol,
+						medium && styles.tokenSymbolMedium,
+						(big || biggest) && styles.tokenSymbolBig,
+						biggest && styles.tokenSymbolBiggest,
+					]}
+				>
+					{symbol[0].toUpperCase()}
+				</Text>
+			</EmptyIcon>
+		);
+	}
+
+	return <EmptyIcon medium={medium} style={style} />;
 }
 
 TokenIcon.propTypes = {
