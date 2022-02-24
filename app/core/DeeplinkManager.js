@@ -205,6 +205,9 @@ class DeeplinkManager {
 
 					if (action === ACTIONS.WC && params?.uri) {
 						WalletConnect.newSession(params.uri, params.redirectUrl, false, origin);
+					} else if (action === ACTIONS.WC) {
+						// This is called from WC just to open the app and it's not supposed to do anything
+						return;
 					} else if (PREFIXES[action]) {
 						const url = urlObj.href.replace(
 							`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`,
