@@ -248,6 +248,7 @@ configurations.all {
 }
 
 dependencies {
+	implementation project(':react-native-qualtrics')
 	implementation project(':lottie-react-native')
 
 	implementation project(':react-native-gesture-handler')
