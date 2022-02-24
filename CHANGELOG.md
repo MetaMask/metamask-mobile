@@ -2,6 +2,9 @@
 
 ## Current Develop Branch
 
+## v4.1.1 - February 23, 2022
+- [3810](https://github.com/MetaMask/metamask-mobile/pull/3810) [FIX] Avalanche token crash
+
 ## v4.1.0 - February 9, 2022
 - [#3741](https://github.com/MetaMask/metamask-mobile/pull/3741): [FIX] Potential error message from missing transactions details
 - [#3738](https://github.com/MetaMask/metamask-mobile/pull/3738): [FIX] Error message for missing chain ID in deeplink
