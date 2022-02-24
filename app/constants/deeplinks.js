@@ -1,5 +1,5 @@
 export const ETH_ACTIONS = {
-	TRANSFER: 'tranfer',
+	TRANSFER: 'transfer',
 	APPROVE: 'approve',
 };
 
