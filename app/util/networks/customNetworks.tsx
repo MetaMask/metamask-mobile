@@ -6,7 +6,7 @@ const PopularList = [
 		ticker: 'AETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
-			imageUrl: '',
+			imageUrl: 'eth.svg',
 		},
 	},
 	{
@@ -16,7 +16,7 @@ const PopularList = [
 		ticker: 'AVAX',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://snowtrace.io/',
-			imageUrl: '',
+			imageUrl: 'avalanche.svg',
 		},
 	},
 	{
@@ -26,7 +26,7 @@ const PopularList = [
 		ticker: 'BNB',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://bscscan.com/',
-			imageUrl: '',
+			imageUrl: 'eth.svg',
 		},
 	},
 	{
@@ -36,7 +36,7 @@ const PopularList = [
 		ticker: 'FTM',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://ftmscan.com/',
-			imageUrl: '',
+			imageUrl: 'fantom.svg',
 		},
 	},
 	{
@@ -47,7 +47,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.harmony.one/',
-			imageUrl: '',
+			imageUrl: 'harmony.svg',
 		},
 	},
 	{
@@ -57,8 +57,7 @@ const PopularList = [
 		ticker: 'ETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://optimistic.etherscan.io/’',
-			imageUrl:
-				'https://github.com/ethereum-optimism/brand-kit/blob/main/assets/images/Profile-Logo.png?raw=true',
+			imageUrl: 'optimism.svg',
 		},
 	},
 	{
@@ -68,7 +67,7 @@ const PopularList = [
 		ticker: 'PALM',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.palm.io/',
-			imageUrl: '',
+			imageUrl: 'eth.svg',
 		},
 	},
 	{
@@ -78,7 +77,7 @@ const PopularList = [
 		ticker: 'MATIC',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://polygonscan.com/',
-			imageUrl: '',
+			imageUrl: 'matic.svg',
 		},
 	},
 ];

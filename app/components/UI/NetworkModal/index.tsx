@@ -1,16 +1,16 @@
 import Modal from 'react-native-modal';
 import React from 'react';
-import { View, StyleSheet, Linking, Image } from 'react-native';
+import { View, StyleSheet, Linking } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
-import FadeIn from 'react-native-fade-in-image';
 import { colors, fontStyles } from '../../../styles/common';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
 import { isprivateConnection } from '../../../util/networks';
 import URLPARSE from 'url-parse';
+import AssetIcon from '../../UI/AssetIcon';
 import scaling from '../../../util/scaling';
 import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
@@ -76,10 +76,6 @@ const styles = StyleSheet.create({
 	infoIcon: {
 		fontSize: 12,
 		color: colors.grey400,
-	},
-	placeholderStyle: {
-		color: colors.grey500,
-		borderRadius: 15,
 	},
 	popularNetworkImage: {
 		width: 20,
@@ -203,9 +199,7 @@ const NetworkModals = (props: NetworkProps) => {
 							/>
 						)}
 						<View style={styles.nameWrapper}>
-							<FadeIn placeholderStyle={styles.placeholderStyle}>
-								<Image source={{ uri: imageUrl || null }} style={styles.popularNetworkImage} />
-							</FadeIn>
+							<AssetIcon logo={imageUrl} customStyle={styles.popularNetworkImage} />
 							<Text black>{nickname}</Text>
 						</View>
 						<Text reset style={styles.title}>
