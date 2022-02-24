@@ -124,6 +124,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
 	const onBarCodeRead = useCallback(
 		(response) => {
+			if (!response.data) {
+				return;
+			}
 			try {
 				const content = response.data;
 				urDecoder.receivePart(content);
