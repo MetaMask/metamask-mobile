@@ -241,7 +241,12 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 	);
 
 	return (
-		<TouchableOpacity onPressIn={triggerPressStart} onPressOut={triggerPressEnd} activeOpacity={1}>
+		<TouchableOpacity
+			testID={'seed-phrase-hold-to-reveal'}
+			onPressIn={triggerPressStart}
+			onPressOut={triggerPressEnd}
+			activeOpacity={1}
+		>
 			<Animated.View style={[styles.container, containerStyle]}>
 				<View style={styles.progressContainer}>
 					{renderPostCompletedContent()}

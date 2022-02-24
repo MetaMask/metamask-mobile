@@ -52,7 +52,7 @@ export default class WalletView {
 	static async editAccountName(accountName) {
 		// For now this method only works for android.
 		if (device.getPlatform() === 'android') {
-			await TestHelpers.tapAndLongPress(EDIT_ACCOUNT_TEXT_ID);
+			await TestHelpers.tapAndLongPressByID(EDIT_ACCOUNT_TEXT_ID);
 			// Clear text
 			await TestHelpers.clearField(ACCOUNT_NAME_TEXT_ID);
 			// Change account name
