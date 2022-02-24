@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sync or import wallet",
 		"new_to_crypto": "New to crypto?",
 		"start_exploring_now": "Create a new wallet",
-		"login": "Log in",
+		"unlock": "Unlock",
 		"new_to_metamask": "New to MetaMask?",
 		"already_have_wallet": "Already have a wallet?",
 		"optin_back_title": "Heads up!",
@@ -128,8 +128,8 @@
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",
-		"login_button": "LOG IN",
-		"go_back": "Can’t login? You can ERASE your current wallet and setup a new one",
+		"unlock_button": "UNLOCK",
+		"go_back": "Wallet won't unlock? You can ERASE your current wallet and setup a new one",
 		"reset_wallet": "Reset Wallet",
 		"cant_proceed": "You can’t proceed till you type the word ‘Delete’. With this action you are opting in to erase your current wallet.",
 		"invalid_password": "Invalid password",
@@ -247,10 +247,10 @@
 		"settings_warning": "Wallet unprotected",
 		"settings_warning_short": "Unprotected",
 		"help": "Support",
-		"logout": "Log Out",
-		"logout_title": "Do you really want to log out?",
-		"logout_ok": "YES",
-		"logout_cancel": "NO",
+		"lock": "Lock",
+		"lock_title": "Do you really want to lock your wallet?",
+		"lock_ok": "YES",
+		"lock_cancel": "NO",
 		"feedback": "Feedback",
 		"metamask_support": "MetaMask Support",
 		"public_address": "Public Address"
@@ -284,7 +284,7 @@
 		"no_tokens": "You don't have any tokens!",
 		"no_nfts_yet": "No NFTs yet",
 		"nfts_autodetection_title": "NFT detection",
-		"nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpeaSea and display in your MetaMask wallet.",
+		"nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
 		"nfts_autodetection_cta": "Turn on NFT detection in Settings",
 		"learn_more": "Learn more",
 		"add_collectibles": "Import NFTs",
@@ -458,6 +458,8 @@
 		"protect_title": "Protect your wallet",
 		"video_failed": "Video Failed to Load.",
 		"protect_desc": "Protect your wallet by saving your Secret Recovery Phrase in various places like on a piece of paper, password manager and/or the cloud.",
+		"protect_desc_no_backup": "This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.",
+		"learn_more": "Learn more.",
 		"seedphrase_not_backed_up": "Important! Secret Recovery Phrase not backed up",
 		"seedphrase_backed_up": "Secret Recovery Phrase backed up",
 		"back_up_now": "Back up now",
@@ -466,7 +468,7 @@
 		"privacy_mode": "Privacy mode",
 		"privacy_mode_desc": "Websites must request access to view your account information.",
 		"nft_opensea_mode": "Enable OpenSea API",
-		"nft_opensea_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off.",
+		"nft_opensea_desc": "Displaying NFT media & data may expose your IP addresss to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
 		"nft_autodetect_mode": "Autodetect NFTs",
 		"nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
 		"show_hex_data": "Show Hex Data",
@@ -566,17 +568,37 @@
 		"show_private_key": "Show private key",
 		"private_key_title_for_account": "Show private key for \"{{accountName}}\"",
 		"cancel": "Cancel",
+		"done": "Done",
 		"confirm": "Next",
-		"seed_phrase_explanation": "If you ever change browsers or move computers, you will need this Secret Recovery Phrase to access your accounts. Save them somewhere safe and secret.",
+		"seed_phrase_explanation": [
+			"The ",
+			"Secret Recovery Phrase (SRP)",
+			" gives ",
+			"full access to your wallet, funds and accounts.\n\n",
+			"MetaMask is a ",
+			"non-custodial wallet",
+			". That means, ",
+			"you are the owner of your SRP."
+		],
 		"private_key_explanation": "Save it somewhere safe and secret.",
 		"private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-		"seed_phrase_warning_explanation": "DO NOT share this phrase with anyone! These words can be used to steal all your accounts.",
+		"seed_phrase_warning_explanation": [
+			"Make sure nobody is looking at your screen. ",
+			"MetaMask Support will never request this."
+		],
 		"private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
+		"seed_phrase_modal": [
+			"Your Secret Recovery Phrase provides ",
+			"full access to your wallet and funds.\n\nDo not share this with anyone.\n",
+			"MetaMask Support will not request this, ",
+			"but phishers might."
+		],
 		"seed_phrase": "Your Secret Recovery Phrase",
 		"private_key": "Your private key",
 		"copy_to_clipboard": "Copy to clipboard",
 		"enter_password": "Enter password to continue",
-		"seed_phrase_copied": "Secret Recovery Phrase temporarily copied to clipboard",
+		"seed_phrase_copied_ios": "Secret Recovery Phrase temporarily copied to clipboard\n",
+		"seed_phrase_copied_android": "Secret Recovery Phrase copied to clipboard",
 		"seed_phrase_copied_time": "(stored for 1 minute)",
 		"private_key_copied": "Private key temporarily copied to clipboard",
 		"private_key_copied_time": "(stored for 1 minute)",
@@ -584,7 +606,9 @@
 		"unknown_error": "Couldn't unlock your account. Please try again.",
 		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
 		"text": "TEXT",
-		"qr_code": "QR CODE"
+		"qr_code": "QR CODE",
+		"hold_to_reveal_srp": "Hold to reveal SRP",
+		"keep_srp_safe": "Keep your SRP safe"
 	},
 	"password_reset": {
 		"password_title": "Password",
@@ -1000,12 +1024,12 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Sign in with Touch ID?",
-		"enable_faceid": "Sign in with Face ID?",
-		"enable_fingerprint": "Sign in with Fingerprint?",
-		"enable_biometrics": "Sign in with Biometrics?",
-		"enable_device_passcode_ios": "Sign in with device passcode?",
-		"enable_device_passcode_android": "Sign in with device PIN?"
+		"enable_touchid": "Unlock with Touch ID?",
+		"enable_faceid": "Unlock with Face ID?",
+		"enable_fingerprint": "Unlock with Fingerprint?",
+		"enable_biometrics": "Unlock with Biometrics?",
+		"enable_device_passcode_ios": "Unlock with device passcode?",
+		"enable_device_passcode_android": "Unlock with device PIN?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Authentication required",
@@ -1245,7 +1269,7 @@
 		"wc_connected_rejected_title": "You’ve rejected the connect request",
 		"wc_signed_rejected_title": "You’ve rejected the sign request",
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
-		"wc_description": "Go back to the browser"
+		"wc_description": "Check the Daap"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protect your wallet",

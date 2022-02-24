@@ -99,6 +99,10 @@ export const ANALYTICS_EVENTS_V2 = {
 	// SETTINGS
 	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
 	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
+	REVEAL_SRP_INITIATED: generateOpt(`Reveal SRP Initiated`),
+	// REVEAL_SRP
+	REVEAL_SRP_CANCELLED: generateOpt(`Reveal SRP Cancelled`),
+	REVEAL_SRP_COMPLETED: generateOpt(`Reveal SRP Completed`),
 	// KEY MANAGMENT INVESTIGATION
 	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
 };

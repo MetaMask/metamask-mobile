@@ -39,6 +39,7 @@ class EngineService {
 			{ name: 'TokenListController', key: `${Engine.context.TokenListController.name}:stateChange` },
 			{ name: 'CurrencyRateController', key: `${Engine.context.CurrencyRateController.name}:stateChange` },
 			{ name: 'GasFeeController', key: `${Engine.context.GasFeeController.name}:stateChange` },
+			{ name: 'ApprovalController', key: `${Engine.context.ApprovalController.name}:stateChange` },
 		];
 
 		Engine?.datamodel?.subscribe?.(() => {

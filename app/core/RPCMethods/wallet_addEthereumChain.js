@@ -8,22 +8,14 @@ import { isPrefixedFormattedHexString, isSafeChainId } from '../../util/networks
 import URL from 'url-parse';
 import AnalyticsV2 from '../../util/analyticsV2';
 
-const wallet_addEthereumChain = async ({
-	req,
-	res,
-	showAddCustomNetworkDialog,
-	showSwitchCustomNetworkDialog,
-	addCustomNetworkRequest,
-	switchCustomNetworkRequest,
-	setCustomNetworkToSwitch,
-	setShowSwitchCustomNetworkDialog,
-	setCustomNetworkToAdd,
-	setShowAddCustomNetworkDialog,
-}) => {
-	if (showAddCustomNetworkDialog || showSwitchCustomNetworkDialog) return;
-	addCustomNetworkRequest.current = null;
-	switchCustomNetworkRequest.current = null;
+const waitForInteraction = async () =>
+	new Promise((resolve) => {
+		InteractionManager.runAfterInteractions(() => {
+			resolve();
+		});
+	});
 
+const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
 	const { PreferencesController, CurrencyRateController, NetworkController } = Engine.context;
 
 	if (!req.params?.[0] || typeof req.params[0] !== 'object') {
@@ -101,18 +93,6 @@ const wallet_addEthereumChain = async ({
 			return;
 		}
 
-		setCustomNetworkToSwitch({
-			rpcUrl: existingNetwork.rpcUrl,
-			chainId: _chainId,
-			chainName: existingNetwork.nickname,
-			ticker: existingNetwork.ticker,
-		});
-		setShowSwitchCustomNetworkDialog('switch');
-
-		const switchCustomNetworkApprove = await new Promise((resolve, reject) => {
-			switchCustomNetworkRequest.current = { resolve, reject };
-		});
-
 		const analyticsParams = {
 			rpc_url: existingNetwork?.rpcUrl,
 			chain_id: _chainId,
@@ -122,7 +102,18 @@ const wallet_addEthereumChain = async ({
 			network_name: 'rpc',
 		};
 
-		if (!switchCustomNetworkApprove) {
+		try {
+			await requestUserApproval({
+				type: 'SWITCH_ETHEREUM_CHAIN',
+				requestData: {
+					rpcUrl: existingNetwork.rpcUrl,
+					chainId: _chainId,
+					chainName: existingNetwork.nickname,
+					ticker: existingNetwork.ticker,
+					type: 'switch',
+				},
+			});
+		} catch (e) {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParams);
 			throw ethErrors.provider.userRejectedRequest();
 		}
@@ -239,14 +230,12 @@ const wallet_addEthereumChain = async ({
 
 	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUESTED, analyticsParamsAdd);
 
-	setCustomNetworkToAdd(requestData);
-	setShowAddCustomNetworkDialog(true);
-
-	const addCustomNetworkApprove = await new Promise((resolve, reject) => {
-		addCustomNetworkRequest.current = { resolve, reject };
-	});
-
-	if (!addCustomNetworkApprove) {
+	try {
+		await requestUserApproval({
+			type: 'ADD_ETHEREUM_CHAIN',
+			requestData,
+		});
+	} catch (e) {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParamsAdd);
 		throw ethErrors.provider.userRejectedRequest();
 	}
@@ -257,16 +246,12 @@ const wallet_addEthereumChain = async ({
 
 	AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 
-	InteractionManager.runAfterInteractions(() => {
-		setCustomNetworkToSwitch(requestData);
-		setShowSwitchCustomNetworkDialog('new');
-	});
+	await waitForInteraction();
 
-	const switchCustomNetworkApprove = await new Promise((resolve, reject) => {
-		switchCustomNetworkRequest.current = { resolve, reject };
+	await requestUserApproval({
+		type: 'SWITCH_ETHEREUM_CHAIN',
+		requestData: { ...requestData, type: 'new' },
 	});
-
-	if (!switchCustomNetworkApprove) throw ethErrors.provider.userRejectedRequest();
 
 	CurrencyRateController.setNativeCurrency(ticker);
 	NetworkController.setRpcTarget(firstValidRPCUrl, chainIdDecimal, ticker, _chainName);
