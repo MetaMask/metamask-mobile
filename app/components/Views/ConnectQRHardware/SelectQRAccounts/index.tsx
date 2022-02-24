@@ -6,6 +6,7 @@ import { colors } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
 import util from './util';
 import { IAccount } from '../types';
+import { renderFromWei } from '../../../../util/number';
 
 interface ISelectQRAccountsProps {
 	accounts: IAccount[];
@@ -46,6 +47,7 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 	},
 	pagination: {
+		marginTop: 4,
 		alignSelf: 'flex-end',
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -102,7 +104,9 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							tintColors={{ true: colors.grey200, false: colors.grey100 }}
 							testID={'skip-backup-check'}
 						/>
-						<Text style={styles.address}>{util.clipAddress(item.address, 8, 8)}</Text>
+						<Text>{item.index + 1}</Text>
+						<Text style={styles.address}>{util.clipAddress(item.address, 4, 4)}</Text>
+						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
 						<Icon size={18} name={'external-link'} />
 					</View>
 				)}

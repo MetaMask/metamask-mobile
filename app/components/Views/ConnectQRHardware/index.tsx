@@ -46,6 +46,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		const { KeyringController: keyring } = Engine.context as any;
 		return keyring;
 	}, []);
+	const AccountTrackerController = useMemo(() => (Engine.context as any).AccountTrackerController, []);
+
 	const [QRState, setQRState] = useState({
 		sync: {
 			reading: false,
@@ -53,7 +55,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	});
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [blockingModalVisible, setBlockingModalVisible] = useState(false);
-	const [accounts, setAccounts] = useState<{ address: string; index: number; checked: boolean }[]>([]);
+	const [accounts, setAccounts] = useState<{ address: string; index: number; balance: string }[]>([]);
+	const [trackedAccounts, setTrackedAccounts] = useState<{ [p: string]: { balance: string } }>({});
 	const [checkedAccounts, setCheckedAccounts] = useState<number[]>([]);
 	const [errorMsg, setErrorMsg] = useState('');
 	const resetError = useCallback(() => {
@@ -73,6 +76,19 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			});
 		});
 	}, [KeyringController]);
+	useEffect(() => {
+		const unTrackedAccounts: string[] = [];
+		accounts.forEach((account) => {
+			if (!trackedAccounts[account.address]) {
+				unTrackedAccounts.push(account.address);
+			}
+		});
+		if (unTrackedAccounts.length > 0) {
+			AccountTrackerController.syncWithAddresses(unTrackedAccounts).then((_trackedAccounts: any) => {
+				setTrackedAccounts(Object.assign({}, trackedAccounts, _trackedAccounts));
+			});
+		}
+	}, [AccountTrackerController, accounts, trackedAccounts]);
 	const showScanner = useCallback(() => {
 		setScannerVisible(true);
 	}, []);
@@ -89,7 +105,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
 	const onConnectHardware = useCallback(async () => {
 		resetError();
-		const _accounts = await KeyringController.connectQRHardware();
+		const _accounts = await KeyringController.connectQRHardware(0);
 		setAccounts(_accounts);
 	}, [KeyringController, resetError]);
 	const onScanSuccess = useCallback(
@@ -150,9 +166,10 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 					...account,
 					checked,
 					exist,
+					balance: trackedAccounts[account.address]?.balance || '0x0',
 				};
 			}),
-		[accounts, checkedAccounts, existingAccounts]
+		[accounts, checkedAccounts, existingAccounts, trackedAccounts]
 	);
 
 	const onUnlock = useCallback(async () => {
@@ -186,7 +203,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 				</TouchableOpacity>
 				<Icon name="qrcode" size={42} style={styles.qrcode} />
 				{accounts.length <= 0 ? (
-					<ConnectQRInstruction onConnect={onConnectHardware} renderAlert={renderAlert} />
+					<ConnectQRInstruction
+						onConnect={onConnectHardware}
+						renderAlert={renderAlert}
+						navigation={navigation}
+					/>
 				) : (
 					<SelectQRAccounts
 						accounts={enhancedAccounts}

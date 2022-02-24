@@ -7,6 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 
 interface IConnectQRInstructionProps {
+	navigation: any;
 	onConnect: () => void;
 	renderAlert: () => Element;
 }
@@ -61,16 +62,38 @@ const styles = StyleSheet.create({
 });
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
-	const { onConnect, renderAlert } = props;
+	const { onConnect, renderAlert, navigation } = props;
+	const navigateToVideo = () => {
+		navigation.navigate('Webview', {
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://keyst.one/mmmvideo',
+				title: strings('connect_qr_hardware.description2'),
+			},
+		});
+	};
+	const navigateToTutorial = () => {
+		navigation.navigate('Webview', {
+			screen: 'SimpleWebview',
+			params: {
+				url: 'https://keyst.one/mmm',
+				title: strings('connect_qr_hardware.description4'),
+			},
+		});
+	};
 	return (
 		<ScrollView contentContainerStyle={styles.container} style={styles.scrollWrapper}>
 			<Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
 			{renderAlert()}
 			<View style={styles.textContainer}>
 				<Text style={styles.text}>{strings('connect_qr_hardware.description1')}</Text>
-				<Text style={[styles.text, styles.link]}>{strings('connect_qr_hardware.description2')}</Text>
+				<Text style={[styles.text, styles.link]} onPress={navigateToVideo}>
+					{strings('connect_qr_hardware.description2')}
+				</Text>
 				<Text style={styles.text}>{strings('connect_qr_hardware.description3')}</Text>
-				<Text style={[styles.text, styles.link]}>{strings('connect_qr_hardware.description4')}</Text>
+				<Text style={[styles.text, styles.link]} onPress={navigateToTutorial}>
+					{strings('connect_qr_hardware.description4')}
+				</Text>
 			</View>
 			<Image style={styles.image} source={connectQRHardwareImg} resizeMode={'contain'} />
 			<TouchableOpacity onPress={onConnect} style={styles.button}>
