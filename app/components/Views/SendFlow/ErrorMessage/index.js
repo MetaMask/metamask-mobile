@@ -10,6 +10,9 @@ const styles = StyleSheet.create({
 		marginTop: 27,
 		marginBottom: 12,
 	},
+	errorMessage: {
+		flex: 0,
+	},
 });
 
 export default function ErrorMessage(props) {
@@ -18,7 +21,7 @@ export default function ErrorMessage(props) {
 		<Alert type={isOnlyWarning ? AlertType.Info : AlertType.Error} testID={'error-message-warning'}>
 			{(textStyle) => (
 				<View>
-					<Text small style={textStyle}>
+					<Text small style={[textStyle, styles.errorMessage]}>
 						{errorMessage}
 					</Text>
 					{errorContinue && (
