@@ -591,8 +591,8 @@ class Approve extends PureComponent {
 					<AddNickname
 						onUpdateContractNickname={this.onUpdateContractNickname}
 						contractAddress={transaction.to}
-						nicknameExists={!!addressData.length}
-						nickname={addressData.length ? addressData[0].nickname : ''}
+						nicknameExists={addressData && !!addressData.length}
+						nickname={addressData && addressData.length > 0 ? addressData[0].nickname : ''}
 					/>
 				) : (
 					<KeyboardAwareScrollView contentContainerStyle={styles.keyboardAwareWrapper}>
@@ -618,8 +618,8 @@ class Approve extends PureComponent {
 									gasEstimationReady={ready}
 									transactionConfirmed={transactionConfirmed}
 									onUpdateContractNickname={this.onUpdateContractNickname}
-									nicknameExists={!!addressData.length}
-									nickname={addressData.length ? addressData[0].nickname : ''}
+									nicknameExists={addressData && !!addressData.length}
+									nickname={addressData && addressData.length > 0 ? addressData[0].nickname : ''}
 								/>
 								{/** View fixes layout issue after removing <CustomGas/> */}
 								<View />
