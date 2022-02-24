@@ -9,6 +9,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 import { getFiatOnRampNavbar } from '../../Navbar';
+import { useFiatOnRampSDK } from '../SDK';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
@@ -58,6 +59,9 @@ interface IStaticComponents {
 }
 
 const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
+	const { selectedCountry, setSelectedCountry } = useFiatOnRampSDK();
+	setSelectedCountry('/countries/us');
+
 	const handleOnPress = useCallback(() => {
 		navigation.navigate('PaymentMethod');
 	}, [navigation]);
@@ -81,6 +85,18 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 							</ListItem.Body>
 						</ListItem.Content>
 					))}
+
+					<ListItem.Content style={styles.listItem}>
+						<ListItem.Icon style={styles.icon}>
+							<FontAwesome name="circle" size={32} color={colors.grey100} />
+						</ListItem.Icon>
+						<ListItem.Body>
+							<ListItem.Title bold style={styles.title}>
+								Selected Country
+							</ListItem.Title>
+							<Text style={styles.description}>{selectedCountry}</Text>
+						</ListItem.Body>
+					</ListItem.Content>
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
 
