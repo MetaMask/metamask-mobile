@@ -202,6 +202,7 @@
     "react-native-progress": "3.5.0",
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
+    "react-native-qualtrics": "^2.2.0",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "2.2.3",
     "react-native-redash": "16.2.2",
