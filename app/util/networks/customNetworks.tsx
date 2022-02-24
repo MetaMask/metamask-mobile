@@ -6,7 +6,7 @@ const PopularList = [
 		ticker: 'AETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
-			imageUrl: 'eth.svg',
+			imageUrl: 'arbitrum.svg',
 		},
 	},
 	{
@@ -26,7 +26,7 @@ const PopularList = [
 		ticker: 'BNB',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://bscscan.com/',
-			imageUrl: 'eth.svg',
+			imageUrl: 'binance.svg',
 		},
 	},
 	{
