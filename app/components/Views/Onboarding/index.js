@@ -468,7 +468,7 @@ class Onboarding extends PureComponent {
 						{existingUser && !loading && (
 							<View style={styles.footer}>
 								<Button style={styles.login} onPress={this.onLogin}>
-									{strings('onboarding.login')}
+									{strings('onboarding.unlock')}
 								</Button>
 							</View>
 						)}

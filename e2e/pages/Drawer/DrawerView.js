@@ -17,8 +17,8 @@ export default class DrawerView {
 	static async tapTransactions() {
 		await TestHelpers.tapByText('Transactions');
 	}
-	static async tapLogOut() {
-		await TestHelpers.tapByText('Log Out');
+	static async tapLockAccount() {
+		await TestHelpers.tapByText('Lock');
 	}
 
 	static async tapYesAlertButton() {
