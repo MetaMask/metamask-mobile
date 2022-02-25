@@ -1,7 +1,6 @@
 import { BN } from 'ethereumjs-util';
 import { renderFromWei, weiToFiat, toWei, conversionUtil } from '../number';
 import { strings } from '../../../locales/i18n';
-import Logger from '../Logger';
 import TransactionTypes from '../../core/TransactionTypes';
 import Engine from '../../core/Engine';
 import { util } from '@metamask/controllers';
@@ -118,23 +117,6 @@ export async function getGasLimit(transaction) {
 
 	const gas = hexToBN(estimation.gas);
 	return { gas };
-}
-
-export async function getGasPriceByChainId(transaction) {
-	const { TransactionController } = Engine.context;
-	let estimation;
-	try {
-		estimation = await TransactionController.estimateGas(transaction);
-	} catch (error) {
-		estimation = {
-			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-			gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS,
-		};
-		Logger.log('Error while trying to get gas price from the network', error);
-	}
-
-	const gas = hexToBN(estimation.gas);
-	return gas;
 }
 
 export function getValueFromWeiHex({
