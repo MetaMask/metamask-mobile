@@ -307,6 +307,7 @@ class Approve extends PureComponent {
 		const { GasFeeController } = Engine.context;
 		GasFeeController.stopPolling(this.state.pollToken);
 		AppState.removeEventListener('change', this.handleAppStateChange);
+		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
 		if (!approved) Engine.context.TransactionController.cancelTransaction(transaction.id);
 	};
 

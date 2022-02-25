@@ -1269,7 +1269,7 @@
 		"wc_connected_rejected_title": "You’ve rejected the connect request",
 		"wc_signed_rejected_title": "You’ve rejected the sign request",
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
-		"wc_description": "Go back to the browser"
+		"wc_description": "Check the Daap"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protect your wallet",
