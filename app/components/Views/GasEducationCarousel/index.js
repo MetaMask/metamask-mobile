@@ -120,7 +120,7 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 /**
  * View that is displayed to first time (new) users
  */
-const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency }) => {
+const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency, nativeCurrency }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -160,11 +160,12 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 
 				const maxFeePerGasConversion = getTransactionFee({
 					value: estimatedTotalGas,
-					fromCurrency: 'ETH',
+					fromCurrency: nativeCurrency,
 					toCurrency: currentCurrency,
 					numberOfDecimals: 2,
 					conversionRate,
 				});
+
 				const gasFiat = formatCurrency(maxFeePerGasConversion, currentCurrency);
 				setGasFiat(gasFiat);
 			} catch (e) {
@@ -173,7 +174,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 			setIsLoading(false);
 		};
 		setGasEstimates();
-	}, [conversionRate, currentCurrency]);
+	}, [conversionRate, currentCurrency, nativeCurrency]);
 
 	const onPresGetStarted = () => {
 		navigation.pop();
@@ -332,11 +333,16 @@ GasEducationCarousel.propTypes = {
 	 * Object that represents the current route info like params passed to it
 	 */
 	route: PropTypes.object,
+	/**
+	 * Network native currency
+	 */
+	nativeCurrency: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 });
 
 export default connect(mapStateToProps)(GasEducationCarousel);
