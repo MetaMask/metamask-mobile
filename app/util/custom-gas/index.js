@@ -4,7 +4,6 @@ import { strings } from '../../../locales/i18n';
 import Logger from '../Logger';
 import TransactionTypes from '../../core/TransactionTypes';
 import Engine from '../../core/Engine';
-import { isMainnetByChainId } from '../networks';
 import { util } from '@metamask/controllers';
 const { hexToBN } = util;
 
@@ -141,47 +140,23 @@ export async function getGasLimit(transaction) {
 	const gas = hexToBN(estimation.gas);
 	return { gas };
 }
+
 export async function getGasPriceByChainId(transaction) {
-	const { TransactionController, NetworkController } = Engine.context;
-	const chainId = NetworkController.state.provider.chainId;
-	let estimation, basicGasEstimates;
+	const { TransactionController } = Engine.context;
+	let estimation;
 	try {
 		estimation = await TransactionController.estimateGas(transaction);
-		basicGasEstimates = {
-			average: getValueFromWeiHex({
-				value: estimation.gasPrice.toString(16),
-				numberOfDecimals: 4,
-				toDenomination: 'GWEI',
-			}),
-		};
 	} catch (error) {
 		estimation = {
 			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
 			gasPrice: TransactionTypes.CUSTOM_GAS.AVERAGE_GAS,
 		};
-		basicGasEstimates = {
-			average: estimation.gasPrice,
-		};
 		Logger.log('Error while trying to get gas price from the network', error);
 	}
 
 	const gas = hexToBN(estimation.gas);
-	//The transaction controller returns custom network values in hex
-	let gasPrice = NetworkController.state.isCustomNetwork
-		? hexToBN(estimation.gasPrice)
-		: toWei(convertApiValueToGWEI(basicGasEstimates.average), 'gwei');
 
-	if (isMainnetByChainId(chainId)) {
-		try {
-			const mainnetBasicGasEstimates = await getBasicGasEstimates();
-			gasPrice = mainnetBasicGasEstimates.averageGwei;
-		} catch (error) {
-			Logger.log('Error while trying to get gas limit estimates', error);
-			// Will use gas price from network that was fetched above
-		}
-	}
-
-	return { gas, gasPrice };
+	return { gas };
 }
 
 export function getValueFromWeiHex({
