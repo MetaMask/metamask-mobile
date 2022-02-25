@@ -96,7 +96,6 @@ export default {
 	},
 
 	async setGenericPassword(password, type) {
-		console.log('SET GENERIC', password, type);
 		const authOptions = {
 			accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
 		};

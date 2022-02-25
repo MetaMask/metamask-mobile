@@ -11,10 +11,11 @@ import {
 	PASSCODE_DISABLED,
 	NEXT_MAKER_REMINDER,
 	SEED_PHRASE_HINTS,
+	BIOMETRY_CHOICE,
+	PASSCODE_CHOICE,
 } from '../constants/storage';
 import Logger from '../util/Logger';
 import { logIn, logOut } from '../actions/user';
-import { passwordRequirementsMet } from '../util/password';
 import { strings } from '../../locales/i18n';
 
 export enum AuthenticationType {
@@ -87,16 +88,12 @@ class AuthenticationService {
 	 */
 	storePassword = async (password: string, authType: AuthenticationType) => {
 		if (authType === AuthenticationType.BIOMETRIC) {
-			console.log('BIOMETRIC SET');
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 		} else if (authType === AuthenticationType.PASSCODE) {
-			console.log('PASSCODE SET');
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
 		} else if (authType === AuthenticationType.REMEMBER_ME) {
-			console.log('REMEMBER_ME_SET');
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
 		} else {
-			console.log('PASSWORD SET');
 			await SecureKeychain.resetGenericPassword();
 		}
 	};
@@ -118,12 +115,12 @@ class AuthenticationService {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+		const biometry = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+		const passcode = await AsyncStorage.getItem(PASSCODE_CHOICE);
 
-		console.log('CHECK AUTH', biometryType, biometryPreviouslyDisabled, passcodePreviouslyDisabled);
-
-		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
+		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE) && biometry) {
 			return { type: AuthenticationType.BIOMETRIC, biometryType };
-		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
+		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE) && passcode) {
 			return { type: AuthenticationType.PASSCODE, biometryType };
 		} else if (credentials) {
 			return { type: AuthenticationType.REMEMBER_ME, biometryType };
@@ -142,16 +139,15 @@ class AuthenticationService {
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
-		console.log('componentAuthenticationType', biometryType, biometryChoice, rememberMe);
-
 		if (biometryType && biometryChoice && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
-			console.log('BIOMETRIC FAKE SET');
 			return { type: AuthenticationType.BIOMETRIC, biometryType };
 		} else if (rememberMe) {
-			console.log('REMEMBER_ME FAKE SET');
 			return { type: AuthenticationType.REMEMBER_ME, biometryType };
-		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
-			console.log('PASSCODE FAKE SET');
+		} else if (
+			biometryType &&
+			biometryChoice &&
+			!(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+		) {
 			return { type: AuthenticationType.PASSCODE, biometryType };
 		}
 		return { type: AuthenticationType.PASSWORD, biometryType };
@@ -163,8 +159,6 @@ class AuthenticationService {
 	 * @returns
 	 */
 	newWalletAndKeyChain = async (password: string, authData: AuthData) => {
-		console.log('Authservice newWalletAndKeyChain', authData);
-
 		try {
 			await this._createWalletVaultAndKeychain(password);
 			await this.storePassword(password, authData?.type);
@@ -175,7 +169,6 @@ class AuthenticationService {
 			return;
 		} catch (e: any) {
 			this.logout();
-			console.log('Error');
 			Logger.error(e.toString(), 'Failed wallet creation');
 			throw e;
 		}
@@ -187,8 +180,6 @@ class AuthenticationService {
 	 * @returns
 	 */
 	newWalletAndRestore = async (password: string, authData: AuthData, parsedSeed: string, clearEngine: boolean) => {
-		console.log('Authservice newWalletAndRestore');
-
 		try {
 			await this._newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 			await this.storePassword(password, authData.type);
@@ -210,11 +201,6 @@ class AuthenticationService {
 	 * @returns
 	 */
 	manualAuth = async (password: string, authData: AuthData, selectedAddress: string) => {
-		console.log('Authservice manualAuth', authData);
-		if (!password) throw new Error('Password not found');
-		const locked = !passwordRequirementsMet(password);
-		if (locked) throw new Error(strings('login.invalid_password'));
-
 		try {
 			await this._loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
@@ -233,25 +219,15 @@ class AuthenticationService {
 	 * @returns
 	 */
 	autoAuth = async (selectedAddress: string) => {
-		console.log('Authservice autoAuth');
 		const credentials: any = await SecureKeychain.getGenericPassword();
-		console.log('Authservice autoAuth cred', credentials);
+		if (!credentials) throw new Error(strings('Biometric/Pincode/Remember Me Not Set'));
 		this.authData = await this.checkAuthenticationMethod(credentials);
-
-		console.log('Authservice autoAuth type', this.authData);
-
-		const password = credentials?.password;
-
-		const locked = !passwordRequirementsMet(password);
-
-		if (locked) throw new Error(strings('login.invalid_password'));
-
 		try {
+			const password = credentials?.password;
 			await this._loginVaultCreation(password, selectedAddress);
 			if (!credentials) await this.storePassword(password, this.authData.type);
 			this.store?.dispatch(logIn());
 		} catch (e: any) {
-			console.log('Authservice autoAuth', e);
 			this.logout();
 			Logger.error(e.toString(), 'Failed to login');
 			throw e;
@@ -263,11 +239,10 @@ class AuthenticationService {
 	 */
 	logout = async () => {
 		const { KeyringController }: any = Engine.context;
-		console.log('Auth LOGOUT KEYRING STATE PRIOR IS LOCKED', KeyringController.isUnlocked());
+		await SecureKeychain.resetGenericPassword();
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
-		console.log('Auth LOGOUT KEYRING STATE POST IS LOCKED', KeyringController.isUnlocked());
 		this.store?.dispatch(logOut());
 	};
 }

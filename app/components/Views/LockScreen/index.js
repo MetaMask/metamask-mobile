@@ -100,7 +100,6 @@ class LockScreen extends PureComponent {
 
 	async unlockKeychain() {
 		this.unlockAttempts++;
-		console.log('LOGIN TO THE APP FROM LOCK SCREEN');
 		try {
 			// Retreive the credentials
 			Logger.log('Lockscreen::unlockKeychain - getting credentials');

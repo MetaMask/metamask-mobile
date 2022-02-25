@@ -584,7 +584,7 @@ class DrawerView extends PureComponent {
 				params: { screen: 'Onboarding' },
 			});
 		} else {
-			this.props.navigation.navigate('Login');
+			this.props.navigation.navigate('Login', { params: { logout: true } });
 		}
 	};
 
@@ -599,7 +599,7 @@ class DrawerView extends PureComponent {
 					style: 'cancel',
 				},
 				{
-					text: strings('drawer.logout_ok'),
+					text: strings('drawer.lock_ok'),
 					onPress: this.onPressLogout,
 				},
 			],

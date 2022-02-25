@@ -257,7 +257,6 @@ class TransactionEditor extends PureComponent {
 
 	componentDidMount = async () => {
 		const { transaction } = this.props;
-		console.log('TEST');
 		const zeroGas = new BN('00');
 		const hasGasPrice = Boolean(transaction.gasPrice) && !new BN(transaction.gasPrice).eq(zeroGas);
 		const hasGasLimit = Boolean(transaction.gas) && !new BN(transaction.gas).eq(zeroGas);

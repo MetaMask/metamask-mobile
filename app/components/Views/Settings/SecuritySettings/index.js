@@ -33,8 +33,6 @@ import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
 	EXISTING_USER,
-	BIOMETRY_CHOICE,
-	PASSCODE_CHOICE,
 	TRUE,
 	PASSCODE_DISABLED,
 	BIOMETRY_CHOICE_DISABLED,
@@ -323,26 +321,18 @@ class Settings extends PureComponent {
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
-		console.log('SecuritySettings', authType, previouslyDisabled, passcodePreviouslyDisabled);
-		if (authType.type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AuthenticationType.BIOMETRIC || authType.type === AuthenticationType.PASSCODE)
 			this.setState({
 				biometryType: Device.isAndroid() ? authType.type : authType.biometryType,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
-				passcodeChoice: false,
-				analyticsEnabled,
-				hintText: manualBackup,
-			});
-		else if (authType.type === AuthenticationType.PASSCODE)
-			this.setState({
-				biometryType: authType.biometryType,
-				biometryChoice: false,
-				analyticsEnabled,
 				passcodeChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+				analyticsEnabled,
 				hintText: manualBackup,
 			});
 		else {
 			this.setState({
-				biometryType: authType.biometryType,
+				biometryType:
+					Device.isAndroid() && authType.biometryType ? AuthenticationType.BIOMETRIC : authType.biometryType,
 				analyticsEnabled,
 				hintText: manualBackup,
 			});

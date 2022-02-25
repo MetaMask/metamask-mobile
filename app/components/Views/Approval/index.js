@@ -88,7 +88,6 @@ class Approval extends PureComponent {
 	};
 
 	componentWillUnmount = () => {
-		console.log('APPROVAL');
 		const { transactionHandled } = this.state;
 		const { transaction } = this.props;
 		if (!transactionHandled) {

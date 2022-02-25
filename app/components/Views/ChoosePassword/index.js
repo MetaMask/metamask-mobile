@@ -18,7 +18,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
-import { logIn, passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
+import { passwordSet, passwordUnset, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -247,7 +247,6 @@ class ChoosePassword extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
-		logIn: PropTypes.func,
 	};
 
 	state = {
@@ -339,15 +338,12 @@ class ChoosePassword extends PureComponent {
 				this.state.rememberMe
 			);
 
-			console.log('Before If', authType);
 			if (previous_screen === ONBOARDING) {
-				console.log('Create New Vault', authType);
 				await AuthenticationService.newWalletAndKeyChain(password, authType);
 				this.keyringControllerPasswordSet = true;
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
 			} else {
-				console.log('Recreate  Vault');
 				await this.recreateVault(password, authType);
 			}
 
@@ -703,7 +699,6 @@ const mapDispatchToProps = (dispatch) => ({
 	passwordUnset: () => dispatch(passwordUnset()),
 	setLockTime: (time) => dispatch(setLockTime(time)),
 	seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
-	logIn: () => dispatch(logIn()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);

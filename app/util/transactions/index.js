@@ -212,7 +212,6 @@ export function decodeTransferData(type, data) {
  * @returns {object} - Method data object containing the name if is valid
  */
 export async function getMethodData(data) {
-	console.log('METHOD DATA', data);
 	if (data.length < 10) return {};
 	const fourByteSignature = data.substr(0, 10);
 	if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {

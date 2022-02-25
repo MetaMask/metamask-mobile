@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View, AppState } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -123,7 +123,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		const autoAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				console.log('APP AUTH', existingUser, !userLoggedIn, !locked.current);
 				if (existingUser && !userLoggedIn && !locked.current && selectedAddress) {
 					await AuthenticationService.autoAuth(selectedAddress);
 					locked.current = true;
@@ -156,18 +155,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
 	}, []);
-
-	const _handleAppStateChange = async (nextAppState) => {
-		if (!userLoggedIn && nextAppState === 'background') await AuthenticationService.logout();
-	};
-
-	useEffect(() => {
-		AppState.addEventListener('change', _handleAppStateChange);
-
-		return () => {
-			AppState.removeEventListener('change', _handleAppStateChange);
-		};
-	});
 
 	useEffect(
 		() =>
@@ -238,18 +225,13 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			} catch (error) {
 				Logger.error(error);
 			}
+
+			animation?.current?.play();
+			animationName?.current?.play();
 		}
 
 		startApp();
 	}, []);
-
-	useEffect(() => {
-		const startAnimation = async () => {
-			animation?.current?.play();
-			animationName?.current?.play();
-		};
-		startAnimation();
-	});
 
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
@@ -262,19 +244,16 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		});
 	}, [opacity]);
 
-	const renderSplash = () => {
-		if (!animationPlayed) {
-			return (
-				<MetaMaskAnimation
-					animation={animation}
-					animationName={animationName}
-					opacity={opacity}
-					onAnimationFinish={onAnimationFinished}
-				/>
-			);
-		}
-		return null;
-	};
+	if (!animationPlayed) {
+		return (
+			<MetaMaskAnimation
+				animation={animation}
+				animationName={animationName}
+				opacity={opacity}
+				onAnimationFinish={onAnimationFinished}
+			/>
+		);
+	}
 
 	return (
 		// do not render unless a route is defined
@@ -304,7 +283,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
-				{renderSplash()}
 			</View>
 		)) ||
 		null

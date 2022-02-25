@@ -237,6 +237,7 @@ class Login extends PureComponent {
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+
 		if (authType.type === AuthenticationType.BIOMETRIC)
 			this.setState({
 				biometryType: authType.type,
