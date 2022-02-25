@@ -216,7 +216,11 @@ class AddressList extends PureComponent {
 	};
 
 	renderRecents = () => {
-		const { recents, onAccountPress, onAccountLongPress, inputSearch } = this.props;
+		const { recents, identities, addressBook, network, onAccountPress, onAccountLongPress, inputSearch } =
+			this.props;
+
+		const networkAddressBook = addressBook[network] || {};
+
 		if (!recents.length || inputSearch) return;
 		return (
 			<>
@@ -227,6 +231,10 @@ class AddressList extends PureComponent {
 						<AddressElement
 							key={index}
 							address={address}
+							name={
+								(identities[address] && identities[address].name) ||
+								(networkAddressBook[address] && networkAddressBook[address].name)
+							}
 							onAccountPress={onAccountPress}
 							onAccountLongPress={onAccountLongPress}
 						/>
