@@ -62,9 +62,9 @@ export const filterByAddressAndNetwork = (
 		isFromCurrentChain(tx, networkId, chainId) &&
 		tx.status !== TX_UNAPPROVED
 	) {
-		if (isTransfer)
-			return !!tokens.find(({ address }) => toLowerCaseEquals(address, transferInformation.contractAddress));
-		return true;
+		return isTransfer
+			? !!tokens.find(({ address }) => toLowerCaseEquals(address, transferInformation.contractAddress))
+			: true;
 	}
 	return false;
 };
