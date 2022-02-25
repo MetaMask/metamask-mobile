@@ -104,27 +104,6 @@ export function parseWaitTime(min) {
 	return parsed.trim();
 }
 
-/**
- * Sanitize gas estimates into formatted wait times
- *
- * @returns {Promise<Object>} - Object containing formatted wait times
- */
-export async function getBasicGasEstimates() {
-	try {
-		const { GasFeeController } = Engine.context;
-		const { gasFeeEstimates } = await GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false });
-
-		return {
-			averageGwei: gasFeeEstimates.estimatedBaseFee,
-			fastGwei: gasFeeEstimates.high.suggestedMaxFeePerGas,
-			safeLowGwei: gasFeeEstimates.low.suggestedMaxFeePerGas,
-		};
-	} catch (error) {
-		Logger.error('Error while trying to get gas estimates', error);
-		throw new Error(error);
-	}
-}
-
 export async function getGasLimit(transaction) {
 	const { TransactionController } = Engine.context;
 
@@ -155,8 +134,7 @@ export async function getGasPriceByChainId(transaction) {
 	}
 
 	const gas = hexToBN(estimation.gas);
-
-	return { gas };
+	return gas;
 }
 
 export function getValueFromWeiHex({

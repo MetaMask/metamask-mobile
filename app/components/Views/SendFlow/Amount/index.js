@@ -659,7 +659,7 @@ class Amount extends PureComponent {
 			transaction: { from },
 			transactionTo,
 		} = this.props.transactionState;
-		const { gas } = await getGasPriceByChainId({
+		const gas = await getGasPriceByChainId({
 			from,
 			to: transactionTo,
 		});
