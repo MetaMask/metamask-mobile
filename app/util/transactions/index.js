@@ -12,7 +12,6 @@ import {
 	renderFiatAddition,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
-	toBN,
 	weiToFiat,
 	weiToFiatNumber,
 } from '../number';
@@ -1023,7 +1022,7 @@ export const parseTransactionLegacy = (
 
 	const suggestedGasPriceHex = decGWEIToHexWEI(selectedGasFee.suggestedGasPrice);
 
-	const valueBN = value ? hexToBN(value) : toBN('0x0');
+	const valueBN = value ? hexToBN(value) : hexToBN('0x0');
 	const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 	const parsedTicker = getTicker(ticker);
 	const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
