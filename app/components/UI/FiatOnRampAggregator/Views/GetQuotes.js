@@ -23,7 +23,11 @@ const GetQuotes = () => {
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
 	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
-	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset } = useFiatOnRampSDK();
+	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset, selectedAddress } =
+		useFiatOnRampSDK();
+
+	//TODO: read the default fiat currency from the onramp context provider
+	const selectedFiat = '/currencies/fiat/usd';
 
 	const [{ data: quotes, isFetching: isFetchingQuotes }] = useSDKMethod(
 		'getQuotes',
@@ -31,7 +35,9 @@ const GetQuotes = () => {
 		selectedPaymentMethod,
 		selectedAsset?.id,
 		CHAIN_ID_NETWORKS[chainId],
-		params.amount
+		selectedFiat,
+		params.amount,
+		selectedAddress
 	);
 
 	useEffect(() => {
@@ -74,22 +80,24 @@ const GetQuotes = () => {
 							No providers available!
 						</Text>
 					) : (
-						quotes.map((quote) => (
-							<View key={quote.providerId} style={styles.row}>
-								<Quotes
-									providerName={quote.providerName}
-									amountOut={quote.amountOut}
-									crypto={quote.crypto}
-									fiat={quote.fiat}
-									networkFee={quote.netwrokFee}
-									processingFee={quote.providerFee}
-									amountIn={quote.amountIn}
-									onPress={() => handleOnPress(quote)}
-									onPressBuy={() => handleOnPressBuy(quote)}
-									highlighted={quote.providerId === providerId}
-								/>
-							</View>
-						))
+						quotes
+							.filter((q) => q.amountIn && q.amountOut)
+							.map((quote) => (
+								<View key={quote.providerId} style={styles.row}>
+									<Quotes
+										providerName={quote.providerName}
+										amountOut={quote.amountOut}
+										crypto={quote.crypto}
+										fiat={quote.fiat}
+										networkFee={quote.netwrokFee}
+										processingFee={quote.providerFee}
+										amountIn={quote.amountIn}
+										onPress={() => handleOnPress(quote)}
+										onPressBuy={() => handleOnPressBuy(quote)}
+										highlighted={quote.providerId === providerId}
+									/>
+								</View>
+							))
 					)}
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
