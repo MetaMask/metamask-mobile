@@ -428,8 +428,8 @@ PODS:
     - React-Core
   - RNI18n (2.0.15):
     - React
-  - RNKeychain (6.2.0):
-    - React
+  - RNKeychain (8.0.0):
+    - React-Core
   - RNOS (1.2.6):
     - React
   - RNReanimated (2.2.3):
@@ -825,7 +825,7 @@ SPEC CHECKSUMS:
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
-  RNKeychain: b8e0711b959a19c5b057d1e970d3c83d159b6da5
+  RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNReanimated: b04ef2a4f0cb61b062bbcf033f84a9e470f4f60b
   RNScreens: 21b73c94c9117e1110a79ee0ee80c93ccefed8ce
