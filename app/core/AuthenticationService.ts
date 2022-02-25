@@ -49,6 +49,8 @@ class AuthenticationService {
 		if (encryptionLib !== ORIGINAL && existingUser) {
 			await recreateVaultWithSamePassword(password, selectedAddress);
 			await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+		} else {
+			throw new Error('Failed to recreate vault on login');
 		}
 	};
 

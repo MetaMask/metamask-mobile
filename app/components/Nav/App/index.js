@@ -257,7 +257,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 	return (
 		// do not render unless a route is defined
-		//TODO: AUTH REFACTOR - confirm login behavior
 		(route && (
 			<View style={styles.fill}>
 				<NavigationContainer

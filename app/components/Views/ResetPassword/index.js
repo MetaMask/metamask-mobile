@@ -303,7 +303,6 @@ class ResetPassword extends PureComponent {
 	async componentDidMount() {
 		const state = { view: CONFIRM_PASSWORD };
 
-		//Setup UI to handle Biometric
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
@@ -317,8 +316,6 @@ class ResetPassword extends PureComponent {
 				biometryType: authType.type,
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 			});
-
-		console.log('Reset Password', authType, !(previouslyDisabled && previouslyDisabled === TRUE));
 
 		this.setState(state);
 

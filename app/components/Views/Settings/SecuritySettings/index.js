@@ -163,6 +163,9 @@ Heading.propTypes = {
 	first: PropTypes.bool,
 };
 
+const PASSCODE_CHOICE = 'passcodeChoice';
+const BIOMETRY_CHOICE = 'biometryChoice';
+
 /**
  * Main view for app configurations
  */
@@ -341,7 +344,7 @@ class Settings extends PureComponent {
 		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: true });
 	};
 
-	onSingInWithBiometrics = async (enabled) => {
+	setPassword = async (enabled, passwordType) => {
 		this.setState({ loading: true }, async () => {
 			let credentials;
 			try {
@@ -349,12 +352,13 @@ class Settings extends PureComponent {
 			} catch (error) {
 				Logger.error(error);
 			}
+
 			if (credentials && credentials.password !== '') {
-				this.storeCredentials(credentials.password, enabled, 'biometryChoice');
+				this.storeCredentials(credentials.password, enabled, passwordType);
 			} else {
 				this.props.navigation.navigate('EnterPasswordSimple', {
 					onPasswordSet: (password) => {
-						this.storeCredentials(password, enabled, 'biometryChoice');
+						this.storeCredentials(password, enabled, passwordType);
 					},
 				});
 			}
@@ -364,24 +368,11 @@ class Settings extends PureComponent {
 	isMainnet = () => this.props.type === MAINNET;
 
 	onSignInWithPasscode = async (enabled) => {
-		this.setState({ loading: true }, async () => {
-			let credentials;
-			try {
-				credentials = await AuthenticationService.getPassword();
-			} catch (error) {
-				Logger.error(error);
-			}
+		await this.setPassword(enabled, PASSCODE_CHOICE);
+	};
 
-			if (credentials && credentials.password !== '') {
-				this.storeCredentials(credentials.password, enabled, 'passcodeChoice');
-			} else {
-				this.props.navigation.navigate('EnterPasswordSimple', {
-					onPasswordSet: (password) => {
-						this.storeCredentials(password, enabled, 'passcodeChoice');
-					},
-				});
-			}
-		});
+	onSingInWithBiometrics = async (enabled) => {
+		await this.setPassword(enabled, BIOMETRY_CHOICE);
 	};
 
 	storeCredentials = async (password, enabled, type) => {
@@ -394,9 +385,9 @@ class Settings extends PureComponent {
 
 			if (!enabled) {
 				this.setState({ [type]: false, loading: false });
-				if (type === 'passcodeChoice') {
+				if (type === PASSCODE_CHOICE) {
 					await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-				} else if (type === 'biometryChoice') {
+				} else if (type === BIOMETRY_CHOICE) {
 					await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 				}
 
@@ -405,9 +396,9 @@ class Settings extends PureComponent {
 
 			try {
 				let authType;
-				if (type === 'biometryChoice') {
+				if (type === BIOMETRY_CHOICE) {
 					authType = AuthenticationType.BIOMETRIC;
-				} else if (type === 'passcodeChoice') {
+				} else if (type === PASSCODE_CHOICE) {
 					authType = AuthenticationType.PASSCODE;
 				} else {
 					authType = AuthenticationType.PASSWORD;

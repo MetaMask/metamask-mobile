@@ -188,8 +188,6 @@ const WRONG_PASSWORD_ERROR_ANDROID = 'Error: error:1e000065:Cipher functions:OPE
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
 const isTextDelete = (text) => tlc(text) === DELETE;
 
-//TODO Testing pincode login not working properly
-
 /**
  * View where returning users can authenticate
  */
