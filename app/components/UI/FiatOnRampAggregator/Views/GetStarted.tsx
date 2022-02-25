@@ -59,7 +59,7 @@ interface IStaticComponents {
 }
 
 const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
-	const { setSelectedCountry, selectedRegion, setSelectedRegion } = useFiatOnRampSDK();
+	const { setSelectedCountry, setSelectedRegion } = useFiatOnRampSDK();
 
 	useEffect(() => {
 		setSelectedCountry('/countries/us');
@@ -89,18 +89,6 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 							</ListItem.Body>
 						</ListItem.Content>
 					))}
-
-					<ListItem.Content style={styles.listItem}>
-						<ListItem.Icon style={styles.icon}>
-							<FontAwesome name="circle" size={32} color={colors.grey100} />
-						</ListItem.Icon>
-						<ListItem.Body>
-							<ListItem.Title bold style={styles.title}>
-								Selected Region
-							</ListItem.Title>
-							<Text style={styles.description}>{selectedRegion}</Text>
-						</ListItem.Body>
-					</ListItem.Content>
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
 
