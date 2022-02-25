@@ -5,6 +5,7 @@ export const FIAT_ORDER_PROVIDERS = {
 	WYRE: 'WYRE',
 	WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
 	TRANSAK: 'TRANSAK',
+	MOONPAY: 'MOONPAY',
 };
 
 /**
@@ -48,7 +49,7 @@ export const NETWORKS_CHAIN_ID = {
 	FANTOM: '250',
 };
 
-const NETWORK_NAMES = {
+const TRANSAK_NETWORK_NAMES = {
 	[NETWORKS_CHAIN_ID.MAINNET]: 'ethereum',
 	[NETWORKS_CHAIN_ID.BSC]: 'bsc',
 	[NETWORKS_CHAIN_ID.POLYGON]: 'polygon',
@@ -80,11 +81,11 @@ export const NETWORK_ALLOWED_TOKENS = {
 	],
 };
 
-export const NETWORK_PARAMETERS = Object.keys(NETWORK_NAMES).reduce(
+export const TRANSAK_NETWORK_PARAMETERS = Object.keys(TRANSAK_NETWORK_NAMES).reduce(
 	(acc, key) => ({
 		...acc,
 		[key]: [
-			NETWORK_NAMES[key],
+			TRANSAK_NETWORK_NAMES[key],
 			NETWORK_NATIVE_SYMBOL[key],
 			[NETWORK_NATIVE_SYMBOL[key], ...(NETWORK_ALLOWED_TOKENS[key] || []).map(({ symbol }) => symbol)].join(','),
 		],
