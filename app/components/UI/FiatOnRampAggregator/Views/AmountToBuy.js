@@ -54,8 +54,8 @@ const AmountToBuy = ({ navigation }) => {
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
 	const {
 		selectedCountry,
-		selectedRegion,
 		setSelectedCountry,
+		selectedRegion,
 		selectedAsset,
 		setSelectedAsset,
 		selectedPaymentMethod,
@@ -69,7 +69,7 @@ const AmountToBuy = ({ navigation }) => {
 
 	const [{ data: currentPaymentMethod }] = useSDKMethod(
 		'getPaymentMethod',
-		{ countryId: 'US', regionId: 'USA' },
+		{ countryId: selectedCountry, regionId: selectedRegion },
 		selectedPaymentMethod
 	);
 
@@ -100,8 +100,8 @@ const AmountToBuy = ({ navigation }) => {
 
 	const handleCountryPress = useCallback(() => {
 		// TODO: handle
-		setSelectedCountry('USA');
-	}, [setSelectedCountry]);
+		setSelectedCountry(selectedCountry);
+	}, [selectedCountry, setSelectedCountry]);
 	const handleAssetSelectorPress = useCallback(
 		(newAmount) => {
 			// TODO: handle
@@ -161,7 +161,7 @@ const AmountToBuy = ({ navigation }) => {
 								label={'You want to buy'}
 								icon={<TokenIcon medium icon={selectedAsset?.iconUrl} symbol={selectedAsset?.symbol} />}
 								assetSymbol={selectedAsset?.symbol}
-								assetName={selectedAsset?.name}
+								assetName={selectedAsset?.symbol}
 								onPress={handleAssetSelectorPress}
 							/>
 						</View>
@@ -182,14 +182,18 @@ const AmountToBuy = ({ navigation }) => {
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
 					<View style={styles.row}>
-						<Box label="Select payment method">
+						<Box label="Selected payment method">
 							<Text black bold>
 								{currentPaymentMethod?.name}
 							</Text>
 						</Box>
 					</View>
 					<View style={styles.row}>
-						<StyledButton type="confirm" onPress={handleGetQuotePress} disabled={Number(amount) <= 0}>
+						<StyledButton
+							type="confirm"
+							onPress={handleGetQuotePress}
+							disabled={Number(amount) <= 0 || currentPaymentMethod.id !== '/payments/debit-credit-card'}
+						>
 							Get Quotes
 						</StyledButton>
 					</View>

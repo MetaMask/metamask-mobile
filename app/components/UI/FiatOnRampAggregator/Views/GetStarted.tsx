@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -59,8 +59,12 @@ interface IStaticComponents {
 }
 
 const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
-	const { selectedCountry, setSelectedCountry } = useFiatOnRampSDK();
-	setSelectedCountry('/countries/us');
+	const { setSelectedCountry, selectedRegion, setSelectedRegion } = useFiatOnRampSDK();
+
+	useEffect(() => {
+		setSelectedCountry('/countries/us');
+		setSelectedRegion('/countries/us/regions/california');
+	}, [setSelectedCountry, setSelectedRegion]);
 
 	const handleOnPress = useCallback(() => {
 		navigation.navigate('PaymentMethod');
@@ -92,9 +96,9 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 						</ListItem.Icon>
 						<ListItem.Body>
 							<ListItem.Title bold style={styles.title}>
-								Selected Country
+								Selected Region
 							</ListItem.Title>
-							<Text style={styles.description}>{selectedCountry}</Text>
+							<Text style={styles.description}>{selectedRegion}</Text>
 						</ListItem.Body>
 					</ListItem.Content>
 				</ScreenLayout.Content>
