@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "Отправленная транзакция",
 		"wc_connected_rejected_title": "Вы отклонили запрос на подключение",
 		"wc_signed_rejected_title": "Вы отклонили запрос на подпись",
-		"wc_sent_tx_rejected_title": "Вы отклонили запрос на транзакцию",
-		"wc_description": "Вернуться в браузер"
+		"wc_sent_tx_rejected_title": "Вы отклонили запрос на транзакцию"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Защитить ваш кошелек",
