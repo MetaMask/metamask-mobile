@@ -72,7 +72,7 @@ const TransactionsView = ({
 		});
 
 		const submittedTxsFiltered = submittedTxs.filter(({ from, transaction }) => {
-			if (from !== selectedAddress) {
+			if (!toLowerCaseEquals(from, selectedAddress)) {
 				return false;
 			}
 			const alreadySubmitted = submittedNonces.includes(transaction.nonce);
