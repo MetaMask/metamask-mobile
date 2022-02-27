@@ -228,14 +228,16 @@ class Asset extends PureComponent {
 			});
 
 			submittedTxs = submittedTxs.filter(({ transaction: { from, nonce } }) => {
-				if (from !== selectedAddress) {
+				if (!toLowerCaseEquals(from, selectedAddress)) {
 					return false;
 				}
 				const alreadySubmitted = submittedNonces.includes(nonce);
 				const alreadyConfirmed = confirmedTxs.find(
 					(confirmedTransaction) =>
-						safeToChecksumAddress(confirmedTransaction.transaction.from) === selectedAddress &&
-						confirmedTransaction.transaction.nonce === nonce
+						toLowerCaseEquals(
+							safeToChecksumAddress(confirmedTransaction.transaction.from),
+							selectedAddress
+						) && confirmedTransaction.transaction.nonce === nonce
 				);
 				if (alreadyConfirmed) {
 					return false;
