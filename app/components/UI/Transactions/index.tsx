@@ -160,7 +160,7 @@ const Transactions = ({
 				},
 			});
 			close?.();
-		} catch (e) {
+		} catch (e: any) {
 			Logger.error(e, { message: `can't get a block explorer link for network `, network });
 		}
 	};
@@ -193,8 +193,8 @@ const Transactions = ({
 			setSpeedUp1559IsOpen(speedUpAction);
 		} else {
 			const isValidBalance = validateTransactionActionBalance(tx, SPEED_UP_RATE.toString(), accounts);
-			setSpeedUpIsOpen(speedUpAction);
 			setSpeedUpConfirmDisabled(!!isValidBalance);
+			setSpeedUpIsOpen(speedUpAction);
 		}
 	};
 
@@ -213,11 +213,11 @@ const Transactions = ({
 			setExistingTx(tx);
 
 			if (gas.isEIP1559Transaction) {
-				setSpeedUp1559IsOpen(cancelAction);
+				setCancel1559IsOpen(cancelAction);
 			} else {
 				const isValidBalance = validateTransactionActionBalance(tx, CANCEL_RATE.toString(), accounts);
-				setCancelConfirmDisabled(cancelAction);
-				setCancel1559IsOpen(!!isValidBalance);
+				setCancelConfirmDisabled(!!isValidBalance);
+				setCancelIsOpen(cancelAction);
 			}
 		},
 		[accounts]
