@@ -3,17 +3,7 @@ import { ethErrors } from 'eth-json-rpc-errors';
 import { getDefaultNetworkByChainId, isPrefixedFormattedHexString, isSafeChainId } from '../../util/networks';
 import AnalyticsV2 from '../../util/analyticsV2';
 
-const wallet_switchEthereumChain = async ({
-	req,
-	res,
-	showSwitchCustomNetworkDialog,
-	switchCustomNetworkRequest,
-	setCustomNetworkToSwitch,
-	setShowSwitchCustomNetworkDialog,
-}) => {
-	if (showSwitchCustomNetworkDialog) return;
-	switchCustomNetworkRequest.current = null;
-
+const wallet_switchEthereumChain = async ({ req, res, requestUserApproval }) => {
 	const { PreferencesController, CurrencyRateController, NetworkController } = Engine.context;
 	const params = req.params?.[0];
 
@@ -62,33 +52,18 @@ const wallet_switchEthereumChain = async ({
 			return;
 		}
 
-		if (existingNetworkRPC) {
-			setCustomNetworkToSwitch({
-				rpcUrl: existingNetworkRPC.rpcUrl,
-				chainId: _chainId,
-				chainName: existingNetworkRPC.nickname,
-				ticker: existingNetworkRPC.ticker,
-			});
-		} else {
-			setCustomNetworkToSwitch({
-				chainId: _chainId,
-				chainColor: existingNetworkDefault.color,
-				chainName: existingNetworkDefault.shortName,
-				ticker: 'ETH',
-			});
-		}
-
-		setShowSwitchCustomNetworkDialog('switch');
-
-		const switchCustomNetworkApprove = await new Promise((resolve, reject) => {
-			switchCustomNetworkRequest.current = { resolve, reject };
-		});
-
+		let requestData;
 		let analyticsParams = {
 			chain_id: _chainId,
 			source: 'Switch Network API',
 		};
 		if (existingNetworkRPC) {
+			requestData = {
+				rpcUrl: existingNetworkRPC.rpcUrl,
+				chainId: _chainId,
+				chainName: existingNetworkRPC.nickname,
+				ticker: existingNetworkRPC.ticker,
+			};
 			analyticsParams = {
 				...analyticsParams,
 				rpc_url: existingNetworkRPC?.rpcUrl,
@@ -97,16 +72,22 @@ const wallet_switchEthereumChain = async ({
 				network_name: 'rpc',
 			};
 		} else {
+			requestData = {
+				chainId: _chainId,
+				chainColor: existingNetworkDefault.color,
+				chainName: existingNetworkDefault.shortName,
+				ticker: 'ETH',
+			};
 			analyticsParams = {
 				...analyticsParams,
 				network_name: existingNetworkDefault?.shortName,
 			};
 		}
 
-		if (!switchCustomNetworkApprove) {
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_REQUEST_REJECTED, analyticsParams);
-			throw ethErrors.provider.userRejectedRequest();
-		}
+		await requestUserApproval({
+			type: 'SWITCH_ETHEREUM_CHAIN',
+			requestData: { ...requestData, type: 'switch' },
+		});
 
 		if (existingNetworkRPC) {
 			CurrencyRateController.setNativeCurrency(existingNetworkRPC.ticker);
