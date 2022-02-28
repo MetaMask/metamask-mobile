@@ -271,7 +271,7 @@ export async function isCollectibleAddress(address, tokenId) {
 	const { AssetsContractController } = Engine.context;
 	// Hack to know if the address is a collectible smart contract
 	// for now this method is called from tx element so we have the respective 'tokenId'
-	const ownerOf = await AssetsContractController.getOwnerOf(address, tokenId);
+	const ownerOf = await AssetsContractController.getERC721OwnerOf(address, tokenId);
 	const isCollectibleAddress = ownerOf && ownerOf !== '0x';
 	CollectibleAddresses.cache[address] = isCollectibleAddress;
 	return isCollectibleAddress;
