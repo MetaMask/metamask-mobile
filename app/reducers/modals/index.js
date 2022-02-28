@@ -33,11 +33,23 @@ const modalsReducer = (state = initialState, action) => {
 				collectibleContractModalVisible: !state.collectibleContractModalVisible,
 			};
 		case 'TOGGLE_DAPP_TRANSACTION_MODAL':
+			if (action.show === false) {
+				return {
+					...state,
+					dappTransactionModalVisible: false,
+				};
+			}
 			return {
 				...state,
 				dappTransactionModalVisible: action.show === null ? !state.dappTransactionModalVisible : action.show,
 			};
 		case 'TOGGLE_APPROVE_MODAL':
+			if (action.show === false) {
+				return {
+					...state,
+					approveModalVisible: false,
+				};
+			}
 			return {
 				...state,
 				approveModalVisible: !state.approveModalVisible,
