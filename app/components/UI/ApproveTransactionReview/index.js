@@ -280,8 +280,8 @@ class ApproveTransactionReview extends PureComponent {
 		const contract = tokenList[safeToChecksumAddress(to)];
 		if (!contract) {
 			try {
-				tokenDecimals = await AssetsContractController.getTokenDecimals(to);
-				tokenSymbol = await AssetsContractController.getAssetSymbol(to);
+				tokenDecimals = await AssetsContractController.getERC20TokenDecimals(to);
+				tokenSymbol = await AssetsContractController.getERC721AssetSymbol(to);
 			} catch (e) {
 				tokenSymbol = 'ERC20 Token';
 				tokenDecimals = 18;
