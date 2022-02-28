@@ -1,11 +1,8 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 import Engine from '../../core/Engine';
-import AppConstants from '../../core/AppConstants';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
 import punycode from 'punycode/punycode';
-
-const { supportedTLDs } = AppConstants;
 
 /**
  * Returns full checksummed address
