@@ -154,6 +154,12 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 
 	// Button is pressed
 	const triggerPressStart = () => {
+		// const configValue = process.env.IS_DETOX
+		// console.log(`**********  HERE IS THE CONFIG VALUE: ${configValue}`)
+		if (process.env.IS_DETOX) {
+			onLongPress();
+			return;
+		}
 		const duration = (preCompleteControl.value / progressOrigin.value) * animationDuration;
 		preCompleteControl.value = withTiming(progressDestination.value, {
 			duration,
