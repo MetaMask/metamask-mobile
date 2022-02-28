@@ -573,7 +573,7 @@ class TransactionEditor extends PureComponent {
 		} = this.props;
 		const { selectedAddress } = this.props;
 		try {
-			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const owner = await AssetsContractController.getERC721OwnerOf(address, tokenId);
 			const isOwner = toLowerCaseEquals(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
@@ -632,7 +632,7 @@ class TransactionEditor extends PureComponent {
 			} else {
 				const { AssetsContractController } = Engine.context;
 				try {
-					contractBalanceForAddress = await AssetsContractController.getBalanceOf(
+					contractBalanceForAddress = await AssetsContractController.getERC20BalanceOf(
 						selectedAsset.address,
 						checksummedFrom
 					);
