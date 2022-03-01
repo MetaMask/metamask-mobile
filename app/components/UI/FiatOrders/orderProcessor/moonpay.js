@@ -98,14 +98,19 @@ const moonPayApi = axios.create({
 });
 
 const getOrderStatus = (transactionId) =>
-	moonPayApi.get(`v1/transactions/`, {
+	moonPayApi.get('v1/transactions', {
 		params: {
 			apiKey: MOONPAY_API_KEY,
 			transactionId,
 		},
 	});
 
-// TODO: get currencies
+const getCurrencies = moonPayApi.get('v3/currencies', {
+	params: {
+		apiKey: MOONPAY_API_KEY,
+	},
+});
+
 // TODO: post values to sign
 
 //* Helpers
@@ -146,8 +151,8 @@ const moonPayOrderToFiatOrder = (moonPayTransaction) => ({
 	fee: moonPayTransaction.feeAmount + moonPayTransaction.extraFeeAmount + moonPayTransaction.networkFeeAmount,
 	cryptoAmount: moonPayTransaction.quoteCurrencyAmount,
 	cryptoFee: moonPayTransaction.networkFeeAmount,
-	currency: '', // TODO: transform currency ids to currency codes
-	cryptocurrency: '', // TODO: transform currency ids to currency codes
+	currency: '',
+	cryptocurrency: '',
 	amountInUSD: moonPayTransaction.baseCurrencyAmount * moonPayTransaction.usdRate,
 	state: moonPayOrderToFiatOrderState(moonPayTransaction.status),
 	account: moonPayTransaction.walletAddress,
@@ -204,10 +209,21 @@ export async function processMoonPayOrder(order) {
 			Logger.error('FiatOrders::MoonPayProcessor empty data', order);
 			return order;
 		}
-		return {
+
+		const updatedOrder = {
 			...order,
 			...moonPayOrderToFiatOrder(data),
 		};
+
+		if (!updatedOrder.currency || !updatedOrder.cryptocurrency) {
+			const { data: currencies } = await getCurrencies();
+			const currency = currencies.find(({ id }) => id === data.baseCurrencyId);
+			const cryptocurrency = currencies.find(({ id }) => id === data.currencyId);
+			updatedOrder.currency = currency?.code;
+			updatedOrder.cryptocurrency = cryptocurrency?.code;
+		}
+
+		return updatedOrder;
 	} catch (error) {
 		Logger.error(error, { message: 'FiatOrders::MoonPayProcessor error while processing order', order });
 		return order;
