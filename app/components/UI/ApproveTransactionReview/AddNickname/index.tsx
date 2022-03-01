@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { WebView } from 'react-native-webview';
 import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
+import InfoModal from '../../Swaps/components/InfoModal';
 import { showSimpleNotification } from '../../../../actions/notification';
 import Identicon from '../../../UI/Identicon';
 import WebviewProgressBar from '../../../UI/WebviewProgressBar';
@@ -205,6 +206,7 @@ const AddNickname = (props: AddNicknameProps) => {
 
 	const [newNickname, setNewNickname] = useState(nickname);
 	const [isBlockExplorerVisible, setIsBlockExplorerVisible] = useState(false);
+	const [showFullAddress, setShowFullAddress] = useState(false);
 
 	const copyContractAddress = async () => {
 		await ClipboardManager.setString(contractAddress);
@@ -226,6 +228,10 @@ const AddNickname = (props: AddNicknameProps) => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_NICKNAME, getAnalyticsParams());
 	};
 
+	const showFullAddressModal = () => {
+		setShowFullAddress(!showFullAddress);
+	};
+
 	const toggleBlockExplorer = () => setIsBlockExplorerVisible(true);
 
 	return (
@@ -240,12 +246,24 @@ const AddNickname = (props: AddNicknameProps) => {
 				<>
 					<Header onUpdateContractNickname={onUpdateContractNickname} nicknameExists={nicknameExists} />
 					<View style={styles.bodyWrapper}>
+						{showFullAddress && (
+							<InfoModal
+								isVisible
+								message={contractAddress}
+								propagateSwipe={false}
+								toggleModal={showFullAddressModal}
+							/>
+						)}
 						<View style={styles.addressIdenticon}>
 							<Identicon address={contractAddress} diameter={25} />
 						</View>
 						<Text style={styles.label}>{strings('nickname.address')}</Text>
 						<View style={styles.addressWrapperPrimary}>
-							<TouchableOpacity style={styles.addressWrapper} onPress={copyContractAddress}>
+							<TouchableOpacity
+								style={styles.addressWrapper}
+								onPress={copyContractAddress}
+								onLongPress={showFullAddressModal}
+							>
 								<Feather name="copy" size={18} color={colors.blue} style={styles.actionIcon} />
 								<EthereumAddress address={contractAddress} type="mid" style={styles.address} />
 							</TouchableOpacity>
