@@ -17,7 +17,7 @@ const useTokenBalance = (requestedTokenAddress: string, userCurrentAddress: stri
 	const { TokenBalancesController }: any = Engine.context;
 
 	const fetchBalance = async (tokenAddress: string, userAddress: string): Promise<void> => {
-		TokenBalancesController.getBalanceOf(tokenAddress, userAddress)
+		TokenBalancesController.getERC20BalanceOf(tokenAddress, userAddress)
 			.then((balance: BN) => setTokenBalance(balance))
 			.catch(() => setError(true))
 			.finally(() => setLoading(false));
