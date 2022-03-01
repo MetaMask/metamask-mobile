@@ -443,7 +443,9 @@ class Approve extends PureComponent {
 			await TransactionController.approveTransaction(transaction.id);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			if (!error.message.startsWith('KeystoneError#Tx_canceled')) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+			}
 			Logger.error(error, 'error while trying to send transaction (Approve)');
 			this.setState({ transactionHandled: false });
 		}
