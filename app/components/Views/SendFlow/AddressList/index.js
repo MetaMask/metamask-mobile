@@ -4,6 +4,7 @@ import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Fuse from 'fuse.js';
+import { isSmartContractAddress } from '../../../../util/transactions';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
 
@@ -198,20 +199,38 @@ class AddressList extends PureComponent {
 		);
 	};
 
+	checkIsSmartContract = (address, chainId) =>
+		new Promise((resolve) => {
+			isSmartContractAddress(address, chainId)
+				.then((isSmartContract) => resolve(isSmartContract))
+				.catch(() => resolve(false));
+		});
+
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
+
+		this.checkIsSmartContract(element.address, element.chainId).then((isSmartContract) => {
+			if (isSmartContract) element.isSmartContract = true;
+			return element;
+		});
+
 		if (typeof element === 'string') {
 			return LabelElement(element);
 		}
+
 		const key = element.address + element.name;
+
 		return (
-			<AddressElement
-				key={key}
-				address={element.address}
-				name={element.name}
-				onAccountPress={onAccountPress}
-				onAccountLongPress={onAccountLongPress}
-			/>
+			!element.isSmartContract && (
+				<AddressElement
+					key={key}
+					address={element.address}
+					name={element.name}
+					onAccountPress={onAccountPress}
+					onAccountLongPress={onAccountLongPress}
+					testID={'account-address'}
+				/>
+			)
 		);
 	};
 
