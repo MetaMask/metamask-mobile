@@ -11,6 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -109,6 +110,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	}, [QRState.sync, hideScanner, showScanner]);
 
 	const onConnectHardware = useCallback(async () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET, {});
 		resetError();
 		const _accounts = await KeyringController.connectQRHardware(0);
 		setAccounts(_accounts);
@@ -116,6 +118,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	const onScanSuccess = useCallback(
 		(ur: UR) => {
 			hideScanner();
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET_SUCCESS, {
+				device_type: 'QR Hardware',
+			});
 			if (ur.type === SupportedURType.CRYPTO_HDKEY) {
 				KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
 			} else {

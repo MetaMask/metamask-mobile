@@ -446,6 +446,8 @@ class Approve extends PureComponent {
 			if (!error.message.startsWith('KeystoneError#Tx_canceled')) {
 				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 				Logger.error(error, 'error while trying to send transaction (Approve)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
 			}
 			this.setState({ transactionHandled: false });
 		}

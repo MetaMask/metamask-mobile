@@ -10,6 +10,8 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { connect } from 'react-redux';
+import { getAddressAccountType } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	expandedMessage: {
@@ -25,8 +27,12 @@ const styles = StyleSheet.create({
 /**
  * Component that supports eth_sign
  */
-export default class MessageSign extends PureComponent {
+class MessageSign extends PureComponent {
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -63,11 +69,12 @@ export default class MessageSign extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { currentPageInformation } = this.props;
+			const { currentPageInformation, selectedAddress } = this.props;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const url = new URL(currentPageInformation?.url);
 			return {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: url?.host,
 				dapp_url: currentPageInformation?.url,
 				network_name: type,
@@ -129,6 +136,10 @@ export default class MessageSign extends PureComponent {
 			this.props.onConfirm();
 		} catch (e) {
 			if (e.message.startsWith('KeystoneError#Tx_canceled')) {
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+					this.getAnalyticsParams()
+				);
 				this.props.onCancel();
 			}
 		}
@@ -187,3 +198,9 @@ export default class MessageSign extends PureComponent {
 		return rootView;
 	}
 }
+
+const mapStateToProps = (state) => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+});
+
+export default connect(mapStateToProps)(MessageSign);

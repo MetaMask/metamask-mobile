@@ -43,6 +43,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const Stack = createStackNavigator();
 

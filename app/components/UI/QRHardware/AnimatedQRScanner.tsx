@@ -11,6 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -117,13 +118,24 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 		[purpose]
 	);
 
+	const getAnalyticParams = useCallback(
+		() => ({
+			purpose,
+		}),
+		[purpose]
+	);
+
 	const onError = useCallback(
 		(error) => {
 			if (onScanError && error) {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
+					...getAnalyticParams(),
+					error,
+				});
 				onScanError(error.message);
 			}
 		},
-		[onScanError]
+		[getAnalyticParams, onScanError]
 	);
 
 	const onBarCodeRead = useCallback(
@@ -136,6 +148,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 				urDecoder.receivePart(content);
 				setProgress(Math.ceil(urDecoder.getProgress() * 100));
 				if (urDecoder.isError()) {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
+						...getAnalyticParams(),
+						error: urDecoder.resultError(),
+					});
 					onScanError(strings('transaction.unknown_qr_code'));
 				}
 				if (urDecoder.isSuccess()) {
@@ -145,8 +161,18 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						setProgress(0);
 						setURDecoder(new URRegistryDecoder());
 					} else if (purpose === 'sync') {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
+							...getAnalyticParams(),
+							received_ur_type: ur.type,
+							error: 'invalid `sync` qr code',
+						});
 						onScanError(strings('transaction.invalid_qr_code_sync'));
 					} else {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
+							...getAnalyticParams(),
+							received_ur_type: ur.type,
+							error: 'invalid `sign` qr code',
+						});
 						onScanError(strings('transaction.invalid_qr_code_sign'));
 					}
 				}
@@ -154,7 +180,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 				onScanError(strings('transaction.unknown_qr_code'));
 			}
 		},
-		[urDecoder, onScanError, expectedURTypes, onScanSuccess, purpose]
+		[urDecoder, getAnalyticParams, onScanError, expectedURTypes, purpose, onScanSuccess]
 	);
 
 	const onStatusChange = useCallback(

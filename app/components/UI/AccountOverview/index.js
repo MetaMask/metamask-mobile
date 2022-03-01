@@ -18,7 +18,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
-import { renderAccountName } from '../../../util/address';
+import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { doENSReverseLookup, isDefaultAccountName } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -30,7 +30,6 @@ import { colors, fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { KeyringTypes } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	scrollView: {
@@ -196,7 +195,6 @@ class AccountOverview extends PureComponent {
 		accountLabel: '',
 		originalAccountLabel: '',
 		ens: undefined,
-		keyringType: KeyringTypes.hd,
 	};
 
 	editableLabelRef = React.createRef();
@@ -228,20 +226,12 @@ class AccountOverview extends PureComponent {
 		InteractionManager.runAfterInteractions(() => {
 			this.doENSLookup();
 		});
-		this.KeyringController.getAccountKeyringType(this.props.account.address).then((keyringType) => {
-			this.setState({ keyringType });
-		});
 	};
 
 	componentDidUpdate(prevProps) {
 		if (prevProps.account.address !== this.props.account.address || prevProps.network !== this.props.network) {
 			requestAnimationFrame(() => {
 				this.doENSLookup();
-			});
-		}
-		if (prevProps.account.address !== this.props.account.address) {
-			this.KeyringController.getAccountKeyringType(this.props.account.address).then((keyringType) => {
-				this.setState({ keyringType });
 			});
 		}
 	}
@@ -336,9 +326,9 @@ class AccountOverview extends PureComponent {
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
-		const { accountLabelEditable, accountLabel, ens, keyringType } = this.state;
+		const { accountLabelEditable, accountLabel, ens } = this.state;
 
-		const isQRHardwareWalletAccount = keyringType === KeyringTypes.qr;
+		const isQRHardwareWalletAccount = isQRHardwareAccount(address);
 
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>

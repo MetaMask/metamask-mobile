@@ -12,6 +12,7 @@ import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 interface IQRSigningDetails {
 	QRState: IQRState;
@@ -137,6 +138,9 @@ const QRSigningDetails = ({
 				KeyringController.submitQRSignature(QRState.sign.request?.requestId as string, ur.cbor.toString('hex'));
 				successCallback?.();
 			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
+					error: 'received signature request id is not matched with origin request',
+				});
 				setErrorMessage(strings('transaction.mismatched_qr_request_id'));
 				failureCallback?.(strings('transaction.mismatched_qr_request_id'));
 			}

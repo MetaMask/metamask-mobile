@@ -13,7 +13,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, getNormalizedTxState, getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
-import { safeToChecksumAddress } from '../../../util/address';
+import { getAddressAccountType, safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -38,6 +38,10 @@ class Approval extends PureComponent {
 		getTransactionOptionsTitle('approval.title', navigation, route);
 
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -163,9 +167,10 @@ class Approval extends PureComponent {
 
 	getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
 		try {
-			const { activeTabUrl, chainId, transaction, networkType } = this.props;
+			const { activeTabUrl, chainId, transaction, networkType, selectedAddress } = this.props;
 			const { selectedAsset } = transaction;
 			return {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: transaction?.origin,
 				dapp_url: activeTabUrl,
 				network_name: networkType,
@@ -263,6 +268,8 @@ class Approval extends PureComponent {
 					{ text: strings('navigation.ok') },
 				]);
 				Logger.error(error, 'error while trying to send transaction (Approval)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
 			}
 			this.setState({ transactionHandled: false });
 		}
@@ -378,6 +385,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	showCustomNonce: state.settings.showCustomNonce,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
