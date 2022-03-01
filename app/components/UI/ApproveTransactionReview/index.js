@@ -108,9 +108,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 8,
 		color: colors.blue700,
 		...fontStyles.normal,
-		letterSpacing: 0.8,
-		width: 70,
-		textAlign: 'center',
+		maxWidth: 120,
 	},
 	errorWrapper: {
 		marginTop: 12,

@@ -1827,8 +1827,8 @@
 		"add_nickname": "Add nickname",
 		"edit_nickname": "Edit nickname",
 		"save_nickname": "Confirm",
-		"address": "Address",
-		"name": "Name",
+		"address": "Contract Address",
+		"name": "Contract Name",
 		"name_placeholder": "Add a nickname to this address",
 		"contract": "Contract",
 		"nickname": "nickname"
