@@ -2159,31 +2159,10 @@
     hdkey "^2.0.1"
     uuid "^8.3.2"
 
-"@keystonehq/base-eth-keyring@^0.3.2-alpha.2":
-  version "0.3.2-alpha.2"
-  resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.3.2-alpha.2.tgz#e3ff00eb468e26f1676503e060f7ab3ea453120e"
-  integrity sha512-fUx319c2wqdJL0pBxeYC45cxQPryyA/W2As6SPgOjyAVvRF9AWogNfK6fIptsk+A0wfGPgSa7vCaWNXMp36WuQ==
-  dependencies:
-    "@ethereumjs/tx" "3.0.0"
-    "@keystonehq/bc-ur-registry-eth" "^0.7.6"
-    ethereumjs-util "^7.0.8"
-    hdkey "^2.0.1"
-    uuid "^8.3.2"
-
 "@keystonehq/bc-ur-registry-eth@^0.6.12":
   version "0.6.14"
   resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry-eth/-/bc-ur-registry-eth-0.6.14.tgz#4b8c34d653278524eb574a2879910072ee621ae0"
   integrity sha512-Zr0VAUJuzz5zfH2263AucdWPUYuclpd93Pmi/VzbML72sQLv8l83kQWmQpI+7639uV5dHcOj6JnD8FhCPYPRFQ==
-  dependencies:
-    "@keystonehq/bc-ur-registry" "^0.4.4"
-    ethereumjs-util "^7.0.8"
-    hdkey "^2.0.1"
-    uuid "^8.3.2"
-
-"@keystonehq/bc-ur-registry-eth@^0.7.6":
-  version "0.7.6"
-  resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry-eth/-/bc-ur-registry-eth-0.7.6.tgz#da7e77b5b45838197c0944a136cdac8f8648c4ac"
-  integrity sha512-VaZgXBfeORCCl/bbrWNs8Id7S7b3lnPhLubvnBJr5yjO71aVLmDU84PpOfSmBdKRrv7/lZ6fai87MOatUx3j3g==
   dependencies:
     "@keystonehq/bc-ur-registry" "^0.4.4"
     ethereumjs-util "^7.0.8"
@@ -2221,22 +2200,10 @@
     rlp "^2.2.6"
     uuid "^8.3.2"
 
-"@keystonehq/metamask-airgapped-keyring@^0.2.2-alpha.2":
-  version "0.2.2-alpha.2"
-  resolved "https://registry.yarnpkg.com/@keystonehq/metamask-airgapped-keyring/-/metamask-airgapped-keyring-0.2.2-alpha.2.tgz#07fe4e2ff4d643a926d30e83051dd024793d8bb2"
-  integrity sha512-4YuP7u44f8hZocAMTI0coU875e8IhFyOg4m0+T89ru0xLrT0sIsw1E50U/Lgzins/nS8+vBzenoEQdZXHSz5gw==
-  dependencies:
-    "@ethereumjs/tx" "^3.3.0"
-    "@keystonehq/base-eth-keyring" "^0.3.2-alpha.2"
-    "@keystonehq/bc-ur-registry-eth" "^0.7.6"
-    "@metamask/obs-store" "^7.0.0"
-    rlp "^2.2.6"
-    uuid "^8.3.2"
-
-"@keystonehq/ur-decoder@^0.1.1-alpha.1":
-  version "0.1.1-alpha.1"
-  resolved "https://registry.yarnpkg.com/@keystonehq/ur-decoder/-/ur-decoder-0.1.1-alpha.1.tgz#95b64b1d03823fff4bd13a42c2394f7d32bd10e4"
-  integrity sha512-7ElxTy7uSzUKY3xMRtTg4CpXB/vr32ynZXFFwjvAXOWm22s832oJ9uTFcev8iIpWJzTd1hCAt+wrZMkT32P4tg==
+"@keystonehq/ur-decoder@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@keystonehq/ur-decoder/-/ur-decoder-0.2.0.tgz#ce5d7b65916110d81c0ffba1bd192b3a62bd9b20"
+  integrity sha512-CKKtw22MEoM6lKUid+0yjbQMhyJbIIafv2BmRAZ8YH8ofQdMGpLI8frGf0VGDW86X2bazSG/oPZTZ1iXRkuMvQ==
   dependencies:
     "@keystonehq/bc-ur-registry-eth" "^0.6.12"
     "@ngraveio/bc-ur" "^1.1.6"
@@ -3505,6 +3472,11 @@
   version "8.3.1"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.1.tgz#1a32969cf8f0364b3d8c8af9cc3555b7805df14f"
   integrity sha512-Y2mHTRAbqfFkpjldbkHGY8JIzRN6XqYRliG8/24FcHm2D2PwW24fl5xMRTVGdrb7iMrwCaIEbLWerGIkXuFWVg==
+
+"@types/uuid@^8.3.4":
+  version "8.3.4"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.4.tgz#bd86a43617df0594787d38b735f55c805becf1bc"
+  integrity sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==
 
 "@types/webpack-env@^1.15.0":
   version "1.16.3"

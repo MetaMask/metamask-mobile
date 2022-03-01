@@ -2,12 +2,13 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 
 interface IConnectQRInstructionProps {
 	onConnect: () => void;
+	renderAlert: () => Element;
 }
 
 const connectQRHardwareImg = require('images/connect-qr-hardware.png'); // eslint-disable-line import/no-commonjs
@@ -18,14 +19,18 @@ const styles = StyleSheet.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 	},
+	scrollWrapper: {
+		width: '100%',
+	},
 	title: {
 		width: '100%',
 		marginTop: 40,
 		fontSize: 24,
+		marginBottom: 20,
 	},
 	textContainer: {
 		width: '100%',
-		marginTop: 40,
+		marginTop: 20,
 	},
 	text: {
 		fontSize: 14,
@@ -50,16 +55,17 @@ const styles = StyleSheet.create({
 	image: {
 		width: 300,
 		height: 120,
-		marginTop: 60,
+		marginTop: 40,
 		marginBottom: 40,
 	},
 });
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
-	const { onConnect } = props;
+	const { onConnect, renderAlert } = props;
 	return (
-		<View style={styles.container}>
+		<ScrollView contentContainerStyle={styles.container} style={styles.scrollWrapper}>
 			<Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
+			{renderAlert()}
 			<View style={styles.textContainer}>
 				<Text style={styles.text}>{strings('connect_qr_hardware.description1')}</Text>
 				<Text style={[styles.text, styles.link]}>{strings('connect_qr_hardware.description2')}</Text>
@@ -70,7 +76,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 			<TouchableOpacity onPress={onConnect} style={styles.button}>
 				<Text style={styles.buttonText}>{strings('connect_qr_hardware.button_continue')}</Text>
 			</TouchableOpacity>
-		</View>
+		</ScrollView>
 	);
 };
 
