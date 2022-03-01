@@ -4,7 +4,7 @@ import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
-import abi from 'human-standard-token-abi';
+import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { ethErrors } from 'eth-json-rpc-errors';
 
 import Approval from '../../Views/Approval';
@@ -46,7 +46,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
-const hstInterface = new ethers.utils.Interface(abi);
+const hstInterface = new ethers.utils.Interface(abiERC20);
 
 const styles = StyleSheet.create({
 	bottomModal: {
