@@ -19,7 +19,7 @@ const PaymentMethod = () => {
 	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(null);
 
 	const { selectedCountry, selectedRegion, setSelectedPaymentMethod } = useFiatOnRampSDK();
-	const [{ data, isFetching, error }] = useSDKMethod('getPaymentMethods', {
+	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
 		countryId: selectedCountry,
 		regionId: selectedRegion,
 	});
@@ -29,7 +29,7 @@ const PaymentMethod = () => {
 		navigation.navigate('AmountToBuy');
 	}, [currentPaymentMethod, setSelectedPaymentMethod, navigation]);
 
-	if (isFetching || !data) {
+	if (isFetching || !paymentMethods) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -52,7 +52,7 @@ const PaymentMethod = () => {
 		<ScreenLayout>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
-					{data?.map(({ id, name, delay }) => (
+					{paymentMethods?.map(({ id, name, delay }) => (
 						<View key={id} style={styles.row}>
 							<PaymentOption
 								highlighted={id === currentPaymentMethod}

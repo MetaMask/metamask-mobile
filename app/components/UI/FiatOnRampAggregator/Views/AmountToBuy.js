@@ -5,19 +5,23 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
-import TokenSelectModal from '../components/TokenSelectModal';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
-
 import ScreenLayout from '../components/ScreenLayout';
 import Text from '../../../Base/Text';
 import AssetSelectorButton from '../components/AssetSelectorButton';
+import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import AmountInput from '../components/AmountInput';
 import Keypad from '../components/Keypad';
-import Box from '../components/Box';
 import QuickAmounts from '../components/QuickAmounts';
 import SelectorButton from '../../../Base/SelectorButton';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
+// import sdk hooks
+import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
+// import modals
+import TokenSelectModal from '../components/TokenSelectModal';
+import PaymentMethodModal from '../components/PaymentMethodModal';
+import { PAYMENT_METHOD_ICON } from '../constants';
+import RemoteImage from '../../../Base/RemoteImage';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -43,6 +47,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 25,
 		backgroundColor: '#EDEFF2',
 	},
+	icon: {
+		width: 24,
+		height: 24,
+	},
+	cta: {
+		paddingTop: 12,
+	},
 });
 
 const AmountToBuy = ({ navigation }) => {
@@ -52,6 +63,8 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
+	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
+
 	const {
 		selectedCountry,
 		setSelectedCountry,
@@ -102,6 +115,7 @@ const AmountToBuy = ({ navigation }) => {
 		// TODO: handle
 		setSelectedCountry(selectedCountry);
 	}, [selectedCountry, setSelectedCountry]);
+
 	const handleAssetSelectorPress = useCallback(
 		(newAmount) => {
 			// TODO: handle
@@ -109,6 +123,12 @@ const AmountToBuy = ({ navigation }) => {
 		},
 		[toggleTokenSelectorModal]
 	);
+
+	const handlePaymentMethodSelectorPress = useCallback(() => {
+		// TODO: handle
+		togglePaymentMethodModal();
+	}, [togglePaymentMethodModal]);
+
 	const handleAmountCurrencyPress = useCallback((newAmount) => {
 		// TODO: handle
 	}, []);
@@ -181,18 +201,18 @@ const AmountToBuy = ({ navigation }) => {
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
-					<View style={styles.row}>
-						<Box label="Selected payment method">
-							<Text black bold>
-								{currentPaymentMethod?.name}
-							</Text>
-						</Box>
-					</View>
-					<View style={styles.row}>
+					<PaymentMethodSelector
+						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
+						id={'/payments/debit-credit-card'}
+						icon={<RemoteImage source={PAYMENT_METHOD_ICON[selectedPaymentMethod]} style={styles.icon} />}
+						name={currentPaymentMethod?.name}
+						onPress={handlePaymentMethodSelectorPress}
+					/>
+					<View style={[styles.row, styles.cta]}>
 						<StyledButton
 							type="confirm"
 							onPress={handleGetQuotePress}
-							disabled={Number(amount) <= 0 || currentPaymentMethod.id !== '/payments/debit-credit-card'}
+							disabled={Number(amount) <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
 						>
 							Get Quotes
 						</StyledButton>
@@ -223,6 +243,12 @@ const AmountToBuy = ({ navigation }) => {
 				title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
 				description={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency_description')}
 				tokens={tokens}
+				onItemPress={handleAssetPress}
+			/>
+			<PaymentMethodModal
+				isVisible={isPaymentMethodModalVisible}
+				dismiss={togglePaymentMethodModal}
+				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
 				onItemPress={handleAssetPress}
 			/>
 		</ScreenLayout>

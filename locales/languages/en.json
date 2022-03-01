@@ -1466,7 +1466,9 @@
 		"select_a_quote": "Select a Quote",
 		"select_a_cryptocurrency": "Select a cryptocurrency",
 		"select_a_cryptocurrency_description": "Select from the list of tokens available on the “Ethereum Network”. dolor sit amet, consectetur adipiscing elit.",
-		"search_by_cryptocurrency": "Search by cryptocurrency"
+		"search_by_cryptocurrency": "Search by cryptocurrency",
+		"selected_payment_method": "Selected payment method",
+		"select_payment_method": "Select payment method"
 	},
 	"swaps": {
 		"onboarding": {

@@ -7,3 +7,10 @@ export const CHAIN_ID_NETWORKS = {
 	200: 'arbitrum',
 	43114: 'avalanche',
 };
+
+export const PAYMENT_METHOD_ICON = {
+	/* eslint-disable import/no-commonjs */
+	'/payments/debit-credit-card': require('./components/images/DebitOrCredit.png'),
+	'/payments/bank-account': require('./components/images/BankAccount.png'),
+	'/payments/apple-pay': require('./components/images/ApplePay.png'),
+};
