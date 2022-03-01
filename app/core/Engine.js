@@ -115,15 +115,12 @@ class Engine {
 				{
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
-					getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
-					getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
-					getCollectibleTokenURI:
-						assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
-					getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
-					balanceOfERC1155Collectible:
-						assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
-					uriERC1155Collectible:
-						assetsContractController.uriERC1155Collectible.bind(assetsContractController),
+					getERC721AssetName: assetsContractController.getERC721AssetName.bind(assetsContractController),
+					getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(assetsContractController),
+					getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(assetsContractController),
+					getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(assetsContractController),
+					getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(assetsContractController),
+					getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(assetsContractController),
 				},
 				{
 					useIPFSSubdomains: false,
@@ -215,7 +212,7 @@ class Engine {
 					{
 						onTokensStateChange: (listener) => tokensController.subscribe(listener),
 						getSelectedAddress: () => preferencesController.state.selectedAddress,
-						getBalanceOf: assetsContractController.getBalanceOf.bind(assetsContractController),
+						getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(assetsContractController),
 					},
 					{ interval: 10000 }
 				),
