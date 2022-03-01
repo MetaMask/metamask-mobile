@@ -433,7 +433,7 @@ class TransactionReview extends PureComponent {
 		return (
 			<View style={styles.actionViewQRObject}>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
-				<QRSigningDetails QRState={QRState} tighten showCancelButton />
+				<QRSigningDetails QRState={QRState} tighten showCancelButton showHint={false} />
 			</View>
 		);
 	}

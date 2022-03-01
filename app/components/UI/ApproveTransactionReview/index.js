@@ -121,6 +121,9 @@ const styles = StyleSheet.create({
 	actionViewChildren: {
 		height: 300,
 	},
+	actionViewQRObject: {
+		height: 600,
+	},
 	paddingHorizontal: {
 		paddingHorizontal: 16,
 	},
@@ -734,11 +737,11 @@ class ApproveTransactionReview extends PureComponent {
 			QRState,
 		} = this.props;
 		return (
-			<View style={styles.section} testID={'qr-details'}>
+			<View style={styles.actionViewQRObject} testID={'qr-details'}>
 				<TransactionHeader
 					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 				/>
-				<QRSigningDetails QRState={QRState} />;
+				<QRSigningDetails QRState={QRState} tighten showHint={false} showCancelButton />
 			</View>
 		);
 	}

@@ -98,6 +98,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 		expectedURTypes = [SupportedURType.ETH_SIGNATURE];
 	}
 
+	const reset = useCallback(() => {
+		setURDecoder(new URRegistryDecoder());
+		setProgress(0);
+	}, []);
+
 	const hintText = useMemo(
 		() => (
 			<Text style={styles.hintText}>
@@ -117,7 +122,6 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 			if (onScanError && error) {
 				onScanError(error.message);
 			}
-			setURDecoder(new URRegistryDecoder());
 		},
 		[onScanError]
 	);
@@ -140,13 +144,10 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						onScanSuccess(ur);
 						setProgress(0);
 						setURDecoder(new URRegistryDecoder());
+					} else if (purpose === 'sync') {
+						onScanError(strings('transaction.invalid_qr_code_sync'));
 					} else {
-						if (purpose === 'sync') {
-							onScanError(strings('transaction.invalid_qr_code_sync'));
-						} else {
-							onScanError(strings('transaction.invalid_qr_code_sign'));
-						}
-						setURDecoder(new URRegistryDecoder());
+						onScanError(strings('transaction.invalid_qr_code_sign'));
 					}
 				}
 			} catch (e) {
@@ -166,7 +167,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 	);
 
 	return (
-		<Modal isVisible={visible} style={styles.modal}>
+		<Modal isVisible={visible} style={styles.modal} onModalHide={reset}>
 			<View style={styles.container}>
 				<RNCamera
 					onMountError={onError}

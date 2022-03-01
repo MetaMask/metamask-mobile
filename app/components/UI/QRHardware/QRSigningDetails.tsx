@@ -201,9 +201,9 @@ const QRSigningDetails = ({
 										{strings('transactions.sign_description_2')}
 									</Text>
 								</View>
-							) : (
+							) : !tighten ? (
 								<View style={styles.padding} />
-							)}
+							) : null}
 						</View>
 					</ActionView>
 				</ScrollView>
