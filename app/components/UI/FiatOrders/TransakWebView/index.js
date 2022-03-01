@@ -13,7 +13,15 @@ import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
+import {
+	FIAT_ORDER_PROVIDERS,
+	NETWORK_ALLOWED_TOKENS,
+	NETWORK_NATIVE_SYMBOL,
+	PAYMENT_CATEGORY,
+	PAYMENT_RAILS,
+} from '../../../../constants/on-ramp';
+import Engine from '../../../../core/Engine';
+import { toLowerCaseEquals } from '../../../../util/general';
 
 class TransakWebView extends PureComponent {
 	static navigationOptions = ({ navigation, route }) =>
@@ -47,9 +55,26 @@ class TransakWebView extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	addTokenToTokensController = async (symbol, chainId) => {
+		const { TokensController } = Engine.context;
+		if (NETWORK_NATIVE_SYMBOL[chainId] !== symbol) {
+			const newToken = (NETWORK_ALLOWED_TOKENS[chainId] || []).find(
+				({ symbol: tokenSymbol }) => symbol === tokenSymbol
+			);
+			if (
+				newToken &&
+				!TokensController.state.tokens.includes((token) => toLowerCaseEquals(token.address, newToken.address))
+			) {
+				const { address, symbol, decimals } = newToken;
+				await TokensController.addToken(address, symbol, decimals);
+			}
+		}
+	};
+
 	handleNavigationStateChange = async (navState) => {
 		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.TRANSAK_REDIRECT_URL) > -1) {
 			const order = handleTransakRedirect(navState.url, this.props.network);
+			this.addTokenToTokensController(order.cryptocurrency, this.props.network);
 			this.props.addOrder(order);
 			this.props.protectWalletModalVisible();
 			this.props.navigation.dangerouslyGetParent()?.pop();

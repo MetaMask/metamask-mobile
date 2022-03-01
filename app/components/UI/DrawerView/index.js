@@ -598,16 +598,16 @@ class DrawerView extends PureComponent {
 
 	logout = () => {
 		Alert.alert(
-			strings('drawer.logout_title'),
+			strings('drawer.lock_title'),
 			'',
 			[
 				{
-					text: strings('drawer.logout_cancel'),
+					text: strings('drawer.lock_cancel'),
 					onPress: () => null,
 					style: 'cancel',
 				},
 				{
-					text: strings('drawer.logout_ok'),
+					text: strings('drawer.lock_ok'),
 					onPress: this.onPress,
 				},
 			],
@@ -795,7 +795,7 @@ class DrawerView extends PureComponent {
 					action: this.submitFeedback,
 				},
 				{
-					name: strings('drawer.logout'),
+					name: strings('drawer.lock'),
 					icon: this.getFeatherIcon('log-out'),
 					action: this.logout,
 				},
