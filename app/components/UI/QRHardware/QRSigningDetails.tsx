@@ -172,7 +172,7 @@ const QRSigningDetails = ({
 						onConfirmPress={showScanner}
 					>
 						<View style={[styles.container, tighten ? styles.containerTighten : undefined]}>
-							<AccountInfoCard />
+							<AccountInfoCard showFiatBalance={false} />
 							{renderAlert()}
 							<View style={[styles.title, tighten ? styles.titleTighten : undefined]}>
 								<Text style={styles.titleStrong}>{strings('transactions.sign_title_scan')}</Text>

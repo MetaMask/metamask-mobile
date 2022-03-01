@@ -25,6 +25,7 @@ interface ISelectQRAccountsProps {
 const styles = StyleSheet.create({
 	container: {
 		width: '100%',
+		paddingHorizontal: 32,
 	},
 	title: {
 		marginTop: 40,

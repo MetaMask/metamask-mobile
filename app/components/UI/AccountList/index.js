@@ -23,6 +23,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
+import { KeyringTypes } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -263,7 +264,19 @@ class AccountList extends PureComponent {
 		let ret = false;
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(address)) {
-				ret = keyring.type !== 'HD Key Tree';
+				ret = keyring.type === KeyringTypes.simple;
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	isQRHardware(allKeyrings, address) {
+		let ret = false;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(address)) {
+				ret = keyring.type === KeyringTypes.qr;
 				break;
 			}
 		}
@@ -324,6 +337,7 @@ class AccountList extends PureComponent {
 				const identityAddressChecksummed = toChecksumAddress(address);
 				const isSelected = identityAddressChecksummed === selectedAddress;
 				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
+				const isQRHardware = this.isQRHardware(allKeyrings, identityAddressChecksummed);
 				let balance = 0x0;
 				if (accounts[identityAddressChecksummed]) {
 					balance = accounts[identityAddressChecksummed].balance;
@@ -337,6 +351,7 @@ class AccountList extends PureComponent {
 					balance,
 					isSelected,
 					isImported,
+					isQRHardware,
 					balanceError,
 				};
 			});

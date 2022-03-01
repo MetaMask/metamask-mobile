@@ -22,8 +22,13 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'column',
 		alignItems: 'center',
-		paddingHorizontal: 32,
 		paddingTop: 16,
+	},
+	header: {
+		width: '100%',
+		paddingHorizontal: 32,
+		flexDirection: 'column',
+		alignItems: 'center',
 	},
 	close: {
 		alignSelf: 'flex-end',
@@ -198,10 +203,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	return (
 		<Fragment>
 			<View style={styles.container}>
-				<TouchableOpacity onPress={navigation.goBack} style={styles.close}>
-					<Icon name="close" size={18} />
-				</TouchableOpacity>
-				<Icon name="qrcode" size={42} style={styles.qrcode} />
+				<View style={styles.header}>
+					<TouchableOpacity onPress={navigation.goBack} style={styles.close}>
+						<Icon name="close" size={18} />
+					</TouchableOpacity>
+					<Icon name="qrcode" size={42} style={styles.qrcode} />
+				</View>
 				{accounts.length <= 0 ? (
 					<ConnectQRInstruction
 						onConnect={onConnectHardware}

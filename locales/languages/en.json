@@ -405,7 +405,7 @@
 	"accounts": {
 		"create_new_account": "Create New Account",
 		"import_account": "Import an Account",
-		"connect_hardware": "Connect Hardware",
+		"connect_hardware": "Connect Hardware Wallet",
 		"imported": "IMPORTED",
 		"remove_account_title": "Account removal",
 		"remove_account_message": "Do you really want to remove this account?",

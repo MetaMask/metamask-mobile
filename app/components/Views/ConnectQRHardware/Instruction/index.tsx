@@ -15,10 +15,16 @@ interface IConnectQRInstructionProps {
 const connectQRHardwareImg = require('images/connect-qr-hardware.png'); // eslint-disable-line import/no-commonjs
 
 const styles = StyleSheet.create({
+	wrapper: {
+		flex: 1,
+		width: '100%',
+		alignItems: 'center',
+	},
 	container: {
 		width: '100%',
 		flexDirection: 'column',
 		alignItems: 'center',
+		paddingHorizontal: 32,
 	},
 	scrollWrapper: {
 		width: '100%',
@@ -49,6 +55,8 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		padding: 12,
+		marginBottom: 32,
+		marginTop: 16,
 	},
 	buttonText: {
 		color: colors.white,
@@ -82,24 +90,26 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 		});
 	};
 	return (
-		<ScrollView contentContainerStyle={styles.container} style={styles.scrollWrapper}>
-			<Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
-			{renderAlert()}
-			<View style={styles.textContainer}>
-				<Text style={styles.text}>{strings('connect_qr_hardware.description1')}</Text>
-				<Text style={[styles.text, styles.link]} onPress={navigateToVideo}>
-					{strings('connect_qr_hardware.description2')}
-				</Text>
-				<Text style={styles.text}>{strings('connect_qr_hardware.description3')}</Text>
-				<Text style={[styles.text, styles.link]} onPress={navigateToTutorial}>
-					{strings('connect_qr_hardware.description4')}
-				</Text>
-			</View>
-			<Image style={styles.image} source={connectQRHardwareImg} resizeMode={'contain'} />
+		<View style={styles.wrapper}>
+			<ScrollView contentContainerStyle={styles.container} style={styles.scrollWrapper}>
+				<Text style={styles.title}>{strings('connect_qr_hardware.title')}</Text>
+				{renderAlert()}
+				<View style={styles.textContainer}>
+					<Text style={styles.text}>{strings('connect_qr_hardware.description1')}</Text>
+					<Text style={[styles.text, styles.link]} onPress={navigateToVideo}>
+						{strings('connect_qr_hardware.description2')}
+					</Text>
+					<Text style={styles.text}>{strings('connect_qr_hardware.description3')}</Text>
+					<Text style={[styles.text, styles.link]} onPress={navigateToTutorial}>
+						{strings('connect_qr_hardware.description4')}
+					</Text>
+				</View>
+				<Image style={styles.image} source={connectQRHardwareImg} resizeMode={'contain'} />
+			</ScrollView>
 			<TouchableOpacity onPress={onConnect} style={styles.button}>
 				<Text style={styles.buttonText}>{strings('connect_qr_hardware.button_continue')}</Text>
 			</TouchableOpacity>
-		</ScrollView>
+		</View>
 	);
 };
 
