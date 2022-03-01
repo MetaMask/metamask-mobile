@@ -156,6 +156,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 		[urDecoder, onScanError, expectedURTypes, onScanSuccess, purpose]
 	);
 
+	const onStatusChange = useCallback(
+		(event) => {
+			if (event.cameraStatus === 'NOT_AUTHORIZED') {
+				onScanError(strings('transaction.no_camera_permission'));
+			}
+		},
+		[onScanError]
+	);
+
 	return (
 		<Modal isVisible={visible} style={styles.modal}>
 			<View style={styles.container}>
@@ -172,6 +181,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						buttonPositive: strings('qr_scanner.ok'),
 						buttonNegative: strings('qr_scanner.cancel'),
 					}}
+					onStatusChange={onStatusChange}
 				>
 					<SafeAreaView style={styles.innerView}>
 						<TouchableOpacity style={styles.closeIcon} onPress={hideModal}>

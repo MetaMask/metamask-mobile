@@ -779,6 +779,7 @@
 		"dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
 		"unknown_qr_code": "Invalid QR code. Please retry.",
 		"invalid_qr_code_sync": "Invalid QR code. Please scan the sync QR code of the hardware wallet.",
+		"no_camera_permission": "Camera not authorized. Please give permission and retry",
 		"invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
 		"mismatched_qr_request_id": "Incongruent transaction data. Please check the transaction details."
 	},

@@ -69,8 +69,10 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.greyAssetVisibility,
 		padding: 4,
+		minWidth: 42,
 	},
 	tagText: {
+		textAlign: 'center',
 		fontSize: 8,
 		fontWeight: 'bold',
 	},

@@ -873,10 +873,10 @@ class Confirm extends PureComponent {
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') },
-			]);
-			Logger.error(error, 'error while trying to send transaction (Confirm)');
+			if (!error.message.startsWith('KeystoneError#Tx_canceled')) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+				Logger.error(error, 'error while trying to send transaction (Confirm)');
+			}
 		}
 		this.setState({ transactionConfirmed: false });
 	};

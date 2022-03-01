@@ -210,6 +210,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 					/>
 				) : (
 					<SelectQRAccounts
+						canUnlock={checkedAccounts.length > 0}
 						accounts={enhancedAccounts}
 						nextPage={nextPage}
 						prevPage={prevPage}

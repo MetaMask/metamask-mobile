@@ -13,6 +13,7 @@ import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { getNetworkTypeByChainId } from '../../../../util/networks';
 
 interface ISelectQRAccountsProps {
+	canUnlock: boolean;
 	accounts: IAccount[];
 	nextPage: () => void;
 	prevPage: () => void;
@@ -81,6 +82,9 @@ const styles = StyleSheet.create({
 	backgroundBlue: {
 		backgroundColor: colors.blue,
 	},
+	backgroundGrey: {
+		backgroundColor: colors.grey100,
+	},
 	textBlue: {
 		color: colors.blue,
 	},
@@ -90,7 +94,7 @@ const styles = StyleSheet.create({
 });
 
 const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
-	const { accounts, prevPage, nextPage, toggleAccount, onForget, onUnlock } = props;
+	const { accounts, prevPage, nextPage, toggleAccount, onForget, onUnlock, canUnlock } = props;
 	const navigation = useNavigation();
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
@@ -139,7 +143,11 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 			</View>
 
 			<View style={styles.bottom}>
-				<TouchableOpacity onPress={onUnlock} style={[styles.button, styles.backgroundBlue]}>
+				<TouchableOpacity
+					onPress={onUnlock}
+					style={[styles.button, canUnlock ? styles.backgroundBlue : styles.backgroundGrey]}
+					disabled={!canUnlock}
+				>
 					<Text style={styles.textWhite}>{strings('connect_qr_hardware.unlock')}</Text>
 				</TouchableOpacity>
 				<TouchableOpacity onPress={onForget} style={styles.button}>
