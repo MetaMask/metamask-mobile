@@ -41,7 +41,7 @@ import {
 import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
-import { getGasPriceByChainId } from '../../../../util/custom-gas';
+import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
@@ -659,7 +659,7 @@ class Amount extends PureComponent {
 			transaction: { from },
 			transactionTo,
 		} = this.props.transactionState;
-		const { gas } = await getGasPriceByChainId({
+		const { gas } = await getGasLimit({
 			from,
 			to: transactionTo,
 		});
