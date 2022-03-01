@@ -81,7 +81,7 @@ const GetQuotes = () => {
 						</Text>
 					) : (
 						quotes
-							.filter((q) => q.amountIn && q.amountOut)
+							.filter(({ error }) => !error)
 							.map((quote) => (
 								<View key={quote.providerId} style={styles.row}>
 									<Quotes

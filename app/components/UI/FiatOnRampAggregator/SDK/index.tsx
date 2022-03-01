@@ -34,7 +34,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 	const dispatch = useDispatch();
 
 	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
-	const INITIAL_SELECTED_ADDRESS: string = useSelector(selectedAddressSelector);
+	const selectedAddress: string = useSelector(selectedAddressSelector);
 
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
@@ -94,7 +94,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 		regionCurrency,
 		setSelectedAsset: setSelectedAssetCallback,
 		selectedAsset,
-		selectedAddress: INITIAL_SELECTED_ADDRESS,
+		selectedAddress,
 	};
 
 	return <SDKContext.Provider value={value || contextValue} {...props} />;

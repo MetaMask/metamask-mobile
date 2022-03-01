@@ -63,6 +63,8 @@ export const getProviderName = (provider) => {
 	}
 };
 
+const INITIAL_SELECTED_COUNTRY = '/countries/us';
+
 const ordersSelector = (state) => state.fiatOrders.orders || [];
 const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
 
@@ -97,7 +99,7 @@ const initialState = {
 	orders: [],
 	selectedCountry: 'US',
 	// initial state for fiat on-ramp aggregator
-	selectedCountryAgg: '/countries/us',
+	selectedCountryAgg: INITIAL_SELECTED_COUNTRY,
 };
 
 const findOrderIndex = (provider, id, orders) =>
