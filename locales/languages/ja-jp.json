@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "トランザクションを送信しました",
 		"wc_connected_rejected_title": "接続リクエストを拒否しました",
 		"wc_signed_rejected_title": "署名リクエストを拒否しました",
-		"wc_sent_tx_rejected_title": "トランザクション リクエストを拒否しました",
-		"wc_description": "ブラウザーに戻る"
+		"wc_sent_tx_rejected_title": "トランザクション リクエストを拒否しました"
 	},
 	"protect_your_wallet_modal": {
 		"title": "ウォレットの保護",

@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "Transaksi terkirim",
 		"wc_connected_rejected_title": "Anda telah menolak permintaan koneksi",
 		"wc_signed_rejected_title": "Anda telah menolak permintaan tanda tangan",
-		"wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi",
-		"wc_description": "Kembali ke browser"
+		"wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Lindungi dompet Anda",

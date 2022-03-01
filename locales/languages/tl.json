@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "Transaksyon ng pagpapadala",
 		"wc_connected_rejected_title": "Tinanggihan mo ang request na kumonekta",
 		"wc_signed_rejected_title": "Tinanggihan mo ang request na lumagda",
-		"wc_sent_tx_rejected_title": "Tinanggihan mo ang request na transaksyon",
-		"wc_description": "Bumalik sa browser"
+		"wc_sent_tx_rejected_title": "Tinanggihan mo ang request na transaksyon"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protektahan ang iyong wallet",
