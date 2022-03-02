@@ -135,6 +135,10 @@ class Tokens extends PureComponent {
 
 	tokenToRemove = null;
 
+	state = {
+		isAddTokenEnabled: true,
+	};
+
 	renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
@@ -148,7 +152,12 @@ class Tokens extends PureComponent {
 	renderFooter = () => (
 		<View style={styles.footer} key={'tokens-footer'}>
 			<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
-			<TouchableOpacity style={styles.add} onPress={this.goToAddToken} testID={'add-token-button'}>
+			<TouchableOpacity
+				style={styles.add}
+				onPress={this.goToAddToken}
+				disabled={!this.state.isAddTokenEnabled}
+				testID={'add-token-button'}
+			>
 				<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
 			</TouchableOpacity>
 		</View>
@@ -238,9 +247,11 @@ class Tokens extends PureComponent {
 	}
 
 	goToAddToken = () => {
+		this.setState({ isAddTokenEnabled: false });
 		this.props.navigation.push('AddAsset', { assetType: 'token' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_TOKENS);
+			this.setState({ isAddTokenEnabled: true });
 		});
 	};
 
