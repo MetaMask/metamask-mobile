@@ -231,10 +231,7 @@ class AddressList extends PureComponent {
 						<AddressElement
 							key={index}
 							address={address}
-							name={
-								(identities[address] && identities[address].name) ||
-								(networkAddressBook[address] && networkAddressBook[address].name)
-							}
+							name={identities[address]?.name || networkAddressBook[address]?.name}
 							onAccountPress={onAccountPress}
 							onAccountLongPress={onAccountLongPress}
 						/>
