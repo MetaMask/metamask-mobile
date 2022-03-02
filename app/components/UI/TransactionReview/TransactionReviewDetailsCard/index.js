@@ -73,7 +73,8 @@ const styles = StyleSheet.create({
 	address: {
 		...fontStyles.bold,
 		color: colors.blue,
-		width: 100,
+		marginHorizontal: 8,
+		maxWidth: 120,
 	},
 });
 

@@ -156,6 +156,8 @@ class AddressList extends PureComponent {
 			const initial = nameInitial ? nameInitial[0] : strings('address_book.others');
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
+			} else if (contact.isSmartContract) {
+				null;
 			} else {
 				addressBookTree[initial] = [contact];
 			}
@@ -209,11 +211,6 @@ class AddressList extends PureComponent {
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
 
-		this.checkIsSmartContract(element.address, element.chainId).then((isSmartContract) => {
-			if (isSmartContract) element.isSmartContract = true;
-			return element;
-		});
-
 		if (typeof element === 'string') {
 			return LabelElement(element);
 		}
@@ -221,16 +218,14 @@ class AddressList extends PureComponent {
 		const key = element.address + element.name;
 
 		return (
-			!element.isSmartContract && (
-				<AddressElement
-					key={key}
-					address={element.address}
-					name={element.name}
-					onAccountPress={onAccountPress}
-					onAccountLongPress={onAccountLongPress}
-					testID={'account-address'}
-				/>
-			)
+			<AddressElement
+				key={key}
+				address={element.address}
+				name={element.name}
+				onAccountPress={onAccountPress}
+				onAccountLongPress={onAccountLongPress}
+				testID={'account-address'}
+			/>
 		);
 	};
 
@@ -262,12 +257,20 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
+
+		const contactElementsToRender = contactElements.filter((element) => {
+			if (typeof element === 'object') {
+				return !element.isSmartContract;
+			}
+			return true;
+		});
+
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
-					{contactElements.length ? contactElements.map(this.renderElement) : null}
+					{contactElementsToRender.length ? contactElementsToRender.map(this.renderElement) : null}
 				</ScrollView>
 			</View>
 		);
