@@ -89,7 +89,7 @@ const CollectibleContracts = ({
 	setNftDetectionDismissed,
 	nftDetectionDismissed,
 }) => {
-	const [disableAddNFT, setDisableAddNFT] = useState(false);
+	const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
 
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
@@ -132,11 +132,11 @@ const CollectibleContracts = ({
 	});
 
 	const goToAddCollectible = () => {
-		setDisableAddNFT(true);
+		setIsAddNFTEnabled(false);
 		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
-			setDisableAddNFT(false);
+			setIsAddNFTEnabled(true);
 		});
 	};
 
@@ -146,7 +146,7 @@ const CollectibleContracts = ({
 			<TouchableOpacity
 				style={styles.add}
 				onPress={goToAddCollectible}
-				disabled={disableAddNFT}
+				disabled={!isAddNFTEnabled}
 				testID={'add-collectible-button'}
 			>
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
