@@ -153,8 +153,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						error: urDecoder.resultError(),
 					});
 					onScanError(strings('transaction.unknown_qr_code'));
-				}
-				if (urDecoder.isSuccess()) {
+				} else if (urDecoder.isSuccess()) {
 					const ur = urDecoder.resultUR();
 					if (expectedURTypes.includes(ur.type)) {
 						onScanSuccess(ur);

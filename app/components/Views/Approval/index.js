@@ -18,6 +18,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -263,7 +264,7 @@ class Approval extends PureComponent {
 			await TransactionController.approveTransaction(transaction.id);
 			this.showWalletConnectNotification(true);
 		} catch (error) {
-			if (!error.message.startsWith('KeystoneError#Tx_canceled')) {
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
 				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
 					{ text: strings('navigation.ok') },
 				]);

@@ -29,6 +29,7 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 
 const { BNToHex, hexToBN } = util;
 
@@ -443,7 +444,7 @@ class Approve extends PureComponent {
 			await TransactionController.approveTransaction(transaction.id);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
 		} catch (error) {
-			if (!error.message.startsWith('KeystoneError#Tx_canceled')) {
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
 				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 				Logger.error(error, 'error while trying to send transaction (Approve)');
 			} else {

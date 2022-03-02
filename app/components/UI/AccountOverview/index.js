@@ -377,14 +377,14 @@ class AccountOverview extends PureComponent {
 											style={[
 												styles.label,
 												styles.onboardingWizardLabel,
-												onboardingWizard
-													? { borderColor: colors.blue }
-													: { borderColor: colors.white },
+												{
+													borderColor: onboardingWizard ? colors.blue : colors.white,
+												},
 											]}
 											numberOfLines={1}
 											testID={'edit-account-label'}
 										>
-											{isDefaultAccountName(name) && ens ? ens : name}
+											{isDefaultAccountName(name) && (ens || name)}
 										</Text>
 									</TouchableOpacity>
 									{isQRHardwareWalletAccount && (

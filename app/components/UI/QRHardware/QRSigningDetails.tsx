@@ -109,24 +109,24 @@ const QRSigningDetails = ({
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 
-	const resetError = useCallback(() => {
+	const resetError = () => {
 		setErrorMessage('');
-	}, []);
+	};
 
-	const showScanner = useCallback(() => {
+	const showScanner = () => {
 		setScannerVisible(true);
 		resetError();
-	}, [resetError]);
+	};
 
-	const hideScanner = useCallback(() => {
+	const hideScanner = () => {
 		setScannerVisible(false);
-	}, []);
+	};
 
 	const onCancel = useCallback(async () => {
 		await KeyringController.cancelQRSignRequest();
 		hideScanner();
 		cancelCallback?.();
-	}, [KeyringController, hideScanner, cancelCallback]);
+	}, [KeyringController, cancelCallback]);
 
 	const onScanSuccess = useCallback(
 		(ur: UR) => {
@@ -145,7 +145,7 @@ const QRSigningDetails = ({
 				failureCallback?.(strings('transaction.mismatched_qr_request_id'));
 			}
 		},
-		[KeyringController, QRState.sign.request?.requestId, failureCallback, hideScanner, successCallback]
+		[KeyringController, QRState.sign.request?.requestId, failureCallback, successCallback]
 	);
 	const onScanError = useCallback(
 		(_errorMessage: string) => {
@@ -153,7 +153,7 @@ const QRSigningDetails = ({
 			setErrorMessage(_errorMessage);
 			failureCallback?.(_errorMessage);
 		},
-		[failureCallback, hideScanner]
+		[failureCallback]
 	);
 
 	const renderAlert = () =>

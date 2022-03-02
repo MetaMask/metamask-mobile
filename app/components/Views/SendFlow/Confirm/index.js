@@ -63,6 +63,7 @@ import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
 import { getAddressAccountType, isQRHardwareAccount } from '../../../../util/address';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -868,7 +869,7 @@ class Confirm extends PureComponent {
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
-			if (!error.message.startsWith('KeystoneError#Tx_canceled')) {
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
 				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
 				Logger.error(error, 'error while trying to send transaction (Confirm)');
 			} else {

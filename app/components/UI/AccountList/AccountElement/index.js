@@ -122,19 +122,16 @@ class AccountElement extends PureComponent {
 		const { disabled, updatedBalanceFromStore, ticker } = this.props;
 		const { address, name, ens, isSelected, isImported, balanceError, isQRHardware } = this.props.item;
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
-		const tag = isImported ? (
-			<View style={styles.importedWrapper}>
-				<Text numberOfLines={1} style={styles.importedText}>
-					{strings('accounts.imported')}
-				</Text>
-			</View>
-		) : isQRHardware ? (
-			<View style={styles.importedWrapper}>
-				<Text numberOfLines={1} style={styles.importedText}>
-					{strings('transaction.hardware')}
-				</Text>
-			</View>
-		) : null;
+		const tag =
+			isImported || isQRHardware ? (
+				<View style={styles.importedView}>
+					<View style={styles.importedWrapper}>
+						<Text numberOfLines={1} style={styles.importedText}>
+							{strings(isImported ? 'accounts.imported' : 'transaction.hardware')}
+						</Text>
+					</View>
+				</View>
+			) : null;
 
 		return (
 			<View onStartShouldSetResponder={() => true}>
@@ -162,7 +159,7 @@ class AccountElement extends PureComponent {
 								)}
 							</View>
 						</View>
-						{!!tag && <View style={styles.importedView}>{tag}</View>}
+						{!!tag && tag}
 						<View style={styles.selectedWrapper}>{selected}</View>
 					</View>
 				</TouchableOpacity>

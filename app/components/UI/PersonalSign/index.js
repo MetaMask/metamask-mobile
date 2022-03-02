@@ -13,6 +13,7 @@ import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { connect } from 'react-redux';
 import { getAddressAccountType } from '../../../util/address';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 
 const styles = StyleSheet.create({
 	messageText: {
@@ -141,7 +142,7 @@ class PersonalSign extends PureComponent {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
 			this.props.onConfirm();
 		} catch (e) {
-			if (e.message.startsWith('KeystoneError#Tx_canceled')) {
+			if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
 				AnalyticsV2.trackEvent(
 					AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
 					this.getAnalyticsParams()
