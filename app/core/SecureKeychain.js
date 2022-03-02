@@ -56,7 +56,7 @@ let instance;
 export default {
 	init(salt) {
 		instance = new SecureKeychain(salt);
-
+		console.log('KEYCHAIN', Keychain);
 		if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ANDROID_HARDWARE_KEYSTORE);
 
@@ -69,6 +69,7 @@ export default {
 	},
 
 	getSupportedBiometryType() {
+		console.log("HELLO", Keychain)
 		return Keychain.getSupportedBiometryType();
 	},
 

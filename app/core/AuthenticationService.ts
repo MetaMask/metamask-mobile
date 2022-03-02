@@ -127,7 +127,7 @@ class AuthenticationService {
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		const biometry = await AsyncStorage.getItem(BIOMETRY_CHOICE);
 		const passcode = await AsyncStorage.getItem(PASSCODE_CHOICE);
-
+		console.log('TEST', biometryType, biometryPreviouslyDisabled, biometry);
 		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE) && biometry) {
 			return { type: AuthenticationType.BIOMETRIC, biometryType };
 		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE) && passcode) {
@@ -216,6 +216,7 @@ class AuthenticationService {
 			await this._loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
 			this.store?.dispatch(logIn());
+			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
 			Logger.error(e.toString(), 'Failed to login');
@@ -252,6 +253,7 @@ class AuthenticationService {
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
+		this.authData = { type: AuthenticationType.PASSWORD, biometryType: '' };
 		this.store?.dispatch(logOut());
 	};
 }
@@ -265,20 +267,19 @@ export default {
 			instance.store = store;
 			instance.store.dispatch(logOut());
 		}
-		return instance;
 	},
 	manualAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
 		await instance?.manualAuth(password, authType, selectedAddress),
-	autoAuth: async (selectedAddress: string) => instance?.autoAuth(selectedAddress),
+	autoAuth: async (selectedAddress: string) => await instance?.autoAuth(selectedAddress),
 	newWalletAndKeyChain: async (password: string, type: AuthData) => {
 		await instance?.newWalletAndKeyChain(password, type);
 	},
 	newWalletAndRestore: async (password: string, type: AuthData, parsedSeed: string, clearEngine: boolean) => {
 		await instance?.newWalletAndRestore(password, type, parsedSeed, clearEngine);
 	},
-	logout: async () => instance?.logout(),
-	resetVault: async () => instance?.resetVault(),
-	getType: async () => instance.checkAuthenticationMethod(undefined),
+	logout: async () => await instance?.logout(),
+	resetVault: async () => await instance?.resetVault(),
+	getType: async () => await instance?.checkAuthenticationMethod(undefined),
 	storePassword: async (password: string, authType: AuthenticationType) => {
 		await instance?.storePassword(password, authType);
 	},
