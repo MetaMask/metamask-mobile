@@ -3,11 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
-import PaymentOption, { Icon } from '../components/PaymentOption';
+import PaymentOption from '../components/PaymentOption';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import WebviewError from '../../../UI/WebviewError';
+import { PAYMENT_METHOD_ICON } from '../constants';
 
 const styles = StyleSheet.create({
 	row: {
@@ -58,7 +59,7 @@ const PaymentMethod = () => {
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
 								onPress={() => setCurrentPaymentMethod(id)}
 								lowestLimit
-								paymentType={Icon.Apple}
+								paymentType={PAYMENT_METHOD_ICON[id]}
 								idRequired={false}
 							/>
 						</View>

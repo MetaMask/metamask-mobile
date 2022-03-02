@@ -1,14 +1,12 @@
 import React from 'react';
-import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Box from './Box';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
-import MaterialsCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MaterialsIcons from 'react-native-vector-icons/MaterialIcons';
 import { colors } from '../../../../styles/common';
 import { Image } from 'react-native-animatable';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
+import PaymentIcon, { Icon } from './PaymentIcon';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const visa = require('./images/visa.png');
@@ -31,32 +29,6 @@ interface Props {
 	onPress?: () => any;
 	highlighted?: boolean;
 }
-
-interface iconParams {
-	iconType: Icon;
-	style: StyleProp<TextStyle>;
-	size: number;
-}
-
-export enum Icon {
-	Apple = 'apple',
-	Card = 'credit-card',
-	Bank = 'bank',
-}
-
-export const PaymentIcon: React.FC<iconParams> = ({ iconType, style, size }: iconParams) => {
-	switch (iconType) {
-		case Icon.Apple: {
-			return <FontAwesome name={Icon.Apple} size={size} style={style} />;
-		}
-		case Icon.Card: {
-			return <MaterialsIcons name={Icon.Card} size={size} style={style} />;
-		}
-		case Icon.Bank: {
-			return <MaterialsCommunityIcons name={Icon.Bank} size={size} style={style} />;
-		}
-	}
-};
 
 const styles = StyleSheet.create({
 	//TODO: remove hardcoded color later

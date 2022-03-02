@@ -1,4 +1,5 @@
-// eslint-disable-next-line import/prefer-default-export
+import { Icon } from './components/PaymentIcon';
+
 export const CHAIN_ID_NETWORKS = {
 	1: 'ethereum',
 	10: 'optimism',
@@ -9,8 +10,7 @@ export const CHAIN_ID_NETWORKS = {
 };
 
 export const PAYMENT_METHOD_ICON = {
-	/* eslint-disable import/no-commonjs */
-	'/payments/debit-credit-card': require('./components/images/DebitOrCredit.png'),
-	'/payments/bank-account': require('./components/images/BankAccount.png'),
-	'/payments/apple-pay': require('./components/images/ApplePay.png'),
+	'/payments/debit-credit-card': Icon.Card,
+	'/payments/bank-account': Icon.Bank,
+	'/payments/apple-pay': Icon.Apple,
 };

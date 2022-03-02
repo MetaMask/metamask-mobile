@@ -6,7 +6,8 @@ import { colors } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
-import PaymentOption, { Icon } from './PaymentOption';
+import PaymentOption from './PaymentOption';
+import { PAYMENT_METHOD_ICON } from '../constants';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -77,7 +78,7 @@ function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
 											)}
 											onPress={() => handleOnPressItemCallback(id)}
 											lowestLimit
-											paymentType={Icon.Apple}
+											paymentType={PAYMENT_METHOD_ICON[id]}
 											idRequired={false}
 										/>
 									</View>

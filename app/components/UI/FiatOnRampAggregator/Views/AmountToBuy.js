@@ -21,8 +21,8 @@ import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
 import { PAYMENT_METHOD_ICON } from '../constants';
-import RemoteImage from '../../../Base/RemoteImage';
 import WebviewError from '../../WebviewError';
+import PaymentIcon from '../components/PaymentIcon';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -48,10 +48,6 @@ const styles = StyleSheet.create({
 		paddingBottom: 25,
 		backgroundColor: '#EDEFF2',
 	},
-	icon: {
-		width: 24,
-		height: 24,
-	},
 	cta: {
 		paddingTop: 12,
 	},
@@ -68,7 +64,7 @@ const AmountToBuy = ({ navigation }) => {
 
 	const {
 		selectedCountry,
-		setSelectedCountry,
+		// setSelectedCountry,
 		selectedRegion,
 		selectedAsset,
 		setSelectedAsset,
@@ -114,9 +110,8 @@ const AmountToBuy = ({ navigation }) => {
 	}, []);
 
 	const handleCountryPress = useCallback(() => {
-		// TODO: handle
-		setSelectedCountry(selectedCountry);
-	}, [selectedCountry, setSelectedCountry]);
+		// TODO: handle changing country
+	}, []);
 
 	const handleAssetSelectorPress = useCallback(
 		(newAmount) => {
@@ -225,7 +220,7 @@ const AmountToBuy = ({ navigation }) => {
 					<PaymentMethodSelector
 						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
 						id={'/payments/debit-credit-card'}
-						icon={<RemoteImage source={PAYMENT_METHOD_ICON[selectedPaymentMethod]} style={styles.icon} />}
+						icon={<PaymentIcon iconType={PAYMENT_METHOD_ICON[selectedPaymentMethod]} size={20} />}
 						name={currentPaymentMethod?.name}
 						onPress={handlePaymentMethodSelectorPress}
 					/>
