@@ -72,7 +72,7 @@ export const NETWORK_ALLOWED_TOKENS = {
 		{ symbol: 'USDC', address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', decimals: 6 },
 		{ symbol: 'DAI', address: '0x6b175474e89094c44da98b954eedeac495271d0f', decimals: 18 },
 	],
-	[NETWORKS_CHAIN_ID.BSC]: [{ symbol: 'BUSD', address: '0x4fabb145d64652a948d72533023f6e7a623c7c53', decimals: 18 }],
+	[NETWORKS_CHAIN_ID.BSC]: [{ symbol: 'BUSD', address: '0xe9e7cea3dedca5984780bafc599bd69add087d56', decimals: 18 }],
 	[NETWORKS_CHAIN_ID.POLYGON]: [
 		{ symbol: 'USDT', address: '0xc2132d05d31c914a87c6611c10748aeb04b58e8f', decimals: 6 },
 		{ symbol: 'USDC', address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', decimals: 6 },
