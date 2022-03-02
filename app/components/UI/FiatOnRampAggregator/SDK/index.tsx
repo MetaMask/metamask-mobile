@@ -20,7 +20,6 @@ export interface IFiatOnRampSDK {
 	selectedAsset: string;
 	selectedAddress: string;
 }
-// const fakeAwait = (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 

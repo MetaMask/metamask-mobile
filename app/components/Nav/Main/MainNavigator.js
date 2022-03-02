@@ -51,7 +51,7 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
-import { FiatOnRampSDKProvider } from '../../../components/UI/FiatOnRampAggregator/SDK';
+import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
 import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';

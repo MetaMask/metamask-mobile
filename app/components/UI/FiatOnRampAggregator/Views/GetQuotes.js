@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { useSelector } from 'react-redux';
 import { CHAIN_ID_NETWORKS } from '../constants';
 import LoadingAnimation from '../components/LoadingAnimation';

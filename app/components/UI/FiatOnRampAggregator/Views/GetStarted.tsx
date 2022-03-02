@@ -9,7 +9,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 import { getFiatOnRampNavbar } from '../../Navbar';
-import { useFiatOnRampSDK } from '../SDK';
+import { useFiatOnRampSDK } from '../sdk';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;

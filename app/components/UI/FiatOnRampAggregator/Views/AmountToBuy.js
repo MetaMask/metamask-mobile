@@ -16,7 +16,7 @@ import SelectorButton from '../../../Base/SelectorButton';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 // import sdk hooks
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 // import modals
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';

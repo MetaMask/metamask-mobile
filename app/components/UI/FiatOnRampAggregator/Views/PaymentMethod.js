@@ -4,9 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentOption, { Icon } from '../components/PaymentOption';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
+import WebviewError from '../../../UI/WebviewError';
 
 const styles = StyleSheet.create({
 	row: {
@@ -19,6 +20,7 @@ const PaymentMethod = () => {
 	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(null);
 
 	const { selectedCountry, selectedRegion, setSelectedPaymentMethod } = useFiatOnRampSDK();
+
 	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
 		countryId: selectedCountry,
 		regionId: selectedRegion,
@@ -29,7 +31,7 @@ const PaymentMethod = () => {
 		navigation.navigate('AmountToBuy');
 	}, [currentPaymentMethod, setSelectedPaymentMethod, navigation]);
 
-	if (isFetching || !paymentMethods) {
+	if (isFetching) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -38,14 +40,9 @@ const PaymentMethod = () => {
 			</ScreenLayout>
 		);
 	}
+
 	if (error) {
-		return (
-			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>{error}</Text>
-				</ScreenLayout.Body>
-			</ScreenLayout>
-		);
+		return <WebviewError error={{ description: error }} onReload={() => navigation.navigate('PaymentMethod')} />;
 	}
 
 	return (

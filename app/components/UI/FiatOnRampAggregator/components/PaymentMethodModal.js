@@ -5,7 +5,7 @@ import Modal from 'react-native-modal';
 import { colors } from '../../../../styles/common';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import PaymentOption, { Icon } from './PaymentOption';
 
 const styles = StyleSheet.create({
