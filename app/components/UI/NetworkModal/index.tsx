@@ -9,6 +9,7 @@ import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
 import { isprivateConnection } from '../../../util/networks';
+import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
 import AssetIcon from '../../UI/AssetIcon';
 import scaling from '../../../util/scaling';
@@ -109,13 +110,6 @@ const NetworkModals = (props: NetworkProps) => {
 	const [networkAdded, setNetworkAdded] = React.useState(false);
 
 	const showDetailsModal = () => setShowDetails(!showDetails);
-
-	const getDecimalChainId = (id: string) => {
-		if (!id || typeof id !== 'string' || !id.startsWith('0x')) {
-			return id;
-		}
-		return parseInt(id, 16).toString(10);
-	};
 
 	const validateRpcUrl = (url: string) => {
 		if (!isWebUri(url)) return false;

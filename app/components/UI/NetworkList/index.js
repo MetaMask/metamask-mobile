@@ -17,120 +17,116 @@ import Networks, {
   isSafeChainId,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
+import AssetIcon from '../AssetIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  NETWORK_LIST_MODAL_CONTAINER_ID,
-  OTHER_NETWORK_LIST_ID,
-  NETWORK_SCROLL_ID,
-} from '../../../constants/test-ids';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
+import getImage from '../../../util/getImage';
+import { NETWORK_LIST_MODAL_CONTAINER_ID, NETWORK_SCROLL_ID } from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      borderRadius: 10,
-      minHeight: 450,
-    },
-    titleWrapper: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-    },
-    title: {
-      textAlign: 'center',
-      fontSize: 18,
-      marginVertical: 12,
-      marginHorizontal: 20,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    otherNetworksHeader: {
-      marginTop: 0,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-    },
-    otherNetworksText: {
-      textAlign: 'left',
-      fontSize: 13,
-      marginVertical: 12,
-      marginHorizontal: 20,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    networksWrapper: {
-      flex: 1,
-    },
-    network: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-      flexDirection: 'row',
-      paddingHorizontal: 20,
-      paddingVertical: 20,
-      paddingLeft: 45,
-    },
-    mainnet: {
-      borderBottomWidth: 0,
-      flexDirection: 'column',
-    },
-    networkInfo: {
-      marginLeft: 15,
-      flex: 1,
-    },
-    networkLabel: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    footer: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-      height: 60,
-      justifyContent: 'center',
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    footerButton: {
-      flex: 1,
-      alignContent: 'center',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: 60,
-    },
-    closeButton: {
-      fontSize: 16,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    networkIcon: {
-      width: 15,
-      height: 15,
-      borderRadius: 100,
-      marginTop: 3,
-    },
-    networkWrapper: {
-      flex: 0,
-      flexDirection: 'row',
-    },
-    selected: {
-      position: 'absolute',
-      marginLeft: 20,
-      marginTop: 20,
-    },
-    mainnetSelected: {
-      marginLeft: -30,
-      marginTop: 3,
-    },
-    otherNetworkIcon: {
-      backgroundColor: importedColors.transparent,
-      borderColor: colors.border.muted,
-      borderWidth: 2,
-    },
-  });
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			borderRadius: 10,
+			minHeight: 500,
+		},
+		titleWrapper: {
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		title: {
+			textAlign: 'center',
+			fontSize: 18,
+			marginVertical: 12,
+			marginHorizontal: 20,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		otherNetworksHeader: {
+			marginTop: 0,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		networksWrapper: {
+			flex: 1,
+		},
+		network: {
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+			flexDirection: 'row',
+			paddingHorizontal: 20,
+			paddingVertical: 20,
+			paddingLeft: 45,
+		},
+		mainnet: {
+			borderBottomWidth: 0,
+			flexDirection: 'column',
+		},
+		networkInfo: {
+			marginLeft: 15,
+			flex: 1,
+		},
+		networkLabel: {
+			fontSize: 16,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		footer: {
+			borderTopWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+			marginVertical: 10,
+			flexDirection: 'row',
+		},
+		footerButton: {
+			flex: 1,
+			alignContent: 'center',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginHorizontal: 20,
+		},
+		networkIcon: {
+			width: 20,
+			height: 20,
+			borderRadius: 10,
+		},
+		networkWrapper: {
+			flex: 0,
+			flexDirection: 'row',
+		},
+		selected: {
+			position: 'absolute',
+			marginLeft: 20,
+			marginTop: 20,
+		},
+		mainnetSelected: {
+			marginLeft: -30,
+			marginTop: 3,
+		},
+		otherNetworkIcon: {
+			backgroundColor: importedColors.transparent,
+			borderColor: colors.border.muted,
+			borderWidth: 2,
+		},
+		closeIcon: {
+			position: 'absolute',
+			right: 0,
+			padding: 15,
+		},
+		text: {
+			textAlign: 'center',
+			color: colors.white100,
+			fontSize: 10,
+			marginTop: 4,
+		},
+	});
 
 /**
  * View that contains the list of all the available networks
@@ -257,72 +253,58 @@ export class NetworkList extends PureComponent {
     return createStyles(colors);
   };
 
-  networkElement = (selected, onPress, name, color, i, network) => {
-    const styles = this.getStyles();
+	networkElement = (selected, onPress, name, image, i, network, isCustomRpc) => {
+		const styles = this.getStyles();
 
-    return (
-      <TouchableOpacity
-        style={styles.network}
-        key={`network-${i}`}
-        onPress={() => onPress(network)} // eslint-disable-line
-      >
-        <View style={styles.selected}>{selected}</View>
-        <View
-          style={[
-            styles.networkIcon,
-            color ? { backgroundColor: color } : styles.otherNetworkIcon,
-          ]}
-        />
-        <View style={styles.networkInfo}>
-          <Text numberOfLines={1} style={styles.networkLabel}>
-            {name}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+		return (
+			<TouchableOpacity
+				style={styles.network}
+				key={`network-${i}`}
+				onPress={() => onPress(network)} // eslint-disable-line
+			>
+				<View style={styles.selected}>{selected}</View>
+				{isCustomRpc && <AssetIcon logo={image} customStyle={styles.networkIcon} />}
+				{!isCustomRpc && (
+				<View style={[styles.networkIcon, { backgroundColor: image }]}>
+					<Text style={styles.text}>{name[0]}</Text>
+				</View>
+			)}
+				<View style={styles.networkInfo}>
+					<Text numberOfLines={1} style={styles.networkLabel}>
+						{name}
+					</Text>
+				</View>
+			</TouchableOpacity>
+		);
+	};
 
   renderOtherNetworks = () => {
     const { provider } = this.props;
     const colors = this.context.colors || mockTheme.colors;
 
-    return this.getOtherNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
-      const selected =
-        provider.type === network ? (
-          <Icon name="check" size={16} color={colors.success.default} />
-        ) : null;
-      return this.networkElement(
-        selected,
-        this.onNetworkChange,
-        name,
-        color,
-        i,
-        network,
-      );
-    });
-  };
+		return this.getOtherNetworks().map((network, i) => {
+			const { color, name } = Networks[network];
+			const isCustomRpc = false;
+			const selected =
+				provider.type === network ? <Icon name="check" size={20} color={colors.icon.default} /> : null;
+			return this.networkElement(selected, this.onNetworkChange, name, color, i, network, isCustomRpc);
+		});
+	};
 
-  renderRpcNetworks = () => {
-    const { frequentRpcList, provider } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-
-    return frequentRpcList.map(({ nickname, rpcUrl }, i) => {
-      const { color, name } = { name: nickname || rpcUrl, color: null };
-      const selected =
-        provider.rpcTarget === rpcUrl && provider.type === RPC ? (
-          <Icon name="check" size={16} color={colors.success.default} />
-        ) : null;
-      return this.networkElement(
-        selected,
-        this.onSetRpcTarget,
-        name,
-        color,
-        i,
-        rpcUrl,
-      );
-    });
-  };
+	renderRpcNetworks = () => {
+		const { frequentRpcList, provider } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		return frequentRpcList.map(({ nickname, rpcUrl, chainId }, i) => {
+			const { name } = { name: nickname || rpcUrl, chainId, color: null };
+			const image = getImage(chainId);
+			const isCustomRpc = true;
+			const selected =
+				provider.rpcTarget === rpcUrl && provider.type === RPC ? (
+					<Icon name="check" size={20} color={colors.icon.default} />
+				) : null;
+			return this.networkElement(selected, this.onSetRpcTarget, name, image, i, rpcUrl, isCustomRpc);
+		});
+	};
 
   renderMainnet() {
     const { provider } = this.props;
@@ -334,29 +316,25 @@ export class NetworkList extends PureComponent {
       ) : null;
     const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 
-    return (
-      <View style={styles.mainnetHeader}>
-        <TouchableOpacity
-          style={[styles.network, styles.mainnet]}
-          key={`network-mainnet`}
-          onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
-          testID={'network-name'}
-        >
-          <View style={styles.networkWrapper}>
-            <View style={[styles.selected, styles.mainnetSelected]}>
-              {isMainnet}
-            </View>
-            <View
-              style={[styles.networkIcon, { backgroundColor: mainnetColor }]}
-            />
-            <View style={styles.networkInfo}>
-              <Text style={styles.networkLabel}>{mainnetName}</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+		return (
+			<View style={styles.mainnetHeader}>
+				<TouchableOpacity
+					style={[styles.network, styles.mainnet]}
+					key={`network-mainnet`}
+					onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
+					testID={'network-name'}
+				>
+					<View style={styles.networkWrapper}>
+						<View style={[styles.selected, styles.mainnetSelected]}>{isMainnet}</View>
+						<AssetIcon logo={'eth.svg'} customStyle={styles.networkIcon} />
+						<View style={styles.networkInfo}>
+							<Text style={styles.networkLabel}>{mainnetName}</Text>
+						</View>
+					</View>
+				</TouchableOpacity>
+			</View>
+		);
+	}
 
 	goToNetworkSettings = () => {
 		this.props.onClose(false);
@@ -375,13 +353,8 @@ export class NetworkList extends PureComponent {
 			</View>
 			<ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
 				{this.renderMainnet()}
-				<View style={styles.otherNetworksHeader}>
-					<Text style={styles.otherNetworksText} testID={OTHER_NETWORK_LIST_ID}>
-						{strings('networks.other_networks')}
-					</Text>
-				</View>
-				{this.renderOtherNetworks()}
 				{this.renderRpcNetworks()}
+				{this.renderOtherNetworks()}
 			</ScrollView>
 			<View style={styles.footer}>
 				<StyledButton
