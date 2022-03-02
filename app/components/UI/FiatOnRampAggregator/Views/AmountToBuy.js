@@ -22,6 +22,7 @@ import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
 import { PAYMENT_METHOD_ICON } from '../constants';
 import RemoteImage from '../../../Base/RemoteImage';
+import WebviewError from '../../WebviewError';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -80,11 +81,12 @@ const AmountToBuy = ({ navigation }) => {
 		selectedPaymentMethod
 	);
 
-	const [{ data: currentPaymentMethod }] = useSDKMethod(
-		'getPaymentMethod',
-		{ countryId: selectedCountry, regionId: selectedRegion },
-		selectedPaymentMethod
-	);
+	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
+		useSDKMethod(
+			'getPaymentMethod',
+			{ countryId: selectedCountry, regionId: selectedRegion },
+			selectedPaymentMethod
+		);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -163,6 +165,25 @@ const AmountToBuy = ({ navigation }) => {
 			);
 		}
 	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
+
+	if (isFetchingDataTokens || isFetchingGetPaymentMethod) {
+		return (
+			<ScreenLayout>
+				<ScreenLayout.Body>
+					<Text>Loading...</Text>
+				</ScreenLayout.Body>
+			</ScreenLayout>
+		);
+	}
+
+	if (errorDataTokens || errorGetPaymentMethod) {
+		return (
+			<WebviewError
+				error={{ description: errorDataTokens || errorGetPaymentMethod }}
+				onReload={() => navigation.navigate('AmountToBuy')}
+			/>
+		);
+	}
 
 	return (
 		<ScreenLayout>

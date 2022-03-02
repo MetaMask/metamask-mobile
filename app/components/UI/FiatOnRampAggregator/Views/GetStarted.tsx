@@ -62,8 +62,8 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 	const { setSelectedCountry, setSelectedRegion } = useFiatOnRampSDK();
 
 	useEffect(() => {
-		setSelectedCountry('/countries/us');
-		setSelectedRegion('/countries/us/regions/california');
+		setSelectedCountry('/us');
+		setSelectedRegion('/us-ca');
 	}, [setSelectedCountry, setSelectedRegion]);
 
 	const handleOnPress = useCallback(() => {

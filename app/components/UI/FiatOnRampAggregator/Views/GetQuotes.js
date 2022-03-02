@@ -3,8 +3,6 @@ import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
-import { useSelector } from 'react-redux';
-import { CHAIN_ID_NETWORKS } from '../constants';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quotes from '../components/Quotes';
 import { strings } from '../../../../../locales/i18n';
@@ -22,7 +20,6 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
-	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
 	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset, selectedAddress } =
 		useFiatOnRampSDK();
 
@@ -34,7 +31,6 @@ const GetQuotes = () => {
 		{ countryId: selectedCountry, regionId: selectedRegion },
 		selectedPaymentMethod,
 		selectedAsset?.id,
-		CHAIN_ID_NETWORKS[chainId],
 		selectedFiat,
 		params.amount,
 		selectedAddress
