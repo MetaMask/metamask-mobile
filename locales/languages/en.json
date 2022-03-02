@@ -686,6 +686,7 @@
 		"cancel": "Cancel",
 		"save": "Save",
 		"speedup": "Speed up",
+		"sign_with_keystone": "Sign with Keystone",
 		"from": "From",
 		"gas_fee": "Gas fee",
 		"gas_fee_fast": "FAST",
