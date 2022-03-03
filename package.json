@@ -102,6 +102,7 @@
     "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#82b84327bd79122a0bc55cff679df94c270b7333",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.5.0",
+    "@ngraveio/bc-ur": "^1.1.6",
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
