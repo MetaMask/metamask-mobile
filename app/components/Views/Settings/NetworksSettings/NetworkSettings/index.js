@@ -243,14 +243,14 @@ class NetworkSettings extends PureComponent {
 		return true;
 	};
 
-	checkIfChainIdExists = async (chainId) => {
-		const checkCustomNetworks = this.props.frequentRpcList.filter((item) => item.chainId === chainId);
+	checkIfNetworkExists = async (rpcUrl) => {
+		const checkCustomNetworks = this.props.frequentRpcList.filter((item) => item.rpcUrl === rpcUrl);
 		if (checkCustomNetworks.length > 0) {
-			this.setState({ warningChainId: strings('app_settings.chain_id_exists') });
+			this.setState({ warningRpcUrl: strings('app_settings.chain_id_exists') });
 			return checkCustomNetworks;
 		}
-		const defaultNetworksChainIds = getAllNetworks().map((item) => Networks[item]);
-		const checkDefaultNetworks = defaultNetworksChainIds.filter((item) => Number(item.chainId) === Number(chainId));
+		const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
+		const checkDefaultNetworks = defaultNetworks.filter((item) => Number(item.rpcUrl) === rpcUrl);
 		if (checkDefaultNetworks.length > 0) {
 			return checkDefaultNetworks;
 		}
@@ -269,7 +269,7 @@ class NetworkSettings extends PureComponent {
 
 		const formChainId = stateChainId.trim().toLowerCase();
 
-		const isChainIdExists = await this.checkIfChainIdExists(formChainId);
+		const isChainIdExists = await this.checkIfNetworkExists(rpcUrl);
 		// Ensure chainId is a 0x-prefixed, lowercase hex string
 		let chainId = formChainId;
 		if (!chainId.startsWith('0x')) {
