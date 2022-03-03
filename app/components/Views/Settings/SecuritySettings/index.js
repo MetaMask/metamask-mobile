@@ -48,7 +48,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import { NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
+import { isTokenDetectionEnabledForNetwork } from '../../../../util/networks';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
@@ -264,7 +264,7 @@ class Settings extends PureComponent {
 		/**
 		 * ChainID of network
 		 */
-		chainId: PropTypes.number,
+		chainId: PropTypes.string,
 		/**
 		 * Boolean that checks if token detection is enabled
 		 */
@@ -385,19 +385,6 @@ class Settings extends PureComponent {
 	};
 
 	isMainnet = () => this.props.type === MAINNET;
-
-	isTokenDetectionEnabledForNetwork = () => {
-		const { chainId } = this.props;
-		switch (chainId) {
-			case NETWORKS_CHAIN_ID.MAINNET:
-			case NETWORKS_CHAIN_ID.AVAXCCHAIN:
-			case NETWORKS_CHAIN_ID.BSC:
-			case NETWORKS_CHAIN_ID.POLYGON:
-				return true;
-			default:
-				return false;
-		}
-	};
 
 	toggleTokenDetection = (enabled) => {
 		const { chainId } = this.props;
@@ -960,8 +947,8 @@ class Settings extends PureComponent {
 	};
 
 	renderTokenDetectionSection = () => {
-		const { isTokenDetectionEnabled } = this.props;
-		if (!this.isTokenDetectionEnabledForNetwork()) {
+		const { isTokenDetectionEnabled, chainId } = this.props;
+		if (!isTokenDetectionEnabledForNetwork(chainId)) {
 			return null;
 		}
 		return (

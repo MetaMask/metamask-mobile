@@ -11,6 +11,7 @@ import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+import { NETWORKS_CHAIN_ID } from '../../constants/on-ramp';
 /**
  * List of the supported networks
  * including name, id, and color
@@ -79,6 +80,18 @@ export default NetworkList;
 export const getAllNetworks = () => NetworkListKeys.filter((name) => name !== RPC);
 
 export const isMainNet = (network) => network?.provider?.type === MAINNET || network === String(1);
+
+export const isTokenDetectionEnabledForNetwork = (chainId) => {
+	switch (chainId) {
+		case NETWORKS_CHAIN_ID.MAINNET:
+		case NETWORKS_CHAIN_ID.AVAXCCHAIN:
+		case NETWORKS_CHAIN_ID.BSC:
+		case NETWORKS_CHAIN_ID.POLYGON:
+			return true;
+		default:
+			return false;
+	}
+};
 
 export const getDecimalChainId = (chainId) => {
 	if (!chainId || typeof chainId !== 'string' || !chainId.startsWith('0x')) {
