@@ -12,6 +12,7 @@ import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 interface IQRSigningDetails {
 	QRState: IQRState;
@@ -108,24 +109,24 @@ const QRSigningDetails = ({
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 
-	const resetError = useCallback(() => {
+	const resetError = () => {
 		setErrorMessage('');
-	}, []);
+	};
 
-	const showScanner = useCallback(() => {
+	const showScanner = () => {
 		setScannerVisible(true);
 		resetError();
-	}, [resetError]);
+	};
 
-	const hideScanner = useCallback(() => {
+	const hideScanner = () => {
 		setScannerVisible(false);
-	}, []);
+	};
 
 	const onCancel = useCallback(async () => {
 		await KeyringController.cancelQRSignRequest();
 		hideScanner();
 		cancelCallback?.();
-	}, [KeyringController, hideScanner, cancelCallback]);
+	}, [KeyringController, cancelCallback]);
 
 	const onScanSuccess = useCallback(
 		(ur: UR) => {
@@ -137,11 +138,14 @@ const QRSigningDetails = ({
 				KeyringController.submitQRSignature(QRState.sign.request?.requestId as string, ur.cbor.toString('hex'));
 				successCallback?.();
 			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
+					error: 'received signature request id is not matched with origin request',
+				});
 				setErrorMessage(strings('transaction.mismatched_qr_request_id'));
 				failureCallback?.(strings('transaction.mismatched_qr_request_id'));
 			}
 		},
-		[KeyringController, QRState.sign.request?.requestId, failureCallback, hideScanner, successCallback]
+		[KeyringController, QRState.sign.request?.requestId, failureCallback, successCallback]
 	);
 	const onScanError = useCallback(
 		(_errorMessage: string) => {
@@ -149,7 +153,7 @@ const QRSigningDetails = ({
 			setErrorMessage(_errorMessage);
 			failureCallback?.(_errorMessage);
 		},
-		[failureCallback, hideScanner]
+		[failureCallback]
 	);
 
 	const renderAlert = () =>
@@ -172,7 +176,7 @@ const QRSigningDetails = ({
 						onConfirmPress={showScanner}
 					>
 						<View style={[styles.container, tighten ? styles.containerTighten : undefined]}>
-							<AccountInfoCard />
+							<AccountInfoCard showFiatBalance={false} />
 							{renderAlert()}
 							<View style={[styles.title, tighten ? styles.titleTighten : undefined]}>
 								<Text style={styles.titleStrong}>{strings('transactions.sign_title_scan')}</Text>
@@ -201,9 +205,9 @@ const QRSigningDetails = ({
 										{strings('transactions.sign_description_2')}
 									</Text>
 								</View>
-							) : (
+							) : !tighten ? (
 								<View style={styles.padding} />
-							)}
+							) : null}
 						</View>
 					</ActionView>
 				</ScrollView>

@@ -11,6 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -22,8 +23,13 @@ const styles = StyleSheet.create({
 		width: '100%',
 		flexDirection: 'column',
 		alignItems: 'center',
-		paddingHorizontal: 32,
 		paddingTop: 16,
+	},
+	header: {
+		width: '100%',
+		paddingHorizontal: 32,
+		flexDirection: 'column',
+		alignItems: 'center',
 	},
 	close: {
 		alignSelf: 'flex-end',
@@ -46,6 +52,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		const { KeyringController: keyring } = Engine.context as any;
 		return keyring;
 	}, []);
+	const AccountTrackerController = useMemo(() => (Engine.context as any).AccountTrackerController, []);
+
 	const [QRState, setQRState] = useState({
 		sync: {
 			reading: false,
@@ -53,7 +61,8 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	});
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [blockingModalVisible, setBlockingModalVisible] = useState(false);
-	const [accounts, setAccounts] = useState<{ address: string; index: number; checked: boolean }[]>([]);
+	const [accounts, setAccounts] = useState<{ address: string; index: number; balance: string }[]>([]);
+	const [trackedAccounts, setTrackedAccounts] = useState<{ [p: string]: { balance: string } }>({});
 	const [checkedAccounts, setCheckedAccounts] = useState<number[]>([]);
 	const [errorMsg, setErrorMsg] = useState('');
 	const resetError = useCallback(() => {
@@ -73,6 +82,19 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			});
 		});
 	}, [KeyringController]);
+	useEffect(() => {
+		const unTrackedAccounts: string[] = [];
+		accounts.forEach((account) => {
+			if (!trackedAccounts[account.address]) {
+				unTrackedAccounts.push(account.address);
+			}
+		});
+		if (unTrackedAccounts.length > 0) {
+			AccountTrackerController.syncWithAddresses(unTrackedAccounts).then((_trackedAccounts: any) => {
+				setTrackedAccounts(Object.assign({}, trackedAccounts, _trackedAccounts));
+			});
+		}
+	}, [AccountTrackerController, accounts, trackedAccounts]);
 	const showScanner = useCallback(() => {
 		setScannerVisible(true);
 	}, []);
@@ -88,13 +110,17 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	}, [QRState.sync, hideScanner, showScanner]);
 
 	const onConnectHardware = useCallback(async () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET, {});
 		resetError();
-		const _accounts = await KeyringController.connectQRHardware();
+		const _accounts = await KeyringController.connectQRHardware(0);
 		setAccounts(_accounts);
 	}, [KeyringController, resetError]);
 	const onScanSuccess = useCallback(
 		(ur: UR) => {
 			hideScanner();
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET_SUCCESS, {
+				device_type: 'QR Hardware',
+			});
 			if (ur.type === SupportedURType.CRYPTO_HDKEY) {
 				KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
 			} else {
@@ -150,9 +176,10 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 					...account,
 					checked,
 					exist,
+					balance: trackedAccounts[account.address]?.balance || '0x0',
 				};
 			}),
-		[accounts, checkedAccounts, existingAccounts]
+		[accounts, checkedAccounts, existingAccounts, trackedAccounts]
 	);
 
 	const onUnlock = useCallback(async () => {
@@ -181,14 +208,21 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	return (
 		<Fragment>
 			<View style={styles.container}>
-				<TouchableOpacity onPress={navigation.goBack} style={styles.close}>
-					<Icon name="close" size={18} />
-				</TouchableOpacity>
-				<Icon name="qrcode" size={42} style={styles.qrcode} />
+				<View style={styles.header}>
+					<TouchableOpacity onPress={navigation.goBack} style={styles.close}>
+						<Icon name="close" size={18} />
+					</TouchableOpacity>
+					<Icon name="qrcode" size={42} style={styles.qrcode} />
+				</View>
 				{accounts.length <= 0 ? (
-					<ConnectQRInstruction onConnect={onConnectHardware} renderAlert={renderAlert} />
+					<ConnectQRInstruction
+						onConnect={onConnectHardware}
+						renderAlert={renderAlert}
+						navigation={navigation}
+					/>
 				) : (
 					<SelectQRAccounts
+						canUnlock={checkedAccounts.length > 0}
 						accounts={enhancedAccounts}
 						nextPage={nextPage}
 						prevPage={prevPage}

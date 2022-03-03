@@ -31,7 +31,7 @@ import {
 	parseTransactionLegacy,
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
-import { util, WalletDevice, NetworksChainId, GAS_ESTIMATE_TYPES, KeyringTypes } from '@metamask/controllers';
+import { util, WalletDevice, NetworksChainId, GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { prepareTransaction, resetTransaction, setNonce, setProposedNonce } from '../../../../actions/transaction';
 import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
@@ -62,6 +62,8 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
+import { getAddressAccountType, isQRHardwareAccount } from '../../../../util/address';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -365,7 +367,6 @@ class Confirm extends PureComponent {
 		LegacyTransactionData: EMPTY_LEGACY_TRANSACTION_DATA,
 		LegacyTransactionDataTemp: {},
 		gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM,
-		keyringType: KeyringTypes.hd,
 	};
 
 	setNetworkNonce = async () => {
@@ -378,10 +379,11 @@ class Confirm extends PureComponent {
 	getAnalyticsParams = () => {
 		try {
 			const { selectedAsset, gasEstimateType, chainId, networkType } = this.props;
-			const { gasSelected } = this.state;
+			const { gasSelected, fromSelectedAddress } = this.state;
 
 			return {
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
+				account_type: getAddressAccountType(fromSelectedAddress),
 				network_name: networkType,
 				chain_id: chainId,
 				gas_estimate_type: gasEstimateType,
@@ -419,11 +421,8 @@ class Confirm extends PureComponent {
 	toggleWarningModal = () => this.setState((state) => ({ warningModalVisible: !state.warningModalVisible }));
 
 	componentWillUnmount = () => {
-		const { GasFeeController, KeyringController } = Engine.context;
+		const { GasFeeController } = Engine.context;
 		GasFeeController.stopPolling(this.state.pollToken);
-		const isQRHardwareWalletDevice = this.state.keyringType === KeyringTypes.qr;
-		const shouldCancelQRHardwareSignRequest = isQRHardwareWalletDevice && this.state.transactionConfirmed;
-		shouldCancelQRHardwareSignRequest && KeyringController.cancelQRSignRequest();
 	};
 
 	componentDidMount = async () => {
@@ -441,9 +440,6 @@ class Confirm extends PureComponent {
 		this.handleConfusables();
 		this.parseTransactionDataHeader();
 
-		KeyringController.getAccountKeyringType(this.state.fromSelectedAddress).then((keyringType) => {
-			this.setState({ keyringType });
-		});
 		KeyringController.getQRKeyringState().then((memstore) => {
 			memstore.subscribe((value) => {
 				if (value && value.sign && value.sign.request) {
@@ -873,10 +869,12 @@ class Confirm extends PureComponent {
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') },
-			]);
-			Logger.error(error, 'error while trying to send transaction (Confirm)');
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+				Logger.error(error, 'error while trying to send transaction (Confirm)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+			}
 		}
 		this.setState({ transactionConfirmed: false });
 	};
@@ -1191,7 +1189,6 @@ class Confirm extends PureComponent {
 			LegacyTransactionData,
 			isAnimating,
 			animateOnChange,
-			keyringType,
 		} = this.state;
 
 		const showFeeMarket =
@@ -1201,7 +1198,7 @@ class Confirm extends PureComponent {
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
-		const isQRHardwareWalletDevice = keyringType === KeyringTypes.qr;
+		const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
 		const AdressToComponent = () => (
 			<AddressTo

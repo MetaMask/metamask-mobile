@@ -1,6 +1,11 @@
-import { isMainNet, getNetworkName, getAllNetworks, getNetworkTypeById } from '.';
+import { isMainNet, getNetworkName, getAllNetworks, getNetworkTypeById, getNetworkTypeByChainId } from '.';
 import { MAINNET, ROPSTEN, GOERLI, RPC, KOVAN } from '../../../app/constants/network';
-import { NETWORK_ERROR_MISSING_NETWORK_ID, NETWORK_ERROR_UNKNOWN_NETWORK_ID } from '../../../app/constants/error';
+import {
+	NETWORK_ERROR_MISSING_CHAIN_ID,
+	NETWORK_ERROR_MISSING_NETWORK_ID,
+	NETWORK_ERROR_UNKNOWN_CHAIN_ID,
+	NETWORK_ERROR_UNKNOWN_NETWORK_ID,
+} from '../../../app/constants/error';
 
 describe('getAllNetworks', () => {
 	const allNetworks = getAllNetworks();
@@ -79,6 +84,28 @@ describe('getNetworkTypeById', () => {
 			getNetworkTypeById(id);
 		} catch (error) {
 			expect(error.message).toEqual(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
+		}
+	});
+});
+
+describe('getNetworkTypeByChainId', () => {
+	it('should get network type by chain Id', () => {
+		const type = getNetworkTypeByChainId(42);
+		expect(type).toEqual(KOVAN);
+	});
+	it('should fail if chain Id is missing', () => {
+		try {
+			getNetworkTypeByChainId();
+		} catch (error) {
+			expect(error.message).toEqual(NETWORK_ERROR_MISSING_CHAIN_ID);
+		}
+	});
+	it('should fail if chain Id is unknown', () => {
+		const id = 9999;
+		try {
+			getNetworkTypeByChainId(id);
+		} catch (error) {
+			expect(error.message).toEqual(`${NETWORK_ERROR_UNKNOWN_CHAIN_ID} ${id}`);
 		}
 	});
 });

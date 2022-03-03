@@ -651,6 +651,7 @@
 		"continueError": "我了解风险，继续",
 		"unknown_qr_code": "非法二维码，请重试",
 		"invalid_qr_code_sync": "非法二维码，请扫描硬件钱包的同步二维码。",
+		"no_camera_permission": "您未开启摄像头权限，请在设置中给予权限后重试",
 		"invalid_qr_code_sign": "非法二维码. 请检查您的硬件钱包并重试",
 		"mismatched_qr_request_id": "扫描的签名二维码不属于当前交易，请检查交易详情后重试。"
 	},

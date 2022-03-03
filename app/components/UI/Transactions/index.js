@@ -34,6 +34,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningModal from './QRSigningModal';
+import { isQRHardwareAccount } from '../../../util/address';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -160,6 +163,8 @@ class Transactions extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	static defaultProps = {
@@ -179,6 +184,7 @@ class Transactions extends PureComponent {
 		speedUpConfirmDisabled: false,
 		rpcBlockExplorer: undefined,
 		errorMsg: undefined,
+		isQRHardwareAccount: false,
 	};
 
 	existingGas = null;
@@ -208,6 +214,7 @@ class Transactions extends PureComponent {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
+		this.setState({ isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress) });
 	};
 
 	componentWillUnmount() {
@@ -398,15 +405,15 @@ class Transactions extends PureComponent {
 		this.setState({ errorMsg: e.message, cancel1559IsOpen: false, cancelIsOpen: false });
 	};
 
-	speedUpTransaction = (EIP1559TransactionData) => {
+	speedUpTransaction = async (EIP1559TransactionData) => {
 		try {
 			if (EIP1559TransactionData) {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
+				await Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
 					maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 					maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 				});
 			} else {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
+				await Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
 			}
 			this.onSpeedUpCompleted();
 		} catch (e) {
@@ -414,15 +421,23 @@ class Transactions extends PureComponent {
 		}
 	};
 
-	cancelTransaction = (EIP1559TransactionData) => {
+	signQRTransaction = async (tx) => {
+		await Engine.context.TransactionController.approveTransaction(tx.id);
+	};
+
+	cancelUnsignedQRTransaction = async (tx) => {
+		await Engine.context.TransactionController.cancelTransaction(tx.id);
+	};
+
+	cancelTransaction = async (EIP1559TransactionData) => {
 		try {
 			if (EIP1559TransactionData) {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId, {
+				await Engine.context.TransactionController.stopTransaction(this.cancelTxId, {
 					maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 					maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 				});
 			} else {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId);
+				await Engine.context.TransactionController.stopTransaction(this.cancelTxId);
 			}
 			this.onCancelCompleted();
 		} catch (e) {
@@ -436,6 +451,9 @@ class Transactions extends PureComponent {
 			i={index}
 			assetSymbol={this.props.assetSymbol}
 			onSpeedUpAction={this.onSpeedUpAction}
+			isQRHardwareAccount={this.state.isQRHardwareAccount}
+			signQRTransaction={this.signQRTransaction}
+			cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
 			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
 			onPressItem={this.toggleDetailsView}
@@ -577,17 +595,21 @@ class Transactions extends PureComponent {
 		);
 	};
 
-	render = () => (
-		<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-screen'}>
-			{!this.state.ready || this.props.loading
-				? this.renderLoader()
-				: !this.props.transactions.length
-				? this.renderEmpty()
-				: this.renderList()}
-			{(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
-				this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
-		</SafeAreaView>
-	);
+	render = () => {
+		const { isSigningQRObject, QRState } = this.props;
+		return (
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-screen'}>
+				{!this.state.ready || this.props.loading
+					? this.renderLoader()
+					: !this.props.transactions.length
+					? this.renderEmpty()
+					: this.renderList()}
+				{(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
+					this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
+				<QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
+			</SafeAreaView>
+		);
+	};
 }
 
 const mapStateToProps = (state) => ({
@@ -616,4 +638,4 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Transactions);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(Transactions));
