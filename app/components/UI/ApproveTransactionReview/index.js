@@ -466,7 +466,7 @@ class ApproveTransactionReview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
-		setTimeout(() => this.props.protectWalletModalVisible(), 2000);
+		this.props.protectWalletModalVisible();
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, this.getAnalyticsParams());
 	};
 

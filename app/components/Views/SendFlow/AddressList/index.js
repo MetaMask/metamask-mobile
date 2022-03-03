@@ -201,13 +201,6 @@ class AddressList extends PureComponent {
 		);
 	};
 
-	checkIsSmartContract = (address, chainId) =>
-		new Promise((resolve) => {
-			isSmartContractAddress(address, chainId)
-				.then((isSmartContract) => resolve(isSmartContract))
-				.catch(() => resolve(false));
-		});
-
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
 
@@ -257,6 +250,18 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
+
+		contactElements.map((element) =>
+			isSmartContractAddress(element.address, element.chainId)
+				.then((isSmartContract) => {
+					if (isSmartContract) {
+						return (element.isSmartContract = true);
+					}
+				})
+				.catch(() => {
+					element.isSmartContract = false;
+				})
+		);
 
 		const contactElementsToRender = contactElements.filter((element) => {
 			if (typeof element === 'object') {

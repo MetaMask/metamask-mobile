@@ -3,7 +3,6 @@ import { StyleSheet, Alert, InteractionManager, AppState, View } from 'react-nat
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
-import { toChecksumAddress } from 'ethereumjs-util';
 import { safeToChecksumAddress } from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
@@ -32,6 +31,7 @@ import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
 import GlobalAlert from '../../../UI/GlobalAlert';
+import checkIfAddressIsSaved from '../../../../util/checkAddress';
 
 const { BNToHex, hexToBN } = util;
 
@@ -49,7 +49,6 @@ const styles = StyleSheet.create({
 	},
 	updateNickView: {
 		margin: 0,
-		// backgroundColor: '#fff',
 	},
 });
 
@@ -539,23 +538,7 @@ class Approve extends PureComponent {
 		this.setState({ isAnimating: false });
 	};
 
-	checkIfAddressIsSaved = () => {
-		const { addressBook, network, transaction } = this.props;
-		for (const [key, value] of Object.entries(addressBook)) {
-			const addressValues = Object.values(value).map((x) => ({
-				address: toChecksumAddress(x.address),
-				nickname: x.name,
-			}));
-
-			if (addressValues.some((x) => x.address === toChecksumAddress(transaction.to) && key === network)) {
-				return addressValues.filter((x) => x.address === toChecksumAddress(transaction.to));
-			}
-			return [];
-		}
-	};
-
 	render = () => {
-		const addressData = this.checkIfAddressIsSaved();
 		const {
 			mode,
 			ready,
@@ -569,7 +552,10 @@ class Approve extends PureComponent {
 			isAnimating,
 			transactionConfirmed,
 		} = this.state;
-		const { transaction, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } = this.props;
+		const { transaction, addressBook, network, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } =
+			this.props;
+
+		const addressData = checkIfAddressIsSaved(addressBook, network, transaction);
 
 		if (!transaction.id) return null;
 		return (
