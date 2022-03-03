@@ -246,7 +246,7 @@ class NetworkSettings extends PureComponent {
 	checkIfNetworkExists = async (rpcUrl) => {
 		const checkCustomNetworks = this.props.frequentRpcList.filter((item) => item.rpcUrl === rpcUrl);
 		if (checkCustomNetworks.length > 0) {
-			this.setState({ warningRpcUrl: strings('app_settings.chain_id_exists') });
+			this.setState({ warningRpcUrl: strings('app_settings.network_exists') });
 			return checkCustomNetworks;
 		}
 		const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
