@@ -48,6 +48,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
@@ -260,6 +261,14 @@ class Settings extends PureComponent {
 		 * Type of network
 		 */
 		type: PropTypes.string,
+		/**
+		 * ChainID of network
+		 */
+		chainId: PropTypes.number,
+		/**
+		 * Boolean that checks if token detection is enabled
+		 */
+		isTokenDetectionEnabled: PropTypes.bool,
 	};
 
 	static navigationOptions = ({ navigation }) =>
@@ -376,6 +385,32 @@ class Settings extends PureComponent {
 	};
 
 	isMainnet = () => this.props.type === MAINNET;
+
+	isTokenDetectionEnabledForNetwork = () => {
+		const { chainId } = this.props;
+		switch (chainId) {
+			case NETWORKS_CHAIN_ID.MAINNET:
+			case NETWORKS_CHAIN_ID.AVAXCCHAIN:
+			case NETWORKS_CHAIN_ID.BSC:
+			case NETWORKS_CHAIN_ID.POLYGON:
+				return true;
+			default:
+				return false;
+		}
+	};
+
+	toggleTokenDetection = (enabled) => {
+		const { chainId } = this.props;
+		const { PreferencesController } = Engine.context;
+		const eventOn = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_ON;
+		const eventOff = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_OFF;
+		PreferencesController.setUseStaticTokenList(!enabled);
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(enabled ? eventOn : eventOff, {
+				chain_id: chainId,
+			});
+		});
+	};
 
 	onSignInWithPasscode = async (enabled) => {
 		this.setState({ loading: true }, async () => {
@@ -924,6 +959,27 @@ class Settings extends PureComponent {
 		);
 	};
 
+	renderTokenDetectionSection = () => {
+		const { isTokenDetectionEnabled } = this.props;
+		if (!this.isTokenDetectionEnabledForNetwork()) {
+			return null;
+		}
+		return (
+			<View style={styles.setting} testID={'token-detection-section'}>
+				<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={isTokenDetectionEnabled}
+						onValueChange={this.toggleTokenDetection}
+						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : undefined}
+						ios_backgroundColor={colors.grey000}
+					/>
+				</View>
+			</View>
+		);
+	};
+
 	render = () => {
 		const { biometryType, biometryChoice, loading } = this.state;
 
@@ -960,6 +1016,7 @@ class Settings extends PureComponent {
 					{this.renderApprovalModal()}
 					{this.renderHistoryModal()}
 					{this.renderCookiesModal()}
+					{this.renderTokenDetectionSection()}
 					{this.isMainnet() && this.renderOpenSeaSettings()}
 					{this.renderHint()}
 				</View>
@@ -983,6 +1040,8 @@ const mapStateToProps = (state) => ({
 	passwordHasBeenSet: state.user.passwordSet,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	type: state.engine.backgroundState.NetworkController.provider.type,
+	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+	isTokenDetectionEnabled: !state.engine.backgroundState.PreferencesController.useStaticTokenList,
 });
 
 const mapDispatchToProps = (dispatch) => ({
