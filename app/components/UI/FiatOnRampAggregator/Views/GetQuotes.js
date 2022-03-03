@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
-import { useSelector } from 'react-redux';
-import { CHAIN_ID_NETWORKS } from '../constants';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quotes from '../components/Quotes';
 import { strings } from '../../../../../locales/i18n';
+import Text from '../../../Base/Text';
 
 const styles = StyleSheet.create({
 	row: {
@@ -21,16 +20,20 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
-	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
-	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset } = useFiatOnRampSDK();
+	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset, selectedAddress } =
+		useFiatOnRampSDK();
+
+	//TODO: read the default fiat currency from the onramp context provider
+	const selectedFiat = '/currencies/fiat/usd';
 
 	const [{ data: quotes, isFetching: isFetchingQuotes }] = useSDKMethod(
 		'getQuotes',
 		{ countryId: selectedCountry, regionId: selectedRegion },
 		selectedPaymentMethod,
-		selectedAsset,
-		CHAIN_ID_NETWORKS[chainId],
-		params.amount
+		selectedAsset?.id,
+		selectedFiat,
+		params.amount,
+		selectedAddress
 	);
 
 	useEffect(() => {
@@ -68,22 +71,30 @@ const GetQuotes = () => {
 			<ScreenLayout.Header description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app." />
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
-					{quotes?.map((quote) => (
-						<View key={quote.providerId} style={styles.row}>
-							<Quotes
-								providerName={quote.providerName}
-								amountOut={quote.amountOut}
-								crypto={quote.crypto}
-								fiat={quote.fiat}
-								networkFee={quote.netwrokFee}
-								processingFee={quote.providerFee}
-								amountIn={quote.amountIn}
-								onPress={() => handleOnPress(quote)}
-								onPressBuy={() => handleOnPressBuy(quote)}
-								highlighted={quote.providerId === providerId}
-							/>
-						</View>
-					))}
+					{quotes.length <= 0 ? (
+						<Text black center>
+							No providers available!
+						</Text>
+					) : (
+						quotes
+							.filter(({ error }) => !error)
+							.map((quote) => (
+								<View key={quote.providerId} style={styles.row}>
+									<Quotes
+										providerName={quote.providerName}
+										amountOut={quote.amountOut}
+										crypto={quote.crypto}
+										fiat={quote.fiat}
+										networkFee={quote.netwrokFee}
+										processingFee={quote.providerFee}
+										amountIn={quote.amountIn}
+										onPress={() => handleOnPress(quote)}
+										onPressBuy={() => handleOnPressBuy(quote)}
+										highlighted={quote.providerId === providerId}
+									/>
+								</View>
+							))
+					)}
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
 		</ScreenLayout>

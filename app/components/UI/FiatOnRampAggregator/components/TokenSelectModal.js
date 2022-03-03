@@ -216,7 +216,7 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 								keyboardShouldPersistTaps="always"
 								data={tokenSearchResults}
 								renderItem={renderItem}
-								keyExtractor={(item) => item.address}
+								keyExtractor={(item) => item.id}
 								ListEmptyComponent={renderEmptyList}
 							/>
 						</View>
