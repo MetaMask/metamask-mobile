@@ -10,7 +10,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
-import { MAINNET } from '../../../constants/network';
+import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -45,9 +45,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 	const isTokenDetectionEnabled = useSelector(
 		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
 	);
-	const isMainnet = useSelector(
-		(state: any) => state.engine.backgroundState.NetworkController.provider.type === MAINNET
-	);
+	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
+	const networkType = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.type);
 
 	const setFocusState = useCallback(
 		(isFocused: boolean) => {
@@ -59,19 +58,17 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
 	const getAnalyticsParams = useCallback(() => {
 		try {
-			const { NetworkController } = Engine.context as any;
-			const { chainId, type } = NetworkController?.state?.provider || {};
 			return {
 				token_address: address,
 				token_symbol: symbol,
-				network_name: type,
+				network_name: networkType,
 				chain_id: chainId,
 				source: 'Add token dropdown',
 			};
 		} catch (error) {
 			return {};
 		}
-	}, [address, symbol]);
+	}, [address, symbol, chainId, networkType]);
 
 	const cancelAddToken = useCallback(() => {
 		navigation.goBack();
@@ -109,7 +106,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 	}, [address, symbol, decimals, setSearchResults, setSearchQuery, setSelectedAsset, navigation, getAnalyticsParams]);
 
 	const renderTokenDetectionBanner = useCallback(() => {
-		if (isTokenDetectionEnabled || !isMainnet || isSearchFocused) {
+		if (isTokenDetectionEnabled || isSearchFocused) {
 			return null;
 		}
 		return (
@@ -126,7 +123,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 				)}
 			>
 				<>
-					<Text style={styles.tokenDetectionDescription}>{strings('add_asset.token_detection_feature')}</Text>
+					<Text style={styles.tokenDetectionDescription}>
+						{strings('add_asset.token_detection_feature', { network: FORMATTED_NETWORK_NAMES[chainId] })}
+					</Text>
 					<Text
 						suppressHighlighting
 						onPress={() => {
@@ -144,7 +143,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 				</>
 			</Alert>
 		);
-	}, [navigation, isSearchFocused, isTokenDetectionEnabled, isMainnet]);
+	}, [navigation, isSearchFocused, isTokenDetectionEnabled, chainId]);
 
 	return (
 		<View style={styles.wrapper} testID={'search-token-screen'}>

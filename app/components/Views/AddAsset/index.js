@@ -10,9 +10,8 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { NetworksChainId } from '@metamask/controllers';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
-import { isMainNet } from '../../../util/networks';
+import { isMainNet, isTokenDetectionEnabledForNetwork } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -111,7 +110,7 @@ class AddAsset extends PureComponent {
 				)}
 				{assetType === 'token' ? (
 					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						{NetworksChainId.mainnet === this.props.chainId && (
+						{isTokenDetectionEnabledForNetwork(chainId) && (
 							<SearchTokenAutocomplete
 								navigation={navigation}
 								tabLabel={strings('add_asset.search_token')}
