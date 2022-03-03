@@ -33,11 +33,8 @@
     foxCode = @"debug";
   }
   
-  // Uncomment this line to use the test key instead of the live one.
-  // [RNBranch useTestInstance];
-  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES]; // <-- add this
-  NSURL *jsCodeLocation;
-
+  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
+  
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   RCTRootView *rootView = [[RCTRootView alloc] initWithBridge:bridge
                                                    moduleName:@"MetaMask"
@@ -82,13 +79,13 @@
 }
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-    if ([RNBranch application:app openURL:url options:options])  {
-        // do other deep link routing for the specific SDK
-    }
-    return YES;
+  if (![RNBranch.branch application:app openURL:url options:options]) {
+    // do other deep link routing for the specific SDKs
+  }
+  return YES;
 }
 
-- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray *restorableObjects))restorationHandler {
   return [RNBranch continueUserActivity:userActivity];
 }
 

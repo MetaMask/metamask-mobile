@@ -116,6 +116,8 @@ describe('Browser Tests', () => {
 			// Check that the dapp title is correct
 			await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
 		}
+		await ConnectModal.tapCancelButton();
+		// THIS SUCKS BUT UNISWAP IS ASKING TO CONNECT TWICE
 		await TestHelpers.delay(3000);
 		await ConnectModal.tapCancelButton();
 

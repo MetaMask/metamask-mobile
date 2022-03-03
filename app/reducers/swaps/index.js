@@ -58,7 +58,6 @@ const tokensSelectors = (state) => state.engine.backgroundState.TokensController
 
 const swapsControllerAndUserTokens = createSelector(swapsControllerTokens, tokensSelectors, (swapsTokens, tokens) => {
 	const values = [...(swapsTokens || []), ...(tokens || [])]
-		.filter(Boolean)
 		.reduce((map, { balanceError, image, ...token }) => {
 			const key = token.address.toLowerCase();
 

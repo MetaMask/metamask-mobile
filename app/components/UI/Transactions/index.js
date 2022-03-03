@@ -167,7 +167,7 @@ class Transactions extends PureComponent {
 	};
 
 	state = {
-		selectedTx: new Map(),
+		selectedTx: (new Map(): Map<string, boolean>),
 		ready: false,
 		refreshing: false,
 		cancelIsOpen: false,

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
@@ -81,28 +81,11 @@ EmptyIcon.propTypes = {
 };
 
 function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
-	const [showFallback, setShowFallback] = useState(null);
-	const getSource = useCallback(() => {
-		if (symbol === 'ETH') {
-			return ethLogo;
-		}
-		if (symbol === 'BNB') {
-			return bnbLogo;
-		}
-
-		if (icon) {
-			return { uri: icon };
-		}
-
-		return { uri: null };
-	}, [symbol, icon]);
-
-	if (!showFallback) {
+	if (symbol === 'ETH' || symbol === 'BNB') {
 		return (
 			<RemoteImage
 				fadeIn
-				source={getSource()}
-				onError={() => setShowFallback(true)}
+				source={symbol === 'ETH' ? ethLogo : bnbLogo}
 				style={[
 					styles.icon,
 					medium && styles.iconMedium,
@@ -112,9 +95,21 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 				]}
 			/>
 		);
-	}
-
-	if (symbol) {
+	} else if (icon) {
+		return (
+			<RemoteImage
+				fadeIn
+				source={{ uri: icon }}
+				style={[
+					styles.icon,
+					medium && styles.iconMedium,
+					big && styles.iconBig,
+					biggest && styles.iconBiggest,
+					style,
+				]}
+			/>
+		);
+	} else if (symbol) {
 		return (
 			<EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
 				<Text
