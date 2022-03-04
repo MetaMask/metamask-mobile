@@ -127,7 +127,6 @@ class AuthenticationService {
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		const biometry = await AsyncStorage.getItem(BIOMETRY_CHOICE);
 		const passcode = await AsyncStorage.getItem(PASSCODE_CHOICE);
-		console.log('TEST', biometryType, biometryPreviouslyDisabled, biometry);
 		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE) && biometry) {
 			return { type: AuthenticationType.BIOMETRIC, biometryType };
 		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE) && passcode) {
@@ -267,6 +266,7 @@ export default {
 			instance.store = store;
 			instance.store.dispatch(logOut());
 		}
+		Object.freeze(instance);
 	},
 	manualAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
 		await instance?.manualAuth(password, authType, selectedAddress),

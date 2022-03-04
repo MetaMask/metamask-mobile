@@ -2,52 +2,68 @@ import AuthenticationService, { AuthenticationType } from './AuthenticationServi
 import Engine from '../core/Engine';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
-	ENCRYPTION_LIB,
-	ORIGINAL,
-	EXISTING_USER,
 	BIOMETRY_CHOICE_DISABLED,
 	TRUE,
 	PASSCODE_DISABLED,
-	NEXT_MAKER_REMINDER,
-	SEED_PHRASE_HINTS,
 	BIOMETRY_CHOICE,
 	PASSCODE_CHOICE,
 } from '../constants/storage';
-import MockStorage from 'app/__mocks__/@react-native-community';
 
 describe('AuthenticationService', () => {
-	jest.setMock('AsyncStorage', new MockStorage({}));
 	const mockStore = {
 		// eslint-disable-next-line @typescript-eslint/no-empty-function
 		dispatch: () => {},
 	};
+	const keyRingControllerMock = {
+		submitPassword: () => true,
+	};
 
-	it('should init correctly', async () => {
-		Engine.init({ KeyringController: {} });
-		expect(AuthenticationService.init(mockStore)).toBeDefined();
+	beforeEach(() => {
+		AsyncStorage.clear();
+		Engine.init({ KeyringController: keyRingControllerMock });
+		AuthenticationService.init(mockStore);
 	});
 
 	it('should return a type password', async () => {
-		Engine.init({ KeyringController: {} });
-		AuthenticationService.init(mockStore);
 		const result = await AuthenticationService.getType();
-		expect(result.biometryType).toBeUndefined();
+		expect(result.biometryType).toEqual('FaceId');
 		expect(result.type).toEqual(AuthenticationType.PASSWORD);
 	});
 
 	it('should return a type biometric', async () => {
 		//TODO AsyncStorage is failing
+		await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
+		const result = await AuthenticationService.getType();
+		expect(result.biometryType).toEqual('FaceId');
+		expect(result.type).toEqual(AuthenticationType.BIOMETRIC);
+	});
 
+	it('should return a type passcode', async () => {
+		//TODO AsyncStorage is failing
+		await AsyncStorage.setItem(PASSCODE_CHOICE, TRUE);
+		const result = await AuthenticationService.getType();
+		expect(result.biometryType).toEqual('FaceId');
+		expect(result.type).toEqual(AuthenticationType.PASSCODE);
+	});
+
+	it('should return a type password with biometric & pincode disabled', async () => {
+		//TODO AsyncStorage is failing
+		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+		const result = await AuthenticationService.getType();
+		expect(result.biometryType).toEqual('FaceId');
+		expect(result.type).toEqual(AuthenticationType.PASSWORD);
+	});
+
+	it('should successfully complete manualAuth', async () => {
+		//TODO AsyncStorage is failing
+		// jest.spyOn(KeyringController, 'submitPassword').getMockImplementation(() => {});
 		// await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		// await AsyncStorage.removeItem(PASSCODE_DISABLED);
-		// await AsyncStorage.setItem(BIOMETRY_CHOICE, TRUE);
-		// await AsyncStorage.removeItem(PASSCODE_CHOICE);
-		// jest.mock('react-native-keychain', () => ({ getSupportedBiometryType: () => Promise.resolve('FaceId') }));
-
-		// Engine.init({ KeyringController: {} });
-		// AuthenticationService.init(mockStore);
-		// const result = await AuthenticationService.getType();
-		// expect(result.biometryType).toEqual('FaceId');
-		// expect(result.type).toEqual(AuthenticationType.BIOMETRIC);
+		// await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
+		// await AuthenticationService.manualAuth(
+		// 	'test',
+		// 	{ type: AuthenticationType.PASSWORD, biometryType: undefined },
+		// 	'0x000'
+		// );
 	});
 });

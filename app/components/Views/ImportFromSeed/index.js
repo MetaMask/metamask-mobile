@@ -199,7 +199,7 @@ class ImportFromSeed extends PureComponent {
 		 */
 		setOnboardingWizardStep: PropTypes.func,
 		/**
-		 * 
+		 *
 		 */
 		passwordSet: PropTypes.func,
 	};
