@@ -15,17 +15,6 @@ SEMVER_REGEX="\
 (\\-(${IDENT})(\\.(${IDENT}))*)?\
 (\\+${FIELD}(\\.${FIELD})*)?$"
 
-# abort if values are empty
-if [[ -z $SEMVER_VERSION ]]; then
-  echo "SEMVER_VERSION not specified, aborting release"
-  exit 1
-fi
-
-if [[ -z $VERSION_NUMBER ]]; then
-  echo "VERSION_NUMBER not specified, aborting release"
-  exit 1
-fi
-
 perform_updates () {
   echo -e "creating release\nsemver version: $SEMVER_VERSION\nversion number: $VERSION_NUMBER"
 
@@ -49,19 +38,28 @@ perform_updates () {
   sed -i -e 's/CURRENT_PROJECT_VERSION = [0-9]\+/CURRENT_PROJECT_VERSION = '"$VERSION_NUMBER"'/' ios/MetaMask.xcodeproj/project.pbxproj
 }
 
-# check if SEMVER_VERSION is valid semver
-if [[ $SEMVER_VERSION =~ $SEMVER_REGEX ]]; then
-  echo "SEMVER_VERSION is valid"
-  # check if VERSION_NUMBER is natural number
-  if [[ $VERSION_NUMBER =~ $NAT ]]; then
-    echo "VERSION_NUMBER is valid"
-    perform_updates
-  else
-    echo "VERSION_NUMBER is not a number!"
-    exit 1
-  fi
+# abort if values are empty
+if [[ -z $SEMVER_VERSION ]]; then
+  echo "SEMVER_VERSION not specified, aborting release"
+  exit 1
+fi
 
-else
+if [[ -z $VERSION_NUMBER ]]; then
+  echo "VERSION_NUMBER not specified, aborting release"
+  exit 1
+fi
+
+# check if SEMVER_VERSION is not valid semver
+if ! [[ $SEMVER_VERSION =~ $SEMVER_REGEX ]]; then
   echo "SEMVER_VERSION is invalid semver!"
   exit 1
 fi
+
+# check if VERSION_NUMBER is not natural number
+if ! [[ $VERSION_NUMBER =~ $NAT ]]; then
+  echo "VERSION_NUMBER is not a number!"
+  exit 1
+fi
+
+echo "VERSION_NUMBER and SEMVER_VERSION are valid"
+perform_updates
