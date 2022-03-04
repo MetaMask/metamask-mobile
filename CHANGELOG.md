@@ -1,6 +1,6 @@
 # Changelog
 
-## v4.2.0 - February 24, 2022
+## v4.2.1 - February 24, 2022
 - [#3841](https://github.com/MetaMask/metamask-mobile/pull/3841): [FIX] Fix custom network icons on Wallet Overview
 - [#3839](https://github.com/MetaMask/metamask-mobile/pull/3839): [FIX] Update en.json
 - [#3838](https://github.com/MetaMask/metamask-mobile/pull/3838): [FIX] Fix onramp BUSD address. Add wc_description string
