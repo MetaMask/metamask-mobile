@@ -1,3 +1,5 @@
+import AppConstants from '../../core/AppConstants';
+
 const initialState = {
 	history: [],
 	whitelist: [],
@@ -20,6 +22,8 @@ const browserReducer = (state = initialState, action) => {
 			return {
 				...state,
 				history: [],
+				tabs: [{ url: AppConstants.HOMEPAGE_URL, id: action.id }],
+				activeTab: action.id,
 			};
 		case 'CLOSE_ALL_TABS':
 			return {
