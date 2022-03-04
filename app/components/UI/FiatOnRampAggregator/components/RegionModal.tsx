@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, TextInput, SafeAreaView, TouchableOpacity, View, TouchableWithoutFeedback } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import { connect } from 'react-redux';
 import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 import { colors, fontStyles } from '../../../../styles/common';
@@ -14,7 +12,6 @@ import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
-import { Json } from '@metamask/controllers';
 import { useFiatOnRampSDK } from '../SDK';
 
 const Text = CustomText as any;
@@ -60,7 +57,7 @@ const styles = StyleSheet.create({
 		marginVertical: 10,
 		marginHorizontal: 30,
 	},
-	//Unsure best way to implement this
+	//Unsure best way to make this inline with title
 	backButton: {
 		right: 160,
 		bottom: 24,
@@ -74,32 +71,35 @@ const styles = StyleSheet.create({
 
 const MAX_REGION_RESULTS = 20;
 
-function RegionModal(
-	this: any,
-	{ isVisible, dismiss, title, description, data, onItemPress, onRegionPress, excludeAddresses = [] }
-) {
+interface Props {
+	isVisible?: boolean;
+	title?: string;
+	description?: string;
+	dismiss?: boolean;
+	data?: [JSON];
+	onCountryPress: (arg0: JSON) => any;
+	onRegionPress: (arg0: JSON) => any;
+}
+
+const RegionModal: React.FC<Props> = ({
+	isVisible,
+	title,
+	description,
+	data,
+	onCountryPress,
+	onRegionPress,
+	dismiss,
+}: Props) => {
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
 	const [activeScreen, setActiveScreen] = useState('country');
 	const dataRef = useRef(data);
-	const { selectedCountry } = useFiatOnRampSDK();
-	const excludedAddresses = useMemo(
-		() => excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
-		[excludeAddresses]
-	);
-
-	const filteredTokens = useMemo(
-		() =>
-			dataRef.current?.filter(
-				(dat: { address: string }) => !excludedAddresses.includes(dat.address?.toLowerCase())
-			),
-		[dataRef, excludedAddresses]
-	);
+	const { selectedCountry, setSelectedCountry } = useFiatOnRampSDK();
 
 	const dataFuse = useMemo(
 		() =>
-			new Fuse(filteredTokens, {
+			new Fuse(dataRef.current, {
 				shouldSort: true,
 				threshold: 0.45,
 				location: 0,
@@ -108,26 +108,33 @@ function RegionModal(
 				minMatchCharLength: 1,
 				keys: ['symbol', 'address', 'name'],
 			}),
-		[filteredTokens]
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[dataRef.current]
 	);
 	const dataSearchResults = useMemo(
-		() => (searchString.length > 0 ? dataFuse.search(searchString)?.slice(0, MAX_REGION_RESULTS) : filteredTokens),
-		[searchString, dataFuse, filteredTokens]
+		() => (searchString.length > 0 ? dataFuse.search(searchString)?.slice(0, MAX_REGION_RESULTS) : dataRef.current),
+		[searchString, dataFuse]
 	);
 
 	const handleOnItemPressCallback = useCallback(
 		(item) => {
-			if (item.regions) {
-				setActiveScreen('region');
-				onItemPress(item);
-				dataRef.current = item.regions;
-				setSearchString('');
-			} else {
-				onItemPress(item);
+			//it is a region
+			if (!item.currency) {
 				onRegionPress(item);
 			}
+			//it is a country that has regions
+			else if (item.regions) {
+				setActiveScreen('region');
+				dataRef.current = item.regions;
+				setSearchString('');
+				setSelectedCountry(item.name);
+			}
+			//it is a country with no regions
+			else {
+				onCountryPress(item);
+			}
 		},
-		[onItemPress, onRegionPress]
+		[onCountryPress, onRegionPress, setSelectedCountry]
 	);
 
 	const renderItem = useCallback(
@@ -187,16 +194,13 @@ function RegionModal(
 		setActiveScreen('country');
 		dataRef.current = data;
 		setSearchString('');
-	}, [setSearchString]);
+	}, [data]);
 
 	const separator = () => <View style={styles.seperator} />;
-
 	return (
 		<Modal
 			isVisible={isVisible}
 			onBackdropPress={dismiss}
-			onBackButtonPress={dismiss}
-			onSwipeComplete={dismiss}
 			swipeDirection="down"
 			propagateSwipe
 			avoidKeyboard
@@ -218,7 +222,7 @@ function RegionModal(
 									<Icon name="ios-search" size={20} style={styles.searchIcon} />
 									<TextInput
 										ref={searchInput}
-										style={styles.input}
+										style={styles.input as any}
 										placeholder={strings('fiat_on_ramp_aggregator.region.search_by_country')}
 										placeholderTextColor={colors.grey500}
 										value={searchString}
@@ -241,7 +245,7 @@ function RegionModal(
 						<ScreenLayout.Body>
 							<View style={styles.resultsView}>
 								<FlatList
-									ref={list}
+									ref={list as any}
 									style={styles.resultsView}
 									keyboardDismissMode="none"
 									keyboardShouldPersistTaps="always"
@@ -268,7 +272,7 @@ function RegionModal(
 									<Icon name="ios-search" size={20} style={styles.searchIcon} />
 									<TextInput
 										ref={searchInput}
-										style={styles.input}
+										style={styles.input as any}
 										placeholder={strings('fiat_on_ramp_aggregator.region.search_by_state')}
 										placeholderTextColor={colors.grey500}
 										value={searchString}
@@ -308,31 +312,6 @@ function RegionModal(
 			</SafeAreaView>
 		</Modal>
 	);
-}
-//sdsdsds
-RegionModal.propTypes = {
-	isVisible: PropTypes.bool,
-	dismiss: PropTypes.func,
-	title: PropTypes.string,
-	description: PropTypes.string,
-	data: PropTypes.arrayOf(PropTypes.object),
-	onItemPress: PropTypes.func,
-	excludeAddresses: PropTypes.arrayOf(PropTypes.string),
 };
 
-const mapStateToProps = (state: {
-	engine: {
-		backgroundState: {
-			AccountTrackerController: { accounts: any };
-			CurrencyRateController: { conversionRate: any; currentCurrency: any };
-			PreferencesController: { selectedAddress: any };
-		};
-	};
-}) => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(RegionModal);
+export default RegionModal;

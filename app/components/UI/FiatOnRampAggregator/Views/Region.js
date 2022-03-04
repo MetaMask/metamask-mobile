@@ -6,7 +6,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
 import { strings } from '../../../../../locales/i18n';
-
+import StyledButton from '../../StyledButton';
 import Box from '../components/Box';
 import ListItem from '../../../Base/ListItem';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -53,20 +53,17 @@ const Region = () => {
 		toggleTokenSelectorModal();
 	};
 
-	//redo this implementation so region
 	const handleCountryPress = useCallback(
 		(country) => {
 			//const countryObject = data.filter((item) => item.name === country);
 
 			if (country.unsupported) {
 				setShowAlert(true);
-			}
-
-			if (!country.regions) {
+			} else {
+				setSelectedRegionObject(country);
 				setSelectedCountry(country.name);
 				hideTokenSelectorModal();
 			}
-			setSelectedCountry(country.name);
 		},
 		[hideTokenSelectorModal, setSelectedCountry]
 	);
@@ -74,13 +71,13 @@ const Region = () => {
 	const handleRegionPress = useCallback(
 		(region) => {
 			//const countryObject = data.filter((item) => item.name === country);
-
 			if (region.unsupported) {
 				setShowAlert(true);
+			} else {
+				setSelectedRegion(region.name);
+				setSelectedRegionObject(region);
+				hideTokenSelectorModal();
 			}
-			setSelectedRegion(region.name);
-			setSelectedRegionObject(region);
-			hideTokenSelectorModal();
 		},
 		[hideTokenSelectorModal, setSelectedRegion]
 	);
@@ -154,14 +151,23 @@ const Region = () => {
 
 				<RegionModal
 					isVisible={isTokenSelectorModalVisible}
-					dismiss={toggleTokenSelectorModal}
 					title={strings('fiat_on_ramp_aggregator.region.title')}
 					description={strings('fiat_on_ramp_aggregator.region.description')}
 					data={data}
-					onItemPress={handleCountryPress}
+					dismiss={toggleTokenSelectorModal}
+					onCountryPress={handleCountryPress}
 					onRegionPress={handleRegionPress}
 				/>
 			</ScreenLayout.Body>
+			<ScreenLayout.Footer>
+				<ScreenLayout.Content>
+					<View style={styles.row}>
+						<StyledButton type="confirm" disabled={Object.keys(selectedRegionObject).length === 0}>
+							Continue
+						</StyledButton>
+					</View>
+				</ScreenLayout.Content>
+			</ScreenLayout.Footer>
 		</ScreenLayout>
 	);
 };
