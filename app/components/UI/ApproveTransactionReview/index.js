@@ -6,7 +6,7 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
+import { safeToChecksumAddress, renderShortAddress, getAddressAccountType } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
@@ -121,6 +121,9 @@ const styles = StyleSheet.create({
 	actionViewChildren: {
 		height: 300,
 	},
+	actionViewQRObject: {
+		height: 600,
+	},
 	paddingHorizontal: {
 		paddingHorizontal: 16,
 	},
@@ -135,6 +138,10 @@ class ApproveTransactionReview extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * ETH to current currency conversion rate
 		 */
@@ -343,13 +350,14 @@ class ApproveTransactionReview extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+			const { activeTabUrl, transaction, onSetAnalyticsParams, selectedAddress } = this.props;
 			const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
 			const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
 			const params = {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: transaction?.origin,
 				dapp_url: isDapp ? activeTabUrl : undefined,
 				network_name: type,
@@ -734,11 +742,11 @@ class ApproveTransactionReview extends PureComponent {
 			QRState,
 		} = this.props;
 		return (
-			<View style={styles.section} testID={'qr-details'}>
+			<View style={styles.actionViewQRObject} testID={'qr-details'}>
 				<TransactionHeader
 					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 				/>
-				<QRSigningDetails QRState={QRState} />;
+				<QRSigningDetails QRState={QRState} tighten showHint={false} showCancelButton />
 			</View>
 		);
 	}
@@ -763,6 +771,7 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),

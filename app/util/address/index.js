@@ -3,6 +3,7 @@ import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
 import punycode from 'punycode/punycode';
+import { KeyringTypes } from '@metamask/controllers';
 
 /**
  * Returns full checksummed address
@@ -59,6 +60,48 @@ export async function importAccountFromPrivateKey(private_key) {
 	}
 	const { KeyringController } = Engine.context;
 	return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+}
+
+/**
+ * judge address is QR hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isQRHardwareAccount(address) {
+	const { KeyringController } = Engine.context;
+	const { keyrings } = KeyringController.state;
+	const qrKeyrings = keyrings.filter((keyring) => keyring.type === KeyringTypes.qr);
+	let qrAccounts = [];
+	for (const qrKeyring of qrKeyrings) {
+		qrAccounts = qrAccounts.concat(qrKeyring.accounts.map((account) => account.toLowerCase()));
+	}
+	return qrAccounts.includes(address.toLowerCase());
+}
+
+/**
+ * judge address's account type for tracking
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's account type
+ */
+export function getAddressAccountType(address) {
+	const { KeyringController } = Engine.context;
+	const { keyrings } = KeyringController.state;
+	const targetKeyring = keyrings.find((keyring) =>
+		keyring.accounts.map((account) => account.toLowerCase()).includes(address.toLowerCase())
+	);
+	if (targetKeyring) {
+		switch (targetKeyring.type) {
+			case KeyringTypes.qr:
+				return 'QR';
+			case KeyringTypes.simple:
+				return 'Imported';
+			default:
+				return 'MetaMask';
+		}
+	}
+	throw new Error(`The address: ${address} is not imported`);
 }
 
 /**

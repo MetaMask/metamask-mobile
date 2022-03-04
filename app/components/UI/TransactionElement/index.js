@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 	},
 	actionContainerStyle: {
 		height: 25,
-		width: 70,
+		minWidth: 70,
 		padding: 0,
 	},
 	speedupActionContainerStyle: {
@@ -117,6 +117,9 @@ class TransactionElement extends PureComponent {
 		 * Chain Id
 		 */
 		chainId: PropTypes.string,
+		signQRTransaction: PropTypes.func,
+		cancelUnsignedQRTransaction: PropTypes.func,
+		isQRHardwareAccount: PropTypes.bool,
 	};
 
 	state = {
@@ -238,10 +241,12 @@ class TransactionElement extends PureComponent {
 			identities,
 			chainId,
 			selectedAddress,
+			isQRHardwareAccount,
 			tx: { time, status },
 		} = this.props;
 		const { value, fiatValue = false, actionKey } = transactionElement;
-		const renderTxActions = status === 'submitted' || status === 'approved';
+		const renderNormalActions = status === 'submitted' || (status === 'approved' && !isQRHardwareAccount);
+		const renderUnsignedQRActions = status === 'approved' && isQRHardwareAccount;
 		const accountImportTime = identities[selectedAddress]?.importTime;
 		return (
 			<>
@@ -261,10 +266,16 @@ class TransactionElement extends PureComponent {
 							</ListItem.Amounts>
 						)}
 					</ListItem.Content>
-					{!!renderTxActions && (
+					{!!renderNormalActions && (
 						<ListItem.Actions>
 							{this.renderSpeedUpButton()}
 							{this.renderCancelButton()}
+						</ListItem.Actions>
+					)}
+					{!!renderUnsignedQRActions && (
+						<ListItem.Actions>
+							{this.renderQRSignButton()}
+							{this.renderCancelUnsignedButton()}
 						</ListItem.Actions>
 					)}
 				</ListItem>
@@ -321,6 +332,14 @@ class TransactionElement extends PureComponent {
 		this.mounted && this.props.onSpeedUpAction(false);
 	};
 
+	showQRSigningModal = () => {
+		this.mounted && this.props.signQRTransaction(this.props.tx);
+	};
+
+	cancelUnsignedQRTransaction = () => {
+		this.mounted && this.props.cancelUnsignedQRTransaction(this.props.tx);
+	};
+
 	renderSpeedUpButton = () => (
 		<StyledButton
 			type={'normal'}
@@ -329,6 +348,28 @@ class TransactionElement extends PureComponent {
 			onPress={this.showSpeedUpModal}
 		>
 			{strings('transaction.speedup')}
+		</StyledButton>
+	);
+
+	renderQRSignButton = () => (
+		<StyledButton
+			type={'normal'}
+			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+			style={styles.actionStyle}
+			onPress={this.showQRSigningModal}
+		>
+			{strings('transaction.sign_with_keystone')}
+		</StyledButton>
+	);
+
+	renderCancelUnsignedButton = () => (
+		<StyledButton
+			type={'cancel'}
+			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+			style={styles.actionStyle}
+			onPress={this.cancelUnsignedQRTransaction}
+		>
+			{strings('transaction.cancel')}
 		</StyledButton>
 	);
 

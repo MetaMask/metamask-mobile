@@ -6,6 +6,7 @@ import {
 	NETWORK_ERROR_MISSING_NETWORK_ID,
 	NETWORK_ERROR_UNKNOWN_NETWORK_ID,
 	NETWORK_ERROR_MISSING_CHAIN_ID,
+	NETWORK_ERROR_UNKNOWN_CHAIN_ID,
 } from '../../../app/constants/error';
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
@@ -101,6 +102,18 @@ export function getNetworkTypeById(id) {
 	}
 
 	throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
+}
+
+export function getNetworkTypeByChainId(chainId) {
+	if (!chainId) {
+		throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
+	}
+	const network = NetworkListKeys.filter((key) => NetworkList[key].chainId === parseInt(chainId, 10));
+	if (network.length > 0) {
+		return network[0];
+	}
+
+	throw new Error(`${NETWORK_ERROR_UNKNOWN_CHAIN_ID} ${chainId}`);
 }
 
 export function getDefaultNetworkByChainId(chainId) {

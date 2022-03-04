@@ -69,8 +69,10 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.greyAssetVisibility,
 		padding: 4,
+		minWidth: 42,
 	},
 	tagText: {
+		textAlign: 'center',
 		fontSize: 8,
 		fontWeight: 'bold',
 	},
@@ -103,6 +105,10 @@ class AccountInfoCard extends PureComponent {
 		 */
 		operation: PropTypes.string,
 		/**
+		 * Clarify should show fiat balance
+		 */
+		showFiatBalance: PropTypes.bool,
+		/**
 		 * Current selected ticker
 		 */
 		ticker: PropTypes.string,
@@ -123,8 +129,16 @@ class AccountInfoCard extends PureComponent {
 	}
 
 	render() {
-		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation, ticker } =
-			this.props;
+		const {
+			accounts,
+			selectedAddress,
+			identities,
+			conversionRate,
+			currentCurrency,
+			operation,
+			ticker,
+			showFiatBalance = true,
+		} = this.props;
 		const { isHardwareKeyring } = this.state;
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
@@ -154,7 +168,8 @@ class AccountInfoCard extends PureComponent {
 							numberOfLines={1}
 							style={[styles.balanceText, isHardwareKeyring ? styles.balanceTextSmall : undefined]}
 						>
-							{strings('signature_request.balance_title')} {dollarBalance} {balance}
+							{strings('signature_request.balance_title')} {showFiatBalance ? dollarBalance : ''}{' '}
+							{balance}
 						</Text>
 					)}
 				</View>

@@ -29,6 +29,8 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -517,10 +519,14 @@ class Send extends PureComponent {
 				this.removeCollectible();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') },
-			]);
-			Logger.error(error, 'error while trying to send transaction (Send)');
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+					{ text: strings('navigation.ok') },
+				]);
+				Logger.error(error, 'error while trying to send transaction (Send)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+			}
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}

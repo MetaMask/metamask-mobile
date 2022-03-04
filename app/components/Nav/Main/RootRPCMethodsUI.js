@@ -45,6 +45,8 @@ import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -211,10 +213,14 @@ const RootRPCMethodsUI = (props) => {
 				});
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
-				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-					{ text: strings('navigation.ok') },
-				]);
-				Logger.error(error, 'error while trying to send transaction (Main)');
+				if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+					Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+						{ text: strings('navigation.ok') },
+					]);
+					Logger.error(error, 'error while trying to send transaction (Main)');
+				} else {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+				}
 			}
 		},
 		[props.swapsTransactions, trackSwaps]

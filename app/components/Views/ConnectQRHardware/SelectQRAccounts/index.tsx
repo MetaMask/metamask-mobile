@@ -6,8 +6,14 @@ import { colors } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
 import util from './util';
 import { IAccount } from '../types';
+import { renderFromWei } from '../../../../util/number';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { getEtherscanAddressUrl } from '../../../../util/etherscan';
+import { getNetworkTypeByChainId } from '../../../../util/networks';
 
 interface ISelectQRAccountsProps {
+	canUnlock: boolean;
 	accounts: IAccount[];
 	nextPage: () => void;
 	prevPage: () => void;
@@ -19,6 +25,7 @@ interface ISelectQRAccountsProps {
 const styles = StyleSheet.create({
 	container: {
 		width: '100%',
+		paddingHorizontal: 32,
 	},
 	title: {
 		marginTop: 40,
@@ -46,6 +53,7 @@ const styles = StyleSheet.create({
 		flexGrow: 1,
 	},
 	pagination: {
+		marginTop: 4,
 		alignSelf: 'flex-end',
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -75,6 +83,9 @@ const styles = StyleSheet.create({
 	backgroundBlue: {
 		backgroundColor: colors.blue,
 	},
+	backgroundGrey: {
+		backgroundColor: colors.grey100,
+	},
 	textBlue: {
 		color: colors.blue,
 	},
@@ -84,7 +95,19 @@ const styles = StyleSheet.create({
 });
 
 const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
-	const { accounts, prevPage, nextPage, toggleAccount, onForget, onUnlock } = props;
+	const { accounts, prevPage, nextPage, toggleAccount, onForget, onUnlock, canUnlock } = props;
+	const navigation = useNavigation();
+	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
+
+	const toEtherscan = (address: string) => {
+		const accountLink = getEtherscanAddressUrl(getNetworkTypeByChainId(chainId), address);
+		navigation.navigate('Webview', {
+			screen: 'SimpleWebview',
+			params: {
+				url: accountLink,
+			},
+		});
+	};
 
 	return (
 		<View style={styles.container}>
@@ -102,8 +125,10 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							tintColors={{ true: colors.grey200, false: colors.grey100 }}
 							testID={'skip-backup-check'}
 						/>
-						<Text style={styles.address}>{util.clipAddress(item.address, 8, 8)}</Text>
-						<Icon size={18} name={'external-link'} />
+						<Text>{item.index + 1}</Text>
+						<Text style={styles.address}>{util.clipAddress(item.address, 4, 4)}</Text>
+						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
+						<Icon size={18} name={'external-link'} onPress={() => toEtherscan(item.address)} />
 					</View>
 				)}
 			/>
@@ -119,7 +144,11 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 			</View>
 
 			<View style={styles.bottom}>
-				<TouchableOpacity onPress={onUnlock} style={[styles.button, styles.backgroundBlue]}>
+				<TouchableOpacity
+					onPress={onUnlock}
+					style={[styles.button, canUnlock ? styles.backgroundBlue : styles.backgroundGrey]}
+					disabled={!canUnlock}
+				>
 					<Text style={styles.textWhite}>{strings('connect_qr_hardware.unlock')}</Text>
 				</TouchableOpacity>
 				<TouchableOpacity onPress={onForget} style={styles.button}>
