@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -9,6 +9,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { strings } from '../../../../../locales/i18n';
 import { colors } from '../../../../styles/common';
 import { getFiatOnRampNavbar } from '../../Navbar';
+import { useFiatOnRampSDK } from '../sdk';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
@@ -58,6 +59,13 @@ interface IStaticComponents {
 }
 
 const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
+	const { setSelectedCountry, setSelectedRegion } = useFiatOnRampSDK();
+
+	useEffect(() => {
+		setSelectedCountry('/us');
+		setSelectedRegion('/us-ca');
+	}, [setSelectedCountry, setSelectedRegion]);
+
 	const handleOnPress = useCallback(() => {
 		navigation.navigate('PaymentMethod');
 	}, [navigation]);

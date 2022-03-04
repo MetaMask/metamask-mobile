@@ -5,19 +5,24 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
-import TokenSelectModal from '../components/TokenSelectModal';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
-
 import ScreenLayout from '../components/ScreenLayout';
 import Text from '../../../Base/Text';
 import AssetSelectorButton from '../components/AssetSelectorButton';
+import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import AmountInput from '../components/AmountInput';
 import Keypad from '../components/Keypad';
-import Box from '../components/Box';
 import QuickAmounts from '../components/QuickAmounts';
 import SelectorButton from '../../../Base/SelectorButton';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
+// import sdk hooks
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+// import modals
+import TokenSelectModal from '../components/TokenSelectModal';
+import PaymentMethodModal from '../components/PaymentMethodModal';
+import { PAYMENT_METHOD_ICON } from '../constants';
+import WebviewError from '../../WebviewError';
+import PaymentIcon from '../components/PaymentIcon';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -43,6 +48,9 @@ const styles = StyleSheet.create({
 		paddingBottom: 25,
 		backgroundColor: '#EDEFF2',
 	},
+	cta: {
+		paddingTop: 12,
+	},
 });
 
 const AmountToBuy = ({ navigation }) => {
@@ -52,10 +60,12 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
+	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
+
 	const {
 		selectedCountry,
+		// setSelectedCountry,
 		selectedRegion,
-		setSelectedCountry,
 		selectedAsset,
 		setSelectedAsset,
 		selectedPaymentMethod,
@@ -67,11 +77,12 @@ const AmountToBuy = ({ navigation }) => {
 		selectedPaymentMethod
 	);
 
-	const [{ data: currentPaymentMethod }] = useSDKMethod(
-		'getPaymentMethod',
-		{ countryId: 'US', regionId: 'USA' },
-		selectedPaymentMethod
-	);
+	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
+		useSDKMethod(
+			'getPaymentMethod',
+			{ countryId: selectedCountry, regionId: selectedRegion },
+			selectedPaymentMethod
+		);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -99,9 +110,9 @@ const AmountToBuy = ({ navigation }) => {
 	}, []);
 
 	const handleCountryPress = useCallback(() => {
-		// TODO: handle
-		setSelectedCountry('USA');
-	}, [setSelectedCountry]);
+		// TODO: handle changing country
+	}, []);
+
 	const handleAssetSelectorPress = useCallback(
 		(newAmount) => {
 			// TODO: handle
@@ -109,6 +120,12 @@ const AmountToBuy = ({ navigation }) => {
 		},
 		[toggleTokenSelectorModal]
 	);
+
+	const handlePaymentMethodSelectorPress = useCallback(() => {
+		// TODO: handle
+		togglePaymentMethodModal();
+	}, [togglePaymentMethodModal]);
+
 	const handleAmountCurrencyPress = useCallback((newAmount) => {
 		// TODO: handle
 	}, []);
@@ -144,6 +161,25 @@ const AmountToBuy = ({ navigation }) => {
 		}
 	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
 
+	if (isFetchingDataTokens || isFetchingGetPaymentMethod) {
+		return (
+			<ScreenLayout>
+				<ScreenLayout.Body>
+					<Text>Loading...</Text>
+				</ScreenLayout.Body>
+			</ScreenLayout>
+		);
+	}
+
+	if (errorDataTokens || errorGetPaymentMethod) {
+		return (
+			<WebviewError
+				error={{ description: errorDataTokens || errorGetPaymentMethod }}
+				onReload={() => navigation.navigate('AmountToBuy')}
+			/>
+		);
+	}
+
 	return (
 		<ScreenLayout>
 			<ScreenLayout.Body>
@@ -161,7 +197,7 @@ const AmountToBuy = ({ navigation }) => {
 								label={'You want to buy'}
 								icon={<TokenIcon medium icon={selectedAsset?.iconUrl} symbol={selectedAsset?.symbol} />}
 								assetSymbol={selectedAsset?.symbol}
-								assetName={selectedAsset?.name}
+								assetName={selectedAsset?.symbol}
 								onPress={handleAssetSelectorPress}
 							/>
 						</View>
@@ -181,15 +217,19 @@ const AmountToBuy = ({ navigation }) => {
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
-					<View style={styles.row}>
-						<Box label="Select payment method">
-							<Text black bold>
-								{currentPaymentMethod?.name}
-							</Text>
-						</Box>
-					</View>
-					<View style={styles.row}>
-						<StyledButton type="confirm" onPress={handleGetQuotePress} disabled={Number(amount) <= 0}>
+					<PaymentMethodSelector
+						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
+						id={'/payments/debit-credit-card'}
+						icon={<PaymentIcon iconType={PAYMENT_METHOD_ICON[selectedPaymentMethod]} size={20} />}
+						name={currentPaymentMethod?.name}
+						onPress={handlePaymentMethodSelectorPress}
+					/>
+					<View style={[styles.row, styles.cta]}>
+						<StyledButton
+							type="confirm"
+							onPress={handleGetQuotePress}
+							disabled={Number(amount) <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
+						>
 							Get Quotes
 						</StyledButton>
 					</View>
@@ -219,6 +259,12 @@ const AmountToBuy = ({ navigation }) => {
 				title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
 				description={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency_description')}
 				tokens={tokens}
+				onItemPress={handleAssetPress}
+			/>
+			<PaymentMethodModal
+				isVisible={isPaymentMethodModalVisible}
+				dismiss={togglePaymentMethodModal}
+				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
 				onItemPress={handleAssetPress}
 			/>
 		</ScreenLayout>

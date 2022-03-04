@@ -1,11 +1,30 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { OnRampSdk, IOnRampSdk } from '@codefi/on-ramp-sdk';
-import { fiatOrdersCountrySelectorAgg, setFiatOrdersCountryAGG } from '../../../../reducers/fiatOrders';
-const SDKContext = createContext<IOnRampSdk | undefined>(undefined);
+import {
+	fiatOrdersCountrySelectorAgg,
+	setFiatOrdersCountryAGG,
+	selectedAddressSelector,
+} from '../../../../reducers/fiatOrders';
+export interface IFiatOnRampSDK {
+	sdk: IOnRampSdk;
+	setSelectedCountry: (countryCode: string) => void;
+	selectedCountry: string;
+	setSelectedRegion: (countryCode: string) => void;
+	selectedRegion: string;
+	setSelectedPaymentMethod: (paymentMethod: string) => void;
+	selectedPaymentMethod: string;
+	setRegionCurrency: (currency: string) => void;
+	regionCurrency: string;
+	setSelectedAsset: (asset: string) => void;
+	selectedAsset: string;
+	selectedAddress: string;
+}
 
-export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRampSdk>) => {
-	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk(), []);
+const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
+
+export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOnRampSDK>) => {
+	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk('stg'), []);
 
 	useEffect(() => {
 		if (sdk) sdk.init();
@@ -14,13 +33,15 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRamp
 	const dispatch = useDispatch();
 
 	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
+	const selectedAddress: string = useSelector(selectedAddressSelector);
+
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
-	const INITIAL_SELECTED_ASSET = null;
+	const INITIAL_SELECTED_ASSET = 'ETH';
 
 	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
-	const [selectedAsset, setSelectedAsset] = useState<any>(INITIAL_SELECTED_ASSET);
+	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
 	const [regionCurrency, setRegionCurrency] = useState('USD');
 
@@ -56,18 +77,23 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRamp
 		setSelectedPaymentMethod(paymentMethod);
 	}, []);
 
-	const contextValue = {
+	const setSelectedAssetCallback = useCallback((asset) => {
+		setSelectedAsset(asset);
+	}, []);
+
+	const contextValue: IFiatOnRampSDK = {
 		sdk,
 		setSelectedCountry: setSelectedCountryCallback,
 		selectedCountry,
 		setSelectedRegion: setSelectedRegionCallback,
 		selectedRegion,
-		selectedPaymentMethod,
 		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+		selectedPaymentMethod,
 		setRegionCurrency: setRegionCurrencyCallback,
 		regionCurrency,
-		setSelectedAsset,
+		setSelectedAsset: setSelectedAssetCallback,
 		selectedAsset,
+		selectedAddress,
 	};
 
 	return <SDKContext.Provider value={value || contextValue} {...props} />;
@@ -75,7 +101,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRamp
 
 export const useFiatOnRampSDK = () => {
 	const contextValue = useContext(SDKContext);
-	return contextValue;
+	return contextValue as IFiatOnRampSDK;
 };
 
 interface config<T> {

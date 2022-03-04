@@ -18,16 +18,20 @@ const styles = StyleSheet.create({
 	highlighted: {
 		borderColor: colors.blue,
 	},
+	thin: {
+		paddingVertical: 12,
+	},
 });
 
 interface Props {
 	highlighted?: boolean;
 	label?: string;
 	style?: StyleProp<ViewStyle>;
+	thin?: boolean;
 	onPress?: () => any;
 }
 
-const Box: React.FC<Props> = ({ highlighted, label, style, onPress, ...props }: Props) => (
+const Box: React.FC<Props> = ({ highlighted, label, style, thin, onPress, ...props }: Props) => (
 	<>
 		{Boolean(label) && (
 			<Text black style={styles.label}>
@@ -35,7 +39,7 @@ const Box: React.FC<Props> = ({ highlighted, label, style, onPress, ...props }: 
 			</Text>
 		)}
 		<TouchableOpacity disabled={!onPress} onPress={onPress}>
-			<View style={[styles.wrapper, highlighted && styles.highlighted, style]} {...props} />
+			<View style={[styles.wrapper, thin && styles.thin, highlighted && styles.highlighted, style]} {...props} />
 		</TouchableOpacity>
 	</>
 );
