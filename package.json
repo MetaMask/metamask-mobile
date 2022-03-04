@@ -99,7 +99,7 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.2.2",
     "@keystonehq/ur-decoder": "^0.2.0",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#e5c0eef2f4163a38118ed957948620d3fb2f2f19",
+    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#fa8041c567712c74b19af091ce9a66078739ad9c",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.5.0",
     "@ngraveio/bc-ur": "^1.1.6",
