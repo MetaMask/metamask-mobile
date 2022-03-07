@@ -156,7 +156,7 @@ class AddressList extends PureComponent {
 			const initial = nameInitial ? nameInitial[0] : strings('address_book.others');
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
-			} else if (contact.isSmartContract) {
+			} else if (contact.isSmartContract && !this.props.onlyRenderAddressBook) {
 				null;
 			} else {
 				addressBookTree[initial] = [contact];
@@ -275,7 +275,11 @@ class AddressList extends PureComponent {
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
-					{contactElementsToRender.length ? contactElementsToRender.map(this.renderElement) : null}
+					{!onlyRenderAddressBook
+						? contactElementsToRender.length
+							? contactElementsToRender.map(this.renderElement)
+							: null
+						: contactElements.map(this.renderElement)}
 				</ScrollView>
 			</View>
 		);

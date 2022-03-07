@@ -7,20 +7,19 @@ import Engine from '../../../../core/Engine';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
-import { WebView } from 'react-native-webview';
 import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
 import InfoModal from '../../Swaps/components/InfoModal';
 import { showSimpleNotification } from '../../../../actions/notification';
 import Identicon from '../../../UI/Identicon';
-import WebviewProgressBar from '../../../UI/WebviewProgressBar';
-import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../../util/etherscan';
 import Feather from 'react-native-vector-icons/Feather';
 import { strings } from '../../../../../locales/i18n';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { protectWalletModalVisible } from '../../../../actions/user';
+import Header from '../AddNickNameHeader';
+import ShowBlockExplorer from '../ShowBlockExplorer';
 
 const styles = StyleSheet.create({
 	container: {
@@ -96,21 +95,7 @@ const styles = StyleSheet.create({
 	actionIcon: {
 		color: colors.blue,
 	},
-	progressBarWrapper: {
-		height: 3,
-		width: '100%',
-		left: 0,
-		right: 0,
-		bottom: 0,
-		position: 'absolute',
-		zIndex: 999999,
-	},
 });
-
-interface HeaderProps {
-	onUpdateContractNickname: () => void;
-	nicknameExists: boolean;
-}
 
 interface AddNicknameProps {
 	onUpdateContractNickname: () => void;
@@ -124,59 +109,6 @@ interface AddNicknameProps {
 	networkState: any;
 	type: string;
 }
-
-interface ShowBlockExplorerProps {
-	contractAddress: string;
-	type: string;
-	setIsBlockExplorerVisible: (isBlockExplorerVisible: boolean) => void;
-}
-
-const Header = (props: HeaderProps) => {
-	const { onUpdateContractNickname, nicknameExists } = props;
-	return (
-		<View style={styles.headerWrapper}>
-			<Text bold style={styles.headerText}>
-				{nicknameExists ? strings('nickname.edit_nickname') : strings('nickname.add_nickname')}
-			</Text>
-			<AntDesignIcon name={'close'} size={20} style={styles.icon} onPress={() => onUpdateContractNickname()} />
-		</View>
-	);
-};
-
-const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
-	const { type, contractAddress, setIsBlockExplorerVisible } = props;
-	const [loading, setLoading] = useState(0);
-	const url = getEtherscanAddressUrl(type, contractAddress);
-	const etherscan_url = getEtherscanBaseUrl(type).replace('https://', '');
-
-	const onLoadProgress = ({ nativeEvent: { progress } }: { nativeEvent: { progress: number } }) => {
-		setLoading(progress);
-	};
-
-	const renderProgressBar = () => (
-		<View style={styles.progressBarWrapper}>
-			<WebviewProgressBar progress={loading} />
-		</View>
-	);
-
-	return (
-		<>
-			<View style={styles.headerWrapper}>
-				<Text bold style={styles.headerText}>
-					{etherscan_url}
-				</Text>
-				<AntDesignIcon
-					name={'close'}
-					size={20}
-					style={styles.icon}
-					onPress={() => setIsBlockExplorerVisible(false)}
-				/>
-			</View>
-			<WebView source={{ uri: url }} onLoadProgress={onLoadProgress} />
-			{renderProgressBar()}
-		</>
-	);
-};
 
 const getAnalyticsParams = () => {
 	try {
@@ -241,10 +173,19 @@ const AddNickname = (props: AddNicknameProps) => {
 					setIsBlockExplorerVisible={setIsBlockExplorerVisible}
 					type={type}
 					contractAddress={contractAddress}
+					headerWrapperStyle={styles.headerWrapper}
+					headerTextStyle={styles.headerText}
+					iconStyle={styles.icon}
 				/>
 			) : (
 				<>
-					<Header onUpdateContractNickname={onUpdateContractNickname} nicknameExists={nicknameExists} />
+					<Header
+						onUpdateContractNickname={onUpdateContractNickname}
+						nicknameExists={nicknameExists}
+						headerWrapperStyle={styles.headerWrapper}
+						headerTextStyle={styles.headerText}
+						iconStyle={styles.icon}
+					/>
 					<View style={styles.bodyWrapper}>
 						{showFullAddress && (
 							<InfoModal
