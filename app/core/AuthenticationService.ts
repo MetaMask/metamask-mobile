@@ -53,8 +53,12 @@ class AuthenticationService {
 		const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 		if (encryptionLib !== ORIGINAL && existingUser) {
-			await recreateVaultWithSamePassword(password, selectedAddress);
-			await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+			try {
+				await recreateVaultWithSamePassword(password, selectedAddress);
+				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+			} catch (e: any) {
+				throw new Error('Unable to recreate vault');
+			}
 		}
 	};
 
