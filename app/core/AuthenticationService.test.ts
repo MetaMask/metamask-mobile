@@ -35,7 +35,6 @@ describe('AuthenticationService', () => {
 	beforeEach(() => {
 		Engine.init(store.getState);
 		AuthenticationService.init(store);
-		// (setGenericPassword as jest.Mock).mockReturnValue({});
 	});
 
 	afterEach(() => {
@@ -43,6 +42,9 @@ describe('AuthenticationService', () => {
 	});
 
 	it('should return a type password', async () => {
+		//CLI to run test case: cd '/Users/sethkfman/workspace/metamask-mobile' node '/Users/sethkfman/workspace/metamask-mobile/node_modules/.bin/jest' '/Users/sethkfman/workspace/metamask-mobile/app/core/AuthenticationService.test.ts' -t 'AuthenticationService should return a type password'
+		// Test case is failing with this error: TypeError: Keychain.getSupportedBiometryType is not a function
+		// The goal would be to mock the SecureKeychain inline to return the Promise.resolve('FaceId')
 		const result = await AuthenticationService.getType();
 		expect(result.biometryType).toEqual('FaceId');
 		expect(result.type).toEqual(AuthenticationType.PASSWORD);
@@ -75,10 +77,10 @@ describe('AuthenticationService', () => {
 
 	it('should successfully complete userEntryAuth', async () => {
 		//Create new wallet
-		// await AuthenticationService.newWalletAndKeyChain('test1234', {
-		// 	type: AuthenticationType.PASSWORD,
-		// 	biometryType: undefined,
-		// });
+		await AuthenticationService.newWalletAndKeyChain('test1234', {
+			type: AuthenticationType.PASSWORD,
+			biometryType: undefined,
+		});
 		// await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		// await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		// await AuthenticationService.userEntryAuth(
