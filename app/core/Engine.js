@@ -68,9 +68,7 @@ class Engine {
 				{},
 				{
 					ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
-					useStaticTokenList:
-						initialState?.PreferencesController?.useStaticTokenList === undefined ||
-						initialState.PreferencesController.useStaticTokenList,
+					useTokenDetection: false,
 					// TODO: Use previous value when preferences UI is available
 					useCollectibleDetection: false,
 					openSeaEnabled: false,
@@ -110,7 +108,9 @@ class Engine {
 					},
 				},
 			});
-			const assetsContractController = new AssetsContractController();
+			const assetsContractController = new AssetsContractController({
+				onNetworkStateChange: (listener) => networkController.subscribe(listener),
+			});
 			const collectiblesController = new CollectiblesController(
 				{
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
@@ -135,8 +135,6 @@ class Engine {
 			const tokenListController = new TokenListController({
 				chainId: networkController.provider.chainId,
 				onNetworkStateChange: (listener) => networkController.subscribe(listener),
-				useStaticTokenList: preferencesController.state.useStaticTokenList,
-				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 				messenger: this.controllerMessenger,
 			});
 			const currencyRateController = new CurrencyRateController({

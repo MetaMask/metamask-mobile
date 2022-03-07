@@ -386,14 +386,14 @@ class Settings extends PureComponent {
 
 	isMainnet = () => this.props.type === MAINNET;
 
-	toggleTokenDetection = (enabled) => {
+	toggleTokenDetection = (detectionStatus) => {
 		const { chainId } = this.props;
 		const { PreferencesController } = Engine.context;
 		const eventOn = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_ON;
 		const eventOff = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_OFF;
-		PreferencesController.setUseStaticTokenList(!enabled);
+		PreferencesController.setUseTokenDetection(detectionStatus);
 		InteractionManager.runAfterInteractions(() => {
-			AnalyticsV2.trackEvent(enabled ? eventOn : eventOff, {
+			AnalyticsV2.trackEvent(detectionStatus ? eventOn : eventOff, {
 				chain_id: chainId,
 			});
 		});
@@ -1028,7 +1028,7 @@ const mapStateToProps = (state) => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	type: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	isTokenDetectionEnabled: !state.engine.backgroundState.PreferencesController.useStaticTokenList,
+	isTokenDetectionEnabled: state.engine.backgroundState.PreferencesController.useTokenDetection,
 });
 
 const mapDispatchToProps = (dispatch) => ({

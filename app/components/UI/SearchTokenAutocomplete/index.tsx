@@ -43,7 +43,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const { address, symbol, decimals } = selectedAsset as any;
 	const isTokenDetectionEnabled = useSelector(
-		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
+		(state: any) => state.engine.backgroundState.PreferencesController.useTokenDetection
 	);
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 	const networkType = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.type);
