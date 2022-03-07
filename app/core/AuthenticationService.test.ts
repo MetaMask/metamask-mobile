@@ -1,5 +1,4 @@
 import AuthenticationService, { AuthenticationType } from './AuthenticationService';
-import Engine from '../core/Engine';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
 	BIOMETRY_CHOICE_DISABLED,
@@ -8,20 +7,39 @@ import {
 	BIOMETRY_CHOICE,
 	PASSCODE_CHOICE,
 } from '../constants/storage';
+import Engine from './Engine';
+import configureMockStore from 'redux-mock-store';
 
 describe('AuthenticationService', () => {
-	const mockStore = {
-		// eslint-disable-next-line @typescript-eslint/no-empty-function
-		dispatch: () => {},
+	const mockStore = configureMockStore();
+	const initialState = {
+		privacy: { approvedHosts: {}, privacyMode: true },
+		browser: { history: [] },
+		settings: { lockTime: 1000 },
+		user: { passwordSet: true },
+		engine: {
+			backgroundState: {
+				PreferencesController: { selectedAddress: '0x', identities: { '0x': { name: 'Account 1' } } },
+				AccountTrackerController: { accounts: {} },
+				KeyringController: { keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }] },
+				NetworkController: {
+					provider: {
+						type: 'mainnet',
+					},
+				},
+			},
+		},
 	};
-	const keyRingControllerMock = {
-		submitPassword: () => true,
-	};
+	const store = mockStore(initialState);
 
 	beforeEach(() => {
+		Engine.init(store.getState);
+		AuthenticationService.init(store);
+		// (setGenericPassword as jest.Mock).mockReturnValue({});
+	});
+
+	afterEach(() => {
 		AsyncStorage.clear();
-		Engine.init({ KeyringController: keyRingControllerMock });
-		AuthenticationService.init(mockStore);
 	});
 
 	it('should return a type password', async () => {
@@ -56,8 +74,11 @@ describe('AuthenticationService', () => {
 	});
 
 	it('should successfully complete manualAuth', async () => {
-		//TODO AsyncStorage is failing
-		// jest.spyOn(KeyringController, 'submitPassword').getMockImplementation(() => {});
+		//Create new wallet
+		// await AuthenticationService.newWalletAndKeyChain('test1234', {
+		// 	type: AuthenticationType.PASSWORD,
+		// 	biometryType: undefined,
+		// });
 		// await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		// await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		// await AuthenticationService.manualAuth(

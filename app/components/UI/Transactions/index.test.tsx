@@ -1,6 +1,7 @@
 jest.useFakeTimers();
 
 import React from 'react';
+// eslint-disable-next-line import/no-named-as-default-member
 import Transactions from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';

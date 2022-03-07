@@ -55,8 +55,6 @@ class AuthenticationService {
 		if (encryptionLib !== ORIGINAL && existingUser) {
 			await recreateVaultWithSamePassword(password, selectedAddress);
 			await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-		} else {
-			throw new Error('Failed to recreate vault on login');
 		}
 	};
 
@@ -266,7 +264,6 @@ export default {
 			instance.store = store;
 			instance.store.dispatch(logOut());
 		}
-		Object.freeze(instance);
 	},
 	manualAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
 		await instance?.manualAuth(password, authType, selectedAddress),
