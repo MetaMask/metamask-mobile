@@ -7,7 +7,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://snowtrace.io/',
-			imageUrl: 'avalanche.svg',
+			imageUrl: 'avalanche',
 		},
 	},
 	{
@@ -17,7 +17,7 @@ const PopularList = [
 		ticker: 'AETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
-			imageUrl: 'arbitrum.svg',
+			imageUrl: 'arbitrum',
 		},
 	},
 	{
@@ -28,7 +28,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://bscscan.com/',
-			imageUrl: 'binance.svg',
+			imageUrl: 'binance',
 		},
 	},
 	{
@@ -39,7 +39,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://ftmscan.com/',
-			imageUrl: 'fantom.svg',
+			imageUrl: 'fantom',
 		},
 	},
 	{
@@ -50,7 +50,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.harmony.one/',
-			imageUrl: 'harmony.svg',
+			imageUrl: 'harmony',
 		},
 	},
 	{
@@ -60,7 +60,7 @@ const PopularList = [
 		ticker: 'ETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://optimistic.etherscan.io/',
-			imageUrl: 'optimism.svg',
+			imageUrl: 'optimism',
 		},
 	},
 	{
@@ -70,7 +70,7 @@ const PopularList = [
 		ticker: 'MATIC',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://polygonscan.com/',
-			imageUrl: 'matic.svg',
+			imageUrl: 'matic',
 		},
 	},
 	{
@@ -80,7 +80,7 @@ const PopularList = [
 		ticker: 'PALM',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.palm.io/',
-			imageUrl: 'palm.svg',
+			imageUrl: 'palm',
 		},
 	},
 ];

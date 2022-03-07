@@ -1,8 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView, Linking } from 'react-native';
+import { StyleSheet, Text, View, TextInput, SafeAreaView, Linking, TouchableOpacity } from 'react-native';
 import { connect } from 'react-redux';
-import AssetIcon from '../../../../../components/UI/AssetIcon';
 import { fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,6 +31,7 @@ import NetworkModals from '../../../../UI/NetworkModal';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { MAINNET } from '../../../../../constants/network';
+import ImageIcons from '../../../../UI/ImageIcon';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { PRIVATENETWORK } from '../../../../../constants/network';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
@@ -763,7 +763,7 @@ class NetworkSettings extends PureComponent {
 
 	popularNetworks = () =>
 		PopularList.map((item, index) => (
-			<View key={index} style={styles.popularNetwork}>
+			<TouchableOpacity key={index} style={styles.popularNetwork} onPress={() => this.togglePopularNetwork(item)}>
 				{this.state.showWarningModal && (
 					<InfoModal
 						isVisible={this.state.showWarningModal}
@@ -774,7 +774,7 @@ class NetworkSettings extends PureComponent {
 					/>
 				)}
 				<View style={styles.popularWrapper}>
-					<AssetIcon logo={item.rpcPrefs.imageUrl} customStyle={styles.popularNetworkImage} />
+					<ImageIcons image={item.rpcPrefs.imageUrl} style={styles.popularNetworkImage} />
 					<CustomText bold black>
 						{item.nickname}
 					</CustomText>
@@ -789,11 +789,9 @@ class NetworkSettings extends PureComponent {
 							onPress={this.toggleWarningModal}
 						/>
 					)}
-					<CustomText link onPress={() => this.togglePopularNetwork(item)}>
-						{strings('networks.add')}
-					</CustomText>
+					<CustomText link>{strings('networks.add')}</CustomText>
 				</View>
-			</View>
+			</TouchableOpacity>
 		));
 
 	renderTabBar = () => (

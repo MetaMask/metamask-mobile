@@ -11,11 +11,11 @@ import Engine from '../../../core/Engine';
 import { isprivateConnection } from '../../../util/networks';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
-import AssetIcon from '../../UI/AssetIcon';
 import scaling from '../../../util/scaling';
 import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
+import ImageIcons from '../../UI/ImageIcon';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -193,7 +193,7 @@ const NetworkModals = (props: NetworkProps) => {
 							/>
 						)}
 						<View style={styles.nameWrapper}>
-							<AssetIcon logo={imageUrl} customStyle={styles.popularNetworkImage} />
+							<ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
 							<Text black>{nickname}</Text>
 						</View>
 						<Text reset style={styles.title}>
