@@ -311,6 +311,18 @@ class AdvancedSettings extends PureComponent {
 							</View>
 						</View>
 						<View style={styles.setting}>
+							<Text style={styles.title}>{strings('app_settings.show_test_networks_title')}</Text>
+							<Text style={styles.desc}>{strings('app_settings.show_test_networks_desc')}</Text>
+							<View style={styles.marginTop}>
+								<Switch
+									value={showCustomNonce}
+									onValueChange={setShowCustomNonce}
+									trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
+									ios_backgroundColor={colors.grey000}
+								/>
+							</View>
+						</View>
+						<View style={styles.setting}>
 							<Text style={styles.title}>{strings('app_settings.state_logs')}</Text>
 							<Text style={styles.desc}>{strings('app_settings.state_logs_desc')}</Text>
 							<StyledButton
