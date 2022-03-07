@@ -57,25 +57,28 @@ const styles = StyleSheet.create({
 		marginVertical: 10,
 		marginHorizontal: 30,
 	},
-	//Unsure best way to make this inline with title
 	backButton: {
-		right: 160,
-		bottom: 24,
+		position: 'absolute',
+		left: 10,
+		bottom: 0,
+		right: 0,
+		top: 0,
 	},
-	seperator: {
+	separator: {
 		height: 1,
 		width: '100%',
 		backgroundColor: colors.grey000,
 	},
 });
 
+const Separator = () => <View style={styles.separator} />;
 const MAX_REGION_RESULTS = 20;
 
 interface Props {
 	isVisible?: boolean;
 	title?: string;
 	description?: string;
-	dismiss?: boolean;
+	dismiss?: () => any;
 	data?: [JSON];
 	onCountryPress: (arg0: JSON) => any;
 	onRegionPress: (arg0: JSON) => any;
@@ -94,12 +97,13 @@ const RegionModal: React.FC<Props> = ({
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
 	const [activeScreen, setActiveScreen] = useState('country');
+	const [selectedCountryName, setSelectedCountryName] = useState('');
 	const dataRef = useRef(data);
-	const { selectedCountry, setSelectedCountry } = useFiatOnRampSDK();
+	const { setSelectedCountry } = useFiatOnRampSDK();
 
 	const dataFuse = useMemo(
 		() =>
-			new Fuse(dataRef.current, {
+			new Fuse(dataRef.current as [JSON], {
 				shouldSort: true,
 				threshold: 0.45,
 				location: 0,
@@ -127,7 +131,8 @@ const RegionModal: React.FC<Props> = ({
 				setActiveScreen('region');
 				dataRef.current = item.regions;
 				setSearchString('');
-				setSelectedCountry(item.name);
+				setSelectedCountry(item.id);
+				setSelectedCountryName(item.name);
 			}
 			//it is a country with no regions
 			else {
@@ -200,7 +205,6 @@ const RegionModal: React.FC<Props> = ({
 		setSearchString('');
 	}, [data]);
 
-	const separator = () => <View style={styles.seperator} />;
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -257,16 +261,16 @@ const RegionModal: React.FC<Props> = ({
 									renderItem={renderItem}
 									keyExtractor={(item) => item.address}
 									ListEmptyComponent={renderEmptyList}
-									ItemSeparatorComponent={() => separator()}
-									ListFooterComponent={() => separator()}
-									ListHeaderComponent={() => separator()}
+									ItemSeparatorComponent={Separator}
+									ListFooterComponent={Separator}
+									ListHeaderComponent={Separator}
 								/>
 							</View>
 						</ScreenLayout.Body>
 					</ScreenLayout>
 				) : (
 					<ScreenLayout>
-						<ScreenLayout.Header bold title={selectedCountry}>
+						<ScreenLayout.Header bold title={selectedCountryName}>
 							<TouchableOpacity onPress={handleRegionBackButton} style={styles.backButton}>
 								<Feather name="chevron-left" size={20} color={colors.grey500} />
 							</TouchableOpacity>
@@ -305,9 +309,9 @@ const RegionModal: React.FC<Props> = ({
 									renderItem={renderItem}
 									keyExtractor={(item) => item.address}
 									ListEmptyComponent={renderEmptyList}
-									ItemSeparatorComponent={() => separator()}
-									ListFooterComponent={() => separator()}
-									ListHeaderComponent={() => separator()}
+									ItemSeparatorComponent={Separator}
+									ListFooterComponent={Separator}
+									ListHeaderComponent={Separator}
 								/>
 							</View>
 						</ScreenLayout.Body>

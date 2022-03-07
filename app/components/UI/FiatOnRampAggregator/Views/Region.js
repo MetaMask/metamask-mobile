@@ -17,19 +17,13 @@ import { useNavigation } from '@react-navigation/native';
 import RegionModal from '../components/RegionModal';
 
 const styles = StyleSheet.create({
-	titleAlign: {
-		textAlign: 'center',
-	},
-
-	box: {
-		marginVertical: 16,
-	},
 	checkbox: {
 		width: 15,
 		height: 15,
 		marginTop: 3,
 	},
 	checkboxView: {
+		marginVertical: 16,
 		flexDirection: 'row',
 	},
 	checkboxMargin: {
@@ -60,13 +54,11 @@ const Region = () => {
 
 	const handleCountryPress = useCallback(
 		(country) => {
-			//const countryObject = data.filter((item) => item.name === country);
-
 			if (country.unsupported) {
 				setShowAlert(true);
 			} else {
 				setSelectedRegionObject(country);
-				setSelectedCountry(country.name);
+				setSelectedCountry(country.id);
 				hideTokenSelectorModal();
 			}
 		},
@@ -75,11 +67,10 @@ const Region = () => {
 
 	const handleRegionPress = useCallback(
 		(region) => {
-			//const countryObject = data.filter((item) => item.name === country);
 			if (region.unsupported) {
 				setShowAlert(true);
 			} else {
-				setSelectedRegion(region.name);
+				setSelectedRegion(region.id);
 				setSelectedRegionObject(region);
 				hideTokenSelectorModal();
 			}
@@ -108,17 +99,15 @@ const Region = () => {
 
 	return (
 		<ScreenLayout>
+			<ScreenLayout.Header
+				title={strings('fiat_on_ramp_aggregator.region.your_region')}
+				description={strings('fiat_on_ramp_aggregator.region.subtitle_description')}
+			/>
+
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
-					<Text big primary style={styles.titleAlign}>
-						Your Region
-					</Text>
-
-					<Text style={styles.titleAlign}>
-						Text here about how a certain payment method will be available depending on your region
-					</Text>
 					<TouchableOpacity onPress={handleRegionButton}>
-						<Box style={styles.box}>
+						<Box>
 							<ListItem.Content>
 								<ListItem.Body>
 									{Object.keys(selectedRegionObject).length !== 0 ? (
@@ -127,7 +116,7 @@ const Region = () => {
 											{selectedRegionObject.name}
 										</Text>
 									) : (
-										<Text>Select your region</Text>
+										<Text>{strings('fiat_on_ramp_aggregator.region.select_region')}</Text>
 									)}
 								</ListItem.Body>
 								<ListItem.Amounts>
@@ -137,7 +126,7 @@ const Region = () => {
 						</Box>
 					</TouchableOpacity>
 
-					<View style={styles.checkboxView}>
+					<TouchableOpacity style={styles.checkboxView}>
 						<CheckBox
 							boxType="square"
 							animationDuration={0.2}
@@ -149,9 +138,9 @@ const Region = () => {
 							onChange={handleCheckBox}
 						/>
 						<Text black style={styles.checkboxMargin}>
-							Remember my Region
+							{strings('fiat_on_ramp_aggregator.region.remember_region')}
 						</Text>
-					</View>
+					</TouchableOpacity>
 				</ScreenLayout.Content>
 
 				<RegionModal
@@ -166,7 +155,7 @@ const Region = () => {
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
-					<View style={styles.row}>
+					<View>
 						<StyledButton
 							type="confirm"
 							onPress={handleOnPress}
