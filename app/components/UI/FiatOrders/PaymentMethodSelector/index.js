@@ -96,7 +96,7 @@ function PaymentMethodSelectorView({
 				<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />
 			)}
 			{isTransakAllowedToBuy(chainId) && (
-				<TransakPaymentMethod onPress={onPressTransak} ticker={getTicker(ticker)} />
+				<TransakPaymentMethod onPress={onPressTransak} ticker={getTicker(ticker)} chainId={chainId} />
 			)}
 		</ScreenView>
 	);
