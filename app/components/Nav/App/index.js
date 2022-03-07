@@ -120,11 +120,11 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	);
 
 	useEffect(() => {
-		const autoAuth = async () => {
+		const appTriggeredAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
 				if (existingUser && !userLoggedIn && !locked.current && selectedAddress) {
-					await AuthenticationService.autoAuth(selectedAddress);
+					await AuthenticationService.appTriggeredAuth(selectedAddress);
 					locked.current = true;
 				}
 				//Cancel auth if the existing user has not been set
@@ -135,7 +135,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			}
 		};
 
-		autoAuth();
+		appTriggeredAuth();
 	}, [userLoggedIn, selectedAddress]);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {

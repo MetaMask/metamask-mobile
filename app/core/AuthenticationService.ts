@@ -42,7 +42,7 @@ class AuthenticationService {
 	store: any;
 
 	/**
-	 * This method recreates the vault upon login when the correct password is provided
+	 * This method recreates the vault upon login if user is new and is not using the latest encryption lib
 	 * @param password - password entered on login
 	 * @param selectedAddress - current address pulled from persisted state
 	 */
@@ -212,7 +212,7 @@ class AuthenticationService {
 	 * @param password - password provided by user
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
-	manualAuth = async (password: string, authData: AuthData, selectedAddress: string) => {
+	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string) => {
 		try {
 			await this._loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
@@ -229,7 +229,7 @@ class AuthenticationService {
 	 * Attempts to use biometric/pin code/remember me to login
 	 * @param selectedAddress - current address pulled from persisted state
 	 */
-	autoAuth = async (selectedAddress: string) => {
+	appTriggeredAuth = async (selectedAddress: string) => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
 		if (!credentials) throw new Error(strings('Biometric/Pincode/Remember Me Not Set'));
 		this.authData = await this.checkAuthenticationMethod(credentials);
@@ -269,16 +269,16 @@ export default {
 			instance.store.dispatch(logOut());
 		}
 	},
-	manualAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
-		await instance?.manualAuth(password, authType, selectedAddress),
-	autoAuth: async (selectedAddress: string) => await instance?.autoAuth(selectedAddress),
+	userEntryAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
+		await instance?.userEntryAuth(password, authType, selectedAddress),
+	appTriggeredAuth: async (selectedAddress: string) => await instance?.appTriggeredAuth(selectedAddress),
+	logout: async () => await instance?.logout(),
 	newWalletAndKeyChain: async (password: string, type: AuthData) => {
 		await instance?.newWalletAndKeyChain(password, type);
 	},
 	newWalletAndRestore: async (password: string, type: AuthData, parsedSeed: string, clearEngine: boolean) => {
 		await instance?.newWalletAndRestore(password, type, parsedSeed, clearEngine);
 	},
-	logout: async () => await instance?.logout(),
 	resetVault: async () => await instance?.resetVault(),
 	getType: async () => await instance?.checkAuthenticationMethod(undefined),
 	storePassword: async (password: string, authType: AuthenticationType) => {

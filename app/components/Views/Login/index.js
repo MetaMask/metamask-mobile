@@ -274,7 +274,7 @@ class Login extends PureComponent {
 		);
 
 		try {
-			await AuthenticationService.manualAuth(password, authType, this.props.selectedAddress);
+			await AuthenticationService.userEntryAuth(password, authType, this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');
@@ -318,7 +318,7 @@ class Login extends PureComponent {
 		const { current: field } = this.fieldRef;
 		field.blur();
 		try {
-			await AuthenticationService.autoAuth(this.props.selectedAddress);
+			await AuthenticationService.appTriggeredAuth(this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');

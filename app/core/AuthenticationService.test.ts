@@ -73,7 +73,7 @@ describe('AuthenticationService', () => {
 		expect(result.type).toEqual(AuthenticationType.PASSWORD);
 	});
 
-	it('should successfully complete manualAuth', async () => {
+	it('should successfully complete userEntryAuth', async () => {
 		//Create new wallet
 		// await AuthenticationService.newWalletAndKeyChain('test1234', {
 		// 	type: AuthenticationType.PASSWORD,
@@ -81,7 +81,7 @@ describe('AuthenticationService', () => {
 		// });
 		// await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		// await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-		// await AuthenticationService.manualAuth(
+		// await AuthenticationService.userEntryAuth(
 		// 	'test',
 		// 	{ type: AuthenticationType.PASSWORD, biometryType: undefined },
 		// 	'0x000'

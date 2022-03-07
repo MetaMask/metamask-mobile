@@ -103,7 +103,7 @@ class LockScreen extends PureComponent {
 		try {
 			// Retreive the credentials
 			Logger.log('Lockscreen::unlockKeychain - getting credentials');
-			await AuthenticationService.autoAuth(this.props.selectedAddress);
+			await AuthenticationService.appTriggeredAuth(this.props.selectedAddress);
 			this.locked = false;
 			this.setState({ ready: true });
 			Logger.log('Lockscreen::unlockKeychain - state: ready');
