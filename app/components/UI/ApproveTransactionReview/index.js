@@ -448,7 +448,15 @@ class ApproveTransactionReview extends PureComponent {
 				spender: spenderAddress,
 				value: Number(uint).toString(16),
 			});
-			const newApprovalTransaction = { ...transaction, data: approvalData };
+			const newApprovalTransaction = {
+				...transaction,
+				data: approvalData,
+				transaction: {
+					...transaction.transaction,
+					data: approvalData,
+				},
+			};
+
 			setTransactionObject(newApprovalTransaction);
 		} catch (err) {
 			Logger.log('Failed to setTransactionObject', err);
