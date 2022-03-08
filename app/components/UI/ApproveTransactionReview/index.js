@@ -662,8 +662,10 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			spendLimitUnlimitedSelected,
 			spendLimitCustomValue,
-			transaction: { to, data },
 		} = this.state;
+		const {
+			transaction: { to, data },
+		} = this.props;
 		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
 			<TransactionReviewDetailsCard
