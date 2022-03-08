@@ -273,7 +273,10 @@ function SwapsAmountView({
 				setContractBalanceAsUnits(safeNumberToBN(0));
 				const { AssetsContractController } = Engine.context;
 				try {
-					const balance = await AssetsContractController.getBalanceOf(sourceToken.address, selectedAddress);
+					const balance = await AssetsContractController.getERC20BalanceOf(
+						sourceToken.address,
+						selectedAddress
+					);
 					setContractBalanceAsUnits(balance);
 					setContractBalance(renderFromTokenMinimalUnit(balance, sourceToken.decimals));
 				} catch (e) {

@@ -44,6 +44,8 @@ export const NETWORKS_CHAIN_ID = {
 	BSC: '56',
 	POLYGON: '137',
 	AVAXCCHAIN: '43114',
+	CELO: '42220',
+	FANTOM: '250',
 };
 
 const NETWORK_NAMES = {

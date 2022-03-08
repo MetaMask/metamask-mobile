@@ -1205,8 +1205,7 @@
 		"wc_sent_tx_title": "거래 보냄",
 		"wc_connected_rejected_title": "연결 요청을 거부하셨습니다.",
 		"wc_signed_rejected_title": "서명 요청을 거부하셨습니다.",
-		"wc_sent_tx_rejected_title": "거래 요청을 거부하셨습니다.",
-		"wc_description": "브라우저로 돌아가기"
+		"wc_sent_tx_rejected_title": "거래 요청을 거부하셨습니다."
 	},
 	"protect_your_wallet_modal": {
 		"title": "지갑 보호",
