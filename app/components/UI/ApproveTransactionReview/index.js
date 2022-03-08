@@ -245,6 +245,10 @@ class ApproveTransactionReview extends PureComponent {
 		 * Whether the transaction was confirmed or not
 		 */
 		transactionConfirmed: PropTypes.bool,
+		/**
+		 * Dispatch set transaction object from transaction action
+		 */
+		setTransactionObject: PropTypes.func,
 	};
 
 	state = {
@@ -434,6 +438,7 @@ class ApproveTransactionReview extends PureComponent {
 		} = this.state;
 
 		try {
+			const { setTransactionObject } = this.props;
 			const uint = toTokenMinimalUnit(
 				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
 				token.decimals
