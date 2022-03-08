@@ -57,6 +57,7 @@ import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/Pay
 import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
 import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
+import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -287,6 +288,7 @@ const FiatOnRampAggregator = () => (
 			<Stack.Screen name="AmountToBuy" component={AmountToBuy} options={AmountToBuy.navigationOptions} />
 			<Stack.Screen name="GetQuotes" component={GetQuotes} options={GetQuotes.navigationOptions} />
 			<Stack.Screen name="Checkout" component={CheckoutWebView} options={CheckoutWebView.navigationOptions} />
+			<Stack.Screen name="Region" component={Region} options={Region.navigationOptions} />
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
 );

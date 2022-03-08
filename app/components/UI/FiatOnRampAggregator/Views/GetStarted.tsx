@@ -67,7 +67,7 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 	}, [setSelectedCountry, setSelectedRegion]);
 
 	const handleOnPress = useCallback(() => {
-		navigation.navigate('PaymentMethod');
+		navigation.navigate('Region');
 	}, [navigation]);
 
 	return (
