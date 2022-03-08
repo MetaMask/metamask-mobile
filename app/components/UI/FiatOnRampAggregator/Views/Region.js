@@ -40,7 +40,8 @@ const Region = () => {
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 	const [selectedRegionObject, setSelectedRegionObject] = useState({});
 	const navigation = useNavigation();
-	const handleCheckBox = () => {
+
+	const handleChangeRememberRegion = () => {
 		setRememberRegion(!rememberRegion);
 	};
 
@@ -126,8 +127,10 @@ const Region = () => {
 						</Box>
 					</TouchableOpacity>
 
-					<TouchableOpacity style={styles.checkboxView}>
+					<TouchableOpacity onPress={handleChangeRememberRegion} style={styles.checkboxView}>
 						<CheckBox
+							value={rememberRegion}
+							onValueChange={handleChangeRememberRegion}
 							boxType="square"
 							animationDuration={0.2}
 							onAnimationType="fill"
@@ -135,7 +138,6 @@ const Region = () => {
 							onFillColor={colors.blue500}
 							onCheckColor={colors.white}
 							style={styles.checkbox}
-							onChange={handleCheckBox}
 						/>
 						<Text black style={styles.checkboxMargin}>
 							{strings('fiat_on_ramp_aggregator.region.remember_region')}
