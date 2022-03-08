@@ -17,6 +17,8 @@ import { useFiatOnRampSDK } from '../sdk';
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
+const MAX_REGION_RESULTS = 20;
+
 const styles = StyleSheet.create({
 	modal: {
 		margin: 0,
@@ -89,7 +91,6 @@ const styles = StyleSheet.create({
 });
 
 const Separator = () => <View style={styles.separator} />;
-const MAX_REGION_RESULTS = 20;
 
 interface Props {
 	isVisible?: boolean;
