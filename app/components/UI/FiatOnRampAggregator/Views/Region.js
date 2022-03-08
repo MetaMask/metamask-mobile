@@ -42,7 +42,7 @@ const Region = () => {
 	const navigation = useNavigation();
 
 	const handleChangeRememberRegion = () => {
-		setRememberRegion(!rememberRegion);
+		setRememberRegion((currentRememberRegion) => !currentRememberRegion);
 	};
 
 	const handleRegionButton = () => {
