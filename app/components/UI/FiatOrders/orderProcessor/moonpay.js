@@ -1,6 +1,12 @@
 import axios from 'axios';
 import qs from 'query-string';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { useCallback, useMemo } from 'react';
+import {
+	FIAT_ORDER_PROVIDERS,
+	FIAT_ORDER_STATES,
+	MOONPAY_NETWORK_PARAMETERS,
+	NETWORKS_CHAIN_ID,
+} from '../../../../constants/on-ramp';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
 
@@ -78,13 +84,20 @@ const MOONPAY_TRANSACTION_STATES = {
  * @property {string} transactionStatus
  */
 
+//* Functions
+
+const MOONPAY_ALLOWED_NETWORKS = [
+	NETWORKS_CHAIN_ID.MAINNET,
+	NETWORKS_CHAIN_ID.BSC,
+	NETWORKS_CHAIN_ID.POLYGON,
+	NETWORKS_CHAIN_ID.AVAXCCHAIN,
+	NETWORKS_CHAIN_ID.CELO,
+];
+export const isMoonpayAllowedToBuy = (chainId) => MOONPAY_ALLOWED_NETWORKS.includes(chainId);
+
 //* Constants
 
-const {
-	//MOONPAY_URL, MOONPAY_URL_STAGING,
-	MOONPAY_API_URL_PRODUCTION,
-	MOONPAY_REDIRECT_URL,
-} = AppConstants.FIAT_ORDERS;
+const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL } = AppConstants.FIAT_ORDERS;
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -111,7 +124,10 @@ const getCurrencies = moonPayApi.get('v3/currencies', {
 	},
 });
 
-// TODO: post values to sign
+const getSignature = (url) =>
+	axios.post('http://localhost:3030/sign', {
+		url,
+	});
 
 //* Helpers
 
@@ -230,4 +246,32 @@ export async function processMoonPayOrder(order) {
 	}
 }
 
-// TODO: create useMoonPayFlowURL hook, including signature of the URL#search object
+//* Hooks
+
+export const useMoonPayFlowURL = (address, chainId) => {
+	const params = useMemo(() => {
+		const selectedChainId = isMoonpayAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
+		const [defaultCurrencyCode, showOnlyCurrencies] = MOONPAY_NETWORK_PARAMETERS[selectedChainId];
+		return qs.stringify({
+			apiKey: MOONPAY_API_KEY,
+			colorCode: '#037dd6',
+			walletAddress: address,
+			defaultCurrencyCode,
+			showOnlyCurrencies,
+			redirectURL: MOONPAY_REDIRECT_URL,
+		});
+	}, [address, chainId]);
+
+	const getSignedParams = useCallback(async () => {
+		const originalUrl = `${isDevelopment ? MOONPAY_URL_STAGING : MOONPAY_URL}?${params}`;
+		try {
+			const { data } = await getSignature(originalUrl);
+			return data?.signedUrl;
+		} catch (error) {
+			Logger.error(error, { message: 'FiatOrders::MoonPayProcessor error while getting signature' });
+			return originalUrl;
+		}
+	}, [params]);
+
+	return getSignedParams;
+};
