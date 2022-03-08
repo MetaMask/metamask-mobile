@@ -2,7 +2,6 @@
 
 exports[`ChoosePassword should render correctly 1`] = `
 <ChoosePassword
-  logIn={[Function]}
   passwordSet={[Function]}
   passwordUnset={[Function]}
   route={

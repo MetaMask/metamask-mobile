@@ -77,10 +77,10 @@ describe('AuthenticationService', () => {
 
 	it('should successfully complete userEntryAuth', async () => {
 		//Create new wallet
-		await AuthenticationService.newWalletAndKeyChain('test1234', {
-			type: AuthenticationType.PASSWORD,
-			biometryType: undefined,
-		});
+		// await AuthenticationService.newWalletAndKeyChain('test1234', {
+		// 	type: AuthenticationType.PASSWORD,
+		// 	biometryType: undefined,
+		// });
 		// await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		// await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		// await AuthenticationService.userEntryAuth(
