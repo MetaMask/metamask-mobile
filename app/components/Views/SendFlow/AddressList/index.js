@@ -151,6 +151,19 @@ class AddressList extends PureComponent {
 		const contactElements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach((contact) => {
+			isSmartContractAddress(contact.address, contact.chainId)
+				.then((isSmartContract) => {
+					if (isSmartContract) {
+						return (contact.isSmartContract = true);
+					}
+					return (contact.isSmartContract = false);
+				})
+				.catch(() => {
+					contact.isSmartContract = false;
+				});
+		});
+
+		networkAddressBookList.forEach((contact) => {
 			const contactNameInitial = contact && contact.name && contact.name[0];
 			const nameInitial = contactNameInitial && contactNameInitial.match(/[a-z]/i);
 			const initial = nameInitial ? nameInitial[0] : strings('address_book.others');
@@ -251,23 +264,11 @@ class AddressList extends PureComponent {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 
-		contactElements.map((element) =>
-			isSmartContractAddress(element.address, element.chainId)
-				.then((isSmartContract) => {
-					if (isSmartContract) {
-						return (element.isSmartContract = true);
-					}
-				})
-				.catch(() => {
-					element.isSmartContract = false;
-				})
-		);
-
-		const contactElementsToRender = contactElements.filter((element) => {
-			if (typeof element === 'object') {
-				return !element.isSmartContract;
+		const sendFlowContacts = contactElements.filter((element) => {
+			if (typeof element === 'object' && element.isSmartContract === false) {
+				return element;
 			}
-			return true;
+			return false;
 		});
 
 		return (
@@ -276,9 +277,7 @@ class AddressList extends PureComponent {
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
 					{!onlyRenderAddressBook
-						? contactElementsToRender.length
-							? contactElementsToRender.map(this.renderElement)
-							: null
+						? sendFlowContacts.map(this.renderElement)
 						: contactElements.map(this.renderElement)}
 				</ScrollView>
 			</View>
