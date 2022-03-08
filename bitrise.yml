@@ -244,7 +244,7 @@ workflows:
         before_run:
             - android_test_release_step
         steps:
-            - google-play-deploy@3:
+            - google-play-deploy:
                   inputs:
                       - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
                       - track: internal
