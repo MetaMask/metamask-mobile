@@ -125,7 +125,6 @@ class AuthenticationService {
 	 */
 	checkAuthenticationMethod = async (credentials: any) => {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
-		console.log('Test', biometryType);
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		const biometry = await AsyncStorage.getItem(BIOMETRY_CHOICE);
