@@ -266,7 +266,7 @@ export const useMoonPayFlowURL = (address, chainId) => {
 		const originalUrl = `${isDevelopment ? MOONPAY_URL_STAGING : MOONPAY_URL}?${params}`;
 		try {
 			const { data } = await getSignature(originalUrl);
-			return data?.signedUrl;
+			return data?.signedUrl ?? originalUrl;
 		} catch (error) {
 			Logger.error(error, { message: 'FiatOrders::MoonPayProcessor error while getting signature' });
 			return originalUrl;
