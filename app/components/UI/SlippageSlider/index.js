@@ -224,7 +224,7 @@ const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, 
 						d={
 							'M0 8C0 3.58172 3.58172 0 8 0H32C36.4183 0 40 3.58172 40 8V20.6866C40 25.1049 36.4183 28.6866 32 28.6866H27.7778L20 36L12.2222 28.6866H8C3.58172 28.6866 0 25.1049 0 20.6866V8Z'
 						}
-						fill={colors.overlay.default}
+						fill={colors.overlay.alternative}
 					/>
 				</Svg>
 				<Text style={styles.tooltipText}>{formatTooltipText(displayValue)}</Text>

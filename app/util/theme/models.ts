@@ -11,16 +11,8 @@ export enum AppThemeNames {
 	Dark = 'dark',
 }
 
-// Used in Typescript files
 export const AppThemeLabels = {
-	[AppThemeNames.OS]: 'Automatic',
-	[AppThemeNames.Light]: 'Light',
-	[AppThemeNames.Dark]: 'Dark',
-};
-
-// Used in Javascript files
-export const AppThemeLabelsObject = {
-	os: 'Automatic',
-	light: 'Light',
-	dark: 'Dark',
+	os: 'system',
+	light: 'light',
+	dark: 'dark',
 };

@@ -32,7 +32,7 @@ import StyledButton from '../../StyledButton';
 import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder, fiatOrdersCountrySelector, setFiatOrdersCountry } from '../../../../reducers/fiatOrders';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockColors, useAssetFromTheme } from '../../../../util/theme';
 
 //* styles and components  */
 
@@ -105,16 +105,10 @@ const createStyles = (colors) =>
 			paddingBottom: 20,
 		},
 		applePayButton: {
-			// FIXED APPLE BUTTON COLOR. DO NOT CHANGE
-			backgroundColor: importedColors.black,
 			padding: 10,
 			margin: Device.isIphone5() ? 5 : 10,
 			marginHorizontal: 25,
 			alignItems: 'center',
-		},
-		applePayButtonText: {
-			// FIXED APPLE BUTTON COLOR. DO NOT CHANGE
-			color: importedColors.white,
 		},
 		applePayButtonContentDisabled: {
 			opacity: 0.6,
@@ -124,14 +118,27 @@ const createStyles = (colors) =>
 		},
 	});
 
+const applePayButtonStylesLight = StyleSheet.create({
+	applePayButtonText: { color: importedColors.white },
+	applePayButton: { backgroundColor: importedColors.black },
+});
+
+const applePayButtonStylesDark = StyleSheet.create({
+	applePayButtonText: { color: importedColors.black },
+	applePayButton: { backgroundColor: importedColors.white },
+});
+
 /* eslint-disable import/no-commonjs */
-const ApplePayLogo = require('../../../../images/ApplePayLogo.png');
+const ApplePayLogoLight = require('../../../../images/ApplePayLogo-light.png');
+const ApplePayLogoDark = require('../../../../images/ApplePayLogo-dark.png');
+
 const ApplePay = ({ disabled }) => {
 	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
+	const applePayLogo = useAssetFromTheme(ApplePayLogoLight, ApplePayLogoDark);
 
 	return (
-		<Image source={ApplePayLogo} style={[styles.applePayLogo, disabled && styles.applePayButtonContentDisabled]} />
+		<Image source={applePayLogo} style={[styles.applePayLogo, disabled && styles.applePayButtonContentDisabled]} />
 	);
 };
 
@@ -195,6 +202,7 @@ function PaymentMethodApplePay({
 	const [amount, setAmount] = useState('0');
 	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
+	const appleButtonColors = useAssetFromTheme(applePayButtonStylesLight, applePayButtonStylesDark);
 
 	const {
 		symbol: currencySymbol,
@@ -455,13 +463,16 @@ function PaymentMethodApplePay({
 					<StyledButton
 						type="blue"
 						disabled={disabledButton}
-						containerStyle={styles.applePayButton}
+						containerStyle={[styles.applePayButton, appleButtonColors.applePayButton]}
 						onPress={handlePressApplePay}
 					>
 						<Text
 							centered
 							bold
-							style={[styles.applePayButtonText, disabledButton && styles.applePayButtonContentDisabled]}
+							style={[
+								appleButtonColors.applePayButtonText,
+								disabledButton && styles.applePayButtonContentDisabled,
+							]}
 						>
 							{strings('fiat_on_ramp.buy_with')}
 						</Text>

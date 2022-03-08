@@ -83,7 +83,7 @@ const createStyles = (colors) =>
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
-			backgroundColor: colors.overlay.default,
+			backgroundColor: colors.overlay.alternative,
 			alignItems: 'center',
 			borderRadius: 8,
 			paddingHorizontal: 24,

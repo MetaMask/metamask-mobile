@@ -8,6 +8,7 @@ import { setAppTheme } from '../../../actions/user';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fontStyles } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 
 const createStyles = (colors: any, safeAreaPaddingBottom: number) =>
 	StyleSheet.create({
@@ -78,7 +79,7 @@ const ThemeSettings = () => {
 								}}
 								style={styles.optionButton}
 							>
-								<Text style={styles.optionLabel}>{label}</Text>
+								<Text style={styles.optionLabel}>{strings(`app_settings.theme_${label}`)}</Text>
 								{selectedIcon}
 							</TouchableOpacity>
 						</View>

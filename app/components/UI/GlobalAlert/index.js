@@ -17,7 +17,7 @@ const createStyles = (colors) =>
 		},
 		copyAlert: (width) => ({
 			width: width || 180,
-			backgroundColor: colors.overlay.default,
+			backgroundColor: colors.overlay.alternative,
 			padding: 20,
 			paddingTop: 30,
 			alignSelf: 'center',
