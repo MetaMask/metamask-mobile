@@ -193,7 +193,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 						<TextInput
 							style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 							placeholder={'0x...'}
-							placeholderTextColor={colors.border.default}
+							placeholderTextColor={colors.text.muted}
 							value={address}
 							onChangeText={onAddressChange}
 							onBlur={validateCustomCollectibleAddress}
@@ -217,7 +217,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 							onSubmitEditing={addCollectible}
 							returnKeyType={'done'}
 							placeholder={strings('collectible.id_placeholder')}
-							placeholderTextColor={colors.border.default}
+							placeholderTextColor={colors.text.muted}
 						/>
 						<Text style={styles.warningText} testID={'collectible-identifier-warning'}>
 							{warningTokenId}

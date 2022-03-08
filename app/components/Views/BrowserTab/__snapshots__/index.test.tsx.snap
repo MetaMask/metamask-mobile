@@ -8,7 +8,7 @@ exports[`Browser should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "hsla(0, 0%, 100%, 1)",
+          "backgroundColor": "#FFFFFF",
           "flex": 1,
         },
         false,
@@ -46,7 +46,7 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="hsla(354, 66%, 54%, 1)"
+      backdropColor="#D73A49"
       backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
@@ -98,7 +98,7 @@ exports[`Browser should render correctly 1`] = `
       animationOut="slideOutUp"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropColor="#00000060"
       backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
@@ -140,7 +140,7 @@ exports[`Browser should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "hsla(0, 0%, 100%, 1)",
+            "backgroundColor": "#FFFFFF",
             "flexDirection": "row",
             "height": 87,
             "paddingHorizontal": 10,
@@ -152,7 +152,7 @@ exports[`Browser should render correctly 1`] = `
         <View
           style={
             Object {
-              "backgroundColor": "hsla(210, 18%, 96%, 1)",
+              "backgroundColor": "#F2F4F6",
               "borderRadius": 30,
               "flex": 1,
               "flexDirection": "row",
@@ -167,12 +167,12 @@ exports[`Browser should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search or Type URL"
-            placeholderTextColor="hsla(210, 8%, 75%, 1)"
+            placeholderTextColor="#BBC0C5"
             returnKeyType="go"
             selectTextOnFocus={true}
             style={
               Object {
-                "color": "hsla(210, 8%, 15%, 1)",
+                "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
@@ -198,7 +198,7 @@ exports[`Browser should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "hsla(205, 97%, 43%, 1)",
+                "color": "#037DD6",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -215,124 +215,6 @@ exports[`Browser should render correctly 1`] = `
         onSubmit={[Function]}
       />
     </ReactNativeModal>
-    <ReactNativeModal
-      animationIn="slideInUp"
-      animationInTiming={300}
-      animationOut="slideOutDown"
-      animationOutTiming={300}
-      avoidKeyboard={false}
-      backdropColor="hsla(0, 0%, 0%, .6)"
-      backdropOpacity={1}
-      backdropTransitionInTiming={300}
-      backdropTransitionOutTiming={300}
-      coverScreen={true}
-      customBackdrop={null}
-      deviceHeight={null}
-      deviceWidth={null}
-      hasBackdrop={true}
-      hideModalContentWhileAnimating={false}
-      isVisible={false}
-      onBackButtonPress={[Function]}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalShow={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      propagateSwipe={false}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      style={
-        Object {
-          "justifyContent": "flex-end",
-          "margin": 0,
-        }
-      }
-      supportedOrientations={
-        Array [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      useNativeDriver={false}
-    >
-      <Connect(AccountApproval)
-        currentPageInformation={
-          Object {
-            "icon": null,
-            "title": "",
-            "url": "",
-          }
-        }
-        onCancel={[Function]}
-        onConfirm={[Function]}
-      />
-    </ReactNativeModal>
-    <ReactNativeModal
-      animationIn="slideInUp"
-      animationInTiming={600}
-      animationOut="slideOutDown"
-      animationOutTiming={600}
-      avoidKeyboard={false}
-      backdropColor="hsla(0, 0%, 0%, .6)"
-      backdropOpacity={1}
-      backdropTransitionInTiming={300}
-      backdropTransitionOutTiming={300}
-      coverScreen={true}
-      customBackdrop={null}
-      deviceHeight={null}
-      deviceWidth={null}
-      hasBackdrop={true}
-      hideModalContentWhileAnimating={false}
-      isVisible={false}
-      onBackButtonPress={[Function]}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalShow={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      propagateSwipe={true}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      style={
-        Object {
-          "justifyContent": "flex-end",
-          "margin": 0,
-        }
-      }
-      supportedOrientations={
-        Array [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      useNativeDriver={false}
-    >
-      <Connect(WatchAssetRequest)
-        currentPageInformation={
-          Object {
-            "icon": null,
-            "title": "",
-            "url": "",
-          }
-        }
-        onCancel={[Function]}
-        onConfirm={[Function]}
-      />
-    </ReactNativeModal>
     <BrowserBottomBar
       canGoBack={false}
       canGoForward={false}
@@ -343,125 +225,6 @@ exports[`Browser should render correctly 1`] = `
       showUrlModal={[Function]}
       toggleOptions={[Function]}
     />
-    <ReactNativeModal
-      animationIn="slideInUp"
-      animationInTiming={300}
-      animationOut="slideOutDown"
-      animationOutTiming={300}
-      avoidKeyboard={false}
-      backdropColor="hsla(0, 0%, 0%, .6)"
-      backdropOpacity={1}
-      backdropTransitionInTiming={300}
-      backdropTransitionOutTiming={300}
-      coverScreen={true}
-      customBackdrop={null}
-      deviceHeight={null}
-      deviceWidth={null}
-      hasBackdrop={true}
-      hideModalContentWhileAnimating={false}
-      isVisible={false}
-      onBackButtonPress={[Function]}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalShow={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      propagateSwipe={false}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      style={
-        Object {
-          "justifyContent": "flex-end",
-          "margin": 0,
-        }
-      }
-      supportedOrientations={
-        Array [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeThreshold={100}
-      useNativeDriver={false}
-    >
-      <AddCustomNetwork
-        currentPageInformation={
-          Object {
-            "icon": null,
-            "title": "",
-            "url": "",
-          }
-        }
-        customNetworkInformation={null}
-        onCancel={[Function]}
-        onConfirm={[Function]}
-      />
-    </ReactNativeModal>
-    <ReactNativeModal
-      animationIn="slideInUp"
-      animationInTiming={300}
-      animationOut="slideOutDown"
-      animationOutTiming={300}
-      avoidKeyboard={false}
-      backdropColor="hsla(0, 0%, 0%, .6)"
-      backdropOpacity={1}
-      backdropTransitionInTiming={300}
-      backdropTransitionOutTiming={300}
-      coverScreen={true}
-      customBackdrop={null}
-      deviceHeight={null}
-      deviceWidth={null}
-      hasBackdrop={true}
-      hideModalContentWhileAnimating={false}
-      isVisible={false}
-      onBackButtonPress={[Function]}
-      onBackdropPress={[Function]}
-      onModalHide={[Function]}
-      onModalShow={[Function]}
-      onModalWillHide={[Function]}
-      onModalWillShow={[Function]}
-      onSwipeComplete={[Function]}
-      panResponderThreshold={4}
-      propagateSwipe={false}
-      scrollHorizontal={false}
-      scrollOffset={0}
-      scrollOffsetMax={0}
-      scrollTo={null}
-      statusBarTranslucent={false}
-      style={
-        Object {
-          "justifyContent": "flex-end",
-          "margin": 0,
-        }
-      }
-      supportedOrientations={
-        Array [
-          "portrait",
-          "landscape",
-        ]
-      }
-      swipeDirection="down"
-      swipeThreshold={100}
-      useNativeDriver={false}
-    >
-      <SwitchCustomNetwork
-        currentPageInformation={
-          Object {
-            "icon": null,
-            "title": "",
-            "url": "",
-          }
-        }
-        customNetworkInformation={null}
-        onCancel={[Function]}
-        onConfirm={[Function]}
-      />
-    </ReactNativeModal>
   </View>
 </ErrorBoundary>
 `;

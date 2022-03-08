@@ -7,7 +7,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "hsla(0, 0%, 100%, 1)",
+        "backgroundColor": "#FFFFFF",
         "borderRadius": 10,
         "padding": 20,
       }
@@ -17,14 +17,14 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "hsla(210, 8%, 85%, 1)",
+          "borderColor": "#D6D9DC",
         }
       }
     >
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 17,
             "fontWeight": "600",
@@ -50,7 +50,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 15,
             "fontWeight": "400",
@@ -67,7 +67,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 15,
             "fontWeight": "400",
@@ -81,7 +81,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
           onPress={[Function]}
           style={
             Object {
-              "color": "hsla(205, 97%, 43%, 1)",
+              "color": "#037DD6",
             }
           }
         >

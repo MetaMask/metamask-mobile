@@ -144,6 +144,7 @@ export default class AddBookmark extends PureComponent {
 								ref={this.urlInput}
 								onSubmitEditing={this.addToken}
 								returnKeyType={'done'}
+								placeholderTextColor={colors.text.muted}
 							/>
 							<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 						</View>

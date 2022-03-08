@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
@@ -94,6 +94,7 @@ const CollectibleContracts = ({
 }) => {
 	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
+	const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
 
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
@@ -136,16 +137,23 @@ const CollectibleContracts = ({
 	});
 
 	const goToAddCollectible = () => {
+		setIsAddNFTEnabled(false);
 		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+			setIsAddNFTEnabled(true);
 		});
 	};
 
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
 			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
+			<TouchableOpacity
+				style={styles.add}
+				onPress={goToAddCollectible}
+				disabled={!isAddNFTEnabled}
+				testID={'add-collectible-button'}
+			>
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>

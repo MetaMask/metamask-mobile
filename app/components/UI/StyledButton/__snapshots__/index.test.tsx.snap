@@ -11,8 +11,8 @@ exports[`StyledButton should render correctly on Android the button with type ca
           "padding": 15,
         },
         Object {
-          "backgroundColor": "hsla(0, 0%, 100%, 1)",
-          "borderColor": "hsla(210, 8%, 35%, 1)",
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#535A61",
           "borderWidth": 1,
         },
         null,
@@ -34,7 +34,7 @@ exports[`StyledButton should render correctly on Android the button with type co
           "padding": 15,
         },
         Object {
-          "backgroundColor": "hsla(205, 97%, 43%, 1)",
+          "backgroundColor": "#037DD6",
           "minHeight": 50,
         },
         null,
@@ -56,8 +56,8 @@ exports[`StyledButton should render correctly on Android the button with type no
           "padding": 15,
         },
         Object {
-          "backgroundColor": "hsla(0, 0%, 100%, 1)",
-          "borderColor": "hsla(205, 97%, 43%, 1)",
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#037DD6",
           "borderWidth": 1,
         },
         null,
@@ -79,7 +79,7 @@ exports[`StyledButton should render correctly on Android the button with type or
           "padding": 15,
         },
         Object {
-          "borderColor": "hsla(24, 93%, 50%, 1)",
+          "borderColor": "#F66A0A",
           "borderWidth": 1,
         },
         null,
@@ -100,8 +100,8 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "padding": 15,
       },
       Object {
-        "backgroundColor": "hsla(0, 0%, 100%, 1)",
-        "borderColor": "hsla(210, 8%, 35%, 1)",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#535A61",
         "borderWidth": 1,
       },
       undefined,
@@ -117,7 +117,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "textAlign": "center",
       },
       Object {
-        "color": "hsla(210, 8%, 35%, 1)",
+        "color": "#535A61",
       },
       undefined,
     ]
@@ -136,7 +136,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "padding": 15,
       },
       Object {
-        "backgroundColor": "hsla(205, 97%, 43%, 1)",
+        "backgroundColor": "#037DD6",
         "minHeight": 50,
       },
       undefined,
@@ -152,7 +152,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "textAlign": "center",
       },
       Object {
-        "color": "hsla(0, 0%, 99%, 1)",
+        "color": "#FCFCFC",
       },
       undefined,
     ]
@@ -171,8 +171,8 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "padding": 15,
       },
       Object {
-        "backgroundColor": "hsla(0, 0%, 100%, 1)",
-        "borderColor": "hsla(205, 97%, 43%, 1)",
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#037DD6",
         "borderWidth": 1,
       },
       undefined,
@@ -188,7 +188,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "textAlign": "center",
       },
       Object {
-        "color": "hsla(205, 97%, 43%, 1)",
+        "color": "#037DD6",
       },
       undefined,
     ]
@@ -207,7 +207,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "padding": 15,
       },
       Object {
-        "borderColor": "hsla(24, 93%, 50%, 1)",
+        "borderColor": "#F66A0A",
         "borderWidth": 1,
       },
       undefined,
@@ -223,7 +223,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "textAlign": "center",
       },
       Object {
-        "color": "hsla(24, 93%, 50%, 1)",
+        "color": "#F66A0A",
       },
       undefined,
     ]

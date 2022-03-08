@@ -34,7 +34,6 @@ import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
-import AccountApproval from '../../UI/AccountApproval';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
@@ -42,7 +41,6 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -53,8 +51,6 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import { isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
-import AddCustomNetwork from '../../UI/AddCustomNetwork';
-import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { useAppThemeFromContext, mockColors } from '../../../util/theme';
@@ -211,6 +207,9 @@ const ensIgnoreList = [];
 let approvedHosts = {};
 
 const getApprovedHosts = () => approvedHosts;
+const setApprovedHosts = (hosts) => {
+	approvedHosts = hosts;
+};
 
 export const BrowserTab = (props) => {
 	const [backEnabled, setBackEnabled] = useState(false);
@@ -223,17 +222,8 @@ export const BrowserTab = (props) => {
 	const [showUrlModal, setShowUrlModal] = useState(false);
 	const [showOptions, setShowOptions] = useState(false);
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
-	const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-	const [showApprovalDialogHostname, setShowApprovalDialogHostname] = useState(undefined);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
-	const [watchAsset, setWatchAsset] = useState(false);
-	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
-
-	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
-	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
-	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
@@ -243,14 +233,16 @@ export const BrowserTab = (props) => {
 	const icon = useRef(null);
 	const webviewUrlPostMessagePromiseResolve = useRef(null);
 	const backgroundBridges = useRef([]);
-	const approvalRequest = useRef(null);
 	const fromHomepage = useRef(false);
-	const addCustomNetworkRequest = useRef(null);
-	const switchCustomNetworkRequest = useRef(null);
 	const wizardScrollAdjusted = useRef(false);
 
 	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
+
+	/**
+	 * Is the current tab the active tab
+	 */
+	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 
 	/**
 	 * Gets the url to be displayed to the user
@@ -316,32 +308,6 @@ export const BrowserTab = (props) => {
 		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
-	/**
-	 * When user clicks on approve to connect with a dapp
-	 */
-	const onAccountsConfirm = () => {
-		const { approveHost, selectedAddress } = props;
-		const fullHostname = new URL(url.current).hostname;
-		setShowApprovalDialog(false);
-		setShowApprovalDialogHostname(undefined);
-		approveHost(fullHostname);
-		approvedHosts = { ...approvedHosts, [fullHostname]: true };
-		approvalRequest.current &&
-			approvalRequest.current.resolve &&
-			approvalRequest.current.resolve([selectedAddress]);
-	};
-
-	/**
-	 * When user clicks on reject to connect with a dapp
-	 */
-	const onAccountsReject = () => {
-		setShowApprovalDialog(false);
-		setShowApprovalDialogHostname(undefined);
-		approvalRequest.current &&
-			approvalRequest.current.reject &&
-			approvalRequest.current.reject(new Error('User rejected account access'));
-	};
-
 	const notifyAllConnections = useCallback(
 		(payload, restricted = true) => {
 			const fullHostname = new URL(url.current).hostname;
@@ -400,15 +366,12 @@ export const BrowserTab = (props) => {
 					getProviderState,
 					navigation: props.navigation,
 					getApprovedHosts,
+					setApprovedHosts,
+					approveHost: props.approveHost,
 					// Website info
 					url,
 					title,
 					icon,
-					// eth_requestAccounts
-					showApprovalDialog,
-					setShowApprovalDialog,
-					setShowApprovalDialogHostname,
-					approvalRequest,
 					// Bookmarks
 					isHomepage,
 					// Show autocomplete
@@ -417,15 +380,7 @@ export const BrowserTab = (props) => {
 					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
-					// wallet_addEthereumChain && wallet_switchEthereumChain
-					showAddCustomNetworkDialog,
-					showSwitchCustomNetworkDialog,
-					addCustomNetworkRequest,
-					switchCustomNetworkRequest,
-					setCustomNetworkToSwitch,
-					setShowSwitchCustomNetworkDialog,
-					setCustomNetworkToAdd,
-					setShowAddCustomNetworkDialog,
+					isTabActive,
 				}),
 			isMainFrame,
 		});
@@ -438,11 +393,6 @@ export const BrowserTab = (props) => {
 		url && initializeBackgroundBridge(url, false);
 	};
 	*/
-
-	/**
-	 * Is the current tab the active tab
-	 */
-	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -710,12 +660,6 @@ export const BrowserTab = (props) => {
 
 		getEntryScriptWeb3();
 
-		Engine.context.TokensController.hub.on('pendingSuggestedAsset', (suggestedAssetMeta) => {
-			if (!isTabActive()) return false;
-			setSuggestedAssetMeta(suggestedAssetMeta);
-			setWatchAsset(true);
-		});
-
 		// Specify how to clean up after this effect:
 		return function cleanup() {
 			backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
@@ -788,12 +732,17 @@ export const BrowserTab = (props) => {
 	 * Handles state changes for when the url changes
 	 */
 	const changeUrl = (siteInfo, type) => {
-		setBackEnabled(siteInfo.canGoBack);
-		setForwardEnabled(siteInfo.canGoForward);
-
 		url.current = siteInfo.url;
 		title.current = siteInfo.title;
 		if (siteInfo.icon) icon.current = siteInfo.icon;
+	};
+
+	/**
+	 * Handles state changes for when the url changes
+	 */
+	const changeAddressBar = (siteInfo, type) => {
+		setBackEnabled(siteInfo.canGoBack);
+		setForwardEnabled(siteInfo.canGoForward);
 
 		isTabActive() &&
 			props.navigation.setParams({
@@ -914,13 +863,18 @@ export const BrowserTab = (props) => {
 		webviewUrlPostMessagePromiseResolve.current = null;
 		setError(false);
 
+		changeUrl(nativeEvent, 'start');
+
 		//For Android url on the navigation bar should only update upon load.
-		if (Device.isAndroid()) changeUrl(nativeEvent, 'start');
+		if (Device.isAndroid()) {
+			changeAddressBar(nativeEvent, 'start');
+		}
 
 		icon.current = null;
 		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
 		}
+
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 		backgroundBridges.current = [];
@@ -937,7 +891,10 @@ export const BrowserTab = (props) => {
 
 	const onLoad = ({ nativeEvent }) => {
 		//For iOS url on the navigation bar should only update upon load.
-		if (Device.isIos()) changeUrl(nativeEvent, 'start');
+		if (Device.isIos()) {
+			changeUrl(nativeEvent, 'start');
+			changeAddressBar(nativeEvent, 'start');
+		}
 	};
 
 	/**
@@ -959,6 +916,7 @@ export const BrowserTab = (props) => {
 			const { hostname } = new URL(nativeEvent.url);
 			if (info.url === nativeEvent.url && currentHostname === hostname) {
 				changeUrl({ ...nativeEvent, icon: info.icon }, 'end-promise');
+				changeAddressBar({ ...nativeEvent, icon: info.icon }, 'end-promise');
 			}
 		});
 	};
@@ -968,7 +926,6 @@ export const BrowserTab = (props) => {
 	 */
 	const onMessage = ({ nativeEvent }) => {
 		let data = nativeEvent.data;
-
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			if (!data || (!data.type && !data.name)) {
@@ -1367,157 +1324,6 @@ export const BrowserTab = (props) => {
 	);
 
 	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderApprovalModal = () => {
-		const showApprovalDialogNow =
-			showApprovalDialog && showApprovalDialogHostname === new URL(url.current).hostname;
-		return (
-			<Modal
-				isVisible={showApprovalDialogNow}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropColor={colors.overlay.default}
-				backdropOpacity={1}
-				animationInTiming={300}
-				animationOutTiming={300}
-				onSwipeComplete={onAccountsReject}
-				onBackdropPress={onAccountsReject}
-				swipeDirection={'down'}
-			>
-				<AccountApproval
-					onCancel={onAccountsReject}
-					onConfirm={onAccountsConfirm}
-					currentPageInformation={{
-						title: title.current,
-						url: getMaskedUrl(url.current),
-						icon: icon.current,
-					}}
-				/>
-			</Modal>
-		);
-	};
-
-	const onAddCustomNetworkReject = () => {
-		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest?.current?.resolve?.(false);
-	};
-
-	const onAddCustomNetworkConfirm = () => {
-		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest?.current?.resolve?.(true);
-	};
-
-	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderAddCustomNetworkModal = () => (
-		<Modal
-			isVisible={showAddCustomNetworkDialog}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropColor={colors.overlay.default}
-			backdropOpacity={1}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onAddCustomNetworkReject}
-			onBackdropPress={onAddCustomNetworkReject}
-		>
-			<AddCustomNetwork
-				onCancel={onAddCustomNetworkReject}
-				onConfirm={onAddCustomNetworkConfirm}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-				customNetworkInformation={customNetworkToAdd}
-			/>
-		</Modal>
-	);
-
-	const onSwitchCustomNetworkReject = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
-		switchCustomNetworkRequest?.current?.resolve?.(false);
-	};
-
-	const onSwitchCustomNetworkConfirm = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
-		switchCustomNetworkRequest?.current?.resolve?.(true);
-	};
-
-	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderSwitchCustomNetworkModal = () => (
-		<Modal
-			isVisible={!!showSwitchCustomNetworkDialog}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropColor={colors.overlay.default}
-			backdropOpacity={1}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onSwitchCustomNetworkReject}
-			onBackdropPress={onSwitchCustomNetworkReject}
-			swipeDirection={'down'}
-		>
-			<SwitchCustomNetwork
-				onCancel={onSwitchCustomNetworkReject}
-				onConfirm={onSwitchCustomNetworkConfirm}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-				customNetworkInformation={customNetworkToSwitch}
-				type={showSwitchCustomNetworkDialog}
-			/>
-		</Modal>
-	);
-
-	/**
-	 * On rejection addinga an asset
-	 */
-	const onCancelWatchAsset = () => {
-		setWatchAsset(false);
-	};
-
-	/**
-	 * Render the add asset modal
-	 */
-	const renderWatchAssetModal = () => (
-		<Modal
-			isVisible={watchAsset}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropColor={colors.overlay.default}
-			backdropOpacity={1}
-			animationInTiming={600}
-			animationOutTiming={600}
-			onBackdropPress={onCancelWatchAsset}
-			onSwipeComplete={onCancelWatchAsset}
-			swipeDirection={'down'}
-			propagateSwipe
-		>
-			<WatchAssetRequest
-				onCancel={onCancelWatchAsset}
-				onConfirm={onCancelWatchAsset}
-				suggestedAssetMeta={suggestedAssetMeta}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-			/>
-		</Modal>
-	);
-
-	/**
 	 * Render the onboarding wizard browser step
 	 */
 	const renderOnboardingWizard = () => {
@@ -1571,13 +1377,9 @@ export const BrowserTab = (props) => {
 				{renderProgressBar()}
 				{isTabActive() && renderPhishingModal()}
 				{isTabActive() && renderUrlModal()}
-				{isTabActive() && renderApprovalModal()}
-				{isTabActive() && renderWatchAssetModal()}
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
-				{isTabActive() && renderAddCustomNetworkModal()}
-				{isTabActive() && renderSwitchCustomNetworkModal()}
 			</View>
 		</ErrorBoundary>
 	);

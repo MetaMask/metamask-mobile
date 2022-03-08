@@ -6,7 +6,7 @@ exports[`AnimatedTransactionModal should render correctly 1`] = `
   style={
     Array [
       Object {
-        "backgroundColor": "hsla(0, 0%, 100%, 1)",
+        "backgroundColor": "#FFFFFF",
         "borderTopLeftRadius": 20,
         "borderTopRightRadius": 20,
         "minHeight": 200,

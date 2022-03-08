@@ -4,7 +4,7 @@ exports[`Collectibles should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "hsla(0, 0%, 100%, 1)",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
@@ -15,11 +15,11 @@ exports[`Collectibles should render correctly 1`] = `
       <RefreshControlMock
         colors={
           Array [
-            "hsla(205, 97%, 43%, 1)",
+            "#037DD6",
           ]
         }
         refreshing={false}
-        tintColor="hsla(212, 8%, 45%, 1)"
+        tintColor="#6A737D"
       />
     }
   >
@@ -27,7 +27,7 @@ exports[`Collectibles should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "backgroundColor": "hsla(0, 0%, 100%, 1)",
+          "backgroundColor": "#FFFFFF",
           "justifyContent": "center",
           "marginTop": 50,
         }
@@ -36,7 +36,7 @@ exports[`Collectibles should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 75%, 1)",
+            "color": "#BBC0C5",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",

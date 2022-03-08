@@ -354,6 +354,7 @@ class AccountOverview extends PureComponent {
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									numberOfLines={1}
+									placeholderTextColor={colors.text.muted}
 								/>
 							) : (
 								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>

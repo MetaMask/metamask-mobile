@@ -7,7 +7,7 @@ exports[`CustomAlert should render correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={300}
   avoidKeyboard={false}
-  backdropColor="hsla(0, 0%, 0%, .6)"
+  backdropColor="#00000060"
   backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
@@ -48,7 +48,7 @@ exports[`CustomAlert should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "hsla(0, 0%, 100%, 1)",
+        "backgroundColor": "#FFFFFF",
         "borderRadius": 16,
       }
     }

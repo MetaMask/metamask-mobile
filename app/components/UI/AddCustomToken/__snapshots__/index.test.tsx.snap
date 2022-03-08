@@ -4,7 +4,7 @@ exports[`AddCustomToken should render correctly 1`] = `
 <View
   style={
     Object {
-      "backgroundColor": "hsla(0, 0%, 100%, 1)",
+      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
@@ -40,7 +40,7 @@ exports[`AddCustomToken should render correctly 1`] = `
               onPress={[Function]}
               style={
                 Object {
-                  "color": "hsla(205, 97%, 43%, 1)",
+                  "color": "#037DD6",
                 }
               }
               suppressHighlighting={true}
@@ -61,7 +61,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -74,14 +74,14 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="hsla(210, 8%, 75%, 1)"
+          placeholderTextColor="#BBC0C5"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "hsla(210, 8%, 75%, 1)",
+              "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -93,7 +93,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(354, 66%, 54%, 1)",
+              "color": "#D73A49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -112,7 +112,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -125,14 +125,14 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="GNO"
-          placeholderTextColor="hsla(210, 8%, 75%, 1)"
+          placeholderTextColor="#BBC0C5"
           returnKeyType="next"
           style={
             Object {
-              "borderColor": "hsla(210, 8%, 75%, 1)",
+              "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -144,7 +144,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(354, 66%, 54%, 1)",
+              "color": "#D73A49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,
@@ -162,7 +162,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
             }
@@ -177,14 +177,14 @@ exports[`AddCustomToken should render correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="18"
-          placeholderTextColor="hsla(210, 8%, 75%, 1)"
+          placeholderTextColor="#BBC0C5"
           returnKeyType="done"
           style={
             Object {
-              "borderColor": "hsla(210, 8%, 75%, 1)",
+              "borderColor": "#BBC0C5",
               "borderRadius": 4,
               "borderWidth": 1,
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "padding": 16,
@@ -196,7 +196,7 @@ exports[`AddCustomToken should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(354, 66%, 54%, 1)",
+              "color": "#D73A49",
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
               "marginTop": 15,

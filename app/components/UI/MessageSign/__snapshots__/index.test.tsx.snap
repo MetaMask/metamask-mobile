@@ -25,7 +25,7 @@ exports[`MessageSign should render correctly 1`] = `
       onTextLayout={[Function]}
       style={
         Object {
-          "color": "hsla(210, 8%, 15%, 1)",
+          "color": "#24272A",
         }
       }
     >

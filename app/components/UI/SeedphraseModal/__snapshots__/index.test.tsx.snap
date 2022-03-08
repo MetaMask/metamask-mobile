@@ -48,7 +48,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
@@ -81,7 +81,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           size={12}
           style={
             Object {
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontSize": 16,
             }
           }
@@ -92,7 +92,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -107,7 +107,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -122,7 +122,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",

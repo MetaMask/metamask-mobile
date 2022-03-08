@@ -11,6 +11,7 @@ import {
 	TouchableOpacity,
 	Keyboard,
 	InteractionManager,
+	Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -50,6 +51,8 @@ import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 import { useAppThemeFromContext, mockColors, ThemeContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
+const LEARN_MORE_URL =
+	'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -81,6 +84,12 @@ const createStyles = (colors) =>
 			fontSize: 14,
 			lineHeight: 20,
 			marginTop: 12,
+		},
+		learnMore: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			fontSize: 14,
+			lineHeight: 20,
 		},
 		switchElement: {
 			marginTop: 18,
@@ -143,7 +152,7 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 		},
 		warningTextRed: {
-			color: colors.error.default,
+			color: colors.text.default,
 		},
 		warningTextGreen: {
 			color: colors.text.default,
@@ -154,6 +163,9 @@ const createStyles = (colors) =>
 		},
 		viewHint: {
 			padding: 5,
+		},
+		switch: {
+			alignSelf: 'flex-start',
 		},
 	});
 
@@ -533,6 +545,7 @@ class Settings extends PureComponent {
 	};
 
 	goToRevealPrivateCredential = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_INITIATED);
 		this.props.navigation.navigate('RevealPrivateCredentialView', { privateCredentialName: 'seed_phrase' });
 	};
 
@@ -551,10 +564,6 @@ class Settings extends PureComponent {
 				source: 'Settings',
 			});
 		});
-	};
-
-	manualBackup = () => {
-		this.props.navigation.navigate('ManualBackupStep1');
 	};
 
 	resetPassword = () => {
@@ -576,6 +585,11 @@ class Settings extends PureComponent {
 
 	handleChangeText = (text) => this.setState({ hintText: text });
 
+	getStyles = () => {
+		const colors = this.context.colors || mockColors.colors;
+		return { colors, styles: createStyles(colors) };
+	};
+
 	renderHint = () => {
 		const { showHint, hintText } = this.state;
 		return (
@@ -592,29 +606,399 @@ class Settings extends PureComponent {
 
 	onBack = () => this.props.navigation.goBack();
 
-	render = () => {
-		const {
-			approvedHosts,
-			seedphraseBackedUp,
-			browserHistory,
-			privacyMode,
-			thirdPartyApiMode,
-			openSeaEnabled,
-			useCollectibleDetection,
-		} = this.props;
-		const {
-			approvalModalVisible,
-			biometryType,
-			browserHistoryModalVisible,
-			cookiesModalVisible,
-			analyticsEnabled,
-			loading,
-			hintText,
-		} = this.state;
+	renderProtectYourWalletSection = () => {
+		const { seedphraseBackedUp } = this.props;
+		const { hintText } = this.state;
+		const { styles } = this.getStyles();
+
+		return (
+			<View style={[styles.setting, styles.firstSetting]}>
+				<Text style={[styles.title, styles.bump]}>
+					{!seedphraseBackedUp ? (
+						<>
+							<WarningIcon />{' '}
+						</>
+					) : null}
+					<Text style={[styles.title, styles.bump]}>{strings('app_settings.protect_title')}</Text>
+				</Text>
+
+				<SeedPhraseVideo onClose={this.onBack} />
+
+				<Text style={styles.desc}>
+					{strings(seedphraseBackedUp ? 'app_settings.protect_desc' : 'app_settings.protect_desc_no_backup')}
+				</Text>
+
+				{!seedphraseBackedUp && (
+					<TouchableOpacity onPress={() => Linking.openURL(LEARN_MORE_URL)}>
+						<Text style={styles.learnMore}>{strings('app_settings.learn_more')}</Text>
+					</TouchableOpacity>
+				)}
+
+				<SettingsNotification isWarning={!seedphraseBackedUp}>
+					<Text
+						style={[
+							styles.warningText,
+							seedphraseBackedUp ? styles.warningTextGreen : styles.warningTextRed,
+							styles.marginLeft,
+						]}
+					>
+						{strings(
+							seedphraseBackedUp
+								? 'app_settings.seedphrase_backed_up'
+								: 'app_settings.seedphrase_not_backed_up'
+						)}
+					</Text>
+					{hintText && seedphraseBackedUp ? (
+						<TouchableOpacity style={styles.viewHint} onPress={this.toggleHint}>
+							<Text style={[styles.warningText, styles.warningBold]}>
+								{strings('app_settings.view_hint')}
+							</Text>
+						</TouchableOpacity>
+					) : null}
+				</SettingsNotification>
+
+				{!seedphraseBackedUp ? (
+					<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
+						{strings('app_settings.back_up_now')}
+					</StyledButton>
+				) : (
+					<StyledButton
+						type="normal"
+						onPress={this.goToRevealPrivateCredential}
+						containerStyle={styles.confirm}
+						testID={'reveal-seed-button'}
+					>
+						{strings('reveal_credential.seed_phrase_title')}
+					</StyledButton>
+				)}
+			</View>
+		);
+	};
+
+	renderPasswordSection = () => {
+		const { styles } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'change-password-section'}>
+				<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
+				<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
+				<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
+					{strings('password_reset.change_password')}
+				</StyledButton>
+			</View>
+		);
+	};
+
+	renderAutoLockSection = () => {
+		const { styles } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'auto-lock-section'}>
+				<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
+				<View style={styles.picker}>
+					{this.autolockOptions && (
+						<SelectComponent
+							selectedValue={this.props.lockTime.toString()}
+							onValueChange={this.selectLockTime}
+							label={strings('app_settings.auto_lock')}
+							options={this.autolockOptions}
+						/>
+					)}
+				</View>
+			</View>
+		);
+	};
+
+	renderBiometricOptionsSection = () => {
+		const { styles, colors } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'biometrics-option'}>
+				<Text style={styles.title}>
+					{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+				</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={this.state.biometryChoice}
+						onValueChange={this.onSingInWithBiometrics}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderDevicePasscodeSection = () => {
+		const { styles, colors } = this.getStyles();
+		return (
+			<View style={styles.setting}>
+				<Text style={styles.title}>
+					{isIos
+						? strings(`biometrics.enable_device_passcode_ios`)
+						: strings(`biometrics.enable_device_passcode_android`)}
+				</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						onValueChange={this.onSignInWithPasscode}
+						value={this.state.passcodeChoice}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderPrivateKeySection = () => {
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
-		const colors = this.context.colors || mockColors.colors;
-		const styles = createStyles(colors);
+		const { styles } = this.getStyles();
+
+		return (
+			<View style={styles.setting} testID={'reveal-private-key-section'}>
+				<Text style={styles.title}>
+					{strings('reveal_credential.private_key_title_for_account', {
+						accountName: account.name,
+					})}
+				</Text>
+				<Text style={styles.desc}>
+					{strings('reveal_credential.private_key_warning', { accountName: account.name })}
+				</Text>
+				<StyledButton type="normal" onPress={this.goToExportPrivateKey} containerStyle={styles.confirm}>
+					{strings('reveal_credential.show_private_key')}
+				</StyledButton>
+			</View>
+		);
+	};
+
+	renderClearPrivacySection = () => {
+		const { approvedHosts } = this.props;
+		const { styles } = this.getStyles();
+
+		return (
+			<View style={[styles.setting, styles.firstSetting]} testID={'clear-privacy-section'}>
+				<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
+				<StyledButton
+					type="normal"
+					onPress={this.toggleClearApprovalsModal}
+					disabled={Object.keys(approvedHosts).length === 0}
+					containerStyle={styles.confirm}
+				>
+					{strings('app_settings.clear_privacy_title')}
+				</StyledButton>
+			</View>
+		);
+	};
+
+	renderClearBrowserHistorySection = () => {
+		const { browserHistory } = this.props;
+		const { styles } = this.getStyles();
+
+		return (
+			<View style={styles.setting}>
+				<Text style={styles.title}>{strings('app_settings.clear_browser_history_desc')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.clear_history_desc')}</Text>
+				<StyledButton
+					type="normal"
+					onPress={this.toggleClearBrowserHistoryModal}
+					disabled={browserHistory.length === 0}
+					containerStyle={styles.confirm}
+				>
+					{strings('app_settings.clear_browser_history_desc')}
+				</StyledButton>
+			</View>
+		);
+	};
+
+	renderClearCookiesSection = () => {
+		const { styles } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'clear-cookies-section'}>
+				<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
+				<StyledButton type="normal" onPress={this.toggleClearCookiesModal} containerStyle={styles.confirm}>
+					{strings('app_settings.clear_browser_cookies_desc')}
+				</StyledButton>
+			</View>
+		);
+	};
+
+	renderPrivacyModeSection = () => {
+		const { privacyMode } = this.props;
+		const { styles, colors } = this.getStyles();
+
+		return (
+			<View style={styles.setting} testID={'privacy-mode-section'}>
+				<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={privacyMode}
+						onValueChange={this.togglePrivacy}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderMetaMetricsSection = () => {
+		const { analyticsEnabled } = this.state;
+		const { styles, colors } = this.getStyles();
+
+		return (
+			<View style={styles.setting} testID={'metametrics-section'}>
+				<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={analyticsEnabled}
+						onValueChange={this.toggleMetricsOptIn}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
+						testID={'metametrics-switch'}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderThirdPartySection = () => {
+		const { thirdPartyApiMode } = this.props;
+		const { styles, colors } = this.getStyles();
+
+		return (
+			<View style={styles.setting} testID={'third-party-section'}>
+				<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={thirdPartyApiMode}
+						onValueChange={this.toggleThirdPartyAPI}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
+					/>
+				</View>
+			</View>
+		);
+	};
+
+	renderApprovalModal = () => {
+		const { approvalModalVisible } = this.state;
+		const { styles } = this.getStyles();
+
+		return (
+			<ActionModal
+				modalVisible={approvalModalVisible}
+				confirmText={strings('app_settings.clear')}
+				cancelText={strings('app_settings.reset_account_cancel_button')}
+				onCancelPress={this.toggleClearApprovalsModal}
+				onRequestClose={this.toggleClearApprovalsModal}
+				onConfirmPress={this.clearApprovals}
+			>
+				<View style={styles.modalView}>
+					<Text style={styles.modalTitle}>{strings('app_settings.clear_approvals_modal_title')}</Text>
+					<Text style={styles.modalText}>{strings('app_settings.clear_approvals_modal_message')}</Text>
+				</View>
+			</ActionModal>
+		);
+	};
+
+	renderHistoryModal = () => {
+		const { browserHistoryModalVisible } = this.state;
+		const { styles } = this.getStyles();
+
+		return (
+			<ActionModal
+				modalVisible={browserHistoryModalVisible}
+				confirmText={strings('app_settings.clear')}
+				cancelText={strings('app_settings.reset_account_cancel_button')}
+				onCancelPress={this.toggleClearBrowserHistoryModal}
+				onRequestClose={this.toggleClearBrowserHistoryModal}
+				onConfirmPress={this.clearBrowserHistory}
+			>
+				<View style={styles.modalView}>
+					<Text style={styles.modalTitle}>{strings('app_settings.clear_browser_history_modal_title')}</Text>
+					<Text style={styles.modalText}>{strings('app_settings.clear_browser_history_modal_message')}</Text>
+				</View>
+			</ActionModal>
+		);
+	};
+
+	renderCookiesModal = () => {
+		const { cookiesModalVisible } = this.state;
+		const { styles } = this.getStyles();
+
+		return (
+			<ActionModal
+				modalVisible={cookiesModalVisible}
+				confirmText={strings('app_settings.clear')}
+				cancelText={strings('app_settings.reset_account_cancel_button')}
+				onCancelPress={this.toggleClearCookiesModal}
+				onRequestClose={this.toggleClearCookiesModal}
+				onConfirmPress={this.clearCookies}
+			>
+				<View style={styles.modalView}>
+					<Text style={styles.modalTitle}>{strings('app_settings.clear_cookies_modal_title')}</Text>
+					<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
+				</View>
+			</ActionModal>
+		);
+	};
+
+	renderOpenSeaSettings = () => {
+		const { openSeaEnabled, useCollectibleDetection } = this.props;
+		const { styles, colors } = this.getStyles();
+
+		return (
+			<>
+				<View style={styles.setting} testID={'nft-opensea-mode-section'}>
+					<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
+					<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
+					<View style={styles.switchElement}>
+						<Switch
+							value={openSeaEnabled}
+							onValueChange={this.toggleOpenSeaApi}
+							trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+							thumbColor={importedColors.white}
+							style={styles.switch}
+							ios_backgroundColor={colors.border.muted}
+						/>
+					</View>
+				</View>
+				<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
+					<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
+					<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
+					<View style={styles.switchElement}>
+						<Switch
+							value={useCollectibleDetection}
+							onValueChange={this.toggleNftAutodetect}
+							trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+							thumbColor={importedColors.white}
+							style={styles.switch}
+							ios_backgroundColor={colors.border.muted}
+							disabled={!openSeaEnabled}
+						/>
+					</View>
+				</View>
+			</>
+		);
+	};
+
+	render = () => {
+		const { biometryType, biometryChoice, loading } = this.state;
+		const { styles } = this.getStyles();
 
 		if (loading)
 			return (
@@ -633,279 +1017,23 @@ class Settings extends PureComponent {
 			>
 				<View style={styles.inner}>
 					<Heading first>{strings('app_settings.security_heading')}</Heading>
-					<View style={[styles.setting, styles.firstSetting]}>
-						<Text style={[styles.title, styles.bump]}>
-							{!seedphraseBackedUp ? (
-								<>
-									<WarningIcon />{' '}
-								</>
-							) : null}
-							<Text style={[styles.title, styles.bump]}>{strings('app_settings.protect_title')}</Text>
-						</Text>
-						<SeedPhraseVideo onClose={this.onBack} />
-						<Text style={styles.desc}>{strings('app_settings.protect_desc')}</Text>
-						<SettingsNotification isWarning={!seedphraseBackedUp}>
-							<Text style={[styles.warningText, styles.marginLeft]}>
-								{strings(
-									seedphraseBackedUp
-										? 'app_settings.seedphrase_backed_up'
-										: 'app_settings.seedphrase_not_backed_up'
-								)}
-							</Text>
-							{hintText && seedphraseBackedUp ? (
-								<TouchableOpacity style={styles.viewHint} onPress={this.toggleHint}>
-									<Text style={[styles.warningText, styles.warningBold]}>
-										{strings('app_settings.view_hint')}
-									</Text>
-								</TouchableOpacity>
-							) : null}
-						</SettingsNotification>
-						{!seedphraseBackedUp ? (
-							<StyledButton type="blue" onPress={this.goToBackup} containerStyle={styles.confirm}>
-								{strings('app_settings.back_up_now')}
-							</StyledButton>
-						) : (
-							<View style={styles.protect}>
-								<StyledButton
-									type="normal"
-									onPress={this.manualBackup}
-									containerStyle={[styles.confirm, styles.col]}
-								>
-									{strings('app_settings.back_up_again')}
-								</StyledButton>
-								<StyledButton
-									type="blue"
-									onPress={this.goToRevealPrivateCredential}
-									containerStyle={[styles.confirm, styles.col]}
-									testID={'reveal-seed-button'}
-								>
-									{strings('reveal_credential.seed_phrase_title')}
-								</StyledButton>
-							</View>
-						)}
-					</View>
-					<View style={styles.setting} testID={'change-password-section'}>
-						<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
-						<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
-						<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
-							{strings('password_reset.change_password')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting} testID={'auto-lock-section'}>
-						<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
-						<View style={styles.picker}>
-							{this.autolockOptions && (
-								<SelectComponent
-									selectedValue={this.props.lockTime.toString()}
-									onValueChange={this.selectLockTime}
-									label={strings('app_settings.auto_lock')}
-									options={this.autolockOptions}
-								/>
-							)}
-						</View>
-					</View>
-					{biometryType && (
-						<View style={styles.setting} testID={'biometrics-option'}>
-							<Text style={styles.title}>
-								{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
-							</Text>
-							<View style={styles.switchElement}>
-								<Switch
-									onValueChange={this.onSingInWithBiometrics}
-									value={this.state.biometryChoice}
-									trackColor={
-										isIos ? { true: colors.primary.default, false: colors.border.muted } : null
-									}
-									ios_backgroundColor={colors.border.muted}
-								/>
-							</View>
-						</View>
-					)}
-					{biometryType && !this.state.biometryChoice && (
-						<View style={styles.setting}>
-							<Text style={styles.title}>
-								{isIos
-									? strings(`biometrics.enable_device_passcode_ios`)
-									: strings(`biometrics.enable_device_passcode_android`)}
-							</Text>
-							<View style={styles.switchElement}>
-								<Switch
-									onValueChange={this.onSignInWithPasscode}
-									value={this.state.passcodeChoice}
-									trackColor={
-										isIos ? { true: colors.primary.default, false: colors.border.muted } : null
-									}
-									ios_backgroundColor={colors.border.muted}
-								/>
-							</View>
-						</View>
-					)}
-					<View style={styles.setting} testID={'reveal-private-key-section'}>
-						<Text style={styles.title}>
-							{strings('reveal_credential.private_key_title_for_account', {
-								accountName: account.name,
-							})}
-						</Text>
-						<Text style={styles.desc}>
-							{strings('reveal_credential.private_key_warning', { accountName: account.name })}
-						</Text>
-						<StyledButton type="normal" onPress={this.goToExportPrivateKey} containerStyle={styles.confirm}>
-							{strings('reveal_credential.show_private_key')}
-						</StyledButton>
-					</View>
+					{this.renderProtectYourWalletSection()}
+					{this.renderPasswordSection()}
+					{this.renderAutoLockSection()}
+					{biometryType && this.renderBiometricOptionsSection()}
+					{biometryType && !biometryChoice && this.renderDevicePasscodeSection()}
+					{this.renderPrivateKeySection()}
 					<Heading>{strings('app_settings.privacy_heading')}</Heading>
-					<View style={[styles.setting, styles.firstSetting]} testID={'clear-privacy-section'}>
-						<Text style={styles.title}>{strings('app_settings.clear_privacy_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.clear_privacy_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.toggleClearApprovalsModal}
-							disabled={Object.keys(approvedHosts).length === 0}
-							containerStyle={styles.confirm}
-						>
-							{strings('app_settings.clear_privacy_title')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting}>
-						<Text style={styles.title}>{strings('app_settings.clear_browser_history_desc')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.clear_history_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.toggleClearBrowserHistoryModal}
-							disabled={browserHistory.length === 0}
-							containerStyle={styles.confirm}
-						>
-							{strings('app_settings.clear_browser_history_desc')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting} testID={'clear-cookies-section'}>
-						<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
-						<StyledButton
-							type="normal"
-							onPress={this.toggleClearCookiesModal}
-							containerStyle={styles.confirm}
-						>
-							{strings('app_settings.clear_browser_cookies_desc')}
-						</StyledButton>
-					</View>
-					<View style={styles.setting} testID={'privacy-mode-section'}>
-						<Text style={styles.title}>{strings('app_settings.privacy_mode')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.privacy_mode_desc')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={privacyMode}
-								onValueChange={this.togglePrivacy}
-								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
-								thumbColor={importedColors.white}
-								ios_backgroundColor={colors.border.muted}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting} testID={'metametrics-section'}>
-						<Text style={styles.title}>{strings('app_settings.metametrics_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.metametrics_description')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={analyticsEnabled}
-								onValueChange={this.toggleMetricsOptIn}
-								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
-								thumbColor={importedColors.white}
-								ios_backgroundColor={colors.border.muted}
-								testID={'metametrics-switch'}
-							/>
-						</View>
-					</View>
-					<View style={styles.setting} testID={'third-party-section'}>
-						<Text style={styles.title}>{strings('app_settings.third_party_title')}</Text>
-						<Text style={styles.desc}>{strings('app_settings.third_party_description')}</Text>
-						<View style={styles.switchElement}>
-							<Switch
-								value={thirdPartyApiMode}
-								onValueChange={this.toggleThirdPartyAPI}
-								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
-								thumbColor={importedColors.white}
-								ios_backgroundColor={colors.border.muted}
-							/>
-						</View>
-					</View>
-					<ActionModal
-						modalVisible={approvalModalVisible}
-						confirmText={strings('app_settings.clear')}
-						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.toggleClearApprovalsModal}
-						onRequestClose={this.toggleClearApprovalsModal}
-						onConfirmPress={this.clearApprovals}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('app_settings.clear_approvals_modal_title')}</Text>
-							<Text style={styles.modalText}>
-								{strings('app_settings.clear_approvals_modal_message')}
-							</Text>
-						</View>
-					</ActionModal>
-					<ActionModal
-						modalVisible={browserHistoryModalVisible}
-						confirmText={strings('app_settings.clear')}
-						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.toggleClearBrowserHistoryModal}
-						onRequestClose={this.toggleClearBrowserHistoryModal}
-						onConfirmPress={this.clearBrowserHistory}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>
-								{strings('app_settings.clear_browser_history_modal_title')}
-							</Text>
-							<Text style={styles.modalText}>
-								{strings('app_settings.clear_browser_history_modal_message')}
-							</Text>
-						</View>
-					</ActionModal>
-					<ActionModal
-						modalVisible={cookiesModalVisible}
-						confirmText={strings('app_settings.clear')}
-						cancelText={strings('app_settings.reset_account_cancel_button')}
-						onCancelPress={this.toggleClearCookiesModal}
-						onRequestClose={this.toggleClearCookiesModal}
-						onConfirmPress={this.clearCookies}
-					>
-						<View style={styles.modalView}>
-							<Text style={styles.modalTitle}>{strings('app_settings.clear_cookies_modal_title')}</Text>
-							<Text style={styles.modalText}>{strings('app_settings.clear_cookies_modal_message')}</Text>
-						</View>
-					</ActionModal>
-					{this.isMainnet() && (
-						<>
-							<View style={styles.setting} testID={'nft-opensea-mode-section'}>
-								<Text style={styles.title}>{strings('app_settings.nft_opensea_mode')}</Text>
-								<Text style={styles.desc}>{strings('app_settings.nft_opensea_desc')}</Text>
-								<View style={styles.switchElement}>
-									<Switch
-										value={openSeaEnabled}
-										onValueChange={this.toggleOpenSeaApi}
-										trackColor={{ true: colors.primary.default, false: colors.border.muted }}
-										thumbColor={importedColors.white}
-										ios_backgroundColor={colors.border.muted}
-									/>
-								</View>
-							</View>
-							<View style={styles.setting} testID={'nft-opensea-autodetect-mode-section'}>
-								<Text style={styles.title}>{strings('app_settings.nft_autodetect_mode')}</Text>
-								<Text style={styles.desc}>{strings('app_settings.nft_autodetect_desc')}</Text>
-								<View style={styles.switchElement}>
-									<Switch
-										value={useCollectibleDetection}
-										onValueChange={this.toggleNftAutodetect}
-										trackColor={{ true: colors.primary.default, false: colors.border.muted }}
-										thumbColor={importedColors.white}
-										ios_backgroundColor={colors.border.muted}
-										disabled={!openSeaEnabled}
-									/>
-								</View>
-							</View>
-						</>
-					)}
+					{this.renderClearPrivacySection()}
+					{this.renderClearBrowserHistorySection()}
+					{this.renderClearCookiesSection()}
+					{this.renderPrivacyModeSection()}
+					{this.renderMetaMetricsSection()}
+					{this.renderThirdPartySection()}
+					{this.renderApprovalModal()}
+					{this.renderHistoryModal()}
+					{this.renderCookiesModal()}
+					{this.isMainnet() && this.renderOpenSeaSettings()}
 					{this.renderHint()}
 				</View>
 			</ScrollView>

@@ -30,7 +30,7 @@ exports[`SelectComponent should render correctly 1`] = `
           style={
             Object {
               "alignSelf": "flex-start",
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
@@ -43,7 +43,7 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Icon
           allowFontScaling={false}
-          color="hsla(212, 8%, 45%, 1)"
+          color="#6A737D"
           name="arrow-drop-down"
           size={24}
           style={
@@ -64,7 +64,7 @@ exports[`SelectComponent should render correctly 1`] = `
       animationOut="slideOutDown"
       animationOutTiming={300}
       avoidKeyboard={false}
-      backdropColor="hsla(0, 0%, 0%, .6)"
+      backdropColor="#00000060"
       backdropOpacity={1}
       backdropTransitionInTiming={300}
       backdropTransitionOutTiming={300}
@@ -108,7 +108,7 @@ exports[`SelectComponent should render correctly 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "hsla(0, 0%, 100%, 1)",
+            "backgroundColor": "#FFFFFF",
             "borderRadius": 10,
             "justifyContent": "center",
           }
@@ -117,7 +117,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <View
           style={
             Object {
-              "borderBottomColor": "hsla(210, 8%, 85%, 1)",
+              "borderBottomColor": "#D6D9DC",
               "borderBottomWidth": 1,
               "height": 50,
               "paddingTop": 5,
@@ -128,7 +128,7 @@ exports[`SelectComponent should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "hsla(210, 8%, 15%, 1)",
+                "color": "#24272A",
                 "flex": 1,
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 17,
@@ -172,7 +172,7 @@ exports[`SelectComponent should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   Object {
-                    "color": "hsla(210, 8%, 15%, 1)",
+                    "color": "#24272A",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
@@ -200,7 +200,7 @@ exports[`SelectComponent should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   Object {
-                    "color": "hsla(210, 8%, 15%, 1)",
+                    "color": "#24272A",
                     "flex": 1,
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,

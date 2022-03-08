@@ -25,7 +25,7 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignSelf": "center",
-          "backgroundColor": "hsla(0, 0%, 100%, 1)",
+          "backgroundColor": "#FFFFFF",
           "borderRadius": 16,
           "padding": 24,
         }
@@ -44,7 +44,7 @@ exports[`HintModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -62,7 +62,7 @@ exports[`HintModal should render correctly 1`] = `
             size={16}
             style={
               Object {
-                "color": "hsla(210, 8%, 15%, 1)",
+                "color": "#24272A",
               }
             }
           />
@@ -71,7 +71,7 @@ exports[`HintModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "fontSize": 14,
             "marginBottom": 16,
           }
@@ -82,7 +82,7 @@ exports[`HintModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "hsla(354, 66%, 54%, 1)",
+            "color": "#D73A49",
             "fontSize": 14,
             "marginBottom": 16,
           }
@@ -94,13 +94,13 @@ exports[`HintModal should render correctly 1`] = `
         multiline={true}
         onChangeText={[Function]}
         placeholder="e.g. Mom's house"
-        placeholderTextColor="hsla(210, 8%, 75%, 1)"
+        placeholderTextColor="#BBC0C5"
         style={
           Object {
-            "borderColor": "hsla(210, 8%, 75%, 1)",
+            "borderColor": "#BBC0C5",
             "borderRadius": 6,
             "borderWidth": 1,
-            "color": "hsla(210, 8%, 15%, 1)",
+            "color": "#24272A",
             "minHeight": 76,
             "padding": 16,
             "paddingTop": 16,

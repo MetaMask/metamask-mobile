@@ -24,7 +24,7 @@ exports[`PersonalSign should render correctly 1`] = `
       onTextLayout={[Function]}
       style={
         Object {
-          "color": "hsla(210, 8%, 15%, 1)",
+          "color": "#24272A",
         }
       }
     >
@@ -33,7 +33,7 @@ exports[`PersonalSign should render correctly 1`] = `
         style={
           Array [
             Object {
-              "color": "hsla(210, 8%, 15%, 1)",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",

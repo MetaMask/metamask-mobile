@@ -709,6 +709,7 @@ class ResetPassword extends PureComponent {
 										onChangeText={this.onPasswordChange}
 										secureTextEntry={secureTextEntry}
 										placeholder=""
+										placeholderTextColor={colors.text.muted}
 										testID="input-password"
 										onSubmitEditing={this.jumpToConfirmPassword}
 										returnKeyType="next"
