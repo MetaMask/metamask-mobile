@@ -5,6 +5,7 @@ import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
 import SendView from '../pages/SendView';
+import ContractNickNameView from '../pages/ContractNickNameView';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
@@ -18,6 +19,7 @@ import AddAddressModal from '../pages/modals/AddAddressModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+import ApprovalModal from '../pages/modals/ApprovalModal';
 
 import TestHelpers from '../helpers';
 
@@ -26,6 +28,10 @@ const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
+
+const APPROVAL_DEEPLINK_URL =
+	'https://metamask.app.link/send/0x3dD3DfaAdA4d6765Ae19b8964E2BAC0139eeCb40@1/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
+const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
 
 describe('Addressbook Tests', () => {
 	beforeEach(() => {
@@ -43,6 +49,7 @@ describe('Addressbook Tests', () => {
 		await MetaMetricsOptIn.tapAgreeButton();
 
 		await CreatePasswordView.isVisible();
+		await CreatePasswordView.toggleRememberMe();
 		await CreatePasswordView.enterPassword(PASSWORD);
 		await CreatePasswordView.reEnterPassword(PASSWORD);
 		await CreatePasswordView.tapIUnderstandCheckBox();
@@ -188,5 +195,63 @@ describe('Addressbook Tests', () => {
 		await DrawerView.tapSendButton();
 
 		await SendView.isSavedAliasVisible('Ibrahim');
+	});
+
+	it('should deep link to the approval modal', async () => {
+		await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
+		await ApprovalModal.isVisible();
+	});
+	it('should add a nickname to the contract', async () => {
+		await ApprovalModal.tapAddNickName();
+
+		await ContractNickNameView.isVisible();
+		await ContractNickNameView.typeContractNickName(CONTRACT_NICK_NAME_TEXT);
+		await ContractNickNameView.isContractNickNameInInputBoxVisible(CONTRACT_NICK_NAME_TEXT);
+		await ContractNickNameView.tapConfirmButton();
+
+		await ApprovalModal.isContractNickNameVisible(CONTRACT_NICK_NAME_TEXT);
+	});
+
+	it('should edit the contract nickname', async () => {
+		await ApprovalModal.tapEditNickName();
+
+		await ContractNickNameView.isContractNickNameInInputBoxVisible(CONTRACT_NICK_NAME_TEXT);
+		await ContractNickNameView.typeContractNickName('Ace');
+		await ContractNickNameView.tapConfirmButton();
+
+		await ApprovalModal.isContractNickNameVisible('Ace');
+		await ApprovalModal.tapToCopyContractAddress();
+		await ApprovalModal.tapRejectButton();
+	});
+
+	it('should return to the send view', async () => {
+		// Open Drawer
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSendButton();
+		// Make sure view with my accounts visible
+		await SendView.isTransferBetweenMyAccountsButtonVisible();
+	});
+
+	it('should verify the contract nickname does not appear in send flow', async () => {
+		await SendView.isSavedAliasIsNotVisible('Ace');
+		await SendView.tapAndLongPress();
+	});
+
+	it('should verify contract does not appear in contacts view', async () => {
+		await SendView.tapcancelButton();
+
+		// Check that we are on the wallet screen
+		await WalletView.isVisible();
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSettings();
+
+		await SettingsView.tapContacts();
+
+		await ContactsView.isVisible();
+		await ContactsView.isContactAliasNotVisible('Ace');
 	});
 });
