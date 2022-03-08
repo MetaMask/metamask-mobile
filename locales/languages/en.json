@@ -1472,8 +1472,8 @@
 		"region": {
 			"title": "Select your Region",
 			"description": "Select the country where your card is registered (not where you are located).",
-			"search_by_country": "Search for a country",
-			"search_by_state": "Search for a state",
+			"search_by_country": "Search by country",
+			"search_by_state": "Search by state",
 			"no_region_results": "No region matches",
 			"remember_region": "Remember my Region",
 			"your_region": "Your Region",

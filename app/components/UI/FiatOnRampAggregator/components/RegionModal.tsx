@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		...fontStyles.normal,
+		color: colors.grey500,
 		flex: 1,
 	},
 	headerDescription: {
@@ -53,21 +54,37 @@ const styles = StyleSheet.create({
 		marginTop: 0,
 		flex: 1,
 	},
+	rowView: {
+		paddingHorizontal: 0,
+	},
 	emptyList: {
 		marginVertical: 10,
 		marginHorizontal: 30,
-	},
-	backButton: {
-		position: 'absolute',
-		left: 10,
-		bottom: 0,
-		right: 0,
-		top: 0,
 	},
 	separator: {
 		height: 1,
 		width: '100%',
 		backgroundColor: colors.grey000,
+	},
+	subheader: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		width: '100%',
+		paddingVertical: 10,
+	},
+	ghostSpacer: {
+		width: 20,
+	},
+	listItem: {
+		paddingHorizontal: 24,
+	},
+	region: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
+	emoji: {
+		paddingRight: 16,
 	},
 });
 
@@ -145,18 +162,21 @@ const RegionModal: React.FC<Props> = ({
 	const renderItem = useCallback(
 		({ item }) => (
 			<TouchableOpacity onPress={() => handleOnItemPressCallback(item)}>
-				<ListItem>
+				<ListItem style={styles.listItem}>
 					<ListItem.Content>
 						<ListItem.Body>
-							<ListItem.Title>
-								{item.emoji} {'   '}
-								{item.name}
-							</ListItem.Title>
+							<View style={styles.region}>
+								<View style={styles.emoji}>
+									<Text>{item.emoji}</Text>
+								</View>
+								<View>
+									<Text black>{item.name}</Text>
+								</View>
+							</View>
 						</ListItem.Body>
 						{item.regions && (
 							<ListItem.Amounts>
 								<Text primary big>
-									{' '}
 									{'>'}
 								</Text>
 							</ListItem.Amounts>
@@ -254,12 +274,12 @@ const RegionModal: React.FC<Props> = ({
 							<View style={styles.resultsView}>
 								<FlatList
 									ref={list as any}
-									style={styles.resultsView}
+									style={styles.rowView}
 									keyboardDismissMode="none"
 									keyboardShouldPersistTaps="always"
 									data={dataSearchResults}
 									renderItem={renderItem}
-									keyExtractor={(item) => item.address}
+									keyExtractor={(item) => item.id}
 									ListEmptyComponent={renderEmptyList}
 									ItemSeparatorComponent={Separator}
 									ListFooterComponent={Separator}
@@ -270,11 +290,16 @@ const RegionModal: React.FC<Props> = ({
 					</ScreenLayout>
 				) : (
 					<ScreenLayout>
-						<ScreenLayout.Header bold title={selectedCountryName}>
-							<TouchableOpacity onPress={handleRegionBackButton} style={styles.backButton}>
-								<Feather name="chevron-left" size={20} color={colors.grey500} />
-							</TouchableOpacity>
-
+						<ScreenLayout.Header>
+							<ScreenLayout.Content style={styles.subheader}>
+								<TouchableOpacity onPress={handleRegionBackButton}>
+									<Feather name="chevron-left" size={22} color={colors.grey500} />
+								</TouchableOpacity>
+								<Text bold black>
+									{selectedCountryName}
+								</Text>
+								<View style={styles.ghostSpacer} />
+							</ScreenLayout.Content>
 							<TouchableWithoutFeedback onPress={handleSearchPress}>
 								<View style={styles.inputWrapper}>
 									<Icon name="ios-search" size={20} style={styles.searchIcon} />
@@ -304,10 +329,11 @@ const RegionModal: React.FC<Props> = ({
 							<View style={styles.resultsView}>
 								<FlatList
 									keyboardDismissMode="none"
+									style={styles.rowView}
 									keyboardShouldPersistTaps="always"
 									data={dataSearchResults}
 									renderItem={renderItem}
-									keyExtractor={(item) => item.address}
+									keyExtractor={(item) => item.id}
 									ListEmptyComponent={renderEmptyList}
 									ItemSeparatorComponent={Separator}
 									ListFooterComponent={Separator}
