@@ -1,7 +1,7 @@
 'use strict';
 
 import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
-import { NativeModules } from 'react-native';
+import { Appearance, NativeModules } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
@@ -56,6 +56,8 @@ class Analytics {
 		const reduxState = store.getState();
 		const preferencesController = reduxState?.engine?.backgroundState?.PreferencesController;
 		const appTheme = reduxState?.user?.appTheme;
+		// This will return either "light" or "dark"
+		const appThemeStyle = appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
 
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
@@ -65,7 +67,7 @@ class Analytics {
 			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
 			preferencesController?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
-		RCTAnalytics.setUserProfileProperty(USER_PROFILE_PROPERTY.THEME, appTheme);
+		RCTAnalytics.setUserProfileProperty(USER_PROFILE_PROPERTY.THEME, appThemeStyle);
 	};
 
 	/**
