@@ -146,22 +146,10 @@ class AuthenticationService {
 	 * @returns @AuthData
 	 */
 	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean) => {
-		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
-		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
-		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-
-		if (biometryType && biometryChoice && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
-			return { type: AuthenticationType.BIOMETRIC, biometryType };
-		} else if (rememberMe) {
-			return { type: AuthenticationType.REMEMBER_ME, biometryType };
-		} else if (
-			biometryType &&
-			biometryChoice &&
-			!(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
-		) {
-			return { type: AuthenticationType.PASSCODE, biometryType };
-		}
-		return { type: AuthenticationType.PASSWORD, biometryType };
+		const authType = await this.checkAuthenticationMethod(undefined);
+		if (rememberMe && !biometryChoice)
+			return { type: AuthenticationType.REMEMBER_ME, biometryType: authType.biometryType };
+		return authType;
 	};
 
 	/**
