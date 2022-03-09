@@ -24,7 +24,6 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -285,10 +284,6 @@ class ApproveTransactionReview extends PureComponent {
 		 */
 		onUpdateContractNickname: PropTypes.func,
 		/**
-		 * Prompts protect modal
-		 */
-		protectWalletModalVisible: PropTypes.func,
-		/**
 		 * The saved nickname of the address
 		 */
 		nickname: PropTypes.string,
@@ -466,7 +461,6 @@ class ApproveTransactionReview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
-		this.props.protectWalletModalVisible();
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, this.getAnalyticsParams());
 	};
 
@@ -841,7 +835,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	showAlert: (config) => dispatch(showAlert(config)),
-	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));

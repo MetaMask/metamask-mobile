@@ -17,7 +17,6 @@ import { strings } from '../../../../../locales/i18n';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import { protectWalletModalVisible } from '../../../../actions/user';
 import Header from '../AddNickNameHeader';
 import ShowBlockExplorer from '../ShowBlockExplorer';
 
@@ -105,7 +104,6 @@ interface AddNicknameProps {
 	nickname: string;
 	addressBook: [];
 	showModalAlert: (config: any) => void;
-	protectWalletVisible: () => void;
 	networkState: any;
 	type: string;
 }
@@ -129,7 +127,6 @@ const AddNickname = (props: AddNicknameProps) => {
 		nicknameExists,
 		nickname,
 		showModalAlert,
-		protectWalletVisible,
 		networkState: {
 			network,
 			provider: { type },
@@ -148,7 +145,7 @@ const AddNickname = (props: AddNicknameProps) => {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
-		setTimeout(() => protectWalletVisible(), 2000);
+
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
 	};
 
@@ -253,7 +250,6 @@ const mapStateToProps = (state: any) => ({
 
 const mapDispatchToProps = (dispatch: any) => ({
 	showModalAlert: (config) => dispatch(showAlert(config)),
-	protectWalletVisible: () => dispatch(protectWalletModalVisible()),
 	showSimpleNotification: (notification: Notification) => dispatch(showSimpleNotification(notification)),
 });
 
