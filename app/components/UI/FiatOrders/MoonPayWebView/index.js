@@ -21,7 +21,8 @@ import {
 } from '../../../../constants/on-ramp';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
-import { handleMoonPayRedirect } from '../orderProcessor/moonpay';
+import { handleMoonPayReceipt, handleMoonPayRedirect, processMoonPayOrder } from '../orderProcessor/moonpay';
+import Logger from '../../../../util/Logger';
 
 class MoonPayWebView extends PureComponent {
 	static navigationOptions = ({ navigation, route }) =>
@@ -62,8 +63,8 @@ class MoonPayWebView extends PureComponent {
 	addTokenToTokensController = async (symbol, chainId) => {
 		const { TokensController } = Engine.context;
 		if (NETWORK_NATIVE_SYMBOL[chainId] !== symbol) {
-			const newToken = (NETWORK_ALLOWED_TOKENS[chainId] || []).find(
-				({ symbol: tokenSymbol }) => symbol === tokenSymbol
+			const newToken = (NETWORK_ALLOWED_TOKENS[chainId] || []).find(({ symbol: tokenSymbol }) =>
+				toLowerCaseEquals(symbol, tokenSymbol)
 			);
 			if (
 				newToken &&
@@ -75,28 +76,45 @@ class MoonPayWebView extends PureComponent {
 		}
 	};
 
-	handleNavigationStateChange = async (navState) => {
-		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_REDIRECT_URL) > -1) {
-			const order = handleMoonPayRedirect(navState.url, this.props.network, this.props.selectedAddress);
-			// TODO: order from moonpay redirect has no data
-			// this.addTokenToTokensController(order.cryptocurrency, this.props.network);
-			this.props.addOrder(order);
-			this.props.protectWalletModalVisible();
-			this.props.navigation.dangerouslyGetParent()?.pop();
-			InteractionManager.runAfterInteractions(() => {
-				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED, {
-					fiat_amount: { value: order.amount, anonymous: true },
-					fiat_currency: { value: order.currency, anonymous: true },
-					crypto_currency: { value: order.cryptocurrency, anonymous: true },
-					crypto_amount: { value: order.cryptoAmount, anonymous: true },
-					fee_in_fiat: { value: order.fee, anonymous: true },
-					fee_in_crypto: { value: order.cryptoFee, anonymous: true },
-					fiat_amount_in_usd: { value: order.amountInUSD, anonymous: true },
-					order_id: { value: order.id, anonymous: true },
-					'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.MOONPAY, anonymous: true },
-				});
-				NotificationManager.showSimpleNotification(getNotificationDetails(order));
+	handleOrder = async (order) => {
+		this.props.addOrder(order);
+		this.props.protectWalletModalVisible();
+		this.props.navigation.dangerouslyGetParent()?.pop();
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED, {
+				fiat_amount: { value: order.amount, anonymous: true },
+				fiat_currency: { value: order.currency, anonymous: true },
+				crypto_currency: { value: order.cryptocurrency, anonymous: true },
+				crypto_amount: { value: order.cryptoAmount, anonymous: true },
+				fee_in_fiat: { value: order.fee, anonymous: true },
+				fee_in_crypto: { value: order.cryptoFee, anonymous: true },
+				fiat_amount_in_usd: { value: order.amountInUSD, anonymous: true },
+				order_id: { value: order.id, anonymous: true },
+				'on-ramp_provider': { value: FIAT_ORDER_PROVIDERS.MOONPAY, anonymous: true },
 			});
+			NotificationManager.showSimpleNotification(getNotificationDetails(order));
+		});
+	};
+
+	handleNavigationStateChange = async (navState) => {
+		// TODO: decide solution on capturing order info
+		const isReceipt = false; // navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_RECEIPT_URL) > -1;
+		const isRedirect = navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_REDIRECT_URL) > -1;
+		if (isReceipt || isRedirect) {
+			const handler = isReceipt ? handleMoonPayReceipt : handleMoonPayRedirect;
+			const partialOrder = handler(navState.url, this.props.network, this.props.selectedAddress);
+
+			try {
+				const order = await processMoonPayOrder(partialOrder);
+				this.addTokenToTokensController(order.cryptocurrency, this.props.network);
+				this.handleOrder(order);
+			} catch (error) {
+				Logger.error(error, {
+					message: 'FiatOrders::MoonPayWebView error while processing order, using partial order',
+					partialOrder,
+				});
+				this.handleOrder(partialOrder);
+			}
 		}
 	};
 

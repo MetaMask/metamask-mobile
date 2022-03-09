@@ -84,6 +84,13 @@ const MOONPAY_TRANSACTION_STATES = {
  * @property {string} transactionStatus
  */
 
+/**
+ * Query params of the transaction receipt
+ * @typedef MoonPayTransactionReceipt
+ * @type {object}
+ * @property {string} transactionId
+ */
+
 //* Functions
 
 const MOONPAY_ALLOWED_NETWORKS = [
@@ -95,14 +102,20 @@ const MOONPAY_ALLOWED_NETWORKS = [
 ];
 export const isMoonpayAllowedToBuy = (chainId) => MOONPAY_ALLOWED_NETWORKS.includes(chainId);
 
+const getCurrencyCode = (code) => (code?.indexOf('_') > -1 ? code.split('_')[0] : code)?.toUpperCase();
+
 //* Constants
 
-const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL } = AppConstants.FIAT_ORDERS;
+const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL, MOONPAY_RECEIPT_URL } =
+	AppConstants.FIAT_ORDERS;
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const MOONPAY_API_BASE_URL = isDevelopment ? MOONPAY_API_URL_PRODUCTION : MOONPAY_API_URL_PRODUCTION;
 const MOONPAY_API_KEY = isDevelopment ? MOONPAY_API_KEY_STAGING : MOONPAY_API_KEY_PRODUCTION;
+const MOONPAY_SIGN_API_URL = isDevelopment
+	? 'http://swap.metaswap-dev.codefi.network/moonpaySign'
+	: 'http://swap.metaswap.codefi.network/moonpaySign';
 
 //* API
 
@@ -111,22 +124,24 @@ const moonPayApi = axios.create({
 });
 
 const getOrderStatus = (transactionId) =>
-	moonPayApi.get('v1/transactions', {
+	moonPayApi.get(`v1/transactions/${transactionId}`, {
 		params: {
 			apiKey: MOONPAY_API_KEY,
-			transactionId,
 		},
 	});
 
-const getCurrencies = moonPayApi.get('v3/currencies', {
-	params: {
-		apiKey: MOONPAY_API_KEY,
-	},
-});
+const getCurrencies = () =>
+	moonPayApi.get('v3/currencies', {
+		params: {
+			apiKey: MOONPAY_API_KEY,
+		},
+	});
 
 const getSignature = (url) =>
-	axios.post('http://localhost:3030/sign', {
-		url,
+	axios.get(MOONPAY_SIGN_API_URL, {
+		params: {
+			url,
+		},
 	});
 
 //* Helpers
@@ -197,7 +212,7 @@ const moonPayCallbackOrderToFiatOrder = (moonPayRedirectObject) => ({
 //* Handlers
 
 /**
- * Function to handle Transak flow redirect after order creation
+ * Function to handle MoonPay flow redirect after order creation
  * @param {String} url Custom URL with query params MoonPay flow redirected to.
  * 	Query parameters are: `transactionId`, `transactionStatus`.
  * @param {String} network Current network selected in the app
@@ -207,6 +222,20 @@ const moonPayCallbackOrderToFiatOrder = (moonPayRedirectObject) => ({
 export const handleMoonPayRedirect = (url, network, account) => {
 	/** @type {MoonPayRedirectTransaction} */
 	const data = qs.parse(url.split(MOONPAY_REDIRECT_URL)[1]);
+	const order = { ...moonPayCallbackOrderToFiatOrder(data), network, account };
+	return order;
+};
+
+/**
+ * Function to handle MoonPay flow transaction receipt
+ * @param {String} url MoonPay URL of transaction receipt with `transactionId` query param
+ * @param {String} network Current network selected in the app
+ * @param {String} account Current account selected in the app
+ * @returns {FiatOrder}
+ */
+export const handleMoonPayReceipt = (url, network, account) => {
+	/** @type {MoonPayTransactionReceipt} */
+	const data = qs.parse(url.split(MOONPAY_RECEIPT_URL)[1]);
 	const order = { ...moonPayCallbackOrderToFiatOrder(data), network, account };
 	return order;
 };
@@ -226,17 +255,21 @@ export async function processMoonPayOrder(order) {
 			return order;
 		}
 
+		const updatedMoonPayOrder = moonPayOrderToFiatOrder(data);
+
 		const updatedOrder = {
 			...order,
-			...moonPayOrderToFiatOrder(data),
+			...updatedMoonPayOrder,
+			currency: order.currency || updatedMoonPayOrder.currency,
+			cryptocurrency: order.cryptocurrency || updatedMoonPayOrder.cryptocurrency,
 		};
 
 		if (!updatedOrder.currency || !updatedOrder.cryptocurrency) {
 			const { data: currencies } = await getCurrencies();
 			const currency = currencies.find(({ id }) => id === data.baseCurrencyId);
 			const cryptocurrency = currencies.find(({ id }) => id === data.currencyId);
-			updatedOrder.currency = currency?.code;
-			updatedOrder.cryptocurrency = cryptocurrency?.code;
+			updatedOrder.currency = getCurrencyCode(currency?.code);
+			updatedOrder.cryptocurrency = getCurrencyCode(cryptocurrency?.code);
 		}
 
 		return updatedOrder;
@@ -266,7 +299,7 @@ export const useMoonPayFlowURL = (address, chainId) => {
 		const originalUrl = `${isDevelopment ? MOONPAY_URL_STAGING : MOONPAY_URL}?${params}`;
 		try {
 			const { data } = await getSignature(originalUrl);
-			return data?.signedUrl ?? originalUrl;
+			return data?.url ?? originalUrl;
 		} catch (error) {
 			Logger.error(error, { message: 'FiatOrders::MoonPayProcessor error while getting signature' });
 			return originalUrl;

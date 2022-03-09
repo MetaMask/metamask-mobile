@@ -16,6 +16,7 @@ import OrderDetails from './OrderDetails';
 const styles = StyleSheet.create({
 	wrapper: {
 		flex: 1,
+		backgroundColor: colors.white,
 	},
 	row: {
 		borderBottomWidth: StyleSheet.hairlineWidth,
