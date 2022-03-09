@@ -71,20 +71,21 @@ const TransactionsView = ({
 			return filter;
 		});
 
-		const submittedTxsFiltered = submittedTxs.filter(({ from, transaction }) => {
+		const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
+			const { from, nonce } = transaction;
 			if (!toLowerCaseEquals(from, selectedAddress)) {
 				return false;
 			}
-			const alreadySubmitted = submittedNonces.includes(transaction.nonce);
+			const alreadySubmitted = submittedNonces.includes(nonce);
 			const alreadyConfirmed = confirmedTxs.find(
 				(tx) =>
 					toLowerCaseEquals(safeToChecksumAddress(tx.transaction.from), selectedAddress) &&
-					tx.transaction.nonce === transaction.nonce
+					tx.transaction.nonce === nonce
 			);
 			if (alreadyConfirmed) {
 				return false;
 			}
-			submittedNonces.push(transaction.transaction.nonce);
+			submittedNonces.push(nonce);
 			return !alreadySubmitted;
 		});
 
