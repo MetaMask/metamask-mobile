@@ -79,7 +79,6 @@ class MoonPayWebView extends PureComponent {
 	handleOrder = async (order) => {
 		this.props.addOrder(order);
 		this.props.protectWalletModalVisible();
-		this.props.navigation.dangerouslyGetParent()?.pop();
 		InteractionManager.runAfterInteractions(() => {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED, {
 				fiat_amount: { value: order.amount, anonymous: true },
@@ -97,23 +96,23 @@ class MoonPayWebView extends PureComponent {
 	};
 
 	handleNavigationStateChange = async (navState) => {
-		// TODO: decide solution on capturing order info
 		const isReceipt = false; // navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_RECEIPT_URL) > -1;
 		const isRedirect = navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_REDIRECT_URL) > -1;
 		if (isReceipt || isRedirect) {
 			const handler = isReceipt ? handleMoonPayReceipt : handleMoonPayRedirect;
 			const partialOrder = handler(navState.url, this.props.network, this.props.selectedAddress);
-
 			try {
 				const order = await processMoonPayOrder(partialOrder);
-				this.addTokenToTokensController(order.cryptocurrency, this.props.network);
 				this.handleOrder(order);
+				this.addTokenToTokensController(order.cryptocurrency, this.props.network);
 			} catch (error) {
 				Logger.error(error, {
 					message: 'FiatOrders::MoonPayWebView error while processing order, using partial order',
 					partialOrder,
 				});
 				this.handleOrder(partialOrder);
+			} finally {
+				this.props.navigation.dangerouslyGetParent()?.pop();
 			}
 		}
 	};
