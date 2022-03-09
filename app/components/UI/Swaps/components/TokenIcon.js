@@ -90,7 +90,7 @@ EmptyIcon.propTypes = {
 };
 
 function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
-	const [showFallback, setShowFallback] = useState(null);
+	const [showFallback, setShowFallback] = useState(false);
 	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
@@ -106,10 +106,11 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 			return { uri: icon };
 		}
 
-		return { uri: null };
+		return null;
 	}, [symbol, icon]);
+	const source = getSource();
 
-	if (!showFallback) {
+	if (source && !showFallback) {
 		return (
 			<RemoteImage
 				fadeIn

@@ -224,7 +224,9 @@ class AddressList extends PureComponent {
 	};
 
 	renderRecents = () => {
-		const { recents, onAccountPress, onAccountLongPress, inputSearch } = this.props;
+		const { recents, identities, addressBook, network, onAccountPress, onAccountLongPress, inputSearch } =
+			this.props;
+		const networkAddressBook = addressBook[network] || {};
 		const colors = this.context.colors || mockColors.colors;
 		const styles = createStyles(colors);
 
@@ -238,6 +240,7 @@ class AddressList extends PureComponent {
 						<AddressElement
 							key={index}
 							address={address}
+							name={identities[address]?.name || networkAddressBook[address]?.name}
 							onAccountPress={onAccountPress}
 							onAccountLongPress={onAccountLongPress}
 						/>

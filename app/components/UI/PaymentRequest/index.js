@@ -59,6 +59,9 @@ const createStyles = (colors) =>
 			fontSize: 16,
 			color: colors.text.default,
 		},
+		amountWrapper: {
+			marginVertical: 8,
+		},
 		searchWrapper: {
 			marginVertical: 8,
 			borderColor: colors.border.default,
@@ -622,7 +625,7 @@ class PaymentRequest extends PureComponent {
 				<View>
 					<Text style={styles.title}>{strings('payment_request.enter_amount')}</Text>
 				</View>
-				<View style={styles.searchWrapper}>
+				<View style={styles.amountWrapper}>
 					<View style={styles.container}>
 						<View style={styles.ethContainer}>
 							<View style={styles.amounts}>
