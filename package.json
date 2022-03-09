@@ -32,6 +32,7 @@
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
+    "build:attribution": "generate-attribution",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
     "test": "yarn test:unit && yarn test:e2e",
@@ -92,7 +93,9 @@
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
     "web3": "1.6.1",
-    "simple-get": "4.0.1"
+    "simple-get": "4.0.1",
+    "oss-attribution-generator/**/underscore": "1.12.1",
+    "oss-attribution-generator/**/deep-extend": "0.5.1"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -158,6 +161,7 @@
     "number-to-bn": "1.7.0",
     "obj-multiplex": "1.0.0",
     "obs-store": "4.0.3",
+    "oss-attribution-generator": "^1.7.1",
     "path": "0.12.7",
     "pbkdf2": "3.1.2",
     "pify": "4.0.1",
