@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -46,6 +46,12 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		marginHorizontal: 8,
 		color: colors.grey600,
+	},
+	loader: {
+		backgroundColor: colors.white,
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 });
 
@@ -99,6 +105,7 @@ class AddressList extends PureComponent {
 		myAccountsOpened: false,
 		processedAddressBookList: undefined,
 		contactElements: [],
+		checkingForSmartContracts: false,
 	};
 
 	networkAddressBook = {};
@@ -160,7 +167,8 @@ class AddressList extends PureComponent {
 				})
 				.catch(() => {
 					contact.isSmartContract = false;
-				});
+				})
+				.finally(() => this.setState({ checkingForSmartContracts: false }));
 		});
 
 		networkAddressBookList.forEach((contact) => {
@@ -261,7 +269,7 @@ class AddressList extends PureComponent {
 	};
 
 	render = () => {
-		const { contactElements } = this.state;
+		const { contactElements, checkingForSmartContracts } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 
 		const sendFlowContacts = contactElements.filter((element) => {
@@ -276,6 +284,11 @@ class AddressList extends PureComponent {
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
+					{checkingForSmartContracts && (
+						<View style={styles.loader}>
+							<ActivityIndicator size="small" />
+						</View>
+					)}
 					{!onlyRenderAddressBook
 						? sendFlowContacts.map(this.renderElement)
 						: contactElements.map(this.renderElement)}
