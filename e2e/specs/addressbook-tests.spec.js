@@ -1,8 +1,7 @@
 'use strict';
-import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
+import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
 
 import ContractNickNameView from '../pages/ContractNickNameView';
 import SendView from '../pages/SendView';
@@ -19,19 +18,19 @@ import AddAddressModal from '../pages/modals/AddAddressModal';
 import ApprovalModal from '../pages/modals/ApprovalModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
-import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 
 import TestHelpers from '../helpers';
+
+const SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just raven';
+const PASSWORD = `12345678`;
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
-const PASSWORD = '12345678';
 const RINKEBY = 'Rinkeby Test Network';
 const APPROVAL_DEEPLINK_URL =
-	'https://metamask.app.link/send/0x514910771AF9Ca656af840dff83E8264EcF986CA@1/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
+	'https://metamask.app.link/send/0x01BE23585060835E02B77ef475b0Cc51aA1e0709@4/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
 const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
 
 describe('Addressbook Tests', () => {
@@ -39,31 +38,24 @@ describe('Addressbook Tests', () => {
 		jest.setTimeout(150000);
 	});
 
-	it('should create new wallet', async () => {
+	it('should import via seed phrase and validate in settings', async () => {
 		await OnboardingCarouselView.isVisible();
 		await OnboardingCarouselView.tapOnGetStartedButton();
 
 		await OnboardingView.isVisible();
-		await OnboardingView.tapCreateWallet();
+		await OnboardingView.tapImportWalletFromSeedPhrase();
 
 		await MetaMetricsOptIn.isVisible();
 		await MetaMetricsOptIn.tapAgreeButton();
 
-		await CreatePasswordView.isVisible();
-		await CreatePasswordView.toggleRememberMe();
-		await CreatePasswordView.enterPassword(PASSWORD);
-		await CreatePasswordView.reEnterPassword(PASSWORD);
-		await CreatePasswordView.tapIUnderstandCheckBox();
-		await CreatePasswordView.tapCreatePasswordButton();
+		await ImportWalletView.isVisible();
 	});
 
-	it('Should skip backup check', async () => {
-		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
-		await ProtectYourWalletView.tapOnRemindMeLaterButton();
-
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
+	it('should attempt to import wallet with invalid secret recovery phrase', async () => {
+		await ImportWalletView.toggleRememberMe();
+		await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
+		await ImportWalletView.enterPassword(PASSWORD);
+		await ImportWalletView.reEnterPassword(PASSWORD);
 		await WalletView.isVisible();
 	});
 
@@ -77,18 +69,6 @@ describe('Addressbook Tests', () => {
 		} catch {
 			//
 		}
-	});
-
-	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-		await TestHelpers.delay(1000);
-
-		await ProtectYourWalletModal.tapRemindMeLaterButton();
-
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
-
-		await WalletView.isVisible();
 	});
 
 	it('should go to send view', async () => {
@@ -117,6 +97,7 @@ describe('Addressbook Tests', () => {
 		await AddAddressModal.tapSaveButton();
 
 		await SendView.removeAddress();
+		await TestHelpers.delay(1000);
 		await SendView.isSavedAliasVisible('Myth'); // Check that the new account is on the address list
 	});
 
@@ -206,6 +187,7 @@ describe('Addressbook Tests', () => {
 
 	it('should deep link to the approval modal', async () => {
 		await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
+		await TestHelpers.delay(3000);
 		await ApprovalModal.isVisible();
 	});
 	it('should add a nickname to the contract', async () => {
@@ -243,7 +225,6 @@ describe('Addressbook Tests', () => {
 
 	it('should verify the contract nickname does not appear in send flow', async () => {
 		await SendView.isSavedAliasIsNotVisible('Ace');
-		await SendView.tapAndLongPress();
 	});
 
 	it('should verify contract does not appear in contacts view', async () => {
@@ -260,5 +241,29 @@ describe('Addressbook Tests', () => {
 
 		await ContactsView.isVisible();
 		await ContactsView.isContactAliasVisible('Ace');
+	});
+
+	it('should deep link to the approval modal and approve transaction', async () => {
+		await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
+		await TestHelpers.delay(3000);
+		await ApprovalModal.isVisible();
+		await ApprovalModal.isContractNickNameVisible('Ace');
+
+		await ApprovalModal.tapApproveButton();
+		await ApprovalModal.isNotVisible();
+	});
+
+	it('should go to the send view again', async () => {
+		// Open Drawer
+		await WalletView.tapDrawerButton();
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSendButton();
+		// Make sure view with my accounts visible
+		await SendView.isTransferBetweenMyAccountsButtonVisible();
+	});
+
+	it('should verify the contract nickname does not appear in recents', async () => {
+		await SendView.isSavedAliasIsNotVisible('Ace');
 	});
 });
