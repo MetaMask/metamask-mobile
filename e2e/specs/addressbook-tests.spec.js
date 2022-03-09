@@ -1,25 +1,26 @@
 'use strict';
+import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../pages/Onboarding/ProtectYourWalletView';
-import CreatePasswordView from '../pages/Onboarding/CreatePasswordView';
 
-import SendView from '../pages/SendView';
 import ContractNickNameView from '../pages/ContractNickNameView';
+import SendView from '../pages/SendView';
 
+import DrawerView from '../pages/Drawer/DrawerView';
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
-import DrawerView from '../pages/Drawer/DrawerView';
 
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
-import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
 import AddContactView from '../pages/Drawer/Settings/Contacts/AddContactView';
+import ContactsView from '../pages/Drawer/Settings/Contacts/ContactsView';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import AddAddressModal from '../pages/modals/AddAddressModal';
-import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
+import ApprovalModal from '../pages/modals/ApprovalModal';
+import NetworkListModal from '../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
-import ApprovalModal from '../pages/modals/ApprovalModal';
+import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 
 import TestHelpers from '../helpers';
 
@@ -28,9 +29,9 @@ const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const MYTH_ADDRESS = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
 const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
-
+const RINKEBY = 'Rinkeby Test Network';
 const APPROVAL_DEEPLINK_URL =
-	'https://metamask.app.link/send/0x3dD3DfaAdA4d6765Ae19b8964E2BAC0139eeCb40@1/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
+	'https://metamask.app.link/send/0x514910771AF9Ca656af840dff83E8264EcF986CA@1/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
 const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
 
 describe('Addressbook Tests', () => {
@@ -196,6 +197,12 @@ describe('Addressbook Tests', () => {
 
 		await SendView.isSavedAliasVisible('Ibrahim');
 	});
+	it('should swtich to rinkeby', async () => {
+		await WalletView.tapNetworksButtonOnNavBar();
+		await NetworkListModal.changeNetwork(RINKEBY);
+
+		await WalletView.isNetworkNameVisible(RINKEBY);
+	});
 
 	it('should deep link to the approval modal', async () => {
 		await TestHelpers.openDeepLink(APPROVAL_DEEPLINK_URL);
@@ -252,6 +259,6 @@ describe('Addressbook Tests', () => {
 		await SettingsView.tapContacts();
 
 		await ContactsView.isVisible();
-		await ContactsView.isContactAliasNotVisible('Ace');
+		await ContactsView.isContactAliasVisible('Ace');
 	});
 });

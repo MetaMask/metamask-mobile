@@ -14,6 +14,9 @@ export default class ApprovalModal {
 	static async tapRejectButton() {
 		await TestHelpers.tapByText('Reject');
 	}
+	static async tapConfirmButton() {
+		await TestHelpers.tapByText('Confirm');
+	}
 	static async tapToCopyContractAddress() {
 		await TestHelpers.tap(COPY_CONTRACT_ADDRESS_ID);
 	}

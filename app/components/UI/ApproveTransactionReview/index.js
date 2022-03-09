@@ -600,7 +600,7 @@ class ApproveTransactionReview extends PureComponent {
 
 		return (
 			<>
-				<View style={styles.section} testID={'approve-screen'}>
+				<View style={styles.section} testID={'approve-modal-test-id'}>
 					<TransactionHeader
 						currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 					/>
@@ -622,7 +622,11 @@ class ApproveTransactionReview extends PureComponent {
 					</Text>
 					<View style={styles.contactWrapper}>
 						<Text>{strings('nickname.contract')}: </Text>
-						<TouchableOpacity style={styles.addressWrapper} onPress={this.copyContractAddress}>
+						<TouchableOpacity
+							style={styles.addressWrapper}
+							onPress={this.copyContractAddress}
+							testID={'contract-address'}
+						>
 							<Identicon address={this.state.transaction.to} diameter={20} />
 							{this.props.nicknameExists ? (
 								<Text numberOfLines={1} style={styles.address}>

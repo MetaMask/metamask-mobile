@@ -183,7 +183,7 @@ const AddNickname = (props: AddNicknameProps) => {
 						headerTextStyle={styles.headerText}
 						iconStyle={styles.icon}
 					/>
-					<View style={styles.bodyWrapper}>
+					<View style={styles.bodyWrapper} testID={'contract-nickname-view'}>
 						{showFullAddress && (
 							<InfoModal
 								isVisible
@@ -223,7 +223,7 @@ const AddNickname = (props: AddNicknameProps) => {
 							numberOfLines={1}
 							style={styles.input}
 							value={newNickname}
-							testID={'contact-name-input'}
+							testID={'contract-name-input'}
 						/>
 					</View>
 					<View style={styles.updateButton}>
