@@ -10,7 +10,8 @@ const config = {
 		'node_modules/(?!(@react-native|react-native|rn-fetch|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry))',
 	],
 	snapshotSerializers: ['enzyme-to-json/serializer'],
-	collectCoverage: true,
+	// This is an environment variable that can be used to execute logic only in development
+	collectCoverage: process.env.NODE_ENV !== 'production',
 	coveragePathIgnorePatterns: ['/node_modules/', '__mocks__', '<rootDir>/e2e/'],
 	coverageReporters: ['text-summary', 'lcov'],
 	coverageDirectory: '<rootDir>/tests/coverage',
