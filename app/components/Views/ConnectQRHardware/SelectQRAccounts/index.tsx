@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
 import util from './util';
 import { IAccount } from '../types';
@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
 		marginTop: 40,
 		fontSize: 24,
 		marginBottom: 24,
+		...fontStyles.normal,
 	},
 	account: {
 		flexDirection: 'row',
@@ -47,10 +48,14 @@ const styles = StyleSheet.create({
 	accountChecked: {
 		backgroundColor: colors.grey050,
 	},
+	number: {
+		...fontStyles.normal,
+	},
 	address: {
 		marginLeft: 8,
 		fontSize: 15,
 		flexGrow: 1,
+		...fontStyles.normal,
 	},
 	pagination: {
 		marginTop: 4,
@@ -66,6 +71,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		alignItems: 'center',
 		marginRight: 8,
+		...fontStyles.normal,
 	},
 	bottom: {
 		alignItems: 'center',
@@ -78,6 +84,7 @@ const styles = StyleSheet.create({
 		borderRadius: 25,
 		height: 50,
 		alignItems: 'center',
+		justifyContent: 'center',
 		padding: 12,
 	},
 	backgroundBlue: {
@@ -88,9 +95,11 @@ const styles = StyleSheet.create({
 	},
 	textBlue: {
 		color: colors.blue,
+		...fontStyles.normal,
 	},
 	textWhite: {
 		color: colors.white,
+		...fontStyles.normal,
 	},
 });
 
@@ -125,7 +134,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							tintColors={{ true: colors.grey200, false: colors.grey100 }}
 							testID={'skip-backup-check'}
 						/>
-						<Text>{item.index + 1}</Text>
+						<Text style={styles.number}>{item.index + 1}</Text>
 						<Text style={styles.address}>{util.clipAddress(item.address, 4, 4)}</Text>
 						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
 						<Icon size={18} name={'external-link'} onPress={() => toEtherscan(item.address)} />
