@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey000,
 		flexDirection: 'row',
 		alignItems: 'center',
+		justifyContent: 'space-between',
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
 		padding: 8,
@@ -47,20 +48,14 @@ const styles = StyleSheet.create({
 		marginHorizontal: 8,
 		color: colors.grey600,
 	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
 });
 
-const LabelElement = (label) => (
+const LabelElement = (label, checkingForSmartContracts, showLoading) => (
 	<View key={label} style={styles.labelElementWrapper}>
 		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
+		{showLoading && checkingForSmartContracts && <ActivityIndicator size="small" color={colors.grey500} />}
 	</View>
 );
-
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -158,17 +153,21 @@ class AddressList extends PureComponent {
 		const contactElements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach((contact) => {
+			this.setState({ checkingForSmartContracts: true });
+
 			isSmartContractAddress(contact.address, contact.chainId)
 				.then((isSmartContract) => {
 					if (isSmartContract) {
-						return (contact.isSmartContract = true);
+						contact.isSmartContract = true;
+						return this.setState({ checkingForSmartContracts: false });
 					}
-					return (contact.isSmartContract = false);
+
+					contact.isSmartContract = false;
+					return this.setState({ checkingForSmartContracts: false });
 				})
 				.catch(() => {
 					contact.isSmartContract = false;
-				})
-				.finally(() => this.setState({ checkingForSmartContracts: false }));
+				});
 		});
 
 		networkAddressBookList.forEach((contact) => {
@@ -252,7 +251,7 @@ class AddressList extends PureComponent {
 		if (!recents.length || inputSearch) return;
 		return (
 			<>
-				{LabelElement(strings('address_book.recents'))}
+				{LabelElement(strings('address_book.recents'), this.state.checkingForSmartContracts, 'showLoading')}
 				{recents
 					.filter((recent) => recent != null)
 					.map((address, index) => (
@@ -269,14 +268,14 @@ class AddressList extends PureComponent {
 	};
 
 	render = () => {
-		const { contactElements, checkingForSmartContracts } = this.state;
+		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 
 		const sendFlowContacts = contactElements.filter((element) => {
-			if (typeof element === 'object' && element.isSmartContract === false) {
+			if (element.isSmartContract === false) {
 				return element;
 			}
-			return false;
+			return element;
 		});
 
 		return (
@@ -284,11 +283,6 @@ class AddressList extends PureComponent {
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
-					{checkingForSmartContracts && (
-						<View style={styles.loader}>
-							<ActivityIndicator size="small" />
-						</View>
-					)}
 					{!onlyRenderAddressBook
 						? sendFlowContacts.map(this.renderElement)
 						: contactElements.map(this.renderElement)}
