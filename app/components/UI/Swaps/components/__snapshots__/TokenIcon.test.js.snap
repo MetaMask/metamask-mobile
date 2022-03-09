@@ -1,29 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TokenIcon component should Render correctly 1`] = `
-<RemoteImage
-  fadeIn={true}
-  onError={[Function]}
-  source={
-    Object {
-      "uri": null,
-    }
-  }
-  style={
-    Array [
-      Object {
-        "borderRadius": 12,
-        "height": 24,
-        "width": 24,
-      },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    ]
-  }
-/>
-`;
+exports[`TokenIcon component should Render correctly 1`] = `<EmptyIcon />`;
 
 exports[`TokenIcon component should Render correctly 2`] = `
 <RemoteImage
@@ -51,28 +28,40 @@ exports[`TokenIcon component should Render correctly 2`] = `
 `;
 
 exports[`TokenIcon component should Render correctly 3`] = `
-<RemoteImage
-  fadeIn={true}
-  onError={[Function]}
-  source={
-    Object {
-      "uri": null,
+<EmptyIcon>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={false}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Array [
+        Object {
+          "fontSize": 16,
+          "textAlign": "center",
+          "textAlignVertical": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+      ]
     }
-  }
-  style={
-    Array [
-      Object {
-        "borderRadius": 12,
-        "height": 24,
-        "width": 24,
-      },
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-    ]
-  }
-/>
+    underline={false}
+    upper={false}
+  >
+    C
+  </Text>
+</EmptyIcon>
 `;
 
 exports[`TokenIcon component should Render correctly 4`] = `
@@ -101,31 +90,8 @@ exports[`TokenIcon component should Render correctly 4`] = `
 `;
 
 exports[`TokenIcon component should Render correctly 5`] = `
-<RemoteImage
-  fadeIn={true}
-  onError={[Function]}
-  source={
-    Object {
-      "uri": null,
-    }
-  }
-  style={
-    Array [
-      Object {
-        "borderRadius": 12,
-        "height": 24,
-        "width": 24,
-      },
-      Object {
-        "borderRadius": 18,
-        "height": 36,
-        "width": 36,
-      },
-      undefined,
-      undefined,
-      undefined,
-    ]
-  }
+<EmptyIcon
+  medium={true}
 />
 `;
 
@@ -159,32 +125,44 @@ exports[`TokenIcon component should Render correctly 6`] = `
 `;
 
 exports[`TokenIcon component should Render correctly 7`] = `
-<RemoteImage
-  fadeIn={true}
-  onError={[Function]}
-  source={
-    Object {
-      "uri": null,
+<EmptyIcon
+  medium={true}
+>
+  <Text
+    black={false}
+    blue={false}
+    bold={false}
+    centered={false}
+    disclaimer={false}
+    green={false}
+    link={false}
+    modal={false}
+    primary={false}
+    red={false}
+    reset={false}
+    right={false}
+    small={false}
+    strikethrough={false}
+    style={
+      Array [
+        Object {
+          "fontSize": 16,
+          "textAlign": "center",
+          "textAlignVertical": "center",
+        },
+        Object {
+          "fontSize": 22,
+        },
+        undefined,
+        undefined,
+      ]
     }
-  }
-  style={
-    Array [
-      Object {
-        "borderRadius": 12,
-        "height": 24,
-        "width": 24,
-      },
-      Object {
-        "borderRadius": 18,
-        "height": 36,
-        "width": 36,
-      },
-      undefined,
-      undefined,
-      undefined,
-    ]
-  }
-/>
+    underline={false}
+    upper={false}
+  >
+    C
+  </Text>
+</EmptyIcon>
 `;
 
 exports[`TokenIcon component should Render correctly 8`] = `
