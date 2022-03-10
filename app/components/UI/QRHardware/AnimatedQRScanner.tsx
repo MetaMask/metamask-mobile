@@ -52,9 +52,6 @@ const styles = StyleSheet.create({
 	},
 	hint: {
 		backgroundColor: colors.whitetransparent,
-		zIndex: 999,
-		position: 'absolute',
-		bottom: 0,
 		width: '100%',
 		height: 120,
 		alignItems: 'center',
@@ -221,8 +218,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						}`}</Text>
 					</SafeAreaView>
 				</RNCamera>
+				<View style={styles.hint}>{hintText}</View>
 			</View>
-			<View style={styles.hint}>{hintText}</View>
 		</Modal>
 	);
 };
