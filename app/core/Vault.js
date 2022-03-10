@@ -1,6 +1,7 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
+import { KeyringTypes } from '@metamask/controllers';
 
 /**
  * Returns current vault seed phrase
@@ -27,7 +28,9 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 	let importedAccounts = [];
 	try {
 		// Get imported accounts
-		const simpleKeyrings = KeyringController.state.keyrings.filter((keyring) => keyring.type === 'Simple Key Pair');
+		const simpleKeyrings = KeyringController.state.keyrings.filter(
+			(keyring) => keyring.type === KeyringTypes.simple
+		);
 		for (let i = 0; i < simpleKeyrings.length; i++) {
 			const simpleKeyring = simpleKeyrings[i];
 			const simpleKeyringAccounts = await Promise.all(
@@ -39,8 +42,12 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 		Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 	}
 
+	const qrKeyring = await KeyringController.getQRKeyring();
+	const serializedQRKeyring = await qrKeyring.serialize();
+
 	// Recreate keyring with password given to this method
 	await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+	await KeyringController.restoreQRKeyring(serializedQRKeyring);
 
 	// Get props to restore vault
 	const hdKeyring = KeyringController.state.keyrings[0];
