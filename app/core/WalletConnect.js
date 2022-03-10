@@ -91,6 +91,7 @@ class WalletConnect {
 		}
 
 		this.walletConnector = new RNWalletConnect({ ...options, ...CLIENT_OPTIONS });
+		const initialChainId = Engine.context.NetworkController.state.provider.chainId;
 		/**
 		 *  Subscribe to session requests
 		 */
@@ -138,8 +139,14 @@ class WalletConnect {
 			}
 
 			if (payload.method) {
+				const { chainId } = Engine.context.NetworkController.state.provider;
+
 				const payloadUrl = this.walletConnector.session.peerMeta.url;
 
+				if (initialChainId !== chainId) {
+					// Show error indicating that the network has changed
+					return;
+				}
 				if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
 					if (METHODS_TO_REDIRECT[payload.method]) {
 						this.requestsToRedirect[payload.id] = true;
