@@ -110,7 +110,9 @@ class Engine {
 					},
 				},
 			});
-			const assetsContractController = new AssetsContractController();
+			const assetsContractController = new AssetsContractController({
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+			});
 			const collectiblesController = new CollectiblesController(
 				{
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
