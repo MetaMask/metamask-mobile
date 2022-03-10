@@ -67,7 +67,7 @@ function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
 					<ScreenLayout.Body>
 						<View style={styles.resultsView}>
 							<ScreenLayout.Content style={styles.content}>
-								{paymentMethods?.map(({ id, name, delay }) => (
+								{paymentMethods?.map(({ id, name, delay, amountTier }) => (
 									<View key={id} style={styles.row}>
 										<PaymentOption
 											highlighted={id === selectedPaymentMethod}
@@ -77,7 +77,7 @@ function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
 												id
 											)}
 											onPress={() => handleOnPressItemCallback(id)}
-											lowestLimit
+											amountTier={amountTier}
 											paymentType={PAYMENT_METHOD_ICON[id]}
 											idRequired={false}
 										/>

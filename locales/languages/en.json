@@ -1460,7 +1460,20 @@
 			"growing_collection_of_tokens_description": "We’re adding new token on more networks all the time. Check back often.",
 			"get_started": "Get started"
 		},
-		"payment_method": "Payment Method",
+		"paymentMethod": {
+			"payment_method": "Payment Method",
+			"less_than": "Less than",
+			"days": "days",
+			"business_days": "business days",
+			"instant": "Instant",
+			"minutes": "mins",
+			"lowest_limit": "lowest limit",
+			"medium_limit": "medium limit",
+			"highest_limit": "highest limit",
+			"id_required": "ID required",
+			"no_id_required": "No ID required",
+			"continue_to_amount": "Continue to amount"
+		},
 		"amount_to_buy": "Amount to Buy",
 		"get_quotes": "Get quotes",
 		"select_a_quote": "Select a Quote",
