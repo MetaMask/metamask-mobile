@@ -1,7 +1,7 @@
 #!/bin/bash
 yarn build:attribution
 
-ATTRIBUTION_TXT="oss-attribution/attribution.txt";
+ATTRIBUTION_TXT="./attribution.txt";
 
 # check to see if there's changed to ATTRIBUTION_TXT
 if ! git diff --exit-code "$ATTRIBUTION_TXT"; then
