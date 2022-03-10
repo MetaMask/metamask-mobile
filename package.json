@@ -32,7 +32,7 @@
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
-    "build:attribution": "generate-attribution",
+    "build:attribution": "generate-attribution -o .",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
     "test": "yarn test:unit && yarn test:e2e",
