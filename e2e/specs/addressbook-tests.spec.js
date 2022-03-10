@@ -179,6 +179,7 @@ describe('Addressbook Tests', () => {
 		await SendView.isSavedAliasVisible('Ibrahim');
 	});
 	it('should swtich to rinkeby', async () => {
+		await SendView.tapcancelButton();
 		await WalletView.tapNetworksButtonOnNavBar();
 		await NetworkListModal.changeNetwork(RINKEBY);
 
