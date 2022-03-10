@@ -270,10 +270,17 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
+		const sendFlowContacts = [];
 
-		const sendFlowContacts = contactElements.filter((element) => {
-			if (element.isSmartContract === false) {
-				return element;
+		contactElements.filter((element) => {
+			if (typeof element === 'object' && element.isSmartContract === false) {
+				const nameInitial = element && element.name && element.name[0];
+				if (sendFlowContacts.includes(nameInitial)) {
+					sendFlowContacts.push(element);
+				} else {
+					sendFlowContacts.push(nameInitial);
+					sendFlowContacts.push(element);
+				}
 			}
 			return element;
 		});

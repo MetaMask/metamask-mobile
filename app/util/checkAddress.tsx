@@ -1,6 +1,9 @@
 import { toChecksumAddress } from 'ethereumjs-util';
 
 const checkIfAddressIsSaved = (addressBook: [], network: string, transaction: any) => {
+	if (transaction.to === undefined) {
+		return [];
+	}
 	for (const [key, value] of Object.entries(addressBook)) {
 		const addressValues = Object.values(value).map((val: any) => ({
 			address: toChecksumAddress(val.address),
