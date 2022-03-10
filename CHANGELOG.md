@@ -1,6 +1,29 @@
 # Changelog
 
-## Current Develop Branch
+## v4.2.2 - February 24, 2022
+- [#3841](https://github.com/MetaMask/metamask-mobile/pull/3841): [FIX] Fix custom network icons on Wallet Overview
+- [#3839](https://github.com/MetaMask/metamask-mobile/pull/3839): [FIX] Update en.json
+- [#3838](https://github.com/MetaMask/metamask-mobile/pull/3838): [FIX] Fix onramp BUSD address. Add wc_description string
+- [#3811](https://github.com/MetaMask/metamask-mobile/pull/3811): [FIX] Problem when loading unknown icons on Swap token list
+- [#3791](https://github.com/MetaMask/metamask-mobile/pull/3791): [FIX] Update style of ErrorMessage
+- [#3797](https://github.com/MetaMask/metamask-mobile/pull/3797): [ENHANCEMENT] Add Fantom FTM and Celo CELO — Add token after fiat on ramp order
+- [#3685](https://github.com/MetaMask/metamask-mobile/pull/3685): [ENHANCEMENT] WalletConnect, Deeplink and RPC methods refactors
+- [#3766](https://github.com/MetaMask/metamask-mobile/pull/3766): [ENHANCEMENT] Swaps: Add Avalanche
+- [#3806](https://github.com/MetaMask/metamask-mobile/pull/3806): [FIX] Custom network token crash
+- [#3547](https://github.com/MetaMask/metamask-mobile/pull/3547): [IMPROVEMENT] Warn when exporting SRP
+- [#3788](https://github.com/MetaMask/metamask-mobile/pull/3788): [UPGRADE] Bump url-parse from 1.5.2 to 1.5.9
+- [#3764](https://github.com/MetaMask/metamask-mobile/pull/3764): [UPGRADE] Bump vm2 from 3.9.5 to 3.9.8
+- [#3787](https://github.com/MetaMask/metamask-mobile/pull/3787): [FIX] Default spent limit value
+- [#3774](https://github.com/MetaMask/metamask-mobile/pull/3774): [FIX] Address book e2e
+- [#3770](https://github.com/MetaMask/metamask-mobile/pull/3770): [FIX] Delete wallet e2e
+- [#3767](https://github.com/MetaMask/metamask-mobile/pull/3767): [FIX] Edit contact e2e
+- [#3762](https://github.com/MetaMask/metamask-mobile/pull/3762): [ENHANCEMENT] Enhance auto-detection warning
+- [#3618](https://github.com/MetaMask/metamask-mobile/pull/3618): [FIX] Modal view when adding wallet address to address book
+- [#3724](https://github.com/MetaMask/metamask-mobile/pull/3724): [ENHANCEMENT] Update texts to use lock/unlock terminology
+- [#3701](https://github.com/MetaMask/metamask-mobile/pull/3701): [FIX] Make selected option comes first in picker component on Android
+- [#3752](https://github.com/MetaMask/metamask-mobile/pull/3752): [FIX] Fix OpenSea typo
+- [#3548](https://github.com/MetaMask/metamask-mobile/pull/3548): [FIX] Fixes text field frame got cut off
+- [#3690](https://github.com/MetaMask/metamask-mobile/pull/3690): [FIX] Revert svg crash
 
 ## v4.1.1 - February 23, 2022
 - [3810](https://github.com/MetaMask/metamask-mobile/pull/3810) [FIX] Avalanche token crash
