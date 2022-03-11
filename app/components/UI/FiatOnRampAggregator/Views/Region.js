@@ -34,12 +34,11 @@ const styles = StyleSheet.create({
 const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { setSelectedCountry, setSelectedRegion, setRegionCurrency } = useFiatOnRampSDK();
+	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
 	// eslint-disable-next-line no-unused-vars
 	const [showAlert, setShowAlert] = useState(false);
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 
-	const [selectedRegionObject, setSelectedRegionObject] = useState({});
 	const navigation = useNavigation();
 
 	const handleChangeRememberRegion = () => {
@@ -59,13 +58,11 @@ const Region = () => {
 			if (country.unsupported) {
 				setShowAlert(true);
 			} else {
-				setSelectedRegionObject(country);
-				setSelectedCountry(country.id);
-				setRegionCurrency(`/${country.currency}`);
+				setSelectedCountry(country);
 				hideTokenSelectorModal();
 			}
 		},
-		[hideTokenSelectorModal, setRegionCurrency, setSelectedCountry]
+		[hideTokenSelectorModal, setSelectedCountry]
 	);
 
 	const handleRegionPress = useCallback(
@@ -73,8 +70,7 @@ const Region = () => {
 			if (region.unsupported) {
 				setShowAlert(true);
 			} else {
-				setSelectedRegion(region.id);
-				setSelectedRegionObject(region);
+				setSelectedRegion(region);
 				hideTokenSelectorModal();
 			}
 		},
@@ -113,10 +109,15 @@ const Region = () => {
 						<Box>
 							<ListItem.Content>
 								<ListItem.Body>
-									{Object.keys(selectedRegionObject).length !== 0 ? (
+									{selectedRegion?.id ? (
 										<Text>
-											{selectedRegionObject.emoji} {'   '}
-											{selectedRegionObject.name}
+											{selectedRegion.emoji} {'   '}
+											{selectedRegion.name}
+										</Text>
+									) : selectedCountry?.id ? (
+										<Text>
+											{selectedCountry.emoji} {'   '}
+											{selectedCountry.name}
 										</Text>
 									) : (
 										<Text>{strings('fiat_on_ramp_aggregator.region.select_region')}</Text>
@@ -163,7 +164,7 @@ const Region = () => {
 						<StyledButton
 							type="confirm"
 							onPress={handleOnPress}
-							disabled={Object.keys(selectedRegionObject).length === 0}
+							disabled={Object.keys(selectedRegion).length === 0}
 						>
 							Continue
 						</StyledButton>

@@ -8,10 +8,10 @@ import {
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk;
-	setSelectedCountry: (countryCode: string) => void;
-	selectedCountry: string;
-	setSelectedRegion: (countryCode: string) => void;
-	selectedRegion: string;
+	setSelectedCountry: (country: any) => void;
+	selectedCountry: any;
+	setSelectedRegion: (region: any) => void;
+	selectedRegion: any;
 	setSelectedPaymentMethod: (paymentMethod: string) => void;
 	selectedPaymentMethod: string;
 	setRegionCurrency: (currency: string) => void;
@@ -47,26 +47,16 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 	const [regionCurrency, setRegionCurrency] = useState(INITIAL_FIAT_CURRENCY);
 
 	const setSelectedCountryCallback = useCallback(
-		(countryCode) => {
-			setSelectedCountry(countryCode);
-			// we need always to replicate the country selection and mirror it to region selection for all countries excpet USA.
-			if (countryCode !== 'us') {
-				setSelectedRegion(countryCode);
-				// update redux store by dispatching an action
-				dispatch(setFiatOrdersCountryAGG(countryCode));
-			}
+		(country) => {
+			setSelectedCountry(country);
+			dispatch(setFiatOrdersCountryAGG(country.id));
 		},
 		[dispatch]
 	);
 
-	const setSelectedRegionCallback = useCallback(
-		(countryCode) => {
-			setSelectedRegion(countryCode);
-			// update redux store by dispatching an action
-			dispatch(setFiatOrdersCountryAGG(countryCode));
-		},
-		[dispatch]
-	);
+	const setSelectedRegionCallback = useCallback((region) => {
+		setSelectedRegion(region);
+	}, []);
 
 	const setRegionCurrencyCallback = useCallback((currency) => {
 		setRegionCurrency(currency);
