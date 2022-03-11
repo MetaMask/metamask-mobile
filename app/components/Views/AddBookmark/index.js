@@ -106,6 +106,7 @@ export default class AddBookmark extends PureComponent {
 
 	render = () => {
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -130,6 +131,7 @@ export default class AddBookmark extends PureComponent {
 								testID={'add-bookmark-title'}
 								onSubmitEditing={this.jumpToUrl}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 						</View>
@@ -145,6 +147,7 @@ export default class AddBookmark extends PureComponent {
 								onSubmitEditing={this.addToken}
 								returnKeyType={'done'}
 								placeholderTextColor={colors.text.muted}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText}>{this.state.warningDecimals}</Text>
 						</View>

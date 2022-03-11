@@ -60,6 +60,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
             Please enter your password in order to continue
           </Text>
           <TextInput
+            keyboardAppearance="light"
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"

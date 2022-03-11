@@ -236,7 +236,7 @@ export const BrowserTab = (props) => {
 	const fromHomepage = useRef(false);
 	const wizardScrollAdjusted = useRef(false);
 
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	/**
@@ -1054,6 +1054,7 @@ export const BrowserTab = (props) => {
 							style={styles.urlInput}
 							value={autocompleteValue}
 							selectTextOnFocus
+							keyboardAppearance={themeAppearance}
 						/>
 						{autocompleteValue ? (
 							<TouchableOpacity onPress={clearSearchInput} style={styles.clearButton}>

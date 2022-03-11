@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppThemeNames, AppThemeLabels } from '../../../util/theme/models';
+import { AppThemeKey } from '../../../util/theme/models';
 import { setAppTheme } from '../../../actions/user';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -51,9 +51,8 @@ const ThemeSettings = () => {
 	const safeAreaInsets = useSafeAreaInsets();
 	const modalRef = useRef<ReusableModalRef>(null);
 	const dispatch = useDispatch();
-	const triggerSetAppTheme = (theme: AppThemeNames) => dispatch(setAppTheme(theme));
-
-	const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
+	const triggerSetAppTheme = (theme: AppThemeKey) => dispatch(setAppTheme(theme));
+	const appTheme: AppThemeKey = useSelector((state: any) => state.user.appTheme);
 	const { colors } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors, safeAreaInsets.bottom);
 
@@ -61,12 +60,11 @@ const ThemeSettings = () => {
 	const renderThemeOptions = useCallback(() => {
 		return (
 			<View>
-				{Object.keys(AppThemeNames).map((themeKey) => {
-					const key = `${themeKey}-theme`;
-					const selectedThemeName = themeKey.toLowerCase() as AppThemeNames;
-					const label = AppThemeLabels[selectedThemeName];
+				{Object.keys(AppThemeKey).map((themeKeyId) => {
+					const key = `${themeKeyId}-theme`;
+					const selectedThemeKey = AppThemeKey[themeKeyId as AppThemeKey];
 					const selectedIcon =
-						appTheme === selectedThemeName ? (
+						appTheme === selectedThemeKey ? (
 							<Icon name="check-circle" size={30} color={colors.primary.default} />
 						) : null;
 
@@ -74,12 +72,14 @@ const ThemeSettings = () => {
 						<View key={key} style={styles.option}>
 							<TouchableOpacity
 								onPress={() => {
-									triggerSetAppTheme(selectedThemeName);
+									triggerSetAppTheme(selectedThemeKey);
 									modalRef.current?.dismissModal();
 								}}
 								style={styles.optionButton}
 							>
-								<Text style={styles.optionLabel}>{strings(`app_settings.theme_${label}`)}</Text>
+								<Text style={styles.optionLabel}>
+									{strings(`app_settings.theme_${selectedThemeKey}`)}
+								</Text>
 								{selectedIcon}
 							</TouchableOpacity>
 						</View>

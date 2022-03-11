@@ -113,7 +113,7 @@ function EditPermission({
 	toggleEditPermission,
 }) {
 	const [initialState] = useState({ spendLimitUnlimitedSelected, spendLimitCustomValue });
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const displayErrorMessage = useMemo(
@@ -221,6 +221,7 @@ function EditPermission({
 							numberOfLines={1}
 							onFocus={onPressSpendLimitCustomSelected}
 							returnKeyType={'done'}
+							keyboardAppearance={themeAppearance}
 						/>
 						{displayErrorMessage && (
 							<View style={styles.errorMessageWrapper}>

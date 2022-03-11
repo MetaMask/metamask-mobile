@@ -55,7 +55,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 	const [warningTokenId, setWarningTokenId] = useState<string>('');
 	const [inputWidth, setInputWidth] = useState<string | undefined>(Device.isAndroid() ? '99%' : undefined);
 	const assetTokenIdInput = React.createRef() as any;
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const selectedAddress = useSelector(
@@ -199,6 +199,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 							onBlur={validateCustomCollectibleAddress}
 							testID={'input-collectible-address'}
 							onSubmitEditing={jumpToAssetTokenId}
+							keyboardAppearance={themeAppearance}
 						/>
 						<Text style={styles.warningText} testID={'collectible-address-warning'}>
 							{warningAddress}
@@ -218,6 +219,7 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 							returnKeyType={'done'}
 							placeholder={strings('collectible.id_placeholder')}
 							placeholderTextColor={colors.text.muted}
+							keyboardAppearance={themeAppearance}
 						/>
 						<Text style={styles.warningText} testID={'collectible-identifier-warning'}>
 							{warningTokenId}

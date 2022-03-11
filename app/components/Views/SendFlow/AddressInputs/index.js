@@ -190,7 +190,7 @@ export const AddressTo = (props) => {
 		confusableCollection,
 		displayExclamation,
 	} = props;
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (
@@ -216,6 +216,7 @@ export const AddressTo = (props) => {
 							onSubmitEditing={onSubmit}
 							value={toSelectedAddress}
 							testID={'txn-to-address-input'}
+							keyboardAppearance={themeAppearance}
 						/>
 					</View>
 					{!!onScan && (

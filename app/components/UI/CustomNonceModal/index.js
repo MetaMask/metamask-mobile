@@ -111,7 +111,7 @@ const createStyles = (colors) =>
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 	const [nonce, onChangeText] = React.useState(nonceValue);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const incrementDecrementNonce = (decrement) => {
@@ -167,6 +167,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								value={String(nonce)}
 								numberOfLines={1}
 								onSubmitEditing={saveAndClose}
+								keyboardAppearance={themeAppearance}
 							/>
 						</View>
 						<Text centered style={styles.currentSuggested}>

@@ -486,6 +486,7 @@ class NetworkSettings extends PureComponent {
 			inputWidth,
 		} = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -511,6 +512,7 @@ class NetworkSettings extends PureComponent {
 							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToRpcURL}
 							testID={'input-network-name'}
+							keyboardAppearance={themeAppearance}
 						/>
 
 						<Text style={styles.label}>{strings('app_settings.network_rpc_url_label')}</Text>
@@ -527,6 +529,7 @@ class NetworkSettings extends PureComponent {
 							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToChainId}
 							testID={'input-rpc-url'}
+							keyboardAppearance={themeAppearance}
 						/>
 						{warningRpcUrl && (
 							<View style={styles.warningContainer} testID={'rpc-url-warning'}>
@@ -549,6 +552,7 @@ class NetworkSettings extends PureComponent {
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numbers-and-punctuation'}
 							testID={'input-chain-id'}
+							keyboardAppearance={themeAppearance}
 						/>
 						{warningChainId ? (
 							<View style={styles.warningContainer}>
@@ -569,6 +573,7 @@ class NetworkSettings extends PureComponent {
 							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpBlockExplorerURL}
 							testID={'input-network-symbol'}
+							keyboardAppearance={themeAppearance}
 						/>
 
 						<Text style={styles.label}>{strings('app_settings.network_block_explorer_label')}</Text>
@@ -583,6 +588,7 @@ class NetworkSettings extends PureComponent {
 							placeholder={strings('app_settings.network_block_explorer_placeholder')}
 							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.addRpcUrl}
+							keyboardAppearance={themeAppearance}
 						/>
 					</View>
 					{(addMode || editable) && (

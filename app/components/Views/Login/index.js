@@ -528,6 +528,7 @@ class Login extends PureComponent {
 
 	render = () => {
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -586,6 +587,7 @@ class Login extends PureComponent {
 								tintColor={colors.primary.default}
 								placeholderTextColor={colors.text.muted}
 								onSubmitEditing={this.submitDelete}
+								keyboardAppearance={themeAppearance}
 							/>
 							{this.state.showDeleteWarning && (
 								<Text style={styles.deleteWarningMsg}>{strings('login.cant_proceed')}</Text>
@@ -638,6 +640,7 @@ class Login extends PureComponent {
 											type={this.state.biometryType}
 										/>
 									)}
+									keyboardAppearance={themeAppearance}
 								/>
 							</View>
 

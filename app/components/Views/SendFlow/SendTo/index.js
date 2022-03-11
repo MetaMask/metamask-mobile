@@ -475,6 +475,7 @@ class SendFlow extends PureComponent {
 	renderAddToAddressBookModal = () => {
 		const { addToAddressBookModalVisible, alias } = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -511,6 +512,7 @@ class SendFlow extends PureComponent {
 										onSubmitEditing={this.onFocus}
 										value={alias}
 										testID={'address-alias-input'}
+										keyboardAppearance={themeAppearance}
 									/>
 								</View>
 							</View>

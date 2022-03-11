@@ -70,6 +70,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Address
         </Text>
         <TextInput
+          keyboardAppearance="light"
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
@@ -121,6 +122,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token Symbol
         </Text>
         <TextInput
+          keyboardAppearance="light"
           onBlur={[Function]}
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
@@ -171,6 +173,7 @@ exports[`AddCustomToken should render correctly 1`] = `
           Token of Precision
         </Text>
         <TextInput
+          keyboardAppearance="light"
           keyboardType="numeric"
           maxLength={2}
           onBlur={[Function]}

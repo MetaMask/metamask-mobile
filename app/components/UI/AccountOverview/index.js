@@ -306,6 +306,7 @@ class AccountOverview extends PureComponent {
 			swapsIsLive,
 		} = this.props;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
@@ -355,6 +356,7 @@ class AccountOverview extends PureComponent {
 									autoCorrect={false}
 									numberOfLines={1}
 									placeholderTextColor={colors.text.muted}
+									keyboardAppearance={themeAppearance}
 								/>
 							) : (
 								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>

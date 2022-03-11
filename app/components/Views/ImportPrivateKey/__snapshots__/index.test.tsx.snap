@@ -185,6 +185,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
         <TextInput
           autoCapitalize="none"
           blurOnSubmit={true}
+          keyboardAppearance="light"
           multiline={true}
           numberOfLines={3}
           onChangeText={[Function]}

@@ -607,6 +607,7 @@ class ResetPassword extends PureComponent {
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -628,6 +629,7 @@ class ResetPassword extends PureComponent {
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}
 								testID={'private-credential-password-text-input'}
+								keyboardAppearance={themeAppearance}
 							/>
 							{warningIncorrectPassword && (
 								<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>
@@ -653,6 +655,7 @@ class ResetPassword extends PureComponent {
 		const { isSelected, inputWidth, password, passwordStrength, confirmPassword, secureTextEntry, error, loading } =
 			this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
@@ -714,6 +717,7 @@ class ResetPassword extends PureComponent {
 										onSubmitEditing={this.jumpToConfirmPassword}
 										returnKeyType="next"
 										autoCapitalize="none"
+										keyboardAppearance={themeAppearance}
 									/>
 									{(password !== '' && (
 										<Text style={styles.hintLabel}>
@@ -739,6 +743,7 @@ class ResetPassword extends PureComponent {
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"
+										keyboardAppearance={themeAppearance}
 									/>
 									<View style={styles.showMatchingPasswords}>
 										{passwordsMatch ? (

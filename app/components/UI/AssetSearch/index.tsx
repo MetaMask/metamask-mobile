@@ -64,7 +64,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [inputDimensions, setInputDimensions] = useState('85%');
 	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	useEffect(() => {
@@ -101,6 +101,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 				placeholderTextColor={colors.text.muted}
 				onChangeText={handleSearch}
 				testID={'input-search-asset'}
+				keyboardAppearance={themeAppearance}
 			/>
 		</View>
 	);

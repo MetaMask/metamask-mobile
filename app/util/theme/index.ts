@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
-import { Colors, AppThemeNames, Theme } from './models';
+import { Colors, AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { colors as colorTheme } from '@metamask/design-tokens';
 import Device from '../device';
@@ -13,10 +13,38 @@ export const mockColors = { colors: colorTheme.light };
 
 export const ThemeContext = React.createContext<any>(undefined);
 
+/**
+ * Utility function for getting asset from theme (Class components)
+ *
+ * @param appTheme Theme from app
+ * @param osColorScheme Theme from OS
+ * @param light Light asset
+ * @param dark Dark asset
+ * @returns
+ */
+export const getAssetFromTheme = (appTheme: AppThemeKey, osColorScheme: ColorSchemeName, light: any, dark: any) => {
+	let asset;
+	switch (appTheme) {
+		case AppThemeKey.light:
+			asset = light;
+			break;
+		case AppThemeKey.dark:
+			asset = dark;
+			break;
+		case AppThemeKey.os:
+			asset = osColorScheme === 'dark' ? dark : light;
+			break;
+		default:
+			asset = light;
+	}
+	return asset;
+};
+
 /* eslint-disable  import/prefer-default-export */
 export const useAppTheme = (): Theme => {
 	const osThemeName = useColorScheme();
-	const appTheme: AppThemeNames = useSelector((state: any) => state.user.appTheme);
+	const appTheme: AppThemeKey = useSelector((state: any) => state.user.appTheme);
+	const themeAppearance = getAssetFromTheme(appTheme, osThemeName, AppThemeKey.light, AppThemeKey.dark);
 	let colors: Colors;
 
 	const setDarkStatusBar = () => {
@@ -31,22 +59,22 @@ export const useAppTheme = (): Theme => {
 
 	switch (appTheme) {
 		/* eslint-disable no-fallthrough */
-		case AppThemeNames.OS: {
-			if (osThemeName === 'light') {
+		case AppThemeKey.os: {
+			if (osThemeName === AppThemeKey.light) {
 				colors = colorTheme.light;
 				setLightStatusBar();
 				break;
-			} else if (osThemeName === 'dark') {
+			} else if (osThemeName === AppThemeKey.dark) {
 				colors = colorTheme.dark;
 				setDarkStatusBar();
 				break;
 			}
 		}
-		case AppThemeNames.Light:
+		case AppThemeKey.light:
 			colors = colorTheme.light;
 			setLightStatusBar();
 			break;
-		case AppThemeNames.Dark:
+		case AppThemeKey.dark:
 			colors = colorTheme.dark;
 			setDarkStatusBar();
 			break;
@@ -56,39 +84,12 @@ export const useAppTheme = (): Theme => {
 			setLightStatusBar();
 	}
 
-	return { colors };
+	return { colors, themeAppearance };
 };
 
 export const useAppThemeFromContext = (): Theme => {
 	const theme = useContext<Theme>(ThemeContext);
 	return theme;
-};
-
-/**
- * Utility function for getting asset from theme (Class components)
- *
- * @param appTheme Theme from app
- * @param osColorScheme Theme from OS
- * @param light Light asset
- * @param dark Dark asset
- * @returns
- */
-export const getAssetFromTheme = (appTheme: AppThemeNames, osColorScheme: ColorSchemeName, light: any, dark: any) => {
-	let asset;
-	switch (appTheme) {
-		case 'light':
-			asset = light;
-			break;
-		case 'dark':
-			asset = dark;
-			break;
-		case 'os':
-			asset = osColorScheme === 'dark' ? dark : light;
-			break;
-		default:
-			asset = light;
-	}
-	return asset;
 };
 
 /**

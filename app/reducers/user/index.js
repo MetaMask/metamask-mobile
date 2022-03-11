@@ -1,4 +1,4 @@
-import { AppThemeNames } from '../../util/theme/models';
+import { AppThemeKey } from '../../util/theme/models';
 
 const initialState = {
 	loadingMsg: '',
@@ -12,7 +12,7 @@ const initialState = {
 	userLoggedIn: false,
 	isAuthChecked: false,
 	initialScreen: '',
-	appTheme: AppThemeNames.Light,
+	appTheme: AppThemeKey.light,
 };
 
 const userReducer = (state = initialState, action) => {

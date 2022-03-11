@@ -380,6 +380,7 @@ class ManualBackupStep1 extends PureComponent {
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -399,6 +400,7 @@ class ManualBackupStep1 extends PureComponent {
 								secureTextEntry
 								onSubmitEditing={this.tryUnlock}
 								testID={'private-credential-password-text-input'}
+								keyboardAppearance={themeAppearance}
 							/>
 							{warningIncorrectPassword && (
 								<Text style={styles.warningMessageText}>{warningIncorrectPassword}</Text>

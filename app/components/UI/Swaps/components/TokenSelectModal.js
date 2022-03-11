@@ -140,7 +140,7 @@ function TokenSelectModal({
 	const [searchString, setSearchString] = useState('');
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] = useModalHandler(false);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const excludedAddresses = useMemo(
@@ -344,6 +344,7 @@ function TokenSelectModal({
 							placeholderTextColor={colors.text.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
+							keyboardAppearance={themeAppearance}
 						/>
 						{searchString.length > 0 && (
 							<TouchableOpacity onPress={handleClearSearch}>

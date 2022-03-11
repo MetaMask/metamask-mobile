@@ -392,6 +392,7 @@ class PaymentRequest extends PureComponent {
 		const { inputWidth } = this.state;
 		let results;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		if (chainId === '1') {
@@ -428,6 +429,7 @@ class PaymentRequest extends PureComponent {
 							value={this.state.searchInputValue}
 							blurOnSubmit
 							testID={'request-search-asset-input'}
+							keyboardAppearance={themeAppearance}
 						/>
 						{this.state.searchInputValue ? (
 							<TouchableOpacity onPress={this.clearSearchInput} style={styles.clearButton}>
@@ -613,6 +615,7 @@ class PaymentRequest extends PureComponent {
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let switchable = true;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		if (!conversionRate) {
@@ -647,6 +650,7 @@ class PaymentRequest extends PureComponent {
 										onSubmitEditing={this.onNext}
 										ref={this.amountInput}
 										testID={'request-amount-input'}
+										keyboardAppearance={themeAppearance}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}

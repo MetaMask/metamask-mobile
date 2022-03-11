@@ -497,6 +497,7 @@ class ImportFromSeed extends PureComponent {
 			hideSeedPhraseInput,
 		} = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
@@ -534,6 +535,7 @@ class ImportFromSeed extends PureComponent {
 								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.jumpToPassword}
+								keyboardAppearance={themeAppearance}
 							/>
 						) : (
 							<TextInput
@@ -556,6 +558,7 @@ class ImportFromSeed extends PureComponent {
 								autoCorrect={false}
 								onFocus={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
 								onBlur={(!hideSeedPhraseInput && this.seedphraseInputFocused) || null}
+								keyboardAppearance={themeAppearance}
 							/>
 						)}
 						<TouchableOpacity style={styles.qrCode} onPress={this.onQrCodePress}>
@@ -589,6 +592,7 @@ class ImportFromSeed extends PureComponent {
 								baseColor={colors.border.default}
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.jumpToConfirmPassword}
+								keyboardAppearance={themeAppearance}
 							/>
 
 							{(password !== '' && (
@@ -619,6 +623,7 @@ class ImportFromSeed extends PureComponent {
 								tintColor={colors.primary.default}
 								onSubmitEditing={this.onPressImport}
 								placeholderTextColor={colors.text.muted}
+								keyboardAppearance={themeAppearance}
 							/>
 
 							<View style={styles.showMatchingPasswords}>

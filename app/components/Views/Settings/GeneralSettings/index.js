@@ -19,7 +19,7 @@ import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockColors } from '../../../../util/theme';
-import { AppThemeLabels } from '../../../../util/theme/models';
+import { AppThemeKey } from '../../../../util/theme/models';
 import StyledButton from '../../../UI/StyledButton';
 
 const diameter = 40;
@@ -247,7 +247,7 @@ class Settings extends PureComponent {
 				<View>
 					<Text style={styles.title}>
 						{strings('app_settings.theme_title', {
-							theme: strings(`app_settings.theme_${AppThemeLabels[appTheme]}`),
+							theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
 						})}
 					</Text>
 					<Text style={styles.desc}>{strings('app_settings.theme_description')}</Text>

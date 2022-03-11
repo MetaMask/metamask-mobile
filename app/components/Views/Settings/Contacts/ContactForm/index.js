@@ -275,6 +275,7 @@ class ContactForm extends PureComponent {
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -299,6 +300,7 @@ class ContactForm extends PureComponent {
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
 							testID={'contact-name-input'}
+							keyboardAppearance={themeAppearance}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
@@ -318,6 +320,7 @@ class ContactForm extends PureComponent {
 									ref={this.addressInput}
 									onSubmitEditing={this.jumpToMemoInput}
 									testID={'contact-address-input'}
+									keyboardAppearance={themeAppearance}
 								/>
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
@@ -351,6 +354,7 @@ class ContactForm extends PureComponent {
 									value={memo}
 									ref={this.memoInput}
 									testID={'contact-memo-input'}
+									keyboardAppearance={themeAppearance}
 								/>
 							</View>
 						</View>

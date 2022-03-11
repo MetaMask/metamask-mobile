@@ -53,7 +53,7 @@ const createStyles = (colors) =>
 	});
 
 const HintModal = ({ onCancel, onConfirm, modalVisible, onRequestClose, value, onChangeText }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	return (
@@ -83,6 +83,7 @@ const HintModal = ({ onCancel, onConfirm, modalVisible, onRequestClose, value, o
 						placeholderTextColor={colors.text.muted}
 						multiline
 						textAlignVertical={'top'}
+						keyboardAppearance={themeAppearance}
 					/>
 				</View>
 			</TouchableWithoutFeedback>

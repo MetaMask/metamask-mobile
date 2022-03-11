@@ -80,7 +80,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const countriesFuse = useMemo(
@@ -170,6 +170,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 							placeholderTextColor={colors.text.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
+							keyboardAppearance={themeAppearance}
 						/>
 					</View>
 				</TouchableWithoutFeedback>

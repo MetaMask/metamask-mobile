@@ -3,10 +3,11 @@ import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import ManualBackupStep1 from './';
+import { AppThemeKey } from '../../../util/theme/models';
 
 const mockStore = configureMockStore();
 const initialState = {
-	user: { appTheme: 'light' },
+	user: { appTheme: AppThemeKey.light },
 };
 const store = mockStore(initialState);
 

@@ -234,6 +234,7 @@ export default class AddCustomToken extends PureComponent {
 	render = () => {
 		const { address, symbol, decimals } = this.state;
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -262,6 +263,7 @@ export default class AddCustomToken extends PureComponent {
 								testID={'input-token-address'}
 								onSubmitEditing={this.jumpToAssetSymbol}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText} testID={'token-address-warning'}>
 								{this.state.warningAddress}
@@ -280,6 +282,7 @@ export default class AddCustomToken extends PureComponent {
 								ref={this.assetSymbolInput}
 								onSubmitEditing={this.jumpToAssetPrecision}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 						</View>
@@ -298,6 +301,7 @@ export default class AddCustomToken extends PureComponent {
 								ref={this.assetPrecisionInput}
 								onSubmitEditing={this.addToken}
 								returnKeyType={'done'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText} testID={'token-decimals-warning'}>
 								{this.state.warningDecimals}

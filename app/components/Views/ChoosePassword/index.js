@@ -586,6 +586,7 @@ class ChoosePassword extends PureComponent {
 		const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -644,6 +645,7 @@ class ChoosePassword extends PureComponent {
 										onSubmitEditing={this.jumpToConfirmPassword}
 										returnKeyType="next"
 										autoCapitalize="none"
+										keyboardAppearance={themeAppearance}
 									/>
 									{(password !== '' && (
 										<Text style={styles.passwordStrengthLabel}>
@@ -669,6 +671,7 @@ class ChoosePassword extends PureComponent {
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"
+										keyboardAppearance={themeAppearance}
 									/>
 									<View style={styles.showMatchingPasswords}>
 										{passwordsMatch ? (

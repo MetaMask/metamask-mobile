@@ -338,8 +338,9 @@ class RevealPrivateCredential extends PureComponent {
 
 	getStyles = () => {
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
-		return { colors, styles };
+		return { colors, styles, themeAppearance };
 	};
 
 	revealSRP = () => {
@@ -369,7 +370,7 @@ class RevealPrivateCredential extends PureComponent {
 
 	renderTabView(privateCredentialName) {
 		const { clipboardPrivateCredential } = this.state;
-		const { styles, colors } = this.getStyles();
+		const { styles, colors, themeAppearance } = this.getStyles();
 
 		return (
 			<ScrollableTabView renderTabBar={() => this.renderTabBar()}>
@@ -385,6 +386,7 @@ class RevealPrivateCredential extends PureComponent {
 							editable={false}
 							testID={'private-credential-text'}
 							placeholderTextColor={colors.text.muted}
+							keyboardAppearance={themeAppearance}
 						/>
 						<TouchableOpacity
 							style={styles.privateCredentialAction}
@@ -410,7 +412,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	renderPasswordEntry() {
-		const { styles, colors } = this.getStyles();
+		const { styles, colors, themeAppearance } = this.getStyles();
 		return (
 			<>
 				<Text style={styles.enterPassword}>{strings('reveal_credential.enter_password')}</Text>
@@ -422,6 +424,7 @@ class RevealPrivateCredential extends PureComponent {
 					onChangeText={this.onPasswordChange}
 					secureTextEntry
 					onSubmitEditing={this.tryUnlock}
+					keyboardAppearance={themeAppearance}
 				/>
 				<Text style={styles.warningText} testID={'password-warning'}>
 					{this.state.warningIncorrectPassword}

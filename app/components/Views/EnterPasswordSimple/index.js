@@ -84,6 +84,7 @@ export default class EnterPasswordSimple extends PureComponent {
 
 	render() {
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -100,6 +101,7 @@ export default class EnterPasswordSimple extends PureComponent {
 									onChangeText={this.onPasswordChange}
 									secureTextEntry
 									onSubmitEditing={this.onPressConfirm}
+									keyboardAppearance={themeAppearance}
 								/>
 							</View>
 							<View style={styles.ctaWrapper}>

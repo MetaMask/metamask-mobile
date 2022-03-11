@@ -208,6 +208,7 @@ export default class ImportPrivateKey extends PureComponent {
 
 	render() {
 		const colors = this.context.colors || mockColors.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
 		return (
@@ -251,6 +252,7 @@ export default class ImportPrivateKey extends PureComponent {
 								placeholder={strings('import_private_key.example')}
 								placeholderTextColor={colors.text.muted}
 								autoCapitalize={'none'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<View style={styles.scanPkeyRow}>
 								<TouchableOpacity onPress={this.scanPkey} style={styles.scanPkey}>

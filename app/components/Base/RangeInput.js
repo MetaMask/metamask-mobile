@@ -102,7 +102,7 @@ const RangeInput = ({
 }) => {
 	const textInput = useRef(null);
 	const [errorState, setErrorState] = useState();
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
 	const styles = createStyles(colors);
 
 	const handleClickUnit = useCallback(() => {
@@ -185,6 +185,7 @@ const RangeInput = ({
 						value={value}
 						keyboardType="numeric"
 						ref={textInput}
+						keyboardAppearance={themeAppearance}
 					/>
 					{!!unit && (
 						<Text onPress={handleClickUnit} black={!error} red={Boolean(error)}>

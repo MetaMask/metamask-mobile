@@ -554,7 +554,7 @@
 		"theme_button_text": "Change Theme",
 		"theme_title": "Theme ({{theme}})",
 		"theme_description": "Change your app appearance by setting the theme.",
-		"theme_system": "System",
+		"theme_os": "System",
 		"theme_light": "Light",
 		"theme_dark": "Dark",
 		"network_exists": "This network has already been added."
