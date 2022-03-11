@@ -259,7 +259,7 @@ class TransactionEditor extends PureComponent {
 		const { transaction } = this.props;
 
 		const zeroGas = new BN('00');
-		const hasGasPrice = Boolean(transaction.gasPrice) && !new BN(transaction.gasPrice).eq(zeroGas);
+		const hasGasPrice = Boolean(transaction.gasPrice);
 		const hasGasLimit = Boolean(transaction.gas) && !new BN(transaction.gas).eq(zeroGas);
 		const hasEIP1559Gas = Boolean(transaction.maxFeePerGas) && Boolean(transaction.maxPriorityFeePerGas);
 		if (!hasGasLimit) this.handleGetGasLimit();

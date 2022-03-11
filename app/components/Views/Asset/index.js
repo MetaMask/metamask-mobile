@@ -4,11 +4,13 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { swapsUtils } from '@metamask/swaps-controller/';
 
+import { TX_UNAPPROVED, TX_SUBMITTED, TX_SIGNED, TX_PENDING, TX_CONFIRMED } from '../../../constants/transaction';
 import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import Engine from '../../../core/Engine';
+import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -190,13 +192,16 @@ class Asset extends PureComponent {
 		const { selectedAddress } = this.props;
 		const addedAccountTime = this.props.identities[selectedAddress]?.importTime;
 		this.isNormalizing = true;
+
 		let submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
+		const submittedNonces = [];
+
 		const { chainId, transactions } = this.props;
 		if (transactions.length) {
-			transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
-			const txs = transactions.filter((tx) => {
+			const sortedTransactions = sortTransactions(transactions);
+			const filteredTransactions = sortedTransactions.filter((tx) => {
 				const filterResult = this.filter(tx);
 				if (filterResult) {
 					tx.insertImportTime = addAccountTimeFlagFilter(
@@ -206,15 +211,15 @@ class Asset extends PureComponent {
 					);
 					if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
 					switch (tx.status) {
-						case 'submitted':
-						case 'signed':
-						case 'unapproved':
+						case TX_SUBMITTED:
+						case TX_SIGNED:
+						case TX_UNAPPROVED:
 							submittedTxs.push(tx);
 							return false;
-						case 'pending':
+						case TX_PENDING:
 							newPendingTxs.push(tx);
 							break;
-						case 'confirmed':
+						case TX_CONFIRMED:
 							confirmedTxs.push(tx);
 							break;
 					}
@@ -222,39 +227,43 @@ class Asset extends PureComponent {
 				return filterResult;
 			});
 
-			const submittedNonces = [];
-			submittedTxs = submittedTxs.filter((transaction) => {
-				const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+			submittedTxs = submittedTxs.filter(({ transaction: { from, nonce } }) => {
+				if (!toLowerCaseEquals(from, selectedAddress)) {
+					return false;
+				}
+				const alreadySubmitted = submittedNonces.includes(nonce);
 				const alreadyConfirmed = confirmedTxs.find(
-					(tx) =>
-						safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
-						tx.transaction.nonce === transaction.transaction.nonce
+					(confirmedTransaction) =>
+						toLowerCaseEquals(
+							safeToChecksumAddress(confirmedTransaction.transaction.from),
+							selectedAddress
+						) && confirmedTransaction.transaction.nonce === nonce
 				);
 				if (alreadyConfirmed) {
 					return false;
 				}
-				submittedNonces.push(transaction.transaction.nonce);
+				submittedNonces.push(nonce);
 				return !alreadySubmitted;
 			});
 
-			//if the account added insertpoint is not found add it to the last transaction
-			if (!accountAddedTimeInsertPointFound && txs && txs.length) {
-				txs[txs.length - 1].insertImportTime = true;
+			// If the account added "Insert Point" is not found add it to the last transaction
+			if (!accountAddedTimeInsertPointFound && filteredTransactions && filteredTransactions.length) {
+				filteredTransactions[filteredTransactions.length - 1].insertImportTime = true;
 			}
 			// To avoid extra re-renders we want to set the new txs only when
 			// there's a new tx in the history or the status of one of the existing txs changed
 			if (
 				(this.txs.length === 0 && !this.state.transactionsUpdated) ||
-				this.txs.length !== txs.length ||
+				this.txs.length !== filteredTransactions.length ||
 				this.chainId !== chainId ||
 				this.didTxStatusesChange(newPendingTxs)
 			) {
-				this.txs = txs;
+				this.txs = filteredTransactions;
 				this.txsPending = newPendingTxs;
 				this.setState({
 					transactionsUpdated: true,
 					loading: false,
-					transactions: txs,
+					transactions: filteredTransactions,
 					submittedTxs,
 					confirmedTxs,
 				});
