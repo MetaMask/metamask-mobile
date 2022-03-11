@@ -72,6 +72,7 @@ const AmountToBuy = ({ navigation }) => {
 		setSelectedAsset,
 		selectedPaymentMethod,
 		setRegionCurrency,
+		regionCurrency,
 	} = useFiatOnRampSDK();
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
@@ -80,11 +81,23 @@ const AmountToBuy = ({ navigation }) => {
 		selectedPaymentMethod
 	);
 
+	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
+		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry, regionId: undefined });
+
 	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
 		'getFiatCurrencies',
 		{ countryId: selectedCountry, regionId: selectedRegion },
 		selectedPaymentMethod
 	);
+
+	const currentCurrency = useMemo(() => {
+		// whenever user will switch region currnecy, we lookup the new selected currency in the fiat currencies list
+		if (currencies && regionCurrency && regionCurrency !== defaultCurrnecy?.id) {
+			return currencies.find((c) => c.id === regionCurrency);
+		}
+		// as long as we don't have use selection for fiat currnect, we return the default currnecy according to region
+		return defaultCurrnecy;
+	}, [currencies, defaultCurrnecy, regionCurrency]);
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod(
@@ -143,7 +156,7 @@ const AmountToBuy = ({ navigation }) => {
 
 	const handleCurrencyPress = useCallback(
 		(newCurrency) => {
-			setRegionCurrency(newCurrency);
+			setRegionCurrency(newCurrency?.id);
 			hideFiatSelectorModal();
 		},
 		[hideFiatSelectorModal, setRegionCurrency]
@@ -178,7 +191,7 @@ const AmountToBuy = ({ navigation }) => {
 		}
 	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
 
-	if (isFetchingDataTokens || isFetchingGetPaymentMethod || isFetchingCurrencies) {
+	if (isFetchingDataTokens || isFetchingGetPaymentMethod || isFetchingCurrencies || isFetchingDefaultCurrency) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -188,7 +201,7 @@ const AmountToBuy = ({ navigation }) => {
 		);
 	}
 
-	if (errorDataTokens || errorGetPaymentMethod || errorCurrencies) {
+	if (errorDataTokens || errorGetPaymentMethod || errorCurrencies || errorDefaultCurrnecy) {
 		return (
 			<WebviewError
 				error={{ description: errorDataTokens || errorGetPaymentMethod }}
@@ -222,9 +235,9 @@ const AmountToBuy = ({ navigation }) => {
 							<AmountInput
 								highlighted={amountFocused}
 								label={'Amount'}
-								currencySymbol={'$'}
+								currencySymbol={currentCurrency?.denomSymbol}
 								amount={displayAmount}
-								currencyCode={'USD'}
+								currencyCode={currentCurrency?.symbol}
 								onPress={onAmountInputPress}
 								onCurrencyPress={handleFiatSelectorPress}
 							/>
