@@ -66,16 +66,21 @@ const Region = () => {
 	);
 
 	const handleRegionPress = useCallback(
-		(region) => {
+		(region, country) => {
 			if (region.unsupported) {
 				setShowAlert(true);
 			} else {
 				setSelectedRegion(region);
+				setSelectedCountry(country);
 				hideTokenSelectorModal();
 			}
 		},
-		[hideTokenSelectorModal, setSelectedRegion]
+		[hideTokenSelectorModal, setSelectedCountry, setSelectedRegion]
 	);
+
+	const handleUnsetRegion = useCallback(() => {
+		setSelectedRegion(undefined);
+	}, [setSelectedRegion]);
 
 	if (isFetching || !data) {
 		return (
@@ -156,16 +161,13 @@ const Region = () => {
 					dismiss={toggleTokenSelectorModal}
 					onCountryPress={handleCountryPress}
 					onRegionPress={handleRegionPress}
+					unsetRegion={handleUnsetRegion}
 				/>
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
 					<View>
-						<StyledButton
-							type="confirm"
-							onPress={handleOnPress}
-							disabled={Object.keys(selectedRegion).length === 0}
-						>
+						<StyledButton type="confirm" onPress={handleOnPress} disabled={!selectedCountry?.id}>
 							Continue
 						</StyledButton>
 					</View>

@@ -66,7 +66,6 @@ const AmountToBuy = ({ navigation }) => {
 
 	const {
 		selectedCountry,
-		// setSelectedCountry,
 		selectedRegion,
 		selectedAsset,
 		setSelectedAsset,
@@ -77,16 +76,16 @@ const AmountToBuy = ({ navigation }) => {
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
-		{ countryId: selectedCountry, regionId: selectedRegion },
+		{ countryId: selectedCountry.id, regionId: selectedRegion.id },
 		selectedPaymentMethod
 	);
 
 	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
-		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry, regionId: selectedRegion });
+		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry.id, regionId: selectedRegion.id });
 
 	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
 		'getFiatCurrencies',
-		{ countryId: selectedCountry, regionId: selectedRegion },
+		{ countryId: selectedCountry.id, regionId: selectedRegion.id },
 		selectedPaymentMethod
 	);
 
@@ -102,7 +101,7 @@ const AmountToBuy = ({ navigation }) => {
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod(
 			'getPaymentMethod',
-			{ countryId: selectedCountry, regionId: selectedRegion },
+			{ countryId: selectedCountry.id, regionId: selectedRegion.id },
 			selectedPaymentMethod
 		);
 
@@ -219,7 +218,7 @@ const AmountToBuy = ({ navigation }) => {
 							<AccountSelector />
 							<View style={styles.spacer} />
 							<SelectorButton onPress={handleCountryPress}>
-								<Text reset>{selectedCountry} - 🇺🇸</Text>
+								<Text reset>{selectedCountry?.emoji}</Text>
 							</SelectorButton>
 						</View>
 						<View style={styles.row}>

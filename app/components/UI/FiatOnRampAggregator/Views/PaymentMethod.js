@@ -23,8 +23,8 @@ const PaymentMethod = () => {
 	const { selectedCountry, selectedRegion, setSelectedPaymentMethod } = useFiatOnRampSDK();
 
 	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
-		countryId: selectedCountry,
-		regionId: selectedRegion,
+		countryId: selectedCountry.id,
+		regionId: selectedRegion.id,
 	});
 
 	const handleContinueToAmount = useCallback(() => {
