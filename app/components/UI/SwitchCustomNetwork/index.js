@@ -7,6 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import { colors } from '../../../styles/common';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
+import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
 const styles = StyleSheet.create({
 	root: {
@@ -131,7 +132,7 @@ const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation,
 					type={'cancel'}
 					onPress={cancel}
 					containerStyle={[styles.button, styles.cancel]}
-					testID={'connect-cancel-button'}
+					testID={CANCEL_BUTTON_ID}
 				>
 					{strings('switch_custom_network.cancel')}
 				</StyledButton>
