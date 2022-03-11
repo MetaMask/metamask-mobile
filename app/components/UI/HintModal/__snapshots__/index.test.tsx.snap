@@ -91,6 +91,7 @@ exports[`HintModal should render correctly 1`] = `
         Do not use this to write your Secret Recovery Phrase.
       </Text>
       <TextInput
+        keyboardAppearance="light"
         multiline={true}
         onChangeText={[Function]}
         placeholder="e.g. Mom's house"

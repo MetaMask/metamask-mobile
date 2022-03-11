@@ -122,6 +122,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             autoCapitalize="none"
             autoCorrect={false}
             editable={true}
+            keyboardAppearance="light"
             keyboardType="numeric"
             numberOfLines={1}
             onChangeText={[Function]}

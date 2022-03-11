@@ -444,7 +444,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
 		},
 	});
 	const rightAction = () => {
-		const providerType = route.params?.providerType ?? '';
+		const providerType = route?.params?.providerType ?? '';
 		trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_CANCEL, {
 			view: title.split('.')[1],
 			network: providerType,

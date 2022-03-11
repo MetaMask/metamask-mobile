@@ -163,6 +163,7 @@ exports[`Browser should render correctly 1`] = `
           <TextInput
             autoCapitalize="none"
             autoCorrect={false}
+            keyboardAppearance="light"
             keyboardType="web-search"
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
