@@ -34,10 +34,11 @@ const styles = StyleSheet.create({
 const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { setSelectedCountry, setSelectedRegion } = useFiatOnRampSDK();
+	const { setSelectedCountry, setSelectedRegion, setRegionCurrency } = useFiatOnRampSDK();
 	// eslint-disable-next-line no-unused-vars
 	const [showAlert, setShowAlert] = useState(false);
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
+
 	const [selectedRegionObject, setSelectedRegionObject] = useState({});
 	const navigation = useNavigation();
 
@@ -60,10 +61,11 @@ const Region = () => {
 			} else {
 				setSelectedRegionObject(country);
 				setSelectedCountry(country.id);
+				setRegionCurrency(country.currency);
 				hideTokenSelectorModal();
 			}
 		},
-		[hideTokenSelectorModal, setSelectedCountry]
+		[hideTokenSelectorModal, setRegionCurrency, setSelectedCountry]
 	);
 
 	const handleRegionPress = useCallback(

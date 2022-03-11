@@ -82,7 +82,7 @@ const AmountToBuy = ({ navigation }) => {
 	);
 
 	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
-		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry, regionId: undefined });
+		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry, regionId: selectedRegion });
 
 	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
 		'getFiatCurrencies',
