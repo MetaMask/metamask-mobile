@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "4.1.0",
+  "version": "4.2.2",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -90,15 +90,14 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
-    "web3": "1.6.1",
     "simple-get": "4.0.1"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "25.1.0",
+    "@metamask/controllers": "26.0.0",
     "@metamask/etherscan-link": "^2.0.0",
-    "@metamask/swaps-controller": "^6.5.0",
+    "@metamask/swaps-controller": "^6.6.0",
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
@@ -396,11 +395,8 @@
       "dtrace-provider": false,
       "core-js": false,
       "sharp": true,
-      "web3": false,
-      "web3-bzz": false,
       "bufferutil": false,
       "utf-8-validate": false,
-      "web3-shh": false,
       "highlight.js": false
     }
   }
