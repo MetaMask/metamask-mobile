@@ -12,6 +12,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
+import { ACCOUNT_APROVAL_MODAL_CONTAINER_ID, CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
 const styles = StyleSheet.create({
 	root: {
@@ -187,7 +188,7 @@ class AccountApproval extends PureComponent {
 	render = () => {
 		const { currentPageInformation } = this.props;
 		return (
-			<View style={styles.root} testID={'account-approval-modal-container'}>
+			<View style={styles.root} testID={ACCOUNT_APROVAL_MODAL_CONTAINER_ID}>
 				<TransactionHeader currentPageInformation={currentPageInformation} />
 				<Text style={styles.intro}>{strings('accountApproval.action')}</Text>
 				<Text style={styles.warning}>{strings('accountApproval.warning')}</Text>
@@ -199,7 +200,7 @@ class AccountApproval extends PureComponent {
 						type={'cancel'}
 						onPress={this.onCancel}
 						containerStyle={[styles.button, styles.cancel]}
-						testID={'connect-cancel-button'}
+						testID={CANCEL_BUTTON_ID}
 					>
 						{strings('accountApproval.cancel')}
 					</StyledButton>
