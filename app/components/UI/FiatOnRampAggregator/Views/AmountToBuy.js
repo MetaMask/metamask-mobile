@@ -195,7 +195,7 @@ const AmountToBuy = ({ navigation }) => {
 						<View style={styles.row}>
 							<AssetSelectorButton
 								label={'You want to buy'}
-								icon={<TokenIcon medium icon={selectedAsset?.iconUrl} symbol={selectedAsset?.symbol} />}
+								icon={<TokenIcon medium icon={selectedAsset?.logo} symbol={selectedAsset?.symbol} />}
 								assetSymbol={selectedAsset?.symbol}
 								assetName={selectedAsset?.symbol}
 								onPress={handleAssetSelectorPress}

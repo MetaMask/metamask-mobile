@@ -15,6 +15,7 @@ import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from '../../Swaps/components/TokenIcon';
+import { CHAIN_ID_NETWORKS } from '../constants';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -118,7 +119,7 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 				<ListItem style={styles.listItem}>
 					<ListItem.Content>
 						<ListItem.Icon>
-							<TokenIcon medium icon={item.iconUrl} symbol={item.symbol} />
+							<TokenIcon medium icon={item.logo} symbol={item.symbol} />
 						</ListItem.Icon>
 						<ListItem.Body>
 							<ListItem.Title>{item.symbol}</ListItem.Title>
@@ -128,7 +129,7 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 							<ListItem.Amount>
 								<View style={styles.networkLabel}>
 									<Text bold upper style={styles.networkLabelText}>
-										{item.network}
+										{CHAIN_ID_NETWORKS[item.network]}
 									</Text>
 								</View>
 							</ListItem.Amount>
