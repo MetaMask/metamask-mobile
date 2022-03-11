@@ -23,6 +23,7 @@ import PaymentMethodModal from '../components/PaymentMethodModal';
 import { PAYMENT_METHOD_ICON } from '../constants';
 import WebviewError from '../../WebviewError';
 import PaymentIcon from '../components/PaymentIcon';
+import FiatSelectModal from '../components/modals/FiatSelectModal';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -60,6 +61,7 @@ const AmountToBuy = ({ navigation }) => {
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
+	const [isFiatSelectorModalVisible, toggleFiatSelectorModal, , hideFiatSelectorModal] = useModalHandler(false);
 	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
 
 	const {
@@ -69,10 +71,17 @@ const AmountToBuy = ({ navigation }) => {
 		selectedAsset,
 		setSelectedAsset,
 		selectedPaymentMethod,
+		setRegionCurrency,
 	} = useFiatOnRampSDK();
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
+		{ countryId: selectedCountry, regionId: selectedRegion },
+		selectedPaymentMethod
+	);
+
+	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
+		'getFiatCurrencies',
 		{ countryId: selectedCountry, regionId: selectedRegion },
 		selectedPaymentMethod
 	);
@@ -109,26 +118,15 @@ const AmountToBuy = ({ navigation }) => {
 		keyboardHeight.current = height;
 	}, []);
 
+	/****************** COUNTRY/REGION HANDLERS ****************************/
 	const handleCountryPress = useCallback(() => {
 		// TODO: handle changing country
 	}, []);
 
-	const handleAssetSelectorPress = useCallback(
-		(newAmount) => {
-			// TODO: handle
-			toggleTokenSelectorModal();
-		},
-		[toggleTokenSelectorModal]
-	);
-
-	const handlePaymentMethodSelectorPress = useCallback(() => {
-		// TODO: handle
-		togglePaymentMethodModal();
-	}, [togglePaymentMethodModal]);
-
-	const handleAmountCurrencyPress = useCallback((newAmount) => {
-		// TODO: handle
-	}, []);
+	/****************** TOKENS HANDLERS *********************************/
+	const handleAssetSelectorPress = useCallback(() => {
+		toggleTokenSelectorModal();
+	}, [toggleTokenSelectorModal]);
 
 	const handleAssetPress = useCallback(
 		(newAsset) => {
@@ -137,6 +135,25 @@ const AmountToBuy = ({ navigation }) => {
 		},
 		[hideTokenSelectorModal, setSelectedAsset]
 	);
+
+	/****************** FIAT CURRENCIES HANDLERS *********************************/
+	const handleFiatSelectorPress = useCallback(() => {
+		toggleFiatSelectorModal();
+	}, [toggleFiatSelectorModal]);
+
+	const handleCurrencyPress = useCallback(
+		(newCurrency) => {
+			setRegionCurrency(newCurrency);
+			hideFiatSelectorModal();
+		},
+		[hideFiatSelectorModal, setRegionCurrency]
+	);
+
+	/****************** PAYMENT METHODS HANDLERS *********************************/
+	const handlePaymentMethodSelectorPress = useCallback(() => {
+		// TODO: handle
+		togglePaymentMethodModal();
+	}, [togglePaymentMethodModal]);
 
 	const handleGetQuotePress = useCallback(() => {
 		navigation.navigate('GetQuotes', { amount });
@@ -161,7 +178,7 @@ const AmountToBuy = ({ navigation }) => {
 		}
 	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
 
-	if (isFetchingDataTokens || isFetchingGetPaymentMethod) {
+	if (isFetchingDataTokens || isFetchingGetPaymentMethod || isFetchingCurrencies) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -171,7 +188,7 @@ const AmountToBuy = ({ navigation }) => {
 		);
 	}
 
-	if (errorDataTokens || errorGetPaymentMethod) {
+	if (errorDataTokens || errorGetPaymentMethod || errorCurrencies) {
 		return (
 			<WebviewError
 				error={{ description: errorDataTokens || errorGetPaymentMethod }}
@@ -209,7 +226,7 @@ const AmountToBuy = ({ navigation }) => {
 								amount={displayAmount}
 								currencyCode={'USD'}
 								onPress={onAmountInputPress}
-								onCurrencyPress={handleAmountCurrencyPress}
+								onCurrencyPress={handleFiatSelectorPress}
 							/>
 						</View>
 					</ScreenLayout.Content>
@@ -261,11 +278,17 @@ const AmountToBuy = ({ navigation }) => {
 				tokens={tokens}
 				onItemPress={handleAssetPress}
 			/>
+			<FiatSelectModal
+				isVisible={isFiatSelectorModalVisible}
+				dismiss={toggleFiatSelectorModal}
+				title={strings('fiat_on_ramp_aggregator.select_region_currency')}
+				currencies={currencies}
+				onItemPress={handleCurrencyPress}
+			/>
 			<PaymentMethodModal
 				isVisible={isPaymentMethodModalVisible}
 				dismiss={togglePaymentMethodModal}
 				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-				onItemPress={handleAssetPress}
 			/>
 		</ScreenLayout>
 	);

@@ -37,13 +37,14 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
+	const INITIAL_FIAT_CURRENCY = '/currencies/fiat/usd';
 	const INITIAL_SELECTED_ASSET = 'ETH';
 
 	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
-	const [regionCurrency, setRegionCurrency] = useState('USD');
+	const [regionCurrency, setRegionCurrency] = useState(INITIAL_FIAT_CURRENCY);
 
 	const setSelectedCountryCallback = useCallback(
 		(countryCode) => {

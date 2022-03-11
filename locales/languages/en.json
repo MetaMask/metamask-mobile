@@ -1467,8 +1467,10 @@
 		"select_a_cryptocurrency": "Select a cryptocurrency",
 		"select_a_cryptocurrency_description": "Select from the list of tokens available on the “Ethereum Network”. dolor sit amet, consectetur adipiscing elit.",
 		"search_by_cryptocurrency": "Search by cryptocurrency",
+		"search_by_currency": "Search for a region currency",
 		"selected_payment_method": "Selected payment method",
 		"select_payment_method": "Select payment method",
+		"select_region_currency": "Select Region Currency",
 		"region": {
 			"title": "Select your Region",
 			"description": "Select the country where your card is registered (not where you are located).",
