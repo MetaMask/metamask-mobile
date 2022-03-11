@@ -15,6 +15,14 @@ SEMVER_REGEX="\
 (\\-(${IDENT})(\\.(${IDENT}))*)?\
 (\\+${FIELD}(\\.${FIELD})*)?$"
 
+# get current numbers
+CURRENT_SEMVER=$(awk '/VERSION_NAME: /{print $2}' bitrise.yml);
+CURRENT_VERSION_NUMBER=$(awk '/VERSION_NUMBER: /{print $2}' bitrise.yml);
+
+semver_to_nat () {
+  echo ${1//./}
+}
+
 perform_updates () {
   echo -e "creating release\nsemver version: $SEMVER_VERSION\nversion number: $VERSION_NUMBER"
 
@@ -58,6 +66,20 @@ fi
 # check if VERSION_NUMBER is not natural number
 if ! [[ $VERSION_NUMBER =~ $NAT ]]; then
   echo "VERSION_NUMBER is not a number!"
+  exit 1
+fi
+
+# ensure SEMVER_VERSION goes up
+CURRENT_SEMVER_NAT=$(semver_to_nat "$CURRENT_SEMVER")
+SEMVER_VERSION_NAT=$(semver_to_nat "$SEMVER_VERSION")
+if [[ "$SEMVER_VERSION_NAT" -le "$CURRENT_SEMVER_NAT" ]]; then
+  echo "semver $SEMVER_VERSION is less than or equal to current: $CURRENT_SEMVER"
+  exit 1
+fi
+
+# ensure VERSION_NUMBER goes up
+if [[ "$VERSION_NUMBER" -le "$CURRENT_VERSION_NUMBER" ]]; then
+  echo "version $VERSION_NUMBER is less than or equal to current: $CURRENT_VERSION_NUMBER"
   exit 1
 fi
 
