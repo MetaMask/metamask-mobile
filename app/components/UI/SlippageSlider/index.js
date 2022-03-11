@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Animated, PanResponder, StyleSheet, Text, Image } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import Svg, { Path } from 'react-native-svg';
 
 /* eslint-disable import/no-commonjs */
@@ -93,7 +93,7 @@ const createStyles = (colors) =>
 const setAnimatedValue = (animatedValue, value) => animatedValue.setValue(value);
 
 const SlippageSlider = ({ range, increment, onChange, value, formatTooltipText, disabled, changeOnRelease }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	/* Reusable/truncated references to the range prop values */
 	const [r0, r1] = useMemo(() => range, [range]);

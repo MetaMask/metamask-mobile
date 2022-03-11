@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useAppThemeFromContext } from '../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const createStyles = (colors) =>
@@ -14,7 +14,7 @@ const createStyles = (colors) =>
 	});
 
 function Fox({ style, customStyle, customContent = '', forwardedRef, ...props }) {
-	const { colors } = useAppThemeFromContext();
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const opacityControl = useSharedValue(0);
 

@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -126,7 +126,7 @@ const createStyles = (colors) =>
  */
 const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, onCancel, onConfirm }) => {
 	const [viewDetails, setViewDetails] = useState(false);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	/**

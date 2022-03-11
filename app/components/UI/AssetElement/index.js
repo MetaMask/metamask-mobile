@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -58,7 +58,7 @@ export default class AssetElement extends PureComponent {
 
 	render = () => {
 		const { children } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

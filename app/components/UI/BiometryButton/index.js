@@ -4,7 +4,7 @@ import { TouchableOpacity, Image as ImageRN, Platform, StyleSheet } from 'react-
 import PropTypes from 'prop-types';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -29,7 +29,7 @@ const androidFaceRecognition = require('../../../images/android-face-recognition
 const androidIris = require('../../../images/android-iris.png');
 
 const BiometryButton = ({ onPress, hidden, type }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const renderIcon = (type) => {

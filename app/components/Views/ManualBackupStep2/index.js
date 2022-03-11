@@ -11,7 +11,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -192,7 +192,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	updateNavBar = () => {
 		const { route, navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
 	};
 
@@ -290,7 +290,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	renderWords = () => {
 		const { wordsDict } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -301,7 +301,7 @@ class ManualBackupStep2 extends PureComponent {
 	};
 
 	renderSuccess = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -314,7 +314,7 @@ class ManualBackupStep2 extends PureComponent {
 
 	renderWordBox = (word, i) => {
 		const { currentIndex, confirmedWords } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -341,7 +341,7 @@ class ManualBackupStep2 extends PureComponent {
 		const { wordsDict } = this.state;
 		const [word] = key.split(',');
 		const selected = wordsDict[key].currentPosition !== undefined;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -360,7 +360,7 @@ class ManualBackupStep2 extends PureComponent {
 		const { confirmedWords, seedPhraseReady } = this.state;
 		const wordLength = confirmedWords.length;
 		const half = wordLength / 2;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

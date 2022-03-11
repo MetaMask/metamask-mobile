@@ -19,7 +19,7 @@ import ElevatedView from 'react-native-elevated-view';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -115,7 +115,7 @@ function TransactionNotification(props) {
 	const actionXAnimated = useRef(new Animated.Value(0)).current;
 	const detailsAnimated = useRef(new Animated.Value(0)).current;
 
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const detailsFadeIn = useCallback(async () => {

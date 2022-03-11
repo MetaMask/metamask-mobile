@@ -8,7 +8,7 @@ import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
 import { getTokenList } from '../../../../reducers/tokens';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -68,7 +68,7 @@ interface Props {
 
 const AssetList = ({ searchResults, handleSelectAsset, emptyMessage }: Props) => {
 	const tokenList = useSelector(getTokenList);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	/**

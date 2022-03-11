@@ -45,6 +45,7 @@ import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -55,6 +56,7 @@ const styles = StyleSheet.create({
 	},
 });
 const RootRPCMethodsUI = (props) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const [showPendingApproval, setShowPendingApproval] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
 	const [signType, setSignType] = useState(false);
@@ -329,7 +331,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={onSignAction}
@@ -396,7 +399,8 @@ const RootRPCMethodsUI = (props) => {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={onWalletConnectSessionRejected}
@@ -457,7 +461,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onAddCustomNetworkReject}
@@ -491,7 +496,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onSwitchCustomNetworkReject}
@@ -533,7 +539,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onAccountsReject}
@@ -564,7 +571,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={onCancelWatchAsset}

@@ -30,7 +30,7 @@ import { fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -305,7 +305,7 @@ class AccountOverview extends PureComponent {
 			chainId,
 			swapsIsLive,
 		} = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 

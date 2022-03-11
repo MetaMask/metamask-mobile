@@ -34,7 +34,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -273,7 +273,7 @@ class Transactions extends PureComponent {
 	};
 
 	renderLoader = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -284,7 +284,7 @@ class Transactions extends PureComponent {
 	};
 
 	renderEmpty = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -343,7 +343,7 @@ class Transactions extends PureComponent {
 	};
 
 	renderViewMore = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -495,7 +495,7 @@ class Transactions extends PureComponent {
 	};
 
 	renderUpdateTxEIP1559Gas = (isCancel) => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (!this.existingGas) return null;
@@ -533,7 +533,7 @@ class Transactions extends PureComponent {
 	renderList = () => {
 		const { submittedTransactions, confirmedTransactions, header } = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const transactions =
@@ -616,7 +616,7 @@ class Transactions extends PureComponent {
 	};
 
 	render = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

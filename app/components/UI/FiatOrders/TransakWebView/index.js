@@ -22,7 +22,7 @@ import {
 } from '../../../../constants/on-ramp';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 class TransakWebView extends PureComponent {
 	static propTypes = {
@@ -47,7 +47,7 @@ class TransakWebView extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getTransakWebviewNavbar(
 				navigation,

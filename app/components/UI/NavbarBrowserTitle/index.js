@@ -6,7 +6,7 @@ import { fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -118,7 +118,7 @@ class NavbarBrowserTitle extends PureComponent {
 
 	render = () => {
 		const { https, network, hostname, error, icon } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 		const color = (Networks[network.provider.type] && Networks[network.provider.type].color) || null;
 		const name = this.getNetworkName(network);

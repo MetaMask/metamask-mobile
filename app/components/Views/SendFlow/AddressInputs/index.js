@@ -9,7 +9,7 @@ import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/validators';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -134,7 +134,7 @@ const createStyles = (colors) =>
 	});
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	if (confusableCollection.length) {
@@ -190,7 +190,7 @@ export const AddressTo = (props) => {
 		confusableCollection,
 		displayExclamation,
 	} = props;
-	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (
@@ -337,7 +337,7 @@ AddressTo.propTypes = {
 
 export const AddressFrom = (props) => {
 	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

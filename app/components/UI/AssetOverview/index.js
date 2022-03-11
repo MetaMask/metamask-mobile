@@ -25,7 +25,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -212,7 +212,7 @@ class AssetOverview extends PureComponent {
 			tokenList,
 			asset: { address, isETH },
 		} = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (isETH) {
@@ -236,7 +236,7 @@ class AssetOverview extends PureComponent {
 		const {
 			asset: { symbol },
 		} = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const supportArticleUrl =
@@ -266,7 +266,7 @@ class AssetOverview extends PureComponent {
 			swapsIsLive,
 			swapsTokens,
 		} = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		let mainBalance, secondaryBalance;

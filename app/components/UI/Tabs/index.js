@@ -7,7 +7,7 @@ import TabThumbnail from './TabThumbnail';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
@@ -204,7 +204,7 @@ export default class Tabs extends PureComponent {
 	};
 
 	getStyles = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		return createStyles(colors);
 	};
 

@@ -10,7 +10,7 @@ import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -111,7 +111,7 @@ const createStyles = (colors) =>
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 	const [nonce, onChangeText] = React.useState(nonceValue);
-	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const incrementDecrementNonce = (decrement) => {

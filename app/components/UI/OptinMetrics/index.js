@@ -24,7 +24,7 @@ import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../cons
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -127,7 +127,7 @@ class OptinMetrics extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(getOptinMetricsNavbarOptions(colors));
 	};
 
@@ -178,7 +178,7 @@ class OptinMetrics extends PureComponent {
 	 * @param {number} i - Index key
 	 */
 	renderAction = ({ action, description }, i) => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -260,7 +260,7 @@ class OptinMetrics extends PureComponent {
 	 * @returns - Touchable opacity object to render with privacy policy information
 	 */
 	renderPrivacyPolicy = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -275,7 +275,7 @@ class OptinMetrics extends PureComponent {
 	};
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

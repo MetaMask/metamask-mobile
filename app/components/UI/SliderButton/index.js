@@ -3,7 +3,7 @@ import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-nat
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
@@ -97,7 +97,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled, onSw
 
 	const onCompleteCallback = useRef(onComplete);
 
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const handleIsPressed = useCallback(

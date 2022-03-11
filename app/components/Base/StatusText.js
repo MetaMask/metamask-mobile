@@ -4,7 +4,7 @@ import Text from './Text';
 import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
-import { useAppThemeFromContext, mockColors } from '../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../util/theme';
 
 const styles = StyleSheet.create({
 	status: {
@@ -16,11 +16,11 @@ const styles = StyleSheet.create({
 
 export const ConfirmedText = (props) => <Text bold green style={styles.status} {...props} />;
 export const PendingText = (props) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	return <Text bold style={[styles.status, { color: colors.secondary.default }]} {...props} />;
 };
 export const FailedText = (props) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	return <Text bold style={[styles.status, { color: colors.error.default }]} {...props} />;
 };
 

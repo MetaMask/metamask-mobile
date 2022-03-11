@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -29,7 +29,7 @@ const foxImage = require('../../../images/fox.png'); // eslint-disable-line impo
  */
 export default class FoxScreen extends PureComponent {
 	render = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

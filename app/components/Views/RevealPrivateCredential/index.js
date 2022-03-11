@@ -25,7 +25,7 @@ import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -209,7 +209,7 @@ class RevealPrivateCredential extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 
 		navigation.setOptions(
 			getNavigationOptionsTitle(
@@ -337,7 +337,7 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	getStyles = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 		return { colors, styles, themeAppearance };

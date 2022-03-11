@@ -10,7 +10,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../constants/network';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -43,7 +43,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 	const [selectedAsset, setSelectedAsset] = useState({});
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const { address, symbol, decimals } = selectedAsset as any;
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const isTokenDetectionEnabled = useSelector(

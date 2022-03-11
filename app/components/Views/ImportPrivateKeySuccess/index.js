@@ -10,7 +10,7 @@ import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -115,7 +115,7 @@ class ImportPrivateKeySuccess extends PureComponent {
 	};
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

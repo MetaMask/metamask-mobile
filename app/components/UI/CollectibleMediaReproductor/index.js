@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import Identicon from '../Identicon';
 import MediaPlayer from '../../Views/MediaPlayer';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	listWrapper: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
  * View that renders an ERC-721 Token image
  */
 export default function CollectibleMediaPlayer({ collectible, renderFull, containerStyle, iconStyle }) {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const [fallbackImage, setFallbackImage] = useState(null);
 
 	const fallback = () => {

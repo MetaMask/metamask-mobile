@@ -32,7 +32,7 @@ import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -551,7 +551,7 @@ class TransactionReviewInformation extends PureComponent {
 			gasEstimateType,
 		} = this.props;
 		const { nonce } = this.props.transaction;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const is_main_net = isMainNet(network);

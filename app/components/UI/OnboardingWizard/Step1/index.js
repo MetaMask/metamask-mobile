@@ -9,7 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	main: {
@@ -65,7 +65,7 @@ class Step1 extends PureComponent {
 	 * Returns content for this step
 	 */
 	content = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const dynamicOnboardingStyles = onboardingStyles(colors);
 
 		return (

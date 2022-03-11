@@ -20,7 +20,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -207,7 +207,7 @@ export default class ImportPrivateKey extends PureComponent {
 	};
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 

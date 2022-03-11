@@ -37,7 +37,7 @@ import {
 import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -99,7 +99,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	const seedWordsRef = useRef(null);
 	const importedAccountsRef = useRef(null);
 	const dataToSyncRef = useRef<any>(null);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const passwordSet = useSelector((state: any) => state.user.passwordSet);

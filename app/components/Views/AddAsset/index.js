@@ -13,7 +13,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { NetworksChainId } from '@metamask/controllers';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -71,7 +71,7 @@ class AddAsset extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNetworkNavbarOptions(
 				`add_asset.${route.params.assetType === 'token' ? 'title' : 'title_nft'}`,
@@ -91,7 +91,7 @@ class AddAsset extends PureComponent {
 	};
 
 	renderTabBar() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -120,7 +120,7 @@ class AddAsset extends PureComponent {
 			useCollectibleDetection,
 		} = this.props;
 		const { dismissNftInfo } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

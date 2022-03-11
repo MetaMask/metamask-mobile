@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -93,7 +93,7 @@ function CollectibleContractElement({
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
 	const actionSheetRef = useRef();
 	const longPressedCollectible = useRef(null);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const toggleCollectibles = useCallback(() => {
@@ -216,6 +216,7 @@ function CollectibleContractElement({
 				destructiveButtonIndex={1}
 				// eslint-disable-next-line react/jsx-no-bind
 				onPress={handleMenuAction}
+				theme={themeAppearance}
 			/>
 		</View>
 	);

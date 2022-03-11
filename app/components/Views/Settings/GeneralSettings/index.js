@@ -18,7 +18,7 @@ import {
 import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import StyledButton from '../../../UI/StyledButton';
 
@@ -207,7 +207,7 @@ class Settings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.general_title'), navigation, false, colors)
 		);
@@ -239,7 +239,7 @@ class Settings extends PureComponent {
 
 	renderThemeSettingsSection = () => {
 		const { appTheme } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -268,7 +268,7 @@ class Settings extends PureComponent {
 			selectedAddress,
 			hideZeroBalanceTokens,
 		} = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

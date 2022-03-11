@@ -7,7 +7,7 @@ import Modal from 'react-native-modal';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>
@@ -157,7 +157,7 @@ export default class SelectComponent extends PureComponent {
 	};
 
 	renderDropdownSelector = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

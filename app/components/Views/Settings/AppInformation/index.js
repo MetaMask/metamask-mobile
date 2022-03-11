@@ -15,7 +15,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -89,7 +89,7 @@ export default class AppInformation extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(getNavigationOptionsTitle(strings('app_settings.info_title'), navigation, false, colors));
 	};
 
@@ -148,7 +148,7 @@ export default class AppInformation extends PureComponent {
 	};
 
 	render = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

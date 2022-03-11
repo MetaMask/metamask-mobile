@@ -7,7 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { getHost } from '../../../../util/browser';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -85,7 +85,7 @@ export default class ExpandedMessage extends PureComponent {
 		const { currentPageInformation, renderMessage, toggleExpandedMessage } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

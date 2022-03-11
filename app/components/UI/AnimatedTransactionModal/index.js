@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Animated, Easing } from 'react-native';
 import Device from '../../../util/device';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -199,7 +199,7 @@ class AnimatedTransactionModal extends PureComponent {
 			toAdvancedFrom,
 		} = this.state;
 		const { ready, children } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 		const components = React.Children.toArray(children);
 		let gasTransformStyle;

@@ -8,7 +8,7 @@ import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -69,7 +69,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 	);
 	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	useEffect(

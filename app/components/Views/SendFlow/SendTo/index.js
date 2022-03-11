@@ -31,7 +31,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -247,7 +247,7 @@ class SendFlow extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(getSendFlowTitle('send.send_to', navigation, route, colors));
 	};
 
@@ -474,7 +474,7 @@ class SendFlow extends PureComponent {
 
 	renderAddToAddressBookModal = () => {
 		const { addToAddressBookModalVisible, alias } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
@@ -526,7 +526,7 @@ class SendFlow extends PureComponent {
 	renderFromAccountModal = () => {
 		const { identities, keyrings, ticker } = this.props;
 		const { fromAccountModalVisible, fromSelectedAddress } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -570,7 +570,7 @@ class SendFlow extends PureComponent {
 	};
 
 	renderBuyEth = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (!allowedToBuy(this.props.network)) {
@@ -606,7 +606,7 @@ class SendFlow extends PureComponent {
 			isOnlyWarning,
 			confusableCollection,
 		} = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const checksummedAddress = toSelectedAddress && toChecksumAddress(toSelectedAddress);

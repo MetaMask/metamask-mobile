@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -39,13 +39,13 @@ const createStyles = (colors) =>
 	});
 
 const WarningIcon = () => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return <Icon style={styles.icon} size={16} color={colors.error.default} name="exclamation-triangle" />;
 };
 const CheckIcon = () => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return <MaterialIcon style={[styles.icon, styles.check]} size={16} name="check-circle" />;
@@ -65,7 +65,7 @@ const defaultProps = {
 };
 
 const SettingsNotification = ({ style, isWarning, isNotification, children }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

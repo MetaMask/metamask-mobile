@@ -24,7 +24,7 @@ import SubHeader from '../components/SubHeader';
 import TransakPaymentMethod from './transak';
 import WyreApplePayPaymentMethod from './wyreApplePay';
 import { setGasEducationCarouselSeen } from '../../../../actions/user';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
@@ -36,7 +36,7 @@ function PaymentMethodSelectorView({
 }) {
 	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress, chainId);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	useEffect(() => {
 		navigation.setOptions(

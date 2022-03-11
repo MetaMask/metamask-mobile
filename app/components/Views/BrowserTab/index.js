@@ -53,7 +53,7 @@ import { isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -236,7 +236,7 @@ export const BrowserTab = (props) => {
 	const fromHomepage = useRef(false);
 	const wizardScrollAdjusted = useRef(false);
 
-	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	/**

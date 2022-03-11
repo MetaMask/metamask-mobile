@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -85,7 +85,7 @@ const createStyles = (colors) =>
 	});
 
 const WatchAssetRequest = ({ suggestedAssetMeta, currentPageInformation, selectedAddress, onCancel, onConfirm }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	useEffect(

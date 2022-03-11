@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionModal from '../../UI/ActionModal';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -52,7 +52,7 @@ const createStyles = (colors) =>
 	});
 
 const SeedphraseModal = ({ showWhatIsSeedphraseModal, hideWhatIsSeedphrase }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

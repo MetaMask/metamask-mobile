@@ -48,7 +48,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import { useAppThemeFromContext, mockColors, ThemeContext } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme, ThemeContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
@@ -170,7 +170,7 @@ const createStyles = (colors) =>
 	});
 
 const Heading = ({ children, first }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (
@@ -181,7 +181,7 @@ const Heading = ({ children, first }) => {
 };
 
 const WarningIcon = () => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	return <Icon size={16} color={colors.error.default} name="exclamation-triangle" />;
 };
@@ -338,7 +338,7 @@ class Settings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.security_title'), navigation, false, colors)
 		);
@@ -586,7 +586,7 @@ class Settings extends PureComponent {
 	handleChangeText = (text) => this.setState({ hintText: text });
 
 	getStyles = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		return { colors, styles: createStyles(colors) };
 	};
 

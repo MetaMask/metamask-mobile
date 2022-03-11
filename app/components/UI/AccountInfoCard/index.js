@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
 import Device from '../../../util/device';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -91,7 +91,7 @@ class AccountInfoCard extends PureComponent {
 	render() {
 		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation, ticker } =
 			this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);

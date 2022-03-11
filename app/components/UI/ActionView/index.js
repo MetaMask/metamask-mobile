@@ -5,7 +5,7 @@ import { Keyboard, StyleSheet, View, ActivityIndicator, TouchableWithoutFeedback
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { mockColors, useAppThemeFromContext } from '../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	actionContainer: {
@@ -45,7 +45,7 @@ export default function ActionView({
 	keyboardShouldPersistTaps = 'never',
 	style = undefined,
 }) {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	return (
 		<View style={baseStyles.flexGrow}>

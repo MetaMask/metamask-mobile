@@ -4,7 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import ActionModal from '../ActionModal';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -32,7 +32,7 @@ const createStyles = (colors) =>
 	});
 
 const Default = () => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

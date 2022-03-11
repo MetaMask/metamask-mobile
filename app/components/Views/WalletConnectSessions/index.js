@@ -9,7 +9,7 @@ import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import PropTypes from 'prop-types';
 
 const createStyles = (colors) =>
@@ -80,7 +80,7 @@ export default class WalletConnectSessions extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('experimental_settings.wallet_connect_dapps'), navigation, false, colors)
 		);
@@ -106,7 +106,7 @@ export default class WalletConnectSessions extends PureComponent {
 
 	renderDesc = (meta) => {
 		const { description } = meta;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (description) {
@@ -141,7 +141,7 @@ export default class WalletConnectSessions extends PureComponent {
 
 	renderSessions = () => {
 		const { sessions } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return sessions.map((session) => (
@@ -163,7 +163,7 @@ export default class WalletConnectSessions extends PureComponent {
 	};
 
 	renderEmpty = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -176,7 +176,8 @@ export default class WalletConnectSessions extends PureComponent {
 	render = () => {
 		const { ready, sessions } = this.state;
 		if (!ready) return null;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
 		const styles = createStyles(colors);
 
 		return (
@@ -191,6 +192,7 @@ export default class WalletConnectSessions extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
 				/>
 			</SafeAreaView>
 		);

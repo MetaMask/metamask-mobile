@@ -17,7 +17,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -142,7 +142,7 @@ class Tokens extends PureComponent {
 	};
 
 	renderEmpty = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -157,7 +157,7 @@ class Tokens extends PureComponent {
 	};
 
 	renderFooter = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -178,7 +178,7 @@ class Tokens extends PureComponent {
 	renderItem = (asset) => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency, tokenList } =
 			this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const itemAddress = safeToChecksumAddress(asset.address);
@@ -295,7 +295,8 @@ class Tokens extends PureComponent {
 
 	render = () => {
 		const { tokens } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
 		const styles = createStyles(colors);
 
 		return (
@@ -308,6 +309,7 @@ class Tokens extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
 				/>
 			</View>
 		);

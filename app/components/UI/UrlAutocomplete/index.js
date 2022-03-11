@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -140,7 +140,7 @@ class UrlAutocomplete extends PureComponent {
 	onSubmitInput = () => this.props.onSubmit(this.props.input);
 
 	renderUrlOption = (url, name, onPress) => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		name = typeof name === 'string' ? name : getHost(url);
@@ -167,7 +167,7 @@ class UrlAutocomplete extends PureComponent {
 	};
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (!this.props.input || this.props.input.length < 2)

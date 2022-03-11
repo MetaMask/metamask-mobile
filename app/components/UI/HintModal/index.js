@@ -5,7 +5,7 @@ import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/Octicons';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -53,7 +53,7 @@ const createStyles = (colors) =>
 	});
 
 const HintModal = ({ onCancel, onConfirm, modalVisible, onRequestClose, value, onChangeText }) => {
-	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

@@ -20,7 +20,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -181,7 +181,7 @@ const EditGasFee1559 = ({
 	const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
 	const [isVisibleTimeEstimateInfoModal, , showTimeEstimateInfoModal, hideTimeEstimateInfoModal] =
 		useModalHandler(false);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const getAnalyticsParams = useCallback(() => {

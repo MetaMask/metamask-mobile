@@ -10,7 +10,7 @@ import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
 import Fox from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
-import { useAppThemeFromContext, mockColors } from '../../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
@@ -133,7 +133,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 		outputRange: ['0%', '100%'],
 	});
 
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	/* Animation constructions */

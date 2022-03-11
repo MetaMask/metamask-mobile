@@ -7,7 +7,7 @@ import ModalDragger from '../../../Base/ModalDragger';
 import Text from '../../../Base/Text';
 import SlippageSlider from '../../SlippageSlider';
 import { strings } from '../../../../../locales/i18n';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -39,7 +39,7 @@ const createStyles = (colors) =>
 	});
 
 function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

@@ -5,7 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -56,7 +56,7 @@ export default class AddBookmark extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 
 		navigation.setOptions(getNavigationOptionsTitle(strings('add_favorite.title'), navigation, false, colors));
 	};
@@ -105,7 +105,7 @@ export default class AddBookmark extends PureComponent {
 	};
 
 	render = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 

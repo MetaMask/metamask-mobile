@@ -12,7 +12,7 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -36,7 +36,7 @@ const Browser = (props) => {
 	} = props;
 	const { drawerRef } = useContext(DrawerContext);
 	const previousTabs = useRef(null);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	useEffect(
 		() => {

@@ -40,7 +40,7 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 
@@ -64,7 +64,7 @@ const Main = (props) => {
 	const [forceReload, setForceReload] = useState(false);
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const backgroundMode = useRef(false);

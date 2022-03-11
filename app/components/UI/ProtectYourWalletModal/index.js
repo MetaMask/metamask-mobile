@@ -9,7 +9,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -119,7 +119,7 @@ class ProtectYourWalletModal extends PureComponent {
 	};
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

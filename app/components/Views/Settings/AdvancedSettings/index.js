@@ -20,7 +20,7 @@ import ipfsGateways from '../../../../util/ipfs-gateways.json';
 import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import Device from '../../../../util/device';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -140,7 +140,7 @@ class AdvancedSettings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.advanced_title'), navigation, false, colors)
 		);
@@ -250,7 +250,7 @@ class AdvancedSettings extends PureComponent {
 	render = () => {
 		const { showHexData, showCustomNonce, setShowHexData, setShowCustomNonce, ipfsGateway } = this.props;
 		const { resetModalVisible, onlineIpfsGateways } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

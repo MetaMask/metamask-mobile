@@ -8,7 +8,7 @@ import AddressList from '../../SendFlow/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -53,7 +53,7 @@ class Contacts extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.contacts_title'), navigation, false, colors)
 		);
@@ -113,7 +113,8 @@ class Contacts extends PureComponent {
 
 	render = () => {
 		const { reloadAddressList } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
 		const styles = createStyles(colors);
 
 		return (
@@ -140,6 +141,7 @@ class Contacts extends PureComponent {
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind
 					onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+					theme={themeAppearance}
 				/>
 			</SafeAreaView>
 		);

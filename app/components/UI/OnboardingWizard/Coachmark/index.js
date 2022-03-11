@@ -5,7 +5,7 @@ import { fontStyles, colors as importedColors } from '../../../../styles/common'
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -198,7 +198,7 @@ export default class Coachmark extends PureComponent {
 	};
 
 	getStyles = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		return createStyles(colors);
 	};
 

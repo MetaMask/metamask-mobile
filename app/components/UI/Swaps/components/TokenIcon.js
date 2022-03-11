@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const ethLogo = require('../../../../images/eth-logo.png');
@@ -64,7 +64,7 @@ const createStyles = (colors) =>
 	});
 
 const EmptyIcon = ({ medium, big, biggest, style, ...props }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (
@@ -91,7 +91,7 @@ EmptyIcon.propTypes = {
 
 function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 	const [showFallback, setShowFallback] = useState(false);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const getSource = useCallback(() => {

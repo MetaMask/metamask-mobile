@@ -7,7 +7,7 @@ import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -92,7 +92,7 @@ class NavbarTitle extends PureComponent {
 		const { network, title, translate } = this.props;
 		let name = null;
 		const color = (Networks[network.provider.type] && Networks[network.provider.type].color) || null;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (network.provider.nickname) {

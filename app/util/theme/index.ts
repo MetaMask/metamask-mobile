@@ -9,7 +9,7 @@ import Device from '../device';
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
  * TODO: Convert classes into functional components and remove contextType
  */
-export const mockColors = { colors: colorTheme.light };
+export const mockTheme = { colors: colorTheme.light, themeAppearance: 'light' };
 
 export const ThemeContext = React.createContext<any>(undefined);
 

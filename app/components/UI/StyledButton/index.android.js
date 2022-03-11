@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Text, View, ViewPropTypes, TouchableNativeFeedback } from 'react-native';
 import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 /**
  * UI component that wraps StyledButton
@@ -94,7 +94,7 @@ export default class StyledButton extends PureComponent {
 
 	render = () => {
 		const { type } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const { fontStyle, containerStyle } = getStyles(type, colors);
 		const touchableProps = {};
 		const containerStyles = [

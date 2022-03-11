@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../styles/common';
 import Text from './Text.js';
-import { useAppThemeFromContext, mockColors } from '../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -22,7 +22,7 @@ const createStyles = (colors) =>
 	});
 
 const Title = ({ centered, hero, style: externalStyle, ...props }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const style = createStyles(colors);
 
 	return <Text style={[style.text, centered && style.centered, hero && style.hero, externalStyle]} {...props} />;

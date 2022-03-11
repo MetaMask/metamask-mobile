@@ -43,7 +43,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
 const createStyles = (colors) =>
@@ -271,7 +271,7 @@ class ChoosePassword extends PureComponent {
 
 	updateNavBar = () => {
 		const { route, navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
 	};
 
@@ -518,7 +518,7 @@ class ChoosePassword extends PureComponent {
 
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -585,7 +585,7 @@ class ChoosePassword extends PureComponent {
 		const canSubmit = passwordsMatch && isSelected;
 		const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
 		const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 

@@ -19,7 +19,7 @@ import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const createStyles = (colors) =>
@@ -82,7 +82,7 @@ const OnboardingWizard = (props) => {
 		coachmarkRef,
 	} = props;
 	const { drawerRef } = useContext(DrawerContext);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	/**

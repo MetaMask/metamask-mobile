@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, Image } from 'react-native';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 // eslint-disable-next-line import/no-commonjs
 const piggyBank = require('../../../../images/piggybank.png');
@@ -61,7 +61,7 @@ const createStyles = (colors) =>
 const QuotesSummary = (props) => <View {...props} />;
 
 const Header = ({ style, savings, children, ...props }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	return (
 		<View style={[styles.header, savings && styles.headerWithPiggy, style]} {...props}>
@@ -77,17 +77,17 @@ const Header = ({ style, savings, children, ...props }) => {
 };
 
 const Body = ({ style, ...props }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	return <View style={[styles.body, style]} {...props} />;
 };
 const HeaderText = ({ style, ...props }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	return <Text style={[styles.headerText, style]} {...props} />;
 };
 const Separator = ({ style }) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	return <View style={[styles.separator, style]} />;
 };

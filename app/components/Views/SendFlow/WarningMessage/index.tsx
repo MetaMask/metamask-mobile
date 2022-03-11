@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Alert, { AlertType } from '../../../Base/Alert';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 interface Props {
 	/**
@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
 });
 
 const WarningMessage = ({ warningMessage, style }: Props) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	return (
 		<Alert

@@ -50,7 +50,7 @@ import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -237,7 +237,7 @@ class ImportFromSeed extends PureComponent {
 
 	updateNavBar = () => {
 		const { route, navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
 	};
 
@@ -416,7 +416,7 @@ class ImportFromSeed extends PureComponent {
 	};
 
 	renderSwitch = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (this.state.biometryType) {
@@ -496,7 +496,7 @@ class ImportFromSeed extends PureComponent {
 			loading,
 			hideSeedPhraseInput,
 		} = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 

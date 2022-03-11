@@ -4,7 +4,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { useRatio } from '../utils';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -17,7 +17,7 @@ const createStyles = (colors) =>
 function Ratio({ sourceAmount, sourceToken, destinationAmount, destinationToken, boldSymbol = false }) {
 	/* Get the ratio between the assets given the selected quote*/
 	const [ratioAsSource, setRatioAsSource] = useState(true);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const [numerator, denominator] = useMemo(() => {

@@ -8,7 +8,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { TokenListToken } from '@metamask/controllers';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -64,7 +64,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [inputDimensions, setInputDimensions] = useState('85%');
 	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
-	const { colors, themeAppearance } = useAppThemeFromContext() || mockColors;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	useEffect(() => {

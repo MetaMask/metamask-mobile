@@ -11,7 +11,7 @@ import onboardingStyles from './../styles';
 import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	main: {
@@ -129,7 +129,7 @@ class Step3 extends PureComponent {
 	};
 
 	getOnboardingStyles = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		return onboardingStyles(colors);
 	};
 

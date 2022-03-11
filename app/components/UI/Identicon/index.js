@@ -5,7 +5,7 @@ import { toDataUrl } from '../../../util/blockies.js';
 import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 /**
  * UI component that renders an Identicon
@@ -16,7 +16,7 @@ import { useAppThemeFromContext, mockColors } from '../../../util/theme';
 // eslint-disable-next-line react/display-name
 const Identicon = React.memo((props) => {
 	const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	if (!address) return null;
 	const uri = useBlockieIcon && toDataUrl(address);
 

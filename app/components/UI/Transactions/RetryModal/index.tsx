@@ -3,7 +3,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
 import ActionModal from '../../ActionModal';
 import { strings } from '../../../../../locales/i18n';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -42,7 +42,7 @@ interface Props {
 }
 
 const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress }: Props) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

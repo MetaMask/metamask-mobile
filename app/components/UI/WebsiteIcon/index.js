@@ -4,7 +4,7 @@ import { StyleSheet, View, Text, Image } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -83,7 +83,7 @@ export default class WebsiteIcon extends PureComponent {
 	render = () => {
 		const { renderIconUrlError } = this.state;
 		const { viewStyle, style, textStyle, transparent, url, icon } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 		const apiLogoUrl = { uri: icon || this.getIconUrl(url) };
 		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);

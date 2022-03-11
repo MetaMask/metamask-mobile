@@ -11,7 +11,7 @@ import CollectibleContractInformation from '../../UI/CollectibleContractInformat
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -58,7 +58,7 @@ class Collectible extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation, colors);
 	};
 
@@ -90,7 +90,7 @@ class Collectible extends PureComponent {
 		const collectibleContract = params;
 		const address = params.address;
 		const { collectibles } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 		const filteredCollectibles = collectibles.filter((collectible) =>
 			toLowerCaseEquals(collectible.address, address)

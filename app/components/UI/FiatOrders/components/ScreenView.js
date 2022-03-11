@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
-import { useAppThemeFromContext, mockColors } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -11,7 +11,7 @@ const createStyles = (colors) =>
 	});
 
 const ScreenView = (props) => {
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (

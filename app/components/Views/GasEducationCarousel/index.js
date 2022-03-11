@@ -11,7 +11,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
 import { decGWEIToHexWEI } from '../../../util/conversions';
@@ -125,7 +125,7 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency, nativeCurrency }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const [isLoading, setIsLoading] = useState(true);
 

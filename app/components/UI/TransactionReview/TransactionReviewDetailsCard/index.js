@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 
 const createStyles = (colors) =>
@@ -105,7 +105,7 @@ export default class TransactionReviewDetailsCard extends Component {
 			method,
 			displayViewData,
 		} = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

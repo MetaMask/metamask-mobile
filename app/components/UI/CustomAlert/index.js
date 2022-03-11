@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import Modal from 'react-native-modal';
 import StyledButton from '../StyledButton';
 import { fontStyles } from '../../../styles/common';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -91,7 +91,7 @@ export default class CustomAlert extends PureComponent {
 	};
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

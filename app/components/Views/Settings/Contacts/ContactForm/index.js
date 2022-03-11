@@ -14,7 +14,7 @@ import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
-import { ThemeContext, mockColors } from '../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -137,7 +137,7 @@ class ContactForm extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getEditableOptions(
 				strings(`address_book.${route.params?.mode ?? ADD}_contact_title`),
@@ -274,7 +274,7 @@ class ContactForm extends PureComponent {
 
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
@@ -398,6 +398,7 @@ class ContactForm extends PureComponent {
 						destructiveButtonIndex={0}
 						// eslint-disable-next-line react/jsx-no-bind
 						onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+						theme={themeAppearance}
 					/>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>

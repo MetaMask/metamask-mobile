@@ -6,7 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import { useAppThemeFromContext, mockColors, useAssetFromTheme } from '../../../../util/theme';
+import { useAppThemeFromContext, mockTheme, useAssetFromTheme } from '../../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const onboardingDeviceImage = require('../../../../images/swaps_onboard_device.png');
@@ -61,7 +61,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 function Onboarding({ setHasOnboarded }) {
 	const navigation = useNavigation();
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const swapsAggregators = useAssetFromTheme(swapsAggregatorsLight, swapsAggregatorsDark);
 

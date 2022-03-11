@@ -11,7 +11,7 @@ import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -182,7 +182,7 @@ class AccountApproval extends PureComponent {
 
 	render = () => {
 		const { currentPageInformation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (

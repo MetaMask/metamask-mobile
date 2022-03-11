@@ -37,7 +37,7 @@ import { EXISTING_USER, TRUE, BIOMETRY_CHOICE_DISABLED } from '../../../constant
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
-import { ThemeContext, mockColors } from '../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
 const createStyles = (colors) =>
@@ -303,7 +303,7 @@ class ResetPassword extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('password_reset.change_password'), navigation, false, colors)
 		);
@@ -502,7 +502,7 @@ class ResetPassword extends PureComponent {
 
 	renderSwitch = () => {
 		const { biometryType, rememberMe, biometryChoice } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -592,7 +592,7 @@ class ResetPassword extends PureComponent {
 	};
 
 	renderLoader = () => {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -606,7 +606,7 @@ class ResetPassword extends PureComponent {
 
 	renderConfirmPassword() {
 		const { warningIncorrectPassword } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
@@ -654,7 +654,7 @@ class ResetPassword extends PureComponent {
 	renderResetPassword() {
 		const { isSelected, inputWidth, password, passwordStrength, confirmPassword, secureTextEntry, error, loading } =
 			this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 		const passwordsMatch = password !== '' && password === confirmPassword;
@@ -794,7 +794,7 @@ class ResetPassword extends PureComponent {
 
 	render() {
 		const { view, ready } = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (!ready) return this.renderLoader();

@@ -10,7 +10,7 @@ import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import { MAINNET, RPC } from '../../../../constants/network';
-import { ThemeContext, mockColors } from '../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -87,7 +87,7 @@ class NetworksSettings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation, false, colors)
 		);
@@ -145,7 +145,7 @@ class NetworksSettings extends PureComponent {
 	onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
 	networkElement(name, color, i, network, isCustomRPC) {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -183,7 +183,7 @@ class NetworksSettings extends PureComponent {
 
 	renderRpcNetworksView = () => {
 		const { frequentRpcList } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (frequentRpcList.length > 0) {
@@ -198,7 +198,7 @@ class NetworksSettings extends PureComponent {
 
 	renderMainnet() {
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		return (
@@ -220,7 +220,8 @@ class NetworksSettings extends PureComponent {
 	}
 
 	render() {
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
 		const styles = createStyles(colors);
 
 		return (
@@ -246,6 +247,7 @@ class NetworksSettings extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
 				/>
 			</View>
 		);

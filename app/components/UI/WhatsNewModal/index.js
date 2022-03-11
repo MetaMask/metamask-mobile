@@ -22,7 +22,7 @@ import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
 import PropTypes from 'prop-types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { useAppThemeFromContext, mockColors } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -105,7 +105,7 @@ const WhatsNewModal = (props) => {
 	const [featuresToShow, setFeaturesToShow] = useState(null);
 	const [show, setShow] = useState(false);
 	const routes = useNavigationState((state) => state.routes);
-	const { colors } = useAppThemeFromContext() || mockColors;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	useEffect(() => {

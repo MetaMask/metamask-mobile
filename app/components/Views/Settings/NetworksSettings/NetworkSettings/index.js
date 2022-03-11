@@ -18,7 +18,7 @@ import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
-import { ThemeContext, mockColors } from '../../../../../util/theme';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -131,7 +131,7 @@ class NetworkSettings extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation } = this.props;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		navigation.setOptions(
 			getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation, false, colors)
 		);
@@ -485,7 +485,7 @@ class NetworkSettings extends PureComponent {
 			enableAction,
 			inputWidth,
 		} = this.state;
-		const colors = this.context.colors || mockColors.colors;
+		const colors = this.context.colors || mockTheme.colors;
 		const themeAppearance = this.context.themeAppearance || 'light';
 		const styles = createStyles(colors);
 
