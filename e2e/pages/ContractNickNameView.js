@@ -10,8 +10,12 @@ export default class ContractNickNameView {
 			await TestHelpers.replaceTextInField(CONTRACT_ADD_NICKNAME_INPUT_BOX_ID, nickName);
 			await element(by.id(CONTRACT_ADD_NICKNAME_INPUT_BOX_ID)).tapReturnKey();
 		} else {
-			await TestHelpers.replaceTextInField(CONTRACT_ADD_NICKNAME_INPUT_BOX_ID, nickName);
+			await TestHelpers.typeTextAndHideKeyboard(CONTRACT_ADD_NICKNAME_INPUT_BOX_ID, nickName);
 		}
+	}
+
+	static async clearNickName() {
+		await TestHelpers.replaceTextInField(CONTRACT_ADD_NICKNAME_INPUT_BOX_ID, '');
 	}
 
 	static async tapConfirmButton() {

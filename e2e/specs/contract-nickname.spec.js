@@ -92,6 +92,7 @@ describe('Adding Contract Nickname', () => {
 		await ApprovalModal.tapEditNickName();
 
 		await ContractNickNameView.isContractNickNameInInputBoxVisible(CONTRACT_NICK_NAME_TEXT);
+		await ContractNickNameView.clearNickName();
 		await ContractNickNameView.typeContractNickName('Ace');
 		await ContractNickNameView.tapConfirmButton();
 
