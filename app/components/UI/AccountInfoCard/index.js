@@ -8,9 +8,9 @@ import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
-import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
+import Device from '../../../util/device';
 
 const styles = StyleSheet.create({
 	accountInformation: {
@@ -19,17 +19,18 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.grey200,
 		borderRadius: 10,
-		padding: 16,
+		padding: Device.isMediumDevice() ? 8 : 16,
 		alignItems: 'center',
 	},
 	identicon: {
 		marginRight: 8,
 	},
 	accountInfoRow: {
-		flexGrow: 1,
+		flex: 1,
 		flexDirection: 'column',
 		justifyContent: 'center',
 		alignItems: 'flex-start',
+		marginRight: 8,
 	},
 	accountNameAndAddress: {
 		width: '100%',

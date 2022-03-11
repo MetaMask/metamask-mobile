@@ -69,7 +69,6 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	importedWrapper: {
-		width: 73,
 		paddingHorizontal: 10,
 		paddingVertical: 3,
 		borderRadius: 10,

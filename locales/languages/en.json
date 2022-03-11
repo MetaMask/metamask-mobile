@@ -418,6 +418,8 @@
 		"description2": "How it works?",
 		"description3": "Officially supported airgapped hardware wallets include:",
 		"description4": "Keystone (tutorial)",
+		"description5": "1. Unlock your Keystone",
+		"description6": "2. Tap the ··· Menu, then go to Sync >",
 		"button_continue": "Continue",
 		"hint_text": "Scan your Keystone wallet to ",
 		"purpose_connect": "connect",
@@ -783,7 +785,7 @@
 		"invalid_qr_code_sync": "Invalid QR code. Please scan the sync QR code of the hardware wallet.",
 		"no_camera_permission": "Camera not authorized. Please give permission and retry",
 		"invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
-		"mismatched_qr_request_id": "Incongruent transaction data. Please check the transaction details."
+		"mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'."
 	},
 	"custom_gas": {
 		"total": "Total",

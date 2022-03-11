@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { colors } from '../../../../styles/common';
+import { colors, fontStyles } from '../../../../styles/common';
 
 interface IConnectQRInstructionProps {
 	navigation: any;
@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
 		marginTop: 40,
 		fontSize: 24,
 		marginBottom: 20,
+		...fontStyles.normal,
 	},
 	textContainer: {
 		width: '100%',
@@ -42,10 +43,11 @@ const styles = StyleSheet.create({
 	text: {
 		fontSize: 14,
 		marginBottom: 24,
+		...fontStyles.normal,
 	},
 	link: {
 		color: colors.blue,
-		fontWeight: '700',
+		...fontStyles.bold,
 	},
 	button: {
 		backgroundColor: colors.blue,
@@ -60,6 +62,7 @@ const styles = StyleSheet.create({
 	},
 	buttonText: {
 		color: colors.white,
+		...fontStyles.normal,
 	},
 	image: {
 		width: 300,
@@ -103,6 +106,8 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 					<Text style={[styles.text, styles.link]} onPress={navigateToTutorial}>
 						{strings('connect_qr_hardware.description4')}
 					</Text>
+					<Text style={styles.text}>{strings('connect_qr_hardware.description5')}</Text>
+					<Text style={styles.text}>{strings('connect_qr_hardware.description6')}</Text>
 				</View>
 				<Image style={styles.image} source={connectQRHardwareImg} resizeMode={'contain'} />
 			</ScrollView>

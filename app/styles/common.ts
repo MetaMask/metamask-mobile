@@ -2,6 +2,8 @@
  * Common styles and variables
  */
 
+import { TextStyle, ViewStyle } from 'react-native';
+
 /**
  * Map of color names to HEX values
  */
@@ -15,7 +17,7 @@ export const colors = {
 	black: '#24292E',
 	white: '#FFFFFF',
 	white100: '#F9FAFB',
-	whitetransparent: 'rgba(255, 255, 255, 0.3)',
+	whitetransparent: 'rgba(255, 255, 255, 0.7)',
 	greyAssetVisibility: '#6A737D',
 	grey450: '#8E8E93',
 	grey700: '#3C3F42',
@@ -70,7 +72,7 @@ export const colors = {
 /**
  * Map of reusable base styles
  */
-export const baseStyles = {
+export const baseStyles: Record<string, ViewStyle> = {
 	flexGrow: {
 		flex: 1,
 	},
@@ -82,7 +84,7 @@ export const baseStyles = {
 /**
  * Map of reusable fonts
  */
-export const fontStyles = {
+export const fontStyles: Record<string, TextStyle> = {
 	normal: {
 		fontFamily: 'EuclidCircularB-Regular',
 		fontWeight: '400',

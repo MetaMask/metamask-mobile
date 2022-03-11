@@ -5,7 +5,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { colors } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
@@ -52,19 +52,18 @@ const styles = StyleSheet.create({
 	},
 	hint: {
 		backgroundColor: colors.whitetransparent,
-		zIndex: 999,
-		position: 'absolute',
-		bottom: 0,
 		width: '100%',
 		height: 120,
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	hintText: {
-		width: 220,
+		width: 240,
+		maxWidth: '80%',
 		color: colors.black,
 		textAlign: 'center',
 		fontSize: 16,
+		...fontStyles.normal,
 	},
 	bold: {
 		fontWeight: 'bold',
@@ -219,8 +218,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						}`}</Text>
 					</SafeAreaView>
 				</RNCamera>
+				<View style={styles.hint}>{hintText}</View>
 			</View>
-			<View style={styles.hint}>{hintText}</View>
 		</Modal>
 	);
 };

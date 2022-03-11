@@ -384,7 +384,7 @@ class AccountOverview extends PureComponent {
 											numberOfLines={1}
 											testID={'edit-account-label'}
 										>
-											{isDefaultAccountName(name) && (ens || name)}
+											{isDefaultAccountName(name) && ens ? ens : name}
 										</Text>
 									</TouchableOpacity>
 									{isQRHardwareWalletAccount && (
