@@ -61,7 +61,7 @@ const Region = () => {
 			} else {
 				setSelectedRegionObject(country);
 				setSelectedCountry(country.id);
-				setRegionCurrency(country.currency);
+				setRegionCurrency(`/${country.currency}`);
 				hideTokenSelectorModal();
 			}
 		},
