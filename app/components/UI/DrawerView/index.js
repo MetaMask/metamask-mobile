@@ -45,6 +45,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { KeyringTypes } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -412,6 +413,29 @@ class DrawerView extends PureComponent {
 		}
 
 		return ret;
+	}
+
+	renderTag() {
+		let tag = null;
+		const { keyrings, selectedAddress } = this.props;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(selectedAddress)) {
+				if (keyring.type === KeyringTypes.simple) {
+					tag = strings('accounts.imported');
+				} else if (keyring.type === KeyringTypes.qr) {
+					tag = strings('transaction.hardware');
+				}
+				break;
+			}
+		}
+		return tag ? (
+			<View style={styles.importedWrapper}>
+				<Text numberOfLines={1} style={styles.importedText}>
+					{tag}
+				</Text>
+			</View>
+		) : null;
 	}
 
 	async componentDidUpdate() {
@@ -975,13 +999,7 @@ class DrawerView extends PureComponent {
 									style={styles.accountAddress}
 									type={'short'}
 								/>
-								{this.isCurrentAccountImported() && (
-									<View style={styles.importedWrapper}>
-										<Text numberOfLines={1} style={styles.importedText}>
-											{strings('accounts.imported')}
-										</Text>
-									</View>
-								)}
+								{this.renderTag()}
 							</TouchableOpacity>
 						</View>
 					</View>

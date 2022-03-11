@@ -47,11 +47,12 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 
 	// Recreate keyring with password given to this method
 	await KeyringController.createNewVaultAndRestore(password, seedPhrase);
-	await KeyringController.restoreQRKeyring(serializedQRKeyring);
 
 	// Get props to restore vault
 	const hdKeyring = KeyringController.state.keyrings[0];
 	const existingAccountCount = hdKeyring.accounts.length;
+
+	await KeyringController.restoreQRKeyring(serializedQRKeyring);
 
 	// Create previous accounts again
 	for (let i = 0; i < existingAccountCount - 1; i++) {

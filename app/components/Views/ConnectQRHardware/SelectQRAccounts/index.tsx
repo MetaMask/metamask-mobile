@@ -42,6 +42,9 @@ const styles = StyleSheet.create({
 		paddingVertical: 4,
 		marginBottom: -2,
 	},
+	checkBox: {
+		marginRight: 8,
+	},
 	accountUnchecked: {
 		backgroundColor: colors.grey000,
 	},
@@ -94,10 +97,12 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey100,
 	},
 	textBlue: {
+		fontSize: 14,
 		color: colors.blue,
 		...fontStyles.normal,
 	},
 	textWhite: {
+		fontSize: 14,
 		color: colors.white,
 		...fontStyles.normal,
 	},
@@ -127,6 +132,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 				renderItem={({ item }) => (
 					<View style={[styles.account, item.checked ? styles.accountChecked : styles.accountUnchecked]}>
 						<CheckBox
+							style={styles.checkBox}
 							disabled={item.exist}
 							value={item.checked}
 							onValueChange={() => toggleAccount(item.index)}

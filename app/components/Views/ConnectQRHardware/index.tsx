@@ -1,5 +1,5 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal, { SupportedURType } from '../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
@@ -20,10 +20,9 @@ interface IConnectQRHardwareProps {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		width: '100%',
 		flexDirection: 'column',
 		alignItems: 'center',
-		paddingTop: 16,
+		paddingTop: 32,
 	},
 	header: {
 		width: '100%',
@@ -207,7 +206,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
 	return (
 		<Fragment>
-			<View style={styles.container}>
+			<SafeAreaView style={styles.container}>
 				<View style={styles.header}>
 					<TouchableOpacity onPress={navigation.goBack} style={styles.close}>
 						<Icon name="close" size={18} />
@@ -231,7 +230,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 						onForget={onForget}
 					/>
 				)}
-			</View>
+			</SafeAreaView>
 			<AnimatedQRScannerModal
 				visible={scannerVisible}
 				purpose={'sync'}
