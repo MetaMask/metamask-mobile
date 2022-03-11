@@ -366,7 +366,7 @@ class PaymentRequest extends PureComponent {
 		const { inputWidth } = this.state;
 		let results;
 
-		if (chainId === '1') {
+		if (chainId === NetworksChainId.mainnet) {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
 		} else if (Object.values(NetworksChainId).find((value) => value === chainId)) {
 			results = [defaultEth];
@@ -384,7 +384,7 @@ class PaymentRequest extends PureComponent {
 				<View>
 					<Text style={styles.title}>{strings('payment_request.choose_asset')}</Text>
 				</View>
-				{chainId === '1' && (
+				{chainId === NetworksChainId.mainnet && (
 					<View style={styles.searchWrapper}>
 						<TextInput
 							style={[styles.searchInput, inputWidth]}
