@@ -326,7 +326,7 @@ app:
           VERSION_NAME: 4.3.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 839
+          VERSION_NUMBER: 842
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''

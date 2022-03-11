@@ -437,7 +437,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         </TouchableOpacity>
                       </View>
                     }
-                    min={"0.000001"}
+                    min={"0"}
                     name="Max priority fee"
                     onChangeValue={[Function]}
                     rightLabelComponent={
@@ -555,7 +555,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         </TouchableOpacity>
                       </View>
                     }
-                    min={"0.000001"}
+                    min={"0"}
                     name="Max fee"
                     onChangeValue={[Function]}
                     rightLabelComponent={

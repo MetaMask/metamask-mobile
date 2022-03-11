@@ -353,7 +353,7 @@ class Approval extends PureComponent {
 	};
 
 	render = () => {
-		const { transaction, dappTransactionModalVisible } = this.props;
+		const { dappTransactionModalVisible } = this.props;
 		const { mode, transactionConfirmed } = this.state;
 		const colors = this.context.colors || mockColors.colors;
 
@@ -379,7 +379,6 @@ class Approval extends PureComponent {
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
-					transaction={transaction}
 					dappTransactionModalVisible={dappTransactionModalVisible}
 					transactionConfirmed={transactionConfirmed}
 				/>
