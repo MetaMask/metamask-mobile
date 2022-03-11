@@ -82,7 +82,7 @@ describe('AuthenticationService', () => {
 	it('should return a auth type for components AuthenticationType.REMEMBER_ME', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAuthenticationType(true);
+		const result = await AuthenticationService.componentAuthenticationType(false, true);
 		expect(result.biometryType).toEqual('Fingerprint');
 		expect(result.type).toEqual(AuthenticationType.REMEMBER_ME);
 	});
