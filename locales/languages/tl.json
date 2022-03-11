@@ -34,7 +34,7 @@
 		"import_wallet_button": "Mag-sync o mag-import ng wallet",
 		"new_to_crypto": "Bago ka lang ba sa crypto?",
 		"start_exploring_now": "Gumawa ng bagong wallet",
-		"login": "Mag-log in",
+		"unlock": "Mag-log in",
 		"new_to_metamask": "Bago ka ba sa MetaMask?",
 		"already_have_wallet": "May wallet ka na ba?",
 		"optin_back_title": "Paalala!",
@@ -128,7 +128,7 @@
 	"login": {
 		"title": "Welcome Back!",
 		"password": "Password",
-		"login_button": "MAG-LOG IN",
+		"unlock_button": "MAG-LOG IN",
 		"go_back": "Hindi ka ba makapag-log in? Puwede mong BURAHIN ang iyong kasalukuyang wallet at mag-set up ng panibago",
 		"reset_wallet": "I-reset ang Wallet",
 		"cant_proceed": "Hindi ka makakapagpatuloy hanggang sa i-type mo ang salitang ‘Delete’. Kapag ginawa ang aksyong ito, nangangahulugan ito ng pag-opt in para burahin ang iyong kasalukuyang wallet.",
@@ -242,10 +242,10 @@
 		"settings_warning": "Hindi protektado ang wallet",
 		"settings_warning_short": "Hindi Protektado",
 		"help": "Humingi ng Tulong",
-		"logout": "Mag-log Out",
-		"logout_title": "Gusto mo ba talagang mag-log out?",
-		"logout_ok": "OO",
-		"logout_cancel": "HINDI",
+		"lock": "Mag-log Out",
+		"lock_title": "Gusto mo ba talagang mag-log out?",
+		"lock_ok": "OO",
+		"lock_cancel": "HINDI",
 		"feedback": "Feedback",
 		"metamask_support": "Suporta sa MetaMask",
 		"public_address": "Pampublikong Address"
@@ -451,7 +451,7 @@
 		"general_title": "Pangkalahatan",
 		"general_desc": "Conversion ng currency, pangunahing currency, wika at search engine",
 		"advanced_title": "Advanced",
-		"advanced_desc": "I-access ang mga pang-developer na feature, i-reset ang account, i-set up ang mga testnet, i-sync sa extension, mga log ng estado, IPFS gateway at custom na RPC",
+		"advanced_desc": "I-access ang mga pang-developer na feature, i-reset ang account, i-set up ang mga testnet, mga log ng estado, IPFS gateway at custom na RPC",
 		"contacts_title": "Mga Contact",
 		"contacts_desc": "Magdagdag, mag-edit, magtanggal, at mamahala ng iyong mga account",
 		"security_title": "Seguridad at Pagkapribado",
@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Ipakita ang pribadong key para sa \"{{accountName}}\"",
 		"cancel": "Kanselahin",
 		"confirm": "Susunod",
-		"seed_phrase_explanation": "Kung magpapalit ka man ng browser o computer, kakailanganin mo ang Lihim na Recovery Phrase na ito para ma-access ang iyong mga account. I-save ang mga iyon sa isang ligtas at sikretong lugar.",
 		"private_key_explanation": "I-save ito sa isang ligtas at sikretong lugar.",
 		"private_key_warning": "Ito ang pribadong key para sa kasalukuyang napiling account: {{accountName}}. Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
-		"seed_phrase_warning_explanation": "Huwag ibahagi ang phrase na ito sa sinuman! Magagamit ang mga salitang ito para manakaw ang lahat ng iyong account.",
 		"private_key_warning_explanation": "Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
 		"seed_phrase": "Ang Iyong Lihim na Recovery Phrase",
 		"private_key": "Ang iyong pribadong key",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transaksyon ng pagpapadala",
 		"wc_connected_rejected_title": "Tinanggihan mo ang request na kumonekta",
 		"wc_signed_rejected_title": "Tinanggihan mo ang request na lumagda",
-		"wc_sent_tx_rejected_title": "Tinanggihan mo ang request na transaksyon",
-		"wc_description": "Bumalik sa browser"
+		"wc_sent_tx_rejected_title": "Tinanggihan mo ang request na transaksyon"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protektahan ang iyong wallet",
@@ -1635,6 +1632,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "TL CC",
 		"language": "tl",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-tl.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-tl.vtt?raw=true"
 	}
 }

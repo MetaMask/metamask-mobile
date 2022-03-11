@@ -163,7 +163,7 @@ exports[`SelectComponent should render correctly 1`] = `
                   "flexDirection": "row",
                   "height": 35,
                   "paddingHorizontal": 15,
-                  "paddingVertical": 5,
+                  "paddingVertical": 4,
                 }
               }
             >
@@ -190,7 +190,7 @@ exports[`SelectComponent should render correctly 1`] = `
                   "flexDirection": "row",
                   "height": 35,
                   "paddingHorizontal": 15,
-                  "paddingVertical": 5,
+                  "paddingVertical": 4,
                 }
               }
             >

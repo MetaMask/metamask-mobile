@@ -41,7 +41,7 @@ import {
 import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import ErrorMessage from '../ErrorMessage';
-import { getGasPriceByChainId } from '../../../../util/custom-gas';
+import { getGasLimit } from '../../../../util/custom-gas';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
@@ -58,6 +58,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import AppConstants from '../../../../core/AppConstants';
 import { collectibleContractsSelector, collectiblesSelector } from '../../../../reducers/collectibles';
+import { gte } from '../../../../util/lodash';
 
 const { hexToBN, BNToHex } = util;
 
@@ -638,7 +639,8 @@ class Amount extends PureComponent {
 				weiBalance = contractBalances[selectedAsset.address];
 				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
 			}
-			amountError = weiBalance.gte(weiInput) ? undefined : strings('transaction.insufficient');
+			// TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
+			amountError = gte(weiBalance, weiInput) ? undefined : strings('transaction.insufficient');
 		} else {
 			amountError = strings('transaction.invalid_amount');
 		}
@@ -657,7 +659,7 @@ class Amount extends PureComponent {
 			transaction: { from },
 			transactionTo,
 		} = this.props.transactionState;
-		const { gas } = await getGasPriceByChainId({
+		const { gas } = await getGasLimit({
 			from,
 			to: transactionTo,
 		});

@@ -1,23 +1,23 @@
 /* eslint-disable */
 import React, { useEffect, ReactNode, forwardRef, useImperativeHandle, useMemo, useCallback, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, ViewStyle, Dimensions, StyleProp } from 'react-native';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
 	call,
 	eq,
-	Easing,
+	EasingNode,
 	not,
 	block,
 	cond,
 	clockRunning,
 	Value,
-	interpolate,
+	interpolateNode,
 	useCode,
 	set,
 } from 'react-native-reanimated';
-import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash';
+import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash/src/v1';
 import styles from './styles';
 const screenHeight = Dimensions.get('window').height;
 
@@ -106,7 +106,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 	const animatedStyles: StyleSheet.NamedStyles<any> = useMemo(() => {
 		return {
 			overlayBackground: {
-				opacity: interpolate(translateY, {
+				opacity: interpolateNode(translateY, {
 					inputRange: [topOffset, bottomOffset],
 					outputRange: [1, 0],
 				}) as any,
@@ -115,7 +115,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 				...StyleSheet.absoluteFillObject,
 				transform: [
 					{
-						translateY: interpolate(translateY, {
+						translateY: interpolateNode(translateY, {
 							inputRange: [0, 1],
 							outputRange: [0, bottomOffset],
 						}) as any,
@@ -142,7 +142,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 						timing({
 							clock,
 							from: offset,
-							easing: Easing.inOut(Easing.ease),
+							easing: EasingNode.inOut(EasingNode.ease) as any,
 							duration: 250,
 							to: topOffset,
 						})
@@ -157,7 +157,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 						timing({
 							clock,
 							from: offset,
-							easing: Easing.inOut(Easing.ease),
+							easing: EasingNode.inOut(EasingNode.ease) as any,
 							duration: 200,
 							to: bottomOffset,
 						})

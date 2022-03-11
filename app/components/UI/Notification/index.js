@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated, { Easing } from 'react-native-reanimated';
+import Animated, { EasingNode } from 'react-native-reanimated';
 import { useNavigationState } from '@react-navigation/native';
 import { removeCurrentNotification, hideCurrentNotification } from '../../../actions/notification';
 import notificationTypes from '../../../util/notifications';
@@ -10,6 +10,7 @@ import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
 
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import usePrevious from '../../hooks/usePrevious';
 
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
@@ -25,21 +26,13 @@ function Notification({
 	const notificationAnimated = useRef(new Animated.Value(200)).current;
 	const routes = useNavigationState((state) => state.routes);
 
-	const usePrevious = (value) => {
-		const ref = useRef();
-		useEffect(() => {
-			ref.current = value;
-		});
-		return ref.current;
-	};
-
 	const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
 	const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
-			easing: Easing.linear,
+			easing: EasingNode.linear,
 			useNativeDriver: true,
 		}).start(({ finished }) => finished && callback?.());
 	}, []);

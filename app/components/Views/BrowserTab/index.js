@@ -21,14 +21,12 @@ import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect } from 'react-redux';
-import { NetworksChainId, util } from '@metamask/controllers';
 
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { colors, baseStyles, fontStyles } from '../../../styles/common';
-import Networks, { blockTagParamIndex, getAllNetworks } from '../../../util/networks';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
 import { SPA_urlChangeListener, JS_DESELECT_TEXT, JS_WEBVIEW_URL } from '../../../util/browserScripts';
@@ -38,15 +36,13 @@ import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
-import AccountApproval from '../../UI/AccountApproval';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
-import { addBookmark, removeBookmark } from '../../../actions/bookmarks';
+import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import WatchAssetRequest from '../../UI/WatchAssetRequest';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -54,19 +50,11 @@ import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
-import { resemblesAddress } from '../../../util/address';
-
-import { createAsyncMiddleware } from 'json-rpc-engine';
-import { ethErrors } from 'eth-json-rpc-errors';
-
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import { getVersion, isEmulatorSync } from 'react-native-device-info';
+import { isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
-import { RPC } from '../../../constants/network';
 
-import RPCMethods from '../../../core/RPCMethods';
-import AddCustomNetwork from '../../UI/AddCustomNetwork';
-import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -185,7 +173,6 @@ const styles = StyleSheet.create({
 		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
 		borderRadius: 30,
 		fontSize: Device.isAndroid() ? 16 : 14,
-		padding: 8,
 		paddingLeft: 15,
 		textAlign: 'left',
 		flex: 1,
@@ -218,21 +205,19 @@ const styles = StyleSheet.create({
 		color: colors.white,
 		fontSize: 18,
 	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
 	fullScreenModal: {
 		flex: 1,
 	},
 });
 
-let wizardScrollAdjusted = false;
-
 const sessionENSNames = {};
 const ensIgnoreList = [];
 let approvedHosts = {};
-let appVersion = '';
+
+const getApprovedHosts = () => approvedHosts;
+const setApprovedHosts = (hosts) => {
+	approvedHosts = hosts;
+};
 
 export const BrowserTab = (props) => {
 	const [backEnabled, setBackEnabled] = useState(false);
@@ -245,18 +230,8 @@ export const BrowserTab = (props) => {
 	const [showUrlModal, setShowUrlModal] = useState(false);
 	const [showOptions, setShowOptions] = useState(false);
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
-	const [showApprovalDialog, setShowApprovalDialog] = useState(false);
-	const [showApprovalDialogHostname, setShowApprovalDialogHostname] = useState(undefined);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
-	const [watchAsset, setWatchAsset] = useState(false);
-	const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
-	const currentNetwork = useRef(props.network);
-
-	const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
-	const [showAddCustomNetworkDialog, setShowAddCustomNetworkDialog] = useState(false);
-	const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-	const [showSwitchCustomNetworkDialog, setShowSwitchCustomNetworkDialog] = useState(undefined);
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
@@ -266,10 +241,13 @@ export const BrowserTab = (props) => {
 	const icon = useRef(null);
 	const webviewUrlPostMessagePromiseResolve = useRef(null);
 	const backgroundBridges = useRef([]);
-	const approvalRequest = useRef(null);
 	const fromHomepage = useRef(false);
-	const addCustomNetworkRequest = useRef(null);
-	const switchCustomNetworkRequest = useRef(null);
+	const wizardScrollAdjusted = useRef(false);
+
+	/**
+	 * Is the current tab the active tab
+	 */
+	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 
 	/**
 	 * Gets the url to be displayed to the user
@@ -335,32 +313,6 @@ export const BrowserTab = (props) => {
 		return currentHost === HOMEPAGE_HOST;
 	}, []);
 
-	/**
-	 * When user clicks on approve to connect with a dapp
-	 */
-	const onAccountsConfirm = () => {
-		const { approveHost, selectedAddress } = props;
-		const fullHostname = new URL(url.current).hostname;
-		setShowApprovalDialog(false);
-		setShowApprovalDialogHostname(undefined);
-		approveHost(fullHostname);
-		approvedHosts = { ...approvedHosts, [fullHostname]: true };
-		approvalRequest.current &&
-			approvalRequest.current.resolve &&
-			approvalRequest.current.resolve([selectedAddress]);
-	};
-
-	/**
-	 * When user clicks on reject to connect with a dapp
-	 */
-	const onAccountsReject = () => {
-		setShowApprovalDialog(false);
-		setShowApprovalDialogHostname(undefined);
-		approvalRequest.current &&
-			approvalRequest.current.reject &&
-			approvalRequest.current.reject(new Error('User rejected account access'));
-	};
-
 	const notifyAllConnections = useCallback(
 		(payload, restricted = true) => {
 			const fullHostname = new URL(url.current).hostname;
@@ -409,391 +361,32 @@ export const BrowserTab = (props) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
-	const polyfillGasPrice = async (method, params = []) => {
-		const { TransactionController } = Engine.context;
-		const data = await util.query(TransactionController.ethQuery, method, params);
-
-		if (data && data.maxFeePerGas && !data.gasPrice) {
-			data.gasPrice = data.maxFeePerGas;
-		}
-
-		return data;
-	};
-
-	/**
-	 * Handle RPC methods called by dapps
-	 */
-	const getRpcMethodMiddleware = ({ hostname, getProviderState }) =>
-		// all user facing RPC calls not implemented by the provider
-		createAsyncMiddleware(async (req, res, next) => {
-			const getAccounts = async () => {
-				const { privacyMode, selectedAddress } = props;
-				const isEnabled = !privacyMode || approvedHosts[hostname];
-
-				return isEnabled && selectedAddress ? [selectedAddress] : [];
-			};
-
-			const rpcMethods = {
-				eth_getTransactionByHash: async () => {
-					res.result = await polyfillGasPrice('getTransactionByHash', req.params);
-				},
-				eth_getTransactionByBlockHashAndIndex: async () => {
-					res.result = await polyfillGasPrice('getTransactionByBlockHashAndIndex', req.params);
-				},
-				eth_getTransactionByBlockNumberAndIndex: async () => {
-					res.result = await polyfillGasPrice('getTransactionByBlockNumberAndIndex', req.params);
-				},
-				eth_chainId: async () => {
-					const { networkType, networkProvider } = props;
-
-					const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
-					let chainId;
-
-					if (isInitialNetwork) {
-						chainId = NetworksChainId[networkType];
-					} else if (networkType === 'rpc') {
-						chainId = networkProvider.chainId;
-					}
-
-					if (chainId && !chainId.startsWith('0x')) {
-						// Convert to hex
-						res.result = `0x${parseInt(chainId, 10).toString(16)}`;
-					}
-				},
-				net_version: async () => {
-					const { networkType } = props;
-					const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
-					if (isInitialNetwork) {
-						res.result = Networks[networkType].networkId;
-					} else {
-						return next();
-					}
-				},
-				eth_requestAccounts: async () => {
-					const { params } = req;
-					const { privacyMode, selectedAddress } = props;
-
-					if (!privacyMode || ((!params || !params.force) && approvedHosts[hostname])) {
-						res.result = [selectedAddress];
-					} else {
-						if (showApprovalDialog) return;
-						setShowApprovalDialog(true);
-						setShowApprovalDialogHostname(hostname);
-
-						const approved = await new Promise((resolve, reject) => {
-							approvalRequest.current = { resolve, reject };
-						});
-
-						if (approved) {
-							res.result = selectedAddress ? [selectedAddress] : [];
-						} else {
-							throw ethErrors.provider.userRejectedRequest('User denied account authorization.');
-						}
-					}
-				},
-				eth_accounts: async () => {
-					res.result = await getAccounts();
-				},
-
-				eth_coinbase: async () => {
-					const accounts = await getAccounts();
-					res.result = accounts.length > 0 ? accounts[0] : null;
-				},
-
-				eth_sign: async () => {
-					const { MessageManager } = Engine.context;
-					const pageMeta = {
-						meta: {
-							url: url.current,
-							title: title.current,
-							icon: icon.current,
-						},
-					};
-					const rawSig = await MessageManager.addUnapprovedMessageAsync({
-						data: req.params[1],
-						from: req.params[0],
-						...pageMeta,
-					});
-
-					res.result = rawSig;
-				},
-
-				personal_sign: async () => {
-					const { PersonalMessageManager } = Engine.context;
-					const firstParam = req.params[0];
-					const secondParam = req.params[1];
-					const params = {
-						data: firstParam,
-						from: secondParam,
-					};
-
-					if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
-						params.data = secondParam;
-						params.from = firstParam;
-					}
-
-					const pageMeta = {
-						meta: {
-							url: url.current,
-							title: title.current,
-							icon: icon.current,
-						},
-					};
-					const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
-						...params,
-						...pageMeta,
-					});
-
-					res.result = rawSig;
-				},
-
-				eth_signTypedData: async () => {
-					const { TypedMessageManager } = Engine.context;
-					const pageMeta = {
-						meta: {
-							url: url.current,
-							title: title.current,
-							icon: icon.current,
-						},
-					};
-					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-						{
-							data: req.params[0],
-							from: req.params[1],
-							...pageMeta,
-						},
-						'V1'
-					);
-
-					res.result = rawSig;
-				},
-
-				eth_signTypedData_v3: async () => {
-					const { TypedMessageManager } = Engine.context;
-					const data = JSON.parse(req.params[1]);
-					const chainId = data.domain.chainId;
-					const activeChainId =
-						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
-
-					// eslint-disable-next-line
-					if (chainId && chainId != activeChainId) {
-						throw ethErrors.rpc.invalidRequest(
-							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-						);
-					}
-
-					const pageMeta = {
-						meta: {
-							url: url.current,
-							title: title.current,
-							icon: icon.current,
-						},
-					};
-
-					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-						{
-							data: req.params[1],
-							from: req.params[0],
-							...pageMeta,
-						},
-						'V3'
-					);
-
-					res.result = rawSig;
-				},
-
-				eth_signTypedData_v4: async () => {
-					const { TypedMessageManager } = Engine.context;
-					const data = JSON.parse(req.params[1]);
-					const chainId = data.domain.chainId;
-					const activeChainId =
-						props.networkType === RPC ? props.network : Networks[props.networkType].networkId;
-
-					// eslint-disable-next-line eqeqeq
-					if (chainId && chainId != activeChainId) {
-						throw ethErrors.rpc.invalidRequest(
-							`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-						);
-					}
-
-					const pageMeta = {
-						meta: {
-							url: url.current,
-							title: title.current,
-							icon: icon.current,
-						},
-					};
-					const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
-						{
-							data: req.params[1],
-							from: req.params[0],
-							...pageMeta,
-						},
-						'V4'
-					);
-
-					res.result = rawSig;
-				},
-
-				web3_clientVersion: async () => {
-					let version = appVersion;
-					if (!version) {
-						appVersion = await getVersion();
-						version = appVersion;
-					}
-					res.result = `MetaMask/${version}/Beta/Mobile`;
-				},
-
-				wallet_scanQRCode: () =>
-					new Promise((resolve, reject) => {
-						props.navigation.navigate('QRScanner', {
-							onScanSuccess: (data) => {
-								const regex = new RegExp(req.params[0]);
-								if (regex && !regex.exec(data)) {
-									reject({ message: 'NO_REGEX_MATCH', data });
-								} else if (!regex && !/^(0x){1}[0-9a-fA-F]{40}$/i.exec(data.target_address)) {
-									reject({ message: 'INVALID_ETHEREUM_ADDRESS', data: data.target_address });
-								}
-								let result = data;
-								if (data.target_address) {
-									result = data.target_address;
-								} else if (data.scheme) {
-									result = JSON.stringify(data);
-								}
-								res.result = result;
-								resolve();
-							},
-							onScanError: (e) => {
-								throw ethErrors.rpc.internal(e.toString());
-							},
-						});
-					}),
-
-				wallet_watchAsset: async () => {
-					const {
-						params: {
-							options: { address, decimals, image, symbol },
-							type,
-						},
-					} = req;
-					const { TokensController } = Engine.context;
-					const suggestionResult = await TokensController.watchAsset(
-						{ address, symbol, decimals, image },
-						type
-					);
-
-					res.result = suggestionResult.result;
-				},
-
-				metamask_removeFavorite: async () => {
-					if (!isHomepage()) {
-						throw ethErrors.provider.unauthorized('Forbidden.');
-					}
-					Alert.alert(strings('browser.remove_bookmark_title'), strings('browser.remove_bookmark_msg'), [
-						{
-							text: strings('browser.cancel'),
-							onPress: () => {
-								res.result = {
-									favorites: props.bookmarks,
-								};
-							},
-							style: 'cancel',
-						},
-						{
-							text: strings('browser.yes'),
-							onPress: () => {
-								const bookmark = { url: req.params[0] };
-								props.removeBookmark(bookmark);
-								res.result = {
-									favorites: props.bookmarks,
-								};
-							},
-						},
-					]);
-				},
-
-				metamask_showTutorial: async () => {
-					wizardScrollAdjusted = false;
-					props.setOnboardingWizardStep(1);
-					props.navigation.navigate('WalletView');
-
-					res.result = true;
-				},
-
-				metamask_showAutocomplete: async () => {
-					fromHomepage.current = true;
-					setAutocompleteValue('');
-					setShowUrlModal(true);
-
-					setTimeout(() => {
-						fromHomepage.current = false;
-					}, 1500);
-
-					res.result = true;
-				},
-
-				/**
-				 * This method is used by the inpage provider to get its state on
-				 * initialization.
-				 */
-				metamask_getProviderState: async () => {
-					res.result = {
-						...getProviderState(),
-						accounts: await getAccounts(),
-					};
-				},
-
-				/**
-				 * This method is sent by the window.web3 shim. It can be used to
-				 * record web3 shim usage metrics. These metrics are already collected
-				 * in the extension, and can optionally be added to mobile as well.
-				 *
-				 * For now, we need to respond to this method to not throw errors on
-				 * the page, and we implement it as a no-op.
-				 */
-				metamask_logWeb3ShimUsage: () => (res.result = null),
-				wallet_addEthereumChain: () =>
-					RPCMethods.wallet_addEthereumChain({
-						req,
-						res,
-						showAddCustomNetworkDialog,
-						showSwitchCustomNetworkDialog,
-						addCustomNetworkRequest,
-						switchCustomNetworkRequest,
-						setCustomNetworkToSwitch,
-						setShowSwitchCustomNetworkDialog,
-						setCustomNetworkToAdd,
-						setShowAddCustomNetworkDialog,
-					}),
-				wallet_switchEthereumChain: () =>
-					RPCMethods.wallet_switchEthereumChain({
-						req,
-						res,
-						showSwitchCustomNetworkDialog,
-						switchCustomNetworkRequest,
-						setCustomNetworkToSwitch,
-						setShowSwitchCustomNetworkDialog,
-					}),
-			};
-
-			const blockRefIndex = blockTagParamIndex(req);
-			const blockRef = req.params?.[blockRefIndex];
-			// omitted blockRef implies "latest"
-			if (blockRef === undefined) {
-				req.params[blockRefIndex] = 'latest';
-			}
-
-			if (!rpcMethods[req.method]) {
-				return next();
-			}
-			await rpcMethods[req.method]();
-		});
-
-	const initializeBackgroundBridge = (url, isMainFrame) => {
+	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
 		const newBridge = new BackgroundBridge({
 			webview: webviewRef,
-			url,
-			getRpcMethodMiddleware,
+			url: urlBridge,
+			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+				getRpcMethodMiddleware({
+					hostname,
+					getProviderState,
+					navigation: props.navigation,
+					getApprovedHosts,
+					setApprovedHosts,
+					approveHost: props.approveHost,
+					// Website info
+					url,
+					title,
+					icon,
+					// Bookmarks
+					isHomepage,
+					// Show autocomplete
+					fromHomepage,
+					setAutocompleteValue,
+					setShowUrlModal,
+					// Wizard
+					wizardScrollAdjusted,
+					isTabActive,
+				}),
 			isMainFrame,
 		});
 		backgroundBridges.current.push(newBridge);
@@ -805,11 +398,6 @@ export const BrowserTab = (props) => {
 		url && initializeBackgroundBridge(url, false);
 	};
 	*/
-
-	/**
-	 * Is the current tab the active tab
-	 */
-	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -892,7 +480,6 @@ export const BrowserTab = (props) => {
 		if (!current) return;
 		const analyticsEnabled = Analytics.getEnabled();
 		const disctinctId = await Analytics.getDistinctId();
-
 		const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
 			window.__mmSearchEngine = "${props.searchEngine}";
@@ -1057,15 +644,6 @@ export const BrowserTab = (props) => {
 	}, []);
 
 	/**
-	 * Reload page if network changes
-	 */
-	useEffect(() => {
-		if (props.network === 'loading' || currentNetwork.current === props.network) return;
-		currentNetwork.current = props.network;
-		reload();
-	}, [currentNetwork, props.network, reload]);
-
-	/**
 	 * Handle when the drawer (app menu) is opened
 	 */
 	const drawerOpenHandler = useCallback(() => {
@@ -1086,12 +664,6 @@ export const BrowserTab = (props) => {
 		};
 
 		getEntryScriptWeb3();
-
-		Engine.context.TokensController.hub.on('pendingSuggestedAsset', (suggestedAssetMeta) => {
-			if (!isTabActive()) return false;
-			setSuggestedAssetMeta(suggestedAssetMeta);
-			setWatchAsset(true);
-		});
 
 		// Specify how to clean up after this effect:
 		return function cleanup() {
@@ -1165,12 +737,17 @@ export const BrowserTab = (props) => {
 	 * Handles state changes for when the url changes
 	 */
 	const changeUrl = (siteInfo, type) => {
-		setBackEnabled(siteInfo.canGoBack);
-		setForwardEnabled(siteInfo.canGoForward);
-
 		url.current = siteInfo.url;
 		title.current = siteInfo.title;
 		if (siteInfo.icon) icon.current = siteInfo.icon;
+	};
+
+	/**
+	 * Handles state changes for when the url changes
+	 */
+	const changeAddressBar = (siteInfo, type) => {
+		setBackEnabled(siteInfo.canGoBack);
+		setForwardEnabled(siteInfo.canGoForward);
 
 		isTabActive() &&
 			props.navigation.setParams({
@@ -1291,13 +868,18 @@ export const BrowserTab = (props) => {
 		webviewUrlPostMessagePromiseResolve.current = null;
 		setError(false);
 
+		changeUrl(nativeEvent, 'start');
+
 		//For Android url on the navigation bar should only update upon load.
-		if (Device.isAndroid()) changeUrl(nativeEvent, 'start');
+		if (Device.isAndroid()) {
+			changeAddressBar(nativeEvent, 'start');
+		}
 
 		icon.current = null;
 		if (isHomepage(nativeEvent.url)) {
 			injectHomePageScripts();
 		}
+
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 		backgroundBridges.current = [];
@@ -1314,7 +896,10 @@ export const BrowserTab = (props) => {
 
 	const onLoad = ({ nativeEvent }) => {
 		//For iOS url on the navigation bar should only update upon load.
-		if (Device.isIos()) changeUrl(nativeEvent, 'start');
+		if (Device.isIos()) {
+			changeUrl(nativeEvent, 'start');
+			changeAddressBar(nativeEvent, 'start');
+		}
 	};
 
 	/**
@@ -1336,6 +921,7 @@ export const BrowserTab = (props) => {
 			const { hostname } = new URL(nativeEvent.url);
 			if (info.url === nativeEvent.url && currentHostname === hostname) {
 				changeUrl({ ...nativeEvent, icon: info.icon }, 'end-promise');
+				changeAddressBar({ ...nativeEvent, icon: info.icon }, 'end-promise');
 			}
 		});
 	};
@@ -1345,7 +931,6 @@ export const BrowserTab = (props) => {
 	 */
 	const onMessage = ({ nativeEvent }) => {
 		let data = nativeEvent.data;
-
 		try {
 			data = typeof data === 'string' ? JSON.parse(data) : data;
 			if (!data || (!data.type && !data.name)) {
@@ -1745,163 +1330,16 @@ export const BrowserTab = (props) => {
 	);
 
 	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderApprovalModal = () => {
-		const showApprovalDialogNow =
-			showApprovalDialog && showApprovalDialogHostname === new URL(url.current).hostname;
-		return (
-			<Modal
-				isVisible={showApprovalDialogNow}
-				animationIn="slideInUp"
-				animationOut="slideOutDown"
-				style={styles.bottomModal}
-				backdropOpacity={0.7}
-				animationInTiming={300}
-				animationOutTiming={300}
-				onSwipeComplete={onAccountsReject}
-				onBackdropPress={onAccountsReject}
-				swipeDirection={'down'}
-			>
-				<AccountApproval
-					onCancel={onAccountsReject}
-					onConfirm={onAccountsConfirm}
-					currentPageInformation={{
-						title: title.current,
-						url: getMaskedUrl(url.current),
-						icon: icon.current,
-					}}
-				/>
-			</Modal>
-		);
-	};
-
-	const onAddCustomNetworkReject = () => {
-		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest?.current?.resolve?.(false);
-	};
-
-	const onAddCustomNetworkConfirm = () => {
-		setShowAddCustomNetworkDialog(false);
-		addCustomNetworkRequest?.current?.resolve?.(true);
-	};
-
-	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderAddCustomNetworkModal = () => (
-		<Modal
-			isVisible={showAddCustomNetworkDialog}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onAddCustomNetworkReject}
-			onBackdropPress={onAddCustomNetworkReject}
-		>
-			<AddCustomNetwork
-				onCancel={onAddCustomNetworkReject}
-				onConfirm={onAddCustomNetworkConfirm}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-				customNetworkInformation={customNetworkToAdd}
-			/>
-		</Modal>
-	);
-
-	const onSwitchCustomNetworkReject = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
-		switchCustomNetworkRequest?.current?.resolve?.(false);
-	};
-
-	const onSwitchCustomNetworkConfirm = () => {
-		setShowSwitchCustomNetworkDialog(undefined);
-		switchCustomNetworkRequest?.current?.resolve?.(true);
-	};
-
-	/**
-	 * Render the modal that asks the user to approve/reject connections to a dapp
-	 */
-	const renderSwitchCustomNetworkModal = () => (
-		<Modal
-			isVisible={!!showSwitchCustomNetworkDialog}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={300}
-			animationOutTiming={300}
-			onSwipeComplete={onSwitchCustomNetworkReject}
-			onBackdropPress={onSwitchCustomNetworkReject}
-			swipeDirection={'down'}
-		>
-			<SwitchCustomNetwork
-				onCancel={onSwitchCustomNetworkReject}
-				onConfirm={onSwitchCustomNetworkConfirm}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-				customNetworkInformation={customNetworkToSwitch}
-				type={showSwitchCustomNetworkDialog}
-			/>
-		</Modal>
-	);
-
-	/**
-	 * On rejection addinga an asset
-	 */
-	const onCancelWatchAsset = () => {
-		setWatchAsset(false);
-	};
-
-	/**
-	 * Render the add asset modal
-	 */
-	const renderWatchAssetModal = () => (
-		<Modal
-			isVisible={watchAsset}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={600}
-			animationOutTiming={600}
-			onBackdropPress={onCancelWatchAsset}
-			onSwipeComplete={onCancelWatchAsset}
-			swipeDirection={'down'}
-			propagateSwipe
-		>
-			<WatchAssetRequest
-				onCancel={onCancelWatchAsset}
-				onConfirm={onCancelWatchAsset}
-				suggestedAssetMeta={suggestedAssetMeta}
-				currentPageInformation={{
-					title: title.current,
-					url: getMaskedUrl(url.current),
-					icon: icon.current,
-				}}
-			/>
-		</Modal>
-	);
-
-	/**
 	 * Render the onboarding wizard browser step
 	 */
 	const renderOnboardingWizard = () => {
 		const { wizardStep } = props;
 		if ([6].includes(wizardStep)) {
-			if (!wizardScrollAdjusted) {
+			if (!wizardScrollAdjusted.current) {
 				setTimeout(() => {
 					reload();
 				}, 1);
-				wizardScrollAdjusted = true;
+				wizardScrollAdjusted.current = true;
 			}
 			return <OnboardingWizard navigation={props.navigation} />;
 		}
@@ -1945,13 +1383,9 @@ export const BrowserTab = (props) => {
 				{renderProgressBar()}
 				{isTabActive() && renderPhishingModal()}
 				{isTabActive() && renderUrlModal()}
-				{isTabActive() && renderApprovalModal()}
-				{isTabActive() && renderWatchAssetModal()}
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}
-				{isTabActive() && renderAddCustomNetworkModal()}
-				{isTabActive() && renderSwitchCustomNetworkModal()}
 			</View>
 		</ErrorBoundary>
 	);
@@ -1995,10 +1429,6 @@ BrowserTab.propTypes = {
 	 */
 	navigation: PropTypes.object,
 	/**
-	 * A string representing the network type
-	 */
-	networkType: PropTypes.string,
-	/**
 	 * A string representing the network id
 	 */
 	network: PropTypes.string,
@@ -2031,10 +1461,6 @@ BrowserTab.propTypes = {
 	 * Function to store bookmarks
 	 */
 	addBookmark: PropTypes.func,
-	/**
-	 * Function to remove bookmarks
-	 */
-	removeBookmark: PropTypes.func,
 	/**
 	 * Array of bookmarks
 	 */
@@ -2071,10 +1497,6 @@ BrowserTab.propTypes = {
 	 * the current version of the app
 	 */
 	app_version: PropTypes.string,
-	/**
-	 * An object representing the selected network provider
-	 */
-	networkProvider: PropTypes.object,
 };
 
 BrowserTab.defaultProps = {
@@ -2085,8 +1507,6 @@ const mapStateToProps = (state) => ({
 	approvedHosts: state.privacy.approvedHosts,
 	bookmarks: state.bookmarks,
 	ipfsGateway: state.engine.backgroundState.PreferencesController.ipfsGateway,
-	networkProvider: state.engine.backgroundState.NetworkController.provider,
-	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	network: state.engine.backgroundState.NetworkController.network,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress?.toLowerCase(),
 	privacyMode: state.privacy.privacyMode,
@@ -2099,7 +1519,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	approveHost: (hostname) => dispatch(approveHost(hostname)),
 	addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
-	removeBookmark: (bookmark) => dispatch(removeBookmark(bookmark)),
 	addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
 	addToWhitelist: (url) => dispatch(addToWhitelist(url)),
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),

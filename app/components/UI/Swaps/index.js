@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import numberToBN from 'number-to-bn';
 import Logger from '../../../util/Logger';
 import {
 	balanceToFiat,
@@ -13,6 +12,7 @@ import {
 	renderFromTokenMinimalUnit,
 	toTokenMinimalUnit,
 	weiToFiat,
+	safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -52,6 +52,7 @@ import useBlockExplorer from './utils/useBlockExplorer';
 import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
+import { isZero, gte } from '../../../util/lodash';
 
 const styles = StyleSheet.create({
 	screen: {
@@ -175,7 +176,7 @@ function SwapsAmountView({
 	const [destinationToken, setDestinationToken] = useState(null);
 	const [hasDismissedTokenAlert, setHasDismissedTokenAlert] = useState(true);
 	const [contractBalance, setContractBalance] = useState(null);
-	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(numberToBN(0));
+	const [contractBalanceAsUnits, setContractBalanceAsUnits] = useState(safeNumberToBN(0));
 	const [isDirectWrapping, setIsDirectWrapping] = useState(false);
 
 	const [isSourceModalVisible, toggleSourceModal] = useModalHandler(false);
@@ -269,10 +270,13 @@ function SwapsAmountView({
 		(async () => {
 			if (sourceToken && !isSwapsNativeAsset(sourceToken) && !isTokenInBalances) {
 				setContractBalance(null);
-				setContractBalanceAsUnits(numberToBN(0));
+				setContractBalanceAsUnits(safeNumberToBN(0));
 				const { AssetsContractController } = Engine.context;
 				try {
-					const balance = await AssetsContractController.getBalanceOf(sourceToken.address, selectedAddress);
+					const balance = await AssetsContractController.getERC20BalanceOf(
+						sourceToken.address,
+						selectedAddress
+					);
 					setContractBalanceAsUnits(balance);
 					setContractBalance(renderFromTokenMinimalUnit(balance, sourceToken.decimals));
 				} catch (e) {
@@ -299,19 +303,25 @@ function SwapsAmountView({
 	const balance = isSwapsNativeAsset(sourceToken) || isTokenInBalances ? controllerBalance : contractBalance;
 	const balanceAsUnits =
 		isSwapsNativeAsset(sourceToken) || isTokenInBalances ? controllerBalanceAsUnits : contractBalanceAsUnits;
+
+	const isBalanceZero = isZero(balanceAsUnits);
+	const isAmountZero = isZero(amountAsUnits);
+
 	const hasBalance = useMemo(() => {
 		if (!balanceAsUnits || !sourceToken) {
 			return false;
 		}
 
-		return !(balanceAsUnits.isZero?.() ?? true);
-	}, [balanceAsUnits, sourceToken]);
+		return !(isBalanceZero ?? true);
+	}, [balanceAsUnits, sourceToken, isBalanceZero]);
 
 	const hasEnoughBalance = useMemo(() => {
 		if (hasInvalidDecimals || !hasBalance || !balanceAsUnits) {
 			return false;
 		}
-		return balanceAsUnits.gte?.(amountAsUnits) ?? false;
+
+		// TODO: Cannot call .gte on balanceAsUnits since it isn't always guaranteed to be type BN. Should consolidate into one type.
+		return gte(balanceAsUnits, amountAsUnits) ?? false;
 	}, [amountAsUnits, balanceAsUnits, hasBalance, hasInvalidDecimals]);
 
 	const currencyAmount = useMemo(() => {
@@ -341,7 +351,7 @@ function SwapsAmountView({
 		if (hasInvalidDecimals) {
 			return;
 		}
-		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !balanceAsUnits?.isZero()) {
+		if (!isSwapsNativeAsset(sourceToken) && !isTokenInBalances && !isBalanceZero) {
 			const { TokensController } = Engine.context;
 			const { address, symbol, decimals } = sourceToken;
 			await TokensController.addToken(address, symbol, decimals);
@@ -358,13 +368,13 @@ function SwapsAmountView({
 		);
 	}, [
 		amount,
-		balanceAsUnits,
 		destinationToken,
 		hasInvalidDecimals,
 		isTokenInBalances,
 		navigation,
 		slippage,
 		sourceToken,
+		isBalanceZero,
 	]);
 
 	/* Keypad Handlers */
@@ -499,7 +509,7 @@ function SwapsAmountView({
 						</Text>
 					</TouchableOpacity>
 					{!!sourceToken &&
-						(hasInvalidDecimals || (!amountAsUnits?.isZero() && !hasEnoughBalance) ? (
+						(hasInvalidDecimals || (!isAmountZero && !hasEnoughBalance) ? (
 							<Text style={styles.amountInvalid}>
 								{hasInvalidDecimals
 									? strings('swaps.allows_up_to_decimals', {
@@ -509,7 +519,7 @@ function SwapsAmountView({
 									  })
 									: strings('swaps.not_enough', { symbol: sourceToken.symbol })}
 							</Text>
-						) : amountAsUnits?.isZero() ? (
+						) : isAmountZero ? (
 							<Text>
 								{!!sourceToken &&
 									balance !== null &&
@@ -680,7 +690,7 @@ function SwapsAmountView({
 									!sourceToken ||
 									!destinationToken ||
 									hasInvalidDecimals ||
-									amountAsUnits.isZero()
+									isAmountZero
 								}
 							>
 								{strings('swaps.get_quotes')}

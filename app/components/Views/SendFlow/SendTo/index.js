@@ -347,7 +347,7 @@ class SendFlow extends PureComponent {
 			const networkId = NetworkList[providerType].networkId;
 			if (networkId === 1) {
 				try {
-					const symbol = await AssetsContractController.getAssetSymbol(toSelectedAddress);
+					const symbol = await AssetsContractController.getERC721AssetSymbol(toSelectedAddress);
 					if (symbol) {
 						addressError = (
 							<Text>
@@ -561,7 +561,7 @@ class SendFlow extends PureComponent {
 			<>
 				{'\n'}
 				<Text bold style={styles.buyEth} onPress={this.goToBuy}>
-					{strings('fiat_on_ramp.buy_eth')}
+					{strings('fiat_on_ramp.buy', { ticker: getTicker(this.props.ticker) })}
 				</Text>
 			</>
 		);

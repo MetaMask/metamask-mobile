@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
@@ -14,10 +14,13 @@ import {
 	favoritesCollectiblesSelector,
 } from '../../../reducers/collectibles';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
+import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
+import CollectibleDetectionModal from '../CollectibleDetectionModal';
+import { isMainNet } from '../../../util/networks';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -29,7 +32,7 @@ const styles = StyleSheet.create({
 	emptyView: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 40,
+		marginTop: 10,
 	},
 	add: {
 		flexDirection: 'row',
@@ -56,6 +59,7 @@ const styles = StyleSheet.create({
 	emptyImageContainer: {
 		width: 76,
 		height: 76,
+		marginTop: 30,
 		marginBottom: 12,
 	},
 	emptyTitleText: {
@@ -81,7 +85,12 @@ const CollectibleContracts = ({
 	collectibles,
 	favoriteCollectibles,
 	removeFavoriteCollectible,
+	useCollectibleDetection,
+	setNftDetectionDismissed,
+	nftDetectionDismissed,
 }) => {
+	const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -123,16 +132,23 @@ const CollectibleContracts = ({
 	});
 
 	const goToAddCollectible = () => {
+		setIsAddNFTEnabled(false);
 		navigation.push('AddAsset', { assetType: 'collectible' });
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+			setIsAddNFTEnabled(true);
 		});
 	};
 
 	const renderFooter = () => (
 		<View style={styles.footer} key={'collectible-contracts-footer'}>
 			<Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-			<TouchableOpacity style={styles.add} onPress={goToAddCollectible} testID={'add-collectible-button'}>
+			<TouchableOpacity
+				style={styles.add}
+				onPress={goToAddCollectible}
+				disabled={!isAddNFTEnabled}
+				testID={'add-collectible-button'}
+			>
 				<Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
 			</TouchableOpacity>
 		</View>
@@ -189,6 +205,10 @@ const CollectibleContracts = ({
 	const goToLearnMore = () =>
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
+	const dismissNftInfo = async () => {
+		setNftDetectionDismissed(true);
+	};
+
 	const renderEmpty = () => (
 		<View style={styles.emptyView}>
 			<View style={styles.emptyContainer}>
@@ -209,6 +229,11 @@ const CollectibleContracts = ({
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			{isMainNet(chainId) && !nftDetectionDismissed && !useCollectibleDetection && (
+				<View style={styles.emptyView}>
+					<CollectibleDetectionModal onDismiss={dismissNftInfo} navigation={navigation} />
+				</View>
+			)}
 			{collectibleContracts.length > 0 ? renderList() : renderEmpty()}
 			{renderFooter()}
 		</View>
@@ -245,11 +270,25 @@ CollectibleContracts.propTypes = {
 	 * Dispatch remove collectible from favorites action
 	 */
 	removeFavoriteCollectible: PropTypes.func,
+	/**
+	 * Boolean to show if NFT detection is enabled
+	 */
+	useCollectibleDetection: PropTypes.bool,
+	/**
+	 * Setter for NFT detection state
+	 */
+	setNftDetectionDismissed: PropTypes.func,
+	/**
+	 * State to manage display of modal
+	 */
+	nftDetectionDismissed: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
+	nftDetectionDismissed: state.user.nftDetectionDismissed,
 	collectibleContracts: collectibleContractsSelector(state),
 	collectibles: collectiblesSelector(state),
 	favoriteCollectibles: favoritesCollectiblesSelector(state),
@@ -258,6 +297,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
 		dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+	setNftDetectionDismissed: () => dispatch(setNftDetectionDismissed()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContracts);

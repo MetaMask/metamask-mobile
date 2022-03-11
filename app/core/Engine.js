@@ -23,6 +23,7 @@ import {
 	CollectiblesController,
 	TokenDetectionController,
 	CollectibleDetectionController,
+	ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -35,6 +36,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+import { isZero } from '../util/lodash';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -70,8 +72,8 @@ class Engine {
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
 					// TODO: Use previous value when preferences UI is available
-					useCollectibleDetection: true,
-					openSeaEnabled: true,
+					useCollectibleDetection: false,
+					openSeaEnabled: false,
 				}
 			);
 			const networkController = new NetworkController({
@@ -108,20 +110,19 @@ class Engine {
 					},
 				},
 			});
-			const assetsContractController = new AssetsContractController();
+			const assetsContractController = new AssetsContractController({
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+			});
 			const collectiblesController = new CollectiblesController(
 				{
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
-					getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
-					getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
-					getCollectibleTokenURI:
-						assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
-					getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
-					balanceOfERC1155Collectible:
-						assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
-					uriERC1155Collectible:
-						assetsContractController.uriERC1155Collectible.bind(assetsContractController),
+					getERC721AssetName: assetsContractController.getERC721AssetName.bind(assetsContractController),
+					getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(assetsContractController),
+					getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(assetsContractController),
+					getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(assetsContractController),
+					getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(assetsContractController),
+					getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(assetsContractController),
 				},
 				{
 					useIPFSSubdomains: false,
@@ -160,6 +161,7 @@ class Engine {
 						chainId === swapsUtils.POLYGON_CHAIN_ID
 					);
 				},
+				clientId: AppConstants.SWAPS.CLIENT_ID,
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
@@ -212,7 +214,7 @@ class Engine {
 					{
 						onTokensStateChange: (listener) => tokensController.subscribe(listener),
 						getSelectedAddress: () => preferencesController.state.selectedAddress,
-						getBalanceOf: assetsContractController.getBalanceOf.bind(assetsContractController),
+						getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(assetsContractController),
 					},
 					{ interval: 10000 }
 				),
@@ -235,9 +237,22 @@ class Engine {
 						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
 						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+						supportedChainIds: [
+							swapsUtils.ETH_CHAIN_ID,
+							swapsUtils.BSC_CHAIN_ID,
+							swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+							swapsUtils.POLYGON_CHAIN_ID,
+							swapsUtils.AVALANCHE_CHAIN_ID,
+						],
 					}
 				),
 				gasFeeController,
+				new ApprovalController({
+					messenger: this.controllerMessenger.getRestricted({
+						name: 'ApprovalController',
+					}),
+					showApprovalRequest: () => null,
+				}),
 			];
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
@@ -430,7 +445,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach((token: { address: string | number }) => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
+				if (tokenBalances[token.address] && !isZero(tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});

@@ -10,6 +10,7 @@ import { setLockTime } from '../../../../actions/settings';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getNotificationDetails } from '..';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import { fastSplit } from '../../../../util/number';
 
 import {
 	useCountryCurrency,
@@ -190,7 +191,7 @@ function PaymentMethodApplePay({
 			hasZerosAsDecimals.test(amountWithPeriod) ||
 			hasZeroAsFirstDecimal.test(amountWithPeriod) ||
 			hasPeriodWithoutDecimal.test(amountWithPeriod)
-				? amountWithPeriod.split('.')[0]
+				? fastSplit(amountWithPeriod)
 				: amountWithPeriod,
 		[amountWithPeriod]
 	);

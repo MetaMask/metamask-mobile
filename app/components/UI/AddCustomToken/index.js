@@ -119,8 +119,8 @@ export default class AddCustomToken extends PureComponent {
 		if (validated) {
 			const address = this.state.address;
 			const { AssetsContractController } = Engine.context;
-			const decimals = await AssetsContractController.getTokenDecimals(address);
-			const symbol = await AssetsContractController.getAssetSymbol(address);
+			const decimals = await AssetsContractController.getERC20TokenDecimals(address);
+			const symbol = await AssetsContractController.getERC721AssetSymbol(address);
 			this.setState({ decimals: String(decimals), symbol });
 		}
 	};
@@ -210,6 +210,7 @@ export default class AddCustomToken extends PureComponent {
 							});
 						}}
 						style={styles.warningLink}
+						testID={'add-asset-warning-message'}
 					>
 						{strings('add_asset.warning_link')}
 					</Text>
