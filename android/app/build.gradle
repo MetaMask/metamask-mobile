@@ -182,6 +182,10 @@ android {
 
 	}
 
+	packagingOptions {
+		exclude 'META-INF/DEPENDENCIES'
+	}
+
 	signingConfigs {
 		release {
 			storeFile file('../keystores/release.keystore')
