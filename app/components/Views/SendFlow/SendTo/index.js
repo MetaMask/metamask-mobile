@@ -32,6 +32,7 @@ import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { ADD_ADDRESS_MODAL_CONTAINER_ID, ENTER_ALIAS_INPUT_BOX_ID } from '../../../../constants/test-ids';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -491,7 +492,7 @@ class SendFlow extends PureComponent {
 				confirmDisabled={!alias}
 			>
 				<View style={styles.addToAddressBookRoot}>
-					<View style={styles.addToAddressBookWrapper} testID={'add-address-modal'}>
+					<View style={styles.addToAddressBookWrapper} testID={ADD_ADDRESS_MODAL_CONTAINER_ID}>
 						<View style={baseStyles.flexGrow}>
 							<Text style={styles.addTextTitle}>{strings('address_book.add_to_address_book')}</Text>
 							<Text style={styles.addTextSubtitle}>{strings('address_book.enter_an_alias')}</Text>
@@ -511,8 +512,8 @@ class SendFlow extends PureComponent {
 										onFocus={this.onInputFocus}
 										onSubmitEditing={this.onFocus}
 										value={alias}
-										testID={'address-alias-input'}
 										keyboardAppearance={themeAppearance}
+										testID={ENTER_ALIAS_INPUT_BOX_ID}
 									/>
 								</View>
 							</View>
