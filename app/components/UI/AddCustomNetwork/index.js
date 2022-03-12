@@ -117,7 +117,7 @@ const createStyles = (colors) =>
 		},
 		alertText: {
 			lineHeight: 18,
-			color: colors.warning.inverse,
+			color: colors.text.default,
 		},
 	});
 

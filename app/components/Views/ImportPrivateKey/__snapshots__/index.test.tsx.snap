@@ -29,7 +29,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
     }
     style={
       Object {
-        "backgroundColor": "#037DD610",
+        "backgroundColor": "#037DD619",
         "flex": 1,
       }
     }

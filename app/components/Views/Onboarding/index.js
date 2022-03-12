@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles, colors as importedColors } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
@@ -120,7 +120,7 @@ const createStyles = (colors) =>
 			paddingBottom: Device.isIphoneX() ? 20 : 10,
 			left: 0,
 			right: 0,
-			backgroundColor: colors.transparent,
+			backgroundColor: importedColors.transparent,
 		},
 		notificationContainer: {
 			flex: 0.1,

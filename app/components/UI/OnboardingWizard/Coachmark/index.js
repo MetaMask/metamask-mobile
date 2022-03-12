@@ -250,7 +250,7 @@ export default class Coachmark extends PureComponent {
 			<View style={styles.progress}>
 				<StyledButton
 					containerStyle={[styles.progressButton, styles.leftProgessButton]}
-					type={'transparent'}
+					type={'inverse-transparent'}
 					onPress={this.onBack}
 				>
 					{strings('onboarding_wizard.coachmark.progress_back')}
@@ -284,7 +284,7 @@ export default class Coachmark extends PureComponent {
 			<View style={styles.actions}>
 				<StyledButton
 					containerStyle={styles.actionButton}
-					type={'transparent'}
+					type={'inverse-transparent'}
 					onPress={this.onBack}
 					testID={'onboarding-wizard-back-button'}
 				>

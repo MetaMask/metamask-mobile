@@ -113,14 +113,22 @@ const createStyles = (colors) =>
 			...fontStyles.bold,
 			color: colors.overlay.inverse,
 		},
-		viewText: {
+		onOverlayText: {
 			fontSize: 18,
 			...fontStyles.bold,
 			color: colors.overlay.inverse,
 		},
-		view: {
+		onOverlayBackground: {
 			borderWidth: 1,
 			borderColor: colors.overlay.inverse,
+		},
+		inverseTransparentBackground: {
+			backgroundColor: importedColors.transparent,
+			borderWidth: 0,
+			borderColor: importedColors.transparent,
+		},
+		inverseTransparentText: {
+			color: colors.primary.inverse,
 		},
 		inverseBackground: {
 			backgroundColor: colors.primary.inverse,
@@ -151,6 +159,10 @@ function getStyles(type, colors) {
 		case 'inverse':
 			fontStyle = styles.inverseText;
 			containerStyle = styles.inverseBackground;
+			break;
+		case 'inverse-transparent':
+			fontStyle = styles.inverseTransparentText;
+			containerStyle = styles.inverseTransparentBackground;
 			break;
 		case 'normal':
 			fontStyle = styles.normalText;
@@ -200,9 +212,9 @@ function getStyles(type, colors) {
 			fontStyle = styles.signText;
 			containerStyle = styles.sign;
 			break;
-		case 'view':
-			fontStyle = styles.viewText;
-			containerStyle = styles.view;
+		case 'onOverlay':
+			fontStyle = styles.onOverlayText;
+			containerStyle = styles.onOverlayBackground;
 			break;
 		default:
 			throw new Error('Unknown button type');

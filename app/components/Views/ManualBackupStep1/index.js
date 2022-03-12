@@ -363,7 +363,7 @@ class ManualBackupStep1 extends PureComponent {
 						<Text style={styles.watching}>{strings('manual_backup_step_1.watching')}</Text>
 						<View style={styles.viewButtonWrapper}>
 							<StyledButton
-								type={'view'}
+								type={'onOverlay'}
 								testID={'view-button'}
 								onPress={this.revealSeedPhrase}
 								containerStyle={styles.viewButtonContainer}

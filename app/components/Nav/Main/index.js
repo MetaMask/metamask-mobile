@@ -43,6 +43,7 @@ import ReviewModal from '../../UI/ReviewModal';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
+import { colors as importedColors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 
@@ -252,7 +253,9 @@ const Main = (props) => {
 				{!forceReload ? <MainNavigator navigation={props.navigation} /> : renderLoader()}
 				<GlobalAlert />
 				<FadeOutOverlay />
-				<Notification navigation={props.navigation} />
+				<View>
+					<Notification navigation={props.navigation} />
+				</View>
 				<FiatOrders />
 				<SwapsLiveness />
 				<BackupAlert onDismiss={toggleRemindLater} navigation={props.navigation} />
@@ -342,7 +345,7 @@ const MainFlow = () => (
 	<Stack.Navigator
 		initialRouteName={'Main'}
 		mode={'modal'}
-		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: importedColors.transparent } }}
 	>
 		<Stack.Screen name={'Main'} component={ConnectedMain} />
 		<Stack.Screen name={'ReviewModal'} component={ReviewModal} options={{ animationEnabled: false }} />

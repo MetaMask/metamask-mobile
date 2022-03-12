@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { colors as importedColors } from '../../styles/common';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -14,7 +15,7 @@ const createStyles = (colors) =>
 			borderColor: colors.border.muted,
 		},
 		borderless: {
-			borderColor: colors.transparent,
+			borderColor: importedColors.transparent,
 		},
 		dragger: {
 			width: 48,

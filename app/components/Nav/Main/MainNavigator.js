@@ -51,6 +51,7 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
+import { colors as importedColors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -203,7 +204,7 @@ const SettingsModalStack = () => (
 	<Stack.Navigator
 		initialRouteName={'SettingsFlow'}
 		mode={'modal'}
-		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: importedColors.transparent } }}
 	>
 		<Stack.Screen name={'SettingsFlow'} component={SettingsFlow} />
 		<Stack.Screen name={'ThemeSettings'} component={ThemeSettings} options={{ animationEnabled: false }} />
@@ -331,7 +332,7 @@ const MainNavigator = () => (
 			component={CollectiblesDetails}
 			options={{
 				//Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-				cardStyle: { backgroundColor: 'transparent' },
+				cardStyle: { backgroundColor: importedColors.transparent },
 				cardStyleInterpolator: () => ({
 					overlayStyle: {
 						opacity: 0,

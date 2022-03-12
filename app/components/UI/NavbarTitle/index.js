@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
@@ -36,7 +36,7 @@ const createStyles = (colors) =>
 			color: colors.text.default,
 		},
 		otherNetworkIcon: {
-			backgroundColor: colors.transparent,
+			backgroundColor: importedColors.transparent,
 			borderColor: colors.border.default,
 			borderWidth: 1,
 		},

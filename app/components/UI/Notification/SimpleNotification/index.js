@@ -10,12 +10,17 @@ const styles = StyleSheet.create({
 	modalTypeViewBrowser: {
 		bottom: Device.isIphoneX() ? 70 : 60,
 	},
-	notificationContainer: {
+	elevatedView: {
 		position: 'absolute',
 		left: 0,
 		right: 0,
 		bottom: 0,
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
+	},
+	notificationContainer: {
+		flex: 0.1,
+		flexDirection: 'row',
+		alignItems: 'flex-end',
 	},
 });
 
@@ -28,7 +33,7 @@ function SimpleNotification({ isInBrowserView, notificationAnimated, hideCurrent
 				{ transform: [{ translateY: notificationAnimated }] },
 			]}
 		>
-			<ElevatedView elevation={100}>
+			<ElevatedView style={styles.elevatedView} elevation={100}>
 				<BaseNotification
 					status={currentNotification.status}
 					data={{ title: currentNotification.title, description: currentNotification.description }}

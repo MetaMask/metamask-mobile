@@ -258,6 +258,8 @@ const App = ({ userLoggedIn }) => {
 		(route && (
 			<ThemeContext.Provider value={theme}>
 				<NavigationContainer
+					// Prevents artifacts when navigating between screens
+					theme={{ colors: { background: theme.colors.background.default } }}
 					ref={navigator}
 					onReady={() => {
 						routingInstrumentation.registerNavigationContainer(navigator);

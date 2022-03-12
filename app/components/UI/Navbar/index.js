@@ -5,7 +5,7 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
 import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import { Alert, Text, TouchableOpacity, View, StyleSheet, Image, Keyboard, InteractionManager } from 'react-native';
-import { fontStyles, colors } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -110,7 +110,7 @@ export default function getNavbarOptions(title, disableNetwork = false, drawerRe
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -161,7 +161,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});
@@ -217,7 +217,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});
@@ -275,7 +275,7 @@ export function getPaymentRequestOptionsTitle(title, navigation, route, themeCol
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});
@@ -321,7 +321,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -358,7 +358,7 @@ export function getTransactionOptionsTitle(_title, navigation, route, themeColor
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerButtonText: {
@@ -439,7 +439,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});
@@ -490,7 +490,7 @@ export function getBrowserViewNavbarOptions(navigation, route, drawerRef, themeC
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -583,7 +583,7 @@ export function getOnboardingNavbarOptions(route, { headerLeft } = {}, themeColo
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		metamaskName: {
@@ -616,7 +616,7 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		metamaskName: {
@@ -646,7 +646,7 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		metamaskName: {
@@ -678,7 +678,7 @@ export function getOptinMetricsNavbarOptions(themeColors) {
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 			height: 100,
 		},
@@ -723,7 +723,7 @@ export function getClosableNavigationOptions(title, backButtonText, navigation, 
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerTitleStyle: {
@@ -775,7 +775,7 @@ export function getWalletNavbarOptions(title, navigation, drawerRef, themeColors
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -869,7 +869,7 @@ export function getNetworkNavbarOptions(title, translate, navigation, themeColor
 	const innerStyles = StyleSheet.create({
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -909,7 +909,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -961,7 +961,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});
@@ -993,7 +993,7 @@ export function getPaymentMethodApplePayNavbar(navigation, onPop, onExit, themeC
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerButtonText: {
@@ -1055,7 +1055,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 		headerIcon: {
@@ -1105,7 +1105,7 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});
@@ -1134,7 +1134,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 		},
 		headerStyle: {
 			backgroundColor: themeColors.background.default,
-			shadowColor: colors.transparent,
+			shadowColor: importedColors.transparent,
 			elevation: 0,
 		},
 	});

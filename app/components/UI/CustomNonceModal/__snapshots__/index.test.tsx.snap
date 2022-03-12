@@ -7,7 +7,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={600}
   avoidKeyboard={false}
-  backdropColor="#00000060"
+  backdropColor="#00000099"
   backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
@@ -252,7 +252,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#FFD33D10",
+                "backgroundColor": "#FFD33D19",
                 "borderColor": "#FFD33D",
                 "borderRadius": 8,
                 "borderWidth": 1,

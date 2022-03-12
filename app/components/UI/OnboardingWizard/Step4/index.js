@@ -6,7 +6,7 @@ import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
-import { fontStyles, colors } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
 		right: 0,
 	},
 	hamburger: {
-		backgroundColor: colors.transparent,
+		backgroundColor: importedColors.transparent,
 		height: 50,
 		width: 50,
 	},
