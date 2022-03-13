@@ -58,21 +58,15 @@ const AmountToBuy = ({ navigation }) => {
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
 	const [tokens, setTokens] = useState([]);
+	const [fiatCurrency, setFiatCurrency] = useState('');
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
 	const [isFiatSelectorModalVisible, toggleFiatSelectorModal, , hideFiatSelectorModal] = useModalHandler(false);
 	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
 
-	const {
-		selectedCountry,
-		selectedRegion,
-		selectedAsset,
-		setSelectedAsset,
-		selectedPaymentMethod,
-		setRegionCurrency,
-		regionCurrency,
-	} = useFiatOnRampSDK();
+	const { selectedCountry, selectedRegion, selectedAsset, setSelectedAsset, selectedPaymentMethod } =
+		useFiatOnRampSDK();
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
@@ -90,13 +84,17 @@ const AmountToBuy = ({ navigation }) => {
 	);
 
 	const currentCurrency = useMemo(() => {
-		// whenever user will switch region currnecy, we lookup the new selected currency in the fiat currencies list
-		if (currencies && regionCurrency && regionCurrency !== defaultCurrnecy?.id) {
-			return currencies.find((c) => c.id === regionCurrency);
+		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
+		if (currencies && fiatCurrency && fiatCurrency !== '/' + selectedCountry?.currency) {
+			return currencies.find((currency) => currency.id === fiatCurrency);
 		}
-		// as long as we don't have use selection for fiat currnect, we return the default currnecy according to region
+
+		if (currencies) {
+			return currencies.find((currency) => currency.id === '/' + selectedCountry?.currency);
+		}
+
 		return defaultCurrnecy;
-	}, [currencies, defaultCurrnecy, regionCurrency]);
+	}, [currencies, defaultCurrnecy, fiatCurrency, selectedCountry?.currency]);
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod(
@@ -155,10 +153,10 @@ const AmountToBuy = ({ navigation }) => {
 
 	const handleCurrencyPress = useCallback(
 		(newCurrency) => {
-			setRegionCurrency(newCurrency?.id);
+			setFiatCurrency(newCurrency?.id);
 			hideFiatSelectorModal();
 		},
-		[hideFiatSelectorModal, setRegionCurrency]
+		[hideFiatSelectorModal]
 	);
 
 	/****************** PAYMENT METHODS HANDLERS *********************************/
