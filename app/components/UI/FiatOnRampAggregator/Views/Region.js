@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 
 const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
-	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
+	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
 	// eslint-disable-next-line no-unused-vars
 	const [showAlert, setShowAlert] = useState(false);
@@ -46,7 +46,7 @@ const Region = () => {
 	};
 
 	const handleRegionButton = () => {
-		toggleTokenSelectorModal();
+		toggleRegionModal();
 	};
 
 	const handleOnPress = useCallback(() => {
@@ -59,10 +59,10 @@ const Region = () => {
 				setShowAlert(true);
 			} else {
 				setSelectedCountry(country);
-				hideTokenSelectorModal();
+				hideRegionModal();
 			}
 		},
-		[hideTokenSelectorModal, setSelectedCountry]
+		[hideRegionModal, setSelectedCountry]
 	);
 
 	const handleRegionPress = useCallback(
@@ -72,10 +72,10 @@ const Region = () => {
 			} else {
 				setSelectedRegion(region);
 				setSelectedCountry(country);
-				hideTokenSelectorModal();
+				hideRegionModal();
 			}
 		},
-		[hideTokenSelectorModal, setSelectedCountry, setSelectedRegion]
+		[hideRegionModal, setSelectedCountry, setSelectedRegion]
 	);
 
 	const handleUnsetRegion = useCallback(() => {
@@ -154,11 +154,11 @@ const Region = () => {
 				</ScreenLayout.Content>
 
 				<RegionModal
-					isVisible={isTokenSelectorModalVisible}
+					isVisible={isRegionModalVisible}
 					title={strings('fiat_on_ramp_aggregator.region.title')}
 					description={strings('fiat_on_ramp_aggregator.region.description')}
 					data={data}
-					dismiss={toggleTokenSelectorModal}
+					dismiss={toggleRegionModal}
 					onCountryPress={handleCountryPress}
 					onRegionPress={handleRegionPress}
 					unsetRegion={handleUnsetRegion}

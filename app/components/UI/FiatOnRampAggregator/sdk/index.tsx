@@ -14,8 +14,6 @@ export interface IFiatOnRampSDK {
 	selectedRegion: any;
 	setSelectedPaymentMethod: (paymentMethod: string) => void;
 	selectedPaymentMethod: string;
-	setRegionCurrency: (currency: string) => void;
-	regionCurrency: string;
 	setSelectedAsset: (asset: string) => void;
 	selectedAsset: string;
 	selectedAddress: string;
@@ -37,14 +35,12 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
-	const INITIAL_FIAT_CURRENCY = '/currencies/fiat/usd';
 	const INITIAL_SELECTED_ASSET = 'ETH';
 
 	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
-	const [regionCurrency, setRegionCurrency] = useState(INITIAL_FIAT_CURRENCY);
 
 	const setSelectedCountryCallback = useCallback(
 		(country) => {
@@ -56,12 +52,6 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 
 	const setSelectedRegionCallback = useCallback((region) => {
 		setSelectedRegion(region);
-	}, []);
-
-	const setRegionCurrencyCallback = useCallback((currency) => {
-		setRegionCurrency(currency);
-		// dispatch an action to redux store to update region currency
-		// TODO: dispatch(setRegionCurrency(currency));
 	}, []);
 
 	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
@@ -80,8 +70,6 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 		selectedRegion,
 		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
 		selectedPaymentMethod,
-		setRegionCurrency: setRegionCurrencyCallback,
-		regionCurrency,
 		setSelectedAsset: setSelectedAssetCallback,
 		selectedAsset,
 		selectedAddress,
@@ -131,6 +119,8 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	useEffect(() => {
 		if (onMount) {
 			query();
+		} else {
+			setIsFetching(false);
 		}
 	}, [query, onMount]);
 

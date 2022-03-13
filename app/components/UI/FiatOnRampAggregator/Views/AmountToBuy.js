@@ -24,6 +24,7 @@ import { PAYMENT_METHOD_ICON } from '../constants';
 import WebviewError from '../../WebviewError';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
+import RegionModal from '../components/RegionModal';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -54,19 +55,36 @@ const styles = StyleSheet.create({
 	},
 });
 
+const formatId = (id) => (id.startsWith('/') ? id : '/' + id);
+
 const AmountToBuy = ({ navigation }) => {
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
 	const [tokens, setTokens] = useState([]);
 	const [fiatCurrency, setFiatCurrency] = useState('');
+	const [, setShowAlert] = useState(false);
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
 	const [isFiatSelectorModalVisible, toggleFiatSelectorModal, , hideFiatSelectorModal] = useModalHandler(false);
 	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
+	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 
-	const { selectedCountry, selectedRegion, selectedAsset, setSelectedAsset, selectedPaymentMethod } =
-		useFiatOnRampSDK();
+	const {
+		selectedCountry,
+		selectedRegion,
+		selectedAsset,
+		setSelectedAsset,
+		selectedPaymentMethod,
+		setSelectedRegion,
+		setSelectedCountry,
+	} = useFiatOnRampSDK();
+
+	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }, queryGetCountries] =
+		useSDKMethod({
+			method: 'getCountries',
+			onMount: false,
+		});
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
@@ -85,12 +103,12 @@ const AmountToBuy = ({ navigation }) => {
 
 	const currentCurrency = useMemo(() => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
-		if (currencies && fiatCurrency && fiatCurrency !== '/' + selectedCountry?.currency) {
+		if (currencies && fiatCurrency && fiatCurrency !== formatId(selectedCountry?.currency)) {
 			return currencies.find((currency) => currency.id === fiatCurrency);
 		}
 
 		if (currencies) {
-			return currencies.find((currency) => currency.id === '/' + selectedCountry?.currency);
+			return currencies.find((currency) => currency.id === formatId(selectedCountry?.currency));
 		}
 
 		return defaultCurrnecy;
@@ -129,9 +147,39 @@ const AmountToBuy = ({ navigation }) => {
 	}, []);
 
 	/****************** COUNTRY/REGION HANDLERS ****************************/
-	const handleCountryPress = useCallback(() => {
-		// TODO: handle changing country
-	}, []);
+	const handleChangeCountry = useCallback(() => {
+		queryGetCountries();
+		toggleRegionModal();
+	}, [queryGetCountries, toggleRegionModal]);
+
+	const handleCountryPress = useCallback(
+		(country) => {
+			if (country.unsupported) {
+				setShowAlert(true);
+			} else {
+				setSelectedCountry(country);
+				hideRegionModal();
+			}
+		},
+		[hideRegionModal, setSelectedCountry]
+	);
+
+	const handleRegionPress = useCallback(
+		(region, country) => {
+			if (region.unsupported) {
+				setShowAlert(true);
+			} else {
+				setSelectedRegion(region);
+				setSelectedCountry(country);
+				hideRegionModal();
+			}
+		},
+		[hideRegionModal, setSelectedCountry, setSelectedRegion]
+	);
+
+	const handleUnsetRegion = useCallback(() => {
+		setSelectedRegion(undefined);
+	}, [setSelectedRegion]);
 
 	/****************** TOKENS HANDLERS *********************************/
 	const handleAssetSelectorPress = useCallback(() => {
@@ -188,7 +236,13 @@ const AmountToBuy = ({ navigation }) => {
 		}
 	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
 
-	if (isFetchingDataTokens || isFetchingGetPaymentMethod || isFetchingCurrencies || isFetchingDefaultCurrency) {
+	if (
+		isFetchingDataTokens ||
+		isFetchingGetPaymentMethod ||
+		isFetchingCurrencies ||
+		isFetchingDefaultCurrency ||
+		isFetchingCountries
+	) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -198,7 +252,7 @@ const AmountToBuy = ({ navigation }) => {
 		);
 	}
 
-	if (errorDataTokens || errorGetPaymentMethod || errorCurrencies || errorDefaultCurrnecy) {
+	if (errorDataTokens || errorGetPaymentMethod || errorCurrencies || errorDefaultCurrnecy || errorCountries) {
 		return (
 			<WebviewError
 				error={{ description: errorDataTokens || errorGetPaymentMethod }}
@@ -215,7 +269,7 @@ const AmountToBuy = ({ navigation }) => {
 						<View style={[styles.selectors, styles.row]}>
 							<AccountSelector />
 							<View style={styles.spacer} />
-							<SelectorButton onPress={handleCountryPress}>
+							<SelectorButton onPress={handleChangeCountry}>
 								<Text reset>{selectedCountry?.emoji}</Text>
 							</SelectorButton>
 						</View>
@@ -299,6 +353,16 @@ const AmountToBuy = ({ navigation }) => {
 				isVisible={isPaymentMethodModalVisible}
 				dismiss={togglePaymentMethodModal}
 				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
+			/>
+			<RegionModal
+				isVisible={isRegionModalVisible}
+				title={strings('fiat_on_ramp_aggregator.region.title')}
+				description={strings('fiat_on_ramp_aggregator.region.description')}
+				data={countries}
+				dismiss={hideRegionModal}
+				onCountryPress={handleCountryPress}
+				onRegionPress={handleRegionPress}
+				unsetRegion={handleUnsetRegion}
 			/>
 		</ScreenLayout>
 	);
