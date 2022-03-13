@@ -25,6 +25,7 @@ import WebviewError from '../../WebviewError';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
+import { formatId } from '../utils';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -55,13 +56,10 @@ const styles = StyleSheet.create({
 	},
 });
 
-const formatId = (id) => (id.startsWith('/') ? id : '/' + id);
-
 const AmountToBuy = ({ navigation }) => {
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
 	const [tokens, setTokens] = useState([]);
-	const [fiatCurrency, setFiatCurrency] = useState('');
 	const [, setShowAlert] = useState(false);
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
@@ -71,13 +69,15 @@ const AmountToBuy = ({ navigation }) => {
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 
 	const {
+		selectedPaymentMethod,
 		selectedCountry,
+		setSelectedCountry,
 		selectedRegion,
+		setSelectedRegion,
 		selectedAsset,
 		setSelectedAsset,
-		selectedPaymentMethod,
-		setSelectedRegion,
-		setSelectedCountry,
+		selectedFiatCurrencyId,
+		setSelectedFiatCurrencyId,
 	} = useFiatOnRampSDK();
 
 	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }, queryGetCountries] =
@@ -103,8 +103,8 @@ const AmountToBuy = ({ navigation }) => {
 
 	const currentCurrency = useMemo(() => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
-		if (currencies && fiatCurrency && fiatCurrency !== formatId(selectedCountry?.currency)) {
-			return currencies.find((currency) => currency.id === fiatCurrency);
+		if (currencies && selectedFiatCurrencyId && selectedFiatCurrencyId !== formatId(selectedCountry?.currency)) {
+			return currencies.find((currency) => currency.id === selectedFiatCurrencyId);
 		}
 
 		if (currencies) {
@@ -112,7 +112,7 @@ const AmountToBuy = ({ navigation }) => {
 		}
 
 		return defaultCurrnecy;
-	}, [currencies, defaultCurrnecy, fiatCurrency, selectedCountry?.currency]);
+	}, [currencies, defaultCurrnecy, selectedFiatCurrencyId, selectedCountry?.currency]);
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod(
@@ -201,10 +201,10 @@ const AmountToBuy = ({ navigation }) => {
 
 	const handleCurrencyPress = useCallback(
 		(newCurrency) => {
-			setFiatCurrency(newCurrency?.id);
+			setSelectedFiatCurrencyId(newCurrency?.id);
 			hideFiatSelectorModal();
 		},
-		[hideFiatSelectorModal]
+		[hideFiatSelectorModal, setSelectedFiatCurrencyId]
 	);
 
 	/****************** PAYMENT METHODS HANDLERS *********************************/
@@ -235,6 +235,13 @@ const AmountToBuy = ({ navigation }) => {
 			);
 		}
 	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
+
+	// side effect to set selected fiat currenct to default
+	useEffect(() => {
+		if (!selectedFiatCurrencyId) {
+			setSelectedFiatCurrencyId(formatId(selectedCountry?.currency));
+		}
+	}, [selectedCountry?.currency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
 	if (
 		isFetchingDataTokens ||

@@ -8,14 +8,21 @@ import {
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk;
-	setSelectedCountry: (country: any) => void;
 	selectedCountry: any;
-	setSelectedRegion: (region: any) => void;
+	setSelectedCountry: (country: any) => void;
+
 	selectedRegion: any;
-	setSelectedPaymentMethod: (paymentMethod: string) => void;
+	setSelectedRegion: (region: any) => void;
+
 	selectedPaymentMethod: string;
-	setSelectedAsset: (asset: string) => void;
+	setSelectedPaymentMethod: (paymentMethod: string) => void;
+
 	selectedAsset: string;
+	setSelectedAsset: (asset: string) => void;
+
+	selectedFiatCurrencyId: string;
+	setSelectedFiatCurrencyId: (asset: string) => void;
+
 	selectedAddress: string;
 }
 
@@ -41,6 +48,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
+	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState('');
 
 	const setSelectedCountryCallback = useCallback(
 		(country) => {
@@ -62,16 +70,27 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 		setSelectedAsset(asset);
 	}, []);
 
+	const setSelectedFiatCurrencyCallback = useCallback((currency) => {
+		setSelectedFiatCurrencyId(currency);
+	}, []);
+
 	const contextValue: IFiatOnRampSDK = {
 		sdk,
-		setSelectedCountry: setSelectedCountryCallback,
 		selectedCountry,
-		setSelectedRegion: setSelectedRegionCallback,
+		setSelectedCountry: setSelectedCountryCallback,
+
 		selectedRegion,
-		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+		setSelectedRegion: setSelectedRegionCallback,
+
 		selectedPaymentMethod,
-		setSelectedAsset: setSelectedAssetCallback,
+		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+
 		selectedAsset,
+		setSelectedAsset: setSelectedAssetCallback,
+
+		selectedFiatCurrencyId,
+		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
+
 		selectedAddress,
 	};
 
