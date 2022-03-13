@@ -186,7 +186,7 @@ class Engine {
 					onTokensStateChange: (listener) => tokensController.subscribe(listener),
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
-					addTokens: tokensController.addTokens.bind(tokensController),
+					addDetectedTokens: tokensController.addDetectedTokens.bind(tokensController),
 					getTokensState: () => tokensController.state,
 					getTokenListState: () => tokenListController.state,
 					getBalancesInSingleCall:

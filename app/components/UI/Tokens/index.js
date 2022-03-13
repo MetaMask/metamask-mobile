@@ -45,11 +45,22 @@ const styles = StyleSheet.create({
 		color: colors.blue,
 		...fontStyles.normal,
 	},
+	tokensDetectedButton: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: 16,
+	},
+	tokensDetectedText: {
+		fontSize: 14,
+		color: colors.blue,
+		...fontStyles.normal,
+	},
 	footer: {
 		flex: 1,
 		paddingBottom: 30,
 		alignItems: 'center',
-		marginTop: 24,
+		marginTop: 16,
 	},
 	balances: {
 		flex: 1,
@@ -129,6 +140,10 @@ class Tokens extends PureComponent {
 		 * List of tokens from TokenListController
 		 */
 		tokenList: PropTypes.object,
+		/**
+		 * List of detected tokens from TokensController
+		 */
+		detectedTokens: PropTypes.array,
 	};
 
 	actionSheet = null;
@@ -228,6 +243,27 @@ class Tokens extends PureComponent {
 		});
 	};
 
+	showDetectedTokens = () => {
+		// TODO: Implement logic to show detected tokens
+	};
+
+	renderTokensDetectedSection = () => {
+		const { detectedTokens } = this.props;
+		if (!detectedTokens?.length) {
+			return null;
+		}
+		return (
+			<TouchableOpacity style={styles.tokensDetectedButton} onPress={this.showDetectedTokens}>
+				<Text style={styles.tokensDetectedText}>
+					{strings('wallet.tokens_detected', {
+						tokenCount: detectedTokens.length,
+						tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
+					})}
+				</Text>
+			</TouchableOpacity>
+		);
+	};
+
 	renderList() {
 		const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
 		const tokensToDisplay = hideZeroBalanceTokens
@@ -241,6 +277,7 @@ class Tokens extends PureComponent {
 		return (
 			<View>
 				{tokensToDisplay.map((item) => this.renderItem(item))}
+				{this.renderTokensDetectedSection()}
 				{this.renderFooter()}
 			</View>
 		);
@@ -280,6 +317,7 @@ class Tokens extends PureComponent {
 
 	render = () => {
 		const { tokens } = this.props;
+
 		return (
 			<View style={styles.wrapper} testID={'tokens'}>
 				{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
@@ -304,6 +342,7 @@ const mapStateToProps = (state) => ({
 	tokenExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
 	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
 	tokenList: getTokenList(state),
+	detectedTokens: state.engine.backgroundState.TokensController.detectedTokens,
 });
 
 export default connect(mapStateToProps)(Tokens);
