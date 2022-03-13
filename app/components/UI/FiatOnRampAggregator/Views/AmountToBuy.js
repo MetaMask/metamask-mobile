@@ -76,16 +76,16 @@ const AmountToBuy = ({ navigation }) => {
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
-		{ countryId: selectedCountry.id, regionId: selectedRegion.id },
+		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
 		selectedPaymentMethod
 	);
 
 	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
-		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry.id, regionId: selectedRegion.id });
+		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry?.id, regionId: selectedRegion?.id });
 
 	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
 		'getFiatCurrencies',
-		{ countryId: selectedCountry.id, regionId: selectedRegion.id },
+		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
 		selectedPaymentMethod
 	);
 
@@ -101,7 +101,7 @@ const AmountToBuy = ({ navigation }) => {
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod(
 			'getPaymentMethod',
-			{ countryId: selectedCountry.id, regionId: selectedRegion.id },
+			{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
 			selectedPaymentMethod
 		);
 
