@@ -5,6 +5,7 @@ import Animated from 'react-native-reanimated';
 import BaseNotification from './../BaseNotification';
 import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
+import { colors as importedColors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	modalTypeViewBrowser: {
@@ -16,6 +17,7 @@ const styles = StyleSheet.create({
 		right: 0,
 		bottom: 0,
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
+		backgroundColor: importedColors.transparent,
 	},
 	notificationContainer: {
 		flex: 0.1,
