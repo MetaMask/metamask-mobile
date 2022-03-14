@@ -1,8 +1,9 @@
 import TestHelpers from '../../helpers';
-
-const ACCOUNT_APROVAL_MODAL_CONTAINER_ID = 'account-approval-modal-container';
-const CANCEL_BUTTON_ID = 'connect-cancel-button';
-const CONNECT_BUTTON_ID = 'connect-approve-button';
+import {
+	ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
+	CANCEL_BUTTON_ID,
+	CONNECT_BUTTON_ID,
+} from '../../../app/constants/test-ids';
 
 export default class ConnectModal {
 	static async tapCancelButton() {

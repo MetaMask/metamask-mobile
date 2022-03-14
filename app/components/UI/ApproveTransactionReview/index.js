@@ -245,6 +245,10 @@ class ApproveTransactionReview extends PureComponent {
 		 * Whether the transaction was confirmed or not
 		 */
 		transactionConfirmed: PropTypes.bool,
+		/**
+		 * Dispatch set transaction object from transaction action
+		 */
+		setTransactionObject: PropTypes.func,
 	};
 
 	state = {
@@ -434,6 +438,7 @@ class ApproveTransactionReview extends PureComponent {
 		} = this.state;
 
 		try {
+			const { setTransactionObject } = this.props;
 			const uint = toTokenMinimalUnit(
 				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
 				token.decimals
@@ -443,7 +448,15 @@ class ApproveTransactionReview extends PureComponent {
 				spender: spenderAddress,
 				value: Number(uint).toString(16),
 			});
-			const newApprovalTransaction = { ...transaction, data: approvalData };
+			const newApprovalTransaction = {
+				...transaction,
+				data: approvalData,
+				transaction: {
+					...transaction.transaction,
+					data: approvalData,
+				},
+			};
+
 			setTransactionObject(newApprovalTransaction);
 		} catch (err) {
 			Logger.log('Failed to setTransactionObject', err);
@@ -662,8 +675,10 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			spendLimitUnlimitedSelected,
 			spendLimitCustomValue,
-			transaction: { to, data },
 		} = this.state;
+		const {
+			transaction: { to, data },
+		} = this.props;
 		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
 			<TransactionReviewDetailsCard
