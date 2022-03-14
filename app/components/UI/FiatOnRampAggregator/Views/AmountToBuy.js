@@ -25,7 +25,7 @@ import WebviewError from '../../WebviewError';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
-import { formatId } from '../utils';
+import { currencyToKeypadCurrency, formatId } from '../utils';
 
 const styles = StyleSheet.create({
 	viewContainer: {
@@ -104,9 +104,11 @@ const AmountToBuy = ({ navigation }) => {
 	const currentCurrency = useMemo(() => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
 		if (currencies && selectedFiatCurrencyId && selectedFiatCurrencyId !== formatId(selectedCountry?.currency)) {
+			setAmount('0');
 			return currencies.find((currency) => currency.id === selectedFiatCurrencyId);
 		}
 
+		// TODO: we need to remove this later on once the defaultCurrency bug is fixed in the SDK
 		if (currencies) {
 			return currencies.find((currency) => currency.id === formatId(selectedCountry?.currency));
 		}
@@ -158,10 +160,11 @@ const AmountToBuy = ({ navigation }) => {
 				setShowAlert(true);
 			} else {
 				setSelectedCountry(country);
+				setSelectedFiatCurrencyId('');
 				hideRegionModal();
 			}
 		},
-		[hideRegionModal, setSelectedCountry]
+		[hideRegionModal, setSelectedCountry, setSelectedFiatCurrencyId]
 	);
 
 	const handleRegionPress = useCallback(
@@ -171,10 +174,11 @@ const AmountToBuy = ({ navigation }) => {
 			} else {
 				setSelectedRegion(region);
 				setSelectedCountry(country);
+				setSelectedFiatCurrencyId('');
 				hideRegionModal();
 			}
 		},
-		[hideRegionModal, setSelectedCountry, setSelectedRegion]
+		[hideRegionModal, setSelectedCountry, setSelectedRegion, setSelectedFiatCurrencyId]
 	);
 
 	const handleUnsetRegion = useCallback(() => {
@@ -326,14 +330,23 @@ const AmountToBuy = ({ navigation }) => {
 			<Animated.View style={[styles.keypadContainer, keypadContainerStyle]} onLayout={onKeypadLayout}>
 				<QuickAmounts
 					onAmountPress={handleKeypadChange}
-					amounts={[
-						{ value: 100, label: '$100' },
-						{ value: 200, label: '$200' },
-						{ value: 300, label: '$300' },
-						{ value: 400, label: '$400' },
-					]}
+					amounts={
+						currentCurrency?.id === '/currencies/fiat/usd'
+							? [
+									{ value: 100, label: '$100' },
+									{ value: 200, label: '$200' },
+									{ value: 300, label: '$300' },
+									{ value: 400, label: '$400' },
+									// eslint-disable-next-line no-mixed-spaces-and-tabs
+							  ]
+							: []
+					}
 				/>
-				<Keypad value={amount} onChange={handleKeypadChange} currency={'USD'} />
+				<Keypad
+					value={amount}
+					onChange={handleKeypadChange}
+					currency={currencyToKeypadCurrency(currentCurrency)}
+				/>
 				<ScreenLayout.Content>
 					<StyledButton type="confirm" onPress={handleKeypadDone}>
 						Done
