@@ -25,6 +25,9 @@ export default class SendView {
 		}
 	}
 
+	static async tapAndLongPress() {
+		await TestHelpers.tapAndLongPress(ADDRESS_INPUT_BOX_ID);
+	}
 	static async tapAddAddressToAddressBook() {
 		await TestHelpers.waitAndTap(ADD_TO_ADDRESS_BOOK_BUTTON_ID);
 	}
@@ -52,5 +55,8 @@ export default class SendView {
 
 	static async isSavedAliasVisible(name) {
 		await TestHelpers.checkIfElementWithTextIsVisible(name);
+	}
+	static async isSavedAliasIsNotVisible(name) {
+		await TestHelpers.checkIfElementWithTextIsNotVisible(name);
 	}
 }

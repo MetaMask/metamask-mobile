@@ -1,7 +1,5 @@
 import TestHelpers from '../../helpers';
-
-const ADD_ADDRESS_MODAL_CONTAINER_ID = 'add-address-modal';
-const ENTER_ALIAS_INPUT_BOX_ID = 'address-alias-input';
+import { ENTER_ALIAS_INPUT_BOX_ID, ADD_ADDRESS_MODAL_CONTAINER_ID } from '../../../app/constants/test-ids';
 
 export default class AddAddressModal {
 	static async typeInAlias(name) {
