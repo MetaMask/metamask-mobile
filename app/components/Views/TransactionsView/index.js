@@ -6,6 +6,8 @@ import { withNavigation } from '@react-navigation/compat';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
+import { TX_UNAPPROVED, TX_SUBMITTED, TX_SIGNED, TX_PENDING, TX_CONFIRMED } from '../../../constants/transaction';
+import { sortTransactions, filterByAddressAndNetwork } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
@@ -39,67 +41,51 @@ const TransactionsView = ({
 		let accountAddedTimeInsertPointFound = false;
 		const addedAccountTime = identities[selectedAddress]?.importTime;
 
-		const ethFilter = (tx) => {
-			const {
-				transaction: { from, to },
-				isTransfer,
-				transferInformation,
-			} = tx;
-			if (
-				(safeToChecksumAddress(from) === selectedAddress || safeToChecksumAddress(to) === selectedAddress) &&
-				(chainId === tx.chainId || (!tx.chainId && network === tx.networkID)) &&
-				tx.status !== 'unapproved'
-			) {
-				if (isTransfer)
-					return tokens.find(({ address }) =>
-						toLowerCaseEquals(address, transferInformation.contractAddress)
-					);
-				return true;
-			}
-			return false;
-		};
-
 		const submittedTxs = [];
 		const newPendingTxs = [];
 		const confirmedTxs = [];
+		const submittedNonces = [];
 
-		const allTransactionsSorted = transactions.sort((a, b) => (a.time > b.time ? -1 : b.time > a.time ? 1 : 0));
+		const allTransactionsSorted = sortTransactions(transactions);
 
 		const allTransactions = allTransactionsSorted.filter((tx) => {
-			const filter = ethFilter(tx);
+			const filter = filterByAddressAndNetwork(tx, tokens, selectedAddress, chainId, network);
 			if (!filter) return false;
 
 			tx.insertImportTime = addAccountTimeFlagFilter(tx, addedAccountTime, accountAddedTimeInsertPointFound);
 			if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
 			switch (tx.status) {
-				case 'submitted':
-				case 'signed':
-				case 'unapproved':
+				case TX_SUBMITTED:
+				case TX_SIGNED:
+				case TX_UNAPPROVED:
 					submittedTxs.push(tx);
 					return false;
-				case 'pending':
+				case TX_PENDING:
 					newPendingTxs.push(tx);
 					break;
-				case 'confirmed':
+				case TX_CONFIRMED:
 					confirmedTxs.push(tx);
 					break;
 			}
 			return filter;
 		});
 
-		const submittedNonces = [];
-		const submittedTxsFiltered = submittedTxs.filter((transaction) => {
-			const alreadySubmitted = submittedNonces.includes(transaction.transaction.nonce);
+		const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
+			const { from, nonce } = transaction;
+			if (!toLowerCaseEquals(from, selectedAddress)) {
+				return false;
+			}
+			const alreadySubmitted = submittedNonces.includes(nonce);
 			const alreadyConfirmed = confirmedTxs.find(
 				(tx) =>
-					safeToChecksumAddress(tx.transaction.from) === selectedAddress &&
-					tx.transaction.nonce === transaction.transaction.nonce
+					toLowerCaseEquals(safeToChecksumAddress(tx.transaction.from), selectedAddress) &&
+					tx.transaction.nonce === nonce
 			);
 			if (alreadyConfirmed) {
 				return false;
 			}
-			submittedNonces.push(transaction.transaction.nonce);
+			submittedNonces.push(nonce);
 			return !alreadySubmitted;
 		});
 

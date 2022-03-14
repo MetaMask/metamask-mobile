@@ -56,7 +56,7 @@ function calculateTotalGas(transaction) {
 		return gasBN.mul(gasPriceBN);
 	}
 
-	return toBN('0x0');
+	return hexToBN('0x0');
 }
 
 function renderGwei(transaction) {
