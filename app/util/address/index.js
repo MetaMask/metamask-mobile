@@ -28,6 +28,12 @@ export function renderShortAddress(address, chars = 4) {
 	return `${checksummedAddress.substr(0, chars + 2)}...${checksummedAddress.substr(-chars)}`;
 }
 
+export function renderSlightlyLongAddress(address, chars = 4) {
+	if (!address) return address;
+	const checksummedAddress = toChecksumAddress(address);
+	return `${checksummedAddress.substr(0, chars + 20)}...${checksummedAddress.substr(-chars)}`;
+}
+
 /**
  * Returns address name if it's in known identities
  *
