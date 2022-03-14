@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
+import Text from '../../../Base/Text';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 import Title from '../../../Base/Title';
@@ -48,7 +49,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
+function InfoModal({ title, body, isVisible, toggleModal, message, propagateSwipe }) {
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -61,10 +62,13 @@ function InfoModal({ title, body, isVisible, toggleModal, propagateSwipe }) {
 		>
 			<SafeAreaView style={styles.modalView}>
 				<View style={styles.title}>
-					<Title>{title}</Title>
-					<TouchableOpacity onPress={toggleModal} hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}>
-						<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
-					</TouchableOpacity>
+					{title && <Title>{title}</Title>}
+					{message && <Text>{message}</Text>}
+					{!message && (
+						<TouchableOpacity onPress={toggleModal} hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}>
+							<IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+						</TouchableOpacity>
+					)}
 				</View>
 				<View style={styles.body}>{body}</View>
 			</SafeAreaView>
@@ -77,6 +81,7 @@ InfoModal.propTypes = {
 	body: PropTypes.node,
 	toggleModal: PropTypes.func,
 	propagateSwipe: PropTypes.bool,
+	message: PropTypes.string,
 };
 
 export default InfoModal;
