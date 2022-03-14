@@ -7,8 +7,6 @@ import PaymentMethod from '../components/PaymentMethod';
 import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
 
-import { NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
-
 const styles = StyleSheet.create({
 	title: {
 		flex: 1,
@@ -29,10 +27,11 @@ const styles = StyleSheet.create({
 const MoonPayLogoIcon = require('../../../../images/MoonPayLogo.png');
 const MoonPayLogo = () => <Image source={MoonPayLogoIcon} style={styles.logo} />;
 
-const hasStablecoins = (chainId) =>
-	[NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON, NETWORKS_CHAIN_ID.CELO].includes(
-		chainId
-	);
+const hasStablecoins = (chainId) => false;
+// TODO: reenable stablecoins once widget supports them
+// [NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON, NETWORKS_CHAIN_ID.CELO].includes(
+// 	chainId
+// );
 
 const MoonPayPaymentMethod = ({ onPress, ticker, chainId }) => (
 	<PaymentMethod onPress={onPress}>

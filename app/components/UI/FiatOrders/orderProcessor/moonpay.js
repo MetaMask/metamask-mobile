@@ -284,13 +284,13 @@ export async function processMoonPayOrder(order) {
 export const useMoonPayFlowURL = (address, chainId) => {
 	const params = useMemo(() => {
 		const selectedChainId = isMoonpayAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
-		const [defaultCurrencyCode, showOnlyCurrencies] = MOONPAY_NETWORK_PARAMETERS[selectedChainId];
+		const [defaultCurrencyCode] = MOONPAY_NETWORK_PARAMETERS[selectedChainId];
 		return qs.stringify({
 			apiKey: MOONPAY_API_KEY,
 			colorCode: '#037dd6',
 			walletAddress: address,
 			defaultCurrencyCode,
-			showOnlyCurrencies,
+			showOnlyCurrencies: defaultCurrencyCode,
 			redirectURL: MOONPAY_REDIRECT_URL,
 		});
 	}, [address, chainId]);
