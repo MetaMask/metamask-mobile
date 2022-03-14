@@ -131,7 +131,7 @@ function FiatSelectModal({
 	const renderEmptyList = useMemo(
 		() => (
 			<View style={styles.emptyList}>
-				<Text>{strings('swaps.no_tokens_result', { searchString })}</Text>
+				<Text>{strings('fiat_on_ramp_aggregator.no_tokens_result', { searchString })}</Text>
 			</View>
 		),
 		[searchString]

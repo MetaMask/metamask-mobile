@@ -1471,6 +1471,7 @@
 		"selected_payment_method": "Selected payment method",
 		"select_payment_method": "Select payment method",
 		"select_region_currency": "Select Region Currency",
+		"no_tokens_result": "No tokens match “{{searchString}}”",
 		"region": {
 			"title": "Select your Region",
 			"description": "Select the country where your card is registered (not where you are located).",

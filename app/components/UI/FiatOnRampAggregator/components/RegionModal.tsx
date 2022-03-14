@@ -233,11 +233,11 @@ const RegionModal: React.FC<Props> = ({
 		[searchString]
 	);
 
-	const handleRegionBackButton = () => {
+	const handleRegionBackButton = useCallback(() => {
 		setActiveView(RegionViewType.COUNTRY);
 		dataRef.current = data;
 		setSearchString('');
-	};
+	}, [data]);
 
 	const handleSearchTextChange = useCallback((text) => {
 		setSearchString(text);
