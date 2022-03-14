@@ -8,7 +8,7 @@ import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import PaymentIcon, { Icon } from './PaymentIcon';
 import { strings } from '../../../../../locales/i18n';
-
+import { TimeDescriptions, timeToDescription } from '../utils';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const visa = require('./images/visa.png');
 const sepa = require('./images/sepa.png');
@@ -56,6 +56,53 @@ const styles = StyleSheet.create({
 	},
 });
 
+const renderDescription = (description: TimeDescriptions | string) => {
+	switch (description) {
+		case TimeDescriptions.instant: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.instant');
+		}
+		case TimeDescriptions.less_than: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.less_than');
+		}
+		case TimeDescriptions.separator: {
+			return '-';
+		}
+		case TimeDescriptions.minutes: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.minutes');
+		}
+		case TimeDescriptions.minute: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.minute');
+		}
+		case TimeDescriptions.hours: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.hours');
+		}
+		case TimeDescriptions.hour: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.hour');
+		}
+		case TimeDescriptions.business_days: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.business_days');
+		}
+		case TimeDescriptions.business_day: {
+			return strings('fiat_on_ramp_aggregator.paymentMethod.business_day');
+		}
+		default: {
+			return description;
+		}
+	}
+};
+const renderTime = (time: number[]) => timeToDescription(time).map(renderDescription).join(' ');
+
+const tierDescriptions = [
+	strings('fiat_on_ramp_aggregator.paymentMethod.lowest_limit'),
+	strings('fiat_on_ramp_aggregator.paymentMethod.medium_limit'),
+	strings('fiat_on_ramp_aggregator.paymentMethod.highest_limit'),
+];
+const renderTiers = (tiers: number[]) => {
+	const threshold = tiers[1] / tierDescriptions.length;
+	const index = Math.ceil(tiers[0] / threshold) - 1;
+	return tierDescriptions[Math.min(Math.max(0, index), tierDescriptions.length - 1)];
+};
+
 const PaymentOption: React.FC<Props> = ({
 	title,
 	time,
@@ -65,119 +112,54 @@ const PaymentOption: React.FC<Props> = ({
 	paymentType,
 	onPress,
 	highlighted,
-}: Props) => {
-	const timeToDescription = (timeArr: number[]) => {
-		let timeDesc = '';
-		if (timeArr[0] === 0 && timeArr[1] === 0) {
-			timeDesc += strings('fiat_on_ramp_aggregator.paymentMethod.instant');
-		} else if (timeArr[0] === 0) {
-			timeDesc += strings('fiat_on_ramp_aggregator.paymentMethod.less_than') + ' ';
-			if (timeArr[0] > 1439) {
-				timeDesc +=
-					Math.round(timeArr[1] / 1440).toString() +
-					' ' +
-					strings('fiat_on_ramp_aggregator.paymentMethod.days');
-			} else {
-				timeDesc += timeArr[1].toString() + ' ' + strings('fiat_on_ramp_aggregator.paymentMethod.minutes');
-			}
-		} else if (timeArr[0] > 1439) {
-			timeDesc +=
-				Math.round(timeArr[0] / 1440).toString() +
-				'-' +
-				Math.round(timeArr[1] / 1440).toString() +
-				' ' +
-				strings('fiat_on_ramp_aggregator.paymentMethod.business_days');
-		} else {
-			timeDesc +=
-				timeArr[0].toString() +
-				'-' +
-				timeArr[1].toString() +
-				' ' +
-				strings('fiat_on_ramp_aggregator.paymentMethod.minutes');
-		}
-
-		return timeDesc;
-	};
-
-	const tiersDescriptions = [
-		strings('fiat_on_ramp_aggregator.paymentMethod.lowest_limit'),
-		strings('fiat_on_ramp_aggregator.paymentMethod.medium_limit'),
-		strings('fiat_on_ramp_aggregator.paymentMethod.highest_limit'),
-	];
-	const tierToValues = (tiers: number[]) => {
-		const tierTexts = [];
-		let description = '';
-
-		for (let i = 0; i < tiers[0]; i++) {
-			tierTexts.push(
-				<Text primary small key={i}>
-					$
-				</Text>
-			);
-		}
-		if (tierTexts.length > tiersDescriptions.length) {
-			description = tiersDescriptions[2];
-		} else {
-			description = tiersDescriptions[tierTexts.length - 1];
-		}
-		for (let i = tierTexts.length; i < tiers[1] - 1; i++) {
-			tierTexts.push(
-				<Text small key={i}>
-					$
-				</Text>
-			);
-		}
-		tierTexts.push(
-			<Text primary small key={tierTexts.length}>
-				{' '}
-				{description}
-			</Text>
-		);
-		return tierTexts;
-	};
-
-	return (
-		<Box onPress={onPress} highlighted={highlighted}>
-			<ListItem.Content>
-				<ListItem.Icon>
-					<View style={styles.icon}>
-						<PaymentIcon iconType={paymentType} size={16} style={undefined} />
-					</View>
-				</ListItem.Icon>
-				<ListItem.Body>
-					<ListItem.Title>
-						<Text big primary bold>
-							{title}
-						</Text>
-					</ListItem.Title>
-					<Text small grey>
-						{idRequired
-							? strings('fiat_on_ramp_aggregator.paymentMethod.id_required')
-							: strings('fiat_on_ramp_aggregator.paymentMethod.no_id_required')}
+}: Props) => (
+	<Box onPress={onPress} highlighted={highlighted}>
+		<ListItem.Content>
+			<ListItem.Icon>
+				<View style={styles.icon}>
+					<PaymentIcon iconType={paymentType} size={16} style={undefined} />
+				</View>
+			</ListItem.Icon>
+			<ListItem.Body>
+				<ListItem.Title>
+					<Text big primary bold>
+						{title}
 					</Text>
-				</ListItem.Body>
-				<ListItem.Amounts>
-					<ListItem.Amount>
-						<View style={styles.cardIcons}>
-							{cardImage ? (
-								<>
-									<Image source={visa} style={styles.cardIcon} />
-									<Image source={mastercard} style={styles.cardIcon} />
-								</>
-							) : (
-								<Image source={sepa} style={styles.cardIcon} />
-							)}
-						</View>
-					</ListItem.Amount>
-				</ListItem.Amounts>
-			</ListItem.Content>
+				</ListItem.Title>
+				<Text small grey>
+					{idRequired
+						? strings('fiat_on_ramp_aggregator.paymentMethod.id_required')
+						: strings('fiat_on_ramp_aggregator.paymentMethod.no_id_required')}
+				</Text>
+			</ListItem.Body>
+			<ListItem.Amounts>
+				<ListItem.Amount>
+					<View style={styles.cardIcons}>
+						{cardImage ? (
+							<>
+								<Image source={visa} style={styles.cardIcon} />
+								<Image source={mastercard} style={styles.cardIcon} />
+							</>
+						) : (
+							<Image source={sepa} style={styles.cardIcon} />
+						)}
+					</View>
+				</ListItem.Amount>
+			</ListItem.Amounts>
+		</ListItem.Content>
 
-			<View style={styles.line} />
+		<View style={styles.line} />
 
-			<Text primary small>
-				<Feather name="clock" /> {timeToDescription(time)} • {tierToValues(amountTier)}
-			</Text>
-		</Box>
-	);
-};
+		<Text primary small>
+			<Feather name="clock" /> {renderTime(time)} •{' '}
+			{new Array(amountTier[1] - 1).fill('').map((_, index) => (
+				<Text small primary={index <= amountTier[0] - 1} key={index}>
+					$
+				</Text>
+			))}{' '}
+			{renderTiers(amountTier)}
+		</Text>
+	</Box>
+);
+
 export default PaymentOption;
