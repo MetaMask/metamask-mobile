@@ -1,13 +1,13 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk } from '@codefi/on-ramp-sdk';
+import { OnRampSdk, IOnRampSdk } from '@chingiz-mardanov/on-ramp-sdk';
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
 	selectedAddressSelector,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
-	sdk: IOnRampSdk;
+	sdk: IOnRampSdk | undefined;
 	selectedCountry: any;
 	setSelectedCountry: (country: any) => void;
 
@@ -29,11 +29,14 @@ export interface IFiatOnRampSDK {
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOnRampSDK>) => {
-	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk('stg'), []);
-
+	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
 	useEffect(() => {
-		if (sdk) sdk.init();
-	}, [sdk]);
+		(async () => {
+			setSdkModule(await OnRampSdk.getSDK('stg'));
+		})();
+	}, []);
+
+	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
 
 	const dispatch = useDispatch();
 

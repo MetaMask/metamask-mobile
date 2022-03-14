@@ -108,11 +108,6 @@ const AmountToBuy = ({ navigation }) => {
 			return currencies.find((currency) => currency.id === selectedFiatCurrencyId);
 		}
 
-		// TODO: we need to remove this later on once the defaultCurrency bug is fixed in the SDK
-		if (currencies) {
-			return currencies.find((currency) => currency.id === formatId(selectedCountry?.currency));
-		}
-
 		return defaultCurrnecy;
 	}, [currencies, defaultCurrnecy, selectedFiatCurrencyId, selectedCountry?.currency]);
 
