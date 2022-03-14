@@ -1,9 +1,10 @@
 import React, { PureComponent } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { colors, fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Fuse from 'fuse.js';
+import { isSmartContractAddress } from '../../../../util/transactions';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
 
@@ -33,6 +34,7 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey000,
 		flexDirection: 'row',
 		alignItems: 'center',
+		justifyContent: 'space-between',
 		borderBottomWidth: 1,
 		borderBottomColor: colors.grey050,
 		padding: 8,
@@ -48,12 +50,12 @@ const styles = StyleSheet.create({
 	},
 });
 
-const LabelElement = (label) => (
+const LabelElement = (label, checkingForSmartContracts, showLoading) => (
 	<View key={label} style={styles.labelElementWrapper}>
 		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
+		{showLoading && checkingForSmartContracts && <ActivityIndicator size="small" color={colors.grey500} />}
 	</View>
 );
-
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -98,6 +100,7 @@ class AddressList extends PureComponent {
 		myAccountsOpened: false,
 		processedAddressBookList: undefined,
 		contactElements: [],
+		checkingForSmartContracts: false,
 	};
 
 	networkAddressBook = {};
@@ -150,11 +153,31 @@ class AddressList extends PureComponent {
 		const contactElements = [];
 		const addressBookTree = {};
 		networkAddressBookList.forEach((contact) => {
+			this.setState({ checkingForSmartContracts: true });
+
+			isSmartContractAddress(contact.address, contact.chainId)
+				.then((isSmartContract) => {
+					if (isSmartContract) {
+						contact.isSmartContract = true;
+						return this.setState({ checkingForSmartContracts: false });
+					}
+
+					contact.isSmartContract = false;
+					return this.setState({ checkingForSmartContracts: false });
+				})
+				.catch(() => {
+					contact.isSmartContract = false;
+				});
+		});
+
+		networkAddressBookList.forEach((contact) => {
 			const contactNameInitial = contact && contact.name && contact.name[0];
 			const nameInitial = contactNameInitial && contactNameInitial.match(/[a-z]/i);
 			const initial = nameInitial ? nameInitial[0] : strings('address_book.others');
 			if (Object.keys(addressBookTree).includes(initial)) {
 				addressBookTree[initial].push(contact);
+			} else if (contact.isSmartContract && !this.props.onlyRenderAddressBook) {
+				null;
 			} else {
 				addressBookTree[initial] = [contact];
 			}
@@ -200,10 +223,13 @@ class AddressList extends PureComponent {
 
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
+
 		if (typeof element === 'string') {
 			return LabelElement(element);
 		}
+
 		const key = element.address + element.name;
+
 		return (
 			<AddressElement
 				key={key}
@@ -211,6 +237,7 @@ class AddressList extends PureComponent {
 				name={element.name}
 				onAccountPress={onAccountPress}
 				onAccountLongPress={onAccountLongPress}
+				testID={'account-address'}
 			/>
 		);
 	};
@@ -224,7 +251,7 @@ class AddressList extends PureComponent {
 		if (!recents.length || inputSearch) return;
 		return (
 			<>
-				{LabelElement(strings('address_book.recents'))}
+				{LabelElement(strings('address_book.recents'), this.state.checkingForSmartContracts, 'showLoading')}
 				{recents
 					.filter((recent) => recent != null)
 					.map((address, index) => (
@@ -243,12 +270,29 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
+		const sendFlowContacts = [];
+
+		contactElements.filter((element) => {
+			if (typeof element === 'object' && element.isSmartContract === false) {
+				const nameInitial = element && element.name && element.name[0];
+				if (sendFlowContacts.includes(nameInitial)) {
+					sendFlowContacts.push(element);
+				} else {
+					sendFlowContacts.push(nameInitial);
+					sendFlowContacts.push(element);
+				}
+			}
+			return element;
+		});
+
 		return (
 			<View style={styles.root}>
 				<ScrollView style={styles.myAccountsWrapper}>
 					{!onlyRenderAddressBook && this.renderMyAccounts()}
 					{!onlyRenderAddressBook && this.renderRecents()}
-					{contactElements.length ? contactElements.map(this.renderElement) : null}
+					{!onlyRenderAddressBook
+						? sendFlowContacts.map(this.renderElement)
+						: contactElements.map(this.renderElement)}
 				</ScrollView>
 			</View>
 		);
