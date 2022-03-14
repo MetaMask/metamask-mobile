@@ -12,6 +12,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
+import { RegionViewType } from '../types';
 
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -90,10 +91,6 @@ const styles = StyleSheet.create({
 });
 
 const Separator = () => <View style={styles.separator} />;
-const VIEWS = {
-	COUNTRY: 'COUNTRY',
-	REGION: 'REGION',
-};
 
 interface Props {
 	isVisible?: boolean;
@@ -120,7 +117,7 @@ const RegionModal: React.FC<Props> = ({
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
 	// local state variable to set the active view (countries vs. regions)
-	const [activeView, setActiveView] = useState(VIEWS.COUNTRY);
+	const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
 	// local state variable to save the country object in transite
 	const [selectedCountryInTransit, setSelectedCountryInTransit] = useState<any>({});
 
@@ -152,7 +149,7 @@ const RegionModal: React.FC<Props> = ({
 				onCountryPress(country);
 			} else {
 				// the country has regions so we switch the active view and place selected country in transit
-				setActiveView(VIEWS.REGION);
+				setActiveView(RegionViewType.STATE);
 				setSelectedCountryInTransit(country);
 				dataRef.current = country.regions;
 				setSearchString('');
@@ -237,7 +234,7 @@ const RegionModal: React.FC<Props> = ({
 	);
 
 	const handleRegionBackButton = () => {
-		setActiveView(VIEWS.COUNTRY);
+		setActiveView(RegionViewType.COUNTRY);
 		dataRef.current = data;
 		setSearchString('');
 	};
@@ -253,7 +250,7 @@ const RegionModal: React.FC<Props> = ({
 	}, [setSearchString]);
 
 	const onModalHide = useCallback(() => {
-		setActiveView(VIEWS.COUNTRY);
+		setActiveView(RegionViewType.COUNTRY);
 		setSelectedCountryInTransit({});
 		dataRef.current = data;
 		setSearchString('');
@@ -271,7 +268,7 @@ const RegionModal: React.FC<Props> = ({
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />
-				{activeView === VIEWS.COUNTRY ? (
+				{activeView === RegionViewType.COUNTRY ? (
 					<ScreenLayout>
 						<ScreenLayout.Header
 							bold

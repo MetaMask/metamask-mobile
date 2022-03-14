@@ -209,7 +209,6 @@ const AmountToBuy = ({ navigation }) => {
 
 	/****************** PAYMENT METHODS HANDLERS *********************************/
 	const handlePaymentMethodSelectorPress = useCallback(() => {
-		// TODO: handle
 		togglePaymentMethodModal();
 	}, [togglePaymentMethodModal]);
 
