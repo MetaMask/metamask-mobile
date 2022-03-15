@@ -152,8 +152,8 @@ const PaymentOption: React.FC<Props> = ({
 
 		<Text primary small>
 			<Feather name="clock" /> {renderTime(time)} •{' '}
-			{new Array(amountTier[1] - 1).fill('').map((_, index) => (
-				<Text small primary={index <= amountTier[0] - 1} key={index}>
+			{new Array(amountTier[1]).fill('').map((_, index) => (
+				<Text small primary={index < amountTier[0]} key={index}>
 					$
 				</Text>
 			))}{' '}
