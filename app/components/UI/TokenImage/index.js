@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-export function TokenImage({ asset, containerStyle, iconStyle, tokenList }) {
+const TokenImage = ({ asset, containerStyle, iconStyle, tokenList }) => {
 	const iconUrl = tokenList[asset?.address]?.iconUrl || tokenList[asset?.address?.toLowerCase()]?.iconUrl || '';
 
 	return (
@@ -29,7 +29,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, tokenList }) {
 			)}
 		</View>
 	);
-}
+};
 
 TokenImage.propTypes = {
 	asset: PropTypes.object,

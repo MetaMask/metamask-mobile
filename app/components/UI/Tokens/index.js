@@ -244,7 +244,7 @@ class Tokens extends PureComponent {
 	};
 
 	showDetectedTokens = () => {
-		// TODO: Implement logic to show detected tokens
+		this.props.navigation.navigate('DetectedTokens');
 	};
 
 	renderTokensDetectedSection = () => {

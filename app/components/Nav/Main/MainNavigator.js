@@ -51,6 +51,7 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+import DetectedTokens from '../../Views/DetectedTokens';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -69,9 +70,20 @@ const styles = StyleSheet.create({
  * the 2 main sections: Browser, Wallet
  */
 
+const WalletModalStack = () => (
+	<Stack.Navigator
+		initialRouteName={'WalletFlow'}
+		mode={'modal'}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+	>
+		<Stack.Screen name={'WalletFlow'} component={Wallet} options={{ headerShown: true }} />
+		<Stack.Screen name={'DetectedTokens'} component={DetectedTokens} options={{ animationEnabled: false }} />
+	</Stack.Navigator>
+);
+
 const WalletTabHome = () => (
 	<Stack.Navigator initialRouteName={'WalletView'}>
-		<Stack.Screen name="WalletView" component={Wallet} />
+		<Stack.Screen name="WalletView" component={WalletModalStack} options={{ headerShown: false }} />
 		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />

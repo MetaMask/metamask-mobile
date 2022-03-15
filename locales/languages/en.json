@@ -641,6 +641,9 @@
 		"account_copied_to_clipboard": "Public address copied to clipboard",
 		"share_public_key": "Sharing my public key: "
 	},
+	"detected_tokens": {
+		"address_copied_to_clipboard": "Token address copied to clipboard"
+	},
 	"qr_scanner": {
 		"invalid_qr_code_title": "Invalid QR Code",
 		"invalid_qr_code_message": "The QR code that you are trying to scan it is not valid.",
