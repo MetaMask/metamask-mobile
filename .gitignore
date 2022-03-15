@@ -59,7 +59,7 @@ buck-out/
 *.jsbundle
 
 # testing
-coverage
+tests
 
 # app-specific
 /android/app/src/main/assets/InpageBridgeWeb3.js
