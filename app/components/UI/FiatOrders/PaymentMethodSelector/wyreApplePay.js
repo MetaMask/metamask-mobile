@@ -58,7 +58,7 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 						<ApplePayMark />
 					</PaymentMethod.Title>
 					<Text bold>{strings('fiat_on_ramp.fast_plus_lower_fees')}</Text>
-					<Text>{strings('fiat_on_ramp.debit_card_required')}</Text>
+					<Text>{strings('fiat_on_ramp.cards_type_required')}</Text>
 					<TouchableOpacity onPress={showModal}>
 						<PaymentMethod.InfoIconLine>
 							<Text>
