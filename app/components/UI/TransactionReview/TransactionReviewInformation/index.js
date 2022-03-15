@@ -5,7 +5,6 @@ import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 're
 import { colors, fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
-	toBN,
 	isBN,
 	weiToFiat,
 	weiToFiatNumber,
@@ -13,6 +12,7 @@ import {
 	renderFromTokenMinimalUnit,
 	renderFromWei,
 	BNToHex,
+	hexToBN,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -514,7 +514,7 @@ class TransactionReviewInformation extends PureComponent {
 			isAnimating,
 		} = this.props;
 
-		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : toBN('0x0');
+		const totalGas = isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : hexToBN('0x0');
 		const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
 		const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
 		const [totalFiat, totalValue] = this.getRenderTotals(totalGas, totalGasFiat)();

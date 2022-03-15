@@ -244,7 +244,7 @@ workflows:
         before_run:
             - android_test_release_step
         steps:
-            - google-play-deploy@3:
+            - google-play-deploy:
                   inputs:
                       - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-release.aab
                       - track: internal
@@ -323,10 +323,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 4.1.0
+          VERSION_NAME: 4.2.2
         - opts:
               is_expand: false
-          VERSION_NUMBER: 816
+          VERSION_NUMBER: 834
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''

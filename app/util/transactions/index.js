@@ -12,7 +12,6 @@ import {
 	renderFiatAddition,
 	renderFromTokenMinimalUnit,
 	renderFromWei,
-	toBN,
 	weiToFiat,
 	weiToFiatNumber,
 } from '../number';
@@ -271,7 +270,7 @@ export async function isCollectibleAddress(address, tokenId) {
 	const { AssetsContractController } = Engine.context;
 	// Hack to know if the address is a collectible smart contract
 	// for now this method is called from tx element so we have the respective 'tokenId'
-	const ownerOf = await AssetsContractController.getOwnerOf(address, tokenId);
+	const ownerOf = await AssetsContractController.getERC721OwnerOf(address, tokenId);
 	const isCollectibleAddress = ownerOf && ownerOf !== '0x';
 	CollectibleAddresses.cache[address] = isCollectibleAddress;
 	return isCollectibleAddress;
@@ -1023,7 +1022,7 @@ export const parseTransactionLegacy = (
 
 	const suggestedGasPriceHex = decGWEIToHexWEI(selectedGasFee.suggestedGasPrice);
 
-	const valueBN = value ? hexToBN(value) : toBN('0x0');
+	const valueBN = value ? hexToBN(value) : hexToBN('0x0');
 	const transactionFeeFiat = weiToFiat(weiTransactionFee, conversionRate, currentCurrency);
 	const parsedTicker = getTicker(ticker);
 	const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;

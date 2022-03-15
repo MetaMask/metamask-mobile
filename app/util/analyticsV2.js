@@ -17,6 +17,8 @@ export const ANALYTICS_EVENTS_V2 = {
 	DAPP_TRANSACTION_STARTED: generateOpt('Dapp Transaction Started'),
 	DAPP_TRANSACTION_COMPLETED: generateOpt('Dapp Transaction Completed'),
 	DAPP_TRANSACTION_CANCELLED: generateOpt('Dapp Transaction Cancelled'),
+	CONTRACT_ADDRESS_COPIED: generateOpt('Contract Address Copied'),
+	CONTRACT_ADDRESS_NICKNAME: generateOpt('Contract Address Nickname'),
 	// Sign request
 	SIGN_REQUEST_STARTED: generateOpt('Sign Request Started'),
 	SIGN_REQUEST_COMPLETED: generateOpt('Sign Request Completed'),
@@ -99,6 +101,10 @@ export const ANALYTICS_EVENTS_V2 = {
 	// SETTINGS
 	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
 	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
+	REVEAL_SRP_INITIATED: generateOpt(`Reveal SRP Initiated`),
+	// REVEAL_SRP
+	REVEAL_SRP_CANCELLED: generateOpt(`Reveal SRP Cancelled`),
+	REVEAL_SRP_COMPLETED: generateOpt(`Reveal SRP Completed`),
 	// KEY MANAGMENT INVESTIGATION
 	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
 };

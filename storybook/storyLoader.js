@@ -16,6 +16,7 @@ function loadStories() {
 	require('../app/components/UI/FiatOnRampAggregator/components/Keypad.stories');
 	require('../app/components/UI/FiatOnRampAggregator/components/QuickAmounts.stories');
 	require('../app/components/UI/FiatOnRampAggregator/components/ScreenLayout.stories');
+	require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
 	require('../app/components/UI/Fox/Fox.stories');
 	require('../app/components/UI/StyledButton/StyledButton.stories');
 }
@@ -33,6 +34,7 @@ const stories = [
 	'../app/components/UI/FiatOnRampAggregator/components/Keypad.stories',
 	'../app/components/UI/FiatOnRampAggregator/components/QuickAmounts.stories',
 	'../app/components/UI/FiatOnRampAggregator/components/ScreenLayout.stories',
+	'../app/components/UI/ButtonReveal/ButtonReveal.stories',
 	'../app/components/UI/Fox/Fox.stories',
 	'../app/components/UI/StyledButton/StyledButton.stories',
 ];
