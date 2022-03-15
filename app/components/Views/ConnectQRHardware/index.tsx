@@ -5,48 +5,62 @@ import AnimatedQRScannerModal, { SupportedURType } from '../../UI/QRHardware/Ani
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../../../styles/common';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import Device from '../../../util/device';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		flexDirection: 'column',
-		alignItems: 'center',
-		paddingTop: 32,
-	},
-	header: {
-		width: '100%',
-		paddingHorizontal: 32,
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	close: {
-		alignSelf: 'flex-end',
-		width: 48,
-		height: 48,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	qrcode: {
-		alignSelf: 'flex-start',
-	},
-	error: {
-		fontSize: 14,
-		color: colors.red,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		container: {
+			flex: 1,
+			flexDirection: 'column',
+			alignItems: 'center',
+			paddingTop: 32,
+		},
+		navbarRightButton: {
+			alignSelf: 'flex-end',
+			paddingTop: 20,
+			paddingBottom: 10,
+			marginTop: Device.isIphoneX() ? 40 : 20,
+		},
+		closeIcon: {
+			fontSize: 28,
+			color: colors.text.default,
+		},
+		header: {
+			width: '100%',
+			paddingHorizontal: 32,
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		close: {
+			alignSelf: 'flex-end',
+			width: 48,
+			height: 48,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		qrcode: {
+			alignSelf: 'flex-start',
+		},
+		error: {
+			fontSize: 14,
+			color: colors.red,
+		},
+	});
 
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 	const KeyringController = useMemo(() => {
 		const { KeyringController: keyring } = Engine.context as any;
 		return keyring;
@@ -89,7 +103,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			}
 		});
 		if (unTrackedAccounts.length > 0) {
-			AccountTrackerController.syncWithAddresses(unTrackedAccounts).then((_trackedAccounts: any) => {
+			AccountTrackerController.syncBalanceWithAddresses(unTrackedAccounts).then((_trackedAccounts: any) => {
 				setTrackedAccounts(Object.assign({}, trackedAccounts, _trackedAccounts));
 			});
 		}
@@ -208,10 +222,10 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		<Fragment>
 			<SafeAreaView style={styles.container}>
 				<View style={styles.header}>
-					<TouchableOpacity onPress={navigation.goBack} style={styles.close}>
-						<Icon name="close" size={18} />
+					<TouchableOpacity onPress={navigation.goBack} style={styles.navbarRightButton}>
+						<MaterialIcon name="close" size={15} style={styles.closeIcon} />
 					</TouchableOpacity>
-					<Icon name="qrcode" size={42} style={styles.qrcode} />
+					<Icon name="qrcode" size={42} style={styles.qrcode} color={colors.text.default} />
 				</View>
 				{accounts.length <= 0 ? (
 					<ConnectQRInstruction

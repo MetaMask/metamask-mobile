@@ -42,7 +42,7 @@ export const recreateVaultWithSamePassword = async (password = '', selectedAddre
 		Logger.error(e, 'error while trying to get imported accounts on recreate vault');
 	}
 
-	const qrKeyring = await KeyringController.getQRKeyring();
+	const qrKeyring = await KeyringController.getOrAddQRKeyring();
 	const serializedQRKeyring = await qrKeyring.serialize();
 
 	// Recreate keyring with password given to this method

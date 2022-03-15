@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import QRSigningDetails from '../../../UI/QRHardware/QRSigningDetails';
+import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -9,6 +10,16 @@ interface IConnectQRHardwareProps {
 
 const QRHardwareSigner = ({ navigation, route }: IConnectQRHardwareProps) => {
 	const QRState = route.params.QRState;
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+
+	const updateNavBar = useCallback(() => {
+		navigation.setOptions(getSendFlowTitle('send.sign', navigation, route, colors));
+	}, [colors, navigation, route]);
+
+	useEffect(() => {
+		updateNavBar();
+	}, [updateNavBar]);
 
 	const cancelCallback = useCallback(() => {
 		navigation.goBack();
@@ -27,8 +38,5 @@ const QRHardwareSigner = ({ navigation, route }: IConnectQRHardwareProps) => {
 		/>
 	);
 };
-
-QRHardwareSigner.navigationOptions = ({ navigation, route }: IConnectQRHardwareProps) =>
-	getSendFlowTitle('send.sign', navigation, route);
 
 export default QRHardwareSigner;

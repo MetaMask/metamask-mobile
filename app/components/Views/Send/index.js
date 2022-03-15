@@ -459,7 +459,7 @@ class Send extends PureComponent {
 	 * and returns to edit transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController, AddressBookController } = Engine.context;
+		const { TransactionController, AddressBookController, KeyringController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
 		const {
 			transaction: { selectedAsset, assetType },
@@ -478,7 +478,7 @@ class Send extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
-
+			await KeyringController.cancelQRSignRequest();
 			await TransactionController.approveTransaction(transactionMeta.id);
 
 			// Add to the AddressBook if it's an unkonwn address

@@ -227,6 +227,11 @@ const ImportPrivateKeyView = () => (
 const SendView = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="Send" component={Send} options={Send.navigationOptions} />
+		<Stack.Screen
+			name="QRHardwareSigner"
+			component={QRHardwareSigner}
+			options={QRHardwareSigner.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 

@@ -434,7 +434,7 @@ class Approve extends PureComponent {
 	};
 
 	onConfirm = async () => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, KeyringController } = Engine.context;
 		const { transactions, gasEstimateType } = this.props;
 		const { EIP1559GasData, LegacyGasData, transactionConfirmed } = this.state;
 
@@ -461,6 +461,7 @@ class Approve extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
+			await KeyringController.cancelQRSignRequest();
 			await TransactionController.approveTransaction(transaction.id);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
 		} catch (error) {

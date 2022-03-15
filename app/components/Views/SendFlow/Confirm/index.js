@@ -834,7 +834,7 @@ class Confirm extends PureComponent {
 	};
 
 	onNext = async () => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, KeyringController } = Engine.context;
 		const {
 			transactionState: { assetType },
 			navigation,
@@ -863,6 +863,7 @@ class Confirm extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
+			await KeyringController.cancelQRSignRequest();
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise((resolve) => resolve(result));
 

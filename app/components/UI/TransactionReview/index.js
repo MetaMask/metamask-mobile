@@ -56,7 +56,7 @@ const createStyles = (colors) =>
 			height: 330,
 		},
 		actionViewQRObject: {
-			height: 600,
+			height: 624,
 		},
 		accountInfoCardWrapper: {
 			paddingHorizontal: 24,

@@ -13,7 +13,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, getNormalizedTxState, getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
-import { getAddressAccountType, safeToChecksumAddress } from '../../../util/address';
+import { getAddressAccountType, isQRHardwareAccount, safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -106,9 +106,14 @@ class Approval extends PureComponent {
 
 	componentWillUnmount = () => {
 		const { transactionHandled } = this.state;
-		const { transaction } = this.props;
+		const { transaction, selectedAddress } = this.props;
+		const { KeyringController } = Engine.context;
 		if (!transactionHandled) {
-			Engine.context.TransactionController.cancelTransaction(transaction.id);
+			if (isQRHardwareAccount(selectedAddress)) {
+				KeyringController.cancelQRSignRequest();
+			} else {
+				Engine.context.TransactionController.cancelTransaction(transaction.id);
+			}
 		}
 		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
 		AppState.removeEventListener('change', this.handleAppStateChange);
@@ -233,7 +238,7 @@ class Approval extends PureComponent {
 	 * Callback on confirm transaction
 	 */
 	onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, KeyringController } = Engine.context;
 		const {
 			transactions,
 			transaction: { assetType, selectedAsset },
@@ -273,6 +278,7 @@ class Approval extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
+			await KeyringController.cancelQRSignRequest();
 			await TransactionController.approveTransaction(transaction.id);
 			this.showWalletConnectNotification(true);
 		} catch (error) {

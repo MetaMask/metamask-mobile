@@ -142,7 +142,7 @@ const createStyles = (colors) =>
 			height: 300,
 		},
 		actionViewQRObject: {
-			height: 600,
+			height: 648,
 		},
 		paddingHorizontal: {
 			paddingHorizontal: 16,

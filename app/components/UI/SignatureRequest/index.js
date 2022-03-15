@@ -35,7 +35,11 @@ const createStyles = (colors) =>
 			minHeight: '90%',
 		},
 		actionViewQRObject: {
-			height: 320,
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			paddingTop: 24,
+			height: 648,
 		},
 		signingInformation: {
 			alignItems: 'center',
@@ -303,9 +307,8 @@ class SignatureRequest extends PureComponent {
 	renderQRDetails() {
 		const { QRState } = this.props;
 		const styles = this.getStyles();
-
 		return (
-			<View style={[styles.root, styles.actionViewQRObject]}>
+			<View style={styles.actionViewQRObject}>
 				<QRSigningDetails QRState={QRState} showCancelButton showHint={false} />
 			</View>
 		);

@@ -54,7 +54,7 @@ const createStyles = (colors) =>
 		},
 		importedView: {
 			flex: 0.5,
-			alignItems: 'center',
+			alignItems: 'flex-start',
 			marginTop: 2,
 		},
 		accountMain: {
@@ -71,7 +71,6 @@ const createStyles = (colors) =>
 			...fontStyles.bold,
 		},
 		importedWrapper: {
-			width: 73,
 			paddingHorizontal: 10,
 			paddingVertical: 3,
 			borderRadius: 10,

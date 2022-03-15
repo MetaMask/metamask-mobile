@@ -194,7 +194,7 @@ const RootRPCMethodsUI = (props) => {
 
 	const autoSign = useCallback(
 		async (transactionMeta) => {
-			const { TransactionController } = Engine.context;
+			const { TransactionController, KeyringController } = Engine.context;
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
@@ -214,6 +214,7 @@ const RootRPCMethodsUI = (props) => {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
+				await KeyringController.cancelQRSignRequest();
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
 				if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
