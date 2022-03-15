@@ -1334,7 +1334,6 @@
 		"no_countries_result": "サポートされている国の一致がありません “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "高速 + 低い手数料",
-		"debit_card_required": "低い手数料。デビット カードが必要です。",
 		"select_card_country": "カードが登録されている国を選択してください (お客様の所在地ではありません)。",
 		"search_country": "国の検索",
 		"wyre_countries": " 米国 + 33 か国以上。手数料と限度額は異なります",
