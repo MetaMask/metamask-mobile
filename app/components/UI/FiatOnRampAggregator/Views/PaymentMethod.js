@@ -50,7 +50,7 @@ const PaymentMethod = () => {
 		<ScreenLayout>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
-					{paymentMethods?.map(({ id, name, delay }) => (
+					{paymentMethods?.map(({ id, name, delay, amountTier }) => (
 						<View key={id} style={styles.row}>
 							<PaymentOption
 								highlighted={id === currentPaymentMethod}
@@ -58,7 +58,7 @@ const PaymentMethod = () => {
 								time={delay}
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
 								onPress={() => setCurrentPaymentMethod(id)}
-								lowestLimit
+								amountTier={amountTier}
 								paymentType={PAYMENT_METHOD_ICON[id]}
 								idRequired={false}
 							/>
@@ -80,7 +80,7 @@ const PaymentMethod = () => {
 							onPress={handleContinueToAmount}
 							disabled={!currentPaymentMethod}
 						>
-							Continue to amount
+							{strings('fiat_on_ramp_aggregator.paymentMethod.continue_to_amount')}
 						</StyledButton>
 					</View>
 				</ScreenLayout.Content>
@@ -90,7 +90,7 @@ const PaymentMethod = () => {
 };
 
 PaymentMethod.navigationOptions = ({ navigation, route }) => ({
-	title: strings('fiat_on_ramp_aggregator.payment_method'),
+	title: strings('fiat_on_ramp_aggregator.paymentMethod.payment_method'),
 });
 
 export default PaymentMethod;
