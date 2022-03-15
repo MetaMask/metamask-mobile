@@ -1334,7 +1334,6 @@
 		"no_countries_result": "Không tìm thấy quốc gia được hỗ trợ nào khớp với “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Nhanh + phí thấp hơn",
-		"debit_card_required": "Phí thấp hơn, cần có thẻ ghi nợ",
 		"select_card_country": "Chọn quốc gia phát hành thẻ của bạn (không phải nơi bạn cư trú).",
 		"search_country": "Tìm kiếm quốc gia",
 		"wyre_countries": " Hoa Kỳ + 33 quốc gia, phí và hạn mức không giống nhau",
