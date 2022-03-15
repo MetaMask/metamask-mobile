@@ -3,10 +3,12 @@ import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
-import PaymentOption, { Icon } from '../components/PaymentOption';
-import { useFiatOnRampSDK, useSDKMethod } from '../SDK';
+import PaymentOption from '../components/PaymentOption';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
+import WebviewError from '../../../UI/WebviewError';
+import { PAYMENT_METHOD_ICON } from '../constants';
 
 const styles = StyleSheet.create({
 	row: {
@@ -19,9 +21,10 @@ const PaymentMethod = () => {
 	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(null);
 
 	const { selectedCountry, selectedRegion, setSelectedPaymentMethod } = useFiatOnRampSDK();
-	const [{ data, isFetching, error }] = useSDKMethod('getPaymentMethods', {
-		countryId: selectedCountry,
-		regionId: selectedRegion,
+
+	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
+		countryId: selectedCountry?.id,
+		regionId: selectedRegion?.id,
 	});
 
 	const handleContinueToAmount = useCallback(() => {
@@ -29,7 +32,7 @@ const PaymentMethod = () => {
 		navigation.navigate('AmountToBuy');
 	}, [currentPaymentMethod, setSelectedPaymentMethod, navigation]);
 
-	if (isFetching || !data) {
+	if (isFetching) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -38,21 +41,16 @@ const PaymentMethod = () => {
 			</ScreenLayout>
 		);
 	}
+
 	if (error) {
-		return (
-			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>{error}</Text>
-				</ScreenLayout.Body>
-			</ScreenLayout>
-		);
+		return <WebviewError error={{ description: error }} onReload={() => navigation.navigate('PaymentMethod')} />;
 	}
 
 	return (
 		<ScreenLayout>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
-					{data?.map(({ id, name, delay }) => (
+					{paymentMethods?.map(({ id, name, delay, amountTier }) => (
 						<View key={id} style={styles.row}>
 							<PaymentOption
 								highlighted={id === currentPaymentMethod}
@@ -60,8 +58,8 @@ const PaymentMethod = () => {
 								time={delay}
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
 								onPress={() => setCurrentPaymentMethod(id)}
-								lowestLimit
-								paymentType={Icon.Apple}
+								amountTier={amountTier}
+								paymentType={PAYMENT_METHOD_ICON[id]}
 								idRequired={false}
 							/>
 						</View>
@@ -82,7 +80,7 @@ const PaymentMethod = () => {
 							onPress={handleContinueToAmount}
 							disabled={!currentPaymentMethod}
 						>
-							Continue to amount
+							{strings('fiat_on_ramp_aggregator.paymentMethod.continue_to_amount')}
 						</StyledButton>
 					</View>
 				</ScreenLayout.Content>
@@ -92,7 +90,7 @@ const PaymentMethod = () => {
 };
 
 PaymentMethod.navigationOptions = ({ navigation, route }) => ({
-	title: strings('fiat_on_ramp_aggregator.payment_method'),
+	title: strings('fiat_on_ramp_aggregator.paymentMethod.payment_method'),
 });
 
 export default PaymentMethod;

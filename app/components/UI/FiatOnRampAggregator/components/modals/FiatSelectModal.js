@@ -6,16 +6,14 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import Device from '../../../../util/device';
-import { strings } from '../../../../../locales/i18n';
-import { colors, fontStyles } from '../../../../styles/common';
-import ScreenLayout from './ScreenLayout';
+import Device from '../../../../../util/device';
+import { strings } from '../../../../../../locales/i18n';
+import { colors, fontStyles } from '../../../../../styles/common';
+import ScreenLayout from '../ScreenLayout';
 
-import Text from '../../../Base/Text';
-import ListItem from '../../../Base/ListItem';
-import ModalDragger from '../../../Base/ModalDragger';
-import TokenIcon from '../../Swaps/components/TokenIcon';
-import { CHAIN_ID_NETWORKS } from '../constants';
+import Text from '../../../../Base/Text';
+import ListItem from '../../../../Base/ListItem';
+import ModalDragger from '../../../../Base/ModalDragger';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -57,30 +55,30 @@ const styles = StyleSheet.create({
 		marginVertical: 10,
 		marginHorizontal: 30,
 	},
-	networkLabel: {
-		backgroundColor: colors.grey500,
-		paddingVertical: 6,
-		paddingHorizontal: 9,
-		borderRadius: 5,
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-	},
-	networkLabelText: {
-		fontSize: 10,
-		color: colors.white,
-	},
 	listItem: {
 		paddingHorizontal: 24,
+		paddingVertical: 24,
 	},
-	symbolName: {
-		paddingRight: 15,
+	separator: {
+		height: 1,
+		width: '100%',
+		backgroundColor: colors.grey000,
 	},
 });
 
+const Separator = () => <View style={styles.separator} />;
+
 const MAX_TOKENS_RESULTS = 20;
 
-function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onItemPress, excludeAddresses = [] }) {
+function FiatSelectModal({
+	isVisible,
+	dismiss,
+	title,
+	description,
+	currencies: tokens,
+	onItemPress,
+	excludeAddresses = [],
+}) {
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
@@ -118,22 +116,9 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 			<TouchableOpacity onPress={() => onItemPress(item)}>
 				<ListItem style={styles.listItem}>
 					<ListItem.Content>
-						<ListItem.Icon>
-							<TokenIcon medium icon={item.logo} symbol={item.symbol} />
-						</ListItem.Icon>
 						<ListItem.Body>
 							<ListItem.Title>{item.symbol}</ListItem.Title>
-							{item.name && <Text style={styles.symbolName}>{item.name}</Text>}
 						</ListItem.Body>
-						<ListItem.Amounts>
-							<ListItem.Amount>
-								<View style={styles.networkLabel}>
-									<Text bold upper style={styles.networkLabelText}>
-										{CHAIN_ID_NETWORKS[item.network]}
-									</Text>
-								</View>
-							</ListItem.Amount>
-						</ListItem.Amounts>
 					</ListItem.Content>
 				</ListItem>
 			</TouchableOpacity>
@@ -146,7 +131,7 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 	const renderEmptyList = useMemo(
 		() => (
 			<View style={styles.emptyList}>
-				<Text>{strings('swaps.no_tokens_result', { searchString })}</Text>
+				<Text>{strings('fiat_on_ramp_aggregator.no_tokens_result', { searchString })}</Text>
 			</View>
 		),
 		[searchString]
@@ -189,7 +174,7 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 								<TextInput
 									ref={searchInput}
 									style={styles.input}
-									placeholder={strings('fiat_on_ramp_aggregator.search_by_cryptocurrency')}
+									placeholder={strings('fiat_on_ramp_aggregator.search_by_currency')}
 									placeholderTextColor={colors.grey500}
 									value={searchString}
 									onChangeText={handleSearchTextChange}
@@ -219,6 +204,9 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 								renderItem={renderItem}
 								keyExtractor={(item) => item.id}
 								ListEmptyComponent={renderEmptyList}
+								ItemSeparatorComponent={Separator}
+								ListFooterComponent={Separator}
+								ListHeaderComponent={Separator}
 							/>
 						</View>
 					</ScreenLayout.Body>
@@ -228,21 +216,19 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 	);
 }
 
-TokenSelectModal.propTypes = {
+FiatSelectModal.propTypes = {
 	isVisible: PropTypes.bool,
 	dismiss: PropTypes.func,
 	title: PropTypes.string,
 	description: PropTypes.string,
-	tokens: PropTypes.arrayOf(PropTypes.object),
+	currencies: PropTypes.arrayOf(PropTypes.object),
 	onItemPress: PropTypes.func,
 	excludeAddresses: PropTypes.arrayOf(PropTypes.string),
 };
 
 const mapStateToProps = (state) => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-export default connect(mapStateToProps)(TokenSelectModal);
+export default connect(mapStateToProps)(FiatSelectModal);

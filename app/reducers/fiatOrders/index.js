@@ -62,14 +62,15 @@ export const getProviderName = (provider) => {
 		}
 	}
 };
-const INITIAL_SELECTED_COUNTRY = 'USA';
+
+const INITIAL_SELECTED_COUNTRY = '/us';
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
-const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
 
+export const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
-export const fiatOrdersCountrySelectorAgg = (state) => state.fiatOrders.selectedCountryAgg || INITIAL_SELECTED_COUNTRY;
+export const fiatOrdersCountrySelectorAgg = (state) => state.fiatOrders.selectedCountryAgg;
 
 export const getOrders = createSelector(
 	ordersSelector,

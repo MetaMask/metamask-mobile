@@ -59,7 +59,7 @@ interface IStaticComponents {
 
 const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
 	const handleOnPress = useCallback(() => {
-		navigation.navigate('PaymentMethod');
+		navigation.navigate('Region');
 	}, [navigation]);
 
 	return (

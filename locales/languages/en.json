@@ -1487,13 +1487,45 @@
 			"growing_collection_of_tokens_description": "We’re adding new token on more networks all the time. Check back often.",
 			"get_started": "Get started"
 		},
-		"payment_method": "Payment Method",
+		"paymentMethod": {
+			"payment_method": "Payment Method",
+			"instant": "Instant",
+			"less_than": "Less than",
+			"minute": "min",
+			"minutes": "mins",
+			"hour": "hour",
+			"hours": "hours",
+			"business_day": "business day",
+			"business_days": "business days",
+			"lowest_limit": "lowest limit",
+			"medium_limit": "medium limit",
+			"highest_limit": "highest limit",
+			"id_required": "ID required",
+			"no_id_required": "No ID required",
+			"continue_to_amount": "Continue to amount"
+		},
 		"amount_to_buy": "Amount to Buy",
 		"get_quotes": "Get quotes",
 		"select_a_quote": "Select a Quote",
 		"select_a_cryptocurrency": "Select a cryptocurrency",
 		"select_a_cryptocurrency_description": "Select from the list of tokens available on the “Ethereum Network”. dolor sit amet, consectetur adipiscing elit.",
-		"search_by_cryptocurrency": "Search by cryptocurrency"
+		"search_by_cryptocurrency": "Search by cryptocurrency",
+		"search_by_currency": "Search for a region currency",
+		"selected_payment_method": "Selected payment method",
+		"select_payment_method": "Select payment method",
+		"select_region_currency": "Select Region Currency",
+		"no_tokens_result": "No tokens match “{{searchString}}”",
+		"region": {
+			"title": "Select your Region",
+			"description": "Select the country where your card is registered (not where you are located).",
+			"search_by_country": "Search by country",
+			"search_by_state": "Search by state",
+			"no_region_results": "No region matches",
+			"remember_region": "Remember my Region",
+			"your_region": "Your Region",
+			"subtitle_description": "Text here about how a certain payment method will be available depending on your region",
+			"select_region": "Select your region"
+		}
 	},
 	"swaps": {
 		"onboarding": {

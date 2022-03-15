@@ -1,85 +1,100 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fiatOrdersCountrySelectorAgg, setFiatOrdersCountryAGG } from '../../../../reducers/fiatOrders';
-import { IOnRampSdk } from './IOnRampSdk';
-import SDK from './MockedOnRampSdk';
+import { OnRampSdk, IOnRampSdk } from '@chingiz-mardanov/on-ramp-sdk';
+import {
+	fiatOrdersCountrySelectorAgg,
+	setFiatOrdersCountryAGG,
+	selectedAddressSelector,
+} from '../../../../reducers/fiatOrders';
+export interface IFiatOnRampSDK {
+	sdk: IOnRampSdk | undefined;
+	selectedCountry: any;
+	setSelectedCountry: (country: any) => void;
 
-const SDKContext = createContext<IOnRampSdk | undefined>(undefined);
+	selectedRegion: any;
+	setSelectedRegion: (region: any) => void;
 
-export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRampSdk>) => {
-	const sdk = useMemo(() => new SDK(), []);
+	selectedPaymentMethod: string;
+	setSelectedPaymentMethod: (paymentMethod: string) => void;
+
+	selectedAsset: string;
+	setSelectedAsset: (asset: string) => void;
+
+	selectedFiatCurrencyId: string;
+	setSelectedFiatCurrencyId: (asset: string) => void;
+
+	selectedAddress: string;
+}
+
+const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
+
+export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOnRampSDK>) => {
+	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
+	useEffect(() => {
+		(async () => {
+			setSdkModule(await OnRampSdk.getSDK('stg'));
+		})();
+	}, []);
+
+	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
 
 	const dispatch = useDispatch();
 
 	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
+	const selectedAddress: string = useSelector(selectedAddressSelector);
+
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
-	const INITIAL_SELECTED_ASSET = null;
+	const INITIAL_SELECTED_ASSET = 'ETH';
 
 	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
-	const [selectedAsset, setSelectedAsset] = useState<any>(INITIAL_SELECTED_ASSET);
+	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
-	const [regionCurrency, setRegionCurrency] = useState('USD');
+	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState('');
 
 	const setSelectedCountryCallback = useCallback(
-		(countryCode) => {
-			setSelectedCountry(countryCode);
-			// we need always to replicate the country selection and mirror it to region selection for all countries excpet USA.
-			if (countryCode !== 'USA') {
-				setSelectedRegion(countryCode);
-				// update redux store by dispatching an action
-				dispatch(setFiatOrdersCountryAGG(countryCode));
-			}
+		(country) => {
+			setSelectedCountry(country);
+			dispatch(setFiatOrdersCountryAGG(country.id));
 		},
 		[dispatch]
 	);
 
-	const setSelectedRegionCallback = useCallback(
-		(countryCode) => {
-			setSelectedRegion(countryCode);
-			// update redux store by dispatching an action
-			dispatch(setFiatOrdersCountryAGG(countryCode));
-		},
-		[dispatch]
-	);
-
-	const setRegionCurrencyCallback = useCallback((currency) => {
-		setRegionCurrency(currency);
-		// dispatch an action to redux store to update region currency
-		// TODO: dispatch(setRegionCurrency(currency));
+	const setSelectedRegionCallback = useCallback((region) => {
+		setSelectedRegion(region);
 	}, []);
 
 	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
 		setSelectedPaymentMethod(paymentMethod);
 	}, []);
 
-	useEffect(() => {
-		(async () => {
-			const assets = await sdk?.getCryptoCurrencies(
-				{ countryId: selectedCountry, regionId: selectedRegion },
-				INITIAL_PAYMENT_METHOD
-			);
+	const setSelectedAssetCallback = useCallback((asset) => {
+		setSelectedAsset(asset);
+	}, []);
 
-			assets?.length &&
-				setSelectedAsset(
-					assets.some((a) => a.symbol === 'ETH') ? assets.find((a) => a.symbol === 'ETH') : assets[0]
-				);
-		})();
-	}, [sdk, selectedCountry, selectedRegion]);
+	const setSelectedFiatCurrencyCallback = useCallback((currency) => {
+		setSelectedFiatCurrencyId(currency);
+	}, []);
 
-	const contextValue = {
+	const contextValue: IFiatOnRampSDK = {
 		sdk,
-		setSelectedCountry: setSelectedCountryCallback,
 		selectedCountry,
-		setSelectedRegion: setSelectedRegionCallback,
+		setSelectedCountry: setSelectedCountryCallback,
+
 		selectedRegion,
+		setSelectedRegion: setSelectedRegionCallback,
+
 		selectedPaymentMethod,
 		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
-		setRegionCurrency: setRegionCurrencyCallback,
-		regionCurrency,
-		setSelectedAsset,
+
 		selectedAsset,
+		setSelectedAsset: setSelectedAssetCallback,
+
+		selectedFiatCurrencyId,
+		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
+
+		selectedAddress,
 	};
 
 	return <SDKContext.Provider value={value || contextValue} {...props} />;
@@ -87,7 +102,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IOnRamp
 
 export const useFiatOnRampSDK = () => {
 	const contextValue = useContext(SDKContext);
-	return contextValue;
+	return contextValue as IFiatOnRampSDK;
 };
 
 interface config<T> {
@@ -102,7 +117,7 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	const { sdk }: { sdk: IOnRampSdk } = useFiatOnRampSDK() as any;
 	const [data, setData] = useState<any | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isFetching, setIsFetching] = useState<boolean>(true);
+	const [isFetching, setIsFetching] = useState<boolean>(false);
 	const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
 	const method = typeof config === 'string' ? config : config.method;
 	const onMount = typeof config === 'string' ? true : config.onMount ?? true;

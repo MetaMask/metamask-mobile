@@ -103,7 +103,14 @@ KeypadComponent.propTypes = {
 	/**
 	 * Currency code for the keypad rules and symbols. Defaults to native
 	 */
-	currency: PropTypes.string,
+	currency: PropTypes.oneOfType([
+		PropTypes.string,
+		PropTypes.shape({
+			decimalSeparator: PropTypes.string,
+			symbol: PropTypes.string,
+			decimals: PropTypes.number,
+		}),
+	]),
 	/**
 	 * Current value used to create new value when a key is pressed.
 	 */
