@@ -20,18 +20,21 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
-	const { selectedPaymentMethod, selectedCountry, selectedRegion, selectedAsset, selectedAddress } =
-		useFiatOnRampSDK();
-
-	//TODO: read the default fiat currency from the onramp context provider
-	const selectedFiat = '/currencies/fiat/usd';
+	const {
+		selectedPaymentMethod,
+		selectedCountry,
+		selectedRegion,
+		selectedAsset,
+		selectedAddress,
+		selectedFiatCurrencyId,
+	} = useFiatOnRampSDK();
 
 	const [{ data: quotes, isFetching: isFetchingQuotes }] = useSDKMethod(
 		'getQuotes',
-		{ countryId: selectedCountry, regionId: selectedRegion },
+		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
 		selectedPaymentMethod,
 		selectedAsset?.id,
-		selectedFiat,
+		selectedFiatCurrencyId,
 		params.amount,
 		selectedAddress
 	);
