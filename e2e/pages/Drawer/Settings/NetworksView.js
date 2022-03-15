@@ -18,30 +18,25 @@ export default class NetworkView {
     await TestHelpers.tap(ADD_NETWORK_BUTTON_ID);
   }
 
-  static async tapNetworks() {
-    await TestHelpers.tapByText('Networks');
-  }
-  static async typeInNetworkName(networkName) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      NETWORK_NAME_INPUT_BOX_ID,
-      networkName,
-    );
-  }
-  static async typeInRpcUrl(rPCUrl) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      RPC_URL_SYMBOL_INPUT_BOX_ID,
-      rPCUrl,
-    );
-  }
-  static async typeInChainId(chainID) {
-    await TestHelpers.typeTextAndHideKeyboard(CHAIN_ID_INPUT_BOX_ID, chainID);
-  }
-  static async typeInNetworkSymbol(networkSymbol) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      NETWORKS_SYMBOL_INPUT_BOX_ID,
-      networkSymbol,
-    );
-  }
+	static async switchToCustomNetworks() {
+		await TestHelpers.tapByText('Custom networks');
+	}
+
+	static async tapNetworks() {
+		await TestHelpers.tapByText('Networks');
+	}
+	static async typeInNetworkName(networkName) {
+		await TestHelpers.typeTextAndHideKeyboard(NETWORK_NAME_INPUT_BOX_ID, networkName);
+	}
+	static async typeInRpcUrl(rPCUrl) {
+		await TestHelpers.typeTextAndHideKeyboard(RPC_URL_SYMBOL_INPUT_BOX_ID, rPCUrl);
+	}
+	static async typeInChainId(chainID) {
+		await TestHelpers.typeTextAndHideKeyboard(CHAIN_ID_INPUT_BOX_ID, chainID);
+	}
+	static async typeInNetworkSymbol(networkSymbol) {
+		await TestHelpers.typeTextAndHideKeyboard(NETWORKS_SYMBOL_INPUT_BOX_ID, networkSymbol);
+	}
 
   static async clearRpcInputBox() {
     await TestHelpers.clearField(RPC_URL_SYMBOL_INPUT_BOX_ID);
