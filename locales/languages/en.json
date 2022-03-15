@@ -783,9 +783,9 @@
 		"minimum": "1.00 {{tokenSymbol}} minimum",
 		"cancel": "Cancel",
 		"approve": "Approve",
-		"allow_to_access": "Give this site permission to access your {{tokenSymbol}}?",
+		"allow_to_access": "Give permission to access your {{tokenSymbol}}?",
 		"allow_to_address_access": "Give this address access your {{tokenSymbol}}?",
-		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds.",
+		"you_trust_this_site": "By granting permission, you're allowing the following contract to access your funds.",
 		"you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
 		"edit_permission": "Edit permission",
 		"edit": "Edit",
@@ -1822,5 +1822,15 @@
 		"help_description_1": "We're here to help! Check out the FAQs below or ",
 		"help_description_2": "contact support",
 		"help_description_3": " for help!"
+	},
+	"nickname": {
+		"add_nickname": "Add nickname",
+		"edit_nickname": "Edit nickname",
+		"save_nickname": "Confirm",
+		"address": "Contract Address",
+		"name": "Contract Name",
+		"name_placeholder": "Add a nickname to this address",
+		"contract": "Contract",
+		"nickname": "nickname"
 	}
 }
