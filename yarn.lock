@@ -1001,9 +1001,9 @@
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.15.4":
-  version "7.17.2"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.2.tgz#66f68591605e59da47523c631416b18508779941"
-  integrity sha512-hzeyJyMA1YGdJTuWU0e/j4wKXrU4OMFvY2MSlaI9B7VQb0r5cxTE3EAIS2Q7Tn2RIcDkRvTA/v2JsAEhxe99uw==
+  version "7.17.7"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.7.tgz#a5f3328dc41ff39d803f311cfe17703418cf9825"
+  integrity sha512-L6rvG9GDxaLgFjg41K+5Yv9OMrU98sWe+Ykmc6FDJW/+vYZMhdOMKkISgzptMaERHvS2Y2lw9MDRm2gHhlQQoA==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -1091,6 +1091,16 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@chingiz-mardanov/on-ramp-sdk@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@chingiz-mardanov/on-ramp-sdk/-/on-ramp-sdk-0.0.9.tgz#ccf17688cb2893190f128dd4310ecc8b1c8aac96"
+  integrity sha512-WHeTTsQOGGznByn/TPFTKmP47mrCgedkXE3pduy9ZsbT7gWnGoWx0z3WC6kHnjqPHIlKACiMoUC27A/av068Sw==
+  dependencies:
+    async "^3.2.3"
+    axios "^0.21.0"
+    axios-retry "^3.1.2"
+    crypto-js "^4.1.1"
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.4.tgz#f864ae85004d0fcab6f50be9141c4da368d1656a"
@@ -1098,16 +1108,6 @@
   dependencies:
     exec-sh "^0.3.2"
     minimist "^1.2.0"
-
-"@codefi/on-ramp-sdk@^0.0.5":
-  version "0.0.5"
-  resolved "https://nexus.eu-west-3.codefi.network/repository/npm-hosted/@codefi/on-ramp-sdk/-/on-ramp-sdk-0.0.5.tgz#7fd84825ff88576a9d4fcdf5c74a90a11819572e"
-  integrity sha512-HO2jNvMzZfk8SIEXuQ/MxwCHUG01+/2iiWAMDXXkGuiG9BPol45VNz5XdwuelOLZwfc96qYngq+Eyav0xTHFuQ==
-  dependencies:
-    async "^3.2.3"
-    axios "^0.21.0"
-    axios-retry "^3.1.2"
-    crypto-js "^4.1.1"
 
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"

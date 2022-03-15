@@ -1,34 +1,42 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk } from '@codefi/on-ramp-sdk';
+import { OnRampSdk, IOnRampSdk } from '@chingiz-mardanov/on-ramp-sdk';
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
 	selectedAddressSelector,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
-	sdk: IOnRampSdk;
-	setSelectedCountry: (countryCode: string) => void;
-	selectedCountry: string;
-	setSelectedRegion: (countryCode: string) => void;
-	selectedRegion: string;
-	setSelectedPaymentMethod: (paymentMethod: string) => void;
+	sdk: IOnRampSdk | undefined;
+	selectedCountry: any;
+	setSelectedCountry: (country: any) => void;
+
+	selectedRegion: any;
+	setSelectedRegion: (region: any) => void;
+
 	selectedPaymentMethod: string;
-	setRegionCurrency: (currency: string) => void;
-	regionCurrency: string;
-	setSelectedAsset: (asset: string) => void;
+	setSelectedPaymentMethod: (paymentMethod: string) => void;
+
 	selectedAsset: string;
+	setSelectedAsset: (asset: string) => void;
+
+	selectedFiatCurrencyId: string;
+	setSelectedFiatCurrencyId: (asset: string) => void;
+
 	selectedAddress: string;
 }
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOnRampSDK>) => {
-	const sdk: IOnRampSdk = useMemo(() => new OnRampSdk('stg'), []);
-
+	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
 	useEffect(() => {
-		if (sdk) sdk.init();
-	}, [sdk]);
+		(async () => {
+			setSdkModule(await OnRampSdk.getSDK('stg'));
+		})();
+	}, []);
+
+	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
 
 	const dispatch = useDispatch();
 
@@ -43,34 +51,18 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
-	const [regionCurrency, setRegionCurrency] = useState('USD');
+	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState('');
 
 	const setSelectedCountryCallback = useCallback(
-		(countryCode) => {
-			setSelectedCountry(countryCode);
-			// we need always to replicate the country selection and mirror it to region selection for all countries excpet USA.
-			if (countryCode !== 'us') {
-				setSelectedRegion(countryCode);
-				// update redux store by dispatching an action
-				dispatch(setFiatOrdersCountryAGG(countryCode));
-			}
+		(country) => {
+			setSelectedCountry(country);
+			dispatch(setFiatOrdersCountryAGG(country.id));
 		},
 		[dispatch]
 	);
 
-	const setSelectedRegionCallback = useCallback(
-		(countryCode) => {
-			setSelectedRegion(countryCode);
-			// update redux store by dispatching an action
-			dispatch(setFiatOrdersCountryAGG(countryCode));
-		},
-		[dispatch]
-	);
-
-	const setRegionCurrencyCallback = useCallback((currency) => {
-		setRegionCurrency(currency);
-		// dispatch an action to redux store to update region currency
-		// TODO: dispatch(setRegionCurrency(currency));
+	const setSelectedRegionCallback = useCallback((region) => {
+		setSelectedRegion(region);
 	}, []);
 
 	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
@@ -81,18 +73,27 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 		setSelectedAsset(asset);
 	}, []);
 
+	const setSelectedFiatCurrencyCallback = useCallback((currency) => {
+		setSelectedFiatCurrencyId(currency);
+	}, []);
+
 	const contextValue: IFiatOnRampSDK = {
 		sdk,
-		setSelectedCountry: setSelectedCountryCallback,
 		selectedCountry,
-		setSelectedRegion: setSelectedRegionCallback,
+		setSelectedCountry: setSelectedCountryCallback,
+
 		selectedRegion,
-		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+		setSelectedRegion: setSelectedRegionCallback,
+
 		selectedPaymentMethod,
-		setRegionCurrency: setRegionCurrencyCallback,
-		regionCurrency,
-		setSelectedAsset: setSelectedAssetCallback,
+		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+
 		selectedAsset,
+		setSelectedAsset: setSelectedAssetCallback,
+
+		selectedFiatCurrencyId,
+		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
+
 		selectedAddress,
 	};
 
@@ -116,7 +117,7 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	const { sdk }: { sdk: IOnRampSdk } = useFiatOnRampSDK() as any;
 	const [data, setData] = useState<any | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isFetching, setIsFetching] = useState<boolean>(true);
+	const [isFetching, setIsFetching] = useState<boolean>(false);
 	const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
 	const method = typeof config === 'string' ? config : config.method;
 	const onMount = typeof config === 'string' ? true : config.onMount ?? true;

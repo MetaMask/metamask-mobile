@@ -32,11 +32,11 @@ const styles = StyleSheet.create({
 	},
 });
 
-function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
+function PaymentMethodModal({ isVisible, dismiss, title }) {
 	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
 	const [{ data: paymentMethods }] = useSDKMethod('getPaymentMethods', {
-		countryId: selectedCountry,
-		regionId: selectedRegion,
+		countryId: selectedCountry?.id,
+		regionId: selectedRegion?.id,
 	});
 
 	const handleOnPressItemCallback = useCallback(
@@ -96,7 +96,6 @@ PaymentMethodModal.propTypes = {
 	isVisible: PropTypes.bool,
 	dismiss: PropTypes.func,
 	title: PropTypes.string,
-	onItemPress: PropTypes.func,
 };
 
 export default PaymentMethodModal;

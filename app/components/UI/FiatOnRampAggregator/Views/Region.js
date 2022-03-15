@@ -33,12 +33,12 @@ const styles = StyleSheet.create({
 
 const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
-	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
-	const { setSelectedCountry, setSelectedRegion } = useFiatOnRampSDK();
+	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
+	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
 	// eslint-disable-next-line no-unused-vars
 	const [showAlert, setShowAlert] = useState(false);
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
-	const [selectedRegionObject, setSelectedRegionObject] = useState({});
+
 	const navigation = useNavigation();
 
 	const handleChangeRememberRegion = () => {
@@ -46,7 +46,7 @@ const Region = () => {
 	};
 
 	const handleRegionButton = () => {
-		toggleTokenSelectorModal();
+		toggleRegionModal();
 	};
 
 	const handleOnPress = useCallback(() => {
@@ -58,26 +58,29 @@ const Region = () => {
 			if (country.unsupported) {
 				setShowAlert(true);
 			} else {
-				setSelectedRegionObject(country);
-				setSelectedCountry(country.id);
-				hideTokenSelectorModal();
+				setSelectedCountry(country);
+				hideRegionModal();
 			}
 		},
-		[hideTokenSelectorModal, setSelectedCountry]
+		[hideRegionModal, setSelectedCountry]
 	);
 
 	const handleRegionPress = useCallback(
-		(region) => {
+		(region, country) => {
 			if (region.unsupported) {
 				setShowAlert(true);
 			} else {
-				setSelectedRegion(region.id);
-				setSelectedRegionObject(region);
-				hideTokenSelectorModal();
+				setSelectedRegion(region);
+				setSelectedCountry(country);
+				hideRegionModal();
 			}
 		},
-		[hideTokenSelectorModal, setSelectedRegion]
+		[hideRegionModal, setSelectedCountry, setSelectedRegion]
 	);
+
+	const handleUnsetRegion = useCallback(() => {
+		setSelectedRegion(undefined);
+	}, [setSelectedRegion]);
 
 	if (isFetching || !data) {
 		return (
@@ -111,10 +114,15 @@ const Region = () => {
 						<Box>
 							<ListItem.Content>
 								<ListItem.Body>
-									{Object.keys(selectedRegionObject).length !== 0 ? (
+									{selectedRegion?.id ? (
 										<Text>
-											{selectedRegionObject.emoji} {'   '}
-											{selectedRegionObject.name}
+											{selectedRegion.emoji} {'   '}
+											{selectedRegion.name}
+										</Text>
+									) : selectedCountry?.id ? (
+										<Text>
+											{selectedCountry.emoji} {'   '}
+											{selectedCountry.name}
 										</Text>
 									) : (
 										<Text>{strings('fiat_on_ramp_aggregator.region.select_region')}</Text>
@@ -146,23 +154,20 @@ const Region = () => {
 				</ScreenLayout.Content>
 
 				<RegionModal
-					isVisible={isTokenSelectorModalVisible}
+					isVisible={isRegionModalVisible}
 					title={strings('fiat_on_ramp_aggregator.region.title')}
 					description={strings('fiat_on_ramp_aggregator.region.description')}
 					data={data}
-					dismiss={toggleTokenSelectorModal}
+					dismiss={toggleRegionModal}
 					onCountryPress={handleCountryPress}
 					onRegionPress={handleRegionPress}
+					unsetRegion={handleUnsetRegion}
 				/>
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
 					<View>
-						<StyledButton
-							type="confirm"
-							onPress={handleOnPress}
-							disabled={Object.keys(selectedRegionObject).length === 0}
-						>
+						<StyledButton type="confirm" onPress={handleOnPress} disabled={!selectedCountry?.id}>
 							Continue
 						</StyledButton>
 					</View>
