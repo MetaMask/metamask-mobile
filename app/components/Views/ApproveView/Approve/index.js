@@ -33,6 +33,7 @@ import { shallowEqual } from '../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import checkIfAddressIsSaved from '../../../../util/checkAddress';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const { BNToHex, hexToBN } = util;
 
@@ -561,6 +562,7 @@ class Approve extends PureComponent {
 			this.props;
 
 		const addressData = checkIfAddressIsSaved(addressBook, network, transaction);
+		const colors = this.context.colors || mockTheme.colors;
 
 		if (!transaction.id) return null;
 		return (
@@ -569,7 +571,8 @@ class Approve extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={this.state.addNickname ? styles.updateNickView : styles.bottomModal}
-				backdropOpacity={0.7}
+				ackdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onCancel}
@@ -700,5 +703,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 });
+
+Approve.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Approve);

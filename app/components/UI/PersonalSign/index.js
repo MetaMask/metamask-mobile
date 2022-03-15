@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { connect } from 'react-redux';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -11,24 +12,28 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { connect } from 'react-redux';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	messageText: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-	textLeft: {
-		textAlign: 'left',
-	},
-	messageWrapper: {
-		marginBottom: 4,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		messageText: {
+			fontSize: 14,
+			color: colors.text.default,
+			...fontStyles.normal,
+			textAlign: 'center',
+		},
+		messageTextColor: {
+			color: colors.text.default,
+		},
+		textLeft: {
+			textAlign: 'left',
+		},
+		messageWrapper: {
+			marginBottom: 4,
+		},
+	});
 
 /**
  * Component that supports personal_sign
@@ -152,9 +157,16 @@ class PersonalSign extends PureComponent {
 		}
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderMessageText = () => {
 		const { messageParams, showExpandedMessage } = this.props;
 		const { truncateMessage } = this.state;
+		const styles = this.getStyles();
+
 		const textChild = util
 			.hexToText(messageParams.data)
 			.split('\n')
@@ -169,11 +181,13 @@ class PersonalSign extends PureComponent {
 			messageText = textChild;
 		} else {
 			messageText = truncateMessage ? (
-				<Text numberOfLines={5} ellipsizeMode={'tail'}>
+				<Text style={styles.messageTextColor} numberOfLines={5} ellipsizeMode={'tail'}>
 					{textChild}
 				</Text>
 			) : (
-				<Text onTextLayout={this.shouldTruncateMessage}>{textChild}</Text>
+				<Text style={styles.messageTextColor} onTextLayout={this.shouldTruncateMessage}>
+					{textChild}
+				</Text>
 			);
 		}
 		return messageText;
@@ -189,6 +203,8 @@ class PersonalSign extends PureComponent {
 
 	render() {
 		const { currentPageInformation, toggleExpandedMessage, showExpandedMessage } = this.props;
+		const styles = this.getStyles();
+
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
@@ -212,6 +228,8 @@ class PersonalSign extends PureComponent {
 		return rootView;
 	}
 }
+
+PersonalSign.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

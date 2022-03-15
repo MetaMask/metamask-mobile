@@ -1,18 +1,19 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import Summary from '../../Base/Summary';
 import Text from '../../Base/Text';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	loader: {
-		backgroundColor: colors.white,
-		height: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		loader: {
+			backgroundColor: colors.background.default,
+			height: 10,
+		},
+	});
 
 export default class TransactionSummary extends PureComponent {
 	static propTypes = {
@@ -27,6 +28,9 @@ export default class TransactionSummary extends PureComponent {
 
 	renderIfGastEstimationReady = (children) => {
 		const { gasEstimationReady } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return !gasEstimationReady ? (
 			<View style={styles.loader}>
 				<ActivityIndicator size="small" />
@@ -132,3 +136,5 @@ export default class TransactionSummary extends PureComponent {
 		);
 	};
 }
+
+TransactionSummary.contextType = ThemeContext;

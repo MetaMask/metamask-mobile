@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
@@ -11,73 +11,75 @@ import { getTicker } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	accountInformation: {
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: Device.isMediumDevice() ? 8 : 16,
-		alignItems: 'center',
-	},
-	identicon: {
-		marginRight: 8,
-	},
-	accountInfoRow: {
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		marginRight: 8,
-	},
-	accountNameAndAddress: {
-		width: '100%',
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-	},
-	accountName: {
-		maxWidth: Device.isMediumDevice() ? '35%' : '45%',
-		...fontStyles.bold,
-		fontSize: 16,
-		marginRight: 2,
-		color: colors.black,
-	},
-	accountNameSmall: {
-		fontSize: 12,
-	},
-	accountAddress: {
-		flexGrow: 1,
-		...fontStyles.bold,
-		fontSize: 16,
-		color: colors.black,
-	},
-	accountAddressSmall: {
-		fontSize: 12,
-	},
-	balanceText: {
-		...fontStyles.thin,
-		fontSize: 14,
-		alignSelf: 'flex-start',
-		color: colors.black,
-	},
-	balanceTextSmall: {
-		fontSize: 12,
-	},
-	tag: {
-		borderRadius: 14,
-		borderWidth: 1,
-		borderColor: colors.greyAssetVisibility,
-		padding: 4,
-		minWidth: 42,
-	},
-	tagText: {
-		textAlign: 'center',
-		fontSize: 8,
-		fontWeight: 'bold',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		accountInformation: {
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: Device.isMediumDevice() ? 8 : 16,
+			alignItems: 'center',
+		},
+		identicon: {
+			marginRight: 8,
+		},
+		accountInfoRow: {
+			flexGrow: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			alignItems: 'flex-start',
+			marginRight: 8,
+		},
+		accountNameAndAddress: {
+			width: '100%',
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+		},
+		accountName: {
+			maxWidth: Device.isMediumDevice() ? '35%' : '45%',
+			...fontStyles.bold,
+			fontSize: 16,
+			marginRight: 2,
+			color: colors.text.default,
+		},
+		accountNameSmall: {
+			fontSize: 12,
+		},
+		accountAddress: {
+			flexGrow: 1,
+			...fontStyles.bold,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		accountAddressSmall: {
+			fontSize: 12,
+		},
+		balanceText: {
+			...fontStyles.thin,
+			fontSize: 14,
+			alignSelf: 'flex-start',
+			color: colors.text.default,
+		},
+		balanceTextSmall: {
+			fontSize: 12,
+		},
+		tag: {
+			borderRadius: 14,
+			borderWidth: 1,
+			borderColor: colors.greyAssetVisibility,
+			padding: 4,
+			minWidth: 42,
+		},
+		tagText: {
+			textAlign: 'center',
+			fontSize: 8,
+			fontWeight: 'bold',
+		},
+	});
 
 class AccountInfoCard extends PureComponent {
 	static propTypes = {
@@ -141,6 +143,8 @@ class AccountInfoCard extends PureComponent {
 			showFiatBalance = true,
 		} = this.props;
 		const { isHardwareKeyring } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
@@ -192,5 +196,7 @@ const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
+
+AccountInfoCard.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(AccountInfoCard);

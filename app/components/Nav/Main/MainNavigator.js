@@ -26,7 +26,6 @@ import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
-import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -53,6 +52,8 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import QRHardwareSigner from '../../Views/SendFlow/QRHardwareSigner';
+import ThemeSettings from '../../Views/ThemeSettings';
+import { colors as importedColors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -134,8 +135,8 @@ const Webview = () => (
 	</Stack.Navigator>
 );
 
-const SettingsView = () => (
-	<Stack.Navigator>
+const SettingsFlow = () => (
+	<Stack.Navigator initialRouteName={'Settings'}>
 		<Stack.Screen name="Settings" component={Settings} options={Settings.navigationOptions} />
 		<Stack.Screen name="GeneralSettings" component={GeneralSettings} options={GeneralSettings.navigationOptions} />
 		<Stack.Screen
@@ -172,11 +173,6 @@ const SettingsView = () => (
 			component={WalletConnectSessions}
 			options={WalletConnectSessions.navigationOptions}
 		/>
-		<Stack.Screen
-			name="ChoosePasswordSimple"
-			component={ChoosePasswordSimple}
-			options={ChoosePasswordSimple.navigationOptions}
-		/>
 		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
 		<Stack.Screen
 			name="AccountBackupStep1B"
@@ -203,6 +199,17 @@ const SettingsView = () => (
 			component={EnterPasswordSimple}
 			options={EnterPasswordSimple.navigationOptions}
 		/>
+	</Stack.Navigator>
+);
+
+const SettingsModalStack = () => (
+	<Stack.Navigator
+		initialRouteName={'SettingsFlow'}
+		mode={'modal'}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: importedColors.transparent } }}
+	>
+		<Stack.Screen name={'SettingsFlow'} component={SettingsFlow} />
+		<Stack.Screen name={'ThemeSettings'} component={ThemeSettings} options={{ animationEnabled: false }} />
 	</Stack.Navigator>
 );
 
@@ -342,7 +349,7 @@ const MainNavigator = () => (
 			component={CollectiblesDetails}
 			options={{
 				//Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-				cardStyle: { backgroundColor: 'transparent' },
+				cardStyle: { backgroundColor: importedColors.transparent },
 				cardStyleInterpolator: () => ({
 					overlayStyle: {
 						opacity: 0,
@@ -352,7 +359,7 @@ const MainNavigator = () => (
 		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
-		<Stack.Screen name="SettingsView" component={SettingsView} />
+		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
 		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />

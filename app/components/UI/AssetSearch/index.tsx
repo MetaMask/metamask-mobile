@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState, useCallback } from 'react';
 import { TextInput, View, StyleSheet } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Fuse from 'fuse.js';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -8,26 +8,31 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { TokenListToken } from '@metamask/controllers';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	searchSection: {
-		margin: 20,
-		marginBottom: 0,
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: colors.grey100,
-	},
-	textInput: {
-		...fontStyles.normal,
-	} as StyleSheet.NamedStyles<any>,
-	icon: {
-		padding: 16,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		searchSection: {
+			margin: 20,
+			marginBottom: 0,
+			flex: 1,
+			flexDirection: 'row',
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderWidth: 1,
+			borderRadius: 4,
+			borderColor: colors.border.default,
+			color: colors.text.default,
+		},
+		textInput: {
+			...fontStyles.normal,
+			color: colors.text.default,
+		} as StyleSheet.NamedStyles<any>,
+		icon: {
+			padding: 16,
+			color: colors.icon.default,
+		},
+	});
 
 const fuse = new Fuse<TokenListToken>([], {
 	shouldSort: true,
@@ -59,6 +64,8 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [inputDimensions, setInputDimensions] = useState('85%');
 	const tokenList = useSelector<any, TokenListToken[]>(getTokenListArray);
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -91,9 +98,10 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
 				onFocus={onFocus}
 				onBlur={onBlur}
 				placeholder={strings('token.search_tokens_placeholder')}
-				placeholderTextColor={colors.grey100}
+				placeholderTextColor={colors.text.muted}
 				onChangeText={handleSearch}
 				testID={'input-search-asset'}
+				keyboardAppearance={themeAppearance}
 			/>
 		</View>
 	);

@@ -11,7 +11,11 @@ export const whatsNew = [
 				title: strings('whats_new.feature_security_settings_title'),
 				text: strings('whats_new.feature_security_settings_text'),
 				buttonText: strings('whats_new.feature_security_settings_button'),
-				buttonPress: (props) => props.navigation.navigate('SettingsView', { screen: 'SecuritySettings' }),
+				buttonPress: (props) =>
+					props.navigation.navigate('SettingsView', {
+						screen: 'SettingsFlow',
+						params: { screen: 'SecuritySettings' },
+					}),
 				image: require('../../../images/whats-new-security.png'), // eslint-disable-line
 			},
 		],

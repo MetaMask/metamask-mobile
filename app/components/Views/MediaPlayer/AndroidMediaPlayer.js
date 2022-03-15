@@ -16,131 +16,133 @@ import {
 } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	playerContainer: {
-		flex: 0,
-		overflow: 'hidden',
-		zIndex: 99999,
-		elevation: 99999,
-	},
-	playerVideo: {
-		flex: 1,
-		overflow: 'hidden',
-		position: 'absolute',
-		top: 0,
-		right: 0,
-		bottom: 0,
-		left: 0,
-		backgroundColor: colors.black,
-		borderRadius: 12,
-	},
-	errorContainer: {
-		top: 0,
-		right: 0,
-		bottom: 0,
-		left: 0,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	errorIcon: {
-		marginBottom: 16,
-	},
-	errorText: {},
-	loaderContainer: {
-		top: 0,
-		right: 0,
-		bottom: 0,
-		left: 0,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	controlsRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	controlsColumn: {
-		flexDirection: 'column',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	controlsControl: {
-		padding: 14,
-	},
-	controlsTop: {
-		flex: 1,
-		justifyContent: 'flex-start',
-		padding: 4,
-	},
-	controlsBottom: {
-		flex: 1,
-		justifyContent: 'flex-end',
-		padding: 4,
-	},
-	controlsTopControlGroup: {
-		alignSelf: 'flex-end',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	controlsBottomControlGroup: {
-		alignSelf: 'stretch',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	controlsPlayPause: {
-		left: 1,
-	},
-	controlsMuteUnmute: {
-		left: -1,
-		top: -1,
-		width: '110%',
-	},
-	seekbarContainer: {
-		alignSelf: 'stretch',
-		height: 44,
-		marginLeft: 20,
-		marginRight: 20,
-	},
-	seekbarTrack: {
-		height: 1,
-		position: 'relative',
-		top: 20,
-		width: '100%',
-	},
-	seekbarFill: {
-		height: 4,
-		width: '100%',
-		borderRadius: 2,
-		backgroundColor: colors.white,
-	},
-	seekbarPermanentFill: {
-		width: '100%',
-		backgroundColor: colors.grey400,
-	},
-	seekbarHandle: {
-		marginLeft: -10,
-		height: 28,
-		width: 28,
-	},
-	seekbarCircle: {
-		borderRadius: 14,
-		top: 14,
-		height: 14,
-		width: 14,
-	},
-	actionButton: {
-		width: 44,
-		height: 44,
-		backgroundColor: colors.greytransparent100,
-		borderRadius: 8,
-	},
-	actionSeeker: {
-		flex: 1,
-		marginHorizontal: 8,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		playerContainer: {
+			flex: 0,
+			overflow: 'hidden',
+			zIndex: 99999,
+			elevation: 99999,
+		},
+		playerVideo: {
+			flex: 1,
+			overflow: 'hidden',
+			position: 'absolute',
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0,
+			backgroundColor: colors.background.alternative,
+			borderRadius: 12,
+		},
+		errorContainer: {
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		errorIcon: {
+			marginBottom: 16,
+		},
+		errorText: {},
+		loaderContainer: {
+			top: 0,
+			right: 0,
+			bottom: 0,
+			left: 0,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		controlsRow: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+		},
+		controlsColumn: {
+			flexDirection: 'column',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+		},
+		controlsControl: {
+			padding: 14,
+		},
+		controlsTop: {
+			flex: 1,
+			justifyContent: 'flex-start',
+			padding: 4,
+		},
+		controlsBottom: {
+			flex: 1,
+			justifyContent: 'flex-end',
+			padding: 4,
+		},
+		controlsTopControlGroup: {
+			alignSelf: 'flex-end',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+		},
+		controlsBottomControlGroup: {
+			alignSelf: 'stretch',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+		},
+		controlsPlayPause: {
+			left: 1,
+		},
+		controlsMuteUnmute: {
+			left: -1,
+			top: -1,
+			width: '110%',
+		},
+		seekbarContainer: {
+			alignSelf: 'stretch',
+			height: 44,
+			marginLeft: 20,
+			marginRight: 20,
+		},
+		seekbarTrack: {
+			height: 1,
+			position: 'relative',
+			top: 20,
+			width: '100%',
+		},
+		seekbarFill: {
+			height: 4,
+			width: '100%',
+			borderRadius: 2,
+			backgroundColor: importedColors.white,
+		},
+		seekbarPermanentFill: {
+			width: '100%',
+			backgroundColor: importedColors.blackTransparent,
+		},
+		seekbarHandle: {
+			marginLeft: -10,
+			height: 28,
+			width: 28,
+		},
+		seekbarCircle: {
+			borderRadius: 14,
+			top: 14,
+			height: 14,
+			width: 14,
+		},
+		actionButton: {
+			width: 44,
+			height: 44,
+			backgroundColor: importedColors.blackTransparent,
+			borderRadius: 8,
+		},
+		actionSeeker: {
+			flex: 1,
+			marginHorizontal: 8,
+		},
+	});
 
 export default function VideoPlayer({
 	controlsAnimationTiming,
@@ -172,6 +174,9 @@ export default function VideoPlayer({
 	const videoRef = useRef();
 
 	const controlsTimeout = useRef();
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const animations = {
 		bottomControl: {
@@ -405,20 +410,23 @@ export default function VideoPlayer({
 		]
 	);
 
-	const renderControl = (children, callback, style = {}) => (
-		<TouchableHighlight underlayColor="transparent" onPress={callback} style={[styles.controlsControl, style]}>
-			{children}
-		</TouchableHighlight>
+	const renderControl = useCallback(
+		(children, callback, style = {}) => (
+			<TouchableHighlight underlayColor="transparent" onPress={callback} style={[styles.controlsControl, style]}>
+				{children}
+			</TouchableHighlight>
+		),
+		[styles]
 	);
 
 	const renderMuteUnmuteControl = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
+				<FA5Icon color={importedColors.white} size={18} name={`volume-${muted ? 'mute' : 'up'}`} />,
 				toggleMuted,
 				styles.controlsMuteUnmute
 			),
-		[muted, toggleMuted]
+		[muted, toggleMuted, styles, renderControl]
 	);
 
 	const onLayoutSeekerWidth = useCallback((event) => setSeekerWidth(event.nativeEvent.layout.width), []);
@@ -444,21 +452,24 @@ export default function VideoPlayer({
 				</View>
 
 				<View style={[styles.seekbarHandle, { left: seekerPosition }]} pointerEvents={'none'}>
-					<View style={[styles.seekbarCircle, { backgroundColor: colors.white }]} pointerEvents={'none'} />
+					<View
+						style={[styles.seekbarCircle, { backgroundColor: importedColors.white }]}
+						pointerEvents={'none'}
+					/>
 				</View>
 			</View>
 		),
-		[seekerPosition, seekPanResponder.panHandlers, seekerFillWidth, onLayoutSeekerWidth]
+		[seekerPosition, seekPanResponder.panHandlers, seekerFillWidth, onLayoutSeekerWidth, styles]
 	);
 
 	const renderPlayPause = useCallback(
 		() =>
 			renderControl(
-				<FA5Icon color={colors.white} size={16} name={paused ? 'play' : 'pause'} />,
+				<FA5Icon color={importedColors.white} size={16} name={paused ? 'play' : 'pause'} />,
 				togglePlayPause,
 				styles.controlsPlayPause
 			),
-		[paused, togglePlayPause]
+		[paused, togglePlayPause, styles, renderControl]
 	);
 
 	const renderLoader = useCallback(() => {
@@ -479,7 +490,7 @@ export default function VideoPlayer({
 				/>
 			</View>
 		);
-	}, [loading, animations.loader.rotate]);
+	}, [loading, animations.loader.rotate, styles]);
 
 	const renderError = () => {
 		if (!error) return;
@@ -494,8 +505,8 @@ export default function VideoPlayer({
 	};
 
 	const renderClose = useCallback(
-		() => renderControl(<AntIcon color={colors.white} size={16} name={'close'} />, onClose, {}),
-		[onClose]
+		() => renderControl(<AntIcon color={importedColors.white} size={16} name={'close'} />, onClose, {}),
+		[onClose, renderControl]
 	);
 
 	const renderTopControls = () => (

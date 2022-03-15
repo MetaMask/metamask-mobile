@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -16,92 +16,96 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		minHeight: '90%',
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-	},
-	expandedHeight2: {
-		minHeight: '90%',
-	},
-	expandedHeight1: {
-		minHeight: '90%',
-	},
-	actionViewQRObject: {
-		height: 320,
-	},
-	signingInformation: {
-		alignItems: 'center',
-		marginVertical: 24,
-	},
-	domainLogo: {
-		width: 40,
-		height: 40,
-		marginRight: 8,
-		borderRadius: 20,
-	},
-	messageColumn: {
-		width: '75%',
-		justifyContent: 'space-between',
-	},
-	warningLink: {
-		...fontStyles.normal,
-		color: colors.blue,
-		textAlign: 'center',
-		paddingHorizontal: 10,
-		paddingBottom: 10,
-		textDecorationLine: 'underline',
-	},
-	signText: {
-		...fontStyles.bold,
-		fontSize: 20,
-		textAlign: 'center',
-	},
-	messageLabelText: {
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 4,
-	},
-	readMore: {
-		color: colors.blue,
-		fontSize: 14,
-		...fontStyles.bold,
-	},
-	warningWrapper: {
-		width: '100%',
-		paddingHorizontal: 24,
-		paddingTop: 24,
-	},
-	actionViewChild: {
-		paddingHorizontal: 24,
-	},
-	accountInfoCardWrapper: {
-		marginBottom: 20,
-		width: '100%',
-	},
-	children: {
-		alignSelf: 'center',
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		width: '100%',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-	},
-	arrowIconWrapper: {
-		flexGrow: 1,
-		alignItems: 'flex-end',
-	},
-	arrowIcon: {
-		color: colors.grey200,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			backgroundColor: colors.background.default,
+			paddingTop: 24,
+			minHeight: '90%',
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+		},
+		expandedHeight2: {
+			minHeight: '90%',
+		},
+		expandedHeight1: {
+			minHeight: '90%',
+		},
+		actionViewQRObject: {
+			height: 320,
+		},
+		signingInformation: {
+			alignItems: 'center',
+			marginVertical: 24,
+		},
+		domainLogo: {
+			width: 40,
+			height: 40,
+			marginRight: 8,
+			borderRadius: 20,
+		},
+		messageColumn: {
+			width: '75%',
+			justifyContent: 'space-between',
+		},
+		warningLink: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			textAlign: 'center',
+			paddingHorizontal: 10,
+			paddingBottom: 10,
+			textDecorationLine: 'underline',
+		},
+		signText: {
+			...fontStyles.bold,
+			fontSize: 20,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		messageLabelText: {
+			...fontStyles.bold,
+			fontSize: 16,
+			marginBottom: 4,
+			color: colors.text.default,
+		},
+		readMore: {
+			color: colors.primary.default,
+			fontSize: 14,
+			...fontStyles.bold,
+		},
+		warningWrapper: {
+			width: '100%',
+			paddingHorizontal: 24,
+			paddingTop: 24,
+		},
+		actionViewChild: {
+			paddingHorizontal: 24,
+		},
+		accountInfoCardWrapper: {
+			marginBottom: 20,
+			width: '100%',
+		},
+		children: {
+			alignSelf: 'center',
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+			width: '100%',
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: 16,
+		},
+		arrowIconWrapper: {
+			flexGrow: 1,
+			alignItems: 'flex-end',
+		},
+		arrowIcon: {
+			color: colors.icon.muted,
+		},
+	});
 
 /**
  * PureComponent that renders scrollable content inside signature request user interface
@@ -204,16 +208,26 @@ class SignatureRequest extends PureComponent {
 		});
 	};
 
-	renderWarning = () => (
-		<Text>
-			{strings('signature_request.eth_sign_warning')}
-			{` `}
-			<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
-		</Text>
-	);
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
+	renderWarning = () => {
+		const styles = this.getStyles();
+
+		return (
+			<Text>
+				{strings('signature_request.eth_sign_warning')}
+				{` `}
+				<Text style={styles.warningLink}>{strings('signature_request.learn_more')}</Text>
+			</Text>
+		);
+	};
 
 	renderActionViewChildren = () => {
 		const { children, currentPageInformation, truncateMessage, toggleExpandedMessage } = this.props;
+		const styles = this.getStyles();
 		const url = currentPageInformation.url;
 		const title = getHost(url);
 		const arrowIcon = truncateMessage ? this.renderArrowIcon() : null;
@@ -237,15 +251,21 @@ class SignatureRequest extends PureComponent {
 		);
 	};
 
-	renderArrowIcon = () => (
-		<View style={styles.arrowIconWrapper}>
-			<Ionicons name={'ios-arrow-forward'} size={20} style={styles.arrowIcon} />
-		</View>
-	);
+	renderArrowIcon = () => {
+		const styles = this.getStyles();
+
+		return (
+			<View style={styles.arrowIconWrapper}>
+				<Ionicons name={'ios-arrow-forward'} size={20} style={styles.arrowIcon} />
+			</View>
+		);
+	};
 
 	renderSignatureRequest() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		let expandedHeight;
+		const styles = this.getStyles();
+
 		if (Device.isMediumDevice()) {
 			expandedHeight = styles.expandedHeight2;
 			if (type === 'ethSign') {
@@ -282,6 +302,8 @@ class SignatureRequest extends PureComponent {
 
 	renderQRDetails() {
 		const { QRState } = this.props;
+		const styles = this.getStyles();
+
 		return (
 			<View style={[styles.root, styles.actionViewQRObject]}>
 				<QRSigningDetails QRState={QRState} showCancelButton showHint={false} />
@@ -298,5 +320,7 @@ class SignatureRequest extends PureComponent {
 const mapStateToProps = (state) => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
+
+SignatureRequest.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(withQRHardwareAwareness(SignatureRequest));

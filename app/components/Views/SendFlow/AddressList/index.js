@@ -1,61 +1,69 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Fuse from 'fuse.js';
 import { isSmartContractAddress } from '../../../../util/transactions';
 import { strings } from '../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	messageText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 16,
-		textAlign: 'center',
-	},
-	messageLeft: {
-		textAlign: 'left',
-	},
-	myAccountsWrapper: {
-		flexGrow: 1,
-	},
-	myAccountsTouchable: {
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-		padding: 16,
-	},
-	labelElementWrapper: {
-		backgroundColor: colors.grey000,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-		padding: 8,
-	},
-	labelElementInitialText: {
-		textTransform: 'uppercase',
-	},
-	labelElementText: {
-		...fontStyles.normal,
-		fontSize: 12,
-		marginHorizontal: 8,
-		color: colors.grey600,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		messageText: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			fontSize: 16,
+			textAlign: 'center',
+		},
+		messageLeft: {
+			textAlign: 'left',
+		},
+		myAccountsWrapper: {
+			flexGrow: 1,
+		},
+		myAccountsTouchable: {
+			borderBottomWidth: 1,
+			borderBottomColor: colors.border.muted,
+			padding: 16,
+		},
+		labelElementWrapper: {
+			backgroundColor: colors.background.default,
+			flexDirection: 'row',
+			alignItems: 'center',
+			borderBottomWidth: 1,
+			borderBottomColor: colors.border.muted,
+			padding: 8,
+		},
+		labelElementInitialText: {
+			textTransform: 'uppercase',
+		},
+		labelElementText: {
+			...fontStyles.normal,
+			fontSize: 12,
+			marginHorizontal: 8,
+			color: colors.text.alternative,
+		},
+	});
 
-const LabelElement = (label, checkingForSmartContracts, showLoading) => (
-	<View key={label} style={styles.labelElementWrapper}>
-		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
-		{showLoading && checkingForSmartContracts && <ActivityIndicator size="small" color={colors.grey500} />}
-	</View>
-);
+const LabelElement = (label, checkingForSmartContracts, showLoading) => {
+	const colors = this.context.colors || mockTheme.colors;
+	const styles = createStyles(colors);
+	return (
+		<View key={label} style={styles.labelElementWrapper}>
+			<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>
+				{label}
+			</Text>
+			{showLoading && checkingForSmartContracts && <ActivityIndicator size="small" color={colors.grey500} />}
+		</View>
+	);
+};
+
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -196,6 +204,9 @@ class AddressList extends PureComponent {
 	renderMyAccounts = () => {
 		const { identities, onAccountPress, inputSearch, onAccountLongPress } = this.props;
 		const { myAccountsOpened } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		if (inputSearch) return;
 		return !myAccountsOpened ? (
 			<TouchableOpacity
@@ -223,9 +234,11 @@ class AddressList extends PureComponent {
 
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		if (typeof element === 'string') {
-			return LabelElement(element);
+			return LabelElement(element, styles);
 		}
 
 		const key = element.address + element.name;
@@ -245,7 +258,6 @@ class AddressList extends PureComponent {
 	renderRecents = () => {
 		const { recents, identities, addressBook, network, onAccountPress, onAccountLongPress, inputSearch } =
 			this.props;
-
 		const networkAddressBook = addressBook[network] || {};
 
 		if (!recents.length || inputSearch) return;
@@ -271,6 +283,8 @@ class AddressList extends PureComponent {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
 		const sendFlowContacts = [];
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		contactElements.filter((element) => {
 			if (typeof element === 'object' && element.isSmartContract === false) {
@@ -298,6 +312,8 @@ class AddressList extends PureComponent {
 		);
 	};
 }
+
+AddressList.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	recents: state.recents,

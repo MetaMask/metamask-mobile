@@ -61,22 +61,19 @@ const styles = StyleSheet.create({
 	},
 	passwordTipContainer: {
 		padding: 16,
-		backgroundColor: colors.blue000,
+
 		borderWidth: 1,
-		borderColor: colors.blue200,
 		borderRadius: 8,
 		marginTop: 29,
 	},
 	passwordTipText: {
 		fontSize: 12,
 		lineHeight: 17,
-		color: colors.blue600,
 	},
 	learnMoreText: {
 		marginTop: 29,
 		textAlign: 'center',
 		fontSize: 16,
-		color: colors.blue,
 		...fontStyles.normal,
 	},
 	buttonContainer: {

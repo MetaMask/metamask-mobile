@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../locales/i18n';
 import ActionContent from './ActionContent';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -39,6 +40,8 @@ export default function ActionModal({
 	propagateSwipe,
 	cancelButtonDisabled,
 }) {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+
 	return (
 		<Modal
 			isVisible={modalVisible}
@@ -48,6 +51,8 @@ export default function ActionModal({
 			onSwipeComplete={onRequestClose}
 			swipeDirection={'down'}
 			propagateSwipe={propagateSwipe}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			avoidKeyboard
 		>
 			<ActionContent

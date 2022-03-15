@@ -7,7 +7,7 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { renderFromWei, fastSplit } from '../../../../util/number';
 import { validateTransactionActionBalance } from '../../../../util/transactions';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import decodeTransaction from '../../TransactionElement/utils';
 import TransactionActionContent from '../../TransactionActionModal/TransactionActionContent';
 import ActionContent from '../../ActionModal/ActionContent';
@@ -19,76 +19,78 @@ import ElevatedView from 'react-native-elevated-view';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
 import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
 const ACTION_SPEEDUP = 'speedup';
 
-const styles = StyleSheet.create({
-	modalView: {
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		paddingBottom: 200,
-		marginBottom: -300,
-	},
-	modalContainer: {
-		width: '90%',
-		borderRadius: 10,
-		backgroundColor: colors.white,
-	},
-	titleWrapper: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		flexDirection: 'row',
-	},
-	title: {
-		flex: 1,
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 24,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	modalTypeView: {
-		position: 'absolute',
-		bottom: 0,
-		paddingBottom: Device.isIphoneX() ? 20 : 10,
-		left: 0,
-		right: 0,
-		backgroundColor: colors.transparent,
-	},
-	modalViewInBrowserView: {
-		paddingBottom: Device.isIos() ? 130 : 120,
-	},
-	modalTypeViewDetailsVisible: {
-		height: '100%',
-		backgroundColor: colors.greytransparent,
-	},
-	modalTypeViewBrowser: {
-		bottom: Device.isIphoneX() ? 70 : 60,
-	},
-	closeIcon: {
-		paddingTop: 4,
-		position: 'absolute',
-		right: 16,
-	},
-	notificationContainer: {
-		flex: 0.1,
-		flexDirection: 'row',
-		alignItems: 'flex-end',
-	},
-	detailsContainer: {
-		flex: 1,
-		width: '200%',
-		flexDirection: 'row',
-	},
-	transactionAction: {
-		width: '100%',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modalView: {
+			flex: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			alignItems: 'center',
+			paddingBottom: 200,
+			marginBottom: -300,
+		},
+		modalContainer: {
+			width: '90%',
+			borderRadius: 10,
+			backgroundColor: colors.background.default,
+		},
+		titleWrapper: {
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.default,
+			flexDirection: 'row',
+		},
+		title: {
+			flex: 1,
+			textAlign: 'center',
+			fontSize: 18,
+			marginVertical: 12,
+			marginHorizontal: 24,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		modalTypeView: {
+			position: 'absolute',
+			bottom: 0,
+			paddingBottom: Device.isIphoneX() ? 20 : 10,
+			left: 0,
+			right: 0,
+			backgroundColor: importedColors.transparent,
+		},
+		modalViewInBrowserView: {
+			paddingBottom: Device.isIos() ? 130 : 120,
+		},
+		modalTypeViewDetailsVisible: {
+			height: '100%',
+			backgroundColor: colors.overlay.default,
+		},
+		modalTypeViewBrowser: {
+			bottom: Device.isIphoneX() ? 70 : 60,
+		},
+		closeIcon: {
+			paddingTop: 4,
+			position: 'absolute',
+			right: 16,
+		},
+		notificationContainer: {
+			flex: 0.1,
+			flexDirection: 'row',
+			alignItems: 'flex-end',
+		},
+		detailsContainer: {
+			flex: 1,
+			width: '200%',
+			flexDirection: 'row',
+		},
+		transactionAction: {
+			width: '100%',
+		},
+	});
 
 function TransactionNotification(props) {
 	const {
@@ -112,6 +114,9 @@ function TransactionNotification(props) {
 	const detailsYAnimated = useRef(new Animated.Value(0)).current;
 	const actionXAnimated = useRef(new Animated.Value(0)).current;
 	const detailsAnimated = useRef(new Animated.Value(0)).current;
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const detailsFadeIn = useCallback(async () => {
 		setTransactionDetailsIsVisible(true);
