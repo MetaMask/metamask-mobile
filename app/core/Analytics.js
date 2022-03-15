@@ -1,6 +1,7 @@
 'use strict';
 
 import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
+import AUTHENTICATION_TYPE from '../constants/userProperties';
 import { NativeModules } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
@@ -14,6 +15,7 @@ const USER_PROFILE_PROPERTY = {
 
 	ON: 'ON',
 	OFF: 'OFF',
+	AUTHENTICATION_TYPE: 'Authentication Type',
 };
 
 /**
@@ -153,6 +155,45 @@ class Analytics {
 	};
 
 	/**
+	 * Apply User Property
+	 *
+	 * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
+	 */
+	applyUserProperty = (property) => {
+		switch (property) {
+			case AUTHENTICATION_TYPE.BIOMETRIC:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.BIOMETRIC
+				);
+				break;
+			case AUTHENTICATION_TYPE.PASSCODE:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.PASSCODE
+				);
+				break;
+			case AUTHENTICATION_TYPE.REMEMBER_ME:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.REMEMBER_ME
+				);
+				break;
+			case AUTHENTICATION_TYPE.PASSWORD:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.PASSWORD
+				);
+				break;
+			default:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.UNKOWN
+				);
+		}
+	};
+
+	/**
 	 * Track event with value
 	 *
 	 * @param {object} event - Object containing event category, action and name
@@ -254,6 +295,9 @@ export default {
 	},
 	trackEvent(event, anonymously) {
 		return instance && instance.trackEvent(event, anonymously);
+	},
+	applyUserProperty(property) {
+		return instance && instance.applyUserProperty(property);
 	},
 	trackEventWithParameters(event, parameters, anonymously) {
 		return instance && instance.trackEventWithParameters(event, parameters, anonymously);

@@ -46,7 +46,8 @@
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
-    "prestorybook": "rnstl"
+    "prestorybook": "rnstl",
+    "create-release": "./scripts/set-versions.sh && yarn update-changelog"
   },
   "prettier": {
     "printWidth": 120,
