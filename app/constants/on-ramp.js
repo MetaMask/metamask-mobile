@@ -79,6 +79,10 @@ export const NETWORK_ALLOWED_TOKENS = {
 		{ symbol: 'USDC', address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', decimals: 6 },
 		{ symbol: 'DAI', address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', decimals: 18 },
 	],
+	[NETWORKS_CHAIN_ID.CELO]: [
+		{ symbol: 'CUSD', address: '0x765DE816845861e75A25fCA122bb6898B8B1282a', decimals: 18 },
+		{ symbol: 'CEUR', address: '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73', decimals: 18 },
+	],
 };
 
 export const TRANSAK_NETWORK_PARAMETERS = Object.keys(TRANSAK_NETWORK_NAMES).reduce(

@@ -29,7 +29,9 @@ const TransakLogoIcon = require('../../../../images/TransakLogo.png');
 const TransakLogo = () => <Image source={TransakLogoIcon} style={styles.logo} />;
 
 const hasStablecoins = (chainId) =>
-	[NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON].includes(chainId);
+	[NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON, NETWORKS_CHAIN_ID.CELO].includes(
+		chainId
+	);
 
 const TransakPaymentMethod = ({ onPress, ticker, chainId }) => (
 	<PaymentMethod onPress={onPress}>
