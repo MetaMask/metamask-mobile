@@ -12,12 +12,16 @@ import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
-import { RegionViewType } from '../types';
 
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const MAX_REGION_RESULTS = 20;
+
+enum RegionViewType {
+	COUNTRY = 'COUNTRY',
+	STATE = 'STATE',
+}
 
 const styles = StyleSheet.create({
 	modal: {
@@ -113,8 +117,8 @@ const RegionModal: React.FC<Props> = ({
 	unsetRegion,
 	dismiss,
 }: Props) => {
-	const searchInput = useRef(null);
-	const list = useRef();
+	const searchInput = useRef<TextInput>(null);
+	const list = useRef<FlatList<any>>(null);
 	const [searchString, setSearchString] = useState('');
 	// local state variable to set the active view (countries vs. regions)
 	const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
@@ -241,7 +245,7 @@ const RegionModal: React.FC<Props> = ({
 
 	const handleSearchTextChange = useCallback((text) => {
 		setSearchString(text);
-		if (list.current) list.current.scrollToOffset({ animated: false, y: 0 });
+		if (list?.current) list.current?.scrollToOffset({ animated: false, offset: 0 });
 	}, []);
 
 	const handleClearSearch = useCallback(() => {
