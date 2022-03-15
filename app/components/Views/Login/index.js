@@ -47,6 +47,12 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
+import {
+	DELETE_WALLET_CONTAINER_ID,
+	DELETE_WALLET_INPUT_BOX_ID,
+	LOGIN_PASSWORD_ERROR,
+	RESET_WALLET_ID,
+} from '../../../constants/test-ids';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -297,23 +303,28 @@ class Login extends PureComponent {
 			this.setState({ rememberMe: true });
 			// Restore vault with existing credentials
 			const { KeyringController } = Engine.context;
-			await KeyringController.submitPassword(credentials.password);
-			const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-			if (encryptionLib !== ORIGINAL) {
-				await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
-				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-			}
-			// Get onboarding wizard state
-			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			if (!onboardingWizard) {
-				this.props.setOnboardingWizardStep(1);
-			}
+			try {
+				await KeyringController.submitPassword(credentials.password);
+				const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+				if (encryptionLib !== ORIGINAL) {
+					await recreateVaultWithSamePassword(credentials.password, this.props.selectedAddress);
+					await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+				}
+				// Get onboarding wizard state
+				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+				if (!onboardingWizard) {
+					this.props.setOnboardingWizardStep(1);
+				}
 
-			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-			this.setState({ hasBiometricCredentials: false });
-			delete credentials.password;
-			this.props.logIn();
-			this.props.navigation.replace('HomeNav');
+				// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+				this.setState({ hasBiometricCredentials: false });
+				delete credentials.password;
+				this.props.logIn();
+				this.props.navigation.replace('HomeNav');
+			} catch (error) {
+				this.setState({ rememberMe: false });
+				Logger.error(error, 'Failed to login using Remember Me');
+			}
 		}
 	};
 
@@ -522,7 +533,7 @@ class Login extends PureComponent {
 				onRequestClose={this.toggleWarningModal}
 				onConfirmPress={this.toggleWarningModal}
 			>
-				<View style={styles.areYouSure} testID={'delete-wallet-modal-container'}>
+				<View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>
 					<Icon style={styles.warningIcon} size={46} color={colors.red} name="exclamation-triangle" />
 					<Text style={[styles.heading, styles.red]}>{strings('login.are_you_sure')}</Text>
 					<Text style={styles.warningText}>
@@ -554,7 +565,7 @@ class Login extends PureComponent {
 						</Text>
 						<OutlinedTextField
 							style={styles.input}
-							testID={'delete-wallet-inputbox'}
+							testID={DELETE_WALLET_INPUT_BOX_ID}
 							autoFocus
 							returnKeyType={'done'}
 							onChangeText={this.checkDelete}
@@ -620,7 +631,7 @@ class Login extends PureComponent {
 						{this.renderSwitch()}
 
 						{!!this.state.error && (
-							<Text style={styles.errorMsg} testID={'invalid-password-error'}>
+							<Text style={styles.errorMsg} testID={LOGIN_PASSWORD_ERROR}>
 								{this.state.error}
 							</Text>
 						)}
@@ -630,18 +641,14 @@ class Login extends PureComponent {
 								{this.state.loading ? (
 									<ActivityIndicator size="small" color="white" />
 								) : (
-									strings('login.login_button')
+									strings('login.unlock_button')
 								)}
 							</StyledButton>
 						</View>
 
 						<View style={styles.footer}>
 							<Text style={styles.cant}>{strings('login.go_back')}</Text>
-							<Button
-								style={styles.goBack}
-								onPress={this.toggleWarningModal}
-								testID={'reset-wallet-button'}
-							>
+							<Button style={styles.goBack} onPress={this.toggleWarningModal} testID={RESET_WALLET_ID}>
 								{strings('login.reset_wallet')}
 							</Button>
 						</View>

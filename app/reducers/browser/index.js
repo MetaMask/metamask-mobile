@@ -1,3 +1,5 @@
+import AppConstants from '../../core/AppConstants';
+
 const initialState = {
 	history: [],
 	whitelist: [],
@@ -9,7 +11,7 @@ const browserReducer = (state = initialState, action) => {
 		case 'ADD_TO_BROWSER_HISTORY':
 			return {
 				...state,
-				history: [...state.history, { url: action.url, name: action.name }],
+				history: [...state.history, { url: action.url, name: action.name }].slice(0, 50),
 			};
 		case 'ADD_TO_BROWSER_WHITELIST':
 			return {
@@ -20,6 +22,8 @@ const browserReducer = (state = initialState, action) => {
 			return {
 				...state,
 				history: [],
+				tabs: [{ url: AppConstants.HOMEPAGE_URL, id: action.id }],
+				activeTab: action.id,
 			};
 		case 'CLOSE_ALL_TABS':
 			return {

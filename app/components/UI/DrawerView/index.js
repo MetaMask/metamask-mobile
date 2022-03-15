@@ -639,16 +639,16 @@ class DrawerView extends PureComponent {
 
 	logout = () => {
 		Alert.alert(
-			strings('drawer.logout_title'),
+			strings('drawer.lock_title'),
 			'',
 			[
 				{
-					text: strings('drawer.logout_cancel'),
+					text: strings('drawer.lock_cancel'),
 					onPress: () => null,
 					style: 'cancel',
 				},
 				{
-					text: strings('drawer.logout_ok'),
+					text: strings('drawer.lock_ok'),
 					onPress: this.onPress,
 				},
 			],
@@ -797,7 +797,7 @@ class DrawerView extends PureComponent {
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
 				{
-					name: strings('drawer.transaction_history'),
+					name: strings('drawer.transaction_activity'),
 					icon: this.getFeatherIcon('list'),
 					selectedIcon: this.getSelectedFeatherIcon('list'),
 					action: this.goToTransactionHistory,
@@ -827,7 +827,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					name: strings('drawer.help'),
-					icon: this.getFeatherIcon('help-circle'),
+					icon: this.getIcon('comments'),
 					action: this.showHelp,
 				},
 				{
@@ -836,7 +836,7 @@ class DrawerView extends PureComponent {
 					action: this.submitFeedback,
 				},
 				{
-					name: strings('drawer.logout'),
+					name: strings('drawer.lock'),
 					icon: this.getFeatherIcon('log-out'),
 					action: this.logout,
 				},

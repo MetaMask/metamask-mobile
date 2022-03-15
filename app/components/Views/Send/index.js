@@ -111,10 +111,6 @@ class Send extends PureComponent {
 		*/
 		dappTransactionModalVisible: PropTypes.bool,
 		/**
-		 * A list of custom RPCs to provide the user
-		 */
-		frequentRpcList: PropTypes.array,
-		/**
 		 * List of tokens from TokenListController
 		 */
 		tokenList: PropTypes.object,
@@ -260,9 +256,6 @@ class Send extends PureComponent {
 		parameters = null,
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
-		if (chain_id) {
-			this.handleNetworkSwitch(chain_id);
-		}
 
 		let newTxMeta = {};
 		switch (action) {
@@ -347,28 +340,6 @@ class Send extends PureComponent {
 	};
 
 	/**
-	 * Method in charge of changing network if is needed
-	 *
-	 * @param switchToChainId - Corresponding chain id for new network
-	 */
-	handleNetworkSwitch = (switchToChainId) => {
-		const { frequentRpcList } = this.props;
-		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
-		if (rpc) {
-			const { rpcUrl, chainId, ticker, nickname } = rpc;
-			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.setNativeCurrency(ticker);
-			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-			this.props.showAlert({
-				isVisible: true,
-				autodismiss: 5000,
-				content: 'clipboard-alert',
-				data: { msg: strings('send.warn_network_change') + nickname },
-			});
-		}
-	};
-
-	/**
 	 * Retrieves ERC20 asset information (symbol and decimals) to be used with deeplinks
 	 *
 	 * @param address - Corresponding ERC20 asset address
@@ -391,7 +362,7 @@ class Send extends PureComponent {
 		const { AssetsContractController } = Engine.context;
 		const token = { address };
 		try {
-			const decimals = await AssetsContractController.getTokenDecimals(address);
+			const decimals = await AssetsContractController.getERC20TokenDecimals(address);
 			token.decimals = parseInt(String(decimals));
 		} catch (e) {
 			// Drop tx since we don't have any form to get decimals and send the correct tx
@@ -404,7 +375,7 @@ class Send extends PureComponent {
 			this.onCancel();
 		}
 		try {
-			token.symbol = await AssetsContractController.getAssetSymbol(address);
+			token.symbol = await AssetsContractController.getERC721AssetSymbol(address);
 		} catch (e) {
 			token.symbol = 'ERC20';
 		}

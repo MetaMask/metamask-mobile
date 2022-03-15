@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
+import { NETWORK_LIST_MODAL_CONTAINER_ID, OTHER_NETWORK_LIST_ID, NETWORK_SCROLL_ID } from '../../../constants/test-ids';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -232,7 +233,9 @@ export class NetworkList extends PureComponent {
 			<View style={styles.selected}>{selected}</View>
 			<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
 			<View style={styles.networkInfo}>
-				<Text style={styles.networkLabel}>{name}</Text>
+				<Text numberOfLines={1} style={styles.networkLabel}>
+					{name}
+				</Text>
 			</View>
 		</TouchableOpacity>
 	);
@@ -286,16 +289,16 @@ export class NetworkList extends PureComponent {
 	}
 
 	render = () => (
-		<SafeAreaView style={styles.wrapper} testID={'networks-list'}>
+		<SafeAreaView style={styles.wrapper} testID={NETWORK_LIST_MODAL_CONTAINER_ID}>
 			<View style={styles.titleWrapper}>
 				<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
 					{strings('networks.title')}
 				</Text>
 			</View>
-			<ScrollView style={styles.networksWrapper} testID={'other-networks-scroll'}>
+			<ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
 				{this.renderMainnet()}
 				<View style={styles.otherNetworksHeader}>
-					<Text style={styles.otherNetworksText} testID={'other-network-name'}>
+					<Text style={styles.otherNetworksText} testID={OTHER_NETWORK_LIST_ID}>
 						{strings('networks.other_networks')}
 					</Text>
 				</View>

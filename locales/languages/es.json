@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sincronizar o importar cartera",
 		"new_to_crypto": "¿Primera vez que usa criptomonedas?",
 		"start_exploring_now": "Crear una cartera nueva",
-		"login": "Iniciar sesión",
+		"unlock": "Desbloquear",
 		"new_to_metamask": "¿Es nuevo en MetaMask?",
 		"already_have_wallet": "¿Ya tiene una cartera?",
 		"optin_back_title": "¡Atención!",
@@ -128,8 +128,8 @@
 	"login": {
 		"title": "Hola de nuevo",
 		"password": "Contraseña",
-		"login_button": "INICIAR SESIÓN",
-		"go_back": "¿No puede iniciar sesión? Puede BORRAR la cartera actual y configurar una nueva",
+		"unlock_button": "DESBLOQUEAR",
+		"go_back": "¿No puedes desbloquear tu cartera? Puedes BORRAR la cartera actual y configurar una nueva",
 		"reset_wallet": "Restablecer cartera",
 		"cant_proceed": "No puede seguir hasta que escriba la palabra “Eliminar”. Con esta acción, opta por borrar la cartera actual.",
 		"invalid_password": "Contraseña no válida",
@@ -242,10 +242,10 @@
 		"settings_warning": "Cartera no protegida",
 		"settings_warning_short": "No protegida",
 		"help": "Obtener ayuda",
-		"logout": "Cerrar sesión",
-		"logout_title": "¿Está seguro de que quiere cerrar sesión?",
-		"logout_ok": "SÍ",
-		"logout_cancel": "NO",
+		"lock": "Bloquear",
+		"lock_title": "¿Está seguro de que quieres bloquear tu cartera?",
+		"lock_ok": "SÍ",
+		"lock_cancel": "NO",
 		"feedback": "Comentarios",
 		"metamask_support": "Soporte de MetaMask",
 		"public_address": "Dirección pública"
@@ -451,7 +451,7 @@
 		"general_title": "General",
 		"general_desc": "Conversión de moneda, moneda principal, idioma y motor de búsqueda",
 		"advanced_title": "Avanzado",
-		"advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, sincronizar con la extensión, registros de estado, puerta de enlace de IPFS y RPC personalizada",
+		"advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, registros de estado, puerta de enlace de IPFS y RPC personalizada",
 		"contacts_title": "Contactos",
 		"contacts_desc": "Agregar, editar, quitar y administrar sus cuentas",
 		"security_title": "Seguridad y privacidad",
@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Mostrar clave privada para \"{{accountName}}\"",
 		"cancel": "Cancelar",
 		"confirm": "Siguiente",
-		"seed_phrase_explanation": "Si alguna vez cambia de explorador o de equipo, necesitará esta frase secreta de recuperación para acceder a sus cuentas. Guárdela en un lugar seguro y secreto.",
 		"private_key_explanation": "Guárdela en un lugar seguro y secreto.",
 		"private_key_warning": "Esta es la clave privada para la cuenta seleccionada actual: {{accountName}}. No revele esta clave. Cualquier persona que tenga su clave privada podrá controlar completamente su cuenta, incluida la transferencia de sus fondos.",
-		"seed_phrase_warning_explanation": "NO comparta esta frase con nadie. Estas palabras se pueden usar para robar todas sus cuentas.",
 		"private_key_warning_explanation": "No revele esta clave. Cualquier persona que tenga su clave privada podrá controlar completamente su cuenta, incluida la transferencia de sus fondos.",
 		"seed_phrase": "Su frase secreta de recuperación",
 		"private_key": "Su clave privada",
@@ -961,12 +959,12 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "¿Iniciar sesión con Touch ID?",
-		"enable_faceid": "¿Iniciar sesión con Face ID?",
-		"enable_fingerprint": "¿Iniciar sesión con huella dactilar?",
-		"enable_biometrics": "¿Iniciar sesión con datos biométricos?",
-		"enable_device_passcode_ios": "¿Iniciar sesión con el código de acceso del dispositivo?",
-		"enable_device_passcode_android": "¿Iniciar sesión con el PIN del dispositivo?"
+		"enable_touchid": "Desbloquear con Touch ID?",
+		"enable_faceid": "Desbloquear con Face ID?",
+		"enable_fingerprint": "Desbloquear con huella dactilar?",
+		"enable_biometrics": "Desbloquear con datos biométricos?",
+		"enable_device_passcode_ios": "Desbloquear con el código de acceso del dispositivo?",
+		"enable_device_passcode_android": "Desbloquear con el PIN del dispositivo?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticación requerida",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transacción enviada",
 		"wc_connected_rejected_title": "Rechazó la solicitud de conexión",
 		"wc_signed_rejected_title": "Rechazó la solicitud de firma",
-		"wc_sent_tx_rejected_title": "Rechazó la solicitud de transacción",
-		"wc_description": "Volver al explorador"
+		"wc_sent_tx_rejected_title": "Rechazó la solicitud de transacción"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Proteger su cartera",

@@ -19,6 +19,7 @@ export function addToHistory({ url, name }) {
 export function clearHistory() {
 	return {
 		type: 'CLEAR_BROWSER_HISTORY',
+		id: Date.now(),
 	};
 }
 

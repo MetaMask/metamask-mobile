@@ -3,10 +3,11 @@ import { PaymentRequest } from '@exodus/react-native-payments';
 import axios from 'axios';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
+import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 
 import useCurrency from '../../../Base/Keypad/useCurrency';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES, NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -107,6 +108,10 @@ export const WYRE_ORDER_STATES = {
  * @property {string?} failureReason
  * @property {string?} reversalReason
  */
+
+//* Functions
+export const isWyreAllowedToBuy = (chainId) =>
+	chainId === NETWORKS_CHAIN_ID.MAINNET || (chainId === NETWORKS_CHAIN_ID.KOVAN && Device.isIos());
 
 //* Constants */
 

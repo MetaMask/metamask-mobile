@@ -115,7 +115,7 @@ class NavbarTitle extends PureComponent {
 				) : null}
 				<View style={styles.network}>
 					<View style={[styles.networkIcon, color ? { backgroundColor: color } : styles.otherNetworkIcon]} />
-					<Text style={styles.networkName} testID={'navbar-title-network'}>
+					<Text numberOfLines={1} style={styles.networkName} testID={'navbar-title-network'}>
 						{name}
 					</Text>
 				</View>

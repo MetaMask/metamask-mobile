@@ -3,7 +3,12 @@ import axios from 'axios';
 import qs from 'query-string';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import {
+	FIAT_ORDER_PROVIDERS,
+	FIAT_ORDER_STATES,
+	NETWORKS_CHAIN_ID,
+	NETWORK_PARAMETERS,
+} from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -33,7 +38,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} walletLink
  * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
  * @property {boolean} addressAdditionalData
- * @property {string} network this is NOT ethernet networks id
+ * @property {string} network name identifier (this is NOT a chain id)
  * @property {string} amountPaid
  * @property {number} referenceCode
  * @property {string} redirectURL Our redirect URL
@@ -67,6 +72,17 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} partnerCustomerId
  * @property {string} partnerOrderId
  */
+
+//* Functions
+const TRANSAK_ALLOWED_NETWORKS = [
+	NETWORKS_CHAIN_ID.MAINNET,
+	NETWORKS_CHAIN_ID.BSC,
+	NETWORKS_CHAIN_ID.POLYGON,
+	NETWORKS_CHAIN_ID.AVAXCCHAIN,
+	NETWORKS_CHAIN_ID.CELO,
+	NETWORKS_CHAIN_ID.FANTOM,
+];
+export const isTransakAllowedToBuy = (chainId) => TRANSAK_ALLOWED_NETWORKS.includes(chainId);
 
 //* Constants
 
@@ -217,18 +233,19 @@ export async function processTransakOrder(order) {
 
 //* Hooks
 
-export const useTransakFlowURL = (address) => {
-	const params = useMemo(
-		() =>
-			qs.stringify({
-				apiKey: TRANSAK_API_KEY,
-				cryptoCurrencyCode: 'ETH',
-				networks: 'ethereum',
-				themeColor: '037dd6',
-				walletAddress: address,
-				redirectURL: TRANSAK_REDIRECT_URL,
-			}),
-		[address]
-	);
+export const useTransakFlowURL = (address, chainId) => {
+	const params = useMemo(() => {
+		const selectedChainId = isTransakAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
+		const [network, defaultCryptoCurrency, cryptoCurrencyList] = NETWORK_PARAMETERS[selectedChainId];
+		return qs.stringify({
+			apiKey: TRANSAK_API_KEY,
+			defaultCryptoCurrency,
+			cryptoCurrencyList,
+			network,
+			themeColor: '037dd6',
+			walletAddress: address,
+			redirectURL: TRANSAK_REDIRECT_URL,
+		});
+	}, [address, chainId]);
 	return `${isDevelopment ? TRANSAK_URL_STAGING : TRANSAK_URL}?${params}`;
 };
