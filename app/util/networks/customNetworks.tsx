@@ -6,14 +6,14 @@ const PopularList = [
 		ticker: 'AVAX',
 		warning: true,
 		rpcPrefs: {
-			blockExplorerUrl: 'https://snowtrace.io/',
+			blockExplorerUrl: 'https://snowtrace.io',
 			imageUrl: 'avalanche',
 		},
 	},
 	{
 		chainId: '42161',
 		nickname: 'Arbitrum One',
-		rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+		rpcUrl: `https://arbitrum-mainnet.infura.io/v3`,
 		ticker: 'AETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
@@ -23,11 +23,11 @@ const PopularList = [
 	{
 		chainId: '56',
 		nickname: 'Binance Smart Chain Mainnet',
-		rpcUrl: 'https://bsc-dataseed1.binance.org/',
+		rpcUrl: 'https://bsc-dataseed1.binance.org',
 		ticker: 'BNB',
 		warning: true,
 		rpcPrefs: {
-			blockExplorerUrl: 'https://bscscan.com/',
+			blockExplorerUrl: 'https://bscscan.com',
 			imageUrl: 'binance',
 		},
 	},
@@ -38,7 +38,7 @@ const PopularList = [
 		ticker: 'FTM',
 		warning: true,
 		rpcPrefs: {
-			blockExplorerUrl: 'https://ftmscan.com/',
+			blockExplorerUrl: 'https://ftmscan.com',
 			imageUrl: 'fantom',
 		},
 	},
@@ -49,37 +49,37 @@ const PopularList = [
 		ticker: 'ONE',
 		warning: true,
 		rpcPrefs: {
-			blockExplorerUrl: 'https://explorer.harmony.one/',
+			blockExplorerUrl: 'https://explorer.harmony.one',
 			imageUrl: 'harmony',
 		},
 	},
 	{
 		chainId: '10',
 		nickname: 'Optimism',
-		rpcUrl: `https://optimism-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+		rpcUrl: `https://optimism-mainnet.infura.io/v3`,
 		ticker: 'ETH',
 		rpcPrefs: {
-			blockExplorerUrl: 'https://optimistic.etherscan.io/',
+			blockExplorerUrl: 'https://optimistic.etherscan.io',
 			imageUrl: 'optimism',
 		},
 	},
 	{
 		chainId: '137',
 		nickname: 'Polygon Mainnet',
-		rpcUrl: `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+		rpcUrl: `https://polygon-mainnet.infura.io/v3`,
 		ticker: 'MATIC',
 		rpcPrefs: {
-			blockExplorerUrl: 'https://polygonscan.com/',
+			blockExplorerUrl: 'https://polygonscan.com',
 			imageUrl: 'matic',
 		},
 	},
 	{
 		chainId: '11297108109',
 		nickname: 'Palm',
-		rpcUrl: `https://palm-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
+		rpcUrl: `https://palm-mainnet.infura.io/v3`,
 		ticker: 'PALM',
 		rpcPrefs: {
-			blockExplorerUrl: 'https://explorer.palm.io/',
+			blockExplorerUrl: 'https://explorer.palm.io',
 			imageUrl: 'palm',
 		},
 	},
