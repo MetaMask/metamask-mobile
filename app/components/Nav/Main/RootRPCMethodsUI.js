@@ -86,10 +86,11 @@ const RootRPCMethodsUI = (props) => {
 
 	const onUnapprovedMessage = (messageParams, type, origin) => {
 		setCurrentPageMeta(messageParams.meta);
-		delete messageParams.meta;
-		setSignMessageParams(messageParams);
+		const signMessageParams = { ...messageParams };
+		delete signMessageParams.meta;
+		setSignMessageParams(signMessageParams);
 		setSignType(type);
-		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: messageParams.origin });
+		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: signMessageParams.origin });
 	};
 
 	const initializeWalletConnect = () => {
