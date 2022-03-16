@@ -624,7 +624,9 @@ class SendFlow extends PureComponent {
 			explanationsGuard &&
 			confusableCollectionMap.map((confusableObj) => {
 				const [key, value] = Object.entries(confusableObj)[0];
-				return hasZeroWidthPoints(key) ? `contains zero width character` : `'${key}' is similar to '${value}'`;
+				return hasZeroWidthPoints(key)
+					? strings('transaction.contains_zero_width')
+					: `'${key}' ${strings('transaction.similar_to')} '${value}'`;
 			});
 		// remove duplicates
 		explanations = explanationsGuard && explanations.filter((item, index) => explanations.indexOf(item) === index);

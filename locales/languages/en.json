@@ -761,6 +761,8 @@
 		"gas_education_learn_more": "Learn more about gas fees",
 		"confusable_title": "Check the recipient address",
 		"confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
+		"similar_to": "is similar to",
+		"contains_zero_width": "contains zero width character",
 		"dapp_suggested_gas": "This gas fee has been suggested by %{origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
 		"dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions."
 	},
