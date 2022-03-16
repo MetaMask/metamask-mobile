@@ -253,9 +253,7 @@ const Main = (props) => {
 				{!forceReload ? <MainNavigator navigation={props.navigation} /> : renderLoader()}
 				<GlobalAlert />
 				<FadeOutOverlay />
-				<View>
-					<Notification navigation={props.navigation} />
-				</View>
+				<Notification navigation={props.navigation} />
 				<FiatOrders />
 				<SwapsLiveness />
 				<BackupAlert onDismiss={toggleRemindLater} navigation={props.navigation} />
