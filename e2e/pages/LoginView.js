@@ -4,7 +4,7 @@ import {
 	RESET_WALLET_ID,
 	LOGIN_CONTAINER_ID,
 	LOGIN_PASSWORD_ERROR,
-} from 'app/constants/test-ids';
+} from '../../app/constants/test-ids';
 export default class LoginView {
 	static async enterPassword(password) {
 		await TestHelpers.typeTextAndHideKeyboard(PASSWORD_INPUT_BOX_ID, password);

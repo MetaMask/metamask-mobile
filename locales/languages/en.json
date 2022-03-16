@@ -1409,7 +1409,7 @@
 		"no_countries_result": "No supported countries match “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Fast + lower fees",
-		"debit_card_required": "Lower fees, Debit card required",
+		"cards_type_required": "Visa or Mastercard only",
 		"select_card_country": "Select the country where your card is registered (not where you are located).",
 		"search_country": "Search for a country",
 		"wyre_countries": "🇺🇸 U.S. + 33 countries, fees & limits vary",
@@ -1433,7 +1433,9 @@
 		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
 			"purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+			"purchase_failed_description": "Verify your payment method and card support",
 			"purchase_cancelled_title": "Your purchase was cancelled",
+			"purchase_cancelled_description": "Verify your payment method and card support",
 			"purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
 			"purchase_completed_description": "Your {{currency}} is now available",
 			"purchase_pending_title": "Processing your purchase of {{currency}}",

@@ -70,6 +70,7 @@ export const getNotificationDetails = (fiatOrder) => {
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
 					currency: fiatOrder.cryptocurrency,
 				}),
+				description: strings('fiat_on_ramp.notifications.purchase_failed_description'),
 				status: 'error',
 			};
 		}
@@ -77,6 +78,7 @@ export const getNotificationDetails = (fiatOrder) => {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_cancelled_title'),
+				description: strings('fiat_on_ramp.notifications.purchase_cancelled_description'),
 				status: 'cancelled',
 			};
 		}
