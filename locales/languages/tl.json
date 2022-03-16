@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Ipakita ang pribadong key para sa \"{{accountName}}\"",
 		"cancel": "Kanselahin",
 		"confirm": "Susunod",
-		"seed_phrase_explanation": "Kung magpapalit ka man ng browser o computer, kakailanganin mo ang Lihim na Recovery Phrase na ito para ma-access ang iyong mga account. I-save ang mga iyon sa isang ligtas at sikretong lugar.",
 		"private_key_explanation": "I-save ito sa isang ligtas at sikretong lugar.",
 		"private_key_warning": "Ito ang pribadong key para sa kasalukuyang napiling account: {{accountName}}. Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
-		"seed_phrase_warning_explanation": "Huwag ibahagi ang phrase na ito sa sinuman! Magagamit ang mga salitang ito para manakaw ang lahat ng iyong account.",
 		"private_key_warning_explanation": "Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
 		"seed_phrase": "Ang Iyong Lihim na Recovery Phrase",
 		"private_key": "Ang iyong pribadong key",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transaksyon ng pagpapadala",
 		"wc_connected_rejected_title": "Tinanggihan mo ang request na kumonekta",
 		"wc_signed_rejected_title": "Tinanggihan mo ang request na lumagda",
-		"wc_sent_tx_rejected_title": "Tinanggihan mo ang request na transaksyon",
-		"wc_description": "Bumalik sa browser"
+		"wc_sent_tx_rejected_title": "Tinanggihan mo ang request na transaksyon"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protektahan ang iyong wallet",
@@ -1337,7 +1334,6 @@
 		"no_countries_result": "Walang sinusuportahang bansa ang tumutugma sa “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Mabilis + mas maliliit na bayarin",
-		"debit_card_required": "Mas maliliit na bayarin, Kailangan ng debit card",
 		"select_card_country": "Piliin ang bansa kung saan naka-register ang iyong card (hindi ang lokasyon kung nasaan ka).",
 		"search_country": "Maghanap ng bansa",
 		"wyre_countries": " U.S. + 33 bansa, iba-iba ang mga bayarin at limitasyon",

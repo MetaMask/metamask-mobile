@@ -468,7 +468,7 @@
 		"privacy_mode": "Privacy mode",
 		"privacy_mode_desc": "Websites must request access to view your account information.",
 		"nft_opensea_mode": "Enable OpenSea API",
-		"nft_opensea_desc": "Displaying NFT media & data may expose your IP addresss to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
+		"nft_opensea_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Use OpenSea's API to fetch NFT data. NFT auto-detection relies on OpenSea's API, and will not be available when this is turned off. Enabling NFT auto-detection can expose you to fake NFTs being sent to your wallet by anyone, and can allow an attacker to learn your IP address from your Ethereum address.",
 		"nft_autodetect_mode": "Autodetect NFTs",
 		"nft_autodetect_desc": "Displaying NFT media & data may expose your IP address to centralized servers. Third-party APIs (like OpenSea) are used to detect NFTs in your wallet. This exposes your account address with those services. Leave this disabled if you don't want the app to pull data from those services.",
 		"show_hex_data": "Show Hex Data",
@@ -550,7 +550,8 @@
 		"hide_zero_balance_tokens_title": "Hide Tokens Without Balance",
 		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
 		"token_detection_title": "Enhanced Token Detection",
-		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services."
+		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
+		"network_exists": "This network has already been added."
 	},
 	"app_information": {
 		"title": "Information",
@@ -782,9 +783,9 @@
 		"minimum": "1.00 {{tokenSymbol}} minimum",
 		"cancel": "Cancel",
 		"approve": "Approve",
-		"allow_to_access": "Give this site permission to access your {{tokenSymbol}}?",
+		"allow_to_access": "Give permission to access your {{tokenSymbol}}?",
 		"allow_to_address_access": "Give this address access your {{tokenSymbol}}?",
-		"you_trust_this_site": "Do you trust this site? By granting this permission, you're allowing this site to access your funds.",
+		"you_trust_this_site": "By granting permission, you're allowing the following contract to access your funds.",
 		"you_trust_this_address": "Do you trust this address? By granting this permission, you're allowing this address to access your funds.",
 		"edit_permission": "Edit permission",
 		"edit": "Edit",
@@ -1269,7 +1270,7 @@
 		"wc_connected_rejected_title": "You’ve rejected the connect request",
 		"wc_signed_rejected_title": "You’ve rejected the sign request",
 		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
-		"wc_description": "Go back to the browser"
+		"wc_description": "Please check the application"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Protect your wallet",
@@ -1408,7 +1409,7 @@
 		"no_countries_result": "No supported countries match “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Fast + lower fees",
-		"debit_card_required": "Lower fees, Debit card required",
+		"cards_type_required": "Visa or Mastercard only",
 		"select_card_country": "Select the country where your card is registered (not where you are located).",
 		"search_country": "Search for a country",
 		"wyre_countries": "🇺🇸 U.S. + 33 countries, fees & limits vary",
@@ -1432,7 +1433,9 @@
 		"plus_fee": "Plus a {{fee}} fee",
 		"notifications": {
 			"purchase_failed_title": "Purchase of {{currency}} has failed! Please try again, sorry for the inconvenience!",
+			"purchase_failed_description": "Verify your payment method and card support",
 			"purchase_cancelled_title": "Your purchase was cancelled",
+			"purchase_cancelled_description": "Verify your payment method and card support",
 			"purchase_completed_title": "Your purchase of {{amount}} {{currency}} was successful!",
 			"purchase_completed_description": "Your {{currency}} is now available",
 			"purchase_pending_title": "Processing your purchase of {{currency}}",
@@ -1821,5 +1824,15 @@
 		"help_description_1": "We're here to help! Check out the FAQs below or ",
 		"help_description_2": "contact support",
 		"help_description_3": " for help!"
+	},
+	"nickname": {
+		"add_nickname": "Add nickname",
+		"edit_nickname": "Edit nickname",
+		"save_nickname": "Confirm",
+		"address": "Contract Address",
+		"name": "Contract Name",
+		"name_placeholder": "Add a nickname to this address",
+		"contract": "Contract",
+		"nickname": "nickname"
 	}
 }

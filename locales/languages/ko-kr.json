@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "\"{{accountName}}\"의 비공개 키 표시",
 		"cancel": "취소",
 		"confirm": "다음",
-		"seed_phrase_explanation": "브라우저를 변경하거나 컴퓨터를 옮긴 경우, 계정에 액세스하려면 이 시드 구문이 필요합니다. 기밀이 보장된 안전한 곳에 보관하십시오.",
 		"private_key_explanation": "기밀이 보장된 안전한 곳에 보관하세요.",
 		"private_key_warning": "현재 선택한 계정의 비공개 키입니다. {{accountName}}. 이 키를 노출하지 마세요. 비공개 키를 사용하는 사람은 자금을 이체하는 등 본인 계정을 완전히 제어할 수 있습니다.",
-		"seed_phrase_warning_explanation": "이 구문은 누구에게도 공유하지 마세요! 이 단어들이 계정 전체 도용에 사용될 수 있습니다.",
 		"private_key_warning_explanation": "이 키를 노출하지 마세요. 비공개 키를 사용하는 사람은 자금을 이체하는 등 본인 계정을 완전히 제어할 수 있습니다.",
 		"seed_phrase": "계정 시드 구문",
 		"private_key": "비공개 키",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "거래 보냄",
 		"wc_connected_rejected_title": "연결 요청을 거부하셨습니다.",
 		"wc_signed_rejected_title": "서명 요청을 거부하셨습니다.",
-		"wc_sent_tx_rejected_title": "거래 요청을 거부하셨습니다.",
-		"wc_description": "브라우저로 돌아가기"
+		"wc_sent_tx_rejected_title": "거래 요청을 거부하셨습니다."
 	},
 	"protect_your_wallet_modal": {
 		"title": "지갑 보호",
@@ -1337,7 +1334,6 @@
 		"no_countries_result": "지원 국가 가운데 “{{searchString}}” 없음",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "빠른 속도 + 낮은 수수료",
-		"debit_card_required": "낮은 수수료, 체크카드 필요",
 		"select_card_country": "카드가 등록된 국가를 선택하십시오(거주 국가가 아님).",
 		"search_country": "국가 검색",
 		"wyre_countries": " U.S. + 33개가 넘는 국가, 수수료와 한도 상이",

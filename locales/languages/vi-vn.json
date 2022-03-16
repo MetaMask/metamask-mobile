@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Hiện khóa riêng tư cho \"{{accountName}}\"",
 		"cancel": "Hủy",
 		"confirm": "Tiếp theo",
-		"seed_phrase_explanation": "Nếu thay đổi trình duyệt hoặc chuyển máy tính, bạn sẽ cần Cụm mật khẩu khôi phục bí mật này để truy cập tài khoản của mình. Hãy lưu Cụm mật khẩu khôi phục bí mật này ở nơi an toàn và bí mật.",
 		"private_key_explanation": "Hãy lưu khóa riêng tư này ở nơi an toàn và bí mật.",
 		"private_key_warning": "Đây là khóa riêng tư cho tài khoản đang chọn: {{accountName}}. Tuyệt đối không để lộ mã khóa này. Bất kỳ ai có khóa riêng tư cũng đều có toàn quyền kiểm soát tài khoản của bạn, bao gồm cả việc chuyển đi mọi khoản tiền của bạn.",
-		"seed_phrase_warning_explanation": "KHÔNG chia sẻ cụm mật khẩu này với bất kỳ ai! Kẻ xấu có thể dùng các từ này để đánh cắp tất cả các tài khoản của bạn.",
 		"private_key_warning_explanation": "Tuyệt đối không để lộ mã khóa này. Bất kỳ ai có khóa riêng tư cũng đều có toàn quyền kiểm soát tài khoản của bạn, bao gồm cả việc chuyển đi mọi khoản tiền của bạn.",
 		"seed_phrase": "Cụm mật khẩu khôi phục bí mật của bạn",
 		"private_key": "Khóa riêng tư của bạn",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Đã gửi giao dịch",
 		"wc_connected_rejected_title": "Bạn đã từ chối yêu cầu kết nối",
 		"wc_signed_rejected_title": "Bạn đã từ chối yêu cầu ký tên",
-		"wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch",
-		"wc_description": "Quay lại trình duyệt"
+		"wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Bảo vệ ví của bạn",
@@ -1337,7 +1334,6 @@
 		"no_countries_result": "Không tìm thấy quốc gia được hỗ trợ nào khớp với “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Nhanh + phí thấp hơn",
-		"debit_card_required": "Phí thấp hơn, cần có thẻ ghi nợ",
 		"select_card_country": "Chọn quốc gia phát hành thẻ của bạn (không phải nơi bạn cư trú).",
 		"search_country": "Tìm kiếm quốc gia",
 		"wyre_countries": " Hoa Kỳ + 33 quốc gia, phí và hạn mức không giống nhau",

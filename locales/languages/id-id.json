@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Menampilkan kunci privat untuk \"{{accountName}}\"",
 		"cancel": "Batal",
 		"confirm": "Berikutnya",
-		"seed_phrase_explanation": "Jika Anda pernah mengubah browser atau mengganti komputer, Anda akan memerlukan Frasa Pemulihan Rahasia ini untuk mengakses akun Anda. Simpan di tempat yang aman dan rahasia.",
 		"private_key_explanation": "Simpan di tempat yang aman dan rahasia.",
 		"private_key_warning": "Ini adalah kunci privat untuk akun yang dipilih saat ini: {{accountName}}. Jangan ungkapkan kunci ini. Siapa pun dengan kunci privat Anda dapat sepenuhnya mengontrol akun Anda, termasuk mentransfer keluar dana Anda.",
-		"seed_phrase_warning_explanation": "JANGAN bagikan frasa ini kepada siapa pun! Kata-kata ini dapat digunakan untuk mencuri semua akun Anda.",
 		"private_key_warning_explanation": "Jangan ungkapkan kunci ini. Siapa pun dengan kunci privat Anda dapat sepenuhnya mengontrol akun Anda, termasuk mentransfer keluar dana Anda.",
 		"seed_phrase": "Frasa Pemulihan Rahasia Anda",
 		"private_key": "Kunci privat Anda",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transaksi terkirim",
 		"wc_connected_rejected_title": "Anda telah menolak permintaan koneksi",
 		"wc_signed_rejected_title": "Anda telah menolak permintaan tanda tangan",
-		"wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi",
-		"wc_description": "Kembali ke browser"
+		"wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Lindungi dompet Anda",
@@ -1337,7 +1334,6 @@
 		"no_countries_result": "Tidak ada negara yang didukung yang cocok “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Biaya Cepat + lambat",
-		"debit_card_required": "Biaya lebih rendah, diperlukan kartu debit",
 		"select_card_country": "Pilih negara tempat kartu Anda terdaftar (bukan tempat Anda berlokasi).",
 		"search_country": "Cari negara",
 		"wyre_countries": " AS + 33 negara, biaya & batasan berbeda",

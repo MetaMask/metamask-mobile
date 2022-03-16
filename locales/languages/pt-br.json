@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Mostrar chave privada para \"{{accountName}}\"",
 		"cancel": "Cancelar",
 		"confirm": "Próximo",
-		"seed_phrase_explanation": "Se você alguma vez mudou de navegador ou trocou de computador, precisará dessa Frase de recuperação secreta para acessar suas contas. Salve-as em um lugar seguro e secreto.",
 		"private_key_explanation": "Salve-a em um lugar seguro e secreto.",
 		"private_key_warning": "Essa é uma chave privada para a conta selecionada no momento: {{accountName}}. Jamais revele essa chave. Qualquer pessoa com sua chave privada consegue ter controle total da sua conta, inclusive transferir seus fundos.",
-		"seed_phrase_warning_explanation": "NÃO compartilhe essa frase com ninguém! Essas palavras podem ser usadas para roubar todas as suas contas.",
 		"private_key_warning_explanation": "Jamais revele essa chave. Qualquer pessoa com sua chave privada consegue ter controle total da sua conta, inclusive transferir seus fundos.",
 		"seed_phrase": "A sua Frase de Recuperação Secreta",
 		"private_key": "Sua chave privada",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transação enviada",
 		"wc_connected_rejected_title": "Você rejeitou a solicitação de conexão",
 		"wc_signed_rejected_title": "Você rejeitou a solicitação de assinatura",
-		"wc_sent_tx_rejected_title": "Você rejeitou a solicitação de transação",
-		"wc_description": "Voltar para o navegador"
+		"wc_sent_tx_rejected_title": "Você rejeitou a solicitação de transação"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Proteja sua carteira",
@@ -1337,7 +1334,6 @@
 		"no_countries_result": "Nenhum país disponível correspondente a “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Taxas rápidas e mais baixas",
-		"debit_card_required": "Menores taxas, Cartão de débito necessário",
 		"select_card_country": "Selecione o país onde o seu cartão está registrado (e não aonde você se encontra).",
 		"search_country": "Pesquisar por país",
 		"wyre_countries": " U.S. + 33 países, taxas & limites variam",

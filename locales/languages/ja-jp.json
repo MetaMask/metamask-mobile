@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "[{{accountName}}] の秘密鍵の表示",
 		"cancel": "キャンセル",
 		"confirm": "次へ",
-		"seed_phrase_explanation": "ブラウザーを変更した場合や、コンピューターを移動した場合は、自分のアカウントにアクセスするためにこのシークレット リカバリー フレーズが必要になります。安全で秘密の場所に保管してください。",
 		"private_key_explanation": "安全な秘密の場所に保管してください。",
 		"private_key_warning": "これは選択した現在のアカウント用の秘密鍵です:{{accountName}}.この鍵は公開しないでください。秘密鍵を持つ人物は誰でも、資金の移動を含めて、アカウントを完全に制御することができます。",
-		"seed_phrase_warning_explanation": "このフレーズは誰にも教えないでください。これらの単語を使用すると、すべてのアカウントの窃取が可能になります。",
 		"private_key_warning_explanation": "この鍵は公開しないでください。秘密鍵を持つ人物は誰でも、資金の移動を含めて、アカウントを完全に制御することができます。",
 		"seed_phrase": "あなたのシークレット リカバリー フレーズ",
 		"private_key": "秘密鍵",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "トランザクションを送信しました",
 		"wc_connected_rejected_title": "接続リクエストを拒否しました",
 		"wc_signed_rejected_title": "署名リクエストを拒否しました",
-		"wc_sent_tx_rejected_title": "トランザクション リクエストを拒否しました",
-		"wc_description": "ブラウザーに戻る"
+		"wc_sent_tx_rejected_title": "トランザクション リクエストを拒否しました"
 	},
 	"protect_your_wallet_modal": {
 		"title": "ウォレットの保護",
@@ -1337,7 +1334,6 @@
 		"no_countries_result": "サポートされている国の一致がありません “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "高速 + 低い手数料",
-		"debit_card_required": "低い手数料。デビット カードが必要です。",
 		"select_card_country": "カードが登録されている国を選択してください (お客様の所在地ではありません)。",
 		"search_country": "国の検索",
 		"wyre_countries": " 米国 + 33 か国以上。手数料と限度額は異なります",
