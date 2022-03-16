@@ -302,6 +302,7 @@ class WalletConnect {
 					// Wizard
 					wizardScrollAdjusted: () => null,
 					isTabActive: () => true,
+					isWalletConnect: true,
 				}),
 			isMainFrame: true,
 		});

@@ -56,7 +56,7 @@ import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 
-const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -1371,12 +1371,12 @@ export const BrowserTab = (props) => {
 							onMessage={onMessage}
 							onError={onError}
 							onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
 							allowsInlineMediaPlayback
 							useWebkit
 							testID={'browser-webview'}
+							applicationNameForUserAgent={'WebView MetaMaskMobile'}
 						/>
 					)}
 				</View>

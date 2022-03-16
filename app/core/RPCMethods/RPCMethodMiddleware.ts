@@ -45,6 +45,8 @@ interface RPCMethodsMiddleParameters {
 	wizardScrollAdjusted: { current: boolean };
 	// For the browser
 	isTabActive: () => boolean;
+	// For WalletConnect
+	isWalletConnect: boolean;
 }
 
 /**
@@ -71,6 +73,7 @@ export const getRpcMethodMiddleware = ({
 	wizardScrollAdjusted,
 	// For the browser
 	isTabActive,
+	isWalletConnect,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -81,6 +84,9 @@ export const getRpcMethodMiddleware = ({
 			} = store.getState();
 
 			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+
+			if (isWalletConnect) return [selectedAddress];
+
 			const isEnabled = !privacyMode || getApprovedHosts()[hostname];
 
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
@@ -156,7 +162,9 @@ export const getRpcMethodMiddleware = ({
 
 				selectedAddress = selectedAddress?.toLowerCase();
 
-				if (!privacyMode || ((!params || !params.force) && getApprovedHosts()[hostname])) {
+				if (isWalletConnect) {
+					res.result = [selectedAddress];
+				} else if (!privacyMode || ((!params || !params.force) && getApprovedHosts()[hostname])) {
 					res.result = [selectedAddress];
 				} else {
 					try {
