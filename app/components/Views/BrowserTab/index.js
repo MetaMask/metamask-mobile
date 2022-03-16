@@ -385,7 +385,7 @@ export const BrowserTab = (props) => {
 					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
-					isTabActive,
+					tabId: props.id,
 				}),
 			isMainFrame,
 		});

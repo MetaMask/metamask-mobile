@@ -654,7 +654,7 @@ class Settings extends PureComponent {
 		</View>
 	);
 
-	renderAutoLockSection = () => {
+	renderAutoLockSection = () => (
 		<View style={styles.setting} testID={'auto-lock-section'}>
 			<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
 			<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
@@ -668,8 +668,8 @@ class Settings extends PureComponent {
 					/>
 				)}
 			</View>
-		</View>;
-	};
+		</View>
+	);
 
 	renderBiometricOptionsSection = () => (
 		<View style={styles.setting} testID={'biometrics-option'}>
