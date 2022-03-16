@@ -1031,6 +1031,7 @@ class Amount extends PureComponent {
 									style={styles.actionDropdown}
 									disabled={isPaymentRequest}
 									onPress={this.toggleAssetsModal}
+									testID={'select-token-dropdown'}
 								>
 									<Text style={styles.textDropdown}>
 										{selectedAsset.symbol || strings('wallet.collectible')}
