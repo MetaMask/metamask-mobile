@@ -117,7 +117,7 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	const { sdk }: { sdk: IOnRampSdk } = useFiatOnRampSDK() as any;
 	const [data, setData] = useState<any | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [isFetching, setIsFetching] = useState<boolean>(false);
+	const [isFetching, setIsFetching] = useState<boolean>(true);
 	const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
 	const method = typeof config === 'string' ? config : config.method;
 	const onMount = typeof config === 'string' ? true : config.onMount ?? true;
@@ -141,6 +141,8 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	useEffect(() => {
 		if (onMount) {
 			query();
+		} else {
+			setIsFetching(false);
 		}
 	}, [query, onMount]);
 
