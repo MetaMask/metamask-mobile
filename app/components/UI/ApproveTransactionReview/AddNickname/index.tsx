@@ -224,7 +224,7 @@ const AddNickname = (props: AddNicknameProps) => {
 							autoCorrect={false}
 							onChangeText={setNewNickname}
 							placeholder={strings('nickname.name_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							spellCheck={false}
 							numberOfLines={1}
 							style={styles.input}
