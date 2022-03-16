@@ -43,7 +43,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
+import AuthenticationService from '../../../core/AuthenticationService';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import {
 	DELETE_WALLET_CONTAINER_ID,
 	DELETE_WALLET_INPUT_BOX_ID,
@@ -245,14 +246,14 @@ class Login extends PureComponent {
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (authType.type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
 			this.setState({
 				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!previouslyDisabled,
 				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
 			});
-		else if (authType.type === AuthenticationType.PASSCODE)
+		else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
 				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
@@ -277,7 +278,7 @@ class Login extends PureComponent {
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 
-		const authType = await AuthenticationService.componentAuthenticationType(
+		const authType = await AuthenticationService.componentAUTHENTICATION_TYPE(
 			this.state.biometryChoice,
 			this.state.rememberMe
 		);

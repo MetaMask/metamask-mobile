@@ -37,7 +37,8 @@ import { TRUE, BIOMETRY_CHOICE_DISABLED, PASSCODE_DISABLED } from '../../../cons
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
-import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
+import AuthenticationService from '../../../core/AuthenticationService';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -306,12 +307,12 @@ class ResetPassword extends PureComponent {
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (authType.type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
 			this.setState({
 				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 			});
-		else if (authType.type === AuthenticationType.PASSCODE)
+		else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
 				biometryType: authType.type,
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
@@ -421,7 +422,7 @@ class ResetPassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		const type = await AuthenticationService.componentAuthenticationType(
+		const type = await AuthenticationService.componentAUTHENTICATION_TYPE(
 			this.state.biometryChoice,
 			this.state.rememberMe
 		);

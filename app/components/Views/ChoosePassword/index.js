@@ -44,7 +44,8 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
+import AuthenticationService from '../../../core/AuthenticationService';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 const styles = StyleSheet.create({
 	mainWrapper: {
@@ -273,12 +274,12 @@ class ChoosePassword extends PureComponent {
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (authType.type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
 			this.setState({
 				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 			});
-		else if (authType.type === AuthenticationType.PASSCODE)
+		else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
 				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
@@ -333,7 +334,7 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
-			const authType = await AuthenticationService.componentAuthenticationType(
+			const authType = await AuthenticationService.componentAUTHENTICATION_TYPE(
 				this.state.biometryChoice,
 				this.state.rememberMe
 			);

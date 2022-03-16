@@ -40,7 +40,8 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService, { AuthenticationType } from '../../../core/AuthenticationService';
+import AuthenticationService from '../../../core/AuthenticationService';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 const styles = StyleSheet.create({
@@ -226,12 +227,12 @@ class ImportFromSeed extends PureComponent {
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (authType.type === AuthenticationType.BIOMETRIC)
+		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
 			this.setState({
 				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 			});
-		else if (authType.type === AuthenticationType.PASSCODE)
+		else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
 				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
@@ -280,7 +281,7 @@ class ImportFromSeed extends PureComponent {
 			try {
 				this.setState({ loading: true });
 
-				const type = await AuthenticationService.componentAuthenticationType(
+				const type = await AuthenticationService.componentAUTHENTICATION_TYPE(
 					this.state.biometryChoice,
 					this.state.rememberMe
 				);

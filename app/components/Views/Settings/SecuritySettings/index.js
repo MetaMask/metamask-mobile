@@ -45,7 +45,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import AuthenticationService, { AuthenticationType } from '../../../../core/AuthenticationService';
+import AuthenticationService from '../../../../core/AuthenticationService';
+import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
@@ -333,7 +334,7 @@ class Settings extends PureComponent {
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
-		if (authType.type === AuthenticationType.BIOMETRIC || authType.type === AuthenticationType.PASSCODE)
+		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC || authType.type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
 				biometryType: Device.isAndroid() ? authType.type : authType.biometryType,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
@@ -344,7 +345,7 @@ class Settings extends PureComponent {
 		else {
 			this.setState({
 				biometryType:
-					Device.isAndroid() && authType.biometryType ? AuthenticationType.BIOMETRIC : authType.biometryType,
+					Device.isAndroid() && authType.biometryType ? AUTHENTICATION_TYPE.BIOMETRIC : authType.biometryType,
 				analyticsEnabled,
 				hintText: manualBackup,
 			});
@@ -407,11 +408,11 @@ class Settings extends PureComponent {
 			try {
 				let authType;
 				if (type === BIOMETRY_CHOICE) {
-					authType = AuthenticationType.BIOMETRIC;
+					authType = AUTHENTICATION_TYPE.BIOMETRIC;
 				} else if (type === PASSCODE_CHOICE) {
-					authType = AuthenticationType.PASSCODE;
+					authType = AUTHENTICATION_TYPE.PASSCODE;
 				} else {
-					authType = AuthenticationType.PASSWORD;
+					authType = AUTHENTICATION_TYPE.PASSWORD;
 				}
 				await AuthenticationService.storePassword(password, authType);
 			} catch (error) {
