@@ -48,11 +48,16 @@ const createStyles = (colors) =>
 			alignSelf: 'center',
 			bottom: Device.isIos() && Device.isIphoneX() ? 98 : 66,
 		},
-		skip: {
+		skipButtonContainer: {
 			height: 30,
-			borderRadius: 30,
+			width: 120,
+			borderRadius: 15,
+			backgroundColor: colors.background.default,
+		},
+		skipButton: {
 			backgroundColor: colors.background.default,
 			alignItems: 'center',
+			justifyContent: 'center',
 		},
 		androidElevated: {
 			width: 120,
@@ -60,12 +65,6 @@ const createStyles = (colors) =>
 		},
 		iosTouchable: {
 			width: 120,
-		},
-		skipTextWrapper: {
-			flex: 1,
-			flexDirection: 'column',
-			alignItems: 'center',
-			justifyContent: 'center',
 		},
 		skipText: {
 			...fontStyles.normal,
@@ -144,16 +143,14 @@ const OnboardingWizard = (props) => {
 					elevation={10}
 					style={[
 						Device.isSmallDevice() ? styles.smallSkipWrapper : styles.largeSkipWrapper,
-						Device.isIos() ? {} : styles.androidElevated,
+						styles.skipButtonContainer,
 					]}
 				>
 					<TouchableOpacity
-						style={[styles.skip, Device.isIos() ? styles.iosTouchable : {}]}
+						style={[styles.skipButtonContainer, styles.skipButton]}
 						onPress={closeOnboardingWizard}
 					>
-						<View style={styles.skipTextWrapper}>
-							<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
-						</View>
+						<Text style={styles.skipText}>{strings('onboarding_wizard.skip_tutorial')}</Text>
 					</TouchableOpacity>
 				</ElevatedView>
 			)}
