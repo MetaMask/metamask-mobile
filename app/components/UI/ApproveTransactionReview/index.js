@@ -11,7 +11,8 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
 	getNormalizedTxState,
@@ -20,6 +21,8 @@ import {
 	decodeApproveData,
 	generateApproveData,
 } from '../../../util/transactions';
+import Feather from 'react-native-vector-icons/Feather';
+import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -55,7 +58,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: colors.black,
 		lineHeight: 34,
-		marginVertical: 16,
+		marginVertical: 8,
 		paddingHorizontal: 16,
 	},
 	explanation: {
@@ -72,7 +75,7 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		lineHeight: 20,
 		textAlign: 'center',
-		marginVertical: 20,
+		marginVertical: 10,
 		borderWidth: 1,
 		borderRadius: 20,
 		borderColor: colors.blue,
@@ -90,6 +93,21 @@ const styles = StyleSheet.create({
 	actionTouchable: {
 		flexDirection: 'column',
 		alignItems: 'center',
+	},
+	addressWrapper: {
+		backgroundColor: colors.blue000,
+		flexDirection: 'row',
+		alignItems: 'center',
+		borderRadius: 40,
+		paddingHorizontal: 10,
+		paddingVertical: 5,
+	},
+	address: {
+		fontSize: 13,
+		marginHorizontal: 8,
+		color: colors.blue700,
+		...fontStyles.normal,
+		maxWidth: 120,
 	},
 	errorWrapper: {
 		marginTop: 12,
@@ -114,13 +132,25 @@ const styles = StyleSheet.create({
 		...fontStyles.bold,
 	},
 	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 350,
-	},
-	actionViewChildren: {
-		height: 300,
+		height: Device.isMediumDevice() ? 200 : 280,
 	},
 	paddingHorizontal: {
 		paddingHorizontal: 16,
+	},
+	contactWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginVertical: 15,
+	},
+	nickname: {
+		...fontStyles.normal,
+		textAlign: 'center',
+		color: colors.blue500,
+		marginBottom: 10,
+	},
+	actionIcon: {
+		color: colors.blue,
 	},
 });
 
@@ -133,10 +163,6 @@ class ApproveTransactionReview extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -245,6 +271,22 @@ class ApproveTransactionReview extends PureComponent {
 		 * Whether the transaction was confirmed or not
 		 */
 		transactionConfirmed: PropTypes.bool,
+		/**
+		 * Dispatch set transaction object from transaction action
+		 */
+		setTransactionObject: PropTypes.func,
+		/**
+		 * Update contract nickname
+		 */
+		onUpdateContractNickname: PropTypes.func,
+		/**
+		 * The saved nickname of the address
+		 */
+		nickname: PropTypes.string,
+		/**
+		 * Check if nickname is saved
+		 */
+		nicknameExists: PropTypes.bool,
 	};
 
 	state = {
@@ -252,8 +294,6 @@ class ApproveTransactionReview extends PureComponent {
 		editPermissionVisible: false,
 		host: undefined,
 		originalApproveAmount: undefined,
-		totalGas: undefined,
-		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: MINIMUM_VALUE,
@@ -270,8 +310,7 @@ class ApproveTransactionReview extends PureComponent {
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate,
+			transaction: { origin, to, data },
 			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
@@ -292,7 +331,6 @@ class ApproveTransactionReview extends PureComponent {
 		}
 		const { spenderAddress, encodedAmount } = decodeApproveData(data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
-		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState(
@@ -302,8 +340,6 @@ class ApproveTransactionReview extends PureComponent {
 				originalApproveAmount: approveAmount,
 				tokenSymbol,
 				token: { symbol: tokenSymbol, decimals: tokenDecimals },
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 				spenderAddress,
 				encodedAmount,
 			},
@@ -312,24 +348,6 @@ class ApproveTransactionReview extends PureComponent {
 			}
 		);
 	};
-
-	componentDidUpdate(previousProps) {
-		const {
-			transaction: { gas, gasPrice },
-			conversionRate,
-		} = this.props;
-		const totalGas = gas?.mul(gasPrice);
-		if (
-			previousProps.transaction.gas !== this.props.transaction.gas ||
-			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
-		) {
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			});
-		}
-	}
 
 	getAnalyticsParams = () => {
 		try {
@@ -415,6 +433,7 @@ class ApproveTransactionReview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, this.getAnalyticsParams());
 	};
 
 	edit = () => {
@@ -434,6 +453,7 @@ class ApproveTransactionReview extends PureComponent {
 		} = this.state;
 
 		try {
+			const { setTransactionObject } = this.props;
 			const uint = toTokenMinimalUnit(
 				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
 				token.decimals
@@ -443,7 +463,15 @@ class ApproveTransactionReview extends PureComponent {
 				spender: spenderAddress,
 				value: Number(uint).toString(16),
 			});
-			const newApprovalTransaction = { ...transaction, data: approvalData };
+			const newApprovalTransaction = {
+				...transaction,
+				data: approvalData,
+				transaction: {
+					...transaction.transaction,
+					data: approvalData,
+				},
+			};
+
 			setTransactionObject(newApprovalTransaction);
 		} catch (err) {
 			Logger.log('Failed to setTransactionObject', err);
@@ -505,6 +533,10 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
+	toggleDisplay = () => {
+		this.props.onUpdateContractNickname();
+	};
+
 	renderDetails = () => {
 		const { host, tokenSymbol, spenderAddress } = this.state;
 
@@ -540,7 +572,7 @@ class ApproveTransactionReview extends PureComponent {
 
 		return (
 			<>
-				<View style={styles.section} testID={'approve-screen'}>
+				<View style={styles.section} testID={'approve-modal-test-id'}>
 					<TransactionHeader
 						currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 					/>
@@ -550,10 +582,40 @@ class ApproveTransactionReview extends PureComponent {
 							{ tokenSymbol }
 						)}
 					</Text>
+					<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
+						<Text reset style={styles.editPermissionText}>
+							{strings('spend_limit_edition.edit_permission')}
+						</Text>
+					</TouchableOpacity>
 					<Text reset style={styles.explanation}>
 						{`${strings(
 							`spend_limit_edition.${originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'}`
 						)}`}
+					</Text>
+					<View style={styles.contactWrapper}>
+						<Text>{strings('nickname.contract')}: </Text>
+						<TouchableOpacity
+							style={styles.addressWrapper}
+							onPress={this.copyContractAddress}
+							testID={'contract-address'}
+						>
+							<Identicon address={this.state.transaction.to} diameter={20} />
+							{this.props.nicknameExists ? (
+								<Text numberOfLines={1} style={styles.address}>
+									{this.props.nickname}
+								</Text>
+							) : (
+								<EthereumAddress
+									address={this.state.transaction.to}
+									style={styles.address}
+									type={'short'}
+								/>
+							)}
+							<Feather name="copy" size={18} color={colors.blue} style={styles.actionIcon} />
+						</TouchableOpacity>
+					</View>
+					<Text style={styles.nickname} onPress={this.toggleDisplay}>
+						{this.props.nicknameExists ? 'Edit' : 'Add'} {strings('nickname.nickname')}
 					</Text>
 					<View style={styles.actionViewWrapper}>
 						<ActionView
@@ -565,11 +627,6 @@ class ApproveTransactionReview extends PureComponent {
 							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
 							<View style={styles.actionViewChildren}>
-								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-									<Text reset style={styles.editPermissionText}>
-										{strings('spend_limit_edition.edit_permission')}
-									</Text>
-								</TouchableOpacity>
 								<View style={styles.paddingHorizontal}>
 									<AccountInfoCard />
 									<View style={styles.section}>
@@ -654,6 +711,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderTransactionReview = () => {
+		const { nickname, nicknameExists } = this.props;
 		const {
 			host,
 			method,
@@ -662,14 +720,18 @@ class ApproveTransactionReview extends PureComponent {
 			originalApproveAmount,
 			spendLimitUnlimitedSelected,
 			spendLimitCustomValue,
-			transaction: { to, data },
 		} = this.state;
+		const {
+			transaction: { to, data },
+		} = this.props;
 		const allowance = (!spendLimitUnlimitedSelected && spendLimitCustomValue) || originalApproveAmount;
 		return (
 			<TransactionReviewDetailsCard
 				toggleViewDetails={this.toggleViewDetails}
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
+				nickname={nickname}
+				nicknameExists={nicknameExists}
 				address={renderShortAddress(to)}
 				host={host}
 				allowance={allowance}
@@ -733,7 +795,6 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,

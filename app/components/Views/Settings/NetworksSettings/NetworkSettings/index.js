@@ -243,6 +243,20 @@ class NetworkSettings extends PureComponent {
 		return true;
 	};
 
+	checkIfNetworkExists = async (rpcUrl) => {
+		const checkCustomNetworks = this.props.frequentRpcList.filter((item) => item.rpcUrl === rpcUrl);
+		if (checkCustomNetworks.length > 0) {
+			this.setState({ warningRpcUrl: strings('app_settings.network_exists') });
+			return checkCustomNetworks;
+		}
+		const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
+		const checkDefaultNetworks = defaultNetworks.filter((item) => Number(item.rpcUrl) === rpcUrl);
+		if (checkDefaultNetworks.length > 0) {
+			return checkDefaultNetworks;
+		}
+		return [];
+	};
+
 	/**
 	 * Add rpc url and parameters to PreferencesController
 	 * Setting NetworkController provider to this custom rpc
@@ -254,6 +268,8 @@ class NetworkSettings extends PureComponent {
 		const { navigation } = this.props;
 
 		const formChainId = stateChainId.trim().toLowerCase();
+
+		const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
 		// Ensure chainId is a 0x-prefixed, lowercase hex string
 		let chainId = formChainId;
 		if (!chainId.startsWith('0x')) {
@@ -264,7 +280,7 @@ class NetworkSettings extends PureComponent {
 			return;
 		}
 
-		if (this.validateRpcUrl()) {
+		if (this.validateRpcUrl() && isNetworkExists.length === 0) {
 			const url = new URL(rpcUrl);
 			const decimalChainId = this.getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
@@ -292,8 +308,9 @@ class NetworkSettings extends PureComponent {
 	 * Validates rpc url, setting a warningRpcUrl if is invalid
 	 * It also changes validatedRpcURL to true, indicating that was validated
 	 */
-	validateRpcUrl = () => {
+	validateRpcUrl = async () => {
 		const { rpcUrl } = this.state;
+		const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
 		if (!isWebUri(rpcUrl)) {
 			const appendedRpc = `http://${rpcUrl}`;
 			if (isWebUri(appendedRpc)) {
@@ -302,6 +319,10 @@ class NetworkSettings extends PureComponent {
 				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
 			}
 			return false;
+		}
+
+		if (isNetworkExists.length > 0) {
+			return this.setState({ validatedRpcURL: true, warningRpcUrl: strings('app_settings.network_exists') });
 		}
 		const url = new URL(rpcUrl);
 		const privateConnection = isprivateConnection(url.hostname);
