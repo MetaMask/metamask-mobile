@@ -67,8 +67,8 @@ import {
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
-const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
-const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
+const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const createStyles = (colors) =>
@@ -1381,6 +1381,7 @@ export const BrowserTab = (props) => {
               useWebkit
               testID={'browser-webview'}
               onFileDownload={handleOnFileDownload}
+              applicationNameForUserAgent={'WebView MetaMaskMobile'}
             />
           )}
         </View>

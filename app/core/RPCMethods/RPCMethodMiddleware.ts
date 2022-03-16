@@ -46,10 +46,13 @@ interface RPCMethodsMiddleParameters {
   // Show autocomplete
   fromHomepage: { current: boolean };
   toggleUrlModal: (shouldClearUrlInput: boolean) => void;
+  setAutocompleteValue: (value: string) => void;
+  setShowUrlModal: (showUrlModal: boolean) => void;
   // Wizard
   wizardScrollAdjusted: { current: boolean };
   // For the browser
   tabId: string;
+  isTabActive: () => boolean;
   // For WalletConnect
   isWalletConnect: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
@@ -126,17 +129,21 @@ export const getRpcMethodMiddleware = ({
   isHomepage,
   // Show autocomplete
   fromHomepage,
+  setAutocompleteValue,
   toggleUrlModal,
+  setShowUrlModal,
   // Wizard
   wizardScrollAdjusted,
   // For the browser
   tabId,
+  isTabActive,
   // For WalletConnect
   isWalletConnect,
   injectHomePageScripts,
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
+    const Engine = ImportedEngine as any;
     const getAccounts = (): string[] => {
       const {
         privacy: { privacyMode },
@@ -154,7 +161,7 @@ export const getRpcMethodMiddleware = ({
     const checkTabActive = () => {
       if (!tabId) return true;
       const { browser } = store.getState();
-      if (tabId !== browser.activeTab)
+      if (tabId !== browser.activeTab || isTabActive() === false)
         throw ethErrors.provider.userRejectedRequest();
     };
 
@@ -582,6 +589,8 @@ export const getRpcMethodMiddleware = ({
           throw ethErrors.provider.unauthorized('Forbidden.');
         }
         fromHomepage.current = true;
+        setAutocompleteValue('');
+        setShowUrlModal(true);
         toggleUrlModal(true);
 
         setTimeout(() => {
