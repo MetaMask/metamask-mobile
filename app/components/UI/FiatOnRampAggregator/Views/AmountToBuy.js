@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Pressable, View } from 'react-native';
+import { StyleSheet, Pressable, View, BackHandler } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
@@ -240,6 +240,17 @@ const AmountToBuy = ({ navigation }) => {
 			setSelectedFiatCurrencyId(formatId(selectedCountry?.currency));
 		}
 	}, [selectedCountry?.currency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
+
+	useEffect(() => {
+		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+			if (amountFocused) {
+				setAmountFocused(false);
+				return true;
+			}
+		});
+
+		return () => backHandler.remove();
+	}, [amountFocused]);
 
 	if (
 		isFetchingDataTokens ||
