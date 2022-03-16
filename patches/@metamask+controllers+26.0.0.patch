@@ -1,8 +1,36 @@
+diff --git a/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js b/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
+index 5c55cd9..e07b7c8 100644
+--- a/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
++++ b/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
+@@ -265,11 +265,10 @@ class AssetsContractController extends BaseController_1.BaseController {
+      */
+     getBalancesInSingleCall(selectedAddress, tokensToDetect) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth
+-                .contract(single_call_balance_checker_abi_1.default)
+-                .at(SINGLE_CALL_BALANCES_ADDRESS);
++            const contract = new this.web3.eth
++                .Contract(single_call_balance_checker_abi_1.default, SINGLE_CALL_BALANCES_ADDRESS);
+             return new Promise((resolve, reject) => {
+-                contract.balances([selectedAddress], tokensToDetect, (error, result) => {
++                contract.methods.balances([selectedAddress], tokensToDetect).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -281,7 +280,7 @@ class AssetsContractController extends BaseController_1.BaseController {
+                         tokensToDetect.forEach((tokenAddress, index) => {
+                             const balance = result[index];
+                             /* istanbul ignore else */
+-                            if (!balance.isZero()) {
++                            if (String(balance) !== '0') {
+                                 nonZeroBalances[tokenAddress] = balance;
+                             }
+                         });
 diff --git a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js
-index 2e47f1a..ac49b60 100644
+index 09eb7cf..85c6ca8 100644
 --- a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js
 +++ b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js
-@@ -49,9 +49,9 @@ class ERC1155Standard {
+@@ -50,9 +50,9 @@ class ERC1155Standard {
           * @returns Promise resolving to the 'tokenURI'.
           */
          this.getTokenURI = (address, tokenId) => __awaiter(this, void 0, void 0, function* () {
@@ -14,7 +42,7 @@ index 2e47f1a..ac49b60 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -70,9 +70,9 @@ class ERC1155Standard {
+@@ -71,9 +71,9 @@ class ERC1155Standard {
           * @returns Promise resolving to the 'balanceOf'.
           */
          this.getBalanceOf = (contractAddress, address, tokenId) => __awaiter(this, void 0, void 0, function* () {
@@ -26,7 +54,7 @@ index 2e47f1a..ac49b60 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -95,9 +95,9 @@ class ERC1155Standard {
+@@ -96,9 +96,9 @@ class ERC1155Standard {
           * @returns Promise resolving to the 'transferSingle'.
           */
          this.transferSingle = (operator, from, to, id, value) => __awaiter(this, void 0, void 0, function* () {
@@ -38,7 +66,7 @@ index 2e47f1a..ac49b60 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -115,9 +115,9 @@ class ERC1155Standard {
+@@ -116,9 +116,9 @@ class ERC1155Standard {
           * @returns Promise resolving to whether the contract implements `interfaceID`.
           */
          this.contractSupportsInterface = (address, interfaceId) => __awaiter(this, void 0, void 0, function* () {
@@ -51,10 +79,10 @@ index 2e47f1a..ac49b60 100644
                      if (error) {
                          reject(error);
 diff --git a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js
-index 0935e9c..4914b49 100644
+index 0e0b926..e574f14 100644
 --- a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js
 +++ b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js
-@@ -50,9 +50,9 @@ class ERC721Standard {
+@@ -51,9 +51,9 @@ class ERC721Standard {
           * @returns Promise resolving to token identifier for the 'index'th asset assigned to 'selectedAddress'.
           */
          this.getCollectibleTokenId = (address, selectedAddress, index) => __awaiter(this, void 0, void 0, function* () {
@@ -66,7 +94,7 @@ index 0935e9c..4914b49 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -70,13 +70,13 @@ class ERC721Standard {
+@@ -71,13 +71,13 @@ class ERC721Standard {
           * @returns Promise resolving to the 'tokenURI'.
           */
          this.getTokenURI = (address, tokenId) => __awaiter(this, void 0, void 0, function* () {
@@ -82,7 +110,7 @@ index 0935e9c..4914b49 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -93,9 +93,9 @@ class ERC721Standard {
+@@ -94,9 +94,9 @@ class ERC721Standard {
           * @returns Promise resolving to the 'name'.
           */
          this.getAssetName = (address) => __awaiter(this, void 0, void 0, function* () {
@@ -94,7 +122,7 @@ index 0935e9c..4914b49 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -112,9 +112,9 @@ class ERC721Standard {
+@@ -113,9 +113,9 @@ class ERC721Standard {
           * @returns Promise resolving to the 'symbol'.
           */
          this.getAssetSymbol = (address) => __awaiter(this, void 0, void 0, function* () {
@@ -106,7 +134,7 @@ index 0935e9c..4914b49 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -132,9 +132,9 @@ class ERC721Standard {
+@@ -133,9 +133,9 @@ class ERC721Standard {
           * @returns Promise resolving to whether the contract implements `interfaceID`.
           */
          this.contractSupportsInterface = (address, interfaceId) => __awaiter(this, void 0, void 0, function* () {
@@ -118,7 +146,7 @@ index 0935e9c..4914b49 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
-@@ -187,9 +187,9 @@ class ERC721Standard {
+@@ -204,9 +204,9 @@ class ERC721Standard {
       */
      getOwnerOf(address, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
