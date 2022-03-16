@@ -11,7 +11,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
@@ -164,10 +164,6 @@ class ApproveTransactionReview extends PureComponent {
 
 	static propTypes = {
 		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
-		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
 		onCancel: PropTypes.func,
@@ -298,8 +294,6 @@ class ApproveTransactionReview extends PureComponent {
 		editPermissionVisible: false,
 		host: undefined,
 		originalApproveAmount: undefined,
-		totalGas: undefined,
-		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: MINIMUM_VALUE,
@@ -316,8 +310,7 @@ class ApproveTransactionReview extends PureComponent {
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate,
+			transaction: { origin, to, data },
 			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
@@ -338,7 +331,6 @@ class ApproveTransactionReview extends PureComponent {
 		}
 		const { spenderAddress, encodedAmount } = decodeApproveData(data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
-		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState(
@@ -348,8 +340,6 @@ class ApproveTransactionReview extends PureComponent {
 				originalApproveAmount: approveAmount,
 				tokenSymbol,
 				token: { symbol: tokenSymbol, decimals: tokenDecimals },
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 				spenderAddress,
 				encodedAmount,
 			},
@@ -358,24 +348,6 @@ class ApproveTransactionReview extends PureComponent {
 			}
 		);
 	};
-
-	componentDidUpdate(previousProps) {
-		const {
-			transaction: { gas, gasPrice },
-			conversionRate,
-		} = this.props;
-		const totalGas = gas?.mul(gasPrice);
-		if (
-			previousProps.transaction.gas !== this.props.transaction.gas ||
-			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
-		) {
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			});
-		}
-	}
 
 	getAnalyticsParams = () => {
 		try {
@@ -823,7 +795,6 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,

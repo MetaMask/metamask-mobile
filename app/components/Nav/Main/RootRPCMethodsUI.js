@@ -246,7 +246,8 @@ const RootRPCMethodsUI = (props) => {
 				} = transactionMeta;
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
-				transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+				transactionMeta.transaction.gasPrice = gasPrice && hexToBN(gasPrice);
+
 				if (
 					(value === '0x0' || !value) &&
 					data &&
