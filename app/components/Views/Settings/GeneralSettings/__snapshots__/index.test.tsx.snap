@@ -2,7 +2,6 @@
 
 exports[`GeneralSettings should render correctly 1`] = `
 <Settings
-  appTheme="light"
   currentCurrency="USD"
   searchEngine="DuckDuckGo"
   selectedAddress="0x0"
