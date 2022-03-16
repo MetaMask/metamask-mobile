@@ -33,6 +33,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { ADD_ADDRESS_MODAL_CONTAINER_ID, ENTER_ALIAS_INPUT_BOX_ID } from '../../../../constants/test-ids';
+import confusablesMap from 'unicode-confusables/data/confusables.json';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -615,6 +616,18 @@ class SendFlow extends PureComponent {
 		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
 		const displayAsWarning =
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
+		const confusableCollectionMap =
+			displayConfusableWarning &&
+			confusableCollection.map((confusable) => ({ [confusable]: confusablesMap[confusable] }));
+		const explanationsGuard = displayConfusableWarning && confusableCollectionMap.length;
+		let explanations =
+			explanationsGuard &&
+			confusableCollectionMap.map((confusableObj) => {
+				const [key, value] = Object.entries(confusableObj)[0];
+				return hasZeroWidthPoints(key) ? `contains zero width character` : `'${key}' is similar to '${value}'`;
+			});
+		// remove duplicates
+		explanations = explanationsGuard && explanations.filter((item, index) => explanations.indexOf(item) === index);
 
 		return (
 			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'send-screen'}>
@@ -675,7 +688,7 @@ class SendFlow extends PureComponent {
 											{strings('transaction.confusable_title')}
 										</Text>
 										<Text style={styles.confusableMsg}>
-											{strings('transaction.confusable_msg')}
+											{strings('transaction.confusable_msg')} {explanations.join(', ')}
 										</Text>
 									</View>
 								</View>
