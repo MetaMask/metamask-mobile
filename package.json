@@ -46,7 +46,8 @@
     "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
     "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
-    "prestorybook": "rnstl"
+    "prestorybook": "rnstl",
+    "create-release": "./scripts/set-versions.sh && yarn update-changelog"
   },
   "prettier": {
     "printWidth": 120,
@@ -90,6 +91,7 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
+    "web3": "1.6.1",
     "simple-get": "4.0.1"
   },
   "dependencies": {
@@ -396,8 +398,11 @@
       "dtrace-provider": false,
       "core-js": false,
       "sharp": true,
+      "web3": false,
+      "web3-bzz": false,
       "bufferutil": false,
       "utf-8-validate": false,
+      "web3-shh": false,
       "highlight.js": false
     }
   }

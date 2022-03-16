@@ -12,6 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
 	getNormalizedTxState,
@@ -20,6 +21,8 @@ import {
 	decodeApproveData,
 	generateApproveData,
 } from '../../../util/transactions';
+import Feather from 'react-native-vector-icons/Feather';
+import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -74,7 +77,7 @@ const createStyles = (colors) =>
 			fontSize: 12,
 			lineHeight: 20,
 			textAlign: 'center',
-			marginVertical: 20,
+			marginVertical: 10,
 			borderWidth: 1,
 			borderRadius: 20,
 			borderColor: colors.primary.default,
@@ -92,6 +95,21 @@ const createStyles = (colors) =>
 		actionTouchable: {
 			flexDirection: 'column',
 			alignItems: 'center',
+		},
+		addressWrapper: {
+			backgroundColor: colors.primary.muted,
+			flexDirection: 'row',
+			alignItems: 'center',
+			borderRadius: 40,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
+		},
+		address: {
+			fontSize: 13,
+			marginHorizontal: 8,
+			color: colors.text.default,
+			...fontStyles.normal,
+			maxWidth: 120,
 		},
 		errorWrapper: {
 			marginTop: 12,
@@ -116,13 +134,25 @@ const createStyles = (colors) =>
 			...fontStyles.bold,
 		},
 		actionViewWrapper: {
-			height: Device.isMediumDevice() ? 200 : 350,
-		},
-		actionViewChildren: {
-			height: 300,
+			height: Device.isMediumDevice() ? 200 : 280,
 		},
 		paddingHorizontal: {
 			paddingHorizontal: 16,
+		},
+		contactWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginVertical: 15,
+		},
+		nickname: {
+			...fontStyles.normal,
+			textAlign: 'center',
+			color: colors.primary.default,
+			marginBottom: 10,
+		},
+		actionIcon: {
+			color: colors.primary.default,
 		},
 	});
 
@@ -251,6 +281,18 @@ class ApproveTransactionReview extends PureComponent {
 		 * Dispatch set transaction object from transaction action
 		 */
 		setTransactionObject: PropTypes.func,
+		/**
+		 * Update contract nickname
+		 */
+		onUpdateContractNickname: PropTypes.func,
+		/**
+		 * The saved nickname of the address
+		 */
+		nickname: PropTypes.string,
+		/**
+		 * Check if nickname is saved
+		 */
+		nicknameExists: PropTypes.bool,
 	};
 
 	state = {
@@ -421,6 +463,7 @@ class ApproveTransactionReview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, this.getAnalyticsParams());
 	};
 
 	edit = () => {
@@ -525,6 +568,8 @@ class ApproveTransactionReview extends PureComponent {
 		return createStyles(colors);
 	};
 
+	toggleDisplay = () => this.props.onUpdateContractNickname();
+
 	renderDetails = () => {
 		const { host, tokenSymbol, spenderAddress } = this.state;
 		const {
@@ -560,7 +605,7 @@ class ApproveTransactionReview extends PureComponent {
 
 		return (
 			<>
-				<View style={styles.section} testID={'approve-screen'}>
+				<View style={styles.section} testID={'approve-modal-test-id'}>
 					<TransactionHeader
 						currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 					/>
@@ -570,10 +615,40 @@ class ApproveTransactionReview extends PureComponent {
 							{ tokenSymbol }
 						)}
 					</Text>
+					<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
+						<Text reset style={styles.editPermissionText}>
+							{strings('spend_limit_edition.edit_permission')}
+						</Text>
+					</TouchableOpacity>
 					<Text reset style={styles.explanation}>
 						{`${strings(
 							`spend_limit_edition.${originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'}`
 						)}`}
+					</Text>
+					<View style={styles.contactWrapper}>
+						<Text>{strings('nickname.contract')}: </Text>
+						<TouchableOpacity
+							style={styles.addressWrapper}
+							onPress={this.copyContractAddress}
+							testID={'contract-address'}
+						>
+							<Identicon address={this.state.transaction.to} diameter={20} />
+							{this.props.nicknameExists ? (
+								<Text numberOfLines={1} style={styles.address}>
+									{this.props.nickname}
+								</Text>
+							) : (
+								<EthereumAddress
+									address={this.state.transaction.to}
+									style={styles.address}
+									type={'short'}
+								/>
+							)}
+							<Feather name="copy" size={18} style={styles.actionIcon} />
+						</TouchableOpacity>
+					</View>
+					<Text style={styles.nickname} onPress={this.toggleDisplay}>
+						{this.props.nicknameExists ? 'Edit' : 'Add'} {strings('nickname.nickname')}
 					</Text>
 					<View style={styles.actionViewWrapper}>
 						<ActionView
@@ -584,85 +659,78 @@ class ApproveTransactionReview extends PureComponent {
 							onConfirmPress={this.onConfirmPress}
 							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
-							<View style={styles.actionViewChildren}>
-								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-									<Text reset style={styles.editPermissionText}>
-										{strings('spend_limit_edition.edit_permission')}
-									</Text>
-								</TouchableOpacity>
-								<View style={styles.paddingHorizontal}>
-									<AccountInfoCard />
-									<View style={styles.section}>
-										{showFeeMarket ? (
-											<TransactionReviewEIP1559
-												totalNative={EIP1559GasData.renderableTotalMinNative}
-												totalConversion={EIP1559GasData.renderableTotalMinConversion}
-												totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
-												gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-												gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-												gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-												gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
-												primaryCurrency={primaryCurrency}
-												timeEstimate={EIP1559GasData.timeEstimate}
-												timeEstimateColor={EIP1559GasData.timeEstimateColor}
-												timeEstimateId={EIP1559GasData.timeEstimateId}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												onUpdatingValuesStart={onUpdatingValuesStart}
-												onUpdatingValuesEnd={onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-											/>
-										) : (
-											<TransactionReviewEIP1559
-												totalNative={LegacyGasData.transactionTotalAmount}
-												totalConversion={LegacyGasData.transactionTotalAmountFiat}
-												gasFeeNative={LegacyGasData.transactionFee}
-												gasFeeConversion={LegacyGasData.transactionFeeFiat}
-												primaryCurrency={primaryCurrency}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												over={Boolean(LegacyGasData.error)}
-												onUpdatingValuesStart={this.onUpdatingValuesStart}
-												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-												legacy
-											/>
-										)}
+							<View style={styles.paddingHorizontal}>
+								<AccountInfoCard />
+								<View style={styles.section}>
+									{showFeeMarket ? (
+										<TransactionReviewEIP1559
+											totalNative={EIP1559GasData.renderableTotalMinNative}
+											totalConversion={EIP1559GasData.renderableTotalMinConversion}
+											totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
+											gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+											gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+											gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+											gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+											primaryCurrency={primaryCurrency}
+											timeEstimate={EIP1559GasData.timeEstimate}
+											timeEstimateColor={EIP1559GasData.timeEstimateColor}
+											timeEstimateId={EIP1559GasData.timeEstimateId}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											onUpdatingValuesStart={onUpdatingValuesStart}
+											onUpdatingValuesEnd={onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+										/>
+									) : (
+										<TransactionReviewEIP1559
+											totalNative={LegacyGasData.transactionTotalAmount}
+											totalConversion={LegacyGasData.transactionTotalAmountFiat}
+											gasFeeNative={LegacyGasData.transactionFee}
+											gasFeeConversion={LegacyGasData.transactionFeeFiat}
+											primaryCurrency={primaryCurrency}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											over={Boolean(LegacyGasData.error)}
+											onUpdatingValuesStart={this.onUpdatingValuesStart}
+											onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+											legacy
+										/>
+									)}
 
-										{gasError && (
-											<View style={styles.errorWrapper}>
-												<TouchableOpacity onPress={errorPress}>
-													<Text reset style={styles.error}>
-														{gasError}
+									{gasError && (
+										<View style={styles.errorWrapper}>
+											<TouchableOpacity onPress={errorPress}>
+												<Text reset style={styles.error}>
+													{gasError}
+												</Text>
+												{/* only show buy more on mainnet */}
+												{over && is_main_net && (
+													<Text reset style={[styles.error, styles.underline]}>
+														{errorLinkText}
 													</Text>
-													{/* only show buy more on mainnet */}
-													{over && is_main_net && (
-														<Text reset style={[styles.error, styles.underline]}>
-															{errorLinkText}
-														</Text>
-													)}
-												</TouchableOpacity>
-											</View>
-										)}
-										{!gasError && (
-											<TouchableOpacity
-												style={styles.actionTouchable}
-												onPress={this.toggleViewDetails}
-											>
-												<View>
-													<Text reset style={styles.viewDetailsText}>
-														{strings('spend_limit_edition.view_details')}
-													</Text>
-												</View>
+												)}
 											</TouchableOpacity>
-										)}
-									</View>
+										</View>
+									)}
+									{!gasError && (
+										<TouchableOpacity
+											style={styles.actionTouchable}
+											onPress={this.toggleViewDetails}
+										>
+											<View>
+												<Text reset style={styles.viewDetailsText}>
+													{strings('spend_limit_edition.view_details')}
+												</Text>
+											</View>
+										</TouchableOpacity>
+									)}
 								</View>
 							</View>
 						</ActionView>
@@ -674,6 +742,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderTransactionReview = () => {
+		const { nickname, nicknameExists } = this.props;
 		const {
 			host,
 			method,
@@ -692,6 +761,8 @@ class ApproveTransactionReview extends PureComponent {
 				toggleViewDetails={this.toggleViewDetails}
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
+				nickname={nickname}
+				nicknameExists={nicknameExists}
 				address={renderShortAddress(to)}
 				host={host}
 				allowance={allowance}

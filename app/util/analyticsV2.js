@@ -17,6 +17,8 @@ export const ANALYTICS_EVENTS_V2 = {
 	DAPP_TRANSACTION_STARTED: generateOpt('Dapp Transaction Started'),
 	DAPP_TRANSACTION_COMPLETED: generateOpt('Dapp Transaction Completed'),
 	DAPP_TRANSACTION_CANCELLED: generateOpt('Dapp Transaction Cancelled'),
+	CONTRACT_ADDRESS_COPIED: generateOpt('Contract Address Copied'),
+	CONTRACT_ADDRESS_NICKNAME: generateOpt('Contract Address Nickname'),
 	// Sign request
 	SIGN_REQUEST_STARTED: generateOpt('Sign Request Started'),
 	SIGN_REQUEST_COMPLETED: generateOpt('Sign Request Completed'),

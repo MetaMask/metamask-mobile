@@ -33,6 +33,7 @@ const createStyles = (colors) =>
 		},
 		viewDataText: {
 			marginTop: 20,
+			color: colors.text.default,
 		},
 		viewDataArrow: {
 			marginLeft: 'auto',
@@ -75,6 +76,8 @@ const createStyles = (colors) =>
 		address: {
 			...fontStyles.bold,
 			color: colors.primary.default,
+			marginHorizontal: 8,
+			maxWidth: 120,
 		},
 	});
 
@@ -90,6 +93,8 @@ export default class TransactionReviewDetailsCard extends Component {
 		data: PropTypes.string,
 		displayViewData: PropTypes.bool,
 		method: PropTypes.string,
+		nickname: PropTypes.string,
+		nicknameExists: PropTypes.bool,
 	};
 
 	render() {
@@ -104,6 +109,8 @@ export default class TransactionReviewDetailsCard extends Component {
 			data,
 			method,
 			displayViewData,
+			nickname,
+			nicknameExists,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -121,7 +128,13 @@ export default class TransactionReviewDetailsCard extends Component {
 							{strings('spend_limit_edition.contract_address')}
 						</Text>
 						<View style={styles.transactionDetailsTextRight}>
-							<Text style={styles.address}>{address}</Text>
+							{nicknameExists ? (
+								<Text numberOfLines={1} style={styles.address}>
+									{nickname}
+								</Text>
+							) : (
+								<Text style={styles.address}>{address}</Text>
+							)}
 							<Feather
 								name="copy"
 								size={16}
