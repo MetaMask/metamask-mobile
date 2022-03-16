@@ -13,7 +13,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { colors } from '../../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
-
+import RegionAlert from '../components/RegionAlert';
 import RegionModal from '../components/RegionModal';
 
 const styles = StyleSheet.create({
@@ -35,8 +35,9 @@ const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
-	// eslint-disable-next-line no-unused-vars
+
 	const [showAlert, setShowAlert] = useState(false);
+	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 
 	const navigation = useNavigation();
@@ -53,22 +54,17 @@ const Region = () => {
 		navigation.navigate('PaymentMethod');
 	}, [navigation]);
 
-	const handleCountryPress = useCallback(
-		(country) => {
-			if (country.unsupported) {
-				setShowAlert(true);
-			} else {
-				setSelectedCountry(country);
-				hideRegionModal();
-			}
-		},
-		[hideRegionModal, setSelectedCountry]
-	);
+	const handleCountryPress = (country) => {
+		setSelectedCountry(country);
+		hideRegionModal();
+		//	}
+	};
 
 	const handleRegionPress = useCallback(
 		(region, country) => {
 			if (region.unsupported) {
 				setShowAlert(true);
+				setSelectedUnsupportedLocation(region);
 			} else {
 				setSelectedRegion(region);
 				setSelectedCountry(country);
@@ -107,7 +103,14 @@ const Region = () => {
 				title={strings('fiat_on_ramp_aggregator.region.your_region')}
 				description={strings('fiat_on_ramp_aggregator.region.subtitle_description')}
 			/>
-
+			<RegionAlert
+				isVisible={showAlert}
+				subtitle={`${selectedUnsupportedLocation.emoji}   ${selectedUnsupportedLocation.name}`}
+				dismiss={() => setShowAlert(!showAlert)}
+				title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+				body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+			/>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					<TouchableOpacity onPress={handleRegionButton}>

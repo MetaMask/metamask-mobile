@@ -1524,7 +1524,10 @@
 			"remember_region": "Remember my Region",
 			"your_region": "Your Region",
 			"subtitle_description": "Text here about how a certain payment method will be available depending on your region",
-			"select_region": "Select your region"
+			"select_region": "Select your region",
+			"unsupported": "Region Not Supported",
+			"unsupported_description": "We are working hard to expand coverage to your region. In the meantime, enjoy consectetur adipiscing elit consectetur adipiscing elit",
+			"unsupported_link": "link to support article with information"
 		}
 	},
 	"swaps": {

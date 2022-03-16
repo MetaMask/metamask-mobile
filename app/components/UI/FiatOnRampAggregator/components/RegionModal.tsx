@@ -12,7 +12,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
-
+import RegionAlert from './RegionAlert';
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
@@ -125,6 +125,7 @@ const RegionModal: React.FC<Props> = ({
 	// local state variable to save the country object in transite
 	const [selectedCountryInTransit, setSelectedCountryInTransit] = useState<any>({});
 
+	const [showAlert, setShowAlert] = useState(false);
 	const dataRef = useRef(data);
 	const dataFuse = useMemo(
 		() =>
@@ -148,15 +149,17 @@ const RegionModal: React.FC<Props> = ({
 
 	const handleOnCountryPressCallback = useCallback(
 		(country) => {
-			if (!country.regions) {
-				unsetRegion();
-				onCountryPress(country);
-			} else {
-				// the country has regions so we switch the active view and place selected country in transit
+			if (country.unsupported) {
+				setSelectedCountryInTransit(country);
+				setShowAlert(true);
+			} else if (country.regions) {
 				setActiveView(RegionViewType.STATE);
 				setSelectedCountryInTransit(country);
 				dataRef.current = country.regions;
 				setSearchString('');
+			} else {
+				unsetRegion();
+				onCountryPress(country);
 			}
 		},
 		[onCountryPress, unsetRegion]
@@ -164,6 +167,9 @@ const RegionModal: React.FC<Props> = ({
 
 	const handleOnRegionPressCallback = useCallback(
 		(region) => {
+			if (region.unsupported) {
+				setShowAlert(true);
+			}
 			if (selectedCountryInTransit) {
 				onRegionPress(region, selectedCountryInTransit);
 			}
@@ -268,12 +274,21 @@ const RegionModal: React.FC<Props> = ({
 			propagateSwipe
 			avoidKeyboard
 			onModalHide={onModalHide}
+			// animationOutTiming={1}
 			style={styles.modal}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />
 				{activeView === RegionViewType.COUNTRY ? (
 					<ScreenLayout>
+						<RegionAlert
+							isVisible={showAlert}
+							subtitle={`${selectedCountryInTransit.emoji}   ${selectedCountryInTransit.name}`}
+							dismiss={() => setShowAlert(!showAlert)}
+							title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+							body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+							link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+						/>
 						<ScreenLayout.Header
 							bold
 							title={title}
