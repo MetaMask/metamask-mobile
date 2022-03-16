@@ -1,18 +1,22 @@
 diff --git a/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js b/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
-index 7446a82..f8fe3fd 100644
+index 7446a82..71a0fca 100644
 --- a/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
 +++ b/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
 @@ -1,7 +1,7 @@
  import React from 'react'
- import { Text, View, Dimensions, Modal, TouchableHighlight, Animated, ScrollView, Easing } from 'react-native'
+-import { Text, View, Dimensions, Modal, TouchableHighlight, Animated, ScrollView, Easing } from 'react-native'
++import { Text, View, Dimensions, Modal, TouchableOpacity, Animated, ScrollView, Easing } from 'react-native'
  import * as utils from './utils'
 -import styles2 from './styles'
 +import getStyles from './styles'
  
  const WARN_COLOR = '#FF3B30'
  const MAX_HEIGHT = Dimensions.get('window').height * 0.7
-@@ -12,7 +12,8 @@ class ActionSheet extends React.Component {
-     buttonUnderlayColor: '#F4F4F4',
+@@ -9,10 +9,10 @@ const MAX_HEIGHT = Dimensions.get('window').height * 0.7
+ class ActionSheet extends React.Component {
+   static defaultProps = {
+     tintColor: '#007AFF',
+-    buttonUnderlayColor: '#F4F4F4',
      onPress: () => {},
      styles: {},
 -    useNativeDriver: true
@@ -21,7 +25,7 @@ index 7446a82..f8fe3fd 100644
    }
  
    constructor (props) {
-@@ -30,8 +31,9 @@ class ActionSheet extends React.Component {
+@@ -30,8 +30,9 @@ class ActionSheet extends React.Component {
    }
  
    get styles () {
@@ -32,7 +36,7 @@ index 7446a82..f8fe3fd 100644
      Object.keys(styles2).forEach((key) => {
        const arr = [styles2[key]]
        if (styles[key]) {
-@@ -87,7 +89,7 @@ class ActionSheet extends React.Component {
+@@ -87,7 +88,7 @@ class ActionSheet extends React.Component {
     * box size: height, marginTop, marginBottom
     */
    _calculateHeight (props) {
@@ -41,6 +45,32 @@ index 7446a82..f8fe3fd 100644
  
      const getHeight = (name) => {
        const style = styles[name][styles[name].length - 1]
+@@ -154,21 +155,20 @@ class ActionSheet extends React.Component {
+ 
+   _createButton (title, index) {
+     const styles = this.styles
+-    const { buttonUnderlayColor, cancelButtonIndex, destructiveButtonIndex, tintColor } = this.props
++    const { cancelButtonIndex, destructiveButtonIndex, tintColor } = this.props
+     const fontColor = destructiveButtonIndex === index ? WARN_COLOR : tintColor
+     const buttonBoxStyle = cancelButtonIndex === index ? styles.cancelButtonBox : styles.buttonBox
+     return (
+-      <TouchableHighlight
++      <TouchableOpacity
+         key={index}
+-        activeOpacity={1}
+-        underlayColor={buttonUnderlayColor}
++        activeOpacity={0.5}
+         style={buttonBoxStyle}
+         onPress={() => this.hide(index)}
+       >
+         {React.isValidElement(title) ? title : (
+           <Text style={[styles.buttonText, {color: fontColor}]}>{title}</Text>
+         )}
+-      </TouchableHighlight>
++      </TouchableOpacity>
+     )
+   }
+ 
 diff --git a/node_modules/react-native-actionsheet/lib/options.js b/node_modules/react-native-actionsheet/lib/options.js
 index 7f7d230..1e01339 100644
 --- a/node_modules/react-native-actionsheet/lib/options.js
@@ -59,7 +89,7 @@ index 7f7d230..1e01339 100644
 +	'theme',
  ]
 diff --git a/node_modules/react-native-actionsheet/lib/styles.js b/node_modules/react-native-actionsheet/lib/styles.js
-index 52ae1b2..2d0c1df 100644
+index 52ae1b2..e0a18bf 100644
 --- a/node_modules/react-native-actionsheet/lib/styles.js
 +++ b/node_modules/react-native-actionsheet/lib/styles.js
 @@ -1,62 +1,70 @@
@@ -128,8 +158,8 @@ index 52ae1b2..2d0c1df 100644
 +  const backgroundDefault = isDarkMode ? '#141618' : '#ffffff';
 +  const backgroundAlternative = isDarkMode ? '#24272A' : '#F2F4F6';
 +  const textDefault = isDarkMode ? '#ffffff' : '#24272A';
-+  const textAlternative = isDarkMode ? '#FAFBFC' : '#535A61'
-+  const overlay = '#000'
++  const textAlternative = isDarkMode ? '#FAFBFC' : '#535A61';
++  const overlay = isDarkMode ? '#FFFFFF66' : '#00000099';
 +  return {
 +    overlay: {
 +      position: 'absolute',
