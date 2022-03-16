@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
@@ -9,32 +9,36 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	rowWrapper: {
-		padding: 20,
-	},
-	rowTitleText: {
-		paddingBottom: 3,
-		...(fontStyles.normal as any),
-	},
-	textInput: {
-		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: colors.grey100,
-		padding: 16,
-		...(fontStyles.normal as any),
-	},
-	warningText: {
-		marginTop: 15,
-		color: colors.red,
-		...(fontStyles.normal as any),
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		rowWrapper: {
+			padding: 20,
+		},
+		rowTitleText: {
+			paddingBottom: 3,
+			...(fontStyles.normal as any),
+			color: colors.text.default,
+		},
+		textInput: {
+			borderWidth: 1,
+			borderRadius: 4,
+			borderColor: colors.border.default,
+			padding: 16,
+			...(fontStyles.normal as any),
+			color: colors.text.default,
+		},
+		warningText: {
+			marginTop: 15,
+			color: colors.error.default,
+			...(fontStyles.normal as any),
+		},
+	});
 
 interface AddCustomCollectibleProps {
 	navigation?: any;
@@ -51,6 +55,8 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 	const [warningTokenId, setWarningTokenId] = useState<string>('');
 	const [inputWidth, setInputWidth] = useState<string | undefined>(Device.isAndroid() ? '99%' : undefined);
 	const assetTokenIdInput = React.createRef() as any;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const selectedAddress = useSelector(
 		(state: any) => state.engine.backgroundState.PreferencesController.selectedAddress
@@ -187,12 +193,13 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 						<TextInput
 							style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 							placeholder={'0x...'}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							value={address}
 							onChangeText={onAddressChange}
 							onBlur={validateCustomCollectibleAddress}
 							testID={'input-collectible-address'}
 							onSubmitEditing={jumpToAssetTokenId}
+							keyboardAppearance={themeAppearance}
 						/>
 						<Text style={styles.warningText} testID={'collectible-address-warning'}>
 							{warningAddress}
@@ -211,7 +218,8 @@ const AddCustomCollectible = ({ navigation, collectibleContract }: AddCustomColl
 							onSubmitEditing={addCollectible}
 							returnKeyType={'done'}
 							placeholder={strings('collectible.id_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
+							keyboardAppearance={themeAppearance}
 						/>
 						<Text style={styles.warningText} testID={'collectible-identifier-warning'}>
 							{warningTokenId}

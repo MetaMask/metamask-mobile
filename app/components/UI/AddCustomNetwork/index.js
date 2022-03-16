@@ -4,126 +4,131 @@ import StyledButton from '../StyledButton';
 import { StyleSheet, View, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		minHeight: 200,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-	},
-	accountCardWrapper: {
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-		margin: 24,
-	},
-	intro: {
-		fontSize: Device.isSmallDevice() ? 18 : 24,
-		marginBottom: 16,
-		marginTop: 16,
-		marginRight: 24,
-		marginLeft: 24,
-	},
-	warning: {
-		paddingHorizontal: 24,
-		fontSize: 13,
-		width: '100%',
-		paddingBottom: 12,
-	},
-	warningSubtext: {
-		lineHeight: 20,
-		paddingHorizontal: 24,
-		fontSize: 13,
-		width: '100%',
-	},
-	actionContainer: {
-		flex: 0,
-		flexDirection: 'row',
-		padding: 24,
-	},
-	button: {
-		flex: 1,
-	},
-	cancel: {
-		marginRight: 8,
-	},
-	confirm: {
-		marginLeft: 8,
-	},
-	actionTouchable: {
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	viewDetailsText: {
-		fontSize: 12,
-		lineHeight: 16,
-	},
-	textSection: {
-		flexDirection: 'row',
-		paddingBottom: 7,
-	},
-	textSectionLast: {
-		flexDirection: 'row',
-	},
-	networkInfoTitle: {
-		paddingRight: 10,
-	},
-	networkInfoValue: {
-		flex: 1,
-		fontSize: 13,
-	},
-	detailsBackButton: {
-		height: 24,
-		width: 24,
-		justifyContent: 'space-around',
-		alignItems: 'center',
-		textAlign: 'center',
-		padding: 24,
-	},
-	detailsBackIcon: {
-		width: 24,
-		height: 24,
-		color: colors.black,
-		textAlign: 'center',
-	},
-	detailsContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	flexAux: {
-		flex: 1,
-	},
-	alertContainer: {
-		marginHorizontal: 24,
-		marginBottom: 16,
-	},
-	alertIcon: {
-		fontSize: 20,
-		...fontStyles.bold,
-		color: colors.yellow,
-		marginRight: 6,
-	},
-	alertText: {
-		lineHeight: 18,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			backgroundColor: colors.background.default,
+			paddingTop: 24,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			minHeight: 200,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+		},
+		accountCardWrapper: {
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: 16,
+			margin: 24,
+		},
+		intro: {
+			fontSize: Device.isSmallDevice() ? 18 : 24,
+			marginBottom: 16,
+			marginTop: 16,
+			marginRight: 24,
+			marginLeft: 24,
+		},
+		warning: {
+			paddingHorizontal: 24,
+			fontSize: 13,
+			width: '100%',
+			paddingBottom: 12,
+		},
+		warningSubtext: {
+			lineHeight: 20,
+			paddingHorizontal: 24,
+			fontSize: 13,
+			width: '100%',
+		},
+		actionContainer: {
+			flex: 0,
+			flexDirection: 'row',
+			padding: 24,
+		},
+		button: {
+			flex: 1,
+		},
+		cancel: {
+			marginRight: 8,
+		},
+		confirm: {
+			marginLeft: 8,
+		},
+		actionTouchable: {
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		viewDetailsText: {
+			fontSize: 12,
+			lineHeight: 16,
+		},
+		textSection: {
+			flexDirection: 'row',
+			paddingBottom: 7,
+		},
+		textSectionLast: {
+			flexDirection: 'row',
+		},
+		networkInfoTitle: {
+			paddingRight: 10,
+		},
+		networkInfoValue: {
+			flex: 1,
+			fontSize: 13,
+		},
+		detailsBackButton: {
+			height: 24,
+			width: 24,
+			justifyContent: 'space-around',
+			alignItems: 'center',
+			textAlign: 'center',
+			padding: 24,
+		},
+		detailsBackIcon: {
+			width: 24,
+			height: 24,
+			color: colors.text.default,
+			textAlign: 'center',
+		},
+		detailsContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		flexAux: {
+			flex: 1,
+		},
+		alertContainer: {
+			marginHorizontal: 24,
+			marginBottom: 16,
+		},
+		alertIcon: {
+			fontSize: 20,
+			...fontStyles.bold,
+			color: colors.warning.default,
+			marginRight: 6,
+		},
+		alertText: {
+			lineHeight: 18,
+			color: colors.text.default,
+		},
+	});
 
 /**
  * Account access approval component
  */
 const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, onCancel, onConfirm }) => {
 	const [viewDetails, setViewDetails] = useState(false);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	/**
 	 * Calls onConfirm callback and analytics to track connect confirmed event
@@ -241,7 +246,7 @@ const AddCustomNetwork = ({ customNetworkInformation, currentPageInformation, on
 				renderIcon={() => <EvilIcons name="bell" style={styles.alertIcon} />}
 			>
 				<Text primary noMargin style={styles.alertText}>
-					<Text primary bold noMargin>
+					<Text primary bold noMargin style={styles.alertText}>
 						{alertText}
 						{'\n'}
 					</Text>

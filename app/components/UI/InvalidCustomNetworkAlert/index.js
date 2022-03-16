@@ -1,59 +1,69 @@
 import React from 'react';
 import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
 import PropTypes from 'prop-types';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		borderRadius: 10,
-		padding: 20,
-	},
-	titleWrapper: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-	},
-	title: {
-		textAlign: 'center',
-		fontSize: 17,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	textWrapper: {
-		marginTop: 20,
-		marginBottom: 40,
-	},
-	text: {
-		textAlign: 'center',
-		fontSize: 15,
-		lineHeight: 20,
-		marginBottom: 20,
-		...fontStyles.normal,
-	},
-	hint: {
-		textAlign: 'center',
-		fontSize: 15,
-		lineHeight: 20,
-		...fontStyles.normal,
-	},
-	link: {
-		color: colors.blue,
-	},
-	button: {
-		marginBottom: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			borderRadius: 10,
+			padding: 20,
+		},
+		titleWrapper: {
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		title: {
+			textAlign: 'center',
+			fontSize: 17,
+			marginVertical: 12,
+			marginHorizontal: 20,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		textWrapper: {
+			marginTop: 20,
+			marginBottom: 40,
+		},
+		text: {
+			textAlign: 'center',
+			fontSize: 15,
+			lineHeight: 20,
+			marginBottom: 20,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		hint: {
+			textAlign: 'center',
+			fontSize: 15,
+			lineHeight: 20,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		link: {
+			color: colors.primary.default,
+		},
+		button: {
+			marginBottom: 10,
+		},
+	});
 
 const InvalidCustomNetworkAlert = (props) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	const closeModal = () => props.onClose();
 
 	const goToEditNetwork = () => {
 		closeModal();
-		props.navigation.navigate('SettingsView', { screen: 'NetworkSettings', params: { network: props.network } });
+		props.navigation.navigate('SettingsView', {
+			screen: 'SettingsFlow',
+			params: { screen: 'NetworkSettings', params: { network: props.network } },
+		});
 	};
 
 	const openLink = () => {

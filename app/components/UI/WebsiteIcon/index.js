@@ -2,26 +2,28 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	fallback: {
-		alignContent: 'center',
-		backgroundColor: colors.grey400,
-		borderRadius: 27,
-		height: 54,
-		justifyContent: 'center',
-		width: 54,
-	},
-	fallbackText: {
-		...fontStyles.normal,
-		color: colors.white,
-		fontSize: 24,
-		textAlign: 'center',
-		textTransform: 'uppercase',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		fallback: {
+			alignContent: 'center',
+			backgroundColor: colors.background.default,
+			borderRadius: 27,
+			height: 54,
+			justifyContent: 'center',
+			width: 54,
+		},
+		fallbackText: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 24,
+			textAlign: 'center',
+			textTransform: 'uppercase',
+		},
+	});
 
 /**
  * View that renders a website logo depending of the context
@@ -81,6 +83,8 @@ export default class WebsiteIcon extends PureComponent {
 	render = () => {
 		const { renderIconUrlError } = this.state;
 		const { viewStyle, style, textStyle, transparent, url, icon } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const apiLogoUrl = { uri: icon || this.getIconUrl(url) };
 		const title = typeof this.props.title === 'string' ? this.props.title.substr(0, 1) : getHost(url).substr(0, 1);
 
@@ -96,10 +100,16 @@ export default class WebsiteIcon extends PureComponent {
 
 		return (
 			<View style={viewStyle}>
-				<FadeIn placeholderStyle={{ backgroundColor: transparent ? colors.transparent : colors.white }}>
+				<FadeIn
+					placeholderStyle={{
+						backgroundColor: transparent ? colors.transparent : colors.background.alternative,
+					}}
+				>
 					<Image source={apiLogoUrl} style={style} onError={this.onRenderIconUrlError} />
 				</FadeIn>
 			</View>
 		);
 	};
 }
+
+WebsiteIcon.contextType = ThemeContext;
