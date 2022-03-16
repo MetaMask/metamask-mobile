@@ -131,7 +131,7 @@ class AuthenticationService {
 	 * @param rememberMe - remember me setting (//TODO: to be removed)
 	 * @returns @AuthData
 	 */
-	componentAUTHENTICATION_TYPE = async (biometryChoice: boolean, rememberMe: boolean) => {
+	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean) => {
 		const authType = await this.checkAuthenticationMethod(undefined);
 		if (rememberMe && !biometryChoice)
 			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType: authType.biometryType };
@@ -257,6 +257,6 @@ export default {
 		await instance?.storePassword(password, authType);
 	},
 	getPassword: async () => await instance?.getPassword(),
-	componentAUTHENTICATION_TYPE: async (biometryChoice: boolean, rememberMe: boolean) =>
-		await instance?.componentAUTHENTICATION_TYPE(biometryChoice, rememberMe),
+	componentAuthenticationType: async (biometryChoice: boolean, rememberMe: boolean) =>
+		await instance?.componentAuthenticationType(biometryChoice, rememberMe),
 };

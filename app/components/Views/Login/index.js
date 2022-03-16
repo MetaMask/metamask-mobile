@@ -278,7 +278,7 @@ class Login extends PureComponent {
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 
-		const authType = await AuthenticationService.componentAUTHENTICATION_TYPE(
+		const authType = await AuthenticationService.componentAuthenticationType(
 			this.state.biometryChoice,
 			this.state.rememberMe
 		);

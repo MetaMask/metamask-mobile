@@ -281,7 +281,7 @@ class ImportFromSeed extends PureComponent {
 			try {
 				this.setState({ loading: true });
 
-				const type = await AuthenticationService.componentAUTHENTICATION_TYPE(
+				const type = await AuthenticationService.componentAuthenticationType(
 					this.state.biometryChoice,
 					this.state.rememberMe
 				);

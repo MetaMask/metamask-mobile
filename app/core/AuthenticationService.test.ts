@@ -77,7 +77,7 @@ describe('AuthenticationService', () => {
 	it('should return a auth type for components AUTHENTICATION_TYPE.REMEMBER_ME', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(false, true);
+		const result = await AuthenticationService.componentAuthenticationType(false, true);
 		expect(result.biometryType).toEqual('Fingerprint');
 		expect(result.type).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
 	});
@@ -86,7 +86,7 @@ describe('AuthenticationService', () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(false, false);
+		const result = await AuthenticationService.componentAuthenticationType(false, false);
 		expect(result.biometryType).toEqual('Fingerprint');
 		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
 	});
@@ -94,14 +94,14 @@ describe('AuthenticationService', () => {
 	it('should return a auth type for components AUTHENTICATION_TYPE.PASSCODE', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(true, false);
+		const result = await AuthenticationService.componentAuthenticationType(true, false);
 		expect(result.biometryType).toEqual('Fingerprint');
 		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSCODE);
 	});
 
 	it('should return a auth type for components AUTHENTICATION_TYPE.BIOMETRIC', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(true, false);
+		const result = await AuthenticationService.componentAuthenticationType(true, false);
 		expect(result.biometryType).toEqual('Fingerprint');
 		expect(result.type).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
 	});
@@ -123,15 +123,15 @@ describe('AuthenticationService', () => {
 	// });
 
 	// it('should successfully complete userEntryAuth', async () => {
-	// 	// //Create new wallet
-	// 	await AuthenticationService.newWalletAndKeyChain('test1234', {
-	// 		type: AUTHENTICATION_TYPE.PASSWORD,
-	// 		biometryType: undefined,
-	// 	});
-	// 	await AuthenticationService.userEntryAuth(
-	// 		'test',
-	// 		{ type: AUTHENTICATION_TYPE.PASSWORD, biometryType: undefined },
-	// 		'0x000'
-	// 	);
+	// //Create new wallet
+	await AuthenticationService.newWalletAndKeyChain('test1234', {
+		type: AUTHENTICATION_TYPE.PASSWORD,
+		biometryType: undefined,
+	});
+	await AuthenticationService.userEntryAuth(
+		'test',
+		{ type: AUTHENTICATION_TYPE.PASSWORD, biometryType: undefined },
+		'0x000'
+	);
 	// });
 });

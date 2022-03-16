@@ -422,7 +422,7 @@ class ResetPassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		const type = await AuthenticationService.componentAUTHENTICATION_TYPE(
+		const type = await AuthenticationService.componentAuthenticationType(
 			this.state.biometryChoice,
 			this.state.rememberMe
 		);

@@ -334,7 +334,7 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
-			const authType = await AuthenticationService.componentAUTHENTICATION_TYPE(
+			const authType = await AuthenticationService.componentAuthenticationType(
 				this.state.biometryChoice,
 				this.state.rememberMe
 			);
