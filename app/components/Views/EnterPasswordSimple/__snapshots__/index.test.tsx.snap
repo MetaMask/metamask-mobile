@@ -51,7 +51,7 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
           <Text
             style={
               Object {
-                "color": "#24292E",
+                "color": "#24272A",
                 "fontSize": 16,
                 "marginBottom": 15,
               }
@@ -60,16 +60,18 @@ exports[`EnterPasswordSimple should render correctly 1`] = `
             Please enter your password in order to continue
           </Text>
           <TextInput
+            keyboardAppearance="light"
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#d6d9dc"
+            placeholderTextColor="#BBC0C5"
             secureTextEntry={true}
             style={
               Object {
-                "borderColor": "#f2f3f4",
+                "borderColor": "#BBC0C5",
                 "borderRadius": 5,
                 "borderWidth": 2,
+                "color": "#24272A",
                 "padding": 10,
               }
             }

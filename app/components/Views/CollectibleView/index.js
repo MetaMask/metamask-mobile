@@ -5,35 +5,37 @@ import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	wrapper: {
-		flex: 0.9,
-	},
-	buttons: {
-		paddingVertical: 15,
-		flex: 0.1,
-		height: 4,
-	},
-	button: {
-		marginHorizontal: 16,
-		flexDirection: 'row',
-	},
-	buttonText: {
-		marginLeft: 8,
-		fontSize: 15,
-		color: colors.white,
-		...fontStyles.bold,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		wrapper: {
+			flex: 0.9,
+		},
+		buttons: {
+			paddingVertical: 15,
+			flex: 0.1,
+			height: 4,
+		},
+		button: {
+			marginHorizontal: 16,
+			flexDirection: 'row',
+		},
+		buttonText: {
+			marginLeft: 8,
+			fontSize: 15,
+			color: colors.primary.inverse,
+			...fontStyles.bold,
+		},
+	});
 
 /**
  * View that displays a specific collectible asset
@@ -55,8 +57,19 @@ class CollectibleView extends PureComponent {
 		route: PropTypes.object,
 	};
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		getNetworkNavbarOptions(route.params?.contractName ?? '', false, navigation, colors);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	onSend = async () => {
 		const {
@@ -72,6 +85,9 @@ class CollectibleView extends PureComponent {
 			navigation,
 		} = this.props;
 		const collectible = params;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		const lowerAddress = collectible.address.toLowerCase();
 		const tradable =
 			lowerAddress in collectiblesTransferInformation
@@ -91,7 +107,6 @@ class CollectibleView extends PureComponent {
 							type={'confirm'}
 							onPress={this.onSend}
 							containerStyle={styles.button}
-							style={styles.buttonContent}
 							childGroupStyle={styles.flexRow}
 						>
 							<Text style={styles.buttonText}>{strings('asset_overview.send_button').toUpperCase()}</Text>
@@ -102,6 +117,8 @@ class CollectibleView extends PureComponent {
 		);
 	}
 }
+
+CollectibleView.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
