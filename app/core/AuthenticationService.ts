@@ -11,12 +11,9 @@ import {
 	PASSCODE_DISABLED,
 	NEXT_MAKER_REMINDER,
 	SEED_PHRASE_HINTS,
-	BIOMETRY_CHOICE,
-	PASSCODE_CHOICE,
 } from '../constants/storage';
 import Logger from '../util/Logger';
 import { logIn, logOut } from '../actions/user';
-import { strings } from '../../locales/i18n';
 
 /**
  * Different sources of authentication user can provide
@@ -25,8 +22,8 @@ export enum AuthenticationType {
 	BIOMETRIC = 'biometrics',
 	PASSCODE = 'device_passcode',
 	PASSWORD = 'password',
-	REMEMBER_ME = 'rememberMe',
-	UNKNOWN = 'UNKNOWN',
+	REMEMBER_ME = 'remember_me',
+	UNKNOWN = 'unkown',
 }
 
 /**
@@ -127,11 +124,10 @@ class AuthenticationService {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		const biometry = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-		const passcode = await AsyncStorage.getItem(PASSCODE_CHOICE);
-		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE) && biometry) {
+
+		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
 			return { type: AuthenticationType.BIOMETRIC, biometryType };
-		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE) && passcode) {
+		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
 			return { type: AuthenticationType.PASSCODE, biometryType };
 		} else if (credentials) {
 			return { type: AuthenticationType.REMEMBER_ME, biometryType };
@@ -219,8 +215,6 @@ class AuthenticationService {
 	 */
 	appTriggeredAuth = async (selectedAddress: string) => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
-		if (!credentials) throw new Error(strings('Biometric/Pincode/Remember Me Not Set'));
-		this.authData = await this.checkAuthenticationMethod(credentials);
 		try {
 			const password = credentials?.password;
 			await this._loginVaultCreation(password, selectedAddress);
@@ -228,7 +222,7 @@ class AuthenticationService {
 			this.store?.dispatch(logIn());
 		} catch (e: any) {
 			this.logout();
-			Logger.error(e.toString(), 'Failed to login');
+			Logger.error(e.toString(), 'appTriggeredAuth failed to login');
 			throw e;
 		}
 	};
@@ -242,7 +236,7 @@ class AuthenticationService {
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
-		this.authData = { type: AuthenticationType.PASSWORD, biometryType: '' };
+		this.authData = { type: AuthenticationType.UNKNOWN, biometryType: '' };
 		this.store?.dispatch(logOut());
 	};
 }

@@ -584,6 +584,7 @@ class DrawerView extends PureComponent {
 				params: { screen: 'Onboarding' },
 			});
 		} else {
+			//This param is used to hide the biometric buttons in the login textbox
 			this.props.navigation.navigate('Login', { params: { logout: true } });
 		}
 	};

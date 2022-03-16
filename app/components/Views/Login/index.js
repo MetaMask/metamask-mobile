@@ -207,6 +207,10 @@ class Login extends PureComponent {
 		 * Action to set onboarding wizard step
 		 */
 		setOnboardingWizardStep: PropTypes.func,
+		/**
+		 * Route passed in props from navigation
+		 */
+		route: PropTypes.object,
 		userLoggedIn: PropTypes.bool,
 		selectedAddress: PropTypes.string,
 	};
@@ -241,20 +245,19 @@ class Login extends PureComponent {
 		const authType = await AuthenticationService.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-
 		if (authType.type === AuthenticationType.BIOMETRIC)
 			this.setState({
 				biometryType: authType.type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!previouslyDisabled,
-				hasBiometricCredentials: true,
+				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
 			});
 		else if (authType.type === AuthenticationType.PASSCODE)
 			this.setState({
 				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
-				hasBiometricCredentials: true,
+				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
 			});
 	}
 
@@ -583,7 +586,7 @@ class Login extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	selectedAddress: state.engine.backgroundState.PreferencesController?.selectedAddress,
+	selectedAddress: state.engine.backgroundState?.PreferencesController?.selectedAddress,
 	userLoggedIn: state.user.userLoggedIn,
 });
 
