@@ -795,7 +795,6 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
