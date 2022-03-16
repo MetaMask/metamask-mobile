@@ -5,17 +5,24 @@ import Animated from 'react-native-reanimated';
 import BaseNotification from './../BaseNotification';
 import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
+import { colors as importedColors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
 	modalTypeViewBrowser: {
 		bottom: Device.isIphoneX() ? 70 : 60,
 	},
-	notificationContainer: {
+	elevatedView: {
 		position: 'absolute',
 		left: 0,
 		right: 0,
 		bottom: 0,
 		paddingBottom: Device.isIphoneX() ? 20 : 10,
+		backgroundColor: importedColors.transparent,
+	},
+	notificationContainer: {
+		flex: 0.1,
+		flexDirection: 'row',
+		alignItems: 'flex-end',
 	},
 });
 
@@ -28,7 +35,7 @@ function SimpleNotification({ isInBrowserView, notificationAnimated, hideCurrent
 				{ transform: [{ translateY: notificationAnimated }] },
 			]}
 		>
-			<ElevatedView elevation={100}>
+			<ElevatedView style={styles.elevatedView} elevation={100}>
 				<BaseNotification
 					status={currentNotification.status}
 					data={{ title: currentNotification.title, description: currentNotification.description }}

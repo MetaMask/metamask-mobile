@@ -6,14 +6,13 @@ import { text, boolean, select } from '@storybook/addon-knobs';
 
 import Alert, { AlertType } from './Alert';
 import Text from './Text';
-import { colors, fontStyles } from ' ../../../styles/common';
+import { fontStyles } from ' ../../../styles/common';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 
 const styles = {
 	alertIcon: {
 		fontSize: 20,
 		...fontStyles.bold,
-		color: colors.yellow,
 		marginRight: 6,
 	},
 };

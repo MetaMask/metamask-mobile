@@ -19,63 +19,69 @@ import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		justifyContent: 'flex-end',
-	},
-	modalView: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	inputWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginHorizontal: 30,
-		marginVertical: 10,
-		paddingVertical: Device.isAndroid() ? 0 : 10,
-		paddingHorizontal: 5,
-		borderRadius: 5,
-		borderWidth: 1,
-		borderColor: colors.grey100,
-	},
-	searchIcon: {
-		marginHorizontal: 8,
-	},
-	input: {
-		...fontStyles.normal,
-		flex: 1,
-	},
-	modalTitle: {
-		marginTop: Device.isIphone5() ? 10 : 15,
-		marginBottom: Device.isIphone5() ? 5 : 5,
-		marginHorizontal: 36,
-	},
-	resultsView: {
-		height: Device.isSmallDevice() ? 130 : 250,
-		marginTop: 10,
-	},
-	resultRow: {
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		paddingHorizontal: 20,
-	},
-	flag: {
-		fontSize: 24,
-	},
-	emptyList: {
-		marginVertical: 10,
-		marginHorizontal: 30,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			margin: 0,
+			justifyContent: 'flex-end',
+		},
+		modalView: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		inputWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginHorizontal: 30,
+			marginVertical: 10,
+			paddingVertical: Device.isAndroid() ? 0 : 10,
+			paddingHorizontal: 5,
+			borderRadius: 5,
+			borderWidth: 1,
+			borderColor: colors.border.default,
+		},
+		searchIcon: {
+			marginHorizontal: 8,
+			color: colors.icon.muted,
+		},
+		input: {
+			...fontStyles.normal,
+			flex: 1,
+			color: colors.text.default,
+		},
+		modalTitle: {
+			marginTop: Device.isIphone5() ? 10 : 15,
+			marginBottom: Device.isIphone5() ? 5 : 5,
+			marginHorizontal: 36,
+		},
+		resultsView: {
+			height: Device.isSmallDevice() ? 130 : 250,
+			marginTop: 10,
+		},
+		resultRow: {
+			borderTopWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+			paddingHorizontal: 20,
+		},
+		flag: {
+			fontSize: 24,
+		},
+		emptyList: {
+			marginVertical: 10,
+			marginHorizontal: 30,
+		},
+	});
 
 function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const countriesFuse = useMemo(
 		() =>
@@ -118,7 +124,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 				</ListItem>
 			</TouchableOpacity>
 		),
-		[onItemPress]
+		[onItemPress, styles]
 	);
 
 	const renderEmptyList = useMemo(
@@ -127,7 +133,7 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 				<Text>{strings('fiat_on_ramp.no_countries_result', { searchString })}</Text>
 			</View>
 		),
-		[searchString]
+		[searchString, styles]
 	);
 
 	return (
@@ -141,6 +147,8 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 			avoidKeyboard
 			onModalHide={() => setSearchString('')}
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />
@@ -159,9 +167,10 @@ function CountrySelectorModal({ isVisible, dismiss, countries, onItemPress }) {
 							ref={searchInput}
 							style={styles.input}
 							placeholder={strings('fiat_on_ramp.search_country')}
-							placeholderTextColor={colors.grey500}
+							placeholderTextColor={colors.text.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
+							keyboardAppearance={themeAppearance}
 						/>
 					</View>
 				</TouchableWithoutFeedback>

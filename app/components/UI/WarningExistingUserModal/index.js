@@ -2,44 +2,52 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { fontStyles, colors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import ActionModal from '../ActionModal';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	warningModalView: {
-		margin: 24,
-	},
-	warningModalTitle: {
-		...fontStyles.bold,
-		color: colors.red,
-		textAlign: 'center',
-		fontSize: 20,
-		marginBottom: 16,
-	},
-	warningModalText: {
-		...fontStyles.normal,
-		color: colors.black,
-		textAlign: 'center',
-		fontSize: 14,
-		lineHeight: 18,
-	},
-	warningModalTextBold: {
-		...fontStyles.bold,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		warningModalView: {
+			margin: 24,
+		},
+		warningModalTitle: {
+			...fontStyles.bold,
+			color: colors.error.default,
+			textAlign: 'center',
+			fontSize: 20,
+			marginBottom: 16,
+		},
+		warningModalText: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			textAlign: 'center',
+			fontSize: 14,
+			lineHeight: 18,
+		},
+		warningModalTextBold: {
+			...fontStyles.bold,
+			color: colors.text.default,
+		},
+	});
 
-const Default = () => (
-	<View style={styles.warningModalView}>
-		<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
-		<Text style={styles.warningModalText}>
-			{strings('onboarding.warning_text_1')}
-			<Text style={styles.warningModalTextBold}>{` ${strings('onboarding.warning_text_2')} `}</Text>
-			{strings('onboarding.warning_text_3')}
-		</Text>
-		<Text />
-		<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
-	</View>
-);
+const Default = () => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
+	return (
+		<View style={styles.warningModalView}>
+			<Text style={styles.warningModalTitle}>{strings('onboarding.warning_title')}</Text>
+			<Text style={styles.warningModalText}>
+				{strings('onboarding.warning_text_1')}
+				<Text style={styles.warningModalTextBold}>{` ${strings('onboarding.warning_text_2')} `}</Text>
+				{strings('onboarding.warning_text_3')}
+			</Text>
+			<Text />
+			<Text style={styles.warningModalText}>{strings('onboarding.warning_text_4')}</Text>
+		</View>
+	);
+};
 
 /**
  * View that renders a warning for existing user in a modal

@@ -23,7 +23,7 @@ import StyledButton from '../../../UI/StyledButton';
 import SettingsNotification from '../../../UI/SettingsNotification';
 import { clearHistory } from '../../../../actions/browser';
 import { clearHosts, setPrivacyMode, setThirdPartyApiMode } from '../../../../actions/privacy';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -48,126 +48,143 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
+import { useAppThemeFromContext, mockTheme, ThemeContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
 	'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48,
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20,
-		paddingTop: 4,
-		marginTop: -4,
-	},
-	bump: {
-		marginBottom: 10,
-	},
-	heading: {
-		fontSize: 24,
-		lineHeight: 30,
-		marginBottom: 24,
-	},
-	desc: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	learnMore: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 14,
-		lineHeight: 20,
-	},
-	switchElement: {
-		marginTop: 18,
-	},
-	setting: {
-		marginTop: 50,
-	},
-	firstSetting: {
-		marginTop: 0,
-	},
-	modalView: {
-		alignItems: 'center',
-		flex: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		padding: 20,
-	},
-	modalText: {
-		...fontStyles.normal,
-		fontSize: 18,
-		textAlign: 'center',
-	},
-	modalTitle: {
-		...fontStyles.bold,
-		fontSize: 22,
-		textAlign: 'center',
-		marginBottom: 20,
-	},
-	confirm: {
-		marginTop: 18,
-	},
-	protect: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-	},
-	col: {
-		width: '100%',
-	},
-	inner: {
-		paddingBottom: 112,
-	},
-	picker: {
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		marginTop: 16,
-	},
-	loader: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	warningText: {
-		color: colors.black,
-		fontSize: 12,
-		flex: 1,
-		...fontStyles.normal,
-	},
-	warningTextRed: {
-		color: colors.red,
-	},
-	warningTextGreen: {
-		color: colors.black,
-	},
-	warningBold: {
-		...fontStyles.bold,
-		color: colors.blue,
-	},
-	viewHint: {
-		padding: 5,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48,
+		},
+		title: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 20,
+			lineHeight: 20,
+			paddingTop: 4,
+			marginTop: -4,
+		},
+		bump: {
+			marginBottom: 10,
+		},
+		heading: {
+			fontSize: 24,
+			lineHeight: 30,
+			marginBottom: 24,
+		},
+		desc: {
+			...fontStyles.normal,
+			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		learnMore: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			fontSize: 14,
+			lineHeight: 20,
+		},
+		switchElement: {
+			marginTop: 18,
+			alignSelf: 'flex-start',
+		},
+		setting: {
+			marginTop: 50,
+		},
+		firstSetting: {
+			marginTop: 0,
+		},
+		modalView: {
+			alignItems: 'center',
+			flex: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			padding: 20,
+		},
+		modalText: {
+			...fontStyles.normal,
+			fontSize: 18,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		modalTitle: {
+			...fontStyles.bold,
+			fontSize: 22,
+			textAlign: 'center',
+			marginBottom: 20,
+			color: colors.text.default,
+		},
+		confirm: {
+			marginTop: 18,
+		},
+		protect: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+		},
+		col: {
+			width: '48%',
+		},
+		inner: {
+			paddingBottom: 112,
+		},
+		picker: {
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			marginTop: 16,
+		},
+		loader: {
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		warningText: {
+			color: colors.text.default,
+			fontSize: 12,
+			flex: 1,
+			...fontStyles.normal,
+		},
+		warningTextRed: {
+			color: colors.text.default,
+		},
+		warningTextGreen: {
+			color: colors.text.default,
+		},
+		warningBold: {
+			...fontStyles.bold,
+			color: colors.primary.default,
+		},
+		viewHint: {
+			padding: 5,
+		},
+		switch: {
+			alignSelf: 'flex-start',
+		},
+	});
 
-const Heading = ({ children, first }) => (
-	<View style={[styles.setting, first && styles.firstSetting]}>
-		<Text style={[styles.title, styles.heading]}>{children}</Text>
-	</View>
-);
+const Heading = ({ children, first }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
-const WarningIcon = () => <Icon size={16} color={colors.red} name="exclamation-triangle" />;
+	return (
+		<View style={[styles.setting, first && styles.firstSetting]}>
+			<Text style={[styles.title, styles.heading]}>{children}</Text>
+		</View>
+	);
+};
+
+const WarningIcon = () => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+
+	return <Icon size={16} color={colors.error.default} name="exclamation-triangle" />;
+};
 
 Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
@@ -262,9 +279,6 @@ class Settings extends PureComponent {
 		type: PropTypes.string,
 	};
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.security_title'), navigation);
-
 	state = {
 		approvalModalVisible: false,
 		biometryChoice: null,
@@ -322,7 +336,16 @@ class Settings extends PureComponent {
 
 	scrollView = undefined;
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.security_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = async () => {
+		this.updateNavBar();
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
 		const analyticsEnabled = Analytics.getEnabled();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
@@ -353,6 +376,10 @@ class Settings extends PureComponent {
 		}
 
 		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: true });
+	};
+
+	componentDidUpdate = async () => {
+		this.updateNavBar();
 	};
 
 	onSingInWithBiometrics = async (enabled) => {
@@ -558,6 +585,11 @@ class Settings extends PureComponent {
 
 	handleChangeText = (text) => this.setState({ hintText: text });
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return { colors, styles: createStyles(colors) };
+	};
+
 	renderHint = () => {
 		const { showHint, hintText } = this.state;
 		return (
@@ -577,6 +609,7 @@ class Settings extends PureComponent {
 	renderProtectYourWalletSection = () => {
 		const { seedphraseBackedUp } = this.props;
 		const { hintText } = this.state;
+		const { styles } = this.getStyles();
 
 		return (
 			<View style={[styles.setting, styles.firstSetting]}>
@@ -629,83 +662,100 @@ class Settings extends PureComponent {
 						{strings('app_settings.back_up_now')}
 					</StyledButton>
 				) : (
-					<View style={styles.protect}>
-						<StyledButton
-							type="normal"
-							onPress={this.goToRevealPrivateCredential}
-							containerStyle={[styles.confirm, styles.col]}
-							testID={'reveal-seed-button'}
-						>
-							{strings('reveal_credential.seed_phrase_title')}
-						</StyledButton>
-					</View>
+					<StyledButton
+						type="normal"
+						onPress={this.goToRevealPrivateCredential}
+						containerStyle={styles.confirm}
+						testID={'reveal-seed-button'}
+					>
+						{strings('reveal_credential.seed_phrase_title')}
+					</StyledButton>
 				)}
 			</View>
 		);
 	};
 
-	renderPasswordSection = () => (
-		<View style={styles.setting} testID={'change-password-section'}>
-			<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
-			<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
-			<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
-				{strings('password_reset.change_password')}
-			</StyledButton>
-		</View>
-	);
+	renderPasswordSection = () => {
+		const { styles } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'change-password-section'}>
+				<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
+				<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
+				<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
+					{strings('password_reset.change_password')}
+				</StyledButton>
+			</View>
+		);
+	};
 
-	renderAutoLockSection = () => (
-		<View style={styles.setting} testID={'auto-lock-section'}>
-			<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
-			<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
-			<View style={styles.picker}>
-				{this.autolockOptions && (
-					<SelectComponent
-						selectedValue={this.props.lockTime.toString()}
-						onValueChange={this.selectLockTime}
-						label={strings('app_settings.auto_lock')}
-						options={this.autolockOptions}
+	renderAutoLockSection = () => {
+		const { styles } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'auto-lock-section'}>
+				<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.auto_lock_desc')}</Text>
+				<View style={styles.picker}>
+					{this.autolockOptions && (
+						<SelectComponent
+							selectedValue={this.props.lockTime.toString()}
+							onValueChange={this.selectLockTime}
+							label={strings('app_settings.auto_lock')}
+							options={this.autolockOptions}
+						/>
+					)}
+				</View>
+			</View>
+		);
+	};
+
+	renderBiometricOptionsSection = () => {
+		const { styles, colors } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'biometrics-option'}>
+				<Text style={styles.title}>
+					{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}
+				</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						value={this.state.biometryChoice}
+						onValueChange={this.onSingInWithBiometrics}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
 					/>
-				)}
+				</View>
 			</View>
-		</View>
-	);
+		);
+	};
 
-	renderBiometricOptionsSection = () => (
-		<View style={styles.setting} testID={'biometrics-option'}>
-			<Text style={styles.title}>{strings(`biometrics.enable_${this.state.biometryType.toLowerCase()}`)}</Text>
-			<View style={styles.switchElement}>
-				<Switch
-					onValueChange={this.onSingInWithBiometrics}
-					value={this.state.biometryChoice}
-					trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
-					ios_backgroundColor={colors.grey000}
-				/>
+	renderDevicePasscodeSection = () => {
+		const { styles, colors } = this.getStyles();
+		return (
+			<View style={styles.setting}>
+				<Text style={styles.title}>
+					{isIos
+						? strings(`biometrics.enable_device_passcode_ios`)
+						: strings(`biometrics.enable_device_passcode_android`)}
+				</Text>
+				<View style={styles.switchElement}>
+					<Switch
+						onValueChange={this.onSignInWithPasscode}
+						value={this.state.passcodeChoice}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
+					/>
+				</View>
 			</View>
-		</View>
-	);
-
-	renderDevicePasscodeSection = () => (
-		<View style={styles.setting}>
-			<Text style={styles.title}>
-				{isIos
-					? strings(`biometrics.enable_device_passcode_ios`)
-					: strings(`biometrics.enable_device_passcode_android`)}
-			</Text>
-			<View style={styles.switchElement}>
-				<Switch
-					onValueChange={this.onSignInWithPasscode}
-					value={this.state.passcodeChoice}
-					trackColor={isIos ? { true: colors.blue, false: colors.grey000 } : null}
-					ios_backgroundColor={colors.grey000}
-				/>
-			</View>
-		</View>
-	);
+		);
+	};
 
 	renderPrivateKeySection = () => {
 		const { accounts, identities, selectedAddress } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+		const { styles } = this.getStyles();
 
 		return (
 			<View style={styles.setting} testID={'reveal-private-key-section'}>
@@ -726,6 +776,7 @@ class Settings extends PureComponent {
 
 	renderClearPrivacySection = () => {
 		const { approvedHosts } = this.props;
+		const { styles } = this.getStyles();
 
 		return (
 			<View style={[styles.setting, styles.firstSetting]} testID={'clear-privacy-section'}>
@@ -745,6 +796,7 @@ class Settings extends PureComponent {
 
 	renderClearBrowserHistorySection = () => {
 		const { browserHistory } = this.props;
+		const { styles } = this.getStyles();
 
 		return (
 			<View style={styles.setting}>
@@ -762,18 +814,22 @@ class Settings extends PureComponent {
 		);
 	};
 
-	renderClearCookiesSection = () => (
-		<View style={styles.setting} testID={'clear-cookies-section'}>
-			<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
-			<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
-			<StyledButton type="normal" onPress={this.toggleClearCookiesModal} containerStyle={styles.confirm}>
-				{strings('app_settings.clear_browser_cookies_desc')}
-			</StyledButton>
-		</View>
-	);
+	renderClearCookiesSection = () => {
+		const { styles } = this.getStyles();
+		return (
+			<View style={styles.setting} testID={'clear-cookies-section'}>
+				<Text style={styles.title}>{strings('app_settings.clear_browser_cookies_desc')}</Text>
+				<Text style={styles.desc}>{strings('app_settings.clear_cookies_desc')}</Text>
+				<StyledButton type="normal" onPress={this.toggleClearCookiesModal} containerStyle={styles.confirm}>
+					{strings('app_settings.clear_browser_cookies_desc')}
+				</StyledButton>
+			</View>
+		);
+	};
 
 	renderPrivacyModeSection = () => {
 		const { privacyMode } = this.props;
+		const { styles, colors } = this.getStyles();
 
 		return (
 			<View style={styles.setting} testID={'privacy-mode-section'}>
@@ -783,8 +839,10 @@ class Settings extends PureComponent {
 					<Switch
 						value={privacyMode}
 						onValueChange={this.togglePrivacy}
-						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-						ios_backgroundColor={colors.grey000}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
 					/>
 				</View>
 			</View>
@@ -793,6 +851,7 @@ class Settings extends PureComponent {
 
 	renderMetaMetricsSection = () => {
 		const { analyticsEnabled } = this.state;
+		const { styles, colors } = this.getStyles();
 
 		return (
 			<View style={styles.setting} testID={'metametrics-section'}>
@@ -802,8 +861,10 @@ class Settings extends PureComponent {
 					<Switch
 						value={analyticsEnabled}
 						onValueChange={this.toggleMetricsOptIn}
-						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-						ios_backgroundColor={colors.grey000}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
 						testID={'metametrics-switch'}
 					/>
 				</View>
@@ -813,6 +874,7 @@ class Settings extends PureComponent {
 
 	renderThirdPartySection = () => {
 		const { thirdPartyApiMode } = this.props;
+		const { styles, colors } = this.getStyles();
 
 		return (
 			<View style={styles.setting} testID={'third-party-section'}>
@@ -822,8 +884,10 @@ class Settings extends PureComponent {
 					<Switch
 						value={thirdPartyApiMode}
 						onValueChange={this.toggleThirdPartyAPI}
-						trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-						ios_backgroundColor={colors.grey000}
+						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+						thumbColor={importedColors.white}
+						style={styles.switch}
+						ios_backgroundColor={colors.border.muted}
 					/>
 				</View>
 			</View>
@@ -832,6 +896,7 @@ class Settings extends PureComponent {
 
 	renderApprovalModal = () => {
 		const { approvalModalVisible } = this.state;
+		const { styles } = this.getStyles();
 
 		return (
 			<ActionModal
@@ -852,6 +917,7 @@ class Settings extends PureComponent {
 
 	renderHistoryModal = () => {
 		const { browserHistoryModalVisible } = this.state;
+		const { styles } = this.getStyles();
 
 		return (
 			<ActionModal
@@ -872,6 +938,7 @@ class Settings extends PureComponent {
 
 	renderCookiesModal = () => {
 		const { cookiesModalVisible } = this.state;
+		const { styles } = this.getStyles();
 
 		return (
 			<ActionModal
@@ -892,6 +959,7 @@ class Settings extends PureComponent {
 
 	renderOpenSeaSettings = () => {
 		const { openSeaEnabled, useCollectibleDetection } = this.props;
+		const { styles, colors } = this.getStyles();
 
 		return (
 			<>
@@ -902,8 +970,10 @@ class Settings extends PureComponent {
 						<Switch
 							value={openSeaEnabled}
 							onValueChange={this.toggleOpenSeaApi}
-							trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-							ios_backgroundColor={colors.grey000}
+							trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+							thumbColor={importedColors.white}
+							style={styles.switch}
+							ios_backgroundColor={colors.border.muted}
 						/>
 					</View>
 				</View>
@@ -914,8 +984,10 @@ class Settings extends PureComponent {
 						<Switch
 							value={useCollectibleDetection}
 							onValueChange={this.toggleNftAutodetect}
-							trackColor={Device.isIos() ? { true: colors.blue, false: colors.grey000 } : null}
-							ios_backgroundColor={colors.grey000}
+							trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+							thumbColor={importedColors.white}
+							style={styles.switch}
+							ios_backgroundColor={colors.border.muted}
 							disabled={!openSeaEnabled}
 						/>
 					</View>
@@ -926,6 +998,7 @@ class Settings extends PureComponent {
 
 	render = () => {
 		const { biometryType, biometryChoice, loading } = this.state;
+		const { styles } = this.getStyles();
 
 		if (loading)
 			return (
@@ -967,6 +1040,8 @@ class Settings extends PureComponent {
 		);
 	};
 }
+
+Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	approvedHosts: state.privacy.approvedHosts,

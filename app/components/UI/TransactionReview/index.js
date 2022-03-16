@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, InteractionManager, Animated } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -31,41 +31,43 @@ import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.blue,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-		backgroundColor: colors.beige,
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...fontStyles.bold,
-	},
-	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 230 : 415,
-	},
-	actionViewChildren: {
-		height: 330,
-	},
-	accountInfoCardWrapper: {
-		paddingHorizontal: 24,
-		paddingBottom: 12,
-	},
-	transactionData: {
-		position: 'absolute',
-		width: '100%',
-		height: '100%',
-	},
-	hidden: {
-		opacity: 0,
-		height: 0,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary.default,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+			backgroundColor: colors.background.default,
+		},
+		textStyle: {
+			fontSize: 12,
+			letterSpacing: 0.5,
+			...fontStyles.bold,
+		},
+		actionViewWrapper: {
+			height: Device.isMediumDevice() ? 230 : 415,
+		},
+		actionViewChildren: {
+			height: 330,
+		},
+		accountInfoCardWrapper: {
+			paddingHorizontal: 24,
+			paddingBottom: 12,
+		},
+		transactionData: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+		},
+		hidden: {
+			opacity: 0,
+			height: 0,
+		},
+	});
 
 /**
  * PureComponent that supports reviewing a transaction
@@ -288,13 +290,21 @@ class TransactionReview extends PureComponent {
 		onModeChange && onModeChange('edit');
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderTabBar() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = this.getStyles();
+
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary.default}
+				inactiveTextColor={colors.text.muted}
+				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
@@ -348,6 +358,8 @@ class TransactionReview extends PureComponent {
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		const styles = this.getStyles();
+
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
@@ -429,5 +441,7 @@ const mapStateToProps = (state) => ({
 	primaryCurrency: state.settings.primaryCurrency,
 	tokenList: getTokenList(state),
 });
+
+TransactionReview.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(TransactionReview);

@@ -1,17 +1,18 @@
 'use strict';
 
 import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
+import { Appearance, NativeModules } from 'react-native';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
-import { NativeModules } from 'react-native';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
-import Engine from './Engine';
+import { store } from '../store';
 const RCTAnalytics = NativeModules.Analytics;
 
 const USER_PROFILE_PROPERTY = {
 	ENABLE_OPENSEA_API: 'Enable OpenSea API',
 	NFT_AUTODETECTION: 'NFT Autodetection',
+	THEME: 'Theme',
 
 	ON: 'ON',
 	OFF: 'OFF',
@@ -54,15 +55,21 @@ class Analytics {
 	 * Set the user profile state for current user to mixpanel
 	 */
 	_setUserProfileProperties = () => {
-		const state = Engine.context.PreferencesController.internalState;
+		const reduxState = store.getState();
+		const preferencesController = reduxState?.engine?.backgroundState?.PreferencesController;
+		const appTheme = reduxState?.user?.appTheme;
+		// This will return either "light" or "dark"
+		const appThemeStyle = appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
+
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
-			state?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+			preferencesController?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
-			state?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+			preferencesController?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
+		RCTAnalytics.setUserProfileProperty(USER_PROFILE_PROPERTY.THEME, appThemeStyle);
 	};
 
 	/**
