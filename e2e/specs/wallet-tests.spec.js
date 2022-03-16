@@ -29,6 +29,7 @@ const ETHEREUM = 'Ethereum Main Network';
 const COLLECTIBLE_CONTRACT_ADDRESS = '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
 const COLLECTIBLE_IDENTIFIER = '404';
 const TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
+const ERC_20_TOKEN_ADDRESS = '0x01BE23585060835E02B77ef475b0Cc51aA1e0709';
 const TEST_PRIVATE_KEY = 'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -297,5 +298,56 @@ describe('Wallet Tests', () => {
 		await TransactionConfirmationView.tapConfirmButton();
 		// Check that we are on the wallet screen
 		await WalletView.isVisible();
+	});
+
+	it('should import ERC-20 token', async () => {
+		// Tap Add Tokens
+		await WalletView.tapImportTokensButton();
+		// Tap CUSTOM TOKEN
+		await AddCustomTokenView.tapCustomTokenTab();
+		// Check that we are on the custom token screen
+		await AddCustomTokenView.isVisible();
+		// Add ERC-20 Token
+		await AddCustomTokenView.typeTokenAddress(ERC_20_TOKEN_ADDRESS);
+		await AddCustomTokenView.tapTokenSymbolInputBox();
+		await AddCustomTokenView.tapTokenSymbolText();
+		await AddCustomTokenView.tapCustomTokenImportButton();
+		// Check that we are on the wallet screen
+		await WalletView.isVisible();
+		await TestHelpers.delay(10000); // to prevent flakey behavior in bitrise
+		//await WalletView.isTokenVisibleInWallet('LINK');
+	});
+
+	it('should send ERC-20 to Account 2', async () => {
+		// Open Drawer
+		await WalletView.tapDrawerButton();
+		await DrawerView.isVisible();
+		await DrawerView.tapSendButton();
+		await SendView.inputAddress(VALID_ADDRESS);
+		await SendView.tapNextButton();
+		// Check that we are on the amount view
+		await AmountView.isVisible();
+		await AmountView.tapTokenSelectButton();
+		await TestHelpers.delay(5000);
+		await AmountView.tap('LINK');
+		// Input acceptable value
+		await AmountView.typeInTransactionAmount('0.001');
+		await AmountView.tapNextButton();
+		// Check that we are on the confirm view
+		await TransactionConfirmationView.isVisible();
+		// Check that the amount is correct
+		await TransactionConfirmationView.isTransactionTotalCorrect('0.001');
+		// Tap on the Send CTA
+		await TransactionConfirmationView.tapConfirmButton();
+		// Check that we are on the wallet screen
+		await WalletView.isVisible();
+	});
+
+	it('should remove ERC-20 token', async () => {
+		//await WalletView.isTokenVisibleInWallet('LINK');
+		await WalletView.removeTokenFromWallet('LINK');
+		await WalletView.tapOKAlertButton();
+		await TestHelpers.delay(1500);
+		await WalletView.tokenIsNotVisibleInWallet('LINK');
 	});
 });
