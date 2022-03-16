@@ -14,28 +14,18 @@ import {
 } from '../constants/storage';
 import Logger from '../util/Logger';
 import { logIn, logOut } from '../actions/user';
-
-/**
- * Different sources of authentication user can provide
- */
-export enum AuthenticationType {
-	BIOMETRIC = 'biometrics',
-	PASSCODE = 'device_passcode',
-	PASSWORD = 'password',
-	REMEMBER_ME = 'remember_me',
-	UNKNOWN = 'unkown',
-}
+import AUTHENTICATION_TYPE from '../constants/userProperties';
 
 /**
  * Holds auth data used to determine auth configuration
  */
 interface AuthData {
-	type: AuthenticationType; //Enum used to show type for authentication
+	type: AUTHENTICATION_TYPE; //Enum used to show type for authentication
 	biometryType: string; //Type of biometry used to store user password provide by SecureKeychain
 }
 
 class AuthenticationService {
-	authData: AuthData = { type: AuthenticationType.UNKNOWN, biometryType: '' };
+	authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
 	store: any;
 
 	/**
@@ -98,12 +88,12 @@ class AuthenticationService {
 	 * @param password - password provided by user
 	 * @param authType - type of authentication required to fetch password from keychain
 	 */
-	storePassword = async (password: string, authType: AuthenticationType) => {
-		if (authType === AuthenticationType.BIOMETRIC) {
+	storePassword = async (password: string, authType: AUTHENTICATION_TYPE) => {
+		if (authType === AUTHENTICATION_TYPE.BIOMETRIC) {
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
-		} else if (authType === AuthenticationType.PASSCODE) {
+		} else if (authType === AUTHENTICATION_TYPE.PASSCODE) {
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
-		} else if (authType === AuthenticationType.REMEMBER_ME) {
+		} else if (authType === AUTHENTICATION_TYPE.REMEMBER_ME) {
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
 		} else {
 			await SecureKeychain.resetGenericPassword();
@@ -126,13 +116,13 @@ class AuthenticationService {
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
 		if (biometryType && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
-			return { type: AuthenticationType.BIOMETRIC, biometryType };
+			return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
 		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
-			return { type: AuthenticationType.PASSCODE, biometryType };
+			return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
 		} else if (credentials) {
-			return { type: AuthenticationType.REMEMBER_ME, biometryType };
+			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
 		}
-		return { type: AuthenticationType.PASSWORD, biometryType };
+		return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType };
 	};
 
 	/**
@@ -141,10 +131,10 @@ class AuthenticationService {
 	 * @param rememberMe - remember me setting (//TODO: to be removed)
 	 * @returns @AuthData
 	 */
-	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean) => {
+	componentAUTHENTICATION_TYPE = async (biometryChoice: boolean, rememberMe: boolean) => {
 		const authType = await this.checkAuthenticationMethod(undefined);
 		if (rememberMe && !biometryChoice)
-			return { type: AuthenticationType.REMEMBER_ME, biometryType: authType.biometryType };
+			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType: authType.biometryType };
 		return authType;
 	};
 
@@ -236,7 +226,7 @@ class AuthenticationService {
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
-		this.authData = { type: AuthenticationType.UNKNOWN, biometryType: '' };
+		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
 		this.store?.dispatch(logOut());
 	};
 }
@@ -263,10 +253,10 @@ export default {
 	},
 	resetVault: async () => await instance?.resetVault(),
 	getType: async () => await instance?.checkAuthenticationMethod(undefined),
-	storePassword: async (password: string, authType: AuthenticationType) => {
+	storePassword: async (password: string, authType: AUTHENTICATION_TYPE) => {
 		await instance?.storePassword(password, authType);
 	},
 	getPassword: async () => await instance?.getPassword(),
-	componentAuthenticationType: async (biometryChoice: boolean, rememberMe: boolean) =>
-		await instance?.componentAuthenticationType(biometryChoice, rememberMe),
+	componentAUTHENTICATION_TYPE: async (biometryChoice: boolean, rememberMe: boolean) =>
+		await instance?.componentAUTHENTICATION_TYPE(biometryChoice, rememberMe),
 };

@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { BIOMETRY_CHOICE_DISABLED, TRUE, PASSCODE_DISABLED } from '../constants/storage';
 import configureMockStore from 'redux-mock-store';
-import AuthenticationService, { AuthenticationType } from './AuthenticationService';
+import AuthenticationService from './AuthenticationService';
+import AUTHENTICATION_TYPE from '../constants/userProperties';
 // eslint-disable-next-line import/no-namespace
 import * as Keychain from 'react-native-keychain';
 import Engine from './Engine';
@@ -46,14 +47,14 @@ describe('AuthenticationService', () => {
 		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		const result = await AuthenticationService.getType();
 		expect(result.biometryType).toEqual('FaceID');
-		expect(result.type).toEqual(AuthenticationType.PASSWORD);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
 	});
 
 	it('should return a type biometric', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FACE_ID);
 		const result = await AuthenticationService.getType();
 		expect(result.biometryType).toEqual('FaceID');
-		expect(result.type).toEqual(AuthenticationType.BIOMETRIC);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
 	});
 
 	it('should return a type passcode', async () => {
@@ -61,7 +62,7 @@ describe('AuthenticationService', () => {
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		const result = await AuthenticationService.getType();
 		expect(result.biometryType).toEqual('Fingerprint');
-		expect(result.type).toEqual(AuthenticationType.PASSCODE);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSCODE);
 	});
 
 	it('should return a type password with biometric & pincode disabled', async () => {
@@ -70,45 +71,45 @@ describe('AuthenticationService', () => {
 		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
 		const result = await AuthenticationService.getType();
 		expect(result.biometryType).toEqual('Fingerprint');
-		expect(result.type).toEqual(AuthenticationType.PASSWORD);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
 	});
 
-	it('should return a auth type for components AuthenticationType.REMEMBER_ME', async () => {
+	it('should return a auth type for components AUTHENTICATION_TYPE.REMEMBER_ME', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAuthenticationType(false, true);
+		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(false, true);
 		expect(result.biometryType).toEqual('Fingerprint');
-		expect(result.type).toEqual(AuthenticationType.REMEMBER_ME);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.REMEMBER_ME);
 	});
 
-	it('should return a auth type for components AuthenticationType.PASSWORD', async () => {
+	it('should return a auth type for components AUTHENTICATION_TYPE.PASSWORD', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
 		await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAuthenticationType(false, false);
+		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(false, false);
 		expect(result.biometryType).toEqual('Fingerprint');
-		expect(result.type).toEqual(AuthenticationType.PASSWORD);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSWORD);
 	});
 
-	it('should return a auth type for components AuthenticationType.PASSCODE', async () => {
+	it('should return a auth type for components AUTHENTICATION_TYPE.PASSCODE', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
 		await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-		const result = await AuthenticationService.componentAuthenticationType(true, false);
+		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(true, false);
 		expect(result.biometryType).toEqual('Fingerprint');
-		expect(result.type).toEqual(AuthenticationType.PASSCODE);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.PASSCODE);
 	});
 
-	it('should return a auth type for components AuthenticationType.BIOMETRIC', async () => {
+	it('should return a auth type for components AUTHENTICATION_TYPE.BIOMETRIC', async () => {
 		Keychain.getSupportedBiometryType = jest.fn().mockReturnValue(Keychain.BIOMETRY_TYPE.FINGERPRINT);
-		const result = await AuthenticationService.componentAuthenticationType(true, false);
+		const result = await AuthenticationService.componentAUTHENTICATION_TYPE(true, false);
 		expect(result.biometryType).toEqual('Fingerprint');
-		expect(result.type).toEqual(AuthenticationType.BIOMETRIC);
+		expect(result.type).toEqual(AUTHENTICATION_TYPE.BIOMETRIC);
 	});
 
 	it('should return set a password using PASSWORD', async () => {
 		let methodCalled = false;
 		Keychain.resetGenericPassword = jest.fn().mockReturnValue((methodCalled = true));
-		await AuthenticationService.storePassword('1234', AuthenticationType.UNKNOWN);
+		await AuthenticationService.storePassword('1234', AUTHENTICATION_TYPE.UNKNOWN);
 		expect(methodCalled).toBeTruthy();
 	});
 
@@ -124,12 +125,12 @@ describe('AuthenticationService', () => {
 	// it('should successfully complete userEntryAuth', async () => {
 	// 	// //Create new wallet
 	// 	await AuthenticationService.newWalletAndKeyChain('test1234', {
-	// 		type: AuthenticationType.PASSWORD,
+	// 		type: AUTHENTICATION_TYPE.PASSWORD,
 	// 		biometryType: undefined,
 	// 	});
 	// 	await AuthenticationService.userEntryAuth(
 	// 		'test',
-	// 		{ type: AuthenticationType.PASSWORD, biometryType: undefined },
+	// 		{ type: AUTHENTICATION_TYPE.PASSWORD, biometryType: undefined },
 	// 		'0x000'
 	// 	);
 	// });
