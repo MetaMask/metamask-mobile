@@ -21,7 +21,7 @@ import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { PRIVATENETWORK } from '../../../../../constants/network';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
-import santizeUrl from '../../../../../util/santizeUrl'
+import santizeUrl from '../../../../../util/santizeUrl';
 
 const createStyles = (colors) =>
 	StyleSheet.create({

@@ -1,131 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworkInfo should render correctly 1`] = `
-<View
-  style={
+<NetworkInfo
+  dispatch={[Function]}
+  networkProvider={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "borderRadius": 10,
+      "rpcTarget": "http://10.0.2.2:8545",
+      "type": "mainnet",
     }
   }
->
-  <View
-    style={
-      Object {
-        "padding": 20,
-      }
-    }
-  >
-    <Text
-      style={
-        Object {
-          "fontSize": 16,
-          "fontWeight": "bold",
-          "marginVertical": 10,
-          "textAlign": "center",
-        }
-      }
-    >
-      You have switched to
-    </Text>
-    <View
-      style={
-        Object {
-          "marginBottom": 30,
-        }
-      }
-    >
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "backgroundColor": "#d6d9dc",
-            "borderRadius": 40,
-            "flexDirection": "row",
-            "justifyContent": "center",
-            "marginLeft": 50,
-            "marginRight": 50,
-            "padding": 10,
-          }
-        }
-      >
-        <Connect(NetworkMainAssetLogo)
-          big={true}
-          style={
-            Object {
-              "height": 30,
-              "marginHorizontal": 5,
-              "overflow": "hidden",
-              "width": 30,
-            }
-          }
-          testID="eth-logo"
-        />
-        <Text
-          style={
-            Object {
-              "fontSize": 15,
-              "textTransform": "capitalize",
-            }
-          }
-        />
-      </View>
-    </View>
-    <Text
-      style={
-        Object {
-          "fontSize": 14,
-          "fontWeight": "bold",
-          "marginBottom": 15,
-          "textAlign": "center",
-        }
-      }
-    >
-      Things to keep in mind:
-    </Text>
-    <View
-      style={
-        Object {
-          "marginBottom": 15,
-        }
-      }
-    >
-      <Description
-        description="The native token on this network is [missing {{nativeToken}} value]. It is the token used for gas fees."
-        number={1}
-      />
-      <Description
-        clickableText="Learn more"
-        description="If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge."
-        number={2}
-      />
-      <Description
-        clickableText="Click here to manually add the tokens"
-        description="Your wallet may not automatically show up in your wallet."
-        number={3}
-      />
-    </View>
-    <StyledButton
-      containerStyle={
-        Object {
-          "marginVertical": 20,
-        }
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      testID="close-network-info-button"
-      type="confirm"
-    >
-      Got it
-    </StyledButton>
-  </View>
-</View>
+  onClose={[Function]}
+  ticker=""
+  type=""
+/>
 `;

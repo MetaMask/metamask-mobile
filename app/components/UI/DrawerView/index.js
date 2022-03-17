@@ -47,7 +47,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
-import santizeUrl from '../../../util/santizeUrl'
+import santizeUrl from '../../../util/santizeUrl';
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
@@ -550,9 +550,7 @@ class DrawerView extends PureComponent {
 		} = this.props;
 		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
 		!showNetworkOnboarding && this.toggleNetworksModal();
-		console.log(networkUrl, 'networkUrl');
-		console.log(this.state.networkUrl, 'this.state.networkUrl');
-		// onboardNetworkAction(santizeUrl(networkUrl) || this.state.networkUrl);
+		onboardNetworkAction(santizeUrl(networkUrl) || this.state.networkUrl);
 		if (!manualClose) {
 			await this.hideDrawer();
 		}
@@ -1186,6 +1184,7 @@ class DrawerView extends PureComponent {
 							onClose={this.onNetworksModalClose}
 							onNetworkSelected={this.onNetworkSelected}
 							showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+							switchModalContent={this.switchModalContent}
 						/>
 					)}
 				</Modal>

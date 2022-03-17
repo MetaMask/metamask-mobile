@@ -1,11 +1,11 @@
+/* eslint-disable no-mixed-spaces-and-tabs */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { PRIVATENETWORK } from '../../../constants/network';
-import {MAINNET, RPC} from '../../../constants/network';
+import { PRIVATENETWORK, MAINNET, RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
 
@@ -88,12 +88,16 @@ interface NetworkInfoProps {
 		type: string;
 		ticker: {
 			networkTicker: string;
-		}
-	}
+		};
+	};
 }
 
 const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
-	const { onClose, ticker, networkProvider: {nickname, type, ticker: networkTicker} } = props;
+	const {
+		onClose,
+		ticker,
+		networkProvider: { nickname, type, ticker: networkTicker },
+	} = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.modalContentView} testID={'education-modal-container-id'}>
@@ -109,11 +113,13 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 							</>
 						) : (
 							<>
-								<NetworkMainAssetLogo
-									style={styles.ethLogo}
-								/>
+								<NetworkMainAssetLogo style={styles.ethLogo} />
 								<Text style={styles.tokenText}>
-									{type === RPC ? `${nickname}`: type === MAINNET ? `${type}` : `${strings('network_information.testnet_network', {type})}`}
+									{type === RPC
+										? `${nickname}`
+										: type === MAINNET
+										? `${type}`
+										: `${strings('network_information.testnet_network', { type })}`}
 								</Text>
 							</>
 						)}
@@ -125,8 +131,13 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 				<View style={styles.descriptionViews}>
 					<Description
 						description={
-							type !== RPC ? strings('network_information.first_description', { ticker })
-								: [networkTicker === undefined ? strings('network_information.private_network') : strings('network_information.first_description', { ticker })]
+							type !== RPC
+								? strings('network_information.first_description', { ticker })
+								: [
+										networkTicker === undefined
+											? strings('network_information.private_network')
+											: strings('network_information.first_description', { ticker }),
+								  ]
 						}
 						number={1}
 						clickableText={undefined}

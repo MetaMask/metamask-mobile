@@ -12,7 +12,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NETWORK_LIST_MODAL_CONTAINER_ID, OTHER_NETWORK_LIST_ID, NETWORK_SCROLL_ID } from '../../../constants/test-ids';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
-import santizeUrl from '../../../util/santizeUrl'
+import santizeUrl from '../../../util/santizeUrl';
 
 const createStyles = (colors) =>
 	StyleSheet.create({

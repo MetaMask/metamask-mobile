@@ -1,5 +1,3 @@
-const santizeUrl = (url: string) => {
-    return url.replace(/\/$/, '');
-};
+const santizeUrl = (url: string) => url.replace(/\/$/, '');
 
 export default santizeUrl;
