@@ -9,6 +9,12 @@ export const onboardNetworkAction = (data) => ({
 	payload: data,
 });
 
+export const networkSwitched = ({ networkUrl, networkStatus }) => ({
+	type: 'NETWORK_SWITCHED',
+	networkUrl,
+	networkStatus,
+});
+
 export const showNetworkOnboardingAction = ({ networkUrl, networkType, nativeToken }) => ({
 	type: 'SHOW_NETWORK_ONBOARDING',
 	networkUrl,

@@ -48,7 +48,7 @@ import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import santizeUrl from '../../../util/santizeUrl';
-import { onboardNetworkAction } from '../../../actions/onboardNetwork';
+import { onboardNetworkAction, networkSwitched } from '../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -407,6 +407,21 @@ class DrawerView extends PureComponent {
 		 * returns network onboarding state
 		 */
 		networkOnboarding: PropTypes.object,
+		/**
+		 * returns switched network state
+		 */
+		switchedNetwork: {
+			networkUrl: PropTypes.string,
+			networkStatus: PropTypes.bool,
+		},
+		/**
+		 * updates when network is switched
+		 */
+		networkSwitched: PropTypes.func,
+		/**
+		 *
+		 */
+		networkOnboardedState: [PropTypes.string, PropTypes.bool],
 	};
 
 	state = {
@@ -547,10 +562,13 @@ class DrawerView extends PureComponent {
 		const {
 			networkOnboarding: { showNetworkOnboarding, networkUrl },
 			onboardNetworkAction,
+			switchedNetwork: { networkUrl: switchedNetworkUrl },
+			networkSwitched,
 		} = this.props;
 		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
 		!showNetworkOnboarding && this.toggleNetworksModal();
-		onboardNetworkAction(santizeUrl(networkUrl) || this.state.networkUrl);
+		onboardNetworkAction(santizeUrl(networkUrl) || this.state.networkUrl || santizeUrl(switchedNetworkUrl));
+		networkSwitched({ networkUrl: '', networkStatus: false });
 		if (!manualClose) {
 			await this.hideDrawer();
 		}
@@ -990,6 +1008,9 @@ class DrawerView extends PureComponent {
 			seedphraseBackedUp,
 			currentRoute,
 			networkOnboarding,
+			networkOnboardedState,
+			switchedNetwork,
+			networkModalVisible
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -998,6 +1019,8 @@ class DrawerView extends PureComponent {
 			invalidCustomNetwork,
 			showProtectWalletModal,
 			account: { name: nameFromState, ens: ensFromState },
+			showModal,
+			networkType
 		} = this.state;
 
 		const account = {
@@ -1016,6 +1039,9 @@ class DrawerView extends PureComponent {
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const accountName = isDefaultAccountName(name) && ens ? ens : name;
+		const checkIfCustomNetworkExists = networkOnboardedState.filter(
+			(item) => item.network === santizeUrl(switchedNetwork.networkUrl)
+		);
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1163,19 +1189,23 @@ class DrawerView extends PureComponent {
 					</View>
 				</ScrollView>
 				<Modal
-					isVisible={this.props.networkModalVisible || networkOnboarding.showNetworkOnboarding}
-					onBackdropPress={this.state.showModal ? null : this.toggleNetworksModal}
-					onBackButtonPress={this.state.showModal ? null : this.toggleNetworksModa}
-					onSwipeComplete={this.state.showModal ? null : this.toggleNetworksModa}
+					isVisible={networkModalVisible || networkOnboarding.showNetworkOnboarding}
+					onBackdropPress={showModal ? null : this.toggleNetworksModal}
+					onBackButtonPress={showModal ? null : this.toggleNetworksModa}
+					onSwipeComplete={showModal ? null : this.toggleNetworksModa}
 					swipeDirection={'down'}
 					propagateSwipe
 					backdropColor={colors.overlay.default}
 					backdropOpacity={1}
 				>
-					{this.state.showModal || networkOnboarding.showNetworkOnboarding ? (
+					{showModal ||
+					networkOnboarding.showNetworkOnboarding ||
+					(currentRoute === 'WalletView' &&
+						switchedNetwork.networkStatus &&
+						checkIfCustomNetworkExists.length === 0) ? (
 						<NetworkInfo
 							onClose={this.onInfoNetworksModalClose}
-							type={this.state.networkType || networkOnboarding.networkType}
+							type={networkType || networkOnboarding.networkType}
 							ticker={ticker}
 						/>
 					) : (
@@ -1264,6 +1294,7 @@ const mapStateToProps = (state) => ({
 	networkOnboarding: state.networkOnboarded.networkState,
 	networkOnboardedState: state.networkOnboarded.networkOnboardedState,
 	networkProvider: state.engine.backgroundState.NetworkController.provider,
+	switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1275,6 +1306,7 @@ const mapDispatchToProps = (dispatch) => ({
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 	logOut: () => dispatch(logOut()),
 	onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
+	networkSwitched: ({ networkUrl, networkStatus }) => dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
 DrawerView.contextType = ThemeContext;

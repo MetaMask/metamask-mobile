@@ -6,6 +6,10 @@ export const initialState = {
 		networkType: '',
 		networkUrl: '',
 	},
+	switchedNetwork: {
+		networkUrl: '',
+		networkStatus: false,
+	},
 };
 
 /**
@@ -24,6 +28,14 @@ function networkOnboardReducer(state = initialState, action) {
 					nativeToken: action.nativeToken,
 					networkType: action.networkType,
 					networkUrl: action.networkUrl,
+				},
+			};
+		case 'NETWORK_SWITCHED':
+			return {
+				...state,
+				switchedNetwork: {
+					networkUrl: action.networkUrl,
+					networkStatus: action.networkStatus,
 				},
 			};
 		case 'NETWORK_ONBOARDED':

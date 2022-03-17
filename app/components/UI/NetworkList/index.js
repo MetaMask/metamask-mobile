@@ -159,7 +159,7 @@ export class NetworkList extends PureComponent {
 
 	handleNetworkSelected = (type, ticker, url) => {
 		const { networkOnboardedState, switchModalContent, onClose, onNetworkSelected } = this.props;
-		const networkOnboarded = networkOnboardedState.filter((item) => item.network === url);
+		const networkOnboarded = networkOnboardedState.filter((item) => item.network === santizeUrl(url));
 		if (networkOnboarded.length === 0) {
 			switchModalContent();
 		} else {
@@ -223,8 +223,6 @@ export class NetworkList extends PureComponent {
 			block_explorer_url: blockExplorerUrl,
 			network_name: 'rpc',
 		});
-
-		this.props.onClose(false);
 	};
 
 	getStyles = () => {

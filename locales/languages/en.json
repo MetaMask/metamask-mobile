@@ -1851,6 +1851,7 @@
 		"third_description": "Your wallet may not automatically show up in your wallet.",
 		"private_network": "This network is unknown and may use a special token for gas fees.",
 		"unknown_network": "Unknown network",
+		"switched_network": "You have switched to",
 		"learn_more": "Learn more",
 		"add_token": "Click here to manually add the tokens",
 		"add_token_manually": "Add token manually",

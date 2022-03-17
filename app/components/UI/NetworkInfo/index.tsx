@@ -101,7 +101,7 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.modalContentView} testID={'education-modal-container-id'}>
-				<Text style={styles.title}>You have switched to</Text>
+				<Text style={styles.title}>{strings('network_information.switched_network')}</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
 						{ticker === PRIVATENETWORK ? (
