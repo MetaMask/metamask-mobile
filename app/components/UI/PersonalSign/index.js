@@ -162,6 +162,11 @@ class PersonalSign extends PureComponent {
 		return createStyles(colors);
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderMessageText = () => {
 		const { messageParams, showExpandedMessage } = this.props;
 		const { truncateMessage } = this.state;

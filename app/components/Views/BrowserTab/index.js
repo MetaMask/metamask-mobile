@@ -380,7 +380,7 @@ export const BrowserTab = (props) => {
 					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
-					isTabActive,
+					tabId: props.id,
 				}),
 			isMainFrame,
 		});
@@ -566,7 +566,7 @@ export const BrowserTab = (props) => {
 			}
 
 			if (isAllowedUrl(hostname)) {
-				if (initialCall) {
+				if (initialCall || !firstUrlLoaded) {
 					setInitialUrl(urlToGo);
 					setFirstUrlLoaded(true);
 				} else {
@@ -579,7 +579,7 @@ export const BrowserTab = (props) => {
 			handleNotAllowedUrl(urlToGo);
 			return null;
 		},
-		[handleIpfsContent, isAllowedUrl, isHomepage, props.defaultProtocol]
+		[firstUrlLoaded, handleIpfsContent, isAllowedUrl, isHomepage, props.defaultProtocol]
 	);
 
 	/**

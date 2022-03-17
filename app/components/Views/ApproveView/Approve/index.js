@@ -560,9 +560,9 @@ class Approve extends PureComponent {
 		} = this.state;
 		const { transaction, addressBook, network, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } =
 			this.props;
+		const colors = this.context.colors || mockTheme.colors;
 
 		const addressData = checkIfAddressIsSaved(addressBook, network, transaction);
-		const colors = this.context.colors || mockTheme.colors;
 
 		if (!transaction.id) return null;
 		return (
@@ -571,7 +571,7 @@ class Approve extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={this.state.addNickname ? styles.updateNickView : styles.bottomModal}
-				ackdropColor={colors.overlay.default}
+				backdropColor={colors.overlay.default}
 				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}

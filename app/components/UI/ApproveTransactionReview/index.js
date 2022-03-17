@@ -11,7 +11,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
 import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
@@ -99,7 +99,7 @@ const createStyles = (colors) =>
 			alignItems: 'center',
 		},
 		addressWrapper: {
-			backgroundColor: colors.blue000,
+			backgroundColor: colors.primary.muted,
 			flexDirection: 'row',
 			alignItems: 'center',
 			borderRadius: 40,
@@ -109,7 +109,7 @@ const createStyles = (colors) =>
 		address: {
 			fontSize: 13,
 			marginHorizontal: 8,
-			color: colors.blue700,
+			color: colors.text.default,
 			...fontStyles.normal,
 			maxWidth: 120,
 		},
@@ -156,11 +156,11 @@ const createStyles = (colors) =>
 		nickname: {
 			...fontStyles.normal,
 			textAlign: 'center',
-			color: colors.blue500,
+			color: colors.primary.default,
 			marginBottom: 10,
 		},
 		actionIcon: {
-			color: colors.blue,
+			color: colors.primary.default,
 		},
 	});
 
@@ -177,10 +177,6 @@ class ApproveTransactionReview extends PureComponent {
 		 * A string that represents the selected address
 		 */
 		selectedAddress: PropTypes.string,
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -320,8 +316,6 @@ class ApproveTransactionReview extends PureComponent {
 		editPermissionVisible: false,
 		host: undefined,
 		originalApproveAmount: undefined,
-		totalGas: undefined,
-		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: MINIMUM_VALUE,
@@ -338,8 +332,7 @@ class ApproveTransactionReview extends PureComponent {
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate,
+			transaction: { origin, to, data },
 			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
@@ -360,7 +353,6 @@ class ApproveTransactionReview extends PureComponent {
 		}
 		const { spenderAddress, encodedAmount } = decodeApproveData(data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
-		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState(
@@ -370,8 +362,6 @@ class ApproveTransactionReview extends PureComponent {
 				originalApproveAmount: approveAmount,
 				tokenSymbol,
 				token: { symbol: tokenSymbol, decimals: tokenDecimals },
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 				spenderAddress,
 				encodedAmount,
 			},
@@ -380,24 +370,6 @@ class ApproveTransactionReview extends PureComponent {
 			}
 		);
 	};
-
-	componentDidUpdate(previousProps) {
-		const {
-			transaction: { gas, gasPrice },
-			conversionRate,
-		} = this.props;
-		const totalGas = gas?.mul(gasPrice);
-		if (
-			previousProps.transaction.gas !== this.props.transaction.gas ||
-			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
-		) {
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			});
-		}
-	}
 
 	getAnalyticsParams = () => {
 		try {
@@ -584,14 +556,12 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
-	toggleDisplay = () => {
-		this.props.onUpdateContractNickname();
-	};
-
 	getStyles = () => {
 		const colors = this.context.colors || mockTheme.colors;
 		return createStyles(colors);
 	};
+
+	toggleDisplay = () => this.props.onUpdateContractNickname();
 
 	renderDetails = () => {
 		const { host, tokenSymbol, spenderAddress } = this.state;
@@ -625,8 +595,6 @@ class ApproveTransactionReview extends PureComponent {
 			!gasEstimateType ||
 			gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ||
 			gasEstimateType === GAS_ESTIMATE_TYPES.NONE;
-
-		const colors = this.context.colors || mockTheme.colors;
 
 		return (
 			<>
@@ -669,7 +637,7 @@ class ApproveTransactionReview extends PureComponent {
 									type={'short'}
 								/>
 							)}
-							<Feather name="copy" size={18} color={colors.blue} style={styles.actionIcon} />
+							<Feather name="copy" size={18} style={styles.actionIcon} />
 						</TouchableOpacity>
 					</View>
 					<Text style={styles.nickname} onPress={this.toggleDisplay}>
@@ -684,80 +652,78 @@ class ApproveTransactionReview extends PureComponent {
 							onConfirmPress={this.onConfirmPress}
 							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
-							<View style={styles.actionViewChildren}>
-								<View style={styles.paddingHorizontal}>
-									<AccountInfoCard />
-									<View style={styles.section}>
-										{showFeeMarket ? (
-											<TransactionReviewEIP1559
-												totalNative={EIP1559GasData.renderableTotalMinNative}
-												totalConversion={EIP1559GasData.renderableTotalMinConversion}
-												totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
-												gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-												gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-												gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-												gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
-												primaryCurrency={primaryCurrency}
-												timeEstimate={EIP1559GasData.timeEstimate}
-												timeEstimateColor={EIP1559GasData.timeEstimateColor}
-												timeEstimateId={EIP1559GasData.timeEstimateId}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												onUpdatingValuesStart={onUpdatingValuesStart}
-												onUpdatingValuesEnd={onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-											/>
-										) : (
-											<TransactionReviewEIP1559
-												totalNative={LegacyGasData.transactionTotalAmount}
-												totalConversion={LegacyGasData.transactionTotalAmountFiat}
-												gasFeeNative={LegacyGasData.transactionFee}
-												gasFeeConversion={LegacyGasData.transactionFeeFiat}
-												primaryCurrency={primaryCurrency}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												over={Boolean(LegacyGasData.error)}
-												onUpdatingValuesStart={this.onUpdatingValuesStart}
-												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-												legacy
-											/>
-										)}
+							<View style={styles.paddingHorizontal}>
+								<AccountInfoCard />
+								<View style={styles.section}>
+									{showFeeMarket ? (
+										<TransactionReviewEIP1559
+											totalNative={EIP1559GasData.renderableTotalMinNative}
+											totalConversion={EIP1559GasData.renderableTotalMinConversion}
+											totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
+											gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+											gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+											gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+											gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+											primaryCurrency={primaryCurrency}
+											timeEstimate={EIP1559GasData.timeEstimate}
+											timeEstimateColor={EIP1559GasData.timeEstimateColor}
+											timeEstimateId={EIP1559GasData.timeEstimateId}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											onUpdatingValuesStart={onUpdatingValuesStart}
+											onUpdatingValuesEnd={onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+										/>
+									) : (
+										<TransactionReviewEIP1559
+											totalNative={LegacyGasData.transactionTotalAmount}
+											totalConversion={LegacyGasData.transactionTotalAmountFiat}
+											gasFeeNative={LegacyGasData.transactionFee}
+											gasFeeConversion={LegacyGasData.transactionFeeFiat}
+											primaryCurrency={primaryCurrency}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											over={Boolean(LegacyGasData.error)}
+											onUpdatingValuesStart={this.onUpdatingValuesStart}
+											onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+											legacy
+										/>
+									)}
 
-										{gasError && (
-											<View style={styles.errorWrapper}>
-												<TouchableOpacity onPress={errorPress}>
-													<Text reset style={styles.error}>
-														{gasError}
+									{gasError && (
+										<View style={styles.errorWrapper}>
+											<TouchableOpacity onPress={errorPress}>
+												<Text reset style={styles.error}>
+													{gasError}
+												</Text>
+												{/* only show buy more on mainnet */}
+												{over && is_main_net && (
+													<Text reset style={[styles.error, styles.underline]}>
+														{errorLinkText}
 													</Text>
-													{/* only show buy more on mainnet */}
-													{over && is_main_net && (
-														<Text reset style={[styles.error, styles.underline]}>
-															{errorLinkText}
-														</Text>
-													)}
-												</TouchableOpacity>
-											</View>
-										)}
-										{!gasError && (
-											<TouchableOpacity
-												style={styles.actionTouchable}
-												onPress={this.toggleViewDetails}
-											>
-												<View>
-													<Text reset style={styles.viewDetailsText}>
-														{strings('spend_limit_edition.view_details')}
-													</Text>
-												</View>
+												)}
 											</TouchableOpacity>
-										)}
-									</View>
+										</View>
+									)}
+									{!gasError && (
+										<TouchableOpacity
+											style={styles.actionTouchable}
+											onPress={this.toggleViewDetails}
+										>
+											<View>
+												<Text reset style={styles.viewDetailsText}>
+													{strings('spend_limit_edition.view_details')}
+												</Text>
+											</View>
+										</TouchableOpacity>
+									)}
 								</View>
 							</View>
 						</ActionView>

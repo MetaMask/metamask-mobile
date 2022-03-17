@@ -36,6 +36,7 @@ const createStyles = (colors) =>
 			backgroundColor: colors.background.default,
 			flexDirection: 'row',
 			alignItems: 'center',
+			justifyContent: 'space-between',
 			borderBottomWidth: 1,
 			borderBottomColor: colors.border.muted,
 			padding: 8,
@@ -49,21 +50,18 @@ const createStyles = (colors) =>
 			marginHorizontal: 8,
 			color: colors.text.alternative,
 		},
+		activityIndicator: {
+			color: colors.icon.default,
+		},
 	});
-
-const LabelElement = (label, checkingForSmartContracts, showLoading) => {
-	const colors = this.context.colors || mockTheme.colors;
-	const styles = createStyles(colors);
-	return (
-		<View key={label} style={styles.labelElementWrapper}>
-			<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>
-				{label}
-			</Text>
-			{showLoading && checkingForSmartContracts && <ActivityIndicator size="small" color={colors.grey500} />}
-		</View>
-	);
-};
-
+const LabelElement = (styles, label, checkingForSmartContracts = false, showLoading = false) => (
+	<View key={label} style={styles.labelElementWrapper}>
+		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
+		{showLoading && checkingForSmartContracts && (
+			<ActivityIndicator size="small" style={styles.activityIndicator} />
+		)}
+	</View>
+);
 /**
  * View that wraps the wraps the "Send" screen
  */
@@ -238,7 +236,7 @@ class AddressList extends PureComponent {
 		const styles = createStyles(colors);
 
 		if (typeof element === 'string') {
-			return LabelElement(element, styles);
+			return LabelElement(styles, element);
 		}
 
 		const key = element.address + element.name;
@@ -259,11 +257,13 @@ class AddressList extends PureComponent {
 		const { recents, identities, addressBook, network, onAccountPress, onAccountLongPress, inputSearch } =
 			this.props;
 		const networkAddressBook = addressBook[network] || {};
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		if (!recents.length || inputSearch) return;
 		return (
 			<>
-				{LabelElement(strings('address_book.recents'), this.state.checkingForSmartContracts, 'showLoading')}
+				{LabelElement(styles, strings('address_book.recents'), this.state.checkingForSmartContracts, true)}
 				{recents
 					.filter((recent) => recent != null)
 					.map((address, index) => (
@@ -282,9 +282,9 @@ class AddressList extends PureComponent {
 	render = () => {
 		const { contactElements } = this.state;
 		const { onlyRenderAddressBook } = this.props;
-		const sendFlowContacts = [];
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
+		const sendFlowContacts = [];
 
 		contactElements.filter((element) => {
 			if (typeof element === 'object' && element.isSmartContract === false) {

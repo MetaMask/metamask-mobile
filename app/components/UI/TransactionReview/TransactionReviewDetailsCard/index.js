@@ -33,6 +33,7 @@ const createStyles = (colors) =>
 		},
 		viewDataText: {
 			marginTop: 20,
+			color: colors.text.default,
 		},
 		viewDataArrow: {
 			marginLeft: 'auto',

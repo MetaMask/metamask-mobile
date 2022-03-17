@@ -689,7 +689,7 @@ class ChoosePassword extends PureComponent {
 										value={isSelected}
 										onValueChange={this.setSelection}
 										style={styles.checkbox}
-										tintColors={{ true: colors.primary.default }}
+										tintColors={{ true: colors.primary.default, false: colors.border.default }}
 										boxType="square"
 										testID={'password-understand-box'}
 									/>

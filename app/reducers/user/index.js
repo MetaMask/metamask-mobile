@@ -12,7 +12,7 @@ const initialState = {
 	userLoggedIn: false,
 	isAuthChecked: false,
 	initialScreen: '',
-	appTheme: AppThemeKey.light,
+	appTheme: AppThemeKey.os,
 };
 
 const userReducer = (state = initialState, action) => {

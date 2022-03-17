@@ -23,7 +23,7 @@ export const ThemeContext = React.createContext<any>(undefined);
  * @returns
  */
 export const getAssetFromTheme = (appTheme: AppThemeKey, osColorScheme: ColorSchemeName, light: any, dark: any) => {
-	let asset;
+	let asset = light;
 	switch (appTheme) {
 		case AppThemeKey.light:
 			asset = light;
@@ -68,6 +68,10 @@ export const useAppTheme = (): Theme => {
 				colors = colorTheme.dark;
 				setDarkStatusBar();
 				break;
+			} else {
+				// Cover cases where OS returns undefined
+				colors = colorTheme.light;
+				setLightStatusBar();
 			}
 		}
 		case AppThemeKey.light:

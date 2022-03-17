@@ -90,10 +90,11 @@ const RootRPCMethodsUI = (props) => {
 
 	const onUnapprovedMessage = (messageParams, type, origin) => {
 		setCurrentPageMeta(messageParams.meta);
-		delete messageParams.meta;
-		setSignMessageParams(messageParams);
+		const signMessageParams = { ...messageParams };
+		delete signMessageParams.meta;
+		setSignMessageParams(signMessageParams);
 		setSignType(type);
-		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: messageParams.origin });
+		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: signMessageParams.origin });
 	};
 
 	const initializeWalletConnect = () => {
@@ -254,6 +255,7 @@ const RootRPCMethodsUI = (props) => {
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
 				transactionMeta.transaction.gasPrice = gasPrice && hexToBN(gasPrice);
+
 				if (
 					(value === '0x0' || !value) &&
 					data &&
