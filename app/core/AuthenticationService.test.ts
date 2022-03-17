@@ -124,14 +124,14 @@ describe('AuthenticationService', () => {
 
 	// it('should successfully complete userEntryAuth', async () => {
 	// //Create new wallet
-	await AuthenticationService.newWalletAndKeyChain('test1234', {
-		type: AUTHENTICATION_TYPE.PASSWORD,
-		biometryType: undefined,
-	});
-	await AuthenticationService.userEntryAuth(
-		'test',
-		{ type: AUTHENTICATION_TYPE.PASSWORD, biometryType: undefined },
-		'0x000'
-	);
+	// await AuthenticationService.newWalletAndKeyChain('test1234', {
+	// 	type: AUTHENTICATION_TYPE.PASSWORD,
+	// 	biometryType: undefined,
+	// });
+	// await AuthenticationService.userEntryAuth(
+	// 	'test',
+	// 	{ type: AUTHENTICATION_TYPE.PASSWORD, biometryType: undefined },
+	// 	'0x000'
+	// );
 	// });
 });
