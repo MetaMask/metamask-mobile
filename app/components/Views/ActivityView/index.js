@@ -34,14 +34,12 @@ function ActivityView({ hasOrders }) {
 		[navigation, hasOrders, colors]
 	);
 
+	const renderTabBar = () => (hasOrders ? <TabBar /> : <View />);
+
 	return (
 		<ErrorBoundary view="ActivityView">
 			<View style={styles.wrapper}>
-				<ScrollableTabView
-					renderTabBar={hasOrders && TabBar}
-					locked={!hasOrders}
-					page={!hasOrders ? 0 : undefined}
-				>
+				<ScrollableTabView renderTabBar={renderTabBar} locked={!hasOrders} page={!hasOrders ? 0 : undefined}>
 					<TransactionsView tabLabel={strings('transactions_view.title')} />
 					{hasOrders && <FiatOrdersView tabLabel={strings('fiat_on_ramp.purchases')} />}
 				</ScrollableTabView>
