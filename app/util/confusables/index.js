@@ -22,13 +22,14 @@ const zeroWidthPoints = new Set([
 
 export const hasZeroWidthPoints = (char) => zeroWidthPoints.has(char);
 
-export const getConfusablesExplanation = (confusableCollection) =>
-	confusableCollection
-		.map((confusable) => {
+export const getConfusablesExplanation = (confusableCollection) => [
+	...new Set(
+		confusableCollection.map((confusable) => {
 			const key = confusable;
 			const value = confusablesMap[confusable];
 			return hasZeroWidthPoints(key)
 				? strings('transaction.contains_zero_width')
 				: `'${key}' ${strings('transaction.similar_to')} '${value}'`;
 		})
-		.reduce((unique, item) => (unique.includes(item) ? unique : [...unique, item]), []);
+	),
+];
