@@ -48,6 +48,8 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -386,6 +388,11 @@ const RootRPCMethodsUI = (props) => {
 		</Modal>
 	);
 
+	const renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState } = props;
+		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
+
 	const onWalletConnectSessionApproval = () => {
 		const { peerId } = walletConnectRequestInfo;
 		setWalletConnectRequest(false);
@@ -679,6 +686,7 @@ const RootRPCMethodsUI = (props) => {
 			{renderSwitchCustomNetworkModal()}
 			{renderAccountsApprovalModal()}
 			{renderWatchAssetModal()}
+			{renderQRSigningModal()}
 		</React.Fragment>
 	);
 };
@@ -725,6 +733,8 @@ RootRPCMethodsUI.propTypes = {
 	 * Chain id
 	 */
 	chainId: PropTypes.string,
+	isSigningQRObject: PropTypes.bool,
+	QRState: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -744,4 +754,4 @@ const mapDispatchToProps = (dispatch) => ({
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(RootRPCMethodsUI));

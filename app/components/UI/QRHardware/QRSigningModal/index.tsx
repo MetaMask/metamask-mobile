@@ -1,8 +1,8 @@
 import React from 'react';
 import Modal from 'react-native-modal';
-import { IQRState } from '../../QRHardware/types';
+import { IQRState } from '../types';
 import { StyleSheet, View } from 'react-native';
-import QRSigningDetails from '../../QRHardware/QRSigningDetails';
+import QRSigningDetails from '../QRSigningDetails';
 import { colors } from '../../../../styles/common';
 
 interface IQRSigningModalProps {

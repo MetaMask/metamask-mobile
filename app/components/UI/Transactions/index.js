@@ -35,7 +35,7 @@ import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningModal from './QRSigningModal';
+import QRSigningModal from '../QRHardware/QRSigningModal';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
