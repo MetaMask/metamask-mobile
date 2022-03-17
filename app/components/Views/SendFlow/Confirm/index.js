@@ -863,7 +863,7 @@ class Confirm extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
-			await KeyringController.cancelQRSignRequest();
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise((resolve) => resolve(result));
 

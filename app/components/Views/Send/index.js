@@ -478,7 +478,7 @@ class Send extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
-			await KeyringController.cancelQRSignRequest();
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transactionMeta.id);
 
 			// Add to the AddressBook if it's an unkonwn address

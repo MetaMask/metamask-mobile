@@ -216,7 +216,7 @@ const RootRPCMethodsUI = (props) => {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
-				await KeyringController.cancelQRSignRequest();
+				await KeyringController.resetQRKeyringState();
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
 				if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {

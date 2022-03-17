@@ -461,7 +461,7 @@ class Approve extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
-			await KeyringController.cancelQRSignRequest();
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transaction.id);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
 		} catch (error) {
