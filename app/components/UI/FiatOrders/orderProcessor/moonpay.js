@@ -49,6 +49,10 @@ const MOONPAY_API_KEY_PRODUCTION = process.env.MOONPAY_API_KEY_PRODUCTION;
  * @property {string} bankTransferReference For bank transfer transactions, the reference code the customer should cite when making the transfer.
  * @property {string} currencyId The identifier of the cryptocurrency the customer wants to purchase.
  * @property {string} baseCurrencyId The identifier of the fiat currency the customer wants to use for the transaction.
+ * @property {object} currency Currency object
+ * @property {string} currency.code Currency code.
+ * @property {string} baseCurrency Fiat currency object.
+ * @property {string} baseCurrencyId.code Fiat currency code.
  * @property {string} customerId The identifier of the customer the transaction is associated with.
  * @property {string} cardId For token or card transactions, the identifier of the payment card used for this transaction.
  * @property {string} bankAccountId For bank transfer transactions, the identifier of the bank account used for this transaction.
@@ -104,6 +108,20 @@ export const isMoonpayAllowedToBuy = (chainId) => MOONPAY_ALLOWED_NETWORKS.inclu
 
 const getCurrencyCode = (code) => (code?.indexOf('_') > -1 ? code.split('_')[0] : code)?.toUpperCase();
 
+/**
+ * @param {MoonPayTransaction} transaction
+ */
+const getTransactionFee = (transaction) =>
+	transaction.feeAmount + transaction.extraFeeAmount + transaction.networkFeeAmount;
+
+/**
+ * @param {MoonPayTransaction} transaction
+ */
+const getTransactionAmount = (transaction) => {
+	if (!transaction) return 0;
+	return transaction.baseCurrencyAmount + (transaction.areFeesIncluded ? 0 : getTransactionFee(transaction));
+};
+
 //* Constants
 
 const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL, MOONPAY_RECEIPT_URL } =
@@ -125,13 +143,6 @@ const moonPayApi = axios.create({
 
 const getOrderStatus = (transactionId) =>
 	moonPayApi.get(`v1/transactions/${transactionId}`, {
-		params: {
-			apiKey: MOONPAY_API_KEY,
-		},
-	});
-
-const getCurrencies = () =>
-	moonPayApi.get('v3/currencies', {
 		params: {
 			apiKey: MOONPAY_API_KEY,
 		},
@@ -170,7 +181,7 @@ const moonPayOrderToFiatOrderState = (moonPayOrderState) => {
 };
 
 /**
- * Transforms Wyre order object into a Fiat order object used in the state.
+ * Transforms MoonPayTransaction order object into a Fiat order object used in the state.
  * @param {MoonPayTransaction} moonPayTransaction MoonPay transaction object
  * @returns {FiatOrder} Fiat order object to store in the state
  */
@@ -178,12 +189,12 @@ const moonPayOrderToFiatOrder = (moonPayTransaction) => ({
 	id: moonPayTransaction.id,
 	provider: FIAT_ORDER_PROVIDERS.MOONPAY,
 	createdAt: new Date(moonPayTransaction.createdAt).getTime(),
-	amount: moonPayTransaction.baseCurrencyAmount,
-	fee: moonPayTransaction.feeAmount + moonPayTransaction.extraFeeAmount + moonPayTransaction.networkFeeAmount,
+	amount: getTransactionAmount(moonPayTransaction),
+	fee: getTransactionFee(moonPayTransaction),
 	cryptoAmount: moonPayTransaction.quoteCurrencyAmount,
 	cryptoFee: moonPayTransaction.networkFeeAmount,
-	currency: '',
-	cryptocurrency: '',
+	currency: getCurrencyCode(moonPayTransaction.baseCurrency.code),
+	cryptocurrency: getCurrencyCode(moonPayTransaction.currency.code),
 	amountInUSD: moonPayTransaction.baseCurrencyAmount * moonPayTransaction.usdRate,
 	state: moonPayOrderToFiatOrderState(moonPayTransaction.status),
 	account: moonPayTransaction.walletAddress,
@@ -255,22 +266,10 @@ export async function processMoonPayOrder(order) {
 			return order;
 		}
 
-		const updatedMoonPayOrder = moonPayOrderToFiatOrder(data);
-
 		const updatedOrder = {
 			...order,
-			...updatedMoonPayOrder,
-			currency: order.currency || updatedMoonPayOrder.currency,
-			cryptocurrency: order.cryptocurrency || updatedMoonPayOrder.cryptocurrency,
+			...moonPayOrderToFiatOrder(data),
 		};
-
-		if (!updatedOrder.currency || !updatedOrder.cryptocurrency) {
-			const { data: currencies } = await getCurrencies();
-			const currency = currencies.find(({ id }) => id === data.baseCurrencyId);
-			const cryptocurrency = currencies.find(({ id }) => id === data.currencyId);
-			updatedOrder.currency = getCurrencyCode(currency?.code);
-			updatedOrder.cryptocurrency = getCurrencyCode(cryptocurrency?.code);
-		}
 
 		return updatedOrder;
 	} catch (error) {
@@ -284,13 +283,16 @@ export async function processMoonPayOrder(order) {
 export const useMoonPayFlowURL = (address, chainId) => {
 	const params = useMemo(() => {
 		const selectedChainId = isMoonpayAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
-		const [defaultCurrencyCode] = MOONPAY_NETWORK_PARAMETERS[selectedChainId];
+		const [defaultCurrencyCode, showOnlyCurrencies] = MOONPAY_NETWORK_PARAMETERS[selectedChainId];
 		return qs.stringify({
 			apiKey: MOONPAY_API_KEY,
 			colorCode: '#037dd6',
 			walletAddress: address,
 			defaultCurrencyCode,
-			showOnlyCurrencies: defaultCurrencyCode,
+			showOnlyCurrencies,
+			walletAddresses: JSON.stringify(
+				showOnlyCurrencies.split(',').reduce((acc, currency) => ({ ...acc, [currency]: address }), {})
+			),
 			redirectURL: MOONPAY_REDIRECT_URL,
 		});
 	}, [address, chainId]);

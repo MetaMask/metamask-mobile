@@ -6,6 +6,8 @@ import { strings } from '../../../../../locales/i18n';
 import PaymentMethod from '../components/PaymentMethod';
 import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
+import { useAssetFromTheme } from '../../../../util/theme';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
 
 const styles = StyleSheet.create({
 	title: {
@@ -23,15 +25,20 @@ const styles = StyleSheet.create({
 	},
 });
 
-// eslint-disable-next-line import/no-commonjs
-const MoonPayLogoIcon = require('../../../../images/MoonPayLogo.png');
-const MoonPayLogo = () => <Image source={MoonPayLogoIcon} style={styles.logo} />;
+/* eslint-disable import/no-commonjs */
+const MoonPayLogoLightIcon = require('../../../../images/MoonPayLogo-light.png');
+const MoonPayLogoDarkIcon = require('../../../../images/MoonPayLogo-dark.png');
+/* eslint-enable import/no-commonjs */
 
-const hasStablecoins = (chainId) => false;
-// TODO: reenable stablecoins once widget supports them
-// [NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON, NETWORKS_CHAIN_ID.CELO].includes(
-// 	chainId
-// );
+const MoonPayLogo = () => {
+	const moonPayLogoIcon = useAssetFromTheme(MoonPayLogoLightIcon, MoonPayLogoDarkIcon);
+	return <Image source={moonPayLogoIcon} style={styles.logo} />;
+};
+
+const hasStablecoins = (chainId) =>
+	[NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON, NETWORKS_CHAIN_ID.CELO].includes(
+		chainId
+	);
 
 const MoonPayPaymentMethod = ({ onPress, ticker, chainId }) => (
 	<PaymentMethod onPress={onPress}>
@@ -49,7 +56,7 @@ const MoonPayPaymentMethod = ({ onPress, ticker, chainId }) => (
 				<Text>{strings('fiat_on_ramp.debit_credit_bank_transfers_country')}</Text>
 
 				<PaymentMethod.InfoIconLine>
-					<Text small>{strings('fiat_on_ramp.options_fees_vary')}</Text>
+					<Text small>{strings('fiat_on_ramp.moonpay_options_fees_vary')}</Text>
 				</PaymentMethod.InfoIconLine>
 			</PaymentMethod.Details>
 		</PaymentMethod.Content>

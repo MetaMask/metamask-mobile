@@ -102,5 +102,5 @@ export const MOONPAY_NETWORK_PARAMETERS = {
 	[NETWORKS_CHAIN_ID.BSC]: ['bnb_bsc', 'bnb_bsc,busd_bsc'],
 	[NETWORKS_CHAIN_ID.POLYGON]: ['matic_polygon', 'matic_polygon,usdc_polygon'],
 	[NETWORKS_CHAIN_ID.AVAXCCHAIN]: ['avax_cchain', 'avax_cchain'],
-	[NETWORKS_CHAIN_ID.CELO]: ['celo', 'celo'],
+	[NETWORKS_CHAIN_ID.CELO]: ['celo', 'celo,cusd'],
 };

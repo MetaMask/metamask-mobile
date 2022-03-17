@@ -23,19 +23,9 @@ import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { handleMoonPayReceipt, handleMoonPayRedirect, processMoonPayOrder } from '../orderProcessor/moonpay';
 import Logger from '../../../../util/Logger';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 class MoonPayWebView extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getTransakWebviewNavbar(navigation, route, () => {
-			InteractionManager.runAfterInteractions(() => {
-				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
-					payment_rails: PAYMENT_RAILS.MULTIPLE,
-					payment_category: PAYMENT_CATEGORY.MULTIPLE,
-					'on-ramp_provider': FIAT_ORDER_PROVIDERS.MOONPAY,
-				});
-			});
-		});
-
 	static propTypes = {
 		navigation: PropTypes.object,
 		/**
@@ -58,6 +48,35 @@ class MoonPayWebView extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+	};
+
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getTransakWebviewNavbar(
+				navigation,
+				route,
+				() => {
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
+							payment_rails: PAYMENT_RAILS.MULTIPLE,
+							payment_category: PAYMENT_CATEGORY.MULTIPLE,
+							'on-ramp_provider': FIAT_ORDER_PROVIDERS.MOONPAY,
+						});
+					});
+				},
+				colors
+			)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	addTokenToTokensController = async (symbol, chainId) => {
@@ -133,6 +152,8 @@ class MoonPayWebView extends PureComponent {
 		}
 	}
 }
+
+MoonPayWebView.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,
