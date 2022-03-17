@@ -28,12 +28,11 @@ import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { collectConfusables, hasZeroWidthPoints } from '../../../../util/confusables';
+import { collectConfusables, getConfusablesExplanation, hasZeroWidthPoints } from '../../../../util/confusables';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { ADD_ADDRESS_MODAL_CONTAINER_ID, ENTER_ALIAS_INPUT_BOX_ID } from '../../../../constants/test-ids';
-import confusablesMap from 'unicode-confusables/data/confusables.json';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -616,17 +615,7 @@ class SendFlow extends PureComponent {
 		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
 		const displayAsWarning =
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
-		const explanations =
-			displayConfusableWarning &&
-			confusableCollection
-				.map((confusable) => {
-					const key = confusable;
-					const value = confusablesMap[confusable];
-					return hasZeroWidthPoints(key)
-						? strings('transaction.contains_zero_width')
-						: `'${key}' ${strings('transaction.similar_to')} '${value}'`;
-				})
-				.reduce((unique, item) => (unique.includes(item) ? unique : [...unique, item]), []);
+		const explanations = displayConfusableWarning && getConfusablesExplanation(confusableCollection);
 
 		return (
 			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'send-screen'}>
