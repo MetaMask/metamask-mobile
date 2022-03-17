@@ -28,7 +28,7 @@ import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
+import { collectConfusables, getConfusablesExplanations, hasZeroWidthPoints } from '../../../../util/confusables';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -615,6 +615,7 @@ class SendFlow extends PureComponent {
 		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
 		const displayAsWarning =
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
+		const explanations = displayConfusableWarning && getConfusablesExplanations(confusableCollection);
 
 		return (
 			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'send-screen'}>
@@ -675,7 +676,7 @@ class SendFlow extends PureComponent {
 											{strings('transaction.confusable_title')}
 										</Text>
 										<Text style={styles.confusableMsg}>
-											{strings('transaction.confusable_msg')}
+											{strings('transaction.confusable_msg')} {explanations.join(', ')}.
 										</Text>
 									</View>
 								</View>
