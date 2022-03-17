@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { SafeAreaView, View, StyleSheet } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
@@ -13,41 +13,36 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { NetworksChainId } from '@metamask/controllers';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	infoWrapper: {
-		alignItems: 'center',
-		marginTop: 10,
-	},
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.blue,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-	},
-	textStyle: {
-		fontSize: 16,
-		letterSpacing: 0.5,
-		...fontStyles.bold,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		infoWrapper: {
+			alignItems: 'center',
+			marginTop: 10,
+		},
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary.default,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+		},
+		textStyle: {
+			fontSize: 16,
+			letterSpacing: 0.5,
+			...fontStyles.bold,
+		},
+	});
 
 /**
  * PureComponent that provides ability to add assets.
  */
 class AddAsset extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(
-			`add_asset.${route.params.assetType === 'token' ? 'title' : 'title_nft'}`,
-			true,
-			navigation
-		);
-
 	state = {
 		address: '',
 		symbol: '',
@@ -74,13 +69,37 @@ class AddAsset extends PureComponent {
 		useCollectibleDetection: PropTypes.bool,
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNetworkNavbarOptions(
+				`add_asset.${route.params.assetType === 'token' ? 'title' : 'title_nft'}`,
+				true,
+				navigation,
+				colors
+			)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
+
 	renderTabBar() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary.default}
+				inactiveTextColor={colors.text.muted}
+				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
@@ -101,6 +120,8 @@ class AddAsset extends PureComponent {
 			useCollectibleDetection,
 		} = this.props;
 		const { dismissNftInfo } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
@@ -110,7 +131,7 @@ class AddAsset extends PureComponent {
 					</View>
 				)}
 				{assetType === 'token' ? (
-					<ScrollableTabView renderTabBar={this.renderTabBar}>
+					<ScrollableTabView renderTabBar={() => this.renderTabBar()}>
 						{NetworksChainId.mainnet === this.props.chainId && (
 							<SearchTokenAutocomplete
 								navigation={navigation}
@@ -135,6 +156,8 @@ class AddAsset extends PureComponent {
 		);
 	};
 }
+
+AddAsset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,

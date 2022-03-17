@@ -109,7 +109,7 @@ exports[`QrScanner should render correctly 1`] = `
       >
         <Icon
           allowFontScaling={false}
-          color="white"
+          color="#FFFFFF"
           name="ios-close"
           size={50}
         />

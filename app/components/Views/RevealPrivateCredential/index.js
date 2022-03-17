@@ -18,7 +18,6 @@ import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, { DefaultTabBar } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
-
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -26,126 +25,133 @@ import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	normalText: {
-		...fontStyles.normal,
-	},
-	seedPhrase: {
-		backgroundColor: colors.white,
-		marginTop: 10,
-		paddingBottom: 20,
-		paddingLeft: 20,
-		paddingRight: 20,
-		fontSize: 20,
-		textAlign: 'center',
-		color: colors.black,
-		...fontStyles.normal,
-	},
-	seedPhraseView: {
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.grey400,
-		marginTop: 10,
-		alignItems: 'center',
-	},
-	privateCredentialAction: {
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderColor: colors.blue,
-		borderWidth: 1,
-		borderRadius: 20,
-		width: '90%',
-		paddingVertical: 10,
-		marginBottom: 15,
-	},
-	rowWrapper: {
-		padding: 20,
-	},
-	warningWrapper: {
-		backgroundColor: colors.red000,
-		margin: 20,
-		marginTop: 10,
-		borderRadius: 8,
-		borderWidth: 1,
-		borderColor: colors.red100,
-	},
-	warningRowWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		padding: 8,
-	},
-	warningText: {
-		marginTop: 10,
-		color: colors.red,
-		...fontStyles.normal,
-	},
-	input: {
-		borderWidth: 2,
-		borderRadius: 5,
-		borderColor: colors.grey000,
-		padding: 10,
-	},
-	icon: {
-		color: colors.red,
-	},
-	blueText: {
-		color: colors.blue,
-	},
-	link: {
-		top: 2.5,
-	},
-	warningMessageText: {
-		marginLeft: 10,
-		marginRight: 40,
-		...fontStyles.normal,
-	},
-	enterPassword: {
-		marginBottom: 10,
-		...fontStyles.bold,
-	},
-	boldText: {
-		...fontStyles.bold,
-	},
-	tabContent: {
-		padding: 20,
-	},
-	qrCodeWrapper: {
-		marginTop: 20,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.blue,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-		backgroundColor: colors.beige,
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...fontStyles.bold,
-	},
-	revealModalText: {
-		marginBottom: 20,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		normalText: {
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		seedPhrase: {
+			backgroundColor: colors.background.default,
+			marginTop: 10,
+			paddingBottom: 20,
+			paddingLeft: 20,
+			paddingRight: 20,
+			fontSize: 20,
+			textAlign: 'center',
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		seedPhraseView: {
+			borderRadius: 10,
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			marginTop: 10,
+			alignItems: 'center',
+		},
+		privateCredentialAction: {
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderColor: colors.primary.default,
+			borderWidth: 1,
+			borderRadius: 20,
+			width: '90%',
+			paddingVertical: 10,
+			marginBottom: 15,
+		},
+		rowWrapper: {
+			padding: 20,
+		},
+		warningWrapper: {
+			backgroundColor: colors.error.muted,
+			margin: 20,
+			marginTop: 10,
+			borderRadius: 8,
+			borderWidth: 1,
+			borderColor: colors.error.default,
+		},
+		warningRowWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			alignContent: 'center',
+			alignItems: 'center',
+		},
+		warningText: {
+			marginTop: 10,
+			color: colors.error.default,
+			...fontStyles.normal,
+		},
+		input: {
+			borderWidth: 2,
+			borderRadius: 5,
+			borderColor: colors.border.default,
+			padding: 10,
+			color: colors.text.default,
+		},
+		icon: {
+			margin: 10,
+			color: colors.error.default,
+		},
+		blueText: {
+			color: colors.primary.default,
+		},
+		link: {
+			top: 2.5,
+		},
+		warningMessageText: {
+			marginLeft: 10,
+			marginRight: 40,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		enterPassword: {
+			marginBottom: 15,
+			color: colors.text.default,
+		},
+		boldText: {
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		tabContent: {
+			padding: 20,
+		},
+		qrCodeWrapper: {
+			marginTop: 20,
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary.default,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+			backgroundColor: colors.background.default,
+		},
+		textStyle: {
+			fontSize: 12,
+			letterSpacing: 0.5,
+			...fontStyles.bold,
+		},
+		revealModalText: {
+			marginBottom: 20,
+		},
+	});
 
 const WRONG_PASSWORD_ERROR = 'error: Invalid password';
 const PRIVATE_KEY = 'private_key';
@@ -169,12 +175,6 @@ class RevealPrivateCredential extends PureComponent {
 		warningIncorrectPassword: '',
 		isModalVisible: false,
 	};
-
-	static navigationOptions = ({ navigation, route }) =>
-		getNavigationOptionsTitle(
-			strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
-			navigation
-		);
 
 	static propTypes = {
 		/**
@@ -207,7 +207,22 @@ class RevealPrivateCredential extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+
+		navigation.setOptions(
+			getNavigationOptionsTitle(
+				strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
+				navigation,
+				false,
+				colors
+			)
+		);
+	};
+
 	async componentDidMount() {
+		this.updateNavBar();
 		// Try to use biometrics to unloc
 		// (if available)
 		const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -226,6 +241,10 @@ class RevealPrivateCredential extends PureComponent {
 			PreventScreenshot.forbid();
 		});
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	componentWillUnmount = () => {
 		InteractionManager.runAfterInteractions(() => {
@@ -317,7 +336,14 @@ class RevealPrivateCredential extends PureComponent {
 		});
 	};
 
-	revearlSRP = () => {
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
+		return { colors, styles, themeAppearance };
+	};
+
+	revealSRP = () => {
 		const { password } = this.state;
 		this.tryUnlockWithPassword(password);
 
@@ -328,12 +354,14 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	renderTabBar() {
+		const { styles, colors } = this.getStyles();
+
 		return (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary.default}
+				inactiveTextColor={colors.text.muted}
+				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
 			/>
@@ -342,9 +370,10 @@ class RevealPrivateCredential extends PureComponent {
 
 	renderTabView(privateCredentialName) {
 		const { clipboardPrivateCredential } = this.state;
+		const { styles, colors, themeAppearance } = this.getStyles();
 
 		return (
-			<ScrollableTabView renderTabBar={this.renderTabBar}>
+			<ScrollableTabView renderTabBar={() => this.renderTabBar()}>
 				<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
 					<Text style={styles.boldText}>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
 					<View style={styles.seedPhraseView}>
@@ -356,6 +385,8 @@ class RevealPrivateCredential extends PureComponent {
 							style={styles.seedPhrase}
 							editable={false}
 							testID={'private-credential-text'}
+							placeholderTextColor={colors.text.muted}
+							keyboardAppearance={themeAppearance}
 						/>
 						<TouchableOpacity
 							style={styles.privateCredentialAction}
@@ -368,7 +399,12 @@ class RevealPrivateCredential extends PureComponent {
 				</View>
 				<View tabLabel={strings(`reveal_credential.qr_code`)} style={styles.tabContent}>
 					<View style={styles.qrCodeWrapper}>
-						<QRCode value={clipboardPrivateCredential} size={Dimensions.get('window').width - 160} />
+						<QRCode
+							value={clipboardPrivateCredential}
+							size={Dimensions.get('window').width - 160}
+							color={colors.text.default}
+							backgroundColor={colors.background.default}
+						/>
 					</View>
 				</View>
 			</ScrollableTabView>
@@ -376,6 +412,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	renderPasswordEntry() {
+		const { styles, colors, themeAppearance } = this.getStyles();
 		return (
 			<>
 				<Text style={styles.enterPassword}>{strings('reveal_credential.enter_password')}</Text>
@@ -383,10 +420,11 @@ class RevealPrivateCredential extends PureComponent {
 					style={styles.input}
 					testID={'private-credential-password-text-input'}
 					placeholder={'Password'}
-					placeholderTextColor={colors.grey100}
+					placeholderTextColor={colors.text.muted}
 					onChangeText={this.onPasswordChange}
 					secureTextEntry
 					onSubmitEditing={this.tryUnlock}
+					keyboardAppearance={themeAppearance}
 				/>
 				<Text style={styles.warningText} testID={'password-warning'}>
 					{this.state.warningIncorrectPassword}
@@ -404,6 +442,7 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	renderModal() {
+		const { styles } = this.getStyles();
 		return (
 			<InfoModal
 				isVisible={this.state.isModalVisible}
@@ -423,7 +462,7 @@ class RevealPrivateCredential extends PureComponent {
 
 						<ButtonReveal
 							label={strings('reveal_credential.hold_to_reveal_srp')}
-							onLongPress={this.revearlSRP}
+							onLongPress={this.revealSRP}
 						/>
 					</>
 				}
@@ -433,6 +472,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	renderSRPExplaination() {
+		const { styles } = this.getStyles();
 		return (
 			<Text style={styles.normalText}>
 				{strings('reveal_credential.seed_phrase_explanation')[0]}
@@ -456,6 +496,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	renderWarning(privateCredentialName) {
+		const { styles } = this.getStyles();
 		return (
 			<View style={styles.warningWrapper}>
 				<View style={[styles.rowWrapper, styles.warningRowWrapper]}>
@@ -481,6 +522,7 @@ class RevealPrivateCredential extends PureComponent {
 		const { unlocked, isUserUnlocked, password } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 		const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
+		const { styles } = this.getStyles();
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
@@ -517,6 +559,8 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	};
 }
+
+RevealPrivateCredential.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

@@ -216,6 +216,9 @@ class DeeplinkManager {
 						// loops back to open the link with the right protocol
 						this.parse(url, { browserCallBack });
 					} else {
+						// If it's our universal link don't open it in the browser
+						if (!action && urlObj.href === `https://${MM_UNIVERSAL_LINK_HOST}/`) return;
+
 						// Normal links (same as dapp)
 						this._handleBrowserUrl(urlObj.href, browserCallBack);
 					}

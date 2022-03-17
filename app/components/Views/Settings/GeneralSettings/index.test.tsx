@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import GeneralSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -20,6 +21,7 @@ const initialState = {
 			PreferencesController: { selectedAddress: '0x0' },
 		},
 	},
+	user: { appTheme: AppThemeKey.light },
 };
 const store = mockStore(initialState);
 

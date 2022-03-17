@@ -28,7 +28,7 @@ storiesOf('UI / StyledButton', module)
 						neutral: 'neutral',
 						danger: 'danger',
 						sign: 'sign',
-						view: 'view',
+						onOverlay: 'onOverlay',
 					},
 					'confirm'
 				)}

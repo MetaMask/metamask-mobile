@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -35,10 +35,7 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-
-const styles = StyleSheet.create({
-	fill: { flex: 1 },
-});
+import { ThemeContext, useAppTheme } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -254,11 +251,15 @@ const App = ({ userLoggedIn }) => {
 		return null;
 	};
 
+	const theme = useAppTheme();
+
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<View style={styles.fill}>
+			<ThemeContext.Provider value={theme}>
 				<NavigationContainer
+					// Prevents artifacts when navigating between screens
+					theme={{ colors: { background: theme.colors.background.default } }}
 					ref={navigator}
 					onReady={() => {
 						routingInstrumentation.registerNavigationContainer(navigator);
@@ -282,7 +283,7 @@ const App = ({ userLoggedIn }) => {
 					</Stack.Navigator>
 				</NavigationContainer>
 				{renderSplash()}
-			</View>
+			</ThemeContext.Provider>
 		)) ||
 		null
 	);

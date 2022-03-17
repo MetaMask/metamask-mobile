@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Text, View, ScrollView, StyleSheet, Image, Dimensions, InteractionManager } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -14,6 +14,7 @@ import { connect } from 'react-redux';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -22,83 +23,84 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
-const styles = StyleSheet.create({
-	scroll: {
-		flexGrow: 1,
-	},
-	wrapper: {
-		paddingVertical: 30,
-		flex: 1,
-	},
-	title: {
-		fontSize: 24,
-		marginBottom: 12,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.bold,
-	},
-	subtitle: {
-		fontSize: 14,
-		lineHeight: 19,
-		marginTop: 12,
-		marginBottom: 25,
-		color: colors.grey500,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.normal,
-	},
-	ctas: {
-		paddingHorizontal: 40,
-		paddingBottom: Device.isIphoneX() ? 40 : 20,
-		flexDirection: 'column',
-	},
-	ctaWrapper: {
-		justifyContent: 'flex-end',
-	},
-	carouselImage: {},
-	// eslint-disable-next-line react-native/no-unused-styles
-	carouselImage1: {
-		marginTop: 30,
-		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	carouselImage2: {
-		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	carouselImage3: {
-		width: DEVICE_WIDTH - 60,
-		height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO,
-	},
-	carouselImageWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	circle: {
-		width: 8,
-		height: 8,
-		borderRadius: 8 / 2,
-		backgroundColor: colors.grey500,
-		opacity: 0.4,
-		marginHorizontal: 8,
-	},
-	solidCircle: {
-		opacity: 1,
-	},
-	progessContainer: {
-		flexDirection: 'row',
-		alignSelf: 'center',
-		marginVertical: 36,
-	},
-	tab: {
-		marginHorizontal: 30,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		scroll: {
+			flexGrow: 1,
+		},
+		wrapper: {
+			paddingVertical: 30,
+			flex: 1,
+		},
+		title: {
+			fontSize: 24,
+			marginBottom: 12,
+			color: colors.text.default,
+			justifyContent: 'center',
+			textAlign: 'center',
+			...fontStyles.bold,
+		},
+		subtitle: {
+			fontSize: 14,
+			lineHeight: 19,
+			marginTop: 12,
+			marginBottom: 25,
+			color: colors.text.alternative,
+			justifyContent: 'center',
+			textAlign: 'center',
+			...fontStyles.normal,
+		},
+		ctas: {
+			paddingHorizontal: 40,
+			paddingBottom: Device.isIphoneX() ? 40 : 20,
+			flexDirection: 'column',
+		},
+		ctaWrapper: {
+			justifyContent: 'flex-end',
+		},
+		carouselImage: {},
+		// eslint-disable-next-line react-native/no-unused-styles
+		carouselImage1: {
+			marginTop: 30,
+			width: DEVICE_WIDTH - IMG_PADDING,
+			height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		carouselImage2: {
+			width: DEVICE_WIDTH - IMG_PADDING,
+			height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		carouselImage3: {
+			width: DEVICE_WIDTH - 60,
+			height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO,
+		},
+		carouselImageWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		circle: {
+			width: 8,
+			height: 8,
+			borderRadius: 8 / 2,
+			backgroundColor: colors.icon.default,
+			opacity: 0.4,
+			marginHorizontal: 8,
+		},
+		solidCircle: {
+			opacity: 1,
+		},
+		progessContainer: {
+			flexDirection: 'row',
+			alignSelf: 'center',
+			marginVertical: 36,
+		},
+		tab: {
+			marginHorizontal: 30,
+		},
+	});
 
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
 const onboarding_carousel_2 = require('../../../images/onboarding-carousel-2.png'); // eslint-disable-line
@@ -110,8 +112,6 @@ const carousel_images = [onboarding_carousel_1, onboarding_carousel_2, onboardin
  * View that is displayed to first time (new) users
  */
 class OnboardingCarousel extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -152,12 +152,25 @@ class OnboardingCarousel extends PureComponent {
 		});
 	};
 
+	updateNavBar = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		this.props.navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+	};
+
 	componentDidMount = () => {
+		this.updateNavBar();
 		this.trackEvent(ANALYTICS_EVENTS_V2.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	render() {
 		const { currentTab } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-carousel-screen'}>
 				<OnboardingScreenWithBg screen={'carousel'}>
@@ -218,6 +231,8 @@ class OnboardingCarousel extends PureComponent {
 		);
 	}
 }
+
+OnboardingCarousel.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	saveOnboardingEvent: (...eventArgs) => dispatch(saveOnboardingEvent(eventArgs)),

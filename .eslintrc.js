@@ -119,7 +119,7 @@ module.exports = {
 		'eslint-comments/no-unused-disable': 0,
 		'react-native/no-color-literals': 2,
 		'react-native/no-inline-styles': 2,
-		'react-native/no-unused-styles': 2,
+		'react-native/no-unused-styles': 0,
 		'react-native/split-platform-components': 2,
 		'react/jsx-boolean-value': 2,
 		'react/jsx-key': 1,

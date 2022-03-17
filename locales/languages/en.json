@@ -551,6 +551,12 @@
 		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
 		"token_detection_title": "Enhanced Token Detection",
 		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
+		"theme_button_text": "Change Theme",
+		"theme_title": "Theme ({{theme}})",
+		"theme_description": "Change your app appearance by setting the theme.",
+		"theme_os": "System",
+		"theme_light": "Light",
+		"theme_dark": "Dark",
 		"network_exists": "This network has already been added."
 	},
 	"app_information": {
@@ -1267,9 +1273,9 @@
 		"wc_connected_title": "Connected to {{title}}",
 		"wc_signed_title": "Signed",
 		"wc_sent_tx_title": "Sent transaction",
-		"wc_connected_rejected_title": "You’ve rejected the connect request",
-		"wc_signed_rejected_title": "You’ve rejected the sign request",
-		"wc_sent_tx_rejected_title": "You’ve rejected the transaction request",
+		"wc_connected_rejected_title": "You've rejected the connect request",
+		"wc_signed_rejected_title": "You've rejected the sign request",
+		"wc_sent_tx_rejected_title": "You've rejected the transaction request",
 		"wc_description": "Please check the application"
 	},
 	"protect_your_wallet_modal": {

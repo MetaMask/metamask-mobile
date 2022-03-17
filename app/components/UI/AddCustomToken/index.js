@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Text, TextInput, View, StyleSheet, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -10,30 +10,37 @@ import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import AppConstants from '../../../core/AppConstants';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	rowWrapper: {
-		padding: 20,
-	},
-	textInput: {
-		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: colors.grey100,
-		padding: 16,
-		...fontStyles.normal,
-	},
-	warningText: {
-		marginTop: 15,
-		color: colors.red,
-		...fontStyles.normal,
-	},
-	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	warningLink: { color: colors.blue },
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		rowWrapper: {
+			padding: 20,
+		},
+		textInput: {
+			borderWidth: 1,
+			borderRadius: 4,
+			borderColor: colors.border.default,
+			padding: 16,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		inputLabel: {
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		warningText: {
+			marginTop: 15,
+			color: colors.error.default,
+			...fontStyles.normal,
+		},
+		warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
+		warningLink: { color: colors.primary.default },
+	});
 
 /**
  * Copmonent that provides ability to add custom tokens.
@@ -191,36 +198,45 @@ export default class AddCustomToken extends PureComponent {
 		current && current.focus();
 	};
 
-	renderWarning = () => (
-		<WarningMessage
-			style={styles.warningContainer}
-			warningMessage={
-				<>
-					{strings('add_asset.warning_body_description')}
-					<Text
-						suppressHighlighting
-						onPress={() => {
-							// TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
-							this.props.navigation.navigate('Webview', {
-								screen: 'SimpleWebview',
-								params: {
-									url: AppConstants.URLS.SECURITY,
-									title: strings('add_asset.security_tips'),
-								},
-							});
-						}}
-						style={styles.warningLink}
-						testID={'add-asset-warning-message'}
-					>
-						{strings('add_asset.warning_link')}
-					</Text>
-				</>
-			}
-		/>
-	);
+	renderWarning = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<WarningMessage
+				style={styles.warningContainer}
+				warningMessage={
+					<>
+						{strings('add_asset.warning_body_description')}
+						<Text
+							suppressHighlighting
+							onPress={() => {
+								// TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
+								this.props.navigation.navigate('Webview', {
+									screen: 'SimpleWebview',
+									params: {
+										url: AppConstants.URLS.SECURITY,
+										title: strings('add_asset.security_tips'),
+									},
+								});
+							}}
+							style={styles.warningLink}
+							testID={'add-asset-warning-message'}
+						>
+							{strings('add_asset.warning_link')}
+						</Text>
+					</>
+				}
+			/>
+		);
+	};
 
 	render = () => {
 		const { address, symbol, decimals } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<ActionView
@@ -236,28 +252,29 @@ export default class AddCustomToken extends PureComponent {
 					<View>
 						{this.renderWarning()}
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
+							<Text style={styles.inputLabel}>{strings('token.token_address')}</Text>
 							<TextInput
 								style={styles.textInput}
 								placeholder={'0x...'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.onAddressBlur}
 								testID={'input-token-address'}
 								onSubmitEditing={this.jumpToAssetSymbol}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText} testID={'token-address-warning'}>
 								{this.state.warningAddress}
 							</Text>
 						</View>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
+							<Text style={styles.inputLabel}>{strings('token.token_symbol')}</Text>
 							<TextInput
 								style={styles.textInput}
 								placeholder={'GNO'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								value={this.state.symbol}
 								onChangeText={this.onSymbolChange}
 								onBlur={this.validateCustomTokenSymbol}
@@ -265,24 +282,26 @@ export default class AddCustomToken extends PureComponent {
 								ref={this.assetSymbolInput}
 								onSubmitEditing={this.jumpToAssetPrecision}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 						</View>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
+							<Text style={styles.inputLabel}>{strings('token.token_precision')}</Text>
 							<TextInput
 								style={styles.textInput}
 								value={this.state.decimals}
 								keyboardType="numeric"
 								maxLength={2}
 								placeholder={'18'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								onChangeText={this.onDecimalsChange}
 								onBlur={this.validateCustomTokenDecimals}
 								testID={'input-token-decimals'}
 								ref={this.assetPrecisionInput}
 								onSubmitEditing={this.addToken}
 								returnKeyType={'done'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText} testID={'token-decimals-warning'}>
 								{this.state.warningDecimals}
@@ -294,3 +313,5 @@ export default class AddCustomToken extends PureComponent {
 		);
 	};
 }
+
+AddCustomToken.contextType = ThemeContext;
