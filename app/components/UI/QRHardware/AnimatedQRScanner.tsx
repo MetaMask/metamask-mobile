@@ -139,6 +139,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
 	const onBarCodeRead = useCallback(
 		(response) => {
+			if (!visible) {
+				return;
+			}
 			if (!response.data) {
 				return;
 			}
@@ -178,7 +181,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 				onScanError(strings('transaction.unknown_qr_code'));
 			}
 		},
-		[urDecoder, getAnalyticParams, onScanError, expectedURTypes, purpose, onScanSuccess]
+		[visible, urDecoder, getAnalyticParams, onScanError, expectedURTypes, purpose, onScanSuccess]
 	);
 
 	const onStatusChange = useCallback(

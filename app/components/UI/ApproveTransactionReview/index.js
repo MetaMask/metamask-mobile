@@ -30,8 +30,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
-import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
@@ -285,14 +283,6 @@ class ApproveTransactionReview extends PureComponent {
 		 * Whether the transaction was confirmed or not
 		 */
 		transactionConfirmed: PropTypes.bool,
-		/**
-		 * QR hardware state
-		 */
-		QRState: PropTypes.object,
-		/**
-		 * Whether current is signing QR hardware tx or message
-		 */
-		isSigningQRObject: PropTypes.bool,
 		/**
 		 * Dispatch set transaction object from transaction action
 		 */
@@ -802,27 +792,8 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
-	renderQRDetails() {
-		const { host, spenderAddress } = this.state;
-		const {
-			activeTabUrl,
-			transaction: { origin },
-			QRState,
-		} = this.props;
-		const styles = this.getStyles();
-		return (
-			<View style={styles.actionViewQRObject} testID={'qr-details'}>
-				<TransactionHeader
-					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
-				/>
-				<QRSigningDetails QRState={QRState} tighten showHint={false} showCancelButton />
-			</View>
-		);
-	}
-
 	render = () => {
 		const { viewDetails, editPermissionVisible } = this.state;
-		const { isSigningQRObject } = this.props;
 
 		return (
 			<View>
@@ -830,8 +801,6 @@ class ApproveTransactionReview extends PureComponent {
 					? this.renderTransactionReview()
 					: editPermissionVisible
 					? this.renderEditPermission()
-					: isSigningQRObject
-					? this.renderQRDetails()
 					: this.renderDetails()}
 			</View>
 		);
@@ -861,7 +830,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 ApproveTransactionReview.contextType = ThemeContext;
 
-export default connect(
-	mapStateToProps,
-	mapDispatchToProps
-)(withNavigation(withQRHardwareAwareness(ApproveTransactionReview)));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));

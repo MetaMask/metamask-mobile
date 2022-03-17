@@ -25,6 +25,7 @@ interface IQRSigningDetails {
 	showCancelButton?: boolean;
 	tighten?: boolean;
 	showHint?: boolean;
+	shouldStartAnimated?: boolean;
 }
 
 const createStyles = (colors: any) =>
@@ -55,11 +56,6 @@ const createStyles = (colors: any) =>
 		titleTighten: {
 			marginTop: 12,
 			marginBottom: 6,
-		},
-		titleStrong: {
-			fontFamily: fontStyles.normal.fontFamily,
-			fontWeight: 'bold',
-			color: colors.text.default,
 		},
 		titleText: {
 			fontFamily: fontStyles.normal.fontFamily,
@@ -106,6 +102,7 @@ const QRSigningDetails = ({
 	showCancelButton = false,
 	tighten = false,
 	showHint = true,
+	shouldStartAnimated = true,
 }: IQRSigningDetails) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
@@ -205,13 +202,13 @@ const QRSigningDetails = ({
 							</View>
 							{renderAlert()}
 							<View style={[styles.title, tighten ? styles.titleTighten : undefined]}>
-								<Text style={styles.titleStrong}>{strings('transactions.sign_title_scan')}</Text>
+								<Text style={styles.titleText}>{strings('transactions.sign_title_scan')}</Text>
 								<Text style={styles.titleText}>{strings('transactions.sign_title_device')}</Text>
 							</View>
 							<AnimatedQRCode
 								cbor={QRState.sign.request.payload.cbor}
 								type={QRState.sign.request.payload.type}
-								pause={scannerVisible}
+								shouldPause={scannerVisible || !shouldStartAnimated}
 							/>
 							{showHint ? (
 								<View style={[styles.description, tighten ? styles.descriptionTighten : undefined]}>

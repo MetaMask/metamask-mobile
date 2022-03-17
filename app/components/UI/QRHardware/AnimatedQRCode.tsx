@@ -7,7 +7,7 @@ import { colors } from '../../../styles/common';
 interface IAnimatedQRCodeProps {
 	cbor: string;
 	type: string;
-	pause: boolean;
+	shouldPause: boolean;
 }
 
 const MAX_FRAGMENT_LENGTH = 400;
@@ -23,14 +23,14 @@ const styles = StyleSheet.create({
 	},
 });
 
-const AnimatedQRCode = ({ cbor, type, pause }: IAnimatedQRCodeProps) => {
+const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
 	const urEncoder = useMemo(
 		() => new UREncoder(new UR(Buffer.from(cbor, 'hex'), type), MAX_FRAGMENT_LENGTH),
 		[cbor, type]
 	);
 	const [currentQRCode, setCurrentQRCode] = useState(urEncoder.nextPart());
 	useEffect(() => {
-		if (!pause) {
+		if (!shouldPause) {
 			const id = setInterval(() => {
 				setCurrentQRCode(urEncoder.nextPart());
 			}, 100);
@@ -38,7 +38,7 @@ const AnimatedQRCode = ({ cbor, type, pause }: IAnimatedQRCodeProps) => {
 				clearInterval(id);
 			};
 		}
-	}, [urEncoder, pause]);
+	}, [urEncoder, shouldPause]);
 	return (
 		<View style={styles.wrapper}>
 			<QRCode value={currentQRCode.toUpperCase()} size={QR_CODE_SIZE} />
