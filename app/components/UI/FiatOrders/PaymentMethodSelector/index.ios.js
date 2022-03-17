@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { useNavigation } from '@react-navigation/native';
@@ -24,6 +24,7 @@ import SubHeader from '../components/SubHeader';
 import TransakPaymentMethod from './transak';
 import WyreApplePayPaymentMethod from './wyreApplePay';
 import { setGasEducationCarouselSeen } from '../../../../actions/user';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
@@ -35,6 +36,21 @@ function PaymentMethodSelectorView({
 }) {
 	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress, chainId);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+
+	useEffect(() => {
+		navigation.setOptions(
+			getPaymentSelectorMethodNavbar(
+				navigation,
+				() => {
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+					});
+				},
+				colors
+			)
+		);
+	}, [navigation, colors]);
 
 	const onPressWyreApplePay = useCallback(() => {
 		const goToApplePay = () => navigation.navigate('PaymentMethodApplePay');
@@ -120,13 +136,6 @@ PaymentMethodSelectorView.propTypes = {
 	gasEducationCarouselSeen: PropTypes.bool,
 	setGasEducationCarouselSeen: PropTypes.func,
 };
-
-PaymentMethodSelectorView.navigationOptions = ({ navigation }) =>
-	getPaymentSelectorMethodNavbar(navigation, () => {
-		InteractionManager.runAfterInteractions(() => {
-			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
-		});
-	});
 
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,

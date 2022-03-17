@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Alert, ScrollView, SafeAreaView, StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
@@ -9,64 +9,67 @@ import ActionSheet from 'react-native-actionsheet';
 import WalletConnect from '../../../core/WalletConnect';
 import Logger from '../../../util/Logger';
 import { WALLETCONNECT_SESSIONS } from '../../../constants/storage';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import PropTypes from 'prop-types';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	scrollviewContent: {
-		paddingTop: 20,
-	},
-	websiteIcon: {
-		width: 44,
-		height: 44,
-	},
-	row: {
-		flexDirection: 'row',
-		paddingVertical: 10,
-		paddingHorizontal: 20,
-		borderBottomColor: colors.grey000,
-		borderBottomWidth: 1,
-	},
-	info: {
-		marginLeft: 20,
-		flex: 1,
-	},
-	name: {
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 10,
-	},
-	desc: {
-		marginBottom: 10,
-		...fontStyles.normal,
-		fontSize: 12,
-	},
-	url: {
-		marginBottom: 10,
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.fontSecondary,
-	},
-	emptyWrapper: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	emptyText: {
-		...fontStyles.normal,
-		fontSize: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		scrollviewContent: {
+			paddingTop: 20,
+		},
+		websiteIcon: {
+			width: 44,
+			height: 44,
+		},
+		row: {
+			flexDirection: 'row',
+			paddingVertical: 10,
+			paddingHorizontal: 20,
+			borderBottomColor: colors.border.muted,
+			borderBottomWidth: 1,
+		},
+		info: {
+			marginLeft: 20,
+			flex: 1,
+		},
+		name: {
+			...fontStyles.bold,
+			fontSize: 16,
+			marginBottom: 10,
+			color: colors.text.default,
+		},
+		desc: {
+			marginBottom: 10,
+			...fontStyles.normal,
+			fontSize: 12,
+			color: colors.text.alternative,
+		},
+		url: {
+			marginBottom: 10,
+			...fontStyles.normal,
+			fontSize: 12,
+			color: colors.text.alternative,
+		},
+		emptyWrapper: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		emptyText: {
+			...fontStyles.normal,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+	});
 
 /**
  * View that displays all the active WalletConnect Sessions
  */
 export default class WalletConnectSessions extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings(`experimental_settings.wallet_connect_dapps`), navigation);
-
 	state = {
 		sessions: [],
 	};
@@ -75,9 +78,22 @@ export default class WalletConnectSessions extends PureComponent {
 
 	sessionToRemove = null;
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('experimental_settings.wallet_connect_dapps'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount() {
+		this.updateNavBar();
 		this.loadSessions();
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	loadSessions = async () => {
 		let sessions = [];
@@ -90,6 +106,9 @@ export default class WalletConnectSessions extends PureComponent {
 
 	renderDesc = (meta) => {
 		const { description } = meta;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		if (description) {
 			return <Text style={styles.desc}>{meta.description}</Text>;
 		}
@@ -122,6 +141,9 @@ export default class WalletConnectSessions extends PureComponent {
 
 	renderSessions = () => {
 		const { sessions } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return sessions.map((session) => (
 			<TouchableOpacity
 				// eslint-disable-next-line react/jsx-no-bind
@@ -140,15 +162,23 @@ export default class WalletConnectSessions extends PureComponent {
 		));
 	};
 
-	renderEmpty = () => (
-		<View style={styles.emptyWrapper}>
-			<Text style={styles.emptyText}>{strings('walletconnect_sessions.no_active_sessions')}</Text>
-		</View>
-	);
+	renderEmpty = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.emptyWrapper}>
+				<Text style={styles.emptyText}>{strings('walletconnect_sessions.no_active_sessions')}</Text>
+			</View>
+		);
+	};
 
 	render = () => {
 		const { ready, sessions } = this.state;
 		if (!ready) return null;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
+		const styles = createStyles(colors);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'wallet-connect-sessions-screen'}>
@@ -162,8 +192,18 @@ export default class WalletConnectSessions extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
 				/>
 			</SafeAreaView>
 		);
 	};
 }
+
+WalletConnectSessions.contextType = ThemeContext;
+
+WalletConnectSessions.propTypes = {
+	/**
+	 * Navigation object
+	 */
+	navigation: PropTypes.object,
+};

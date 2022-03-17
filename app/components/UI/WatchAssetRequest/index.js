@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import ActionView from '../ActionView';
@@ -12,74 +12,82 @@ import Engine from '../../../core/Engine';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		minHeight: Device.isIos() ? '50%' : '60%',
-	},
-	title: {
-		textAlign: 'center',
-		fontSize: 18,
-		marginVertical: 12,
-		marginHorizontal: 20,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	text: {
-		...fontStyles.normal,
-		fontSize: 16,
-		paddingTop: 25,
-		paddingHorizontal: 10,
-	},
-	tokenInformation: {
-		flexDirection: 'row',
-		marginHorizontal: 40,
-		flex: 1,
-		alignItems: 'flex-start',
-		marginVertical: 30,
-	},
-	tokenInfo: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	infoTitleWrapper: {
-		alignItems: 'center',
-	},
-	infoTitle: {
-		...fontStyles.bold,
-	},
-	infoBalance: {
-		alignItems: 'center',
-	},
-	infoToken: {
-		alignItems: 'center',
-	},
-	token: {
-		flexDirection: 'row',
-	},
-	identicon: {
-		paddingVertical: 10,
-	},
-	signText: {
-		...fontStyles.normal,
-		fontSize: 16,
-	},
-	addMessage: {
-		flexDirection: 'row',
-		margin: 20,
-	},
-	children: {
-		alignItems: 'center',
-		borderTopColor: colors.grey200,
-		borderTopWidth: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+			minHeight: Device.isIos() ? '50%' : '60%',
+		},
+		title: {
+			textAlign: 'center',
+			fontSize: 18,
+			marginVertical: 12,
+			marginHorizontal: 20,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		text: {
+			...fontStyles.normal,
+			fontSize: 16,
+			paddingTop: 25,
+			paddingHorizontal: 10,
+			color: colors.text.default,
+		},
+		tokenInformation: {
+			flexDirection: 'row',
+			marginHorizontal: 40,
+			flex: 1,
+			alignItems: 'flex-start',
+			marginVertical: 30,
+		},
+		tokenInfo: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		infoTitleWrapper: {
+			alignItems: 'center',
+		},
+		infoTitle: {
+			...fontStyles.bold,
+			color: colors.text.default,
+		},
+		infoBalance: {
+			alignItems: 'center',
+		},
+		infoToken: {
+			alignItems: 'center',
+		},
+		token: {
+			flexDirection: 'row',
+		},
+		identicon: {
+			paddingVertical: 10,
+		},
+		signText: {
+			...fontStyles.normal,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		addMessage: {
+			flexDirection: 'row',
+			margin: 20,
+		},
+		children: {
+			alignItems: 'center',
+			borderTopColor: colors.border.muted,
+			borderTopWidth: 1,
+		},
+	});
 
 const WatchAssetRequest = ({ suggestedAssetMeta, currentPageInformation, selectedAddress, onCancel, onConfirm }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	useEffect(
 		() => async () => {
 			const { TokensController } = Engine.context;

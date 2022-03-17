@@ -3,77 +3,79 @@ import { ScrollView, View, Text, Image, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	warningIcon: {
-		color: colors.red,
-		marginRight: 10,
-	},
-	phishingModalWrapper: {
-		paddingHorizontal: 20,
-		justifyContent: 'center',
-	},
-	phishingModalContent: {
-		height: 495,
-		borderRadius: 4,
-		backgroundColor: colors.white,
-	},
-	phishingModalTitle: {
-		...fontStyles.bold,
-		color: colors.red,
-		textAlign: 'center',
-	},
-	phishingModalHeader: {
-		backgroundColor: colors.white,
-		paddingVertical: 20,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	phishingModalInfo: {
-		backgroundColor: colors.grey000,
-		paddingTop: 20,
-		paddingHorizontal: 20,
-	},
-	phishingModalInfoContent: {
-		paddingBottom: 20,
-	},
-	phishingText: {
-		...fontStyles.normal,
-		fontSize: 11,
-		color: colors.fontPrimary,
-		marginBottom: 15,
-	},
-	link: {
-		textDecorationColor: colors.fontPrimary,
-		textDecorationLine: 'underline',
-	},
-	bold: {
-		...fontStyles.bold,
-	},
-	phishingFooter: {
-		marginTop: 10,
-		alignItems: 'flex-end',
-	},
-	backToSafetyContainer: {
-		borderWidth: 0,
-		padding: 10,
-	},
-	backToSafetyText: {
-		color: colors.red,
-		fontSize: 12,
-	},
-	foxImage: {
-		alignSelf: 'center',
-		width: 48,
-		height: 48,
-		marginBottom: -15,
-		zIndex: 99999,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		warningIcon: {
+			color: colors.error.default,
+			marginRight: 10,
+		},
+		phishingModalWrapper: {
+			paddingHorizontal: 20,
+			justifyContent: 'center',
+		},
+		phishingModalContent: {
+			height: 495,
+			borderRadius: 4,
+			backgroundColor: colors.background.default,
+		},
+		phishingModalTitle: {
+			...fontStyles.bold,
+			color: colors.error.default,
+			textAlign: 'center',
+		},
+		phishingModalHeader: {
+			backgroundColor: colors.background.default,
+			paddingVertical: 20,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		phishingModalInfo: {
+			backgroundColor: colors.background.alternative,
+			paddingTop: 20,
+			paddingHorizontal: 20,
+		},
+		phishingModalInfoContent: {
+			paddingBottom: 20,
+		},
+		phishingText: {
+			...fontStyles.normal,
+			fontSize: 11,
+			color: colors.text.default,
+			marginBottom: 15,
+		},
+		link: {
+			textDecorationColor: colors.text.default,
+			textDecorationLine: 'underline',
+		},
+		bold: {
+			...fontStyles.bold,
+		},
+		phishingFooter: {
+			marginTop: 10,
+			alignItems: 'flex-end',
+		},
+		backToSafetyContainer: {
+			borderWidth: 0,
+			padding: 10,
+		},
+		backToSafetyText: {
+			color: colors.error.default,
+			fontSize: 12,
+		},
+		foxImage: {
+			alignSelf: 'center',
+			width: 48,
+			height: 48,
+			marginBottom: -15,
+			zIndex: 99999,
+		},
+	});
 
 const foxImage = require('../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
@@ -106,6 +108,8 @@ export default class PhishingModal extends PureComponent {
 	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const urlObj = new URL(this.props.fullUrl);
 		const host = urlObj.hostname;
 
@@ -166,3 +170,5 @@ export default class PhishingModal extends PureComponent {
 		);
 	}
 }
+
+PhishingModal.contextType = ThemeContext;

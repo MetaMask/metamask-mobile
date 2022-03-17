@@ -78,7 +78,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
       style={
         Object {
-          "backgroundColor": "#f2f3f4",
+          "backgroundColor": "#F2F4F6",
           "paddingHorizontal": 20,
           "paddingTop": 20,
         }
@@ -87,7 +87,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -108,7 +108,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -120,7 +120,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "#24272A",
               "textDecorationLine": "underline",
             }
           }
@@ -133,7 +133,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -145,7 +145,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "#24272A",
               "textDecorationLine": "underline",
             }
           }
@@ -156,7 +156,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -168,7 +168,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "#24272A",
               "textDecorationLine": "underline",
             }
           }
@@ -179,7 +179,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 11,
             "fontWeight": "400",
@@ -191,7 +191,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "textDecorationColor": "#000000",
+              "textDecorationColor": "#24272A",
               "textDecorationLine": "underline",
             }
           }

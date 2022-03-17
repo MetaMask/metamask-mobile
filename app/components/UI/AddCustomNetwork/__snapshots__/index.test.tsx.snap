@@ -152,7 +152,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     <View
       style={
         Object {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#BBC0C5",
           "borderRadius": 10,
           "borderWidth": 1,
           "margin": 24,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
@@ -9,127 +9,134 @@ import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/validators';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flexDirection: 'row',
-		marginHorizontal: 8,
-	},
-	selectWrapper: {
-		flex: 1,
-		marginLeft: 8,
-		paddingHorizontal: 10,
-		minHeight: 52,
-		flexDirection: 'row',
-		borderWidth: 1,
-		borderRadius: 8,
-		marginVertical: 8,
-	},
-	inputWrapper: {
-		flex: 1,
-		marginLeft: 8,
-		padding: 10,
-		minHeight: 52,
-		flexDirection: 'row',
-		borderWidth: 1,
-		borderRadius: 8,
-		marginTop: 8,
-	},
-	input: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	identiconWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	addressToInformation: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		position: 'relative',
-	},
-	exclamation: {
-		backgroundColor: colors.white,
-		borderRadius: 12,
-		position: 'absolute',
-		bottom: 8,
-		left: 20,
-	},
-	address: {
-		flexDirection: 'column',
-		alignItems: 'flex-start',
-		marginHorizontal: 8,
-	},
-	addressWrapper: { flexDirection: 'row' },
-	textAddress: {
-		...fontStyles.normal,
-		color: colors.black,
-		fontSize: 14,
-	},
-	textBalance: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.grey500,
-	},
-	label: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		width: '15%',
-	},
-	labelText: {
-		...fontStyles.normal,
-		color: colors.black,
-		fontSize: 16,
-	},
-	textInput: {
-		...fontStyles.normal,
-		paddingLeft: 0,
-		paddingRight: 8,
-		width: '100%',
-	},
-	scanIcon: {
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	iconOpaque: {
-		color: colors.grey500,
-	},
-	iconHighlighted: {
-		color: colors.blue,
-	},
-	borderOpaque: {
-		borderColor: colors.grey100,
-	},
-	borderHighlighted: {
-		borderColor: colors.blue,
-	},
-	iconWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	dropdownIconWrapper: {
-		height: 23,
-		width: 23,
-	},
-	dropdownIcon: {
-		alignSelf: 'center',
-	},
-	checkIconWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	checkAddress: {
-		flex: 0.9,
-		// maxWidth: '90%'
-	},
-	toInputWrapper: {
-		flexDirection: 'row',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			flexDirection: 'row',
+			marginHorizontal: 8,
+		},
+		selectWrapper: {
+			flex: 1,
+			marginLeft: 8,
+			paddingHorizontal: 10,
+			minHeight: 52,
+			flexDirection: 'row',
+			borderWidth: 1,
+			borderRadius: 8,
+			marginVertical: 8,
+		},
+		inputWrapper: {
+			flex: 1,
+			marginLeft: 8,
+			padding: 10,
+			minHeight: 52,
+			flexDirection: 'row',
+			borderWidth: 1,
+			borderRadius: 8,
+			marginTop: 8,
+			borderColor: colors.border.default,
+		},
+		input: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		identiconWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		addressToInformation: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			position: 'relative',
+		},
+		exclamation: {
+			backgroundColor: colors.background.default,
+			borderRadius: 12,
+			position: 'absolute',
+			bottom: 8,
+			left: 20,
+		},
+		address: {
+			flexDirection: 'column',
+			alignItems: 'flex-start',
+			marginHorizontal: 8,
+		},
+		addressWrapper: { flexDirection: 'row' },
+		textAddress: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 14,
+		},
+		textBalance: {
+			...fontStyles.normal,
+			fontSize: 12,
+			color: colors.text.alternative,
+		},
+		label: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			width: '15%',
+		},
+		labelText: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 16,
+		},
+		textInput: {
+			...fontStyles.normal,
+			paddingLeft: 0,
+			paddingRight: 8,
+			width: '100%',
+			color: colors.text.default,
+		},
+		scanIcon: {
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		iconOpaque: {
+			color: colors.icon.default,
+		},
+		iconHighlighted: {
+			color: colors.primary.default,
+		},
+		borderOpaque: {
+			borderColor: colors.border.default,
+		},
+		borderHighlighted: {
+			borderColor: colors.primary.default,
+		},
+		iconWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		dropdownIconWrapper: {
+			height: 23,
+			width: 23,
+		},
+		dropdownIcon: {
+			alignSelf: 'center',
+		},
+		checkIconWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		checkAddress: {
+			flex: 0.9,
+			// maxWidth: '90%'
+		},
+		toInputWrapper: {
+			flexDirection: 'row',
+		},
+	});
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	if (confusableCollection.length) {
 		const texts = toAddressName.split('').map((char, index) => {
 			// if text has a confusable highlight it red
@@ -183,6 +190,9 @@ export const AddressTo = (props) => {
 		confusableCollection,
 		displayExclamation,
 	} = props;
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>
@@ -197,7 +207,7 @@ export const AddressTo = (props) => {
 							autoCorrect={false}
 							onChangeText={onToSelectedAddressChange}
 							placeholder={strings('transactions.address_to_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							spellCheck={false}
 							style={[styles.textInput, inputWidth]}
 							numberOfLines={1}
@@ -206,6 +216,7 @@ export const AddressTo = (props) => {
 							onSubmitEditing={onSubmit}
 							value={toSelectedAddress}
 							testID={'txn-to-address-input'}
+							keyboardAppearance={themeAppearance}
 						/>
 					</View>
 					{!!onScan && (
@@ -224,7 +235,7 @@ export const AddressTo = (props) => {
 						<Identicon address={toSelectedAddress} diameter={30} />
 						{displayExclamation && (
 							<View style={styles.exclamation}>
-								<FontAwesome color={colors.red} name="exclamation-circle" size={14} />
+								<FontAwesome color={colors.error.default} name="exclamation-circle" size={14} />
 							</View>
 						)}
 						<View style={styles.toInputWrapper}>
@@ -243,7 +254,7 @@ export const AddressTo = (props) => {
 										{renderShortAddress(toSelectedAddress)}
 									</Text>
 									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
-										<AntIcon name="check" color={colors.green600} size={15} />
+										<AntIcon name="check" color={colors.success.default} size={15} />
 									</View>
 								</View>
 							</View>
@@ -326,6 +337,9 @@ AddressTo.propTypes = {
 
 export const AddressFrom = (props) => {
 	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.label}>

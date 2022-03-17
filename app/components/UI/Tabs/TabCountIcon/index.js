@@ -1,28 +1,28 @@
 import React, { PureComponent } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
-import Device from '../../../../util/device';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	tabIcon: {
-		borderWidth: 2,
-		borderColor: colors.grey500,
-		borderRadius: 6,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	tabCount: {
-		color: colors.grey500,
-		flex: 0,
-		lineHeight: Device.isAndroid() ? 3 : 15,
-		fontSize: Device.isAndroid() ? 3 : 15,
-		textAlign: 'center',
-		alignSelf: 'center',
-		...fontStyles.normal,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		tabIcon: {
+			borderWidth: 2,
+			borderColor: colors.text.alternative,
+			borderRadius: 6,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		tabCount: {
+			color: colors.text.alternative,
+			flex: 0,
+			fontSize: 15,
+			textAlign: 'center',
+			alignSelf: 'center',
+			...fontStyles.normal,
+		},
+	});
 
 /**
  * PureComponent that renders an icon showing
@@ -42,10 +42,12 @@ class TabCountIcon extends PureComponent {
 
 	render() {
 		const { tabCount, style } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<View style={[styles.tabIcon, style]}>
-				<Text styles={styles.tabCount}>{tabCount}</Text>
+				<Text style={styles.tabCount}>{tabCount}</Text>
 			</View>
 		);
 	}
@@ -54,5 +56,7 @@ class TabCountIcon extends PureComponent {
 const mapStateToProps = (state) => ({
 	tabCount: state.browser.tabs.length,
 });
+
+TabCountIcon.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(TabCountIcon);

@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-animated-fox/index.js b/node_modules/react-native-animated-fox/index.js
+index ef01ddb..c71bdcb 100644
+--- a/node_modules/react-native-animated-fox/index.js
++++ b/node_modules/react-native-animated-fox/index.js
+@@ -69,7 +69,7 @@ class AnimatedFox extends PureComponent {
+ 					}
+ 
+ 					body{
+-						background: white;
++						background: ${this.props.bgColor};
+ 						text-align: center;
+ 						color: white;
+ 						font-family: roboto;

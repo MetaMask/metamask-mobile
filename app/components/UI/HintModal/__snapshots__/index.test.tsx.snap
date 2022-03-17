@@ -44,7 +44,7 @@ exports[`HintModal should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#000000",
+              "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -60,13 +60,18 @@ exports[`HintModal should render correctly 1`] = `
             allowFontScaling={false}
             name="x"
             size={16}
+            style={
+              Object {
+                "color": "#24272A",
+              }
+            }
           />
         </TouchableOpacity>
       </View>
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontSize": 14,
             "marginBottom": 16,
           }
@@ -86,14 +91,17 @@ exports[`HintModal should render correctly 1`] = `
         Do not use this to write your Secret Recovery Phrase.
       </Text>
       <TextInput
+        keyboardAppearance="light"
         multiline={true}
         onChangeText={[Function]}
         placeholder="e.g. Mom's house"
+        placeholderTextColor="#BBC0C5"
         style={
           Object {
-            "borderColor": "#6a737d",
+            "borderColor": "#BBC0C5",
             "borderRadius": 6,
             "borderWidth": 1,
+            "color": "#24272A",
             "minHeight": 76,
             "padding": 16,
             "paddingTop": 16,

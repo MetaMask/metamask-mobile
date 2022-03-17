@@ -2,38 +2,40 @@ import React, { PureComponent } from 'react';
 import { renderShortAddress } from '../../../../util/address';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Identicon from '../../../UI/Identicon';
-import { fontStyles, colors } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { doENSReverseLookup } from '../../../../util/ENSUtils';
 import { connect } from 'react-redux';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	addressElementWrapper: {
-		padding: 16,
-		flexDirection: 'row',
-		alignItems: 'center',
-		borderBottomWidth: 1,
-		borderBottomColor: colors.grey050,
-	},
-	addressElementInformation: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	addressIdenticon: {
-		paddingRight: 16,
-	},
-	addressTextNickname: {
-		...fontStyles.normal,
-		flex: 1,
-		color: colors.black,
-		fontSize: 14,
-	},
-	addressTextAddress: {
-		...fontStyles.normal,
-		fontSize: 12,
-		color: colors.grey500,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		addressElementWrapper: {
+			padding: 16,
+			flexDirection: 'row',
+			alignItems: 'center',
+			borderBottomWidth: 1,
+			borderBottomColor: colors.border.muted,
+		},
+		addressElementInformation: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		addressIdenticon: {
+			paddingRight: 16,
+		},
+		addressTextNickname: {
+			...fontStyles.normal,
+			flex: 1,
+			color: colors.text.default,
+			fontSize: 14,
+		},
+		addressTextAddress: {
+			...fontStyles.normal,
+			fontSize: 12,
+			color: colors.text.alternative,
+		},
+	});
 
 class AddressElement extends PureComponent {
 	static propTypes = {
@@ -78,6 +80,9 @@ class AddressElement extends PureComponent {
 		const { name, address } = this.state;
 		const primaryLabel = name && name[0] !== ' ' ? name : renderShortAddress(address);
 		const secondaryLabel = name && name[0] !== ' ' && renderShortAddress(address);
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<TouchableOpacity
 				onPress={() => onAccountPress(address)}
@@ -102,6 +107,8 @@ class AddressElement extends PureComponent {
 		);
 	};
 }
+
+AddressElement.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,

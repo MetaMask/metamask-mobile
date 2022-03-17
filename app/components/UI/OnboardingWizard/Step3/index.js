@@ -4,13 +4,14 @@ import { connect } from 'react-redux';
 import { Text, View, StyleSheet, Dimensions } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
-import { colors, fontStyles } from '../../../../styles/common';
+import { colors as importedColors, fontStyles } from '../../../../styles/common';
 import AccountOverview from '../../AccountOverview';
 import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	main: {
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		width: Dimensions.get('window').width,
 		alignItems: 'center',
-		backgroundColor: colors.transparent,
+		backgroundColor: importedColors.transparent,
 	},
 });
 
@@ -127,26 +128,37 @@ class Step3 extends PureComponent {
 		});
 	};
 
+	getOnboardingStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return onboardingStyles(colors);
+	};
+
 	/**
 	 * Returns content for this step
 	 */
-	content = () => (
-		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content} testID={'step3-title'}>
-				{strings('onboarding_wizard.step3.content1')}
-			</Text>
-			<Text style={onboardingStyles.content}>
-				<Text style={fontStyles.bold}>{strings('onboarding_wizard.step3.content2')} </Text>
-				{strings('onboarding_wizard.step3.content3')}
-			</Text>
-		</View>
-	);
+	content = () => {
+		const dynamicOnboardingStyles = this.getOnboardingStyles();
+
+		return (
+			<View style={dynamicOnboardingStyles.contentContainer}>
+				<Text style={dynamicOnboardingStyles.content} testID={'step3-title'}>
+					{strings('onboarding_wizard.step3.content1')}
+				</Text>
+				<Text style={dynamicOnboardingStyles.content}>
+					<Text style={fontStyles.bold}>{strings('onboarding_wizard.step3.content2')} </Text>
+					{strings('onboarding_wizard.step3.content3')}
+				</Text>
+			</View>
+		);
+	};
 
 	render() {
 		const { selectedAddress, identities, accounts, currentCurrency } = this.props;
 		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
 		const { coachmarkTopReady, viewTopReady } = this.state;
+		const dynamicOnboardingStyles = this.getOnboardingStyles();
 		if (!coachmarkTopReady || !viewTopReady) return null;
+
 		return (
 			<View style={[styles.main, { top: this.state.viewTop }]}>
 				<View style={styles.accountLabelContainer} testID={'account-label'}>
@@ -158,7 +170,7 @@ class Step3 extends PureComponent {
 						content={this.content()}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						style={onboardingStyles.coachmark}
+						style={dynamicOnboardingStyles.coachmark}
 						topIndicatorPosition={'topCenter'}
 						currentStep={2}
 					/>
@@ -178,5 +190,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
+
+Step3.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Step3);

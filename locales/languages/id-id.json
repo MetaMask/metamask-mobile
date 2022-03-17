@@ -1334,7 +1334,6 @@
 		"no_countries_result": "Tidak ada negara yang didukung yang cocok “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Biaya Cepat + lambat",
-		"debit_card_required": "Biaya lebih rendah, diperlukan kartu debit",
 		"select_card_country": "Pilih negara tempat kartu Anda terdaftar (bukan tempat Anda berlokasi).",
 		"search_country": "Cari negara",
 		"wyre_countries": " AS + 33 negara, biaya & batasan berbeda",
