@@ -4,80 +4,85 @@ import StyledButton from '../StyledButton';
 import { StyleSheet, View } from 'react-native';
 import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
-import { colors } from '../../../styles/common';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		minHeight: 200,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-	},
-	intro: {
-		fontSize: Device.isSmallDevice() ? 18 : 24,
-		marginBottom: 16,
-		marginTop: 16,
-		marginRight: 24,
-		marginLeft: 24,
-	},
-	warning: {
-		paddingHorizontal: 24,
-		fontSize: 13,
-		width: '100%',
-		textAlign: 'center',
-		paddingBottom: 16,
-	},
-	actionContainer: (noMargin) => ({
-		flex: 0,
-		flexDirection: 'row',
-		padding: 24,
-		marginTop: noMargin ? 0 : 20,
-	}),
-	button: {
-		flex: 1,
-	},
-	cancel: {
-		marginRight: 8,
-	},
-	confirm: {
-		marginLeft: 8,
-	},
-	networkIcon: {
-		width: 13,
-		height: 13,
-		borderRadius: 100,
-		marginRight: 10,
-		marginTop: 1,
-	},
-	otherNetworkIcon: {
-		backgroundColor: colors.grey100,
-		borderColor: colors.grey100,
-		borderWidth: 2,
-	},
-	networkContainer: {
-		alignItems: 'center',
-	},
-	networkBadge: {
-		flexDirection: 'row',
-		borderColor: colors.grey200,
-		borderRadius: 100,
-		borderWidth: 1,
-		padding: 10,
-	},
-	networkText: {
-		fontSize: 12,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			backgroundColor: colors.background.default,
+			paddingTop: 24,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			minHeight: 200,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+		},
+		intro: {
+			fontSize: Device.isSmallDevice() ? 18 : 24,
+			marginBottom: 16,
+			marginTop: 16,
+			marginRight: 24,
+			marginLeft: 24,
+		},
+		warning: {
+			paddingHorizontal: 24,
+			fontSize: 13,
+			width: '100%',
+			textAlign: 'center',
+			paddingBottom: 16,
+		},
+		actionContainer: (noMargin) => ({
+			flex: 0,
+			flexDirection: 'row',
+			padding: 24,
+			marginTop: noMargin ? 0 : 20,
+		}),
+		button: {
+			flex: 1,
+		},
+		cancel: {
+			marginRight: 8,
+		},
+		confirm: {
+			marginLeft: 8,
+		},
+		networkIcon: {
+			width: 13,
+			height: 13,
+			borderRadius: 100,
+			marginRight: 10,
+			marginTop: 1,
+		},
+		otherNetworkIcon: {
+			backgroundColor: colors.border.muted,
+			borderColor: colors.border.muted,
+			borderWidth: 2,
+		},
+		networkContainer: {
+			alignItems: 'center',
+		},
+		networkBadge: {
+			flexDirection: 'row',
+			borderColor: colors.border.default,
+			borderRadius: 100,
+			borderWidth: 1,
+			padding: 10,
+		},
+		networkText: {
+			fontSize: 12,
+			colors: colors.text.default,
+		},
+	});
 
 /**
  * Account access approval component
  */
 const SwitchCustomNetwork = ({ customNetworkInformation, currentPageInformation, onCancel, onConfirm, type }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	/**
 	 * Calls onConfirm callback and analytics to track connect confirmed event
 	 */

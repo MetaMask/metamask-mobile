@@ -8,6 +8,7 @@ import PaymentMethod from '../components/PaymentMethod';
 
 import Text from '../../../Base/Text';
 import Title from '../components/Title';
+import { useAssetFromTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	title: {
@@ -22,12 +23,20 @@ const styles = StyleSheet.create({
 });
 
 /* eslint-disable import/no-commonjs */
-const ApplePayMarkIcon = require('../../../../images/ApplePayMark.png');
-const WyreLogoIcon = require('../../../../images/WyreLogo.png');
+const ApplePayMarkLightIcon = require('../../../../images/ApplePayMark-light.png');
+const ApplePayMarkDarkIcon = require('../../../../images/ApplePayMark-dark.png');
+const WyreLogoLightIcon = require('../../../../images/WyreLogo-light.png');
+const WyreLogoDarkIcon = require('../../../../images/WyreLogo-dark.png');
 /* eslint-enable import/no-commonjs */
 
-const ApplePayMark = () => <Image source={ApplePayMarkIcon} style={styles.applePay} />;
-const WyreLogo = () => <Image source={WyreLogoIcon} style={styles.wyre} />;
+const ApplePayMark = () => {
+	const applePayMarkIcon = useAssetFromTheme(ApplePayMarkLightIcon, ApplePayMarkDarkIcon);
+	return <Image source={applePayMarkIcon} style={styles.applePay} />;
+};
+const WyreLogo = () => {
+	const wyreLogoIcon = useAssetFromTheme(WyreLogoLightIcon, WyreLogoDarkIcon);
+	return <Image source={wyreLogoIcon} style={styles.wyre} />;
+};
 
 const WyreApplePayPaymentMethod = ({ onPress }) => (
 	<PaymentMethod onPress={onPress}>

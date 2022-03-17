@@ -22,7 +22,6 @@ import {
 } from '../../../util/number';
 import { isMainnetByChainId } from '../../../util/networks';
 import { getErrorMessage, getFetchParams, getQuotesNavigationsParams, isSwapsNativeAsset } from './utils';
-import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
@@ -56,6 +55,7 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -66,162 +66,174 @@ const SLIPPAGE_BUCKETS = {
 const DEFAULT_GAS_FEE_OPTION_LEGACY = AppConstants.GAS_OPTIONS.MEDIUM;
 const DEFAULT_GAS_FEE_OPTION_FEE_MARKET = AppConstants.GAS_OPTIONS.HIGH;
 
-const styles = StyleSheet.create({
-	screen: {
-		flexGrow: 1,
-		justifyContent: 'space-between',
-	},
-	topBar: {
-		alignItems: 'center',
-		marginVertical: 12,
-	},
-	alertBar: {
-		paddingHorizontal: 20,
-		marginVertical: 10,
-		width: '100%',
-	},
-	timerWrapper: {
-		backgroundColor: colors.grey000,
-		borderRadius: 20,
-		marginVertical: 12,
-		paddingVertical: 4,
-		paddingHorizontal: 15,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	timer: {
-		fontVariant: ['tabular-nums'],
-	},
-	timerHiglight: {
-		color: colors.red,
-	},
-	content: {
-		paddingHorizontal: 20,
-		alignItems: 'center',
-	},
-	errorViewContent: {
-		flex: 1,
-		marginHorizontal: Device.isSmallDevice() ? 20 : 55,
-		justifyContent: 'center',
-	},
-	errorTitle: {
-		fontSize: 24,
-		marginVertical: 10,
-	},
-	errorText: {
-		fontSize: 14,
-	},
-	sourceTokenContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	tokenIcon: {
-		marginHorizontal: 5,
-	},
-	tokenText: {
-		color: colors.grey500,
-		fontSize: Device.isSmallDevice() ? 16 : 18,
-	},
-	tokenTextDestination: {
-		color: colors.fontPrimary,
-	},
-	arrowDown: {
-		color: colors.grey100,
-		fontSize: Device.isSmallDevice() ? 22 : 25,
-		marginHorizontal: 15,
-		marginTop: Device.isSmallDevice() ? 2 : 4,
-		marginBottom: Device.isSmallDevice() ? 0 : 2,
-	},
-	amount: {
-		textAlignVertical: 'center',
-		fontSize: Device.isSmallDevice() ? 45 : 60,
-		marginBottom: Device.isSmallDevice() ? 8 : 24,
-	},
-	exchangeRate: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginVertical: Device.isSmallDevice() ? 1 : 1,
-	},
-	bottomSection: {
-		marginBottom: 6,
-		alignItems: 'stretch',
-		paddingHorizontal: 20,
-	},
-	sliderButtonText: {
-		fontSize: 16,
-		color: colors.white,
-	},
-	quotesSummary: {
-		marginVertical: Device.isSmallDevice() ? 12 : 24,
-	},
-	quotesSummaryHeader: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexWrap: 'wrap',
-	},
-	quotesRow: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-	},
-	quotesDescription: {
-		flex: 1,
-		flexWrap: 'wrap',
-		flexDirection: 'row',
-		marginRight: 3,
-	},
-	quotesLegend: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		marginRight: 2,
-		alignItems: 'center',
-	},
-	quotesFiatColumn: {
-		flex: 1,
-		marginLeft: 3,
-		flexWrap: 'wrap',
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-	},
-	infoIcon: {
-		fontSize: 12,
-		margin: 3,
-		color: colors.blue,
-	},
-	ctaButton: {
-		width: '100%',
-	},
-	errorIcon: {
-		fontSize: 46,
-		marginVertical: 4,
-		color: colors.red,
-	},
-	expiredIcon: {
-		color: colors.blue,
-	},
-	disabled: {
-		opacity: 0.4,
-	},
-	termsButton: {
-		marginTop: 10,
-		marginBottom: 6,
-	},
-	gasInfoContainer: {
-		paddingHorizontal: 2,
-	},
-	gasInfoIcon: {
-		color: colors.blue,
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10,
-	},
-	text: {
-		lineHeight: 20,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		screen: {
+			flexGrow: 1,
+			justifyContent: 'space-between',
+			backgroundColor: colors.background.default,
+		},
+		container: {
+			backgroundColor: colors.background.default,
+		},
+		topBar: {
+			alignItems: 'center',
+			marginVertical: 12,
+		},
+		alertBar: {
+			paddingHorizontal: 20,
+			marginVertical: 10,
+			width: '100%',
+		},
+		timerWrapper: {
+			backgroundColor: colors.background.alternative,
+			borderRadius: 20,
+			marginVertical: 12,
+			paddingVertical: 4,
+			paddingHorizontal: 15,
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		timer: {
+			fontVariant: ['tabular-nums'],
+		},
+		timerHiglight: {
+			color: colors.error.default,
+		},
+		content: {
+			paddingHorizontal: 20,
+			alignItems: 'center',
+		},
+		errorViewContent: {
+			flex: 1,
+			marginHorizontal: Device.isSmallDevice() ? 20 : 55,
+			justifyContent: 'center',
+		},
+		errorTitle: {
+			fontSize: 24,
+			marginVertical: 10,
+		},
+		errorText: {
+			fontSize: 14,
+		},
+		sourceTokenContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		tokenIcon: {
+			marginHorizontal: 5,
+		},
+		tokenText: {
+			color: colors.text.alternative,
+			fontSize: Device.isSmallDevice() ? 16 : 18,
+		},
+		tokenTextDestination: {
+			color: colors.text.default,
+		},
+		arrowDown: {
+			color: colors.icon.default,
+			fontSize: Device.isSmallDevice() ? 22 : 25,
+			marginHorizontal: 15,
+			marginTop: Device.isSmallDevice() ? 2 : 4,
+			marginBottom: Device.isSmallDevice() ? 0 : 2,
+		},
+		amount: {
+			textAlignVertical: 'center',
+			fontSize: Device.isSmallDevice() ? 45 : 60,
+			marginBottom: Device.isSmallDevice() ? 8 : 24,
+		},
+		exchangeRate: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginVertical: Device.isSmallDevice() ? 1 : 1,
+		},
+		bottomSection: {
+			marginBottom: 6,
+			alignItems: 'stretch',
+			paddingHorizontal: 20,
+		},
+		sliderButtonText: {
+			fontSize: 16,
+			color: colors.primary.inverse,
+		},
+		quotesSummary: {
+			marginVertical: Device.isSmallDevice() ? 12 : 24,
+		},
+		quotesSummaryHeader: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			flexWrap: 'wrap',
+		},
+		bestQuoteText: {
+			color: colors.text.default,
+		},
+		quotesRow: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+		},
+		quotesDescription: {
+			flex: 1,
+			flexWrap: 'wrap',
+			flexDirection: 'row',
+			marginRight: 3,
+		},
+		quotesLegend: {
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+			marginRight: 2,
+			alignItems: 'center',
+		},
+		quotesFiatColumn: {
+			flex: 1,
+			marginLeft: 3,
+			flexWrap: 'wrap',
+			flexDirection: 'row',
+			justifyContent: 'flex-end',
+		},
+		infoIcon: {
+			fontSize: 12,
+			margin: 3,
+			color: colors.icon.muted,
+		},
+		ctaButton: {
+			width: '100%',
+		},
+		errorIcon: {
+			fontSize: 46,
+			marginVertical: 4,
+			color: colors.error.default,
+		},
+		expiredIcon: {
+			color: colors.icon.default,
+		},
+		disabled: {
+			opacity: 0.4,
+		},
+		termsButton: {
+			marginTop: 10,
+			marginBottom: 6,
+		},
+		gasInfoContainer: {
+			paddingHorizontal: 2,
+		},
+		gasInfoIcon: {
+			color: colors.icon.muted,
+		},
+		hitSlop: {
+			top: 10,
+			left: 10,
+			bottom: 10,
+			right: 10,
+		},
+		text: {
+			lineHeight: 20,
+			color: colors.text.default,
+		},
+		fetchingText: {
+			color: colors.text.default,
+		},
+	});
 
 async function resetAndStartPolling({ slippage, sourceToken, destinationToken, sourceAmount, walletAddress }) {
 	if (!sourceToken || !destinationToken) {
@@ -309,8 +321,11 @@ function SwapsQuotesView({
 	usedCustomGas,
 }) {
 	const navigation = useNavigation();
-	const route = useRoute();
 	/* Get params from navigation */
+	const route = useRoute();
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const { sourceTokenAddress, destinationTokenAddress, sourceAmount, slippage, tokens } = useMemo(
 		() => getQuotesNavigationsParams(route),
@@ -355,6 +370,10 @@ function SwapsQuotesView({
 	// TODO: use this variable in the future when calculating savings
 	const [isSaving] = useState(false);
 	const [isInFetch, setIsInFetch] = useState(false);
+
+	useEffect(() => {
+		navigation.setOptions(getSwapsQuotesNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	const hasConversionRate = useMemo(
 		() =>
@@ -1187,6 +1206,7 @@ function SwapsQuotesView({
 	return (
 		<ScreenView
 			contentContainerStyle={styles.screen}
+			style={styles.container}
 			keyboardShouldPersistTaps="handled"
 			scrollEnabled={!isSwiping}
 		>
@@ -1289,7 +1309,7 @@ function SwapsQuotesView({
 						{isInFetch ? (
 							<>
 								<ActivityIndicator size="small" />
-								<Text> {strings('swaps.fetching_new_quotes')}</Text>
+								<Text style={styles.fetchingText}> {strings('swaps.fetching_new_quotes')}</Text>
 							</>
 						) : (
 							<Text primary>
@@ -1364,7 +1384,7 @@ function SwapsQuotesView({
 				{selectedQuote && (
 					<QuotesSummary style={styles.quotesSummary}>
 						<QuotesSummary.Header style={styles.quotesSummaryHeader} savings={isSaving}>
-							<QuotesSummary.HeaderText bold>
+							<QuotesSummary.HeaderText style={styles.bestQuoteText} bold>
 								{isSaving ? strings('swaps.savings') : strings('swaps.using_best_quote')}
 							</QuotesSummary.HeaderText>
 							{allQuotes.length > 1 && (
@@ -1676,8 +1696,6 @@ function SwapsQuotesView({
 		</ScreenView>
 	);
 }
-
-SwapsQuotesView.navigationOptions = ({ navigation, route }) => getSwapsQuotesNavbar(navigation, route);
 
 SwapsQuotesView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

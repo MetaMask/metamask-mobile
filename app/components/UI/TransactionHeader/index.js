@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { getHost, getUrlObj } from '../../../util/browser';
@@ -10,74 +10,80 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import { renderShortAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
-const styles = StyleSheet.create({
-	transactionHeader: {
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	domainLogo: {
-		width: 56,
-		height: 56,
-		borderRadius: 32,
-	},
-	assetLogo: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10,
-	},
-	domanUrlContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-		marginTop: 10,
-	},
-	secureIcon: {
-		marginRight: 5,
-	},
-	domainUrl: {
-		...fontStyles.bold,
-		textAlign: 'center',
-		fontSize: 14,
-		color: colors.black,
-	},
-	networkContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-	},
-	networkStatusIndicator: {
-		borderRadius: 2.5,
-		height: 5,
-		width: 5,
-	},
-	network: {
-		...fontStyles.normal,
-		textAlign: 'center',
-		fontSize: 12,
-		padding: 5,
-		color: colors.black,
-		textTransform: 'capitalize',
-	},
-	deeplinkIconContainer: {
-		borderWidth: 1,
-		borderColor: colors.grey600,
-		width: 56,
-		height: 56,
-		borderRadius: 38,
-	},
-	deeplinkIcon: {
-		alignSelf: 'center',
-		lineHeight: 56,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		transactionHeader: {
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		domainLogo: {
+			width: 56,
+			height: 56,
+			borderRadius: 32,
+		},
+		assetLogo: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderRadius: 10,
+		},
+		domanUrlContainer: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'row',
+			marginTop: 10,
+		},
+		secureIcon: {
+			marginRight: 5,
+			color: colors.text.default,
+		},
+		domainUrl: {
+			...fontStyles.bold,
+			textAlign: 'center',
+			fontSize: 14,
+			color: colors.text.default,
+		},
+		networkContainer: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'row',
+		},
+		networkStatusIndicator: {
+			borderRadius: 2.5,
+			height: 5,
+			width: 5,
+		},
+		network: {
+			...fontStyles.normal,
+			textAlign: 'center',
+			fontSize: 12,
+			padding: 5,
+			color: colors.text.default,
+			textTransform: 'capitalize',
+		},
+		deeplinkIconContainer: {
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			width: 56,
+			height: 56,
+			borderRadius: 38,
+		},
+		deeplinkIcon: {
+			alignSelf: 'center',
+			lineHeight: 56,
+		},
+	});
 
 /**
  * PureComponent that renders the transaction header used for signing, granting permissions and sending
  */
 const TransactionHeader = (props) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	const originIsDeeplink =
 		props.currentPageInformation.origin === ORIGIN_DEEPLINK ||
 		props.currentPageInformation.origin === ORIGIN_QR_CODE;
@@ -89,7 +95,8 @@ const TransactionHeader = (props) => {
 	 */
 	const renderNetworkStatusIndicator = () => {
 		const { networkType } = props;
-		const networkStatusIndicatorColor = (networkList[networkType] && networkList[networkType].color) || colors.red;
+		const networkStatusIndicatorColor =
+			(networkList[networkType] && networkList[networkType].color) || colors.error.default;
 		const networkStatusIndicator = (
 			<View style={[styles.networkStatusIndicator, { backgroundColor: networkStatusIndicatorColor }]} />
 		);
@@ -121,7 +128,7 @@ const TransactionHeader = (props) => {
 						style={styles.deeplinkIcon}
 						name={origin === ORIGIN_DEEPLINK ? 'link' : 'qrcode'}
 						size={32}
-						color={colors.grey600}
+						color={colors.text.default}
 					/>
 				</View>
 			);
