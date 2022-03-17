@@ -47,6 +47,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
+import santizeUrl from '../../../util/santizeUrl'
 import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
@@ -549,7 +550,9 @@ class DrawerView extends PureComponent {
 		} = this.props;
 		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
 		!showNetworkOnboarding && this.toggleNetworksModal();
-		onboardNetworkAction(networkUrl || this.state.networkUrl);
+		console.log(networkUrl, 'networkUrl');
+		console.log(this.state.networkUrl, 'this.state.networkUrl');
+		// onboardNetworkAction(santizeUrl(networkUrl) || this.state.networkUrl);
 		if (!manualClose) {
 			await this.hideDrawer();
 		}
@@ -1175,7 +1178,7 @@ class DrawerView extends PureComponent {
 						<NetworkInfo
 							onClose={this.onInfoNetworksModalClose}
 							type={this.state.networkType || networkOnboarding.networkType}
-							nativeToken={this.state.networkCurrency || networkOnboarding.nativeToken}
+							ticker={ticker}
 						/>
 					) : (
 						<NetworkList
@@ -1260,6 +1263,8 @@ const mapStateToProps = (state) => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	currentRoute: getCurrentRoute(state),
 	networkOnboarding: state.networkOnboarded.networkState,
+	networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+	networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 
 const mapDispatchToProps = (dispatch) => ({
