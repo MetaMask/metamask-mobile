@@ -2,29 +2,27 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, ScrollView, InteractionManager } from 'react-native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
-import { colors } from '../../../styles/common';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { connect } from 'react-redux';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		paddingLeft: 18,
-		zIndex: 99999999999999,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			paddingLeft: 18,
+			zIndex: 99999999999999,
+		},
+	});
 
 /**
  * Main view for app configurations
  */
 class Settings extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation);
-
 	static propTypes = {
 		/**
 		/* navigation object required to push new views
@@ -35,6 +33,22 @@ class Settings extends PureComponent {
 		 * completed the seed phrase backup flow
 		 */
 		seedphraseBackedUp: PropTypes.bool,
+	};
+
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getClosableNavigationOptions(strings('app_settings.title'), strings('navigation.close'), navigation, colors)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	onPressGeneral = () => {
@@ -74,6 +88,9 @@ class Settings extends PureComponent {
 
 	render = () => {
 		const { seedphraseBackedUp } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<ScrollView style={styles.wrapper}>
 				<SettingsDrawer
@@ -112,6 +129,8 @@ class Settings extends PureComponent {
 		);
 	};
 }
+
+Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	seedphraseBackedUp: state.user.seedphraseBackedUp,

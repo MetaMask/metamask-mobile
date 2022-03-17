@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import PropTypes from 'prop-types';
 import { StyleSheet, Text, View, TouchableOpacity, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
 import {
 	isBN,
@@ -32,69 +32,71 @@ import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	overviewAlert: {
-		alignItems: 'center',
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderRadius: 4,
-		borderWidth: 1,
-		flexDirection: 'row',
-		height: 32,
-		paddingHorizontal: 16,
-		marginHorizontal: 24,
-		marginTop: 12,
-	},
-	overviewAlertText: {
-		...fontStyles.normal,
-		color: colors.red,
-		flex: 1,
-		fontSize: 12,
-		marginLeft: 8,
-	},
-	overviewAlertIcon: {
-		color: colors.red,
-		flex: 0,
-	},
-	viewDataWrapper: {
-		flex: 1,
-		marginTop: 16,
-	},
-	viewDataButton: {
-		alignSelf: 'center',
-	},
-	viewDataText: {
-		color: colors.blue,
-		textAlign: 'center',
-		fontSize: 12,
-		...fontStyles.bold,
-		alignSelf: 'center',
-	},
-	errorWrapper: {
-		marginHorizontal: 24,
-		marginTop: 12,
-		paddingHorizontal: 10,
-		paddingVertical: 6,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderRadius: 8,
-		borderWidth: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	error: {
-		color: colors.red,
-		fontSize: 12,
-		lineHeight: 16,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-	underline: {
-		textDecorationLine: 'underline',
-		...fontStyles.bold,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		overviewAlert: {
+			alignItems: 'center',
+			backgroundColor: colors.error.muted,
+			borderColor: colors.error.default,
+			borderRadius: 4,
+			borderWidth: 1,
+			flexDirection: 'row',
+			height: 32,
+			paddingHorizontal: 16,
+			marginHorizontal: 24,
+			marginTop: 12,
+		},
+		overviewAlertText: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			flex: 1,
+			fontSize: 12,
+			marginLeft: 8,
+		},
+		overviewAlertIcon: {
+			color: colors.error.default,
+			flex: 0,
+		},
+		viewDataWrapper: {
+			flex: 1,
+			marginTop: 16,
+		},
+		viewDataButton: {
+			alignSelf: 'center',
+		},
+		viewDataText: {
+			color: colors.primary.default,
+			textAlign: 'center',
+			fontSize: 12,
+			...fontStyles.bold,
+			alignSelf: 'center',
+		},
+		errorWrapper: {
+			marginHorizontal: 24,
+			marginTop: 12,
+			paddingHorizontal: 10,
+			paddingVertical: 6,
+			backgroundColor: colors.error.muted,
+			borderColor: colors.error.default,
+			borderRadius: 8,
+			borderWidth: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		error: {
+			color: colors.text.default,
+			fontSize: 12,
+			lineHeight: 16,
+			...fontStyles.normal,
+			textAlign: 'center',
+		},
+		underline: {
+			textDecorationLine: 'underline',
+			...fontStyles.bold,
+		},
+	});
 
 /**
  * PureComponent that supports reviewing a transaction information
@@ -549,6 +551,8 @@ class TransactionReviewInformation extends PureComponent {
 			gasEstimateType,
 		} = this.props;
 		const { nonce } = this.props.transaction;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		const is_main_net = isMainNet(network);
 
@@ -620,5 +624,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setNonce: (nonce) => dispatch(setNonce(nonce)),
 	setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
 });
+
+TransactionReviewInformation.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(TransactionReviewInformation);

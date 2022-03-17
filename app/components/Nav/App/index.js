@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -39,6 +39,7 @@ import AuthenticationService from '../../../core/AuthenticationService';
 const styles = StyleSheet.create({
 	fill: { flex: 1 },
 });
+import { ThemeContext, useAppTheme } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -255,11 +256,15 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		);
 	}
 
+	const theme = useAppTheme();
+
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<View style={styles.fill}>
+			<ThemeContext.Provider value={theme}>
 				<NavigationContainer
+					// Prevents artifacts when navigating between screens
+					theme={{ colors: { background: theme.colors.background.default } }}
 					ref={navigator}
 					onReady={() => {
 						routingInstrumentation.registerNavigationContainer(navigator);
@@ -282,7 +287,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
-			</View>
+				{renderSplash()}
+			</ThemeContext.Provider>
 		)) ||
 		null
 	);

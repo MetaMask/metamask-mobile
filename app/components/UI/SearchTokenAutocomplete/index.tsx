@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { View, StyleSheet, InteractionManager, Text, LayoutAnimation } from 'react-native';
-import { colors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
@@ -11,20 +10,22 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../constants/network';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	tokenDetectionDescription: { color: colors.black },
-	tokenDetectionLink: { color: colors.blue },
-	tokenDetectionIcon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
+		tokenDetectionDescription: { color: colors.text.default },
+		tokenDetectionLink: { color: colors.primary.default },
+		tokenDetectionIcon: {
+			paddingTop: 4,
+			paddingRight: 8,
+		},
+	});
 
 interface Props {
 	/**
@@ -42,6 +43,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 	const [selectedAsset, setSelectedAsset] = useState({});
 	const [isSearchFocused, setIsSearchFocused] = useState(false);
 	const { address, symbol, decimals } = selectedAsset as any;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	const isTokenDetectionEnabled = useSelector(
 		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
 	);
@@ -120,7 +124,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 					<FontAwesome
 						style={styles.tokenDetectionIcon}
 						name={'exclamation-circle'}
-						color={colors.blue}
+						color={colors.primary.default}
 						size={18}
 					/>
 				)}
@@ -131,9 +135,12 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 						suppressHighlighting
 						onPress={() => {
 							navigation.navigate('SettingsView', {
-								screen: 'ExperimentalSettings',
+								screen: 'SettingsFlow',
 								params: {
-									isFullScreenModal: true,
+									screen: 'ExperimentalSettings',
+									params: {
+										isFullScreenModal: true,
+									},
 								},
 							});
 						}}
@@ -144,7 +151,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 				</>
 			</Alert>
 		);
-	}, [navigation, isSearchFocused, isTokenDetectionEnabled, isMainnet]);
+	}, [navigation, isSearchFocused, isTokenDetectionEnabled, isMainnet, colors, styles]);
 
 	return (
 		<View style={styles.wrapper} testID={'search-token-screen'}>
