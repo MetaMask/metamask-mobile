@@ -76,6 +76,11 @@ class AuthenticationService {
 	/**
 	 * Reset vault will empty password used to clear/reset vault upon errors during login/creation
 	 */
+	isAuthenticating = async () => SecureKeychain.getInstance().isAuthenticating;
+
+	/**
+	 * Reset vault will empty password used to clear/reset vault upon errors during login/creation
+	 */
 	resetVault = async () => {
 		const { KeyringController }: any = Engine.context;
 		// Restore vault with empty password
@@ -205,6 +210,7 @@ class AuthenticationService {
 	 */
 	appTriggeredAuth = async (selectedAddress: string) => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
+		console.log('TEST', credentials);
 		try {
 			const password = credentials?.password;
 			await this._loginVaultCreation(password, selectedAddress);
@@ -257,6 +263,7 @@ export default {
 		await instance?.storePassword(password, authType);
 	},
 	getPassword: async () => await instance?.getPassword(),
+	isAuthenticating: () => instance?.isAuthenticating,
 	componentAuthenticationType: async (biometryChoice: boolean, rememberMe: boolean) =>
 		await instance?.componentAuthenticationType(biometryChoice, rememberMe),
 };

@@ -81,6 +81,7 @@ export default {
 
 	async getGenericPassword() {
 		if (instance) {
+			console.log('get pass');
 			instance.isAuthenticating = true;
 			const keychainObject = await Keychain.getGenericPassword(defaultOptions);
 			if (keychainObject.password) {
@@ -88,6 +89,7 @@ export default {
 				const decrypted = await instance.decryptPassword(encryptedPassword);
 				keychainObject.password = decrypted.password;
 				instance.isAuthenticating = false;
+				console.log('get pass2');
 				return keychainObject;
 			}
 			instance.isAuthenticating = false;

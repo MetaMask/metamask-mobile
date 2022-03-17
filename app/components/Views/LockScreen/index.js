@@ -221,10 +221,9 @@ class LockScreen extends PureComponent {
 const mapStateToProps = (state) => ({
 	passwordSet: state.user.passwordSet,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	appTheme: state.user.appTheme,
 });
 
 LockScreen.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(LockScreen);
-	appTheme: state.user.appTheme,
-});
