@@ -22,7 +22,7 @@ const zeroWidthPoints = new Set([
 
 export const hasZeroWidthPoints = (char) => zeroWidthPoints.has(char);
 
-export const getConfusablesExplanation = (confusableCollection) => [
+export const getConfusablesExplanations = (confusableCollection) => [
 	...new Set(
 		confusableCollection.map((confusable) => {
 			const key = confusable;
