@@ -28,7 +28,7 @@ import { allowedToBuy } from '../../../UI/FiatOrders';
 import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { collectConfusables, hasZeroWidthPoints } from '../../../../util/validators';
+import { collectConfusables, hasZeroWidthPoints } from '../../../../util/confusables';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
 import { ThemeContext, mockTheme } from '../../../../util/theme';

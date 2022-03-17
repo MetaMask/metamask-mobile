@@ -1,4 +1,4 @@
-import { failedSeedPhraseRequirements, parseSeedPhrase, hasZeroWidthPoints, collectConfusables } from '.';
+import { failedSeedPhraseRequirements, parseSeedPhrase } from '.';
 
 const VALID_24 =
 	'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
@@ -33,25 +33,5 @@ describe('parseSeedPhrase', () => {
 	});
 	it('Should handle uppercase', () => {
 		expect(parseSeedPhrase(`   ${String(VALID_12).toUpperCase()}`)).toEqual(VALID_12);
-	});
-});
-
-describe('hasZeroWidthPoints', () => {
-	it('should detect zero-width unicode', () => {
-		expect('vita‍lik.eth'.split('').some(hasZeroWidthPoints)).toEqual(true);
-	});
-	it('should not detect zero-width unicode', () => {
-		expect('vitalik.eth'.split('').some(hasZeroWidthPoints)).toEqual(false);
-	});
-});
-
-describe('collectConfusables', () => {
-	it('should detect homoglyphic unicode points', () => {
-		expect(collectConfusables('vita‍lik.eth')).toHaveLength(1);
-		expect(collectConfusables('faceboоk.eth')).toHaveLength(1);
-	});
-
-	it('should detect multiple homoglyphic unicode points', () => {
-		expect(collectConfusables('ѕсоре.eth')).toHaveLength(5);
 	});
 });
