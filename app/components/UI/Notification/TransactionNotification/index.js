@@ -218,7 +218,7 @@ function TransactionNotification(props) {
 	useEffect(() => onCloseNotification(), [onCloseNotification]);
 
 	return (
-		<View style={styles.absoluteFill}>
+		<>
 			<Animated.View
 				style={[
 					styles.notification,
@@ -301,7 +301,7 @@ function TransactionNotification(props) {
 					</Animated.View>
 				</View>
 			)}
-		</View>
+		</>
 	);
 }
 
