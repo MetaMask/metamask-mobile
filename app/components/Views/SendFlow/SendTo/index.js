@@ -616,20 +616,17 @@ class SendFlow extends PureComponent {
 		const displayConfusableWarning = !existingContact && confusableCollection && !!confusableCollection.length;
 		const displayAsWarning =
 			confusableCollection && confusableCollection.length && !confusableCollection.some(hasZeroWidthPoints);
-		const confusableCollectionMap =
+		const explanations =
 			displayConfusableWarning &&
-			confusableCollection.map((confusable) => ({ [confusable]: confusablesMap[confusable] }));
-		const explanationsGuard = displayConfusableWarning && confusableCollectionMap.length;
-		let explanations =
-			explanationsGuard &&
-			confusableCollectionMap.map((confusableObj) => {
-				const [key, value] = Object.entries(confusableObj)[0];
-				return hasZeroWidthPoints(key)
-					? strings('transaction.contains_zero_width')
-					: `'${key}' ${strings('transaction.similar_to')} '${value}'`;
-			});
-		// remove duplicates
-		explanations = explanationsGuard && explanations.filter((item, index) => explanations.indexOf(item) === index);
+			confusableCollection
+				.map((confusable) => {
+					const key = confusable;
+					const value = confusablesMap[confusable];
+					return hasZeroWidthPoints(key)
+						? strings('transaction.contains_zero_width')
+						: `'${key}' ${strings('transaction.similar_to')} '${value}'`;
+				})
+				.reduce((unique, item) => (unique.includes(item) ? unique : [...unique, item]), []);
 
 		return (
 			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'send-screen'}>
