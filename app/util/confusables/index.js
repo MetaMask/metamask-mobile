@@ -24,9 +24,8 @@ export const hasZeroWidthPoints = (char) => zeroWidthPoints.has(char);
 
 export const getConfusablesExplanations = (confusableCollection) => [
 	...new Set(
-		confusableCollection.map((confusable) => {
-			const key = confusable;
-			const value = confusablesMap[confusable];
+		confusableCollection.map((key) => {
+			const value = confusablesMap[key];
 			return hasZeroWidthPoints(key)
 				? strings('transaction.contains_zero_width')
 				: `'${key}' ${strings('transaction.similar_to')} '${value}'`;
