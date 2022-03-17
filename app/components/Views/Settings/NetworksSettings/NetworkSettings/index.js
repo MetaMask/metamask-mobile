@@ -20,6 +20,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { PRIVATENETWORK } from '../../../../../constants/network';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
+import santizeUrl from '../../../../../util/santizeUrl'
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -275,7 +276,7 @@ class NetworkSettings extends PureComponent {
 
 		const nativeToken = ticker || PRIVATENETWORK;
 		const networkType = nickname || rpcUrl;
-		const networkUrl = rpcUrl;
+		const networkUrl = santizeUrl(rpcUrl);
 
 		const formChainId = stateChainId.trim().toLowerCase();
 

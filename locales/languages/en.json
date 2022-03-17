@@ -1824,7 +1824,9 @@
 		"help_description_3": " for help!"
 	},
 	"network_information": {
-		"first_description": "The native token on this network is {{nativeToken}}. It is the token used for gas fees.",
+		"things_to_keep_in_mind": "Things to keep in mind",
+		"testnet_network": "{{type}} Testnet",
+		"first_description": "The native token on this network is {{ticker}}. It is the token used for gas fees.",
 		"second_description": "If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge.",
 		"third_description": "Your wallet may not automatically show up in your wallet.",
 		"private_network": "This network is unknown and may use a special token for gas fees.",

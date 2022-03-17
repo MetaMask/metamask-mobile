@@ -5,7 +5,8 @@ import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { PRIVATENETWORK } from '../../../constants/network';
-import { ETH } from '../../../util/custom-gas';
+import {MAINNET, RPC} from '../../../constants/network';
+import { connect } from 'react-redux';
 import Description from './InfoDescription';
 
 const styles = StyleSheet.create({
@@ -81,18 +82,25 @@ const styles = StyleSheet.create({
 interface NetworkInfoProps {
 	onClose: () => void;
 	type: string;
-	nativeToken: string;
+	ticker: string;
+	networkProvider: {
+		nickname: string;
+		type: string;
+		ticker: {
+			networkTicker: string;
+		}
+	}
 }
 
 const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
-	const { onClose, type, nativeToken } = props;
+	const { onClose, ticker, networkProvider: {nickname, type, ticker: networkTicker} } = props;
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.modalContentView} testID={'education-modal-container-id'}>
 				<Text style={styles.title}>You have switched to</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
-						{nativeToken === PRIVATENETWORK ? (
+						{ticker === PRIVATENETWORK ? (
 							<>
 								<View style={styles.unknownWrapper}>
 									<Text style={styles.unknownText}>?</Text>
@@ -102,28 +110,23 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 						) : (
 							<>
 								<NetworkMainAssetLogo
-									big
 									style={styles.ethLogo}
-									testID={'eth-logo'}
-									symbol={nativeToken}
 								/>
 								<Text style={styles.tokenText}>
-									{nativeToken === ETH
-										? [type === 'mainnet' ? `Ethereum ${type}` : `${type} testnet`]
-										: type}
+									{type === RPC ? `${nickname}`: type === MAINNET ? `${type}` : `${strings('network_information.testnet_network', {type})}`}
 								</Text>
 							</>
 						)}
 					</View>
-					{nativeToken === PRIVATENETWORK && <Text style={styles.rpcUrl}>{type}</Text>}
+					{ticker === PRIVATENETWORK && <Text style={styles.rpcUrl}>{type}</Text>}
 				</View>
-				<Text style={styles.messageTitle}>Things to keep in mind:</Text>
+				<Text style={styles.messageTitle}>{strings('network_information.things_to_keep_in_mind')}:</Text>
+
 				<View style={styles.descriptionViews}>
 					<Description
 						description={
-							nativeToken === PRIVATENETWORK
-								? strings('network_information.private_network')
-								: strings('network_information.first_description', { nativeToken })
+							type !== RPC ? strings('network_information.first_description', { ticker })
+								: [networkTicker === undefined ? strings('network_information.private_network') : strings('network_information.first_description', { ticker })]
 						}
 						number={1}
 						clickableText={undefined}
@@ -135,7 +138,7 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 					/>
 					<Description
 						description={
-							nativeToken === PRIVATENETWORK
+							ticker === PRIVATENETWORK
 								? strings('network_information.private_network_third_description')
 								: strings('network_information.third_description')
 						}
@@ -156,4 +159,8 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 	);
 };
 
-export default NetworkInfo;
+const mapStateToProps = (state: any) => ({
+	networkProvider: state.engine.backgroundState.NetworkController.provider,
+});
+
+export default connect(mapStateToProps)(NetworkInfo);
