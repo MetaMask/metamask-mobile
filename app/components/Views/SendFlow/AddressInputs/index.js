@@ -8,7 +8,7 @@ import Identicon from '../../../UI/Identicon';
 import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { hasZeroWidthPoints } from '../../../../util/validators';
+import { hasZeroWidthPoints } from '../../../../util/confusables';
 import Engine from '../../../../core/Engine';
 import { QR_HARDWARE_WALLET_DEVICE } from '../../../../constants/keyringTypes';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';

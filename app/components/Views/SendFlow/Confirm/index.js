@@ -52,7 +52,7 @@ import { capitalize, shallowEqual, renderShortText } from '../../../../util/gene
 import { isMainNet, getNetworkName, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { collectConfusables } from '../../../../util/validators';
+import { collectConfusables } from '../../../../util/confusables';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
