@@ -1,87 +1,91 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { colors } from '../../styles/common';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
+import { useAppThemeFromContext, mockTheme } from '../../util/theme';
 
-const styles = StyleSheet.create({
-	labelContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		marginBottom: 14,
-	},
-	rangeInputContainer: (error) => ({
-		borderColor: error ? colors.red : colors.grey200,
-		borderWidth: 1,
-		borderRadius: 6,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-		height: 42,
-	}),
-	input: (error) => ({
-		height: 38,
-		minWidth: 10,
-		paddingRight: 6,
-		color: error ? colors.red : colors.black,
-	}),
-	buttonContainerLeft: {
-		marginLeft: 17,
-		flex: 1,
-	},
-	buttonContainerRight: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'flex-end',
-		marginRight: 17,
-		flex: 1,
-	},
-	button: {
-		borderRadius: 100,
-		borderWidth: 2,
-		borderColor: colors.blue,
-		height: 20,
-		width: 20,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	buttonText: {
-		paddingTop: 1,
-		paddingLeft: 0.5,
-		color: colors.blue,
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10,
-	},
-	inputContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	errorContainer: {
-		marginTop: 8,
-		color: colors.red,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	errorIcon: {
-		paddingRight: 4,
-		color: colors.red,
-	},
-	conversionEstimation: {
-		paddingLeft: 2,
-		marginRight: 14,
-		flex: 1,
-		textAlign: 'center',
-		fontSize: 11,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		labelContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			marginBottom: 14,
+		},
+		rangeInputContainer: (error) => ({
+			borderColor: error ? colors.error.default : colors.border.default,
+			borderWidth: 1,
+			borderRadius: 6,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+			height: 42,
+		}),
+		input: (error) => ({
+			height: 38,
+			minWidth: 10,
+			paddingRight: 6,
+			color: error ? colors.error.default : colors.text.default,
+		}),
+		buttonContainerLeft: {
+			marginLeft: 17,
+			flex: 1,
+		},
+		buttonContainerRight: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'flex-end',
+			marginRight: 17,
+			flex: 1,
+		},
+		button: {
+			borderRadius: 100,
+			borderWidth: 2,
+			borderColor: colors.primary.default,
+			height: 20,
+			width: 20,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		buttonText: {
+			paddingTop: 1,
+			paddingLeft: 0.5,
+			color: colors.primary.default,
+		},
+		hitSlop: {
+			top: 10,
+			left: 10,
+			bottom: 10,
+			right: 10,
+		},
+		inputContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		errorContainer: {
+			marginTop: 8,
+			color: colors.error.default,
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		errorText: {
+			color: colors.text.default,
+		},
+		errorIcon: {
+			paddingRight: 4,
+			color: colors.error.default,
+		},
+		conversionEstimation: {
+			paddingLeft: 2,
+			marginRight: 14,
+			flex: 1,
+			textAlign: 'center',
+			fontSize: 11,
+		},
+	});
 
 const RangeInput = ({
 	leftLabelComponent,
@@ -98,6 +102,9 @@ const RangeInput = ({
 }) => {
 	const textInput = useRef(null);
 	const [errorState, setErrorState] = useState();
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	const handleClickUnit = useCallback(() => {
 		textInput?.current?.focus?.();
 	}, []);
@@ -178,6 +185,7 @@ const RangeInput = ({
 						value={value}
 						keyboardType="numeric"
 						ref={textInput}
+						keyboardAppearance={themeAppearance}
 					/>
 					{!!unit && (
 						<Text onPress={handleClickUnit} black={!error} red={Boolean(error)}>
@@ -197,7 +205,7 @@ const RangeInput = ({
 			{hasError && (
 				<View style={styles.errorContainer}>
 					<FontAwesomeIcon name="exclamation-circle" size={14} style={styles.errorIcon} />
-					<Text red noMargin small>
+					<Text red noMargin small style={styles.errorText}>
 						{error || errorState}
 					</Text>
 				</View>

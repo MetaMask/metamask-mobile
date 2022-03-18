@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import {
 	getNetworkTypeById,
@@ -22,39 +22,41 @@ import Text from '../../../Base/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	viewOnEtherscan: {
-		fontSize: 16,
-		color: colors.blue,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-	touchableViewOnEtherscan: {
-		marginBottom: 24,
-		marginTop: 12,
-	},
-	summaryWrapper: {
-		marginVertical: 8,
-	},
-	actionContainerStyle: {
-		height: 25,
-		width: 70,
-		padding: 0,
-	},
-	speedupActionContainerStyle: {
-		marginRight: 10,
-	},
-	actionStyle: {
-		fontSize: 10,
-		padding: 0,
-		paddingHorizontal: 10,
-	},
-	transactionActionsContainer: {
-		flexDirection: 'row',
-		paddingTop: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		viewOnEtherscan: {
+			fontSize: 16,
+			color: colors.primary.default,
+			...fontStyles.normal,
+			textAlign: 'center',
+		},
+		touchableViewOnEtherscan: {
+			marginBottom: 24,
+			marginTop: 12,
+		},
+		summaryWrapper: {
+			marginVertical: 8,
+		},
+		actionContainerStyle: {
+			height: 25,
+			width: 70,
+			padding: 0,
+		},
+		speedupActionContainerStyle: {
+			marginRight: 10,
+		},
+		actionStyle: {
+			fontSize: 10,
+			padding: 0,
+			paddingHorizontal: 10,
+		},
+		transactionActionsContainer: {
+			flexDirection: 'row',
+			paddingTop: 10,
+		},
+	});
 
 /**
  * View that renders a transaction details as part of transactions list
@@ -153,27 +155,40 @@ class TransactionDetails extends PureComponent {
 		}
 	};
 
-	renderSpeedUpButton = () => (
-		<StyledButton
-			type={'normal'}
-			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
-			style={styles.actionStyle}
-			onPress={this.props.showSpeedUpModal}
-		>
-			{strings('transaction.speedup')}
-		</StyledButton>
-	);
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
 
-	renderCancelButton = () => (
-		<StyledButton
-			type={'cancel'}
-			containerStyle={styles.actionContainerStyle}
-			style={styles.actionStyle}
-			onPress={this.props.showCancelModal}
-		>
-			{strings('transaction.cancel')}
-		</StyledButton>
-	);
+	renderSpeedUpButton = () => {
+		const styles = this.getStyles();
+
+		return (
+			<StyledButton
+				type={'normal'}
+				containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+				style={styles.actionStyle}
+				onPress={this.props.showSpeedUpModal}
+			>
+				{strings('transaction.speedup')}
+			</StyledButton>
+		);
+	};
+
+	renderCancelButton = () => {
+		const styles = this.getStyles();
+
+		return (
+			<StyledButton
+				type={'cancel'}
+				containerStyle={styles.actionContainerStyle}
+				style={styles.actionStyle}
+				onPress={this.props.showCancelModal}
+			>
+				{strings('transaction.cancel')}
+			</StyledButton>
+		);
+	};
 
 	render = () => {
 		const {
@@ -181,6 +196,8 @@ class TransactionDetails extends PureComponent {
 			transactionDetails,
 			transactionObject: { status, time, transaction },
 		} = this.props;
+		const styles = this.getStyles();
+
 		const renderTxActions = status === 'submitted' || status === 'approved';
 		const { rpcBlockExplorer } = this.state;
 
@@ -260,4 +277,7 @@ const mapStateToProps = (state) => ({
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
+
+TransactionDetails.contextType = ThemeContext;
+
 export default connect(mapStateToProps)(withNavigation(TransactionDetails));

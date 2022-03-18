@@ -7,7 +7,7 @@ import Engine from '../../../../core/Engine';
 import I18n, { strings, getLanguages, setLocale } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
 	setSearchEngine,
@@ -17,8 +17,10 @@ import {
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
-import Device from '../../../../util/device';
 import Jazzicon from 'react-native-jazzicon';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+// import { AppThemeKey } from '../../../../util/theme/models';
+// import StyledButton from '../../../UI/StyledButton';
 
 const diameter = 40;
 const spacing = 8;
@@ -33,86 +35,91 @@ const infuraCurrencyOptions = sortedCurrencies.map(({ quote: { code, name } }) =
 	value: code,
 }));
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		padding: 24,
-		zIndex: 99999999999999,
-	},
-	title: {
-		...fontStyles.normal,
-		color: colors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20,
-		paddingTop: 4,
-		marginTop: -4,
-	},
-	desc: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	marginTop: {
-		marginTop: 18,
-	},
-	picker: {
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		marginTop: 16,
-	},
-	simplePicker: {
-		marginTop: 16,
-	},
-	setting: {
-		marginTop: 50,
-	},
-	firstSetting: {
-		marginTop: 0,
-	},
-	inner: {
-		paddingBottom: 48,
-	},
-	identicon_container: {
-		marginVertical: 16,
-		display: 'flex',
-		flexDirection: 'row',
-	},
-	identicon_row: {
-		width: '50%',
-		alignItems: 'center',
-		flexDirection: 'row',
-	},
-	identicon_type: {
-		...fontStyles.bold,
-		fontSize: 14,
-		marginHorizontal: 10,
-	},
-	blockie: {
-		height: diameter,
-		width: diameter,
-		borderRadius: diameter / 2,
-	},
-	border: {
-		height: diameter + spacing,
-		width: diameter + spacing,
-		borderRadius: (diameter + spacing) / 2,
-		backgroundColor: colors.white,
-		borderWidth: 2,
-		borderColor: colors.white,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	selected: {
-		borderColor: colors.blue,
-	},
-	selected_text: {
-		color: colors.black,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			padding: 24,
+			zIndex: 99999999999999,
+		},
+		title: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			fontSize: 20,
+			lineHeight: 20,
+			paddingTop: 4,
+			marginTop: -4,
+		},
+		desc: {
+			...fontStyles.normal,
+			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		marginTop: {
+			marginTop: 18,
+		},
+		picker: {
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			marginTop: 16,
+		},
+		simplePicker: {
+			marginTop: 16,
+		},
+		setting: {
+			marginTop: 50,
+		},
+		switch: {
+			alignSelf: 'flex-start',
+		},
+		firstSetting: {
+			marginTop: 0,
+		},
+		inner: {
+			paddingBottom: 100,
+		},
+		identicon_container: {
+			marginVertical: 16,
+			display: 'flex',
+			flexDirection: 'row',
+		},
+		identicon_row: {
+			width: '50%',
+			alignItems: 'center',
+			flexDirection: 'row',
+		},
+		identicon_type: {
+			...fontStyles.bold,
+			fontSize: 14,
+			marginHorizontal: 10,
+			color: colors.text.default,
+		},
+		blockie: {
+			height: diameter,
+			width: diameter,
+			borderRadius: diameter / 2,
+		},
+		border: {
+			height: diameter + spacing,
+			width: diameter + spacing,
+			borderRadius: (diameter + spacing) / 2,
+			backgroundColor: colors.background.default,
+			borderWidth: 2,
+			borderColor: colors.background.default,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		selected: {
+			borderColor: colors.primary.default,
+		},
+		selected_text: {
+			color: colors.text.default,
+		},
+	});
 
 /**
  * Main view for general app configurations
@@ -163,10 +170,11 @@ class Settings extends PureComponent {
 		 * Called to toggle zero balance token display
 		 */
 		setHideZeroBalanceTokens: PropTypes.func,
+		/**
+		 * App theme
+		 */
+		// appTheme: PropTypes.string,
 	};
-
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.general_title'), navigation);
 
 	state = {
 		currentLanguage: I18n.locale.substr(0, 2),
@@ -197,7 +205,16 @@ class Settings extends PureComponent {
 		this.props.setHideZeroBalanceTokens(toggleHideZeroBalanceTokens);
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.general_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = () => {
+		this.updateNavBar();
 		const languages = getLanguages();
 		this.setState({ languages });
 		this.languageOptions = Object.keys(languages).map((key) => ({ value: key, label: languages[key], key }));
@@ -211,6 +228,38 @@ class Settings extends PureComponent {
 		];
 	};
 
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
+
+	// TODO - Reintroduce once we enable manual theme settings
+	// goToThemeSettings = () => {
+	// 	const { navigation } = this.props;
+	// 	navigation.navigate('ThemeSettings');
+	// };
+
+	// renderThemeSettingsSection = () => {
+	// 	const { appTheme } = this.props;
+	// 	const colors = this.context.colors || mockTheme.colors;
+	// 	const styles = createStyles(colors);
+
+	// 	return (
+	// 		<View style={styles.setting}>
+	// 			<View>
+	// 				<Text style={styles.title}>
+	// 					{strings('app_settings.theme_title', {
+	// 						theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
+	// 					})}
+	// 				</Text>
+	// 				<Text style={styles.desc}>{strings('app_settings.theme_description')}</Text>
+	// 				<StyledButton type="normal" onPress={this.goToThemeSettings} containerStyle={styles.marginTop}>
+	// 					{strings('app_settings.theme_button_text')}
+	// 				</StyledButton>
+	// 			</View>
+	// 		</View>
+	// 	);
+	// };
+
 	render() {
 		const {
 			currentCurrency,
@@ -220,6 +269,9 @@ class Settings extends PureComponent {
 			selectedAddress,
 			hideZeroBalanceTokens,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<ScrollView style={styles.wrapper}>
 				<View style={styles.inner}>
@@ -286,8 +338,10 @@ class Settings extends PureComponent {
 							<Switch
 								value={hideZeroBalanceTokens}
 								onValueChange={this.toggleHideZeroBalanceTokens}
-								trackColor={Device.isIos() && { true: colors.blue, false: colors.grey000 }}
-								ios_backgroundColor={colors.grey000}
+								trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+								thumbColor={importedColors.white}
+								style={styles.switch}
+								ios_backgroundColor={colors.border.muted}
 							/>
 						</View>
 					</View>
@@ -313,11 +367,14 @@ class Settings extends PureComponent {
 							</TouchableOpacity>
 						</View>
 					</View>
+					{/* {this.renderThemeSettingsSection()} */}
 				</View>
 			</ScrollView>
 		);
 	}
 }
+
+Settings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
@@ -326,6 +383,7 @@ const mapStateToProps = (state) => ({
 	useBlockieIcon: state.settings.useBlockieIcon,
 	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
+	// appTheme: state.user.appTheme,
 });
 
 const mapDispatchToProps = (dispatch) => ({

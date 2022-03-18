@@ -10,6 +10,7 @@ describe('SimpleWebview', () => {
 					setParams: () => {
 						('');
 					},
+					setOptions: () => null,
 				}}
 				route={{ params: { url: 'https://etherscan.io', title: 'etherscan' } }}
 			/>
