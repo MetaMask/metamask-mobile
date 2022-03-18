@@ -311,7 +311,6 @@ class ResetPassword extends PureComponent {
 	};
 
 	async componentDidMount() {
-
 		this.updateNavBar();
 
 		const state = { view: CONFIRM_PASSWORD };

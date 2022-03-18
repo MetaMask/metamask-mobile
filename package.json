@@ -97,8 +97,8 @@
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/design-tokens": "1.4.2",
     "@metamask/controllers": "26.0.0",
+    "@metamask/design-tokens": "1.4.2",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.6.0",
     "@react-native-clipboard/clipboard": "^1.8.4",
@@ -239,8 +239,8 @@
     "through2": "3.0.1",
     "unicode-confusables": "^0.1.1",
     "url": "0.11.0",
-    "uuid": "^8.3.2",
     "url-parse": "1.5.9",
+    "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
     "zxcvbn": "4.4.2"
@@ -294,6 +294,7 @@
     "metro-react-native-babel-preset": "^0.66.2",
     "octonode": "0.9.5",
     "patch-package": "^6.2.2",
+    "polyfill-crypto.getrandomvalues": "^1.0.0",
     "prettier": "^2.2.1",
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",

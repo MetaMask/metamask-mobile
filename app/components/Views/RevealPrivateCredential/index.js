@@ -29,7 +29,6 @@ import AuthenticationService from '../../../core/AuthenticationService';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';

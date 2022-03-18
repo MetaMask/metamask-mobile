@@ -34,7 +34,6 @@ export default class Root extends PureComponent {
 		if (props.foxCode === '') {
 			Logger.log('Error: foxCode is an empty string');
 		}
-		console.log('SEC INIT');
 		SecureKeychain.init(props.foxCode);
 		// Init EntryScriptWeb3 asynchronously on the background
 		EntryScriptWeb3.init();
