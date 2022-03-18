@@ -112,15 +112,13 @@ const getCurrencyCode = (code) => (code?.indexOf('_') > -1 ? code.split('_')[0] 
  * @param {MoonPayTransaction} transaction
  */
 const getTransactionFee = (transaction) =>
-	transaction.feeAmount + transaction.extraFeeAmount + transaction.networkFeeAmount;
+	transaction ? transaction.feeAmount + transaction.extraFeeAmount + transaction.networkFeeAmount : 0;
 
 /**
  * @param {MoonPayTransaction} transaction
  */
-const getTransactionAmount = (transaction) => {
-	if (!transaction) return 0;
-	return transaction.baseCurrencyAmount + (transaction.areFeesIncluded ? 0 : getTransactionFee(transaction));
-};
+const getTransactionAmount = (transaction) =>
+	transaction ? transaction.baseCurrencyAmount + getTransactionFee(transaction) : 0;
 
 //* Constants
 
