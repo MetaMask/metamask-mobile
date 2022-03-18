@@ -59,6 +59,7 @@ const createStyles = (colors) =>
 			paddingTop: 4,
 			position: 'absolute',
 			right: 16,
+			color: colors.icon.default,
 		},
 		modalsContainer: {
 			position: 'absolute',
