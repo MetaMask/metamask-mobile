@@ -1,0 +1,70 @@
+import React, { useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
+import ScreenLayout from '../components/ScreenLayout';
+import StyledButton from '../../StyledButton';
+import { useNavigation } from '@react-navigation/native';
+import TransactionDetail, { TransactionStage } from '../components/TransactionDetails';
+import AccountSelector from '../components/AccountSelector';
+import PropTypes from 'prop-types';
+import Account from '../components/Account';
+import { strings } from '../../../../../locales/i18n';
+const styles = StyleSheet.create({
+	screenLayout: {
+		paddingTop: 0,
+	},
+});
+
+AccountSelector.propTypes = {
+	toggleAccountsModal: PropTypes.func.isRequired,
+	selectedAddress: PropTypes.string.isRequired,
+	identities: PropTypes.object.isRequired,
+};
+
+const TransactionDetails = () => {
+	const navigation = useNavigation();
+
+	const handleMakeAnotherPurchase = useCallback(() => {
+		navigation.navigate('PaymentMethod');
+	}, [navigation]);
+
+	return (
+		<ScreenLayout>
+			<ScreenLayout.Header>
+				<Account />
+			</ScreenLayout.Header>
+			<ScreenLayout.Body>
+				<ScreenLayout.Content style={styles.screenLayout}>
+					<TransactionDetail
+						stage={TransactionStage.Successful}
+						transactionID="QY34A1TAY3R"
+						dateAndTime="FEB 2 2022, 5:05 PM UTC"
+						paymentMethod="DEBIT CARD 2755"
+						tokenAmount="0.06878071 ETH"
+						fiatAmount="$280.54"
+						exchangeRate="1 ETH @ $4,3427.86"
+						totalFees="$19.46"
+						providerName="MoonPay"
+						purchaseAmountTotal="$300 USD"
+						paymentType="bank"
+					/>
+				</ScreenLayout.Content>
+			</ScreenLayout.Body>
+			<ScreenLayout.Footer>
+				<ScreenLayout.Content>
+					<View>
+						<StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
+							{strings('fiat_on_ramp_aggregator.transaction.another_purchase')}
+						</StyledButton>
+					</View>
+				</ScreenLayout.Content>
+			</ScreenLayout.Footer>
+		</ScreenLayout>
+	);
+};
+
+TransactionDetails.navigationOptions = () => ({
+	headerLeft: () => null,
+	title: strings('fiat_on_ramp_aggregator.transaction.details_main'),
+});
+
+export default TransactionDetails;
