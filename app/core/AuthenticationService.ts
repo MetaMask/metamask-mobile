@@ -76,7 +76,7 @@ class AuthenticationService {
 	/**
 	 * Reset vault will empty password used to clear/reset vault upon errors during login/creation
 	 */
-	isAuthenticating = async () => SecureKeychain.getInstance().isAuthenticating;
+	isAuthenticating = () => SecureKeychain.getInstance().isAuthenticating;
 
 	/**
 	 * Reset vault will empty password used to clear/reset vault upon errors during login/creation
@@ -210,7 +210,6 @@ class AuthenticationService {
 	 */
 	appTriggeredAuth = async (selectedAddress: string) => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
-		console.log('TEST', credentials);
 		try {
 			const password = credentials?.password;
 			await this._loginVaultCreation(password, selectedAddress);

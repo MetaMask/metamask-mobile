@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, AppState } from 'react-native';
+import { Animated } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -117,18 +117,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	);
 
 	const theme = useAppTheme();
-
-	const handleAppStateChange = async (nextAppState) => {
-		// Try to unlock when coming from the background
-		if (AuthenticationService.isAuthenticating() && nextAppState !== 'active') {
-			console.log('Auth', AuthenticationService.isAuthenticating(), nextAppState);
-			await AuthenticationService.logout();
-		}
-	};
-
-	useEffect(() => {
-		AppState.addEventListener('change', handleAppStateChange);
-	}, []);
 
 	useEffect(() => {
 		const appTriggeredAuth = async () => {

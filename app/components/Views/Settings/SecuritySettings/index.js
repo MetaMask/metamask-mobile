@@ -687,7 +687,6 @@ class Settings extends PureComponent {
 
 	renderAutoLockSection = () => {
 		const { styles } = this.getStyles();
-		console.log('test display');
 		return (
 			<View style={styles.setting} testID={'auto-lock-section'}>
 				<Text style={styles.title}>{strings('app_settings.auto_lock')}</Text>
