@@ -14,7 +14,7 @@ const PopularList = [
 		chainId: '42161',
 		nickname: 'Arbitrum One',
 		rpcUrl: `https://arbitrum-mainnet.infura.io/v3`,
-		ticker: 'AETH',
+		ticker: 'ETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
 			imageUrl: 'aeth',
