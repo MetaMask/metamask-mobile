@@ -177,7 +177,6 @@ exports[`SelectComponent should render correctly 1`] = `
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
-                    "paddingVertical": 10,
                   }
                 }
               >
@@ -205,7 +204,6 @@ exports[`SelectComponent should render correctly 1`] = `
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
-                    "paddingVertical": 10,
                   }
                 }
               >
