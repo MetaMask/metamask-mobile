@@ -231,7 +231,7 @@ const createStyles = (colors) =>
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
-			color: colors.icon.default,
+			borderColor: colors.icon.default,
 		},
 		importedText: {
 			color: colors.icon.default,

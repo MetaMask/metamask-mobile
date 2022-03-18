@@ -70,7 +70,7 @@ const createStyles = (colors) =>
 		tag: {
 			borderRadius: 14,
 			borderWidth: 1,
-			borderColor: colors.greyAssetVisibility,
+			borderColor: colors.text.default,
 			padding: 4,
 			minWidth: 42,
 		},
@@ -78,6 +78,7 @@ const createStyles = (colors) =>
 			textAlign: 'center',
 			fontSize: 8,
 			fontWeight: 'bold',
+			color: colors.text.default,
 		},
 	});
 

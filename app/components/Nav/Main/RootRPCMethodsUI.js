@@ -48,6 +48,8 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -194,7 +196,7 @@ const RootRPCMethodsUI = (props) => {
 
 	const autoSign = useCallback(
 		async (transactionMeta) => {
-			const { TransactionController } = Engine.context;
+			const { TransactionController, KeyringController } = Engine.context;
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
@@ -214,6 +216,7 @@ const RootRPCMethodsUI = (props) => {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
+				await KeyringController.resetQRKeyringState();
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
 				if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -384,6 +387,11 @@ const RootRPCMethodsUI = (props) => {
 			)}
 		</Modal>
 	);
+
+	const renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState } = props;
+		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
 
 	const onWalletConnectSessionApproval = () => {
 		const { peerId } = walletConnectRequestInfo;
@@ -678,6 +686,7 @@ const RootRPCMethodsUI = (props) => {
 			{renderSwitchCustomNetworkModal()}
 			{renderAccountsApprovalModal()}
 			{renderWatchAssetModal()}
+			{renderQRSigningModal()}
 		</React.Fragment>
 	);
 };
@@ -724,6 +733,8 @@ RootRPCMethodsUI.propTypes = {
 	 * Chain id
 	 */
 	chainId: PropTypes.string,
+	isSigningQRObject: PropTypes.bool,
+	QRState: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -743,4 +754,4 @@ const mapDispatchToProps = (dispatch) => ({
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(RootRPCMethodsUI));

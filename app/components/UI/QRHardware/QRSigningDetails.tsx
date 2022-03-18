@@ -1,10 +1,10 @@
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../core/Engine';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { IQRState } from './types';
@@ -13,6 +13,8 @@ import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { useNavigation } from '@react-navigation/native';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 interface IQRSigningDetails {
 	QRState: IQRState;
@@ -23,74 +25,73 @@ interface IQRSigningDetails {
 	showCancelButton?: boolean;
 	tighten?: boolean;
 	showHint?: boolean;
+	shouldStartAnimated?: boolean;
 }
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		paddingBottom: 48,
-	},
-	container: {
-		flex: 1,
-		width: '100%',
-		flexDirection: 'column',
-		alignItems: 'center',
-		paddingHorizontal: 32,
-		backgroundColor: colors.white,
-	},
-	containerTighten: {
-		paddingHorizontal: 8,
-	},
-	title: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		marginTop: 54,
-		marginBottom: 30,
-	},
-	titleTighten: {
-		marginTop: 12,
-		marginBottom: 6,
-	},
-	titleStrong: {
-		fontFamily: fontStyles.normal.fontFamily,
-		fontWeight: 'bold',
-		color: colors.black,
-	},
-	titleText: {
-		fontFamily: fontStyles.normal.fontFamily,
-		fontWeight: 'normal',
-		color: colors.black,
-	},
-	description: {
-		marginVertical: 54,
-		alignItems: 'center',
-		...fontStyles.normal,
-		fontSize: 14,
-	},
-	descriptionTighten: {
-		marginVertical: 24,
-		fontSize: 12,
-	},
-	padding: {
-		height: 40,
-	},
-	descriptionText: {
-		fontFamily: fontStyles.normal.fontFamily,
-		fontWeight: 'normal',
-		fontSize: 14,
-		color: colors.black,
-	},
-	descriptionTextTighten: {
-		fontSize: 12,
-	},
-	errorText: {
-		fontSize: 12,
-		color: colors.red,
-	},
-	alert: {
-		marginTop: 12,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+		},
+		container: {
+			flex: 1,
+			width: '100%',
+			flexDirection: 'column',
+			alignItems: 'center',
+			backgroundColor: colors.background.default,
+		},
+		accountInfoCardWrapper: {
+			paddingHorizontal: 24,
+			paddingBottom: 12,
+		},
+		containerTighten: {
+			paddingHorizontal: 8,
+		},
+		title: {
+			flexDirection: 'row',
+			justifyContent: 'center',
+			marginTop: 54,
+			marginBottom: 30,
+		},
+		titleTighten: {
+			marginTop: 12,
+			marginBottom: 6,
+		},
+		titleText: {
+			fontFamily: fontStyles.normal.fontFamily,
+			fontWeight: 'normal',
+			color: colors.text.default,
+		},
+		description: {
+			marginVertical: 24,
+			alignItems: 'center',
+			...fontStyles.normal,
+			fontSize: 14,
+		},
+		descriptionTighten: {
+			marginVertical: 12,
+			fontSize: 12,
+		},
+		padding: {
+			height: 40,
+		},
+		descriptionText: {
+			fontFamily: fontStyles.normal.fontFamily,
+			fontWeight: 'normal',
+			fontSize: 14,
+			color: colors.text.default,
+		},
+		descriptionTextTighten: {
+			fontSize: 12,
+		},
+		errorText: {
+			fontSize: 12,
+			color: colors.error.default,
+		},
+		alert: {
+			marginTop: 12,
+		},
+	});
 
 const QRSigningDetails = ({
 	QRState,
@@ -101,13 +102,31 @@ const QRSigningDetails = ({
 	showCancelButton = false,
 	tighten = false,
 	showHint = true,
+	shouldStartAnimated = true,
 }: IQRSigningDetails) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	const navigation = useNavigation();
 	const KeyringController = useMemo(() => {
 		const { KeyringController: keyring } = Engine.context as any;
 		return keyring;
 	}, []);
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
+
+	const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
+
+	useEffect(() => {
+		navigation.addListener('beforeRemove', (e) => {
+			if (hasSentOrCanceled) {
+				return;
+			}
+			e.preventDefault();
+			KeyringController.cancelQRSignRequest().then(() => {
+				navigation.dispatch(e.data.action);
+			});
+		});
+	}, [KeyringController, hasSentOrCanceled, navigation]);
 
 	const resetError = () => {
 		setErrorMessage('');
@@ -124,6 +143,7 @@ const QRSigningDetails = ({
 
 	const onCancel = useCallback(async () => {
 		await KeyringController.cancelQRSignRequest();
+		setSentOrCanceled(true);
 		hideScanner();
 		cancelCallback?.();
 	}, [KeyringController, cancelCallback]);
@@ -136,6 +156,7 @@ const QRSigningDetails = ({
 			const requestId = uuidStringify(buffer);
 			if (QRState.sign.request?.requestId === requestId) {
 				KeyringController.submitQRSignature(QRState.sign.request?.requestId as string, ur.cbor.toString('hex'));
+				setSentOrCanceled(true);
 				successCallback?.();
 			} else {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
@@ -176,15 +197,18 @@ const QRSigningDetails = ({
 						onConfirmPress={showScanner}
 					>
 						<View style={[styles.container, tighten ? styles.containerTighten : undefined]}>
-							<AccountInfoCard showFiatBalance={false} />
+							<View style={styles.accountInfoCardWrapper}>
+								<AccountInfoCard showFiatBalance={false} />
+							</View>
 							{renderAlert()}
 							<View style={[styles.title, tighten ? styles.titleTighten : undefined]}>
-								<Text style={styles.titleStrong}>{strings('transactions.sign_title_scan')}</Text>
+								<Text style={styles.titleText}>{strings('transactions.sign_title_scan')}</Text>
 								<Text style={styles.titleText}>{strings('transactions.sign_title_device')}</Text>
 							</View>
 							<AnimatedQRCode
 								cbor={QRState.sign.request.payload.cbor}
 								type={QRState.sign.request.payload.type}
+								shouldPause={scannerVisible || !shouldStartAnimated}
 							/>
 							{showHint ? (
 								<View style={[styles.description, tighten ? styles.descriptionTighten : undefined]}>

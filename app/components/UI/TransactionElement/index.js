@@ -30,7 +30,6 @@ const createStyles = (colors) =>
 		},
 		actionContainerStyle: {
 			height: 25,
-			width: 70,
 			padding: 0,
 		},
 		speedupActionContainerStyle: {

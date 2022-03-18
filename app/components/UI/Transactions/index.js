@@ -34,8 +34,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningModal from './QRSigningModal';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -165,8 +163,6 @@ class Transactions extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
-		isSigningQRObject: PropTypes.bool,
-		QRState: PropTypes.object,
 	};
 
 	static defaultProps = {
@@ -446,7 +442,9 @@ class Transactions extends PureComponent {
 	};
 
 	signQRTransaction = async (tx) => {
-		await Engine.context.TransactionController.approveTransaction(tx.id);
+		const { KeyringController, TransactionController } = Engine.context;
+		await KeyringController.resetQRKeyringState();
+		await TransactionController.approveTransaction(tx.id);
 	};
 
 	cancelUnsignedQRTransaction = async (tx) => {
@@ -634,7 +632,6 @@ class Transactions extends PureComponent {
 	};
 
 	render = () => {
-		const { isSigningQRObject, QRState } = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
@@ -647,7 +644,6 @@ class Transactions extends PureComponent {
 					: this.renderList()}
 				{(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
 					this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
-				<QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />
 			</SafeAreaView>
 		);
 	};
@@ -681,4 +677,4 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(Transactions));
+export default connect(mapStateToProps, mapDispatchToProps)(Transactions);

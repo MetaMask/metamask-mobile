@@ -54,6 +54,7 @@ const createStyles = (colors) =>
 			color: colors.icon.default,
 		},
 	});
+
 const LabelElement = (styles, label, checkingForSmartContracts = false, showLoading = false) => (
 	<View key={label} style={styles.labelElementWrapper}>
 		<Text style={[styles.labelElementText, label.length > 1 ? {} : styles.labelElementInitialText]}>{label}</Text>
@@ -202,7 +203,7 @@ class AddressList extends PureComponent {
 	renderMyAccounts = () => {
 		const { identities, onAccountPress, inputSearch, onAccountLongPress } = this.props;
 		const { myAccountsOpened } = this.state;
-		const colors = this.context.colors || mockTheme.colors;
+		const { colors } = this.context || mockTheme;
 		const styles = createStyles(colors);
 
 		if (inputSearch) return;
@@ -232,7 +233,7 @@ class AddressList extends PureComponent {
 
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
-		const colors = this.context.colors || mockTheme.colors;
+		const { colors } = this.context || mockTheme;
 		const styles = createStyles(colors);
 
 		if (typeof element === 'string') {

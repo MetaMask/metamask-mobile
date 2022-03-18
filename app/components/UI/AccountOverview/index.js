@@ -65,11 +65,13 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 		},
 		tag: {
+			flexDirection: 'row',
+			alignItems: 'center',
 			marginTop: 2,
 			padding: 4,
 			paddingHorizontal: 8,
 			borderWidth: 1,
-			borderColor: colors.greyAssetVisibility,
+			borderColor: colors.text.default,
 			height: 28,
 			borderRadius: 14,
 		},
@@ -78,6 +80,7 @@ const createStyles = (colors) =>
 			fontWeight: 'bold',
 			minWidth: 32,
 			textAlign: 'center',
+			color: colors.text.default,
 		},
 		addressWrapper: {
 			backgroundColor: colors.primary.muted,

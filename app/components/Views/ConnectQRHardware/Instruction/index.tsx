@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 interface IConnectQRInstructionProps {
@@ -65,7 +65,7 @@ const createStyles = (colors: any) =>
 			marginTop: 16,
 		},
 		buttonText: {
-			color: colors.white,
+			color: importedColors.white,
 			...fontStyles.normal,
 		},
 		image: {
