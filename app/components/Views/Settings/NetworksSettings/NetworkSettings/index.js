@@ -604,12 +604,12 @@ class NetworkSettings extends PureComponent {
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
-				{!network && (
-					<WarningMessage
-						style={styles.warningContainer}
-						warningMessage={strings('networks.malicious_network_warning')}
-					/>
-				)}
+					{!network && (
+						<WarningMessage
+							style={styles.warningContainer}
+							warningMessage={strings('networks.malicious_network_warning')}
+						/>
+					)}
 					<View style={styles.scrollWrapper}>
 						{addMode && (
 							<Text style={styles.title} testID={'rpc-screen-title'}>
@@ -712,43 +712,43 @@ class NetworkSettings extends PureComponent {
 					{(addMode || editable) && (
 						<View style={styles.buttonsWrapper}>
 							{editable ? (
-							<View style={styles.editableButtonsContainer}>
-								<StyledButton
-									type="danger"
-									onPress={this.removeRpcUrl}
-									testID={'network-delete-button'}
-									containerStyle={[styles.button, styles.cancel]}
-								>
-									<CustomText centered red>
-										{strings('app_settings.delete')}
-									</CustomText>
-								</StyledButton>
-								<StyledButton
-									type="confirm"
-									onPress={this.addRpcUrl}
-									testID={'network-add-button'}
-									containerStyle={[styles.button, styles.confirm]}
-									disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
-								>
-									{strings('app_settings.network_save')}
-								</StyledButton>
-							</View>
-						) : (
-							<View style={styles.buttonsContainer}>
-								<StyledButton
-									type="confirm"
-									onPress={this.addRpcUrl}
-									testID={'network-add-button'}
-									containerStyle={styles.syncConfirm}
-									disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
-								>
-									{strings('app_settings.network_add')}
-								</StyledButton>
-							</View>
-						)}
-					</View>
-				)}
-			</KeyboardAwareScrollView>
+								<View style={styles.editableButtonsContainer}>
+									<StyledButton
+										type="danger"
+										onPress={this.removeRpcUrl}
+										testID={'network-delete-button'}
+										containerStyle={[styles.button, styles.cancel]}
+									>
+										<CustomText centered red>
+											{strings('app_settings.delete')}
+										</CustomText>
+									</StyledButton>
+									<StyledButton
+										type="confirm"
+										onPress={this.addRpcUrl}
+										testID={'network-add-button'}
+										containerStyle={[styles.button, styles.confirm]}
+										disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
+									>
+										{strings('app_settings.network_save')}
+									</StyledButton>
+								</View>
+							) : (
+								<View style={styles.buttonsContainer}>
+									<StyledButton
+										type="confirm"
+										onPress={this.addRpcUrl}
+										testID={'network-add-button'}
+										containerStyle={styles.syncConfirm}
+										disabled={!enableAction || this.disabledByRpcUrl() || this.disabledByChainId()}
+									>
+										{strings('app_settings.network_add')}
+									</StyledButton>
+								</View>
+							)}
+						</View>
+					)}
+				</KeyboardAwareScrollView>
 			</SafeAreaView>
 		);
 	};
@@ -761,8 +761,10 @@ class NetworkSettings extends PureComponent {
 
 	goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 
-	popularNetworks = () =>
-		PopularList.map((item, index) => (
+	popularNetworks = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+		return PopularList.map((item, index) => (
 			<TouchableOpacity key={index} style={styles.popularNetwork} onPress={() => this.togglePopularNetwork(item)}>
 				{this.state.showWarningModal && (
 					<InfoModal
@@ -793,21 +795,28 @@ class NetworkSettings extends PureComponent {
 				</View>
 			</TouchableOpacity>
 		));
+	};
 
-	renderTabBar = () => (
-		<DefaultTabBar
-			underlineStyle={styles.tabUnderlineStyle}
-			activeTextColor={colors.black}
-			inactiveTextColor={colors.fontTertiary}
-			backgroundColor={colors.white}
-			tabStyle={styles.tabStyle}
-			textStyle={styles.textStyle}
-		/>
-	);
+	renderTabBar = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+		return (
+			<DefaultTabBar
+				underlineStyle={styles.tabUnderlineStyle}
+				activeTextColor={colors.black}
+				inactiveTextColor={colors.fontTertiary}
+				backgroundColor={colors.white}
+				tabStyle={styles.tabStyle}
+				textStyle={styles.textStyle}
+			/>
+		);
+	};
 
 	render() {
 		const { navigation, route } = this.props;
 		const network = route.params?.network;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>

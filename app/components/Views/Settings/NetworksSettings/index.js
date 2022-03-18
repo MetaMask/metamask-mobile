@@ -110,9 +110,6 @@ class NetworksSettings extends PureComponent {
   actionSheet = null;
   networkToRemove = null;
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
-
 	state = {
 		searchString: '',
 		filteredNetworks: [],
@@ -250,10 +247,10 @@ class NetworksSettings extends PureComponent {
 		}
 	};
 
-  renderMainnet() {
-    const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+	renderMainnet() {
+		const { name: mainnetName } = Networks.mainnet;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<View style={styles.mainnetHeader}>
@@ -298,6 +295,8 @@ class NetworksSettings extends PureComponent {
 	clearSearchInput = () => this.setState({ searchString: '', filteredNetworks: [] });
 
 	filteredResult = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		if (this.state.filteredNetworks.length > 0) {
 			return this.state.filteredNetworks.map((data, i) => {
 				const { network, chainId, name, color, isCustomRPC } = data;

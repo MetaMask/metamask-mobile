@@ -255,6 +255,7 @@ export class NetworkList extends PureComponent {
 
 	networkElement = (selected, onPress, name, image, i, network, isCustomRpc) => {
 		const styles = this.getStyles();
+		const colors = this.context.colors || mockTheme.colors;
 
 		return (
 			<TouchableOpacity
@@ -264,16 +265,16 @@ export class NetworkList extends PureComponent {
 			>
 				<View style={styles.selected}>{selected}</View>
 				{isCustomRpc &&
-				(image ? (
-					<ImageIcon image={image} style={styles.networkIcon} />
-				) : (
-					<View style={[styles.networkIcon, { backgroundColor: colors.grey000 }]} />
-				))}
+					(image ? (
+						<ImageIcon image={image} style={styles.networkIcon} />
+					) : (
+						<View style={[styles.networkIcon, { backgroundColor: colors.grey000 }]} />
+					))}
 				{!isCustomRpc && (
-				<View style={[styles.networkIcon, { backgroundColor: image }]}>
-					<Text style={styles.text}>{name[0]}</Text>
-				</View>
-			)}
+					<View style={[styles.networkIcon, { backgroundColor: image }]}>
+						<Text style={styles.text}>{name[0]}</Text>
+					</View>
+				)}
 				<View style={styles.networkInfo}>
 					<Text numberOfLines={1} style={styles.networkLabel}>
 						{name}
@@ -311,15 +312,13 @@ export class NetworkList extends PureComponent {
 		});
 	};
 
-  renderMainnet() {
-    const { provider } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = this.getStyles();
-    const isMainnet =
-      provider.type === MAINNET ? (
-        <Icon name="check" size={16} color={colors.success.default} />
-      ) : null;
-    const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
+	renderMainnet() {
+		const { provider } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = this.getStyles();
+		const isMainnet =
+			provider.type === MAINNET ? <Icon name="check" size={15} color={colors.icon.default} /> : null;
+		const { name: mainnetName } = Networks.mainnet;
 
 		return (
 			<View style={styles.mainnetHeader}>
@@ -349,29 +348,29 @@ export class NetworkList extends PureComponent {
 	render = () => {
 		const styles = this.getStyles();
 		return (
-		<SafeAreaView style={styles.wrapper} testID={NETWORK_LIST_MODAL_CONTAINER_ID}>
-			<View style={styles.titleWrapper}>
-				<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
-					{strings('networks.title')}
-				</Text>
-				<Ionicons onPress={this.closeModal} name={'ios-close'} size={30} style={styles.closeIcon} />
-			</View>
-			<ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
-				{this.renderMainnet()}
-				{this.renderRpcNetworks()}
-				{this.renderOtherNetworks()}
-			</ScrollView>
-			<View style={styles.footer}>
-				<StyledButton
-					type="confirm"
-					onPress={this.goToNetworkSettings}
-					containerStyle={styles.footerButton}
-					testID={'add-network-button'}
-				>
-					{strings('app_settings.add_network_title')}
-				</StyledButton>
-			</View>
-		</SafeAreaView>
+			<SafeAreaView style={styles.wrapper} testID={NETWORK_LIST_MODAL_CONTAINER_ID}>
+				<View style={styles.titleWrapper}>
+					<Text testID={'networks-list-title'} style={styles.title} onPress={this.closeSideBar}>
+						{strings('networks.title')}
+					</Text>
+					<Ionicons onPress={this.closeModal} name={'ios-close'} size={30} style={styles.closeIcon} />
+				</View>
+				<ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
+					{this.renderMainnet()}
+					{this.renderRpcNetworks()}
+					{this.renderOtherNetworks()}
+				</ScrollView>
+				<View style={styles.footer}>
+					<StyledButton
+						type="confirm"
+						onPress={this.goToNetworkSettings}
+						containerStyle={styles.footerButton}
+						testID={'add-network-button'}
+					>
+						{strings('app_settings.add_network_title')}
+					</StyledButton>
+				</View>
+			</SafeAreaView>
 		);
 	};
 }
