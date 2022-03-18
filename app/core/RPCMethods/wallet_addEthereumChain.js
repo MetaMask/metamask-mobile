@@ -46,7 +46,7 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
 
 	const dirtyFirstValidRPCUrl = Array.isArray(rpcUrls) ? rpcUrls.find((rpcUrl) => validUrl.isHttpsUri(rpcUrl)) : null;
 	// Remove trailing slashes
-	const firstValidRPCUrl = dirtyFirstValidRPCUrl.replace(/\/+$/, '');
+	const firstValidRPCUrl = dirtyFirstValidRPCUrl ? dirtyFirstValidRPCUrl.replace(/\/+$/, '') : dirtyFirstValidRPCUrl;
 
 	const firstValidBlockExplorerUrl =
 		blockExplorerUrls !== null && Array.isArray(blockExplorerUrls)
