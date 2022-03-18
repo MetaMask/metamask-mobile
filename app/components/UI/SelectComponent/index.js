@@ -68,7 +68,6 @@ const createStyles = (colors) =>
 			height: Device.isIos() ? ROW_HEIGHT : undefined,
 		},
 		optionLabel: {
-			paddingVertical: 10,
 			flex: 1,
 			fontSize: 14,
 			...fontStyles.normal,
