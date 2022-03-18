@@ -5,8 +5,8 @@ import Engine from '../core/Engine';
 import Logger from '../util/Logger';
 
 export default class LockManager {
-	constructor(navigation, lockTime) {
-		this.navigation = navigation;
+	constructor(lockTime) {
+		this.navigateToLockScreen = undefined;
 		this.lockTime = lockTime;
 		this.appState = 'active';
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -49,8 +49,12 @@ export default class LockManager {
 		Logger.log('Failed to lock KeyringController', error);
 	};
 
+	setNavigateToLockScreen = (navigateToLockScreen) => {
+		this.navigateToLockScreen = navigateToLockScreen;
+	};
+
 	gotoLockScreen = () => {
-		this.navigation.navigate('LockScreen', { backgroundMode: true });
+		this.navigateToLockScreen();
 	};
 
 	lockApp = async () => {

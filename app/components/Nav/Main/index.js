@@ -17,7 +17,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
-import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
@@ -44,6 +43,7 @@ import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
+import AuthenticationService from '../../../core/AuthenticationService';
 
 const Stack = createStackNavigator();
 
@@ -70,7 +70,6 @@ const Main = (props) => {
 
 	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);
-	const lockManager = useRef();
 	const removeConnectionStatusListener = useRef();
 
 	const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
@@ -183,14 +182,23 @@ const Main = (props) => {
 		if (skipCheckbox) toggleRemindLater();
 	};
 
+	const navigateToLockScreen = () => {
+		props.navigation.navigate('LockScreen', { backgroundMode: true });
+	};
+
 	useEffect(() => {
 		if (locale.current !== I18n.locale) {
 			locale.current = I18n.locale;
 			initForceReload();
 			return;
 		}
+
+		if (props.navigation) {
+			AuthenticationService.setNavigateToLockScreen(navigateToLockScreen);
+		}
+
 		if (prevLockTime !== props.lockTime) {
-			lockManager.current && lockManager.current.updateLockTime(props.lockTime);
+			AuthenticationService.setLockTime(props.lockTime);
 		}
 	});
 
@@ -201,7 +209,6 @@ const Main = (props) => {
 
 	useEffect(() => {
 		AppState.addEventListener('change', handleAppStateChange);
-		lockManager.current = new LockManager(props.navigation, props.lockTime);
 		PushNotification.configure({
 			requestPermissions: false,
 			onNotification: (notification) => {
@@ -241,7 +248,6 @@ const Main = (props) => {
 
 		return function cleanup() {
 			AppState.removeEventListener('change', handleAppStateChange);
-			lockManager.current.stopListening();
 			removeConnectionStatusListener.current && removeConnectionStatusListener.current();
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps

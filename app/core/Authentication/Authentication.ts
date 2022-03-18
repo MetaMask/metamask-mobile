@@ -18,6 +18,7 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
+import LockManager from '../LockManager';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -26,11 +27,11 @@ export interface AuthData {
 	type: AUTHENTICATION_TYPE; //Enum used to show type for authentication
 	biometryType?: BIOMETRY_TYPE;
 }
-
 class AuthenticationService {
 	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
 	private store: Store | undefined = undefined;
 	private static isInitialized = false;
+	private lockManagerInstance?: LockManager;
 
 	/**
 	 * This method creates the instance of the authentication class
@@ -194,6 +195,7 @@ class AuthenticationService {
 			await this.storePassword(password, authData?.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
@@ -203,11 +205,11 @@ class AuthenticationService {
 	};
 
 	/**
-	 *
-	 * @param password
-	 * @param authData
-	 * @param parsedSeed
-	 * @param clearEngine
+	 * Generate a brand new wallet from a SRP
+	 * @param password - password provided by user
+	 * @param authData - type of authentication required to fetch password from keychain
+	 * @param parsedSeed - parsed SRP
+	 * @param clearEngine - boolean to clear the state of the engine
 	 */
 	newWalletAndRestore = async (
 		password: string,
@@ -220,6 +222,7 @@ class AuthenticationService {
 			await this.storePassword(password, authData.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
@@ -238,6 +241,7 @@ class AuthenticationService {
 		try {
 			await this.loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
+			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
@@ -256,6 +260,7 @@ class AuthenticationService {
 			const password = credentials?.password;
 			await this.loginVaultCreation(password, selectedAddress);
 			if (!credentials) await this.storePassword(password, this.authData.type);
+			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout();
@@ -274,6 +279,21 @@ class AuthenticationService {
 		}
 		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
 		this.dispatchLogout();
+		this.lockManagerInstance?.stopListening();
+	};
+
+	/**
+	 * Set the lock time
+	 */
+	setLockTime = (lockTime: number): void => {
+		if (lockTime) this.lockManagerInstance?.updateLockTime(lockTime);
+	};
+
+	/**
+	 * Set the navigate to lock screen callback
+	 */
+	setNavigateToLockScreen = (navigateToLockScreen: any): void => {
+		if (navigateToLockScreen) this.lockManagerInstance?.setNavigateToLockScreen(navigateToLockScreen);
 	};
 
 	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod(undefined);
