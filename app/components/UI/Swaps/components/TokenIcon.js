@@ -5,10 +5,10 @@ import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import imageIcons from '../../../../images/image-icons';
 
 /* eslint-disable import/no-commonjs */
 const ethLogo = require('../../../../images/eth-logo.png');
-const bnbLogo = require('../../../../images/bnb-logo.png');
 /* eslint-enable import/no-commonjs */
 
 const REGULAR_SIZE = 24;
@@ -90,60 +90,62 @@ EmptyIcon.propTypes = {
 };
 
 function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
-  const [showFallback, setShowFallback] = useState(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+	const [showFallback, setShowFallback] = useState(false);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
-  const source = useMemo(() => {
-    if (symbol === 'ETH') {
-      return ethLogo;
-    }
-    if (symbol === 'BNB') {
-      return bnbLogo;
-    }
+	const getSource = useCallback(() => {
+		if (symbol === 'ETH') {
+			return ethLogo;
+		}
 
-    if (icon) {
-      return { uri: icon };
-    }
+		if (Object.keys(imageIcons).includes(symbol.toLowerCase())) {
+			return imageIcons[symbol.toLowerCase()];
+		}
 
-    return null;
-  }, [symbol, icon]);
+		if (icon) {
+			return { uri: icon };
+		}
 
-  if (source && !showFallback) {
-    return (
-      <RemoteImage
-        fadeIn
-        source={source}
-        onError={() => setShowFallback(true)}
-        style={[
-          styles.icon,
-          medium && styles.iconMedium,
-          big && styles.iconBig,
-          biggest && styles.iconBiggest,
-          style,
-        ]}
-      />
-    );
-  }
+		return null;
+	}, [symbol, icon]);
+	const source = getSource();
 
-  if (symbol) {
-    return (
-      <EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
-        <Text
-          style={[
-            styles.tokenSymbol,
-            medium && styles.tokenSymbolMedium,
-            (big || biggest) && styles.tokenSymbolBig,
-            biggest && styles.tokenSymbolBiggest,
-          ]}
-        >
-          {symbol[0].toUpperCase()}
-        </Text>
-      </EmptyIcon>
-    );
-  }
+	if (source && !showFallback) {
+		return (
+			<RemoteImage
+				fadeIn
+				source={getSource()}
+				onError={() => setShowFallback(true)}
+				style={[
+					styles.icon,
+					medium && styles.iconMedium,
+					big && styles.iconBig,
+					biggest && styles.iconBiggest,
+					style,
+				]}
+			/>
+		);
+	}
 
-  return <EmptyIcon medium={medium} style={style} />;
+	if (symbol) {
+		return (
+			<EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
+				<Text
+					style={[
+						styles.tokenSymbol,
+						medium && styles.tokenSymbolMedium,
+						(big || biggest) && styles.tokenSymbolBig,
+						biggest && styles.tokenSymbolBiggest,
+					]}
+				>
+					{symbol[0].toUpperCase()}
+				</Text>
+			</EmptyIcon>
+		);
+	}
+
+	return <EmptyIcon medium={medium} style={style} />;
 }
 
 TokenIcon.propTypes = {

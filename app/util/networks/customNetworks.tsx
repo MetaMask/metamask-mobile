@@ -7,7 +7,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://snowtrace.io',
-			imageUrl: 'avalanche',
+			imageUrl: 'avax',
 		},
 	},
 	{
@@ -17,7 +17,7 @@ const PopularList = [
 		ticker: 'AETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
-			imageUrl: 'arbitrum',
+			imageUrl: 'aeth',
 		},
 	},
 	{
@@ -28,7 +28,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://bscscan.com',
-			imageUrl: 'binance',
+			imageUrl: 'bnb',
 		},
 	},
 	{
@@ -39,7 +39,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://ftmscan.com',
-			imageUrl: 'fantom',
+			imageUrl: 'ftm',
 		},
 	},
 	{
@@ -50,7 +50,7 @@ const PopularList = [
 		warning: true,
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.harmony.one',
-			imageUrl: 'harmony',
+			imageUrl: 'one',
 		},
 	},
 	{
