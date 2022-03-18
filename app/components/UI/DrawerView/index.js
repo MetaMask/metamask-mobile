@@ -1010,7 +1010,7 @@ class DrawerView extends PureComponent {
 			networkOnboarding,
 			networkOnboardedState,
 			switchedNetwork,
-			networkModalVisible
+			networkModalVisible,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -1020,7 +1020,7 @@ class DrawerView extends PureComponent {
 			showProtectWalletModal,
 			account: { name: nameFromState, ens: ensFromState },
 			showModal,
-			networkType
+			networkType,
 		} = this.state;
 
 		const account = {
