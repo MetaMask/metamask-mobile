@@ -146,7 +146,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							tintColors={{ true: colors.background.default, false: colors.background.default }}
 							testID={'skip-backup-check'}
 						/>
-						<Text style={styles.number}>{item.index + 1}</Text>
+						<Text style={styles.number}>{item.index}</Text>
 						<Text style={styles.address}>{util.clipAddress(item.address, 4, 4)}</Text>
 						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
 						<Icon
