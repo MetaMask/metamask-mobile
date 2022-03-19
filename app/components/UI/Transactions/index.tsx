@@ -28,9 +28,10 @@ import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/ether
 import Logger from '../../../util/Logger';
 import { renderFromWei } from '../../../util/number';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { baseStyles } from '../../../styles/common';
-import styles from './styles';
+import createStyles from './styles';
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
 
@@ -90,6 +91,9 @@ const Transactions = ({
 	const [cancelTxId, setCancelTxId] = useState(undefined);
 	const [speedUpTxId, setSpeedUpTxId] = useState(undefined);
 	const flatListRef = React.createRef<FlatList<any>>();
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	useEffect(() => {
 		setMounted(true);
