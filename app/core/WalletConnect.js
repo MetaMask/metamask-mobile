@@ -9,11 +9,10 @@ import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/controllers/';
 import BackgroundBridge from './BackgroundBridge';
-import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
+import getRpcMethodMiddleware, { checkActiveAccountAndChainId } from './RPCMethods/RPCMethodMiddleware';
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
-
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
@@ -120,6 +119,7 @@ class WalletConnect {
 				this.redirect();
 			} catch (e) {
 				this.walletConnector.rejectSession();
+				this.redirect();
 			}
 		});
 
@@ -153,6 +153,15 @@ class WalletConnect {
 					if (payload.method === 'eth_sendTransaction') {
 						const { TransactionController } = Engine.context;
 						try {
+							const selectedAddress =
+								Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+
+							checkActiveAccountAndChainId({
+								address: payload.params[0].from,
+								chainId: payload.params[0].chainId,
+								activeAccounts: [selectedAddress],
+							});
+
 							const hash = await (
 								await TransactionController.addTransaction(
 									payload.params[0],
@@ -301,14 +310,15 @@ class WalletConnect {
 					setShowUrlModal: () => null,
 					// Wizard
 					wizardScrollAdjusted: () => null,
-					isTabActive: () => true,
+					tabId: false,
+					isWalletConnect: true,
 				}),
 			isMainFrame: true,
 		});
 	};
 
 	killSession = () => {
-		this.backgroundBridge.onDisconnect();
+		this.backgroundBridge?.onDisconnect();
 		this.walletConnector && this.walletConnector.killSession();
 		this.walletConnector = null;
 	};

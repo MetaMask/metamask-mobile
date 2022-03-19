@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { View, ScrollView, StyleSheet, Image, Dimensions, TouchableOpacity } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
-import { colors, baseStyles } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -11,6 +11,7 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
 import { decGWEIToHexWEI } from '../../../util/conversions';
@@ -28,89 +29,90 @@ const DEVICE_WIDTH = Dimensions.get('window').width;
 
 const IMG_PADDING = Device.isIphone5() ? 220 : 200;
 
-const styles = StyleSheet.create({
-	scroll: {
-		flexGrow: 1,
-	},
-	wrapper: {
-		paddingVertical: Device.isIphone5() ? 15 : 30,
-		flex: 1,
-	},
-	title: {
-		fontSize: 24,
-		marginBottom: Device.isIphone5() ? 8 : 14,
-		justifyContent: 'center',
-		textAlign: 'center',
-	},
-	subtitle: {
-		fontSize: 14,
-		marginBottom: Device.isIphone5() ? 8 : 14,
-		justifyContent: 'center',
-		textAlign: 'center',
-		lineHeight: 20,
-	},
-	subheader: {
-		fontSize: 16,
-		marginBottom: Device.isIphone5() ? 8 : 14,
-		lineHeight: 22.5,
-		justifyContent: 'center',
-		textAlign: 'center',
-	},
-	link: {
-		marginTop: Device.isIphone5() ? 12 : 24,
-		fontSize: 14,
-		justifyContent: 'center',
-		textAlign: 'center',
-		lineHeight: 20,
-	},
-	ctas: {
-		flex: 1,
-		justifyContent: 'flex-end',
-		paddingHorizontal: 40,
-	},
-	ctaWrapper: {
-		justifyContent: 'flex-end',
-	},
-	carouselImage: {},
-	// eslint-disable-next-line react-native/no-unused-styles
-	carouselImage1: {
-		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	carouselImage2: {
-		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
-	},
-	// eslint-disable-next-line react-native/no-unused-styles
-	carouselImage3: {
-		width: DEVICE_WIDTH - IMG_PADDING,
-		height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_3_RATIO,
-	},
-	carouselImageWrapper: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-	},
-	circle: {
-		width: 8,
-		height: 8,
-		borderRadius: 8 / 2,
-		backgroundColor: colors.grey500,
-		opacity: 0.4,
-		marginHorizontal: 8,
-	},
-	solidCircle: {
-		opacity: 1,
-	},
-	progessContainer: {
-		flexDirection: 'row',
-		alignSelf: 'center',
-		marginVertical: Device.isIphone5() ? 18 : 36,
-	},
-	tab: {
-		margin: 32,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		scroll: {
+			flexGrow: 1,
+		},
+		wrapper: {
+			paddingVertical: Device.isIphone5() ? 15 : 30,
+			flex: 1,
+		},
+		title: {
+			fontSize: 24,
+			marginBottom: Device.isIphone5() ? 8 : 14,
+			justifyContent: 'center',
+			textAlign: 'center',
+		},
+		subtitle: {
+			fontSize: 14,
+			marginBottom: Device.isIphone5() ? 8 : 14,
+			justifyContent: 'center',
+			textAlign: 'center',
+			lineHeight: 20,
+		},
+		subheader: {
+			fontSize: 16,
+			marginBottom: Device.isIphone5() ? 8 : 14,
+			lineHeight: 22.5,
+			justifyContent: 'center',
+			textAlign: 'center',
+		},
+		link: {
+			marginTop: Device.isIphone5() ? 12 : 24,
+			fontSize: 14,
+			justifyContent: 'center',
+			textAlign: 'center',
+			lineHeight: 20,
+		},
+		ctas: {
+			flex: 1,
+			justifyContent: 'flex-end',
+			paddingHorizontal: 40,
+		},
+		ctaWrapper: {
+			justifyContent: 'flex-end',
+		},
+		carouselImage: {},
+		// eslint-disable-next-line react-native/no-unused-styles
+		carouselImage1: {
+			width: DEVICE_WIDTH - IMG_PADDING,
+			height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		carouselImage2: {
+			width: DEVICE_WIDTH - IMG_PADDING,
+			height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
+		},
+		// eslint-disable-next-line react-native/no-unused-styles
+		carouselImage3: {
+			width: DEVICE_WIDTH - IMG_PADDING,
+			height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_3_RATIO,
+		},
+		carouselImageWrapper: {
+			flexDirection: 'row',
+			justifyContent: 'center',
+		},
+		circle: {
+			width: 8,
+			height: 8,
+			borderRadius: 8 / 2,
+			backgroundColor: colors.icon.default,
+			opacity: 0.4,
+			marginHorizontal: 8,
+		},
+		solidCircle: {
+			opacity: 1,
+		},
+		progessContainer: {
+			flexDirection: 'row',
+			alignSelf: 'center',
+			marginVertical: Device.isIphone5() ? 18 : 36,
+		},
+		tab: {
+			margin: 32,
+		},
+	});
 
 const gas_education_carousel_1 = require('../../../images/gas-education-carousel-1.png'); // eslint-disable-line
 const gas_education_carousel_2 = require('../../../images/gas-education-carousel-2.png'); // eslint-disable-line
@@ -123,7 +125,13 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency, nativeCurrency }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+	}, [navigation, colors]);
 
 	useEffect(() => {
 		const setGasEstimates = async () => {
@@ -313,8 +321,6 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 		</View>
 	);
 };
-
-GasEducationCarousel.navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
 
 GasEducationCarousel.propTypes = {
 	/**

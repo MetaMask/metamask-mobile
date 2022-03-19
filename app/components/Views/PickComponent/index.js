@@ -1,44 +1,47 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import { baseStyles, colors, fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		...baseStyles.flexGrow,
-		flexDirection: 'row',
-	},
-	circle: {
-		width: 12,
-		height: 12,
-		borderRadius: 12 / 2,
-		backgroundColor: colors.white,
-		opacity: 1,
-		margin: 2,
-		borderWidth: 2,
-		borderColor: colors.grey300,
-		marginRight: 6,
-	},
-	option: {
-		flex: 1,
-	},
-	touchableOption: {
-		flex: 1,
-		flexDirection: 'row',
-	},
-	optionText: {
-		...fontStyles.normal,
-	},
-	selectedCircle: {
-		width: 12,
-		height: 12,
-		borderRadius: 12 / 2,
-		backgroundColor: colors.blue,
-		opacity: 1,
-		margin: 2,
-		marginRight: 6,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			...baseStyles.flexGrow,
+			flexDirection: 'row',
+		},
+		circle: {
+			width: 12,
+			height: 12,
+			borderRadius: 12 / 2,
+			backgroundColor: colors.background.default,
+			opacity: 1,
+			margin: 2,
+			borderWidth: 2,
+			borderColor: colors.border.default,
+			marginRight: 6,
+		},
+		option: {
+			flex: 1,
+		},
+		touchableOption: {
+			flex: 1,
+			flexDirection: 'row',
+		},
+		optionText: {
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		selectedCircle: {
+			width: 12,
+			height: 12,
+			borderRadius: 12 / 2,
+			backgroundColor: colors.primary.default,
+			opacity: 1,
+			margin: 2,
+			marginRight: 6,
+		},
+	});
 
 /**
  * Componets that allows to select clicking two options
@@ -83,6 +86,9 @@ export default class PickComponent extends PureComponent {
 
 	render = () => {
 		const { selectedValue, valueFirst, valueSecond, textFirst, textSecond } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.root}>
 				<View style={styles.option}>
@@ -101,3 +107,5 @@ export default class PickComponent extends PureComponent {
 		);
 	};
 }
+
+PickComponent.contextType = ThemeContext;

@@ -6,7 +6,13 @@ const CONFIRM_PASSWORD_INPUT_BOX_ID = 'input-password-confirm';
 const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
 const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
+const REMEMBER_ME_ID = 'remember-me-toggle';
+
 export default class CreatePasswordView {
+	static async toggleRememberMe() {
+		await TestHelpers.tap(REMEMBER_ME_ID);
+	}
+
 	static async enterPassword(password) {
 		await TestHelpers.typeTextAndHideKeyboard(CREATE_PASSWORD_INPUT_BOX_ID, password);
 	}

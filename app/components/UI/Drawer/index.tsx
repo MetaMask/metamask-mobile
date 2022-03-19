@@ -17,11 +17,11 @@ import Animated, {
 	Extrapolate,
 } from 'react-native-reanimated';
 import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash/src/v1';
-import { colors } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
 const screenWidth = Dimensions.get('window').width;
 import DrawerView from '../DrawerView';
 import styles from './styles';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 interface DrawerRef {
 	dismissDrawer: () => void;
@@ -39,6 +39,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
 	const visibleOffset = 0;
 	const navigation = useNavigation();
 	const safeAreaInsets = useSafeAreaInsets();
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	// Animation config
 	const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
@@ -99,7 +100,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
 	const animatedStyles: StyleSheet.NamedStyles<any> = useMemo(() => {
 		return {
 			overlayBackground: {
-				backgroundColor: colors.overlay,
+				backgroundColor: colors.overlay.default,
 				...styles.absoluteFill,
 				opacity: interpolateNode(translateX, {
 					inputRange: [hiddenOffset + 1, visibleOffset],
@@ -131,7 +132,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
 				...StyleSheet.absoluteFillObject,
 			},
 		};
-	}, [hiddenOffset, visibleOffset, translateX, safeAreaInsets]);
+	}, [hiddenOffset, visibleOffset, translateX, safeAreaInsets, colors]);
 
 	// Declarative logic that animates overlay
 	useCode(

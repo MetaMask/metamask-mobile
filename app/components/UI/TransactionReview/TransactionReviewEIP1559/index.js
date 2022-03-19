@@ -3,7 +3,6 @@ import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors } from '../../../../styles/common';
 import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -15,63 +14,70 @@ import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	overview: (noMargin) => ({
-		marginHorizontal: noMargin ? 0 : 24,
-		paddingTop: 10,
-		paddingBottom: 10,
-	}),
-	valuesContainer: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-	},
-	gasInfoContainer: {
-		paddingLeft: 2,
-	},
-	gasInfoIcon: (hasOrigin) => ({
-		color: hasOrigin ? colors.orange : colors.grey200,
-	}),
-	amountContainer: {
-		flex: 1,
-		paddingRight: 10,
-	},
-	gasRowContainer: {
-		flexDirection: 'row',
-		flex: 1,
-		alignItems: 'center',
-		marginBottom: 2,
-	},
-	gasBottomRowContainer: {
-		marginTop: 4,
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10,
-	},
-	redInfo: {
-		color: colors.red,
-	},
-	timeEstimateContainer: {
-		alignItems: 'center',
-		flexDirection: 'row',
-	},
-	flex: {
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		overview: (noMargin) => ({
+			marginHorizontal: noMargin ? 0 : 24,
+			paddingTop: 10,
+			paddingBottom: 10,
+		}),
+		valuesContainer: {
+			flex: 1,
+			flexDirection: 'row',
+			justifyContent: 'flex-end',
+		},
+		gasInfoContainer: {
+			paddingLeft: 2,
+		},
+		gasInfoIcon: (hasOrigin) => ({
+			color: hasOrigin ? colors.secondary.default : colors.icon.muted,
+		}),
+		amountContainer: {
+			flex: 1,
+			paddingRight: 10,
+		},
+		gasRowContainer: {
+			flexDirection: 'row',
+			flex: 1,
+			alignItems: 'center',
+			marginBottom: 2,
+		},
+		gasBottomRowContainer: {
+			marginTop: 4,
+		},
+		hitSlop: {
+			top: 10,
+			left: 10,
+			bottom: 10,
+			right: 10,
+		},
+		redInfo: {
+			color: colors.error.default,
+		},
+		timeEstimateContainer: {
+			alignItems: 'center',
+			flexDirection: 'row',
+		},
+		flex: {
+			flex: 1,
+		},
+	});
 
 // eslint-disable-next-line react/prop-types
-const Skeleton = ({ width, noStyle }) => (
-	<View style={[!noStyle && styles.valuesContainer]}>
-		<SkeletonPlaceholder>
-			<SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
-		</SkeletonPlaceholder>
-	</View>
-);
+const Skeleton = ({ width, noStyle }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
+	return (
+		<View style={[!noStyle && styles.valuesContainer]}>
+			<SkeletonPlaceholder>
+				<SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
+			</SkeletonPlaceholder>
+		</View>
+	);
+};
 
 const TransactionReviewEIP1559 = ({
 	totalNative,
@@ -105,6 +111,8 @@ const TransactionReviewEIP1559 = ({
 	const toggleLearnMoreModal = useCallback(() => {
 		setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
 	}, []);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const openLinkAboutGas = useCallback(
 		() => Linking.openURL('https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172'),

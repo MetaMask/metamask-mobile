@@ -10,6 +10,7 @@ import Device from '../../../../util/device';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	main: {
@@ -28,6 +29,8 @@ const Step6 = (props) => {
 	const [ready, setReady] = useState(false);
 	const [coachmarkTop, setCoachmarkTop] = useState(0);
 	const { drawerRef } = useContext(DrawerContext);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const dynamicOnboardingStyles = onboardingStyles(colors);
 
 	/**
 	 * If component ref defined, calculate its position and position coachmark accordingly
@@ -68,8 +71,8 @@ const Step6 = (props) => {
 	 * Returns content for this step
 	 */
 	const content = () => (
-		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content} testID={'step6-title'}>
+		<View style={dynamicOnboardingStyles.contentContainer}>
+			<Text style={dynamicOnboardingStyles.content} testID={'step6-title'}>
 				{strings('onboarding_wizard.step6.content')}
 			</Text>
 		</View>
@@ -85,7 +88,7 @@ const Step6 = (props) => {
 					content={content()}
 					onNext={triggerOnClose}
 					onBack={onBack}
-					style={onboardingStyles.coachmark}
+					style={dynamicOnboardingStyles.coachmark}
 					topIndicatorPosition={'topCenter'}
 					onClose={onClose}
 					currentStep={5}

@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, InteractionManager, Linking } from 
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
@@ -11,7 +11,8 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { renderFromWei, weiToFiatNumber, fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
 	getNormalizedTxState,
@@ -20,6 +21,8 @@ import {
 	decodeApproveData,
 	generateApproveData,
 } from '../../../util/transactions';
+import Feather from 'react-native-vector-icons/Feather';
+import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -41,88 +44,117 @@ import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const { hexToBN } = util;
-const styles = StyleSheet.create({
-	section: {
-		minWidth: '100%',
-		width: '100%',
-		paddingVertical: 10,
-	},
-	title: {
-		...fontStyles.bold,
-		fontSize: scaling.scale(24),
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 34,
-		marginVertical: 16,
-		paddingHorizontal: 16,
-	},
-	explanation: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 20,
-		paddingHorizontal: 16,
-	},
-	editPermissionText: {
-		...fontStyles.bold,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 20,
-		textAlign: 'center',
-		marginVertical: 20,
-		borderWidth: 1,
-		borderRadius: 20,
-		borderColor: colors.blue,
-		paddingVertical: 8,
-		paddingHorizontal: 16,
-	},
-	viewDetailsText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 16,
-		marginTop: 8,
-		textAlign: 'center',
-	},
-	actionTouchable: {
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	errorWrapper: {
-		marginTop: 12,
-		paddingHorizontal: 10,
-		paddingVertical: 8,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderRadius: 8,
-		borderWidth: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	error: {
-		color: colors.red,
-		fontSize: 12,
-		lineHeight: 16,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-	underline: {
-		textDecorationLine: 'underline',
-		...fontStyles.bold,
-	},
-	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 350,
-	},
-	actionViewChildren: {
-		height: 300,
-	},
-	paddingHorizontal: {
-		paddingHorizontal: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		section: {
+			minWidth: '100%',
+			width: '100%',
+			paddingVertical: 10,
+		},
+		title: {
+			...fontStyles.bold,
+			fontSize: scaling.scale(24),
+			textAlign: 'center',
+			color: colors.text.default,
+			lineHeight: 34,
+			marginVertical: 16,
+			paddingHorizontal: 16,
+		},
+		explanation: {
+			...fontStyles.normal,
+			fontSize: 14,
+			textAlign: 'center',
+			color: colors.text.default,
+			lineHeight: 20,
+			paddingHorizontal: 16,
+		},
+		editPermissionText: {
+			...fontStyles.bold,
+			color: colors.primary.default,
+			fontSize: 12,
+			lineHeight: 20,
+			textAlign: 'center',
+			marginVertical: 10,
+			borderWidth: 1,
+			borderRadius: 20,
+			borderColor: colors.primary.default,
+			paddingVertical: 8,
+			paddingHorizontal: 16,
+		},
+		viewDetailsText: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			fontSize: 12,
+			lineHeight: 16,
+			marginTop: 8,
+			textAlign: 'center',
+		},
+		actionTouchable: {
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		addressWrapper: {
+			backgroundColor: colors.primary.muted,
+			flexDirection: 'row',
+			alignItems: 'center',
+			borderRadius: 40,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
+		},
+		address: {
+			fontSize: 13,
+			marginHorizontal: 8,
+			color: colors.text.default,
+			...fontStyles.normal,
+			maxWidth: 120,
+		},
+		errorWrapper: {
+			marginTop: 12,
+			paddingHorizontal: 10,
+			paddingVertical: 8,
+			backgroundColor: colors.error.muted,
+			borderColor: colors.error.default,
+			borderRadius: 8,
+			borderWidth: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		error: {
+			color: colors.text.default,
+			fontSize: 12,
+			lineHeight: 16,
+			...fontStyles.normal,
+			textAlign: 'center',
+		},
+		underline: {
+			textDecorationLine: 'underline',
+			...fontStyles.bold,
+		},
+		actionViewWrapper: {
+			height: Device.isMediumDevice() ? 200 : 280,
+		},
+		paddingHorizontal: {
+			paddingHorizontal: 16,
+		},
+		contactWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginVertical: 15,
+		},
+		nickname: {
+			...fontStyles.normal,
+			textAlign: 'center',
+			color: colors.primary.default,
+			marginBottom: 10,
+		},
+		actionIcon: {
+			color: colors.primary.default,
+		},
+	});
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -133,10 +165,6 @@ class ApproveTransactionReview extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
-		/**
-		 * ETH to current currency conversion rate
-		 */
-		conversionRate: PropTypes.number,
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -249,6 +277,18 @@ class ApproveTransactionReview extends PureComponent {
 		 * Dispatch set transaction object from transaction action
 		 */
 		setTransactionObject: PropTypes.func,
+		/**
+		 * Update contract nickname
+		 */
+		onUpdateContractNickname: PropTypes.func,
+		/**
+		 * The saved nickname of the address
+		 */
+		nickname: PropTypes.string,
+		/**
+		 * Check if nickname is saved
+		 */
+		nicknameExists: PropTypes.bool,
 	};
 
 	state = {
@@ -256,8 +296,6 @@ class ApproveTransactionReview extends PureComponent {
 		editPermissionVisible: false,
 		host: undefined,
 		originalApproveAmount: undefined,
-		totalGas: undefined,
-		totalGasFiat: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
 		spendLimitCustomValue: MINIMUM_VALUE,
@@ -274,8 +312,7 @@ class ApproveTransactionReview extends PureComponent {
 
 	componentDidMount = async () => {
 		const {
-			transaction: { origin, to, gas, gasPrice, data },
-			conversionRate,
+			transaction: { origin, to, data },
 			tokenList,
 		} = this.props;
 		const { AssetsContractController } = Engine.context;
@@ -296,7 +333,6 @@ class ApproveTransactionReview extends PureComponent {
 		}
 		const { spenderAddress, encodedAmount } = decodeApproveData(data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
-		const totalGas = gas?.mul(gasPrice);
 		const { name: method } = await getMethodData(data);
 
 		this.setState(
@@ -306,8 +342,6 @@ class ApproveTransactionReview extends PureComponent {
 				originalApproveAmount: approveAmount,
 				tokenSymbol,
 				token: { symbol: tokenSymbol, decimals: tokenDecimals },
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
 				spenderAddress,
 				encodedAmount,
 			},
@@ -316,24 +350,6 @@ class ApproveTransactionReview extends PureComponent {
 			}
 		);
 	};
-
-	componentDidUpdate(previousProps) {
-		const {
-			transaction: { gas, gasPrice },
-			conversionRate,
-		} = this.props;
-		const totalGas = gas?.mul(gasPrice);
-		if (
-			previousProps.transaction.gas !== this.props.transaction.gas ||
-			previousProps.transaction.gasPrice !== this.props.transaction.gasPrice
-		) {
-			// eslint-disable-next-line react/no-did-update-set-state
-			this.setState({
-				totalGas: renderFromWei(totalGas),
-				totalGasFiat: weiToFiatNumber(totalGas, conversionRate),
-			});
-		}
-	}
 
 	getAnalyticsParams = () => {
 		try {
@@ -419,6 +435,7 @@ class ApproveTransactionReview extends PureComponent {
 			content: 'clipboard-alert',
 			data: { msg: strings('transactions.address_copied_to_clipboard') },
 		});
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED, this.getAnalyticsParams());
 	};
 
 	edit = () => {
@@ -518,9 +535,15 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
+	toggleDisplay = () => this.props.onUpdateContractNickname();
+
 	renderDetails = () => {
 		const { host, tokenSymbol, spenderAddress } = this.state;
-
 		const {
 			primaryCurrency,
 			gasError,
@@ -538,6 +561,7 @@ class ApproveTransactionReview extends PureComponent {
 			gasEstimationReady,
 			transactionConfirmed,
 		} = this.props;
+		const styles = this.getStyles();
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -553,7 +577,7 @@ class ApproveTransactionReview extends PureComponent {
 
 		return (
 			<>
-				<View style={styles.section} testID={'approve-screen'}>
+				<View style={styles.section} testID={'approve-modal-test-id'}>
 					<TransactionHeader
 						currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 					/>
@@ -563,10 +587,40 @@ class ApproveTransactionReview extends PureComponent {
 							{ tokenSymbol }
 						)}
 					</Text>
+					<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
+						<Text reset style={styles.editPermissionText}>
+							{strings('spend_limit_edition.edit_permission')}
+						</Text>
+					</TouchableOpacity>
 					<Text reset style={styles.explanation}>
 						{`${strings(
 							`spend_limit_edition.${originIsDeeplink ? 'you_trust_this_address' : 'you_trust_this_site'}`
 						)}`}
+					</Text>
+					<View style={styles.contactWrapper}>
+						<Text>{strings('nickname.contract')}: </Text>
+						<TouchableOpacity
+							style={styles.addressWrapper}
+							onPress={this.copyContractAddress}
+							testID={'contract-address'}
+						>
+							<Identicon address={this.state.transaction.to} diameter={20} />
+							{this.props.nicknameExists ? (
+								<Text numberOfLines={1} style={styles.address}>
+									{this.props.nickname}
+								</Text>
+							) : (
+								<EthereumAddress
+									address={this.state.transaction.to}
+									style={styles.address}
+									type={'short'}
+								/>
+							)}
+							<Feather name="copy" size={18} style={styles.actionIcon} />
+						</TouchableOpacity>
+					</View>
+					<Text style={styles.nickname} onPress={this.toggleDisplay}>
+						{this.props.nicknameExists ? 'Edit' : 'Add'} {strings('nickname.nickname')}
 					</Text>
 					<View style={styles.actionViewWrapper}>
 						<ActionView
@@ -577,85 +631,78 @@ class ApproveTransactionReview extends PureComponent {
 							onConfirmPress={this.onConfirmPress}
 							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
-							<View style={styles.actionViewChildren}>
-								<TouchableOpacity style={styles.actionTouchable} onPress={this.toggleEditPermission}>
-									<Text reset style={styles.editPermissionText}>
-										{strings('spend_limit_edition.edit_permission')}
-									</Text>
-								</TouchableOpacity>
-								<View style={styles.paddingHorizontal}>
-									<AccountInfoCard />
-									<View style={styles.section}>
-										{showFeeMarket ? (
-											<TransactionReviewEIP1559
-												totalNative={EIP1559GasData.renderableTotalMinNative}
-												totalConversion={EIP1559GasData.renderableTotalMinConversion}
-												totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
-												gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-												gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-												gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-												gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
-												primaryCurrency={primaryCurrency}
-												timeEstimate={EIP1559GasData.timeEstimate}
-												timeEstimateColor={EIP1559GasData.timeEstimateColor}
-												timeEstimateId={EIP1559GasData.timeEstimateId}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												onUpdatingValuesStart={onUpdatingValuesStart}
-												onUpdatingValuesEnd={onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-											/>
-										) : (
-											<TransactionReviewEIP1559
-												totalNative={LegacyGasData.transactionTotalAmount}
-												totalConversion={LegacyGasData.transactionTotalAmountFiat}
-												gasFeeNative={LegacyGasData.transactionFee}
-												gasFeeConversion={LegacyGasData.transactionFeeFiat}
-												primaryCurrency={primaryCurrency}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												over={Boolean(LegacyGasData.error)}
-												onUpdatingValuesStart={this.onUpdatingValuesStart}
-												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-												legacy
-											/>
-										)}
+							<View style={styles.paddingHorizontal}>
+								<AccountInfoCard />
+								<View style={styles.section}>
+									{showFeeMarket ? (
+										<TransactionReviewEIP1559
+											totalNative={EIP1559GasData.renderableTotalMinNative}
+											totalConversion={EIP1559GasData.renderableTotalMinConversion}
+											totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
+											gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+											gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+											gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+											gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+											primaryCurrency={primaryCurrency}
+											timeEstimate={EIP1559GasData.timeEstimate}
+											timeEstimateColor={EIP1559GasData.timeEstimateColor}
+											timeEstimateId={EIP1559GasData.timeEstimateId}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											onUpdatingValuesStart={onUpdatingValuesStart}
+											onUpdatingValuesEnd={onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+										/>
+									) : (
+										<TransactionReviewEIP1559
+											totalNative={LegacyGasData.transactionTotalAmount}
+											totalConversion={LegacyGasData.transactionTotalAmountFiat}
+											gasFeeNative={LegacyGasData.transactionFee}
+											gasFeeConversion={LegacyGasData.transactionFeeFiat}
+											primaryCurrency={primaryCurrency}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											over={Boolean(LegacyGasData.error)}
+											onUpdatingValuesStart={this.onUpdatingValuesStart}
+											onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+											legacy
+										/>
+									)}
 
-										{gasError && (
-											<View style={styles.errorWrapper}>
-												<TouchableOpacity onPress={errorPress}>
-													<Text reset style={styles.error}>
-														{gasError}
+									{gasError && (
+										<View style={styles.errorWrapper}>
+											<TouchableOpacity onPress={errorPress}>
+												<Text reset style={styles.error}>
+													{gasError}
+												</Text>
+												{/* only show buy more on mainnet */}
+												{over && is_main_net && (
+													<Text reset style={[styles.error, styles.underline]}>
+														{errorLinkText}
 													</Text>
-													{/* only show buy more on mainnet */}
-													{over && is_main_net && (
-														<Text reset style={[styles.error, styles.underline]}>
-															{errorLinkText}
-														</Text>
-													)}
-												</TouchableOpacity>
-											</View>
-										)}
-										{!gasError && (
-											<TouchableOpacity
-												style={styles.actionTouchable}
-												onPress={this.toggleViewDetails}
-											>
-												<View>
-													<Text reset style={styles.viewDetailsText}>
-														{strings('spend_limit_edition.view_details')}
-													</Text>
-												</View>
+												)}
 											</TouchableOpacity>
-										)}
-									</View>
+										</View>
+									)}
+									{!gasError && (
+										<TouchableOpacity
+											style={styles.actionTouchable}
+											onPress={this.toggleViewDetails}
+										>
+											<View>
+												<Text reset style={styles.viewDetailsText}>
+													{strings('spend_limit_edition.view_details')}
+												</Text>
+											</View>
+										</TouchableOpacity>
+									)}
 								</View>
 							</View>
 						</ActionView>
@@ -667,6 +714,7 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderTransactionReview = () => {
+		const { nickname, nicknameExists } = this.props;
 		const {
 			host,
 			method,
@@ -685,6 +733,8 @@ class ApproveTransactionReview extends PureComponent {
 				toggleViewDetails={this.toggleViewDetails}
 				toggleViewData={this.toggleViewData}
 				copyContractAddress={this.copyContractAddress}
+				nickname={nickname}
+				nicknameExists={nicknameExists}
 				address={renderShortAddress(to)}
 				host={host}
 				allowance={allowance}
@@ -748,7 +798,6 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
@@ -765,5 +814,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	showAlert: (config) => dispatch(showAlert(config)),
 });
+
+ApproveTransactionReview.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));

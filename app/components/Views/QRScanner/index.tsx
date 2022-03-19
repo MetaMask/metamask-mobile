@@ -5,7 +5,7 @@
 import React, { useRef, useCallback } from 'react';
 import { InteractionManager, SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet, Alert } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { colors } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { parse } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +18,7 @@ import Engine from '../../../core/Engine';
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.black,
+		backgroundColor: importedColors.black,
 	},
 	preview: {
 		flex: 1,
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
 	text: {
 		flex: 1,
 		fontSize: 17,
-		color: colors.white,
+		color: importedColors.white,
 		textAlign: 'center',
 		justifyContent: 'center',
 		marginTop: 100,
@@ -215,7 +215,7 @@ const QRScanner = ({ navigation, route }: Props) => {
 			>
 				<SafeAreaView style={styles.innerView}>
 					<TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-						<Icon name={'ios-close'} size={50} color={'white'} />
+						<Icon name={'ios-close'} size={50} color={importedColors.white} />
 					</TouchableOpacity>
 					<Image source={frameImage} style={styles.frame} />
 					<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>

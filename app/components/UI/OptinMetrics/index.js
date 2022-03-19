@@ -11,7 +11,7 @@ import {
 	InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { baseStyles, fontStyles, colors } from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -24,79 +24,79 @@ import { ONBOARDING_WIZARD, METRICS_OPT_IN, DENIED, AGREED } from '../../../cons
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		...baseStyles.flexGrow,
-		backgroundColor: colors.white,
-	},
-	checkIcon: {
-		color: colors.green500,
-	},
-	crossIcon: {
-		color: colors.red,
-	},
-	icon: {
-		marginRight: 5,
-	},
-	action: {
-		flex: 0,
-		flexDirection: 'row',
-		paddingVertical: 10,
-		alignItems: 'center',
-	},
-	title: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 22,
-	},
-	description: {
-		...fontStyles.normal,
-		color: colors.black,
-		flex: 1,
-	},
-	content: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.black,
-		paddingVertical: 10,
-	},
-	wrapper: {
-		marginHorizontal: 20,
-	},
-	privacyPolicy: {
-		...fontStyles.normal,
-		fontSize: 14,
-		color: colors.grey400,
-		marginTop: 10,
-	},
-	link: {
-		textDecorationLine: 'underline',
-	},
-	actionContainer: {
-		marginTop: 10,
-		flex: 0,
-		flexDirection: 'row',
-		padding: 16,
-		bottom: 0,
-	},
-	button: {
-		flex: 1,
-	},
-	cancel: {
-		marginRight: 8,
-	},
-	confirm: {
-		marginLeft: 8,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			...baseStyles.flexGrow,
+			backgroundColor: colors.background.default,
+		},
+		checkIcon: {
+			color: colors.success.default,
+		},
+		crossIcon: {
+			color: colors.error.default,
+		},
+		icon: {
+			marginRight: 5,
+		},
+		action: {
+			flex: 0,
+			flexDirection: 'row',
+			paddingVertical: 10,
+			alignItems: 'center',
+		},
+		title: {
+			...fontStyles.bold,
+			color: colors.text.default,
+			fontSize: 22,
+		},
+		description: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			flex: 1,
+		},
+		content: {
+			...fontStyles.normal,
+			fontSize: 14,
+			color: colors.text.default,
+			paddingVertical: 10,
+		},
+		wrapper: {
+			marginHorizontal: 20,
+		},
+		privacyPolicy: {
+			...fontStyles.normal,
+			fontSize: 14,
+			color: colors.text.muted,
+			marginTop: 10,
+		},
+		link: {
+			textDecorationLine: 'underline',
+		},
+		actionContainer: {
+			marginTop: 10,
+			flex: 0,
+			flexDirection: 'row',
+			padding: 16,
+			bottom: 0,
+		},
+		button: {
+			flex: 1,
+		},
+		cancel: {
+			marginRight: 8,
+		},
+		confirm: {
+			marginLeft: 8,
+		},
+	});
 
 /**
  * View that is displayed in the flow to agree to metrics
  */
 class OptinMetrics extends PureComponent {
-	static navigationOptions = () => getOptinMetricsNavbarOptions();
-
 	static propTypes = {
 		/**
 		/* navigation object required to push and pop other views
@@ -125,10 +125,21 @@ class OptinMetrics extends PureComponent {
 		description: strings(`privacy_policy.action_description_${value}`),
 	}));
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(getOptinMetricsNavbarOptions(colors));
+	};
+
 	componentDidMount() {
+		this.updateNavBar();
 		Analytics.enable();
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 	}
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	componentWillUnmount() {
 		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
@@ -166,16 +177,21 @@ class OptinMetrics extends PureComponent {
 	 * @param {object} - Object containing action and description to be rendered
 	 * @param {number} i - Index key
 	 */
-	renderAction = ({ action, description }, i) => (
-		<View style={styles.action} key={i}>
-			{action === 0 ? (
-				<Entypo name="check" size={20} style={[styles.icon, styles.checkIcon]} />
-			) : (
-				<Entypo name="cross" size={24} style={[styles.icon, styles.crossIcon]} />
-			)}
-			<Text style={styles.description}>{description}</Text>
-		</View>
-	);
+	renderAction = ({ action, description }, i) => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.action} key={i}>
+				{action === 0 ? (
+					<Entypo name="check" size={20} style={[styles.icon, styles.checkIcon]} />
+				) : (
+					<Entypo name="cross" size={24} style={[styles.icon, styles.crossIcon]} />
+				)}
+				<Text style={styles.description}>{description}</Text>
+			</View>
+		);
+	};
 
 	/**
 	 * Track the event of opt in or opt out.
@@ -243,17 +259,25 @@ class OptinMetrics extends PureComponent {
 	 *
 	 * @returns - Touchable opacity object to render with privacy policy information
 	 */
-	renderPrivacyPolicy = () => (
-		<TouchableOpacity onPress={this.onPressPolicy}>
-			<Text style={styles.privacyPolicy}>
-				{strings('privacy_policy.description') + ' '}
-				<Text style={styles.link}>{strings('privacy_policy.here')}</Text>
-				{strings('unit.point')}
-			</Text>
-		</TouchableOpacity>
-	);
+	renderPrivacyPolicy = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<TouchableOpacity onPress={this.onPressPolicy}>
+				<Text style={styles.privacyPolicy}>
+					{strings('privacy_policy.description') + ' '}
+					<Text style={styles.link}>{strings('privacy_policy.here')}</Text>
+					{strings('unit.point')}
+				</Text>
+			</TouchableOpacity>
+		);
+	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.root} testID={'metaMetrics-OptIn'}>
 				<ScrollView style={styles.root}>
@@ -288,6 +312,8 @@ class OptinMetrics extends PureComponent {
 		);
 	}
 }
+
+OptinMetrics.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	events: state.onboarding.events,
