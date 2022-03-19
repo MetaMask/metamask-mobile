@@ -4,35 +4,37 @@ import Modal from 'react-native-modal';
 import { StyleSheet, View, Text } from 'react-native';
 import { dismissAlert } from '../../../actions/alert';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ElevatedView from 'react-native-elevated-view';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		width: '100%',
-	},
-	copyAlert: (width) => ({
-		width: width || 180,
-		backgroundColor: colors.darkAlert,
-		padding: 20,
-		paddingTop: 30,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 8,
-	}),
-	copyAlertIcon: {
-		marginBottom: 20,
-	},
-	copyAlertText: {
-		textAlign: 'center',
-		color: colors.white,
-		fontSize: 16,
-		...fontStyles.normal,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			margin: 0,
+			width: '100%',
+		},
+		copyAlert: (width) => ({
+			width: width || 180,
+			backgroundColor: colors.overlay.alternative,
+			padding: 20,
+			paddingTop: 30,
+			alignSelf: 'center',
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderRadius: 8,
+		}),
+		copyAlertIcon: {
+			marginBottom: 20,
+		},
+		copyAlertText: {
+			textAlign: 'center',
+			color: colors.overlay.inverse,
+			fontSize: 16,
+			...fontStyles.normal,
+		},
+	});
 
 /**
  * Wrapper component for a global alert
@@ -83,17 +85,29 @@ class GlobalAlert extends PureComponent {
 		}
 	}
 
-	renderClipboardAlert = () => (
-		<ElevatedView style={styles.copyAlert(this.props.data && this.props.data.width)} elevation={5}>
-			<View style={styles.copyAlertIcon}>
-				<Icon name={'check-circle'} size={64} color={colors.white} />
-			</View>
-			<Text style={styles.copyAlertText}>{this.props.data && this.props.data.msg}</Text>
-		</ElevatedView>
-	);
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
+	renderClipboardAlert = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = this.getStyles(colors);
+
+		return (
+			<ElevatedView style={styles.copyAlert(this.props.data && this.props.data.width)} elevation={5}>
+				<View style={styles.copyAlertIcon}>
+					<Icon name={'check-circle'} size={64} color={colors.overlay.inverse} />
+				</View>
+				<Text style={styles.copyAlertText}>{this.props.data && this.props.data.msg}</Text>
+			</ElevatedView>
+		);
+	};
 
 	render = () => {
 		const { content, isVisible } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = this.getStyles(colors);
 
 		return (
 			<Modal
@@ -122,5 +136,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	dismissAlert: () => dispatch(dismissAlert()),
 });
+
+GlobalAlert.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(GlobalAlert);

@@ -1,26 +1,27 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Animated, Easing } from 'react-native';
-import { colors } from '../../../styles/common';
 import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	root: {
-		backgroundColor: colors.white,
-		minHeight: 200,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingBottom: Device.isIphoneX() ? 24 : 0,
-	},
-	transactionEdit: {
-		position: 'absolute',
-		width: '100%',
-		height: '100%',
-	},
-	transactionReview: {
-		paddingTop: 24,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			backgroundColor: colors.background.default,
+			minHeight: 200,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			paddingBottom: Device.isIphoneX() ? 24 : 0,
+		},
+		transactionEdit: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+		},
+		transactionReview: {
+			paddingTop: 24,
+		},
+	});
 
 //This is a placeholder to represent the custom gas modal.
 //TODO this custom gas modal needs to be removed from the animated tx modal.
@@ -198,6 +199,8 @@ class AnimatedTransactionModal extends PureComponent {
 			toAdvancedFrom,
 		} = this.state;
 		const { ready, children } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const components = React.Children.toArray(children);
 		let gasTransformStyle;
 		let modalTransformStyle;
@@ -258,5 +261,7 @@ class AnimatedTransactionModal extends PureComponent {
 		);
 	};
 }
+
+AnimatedTransactionModal.contextType = ThemeContext;
 
 export default AnimatedTransactionModal;

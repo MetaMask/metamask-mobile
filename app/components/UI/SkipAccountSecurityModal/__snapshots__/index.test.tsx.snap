@@ -43,7 +43,6 @@ exports[`HintModal should render correctly 1`] = `
       style={
         Object {
           "alignItems": "flex-end",
-          "flex": 1,
         }
       }
     >
@@ -53,6 +52,7 @@ exports[`HintModal should render correctly 1`] = `
         size={12}
         style={
           Object {
+            "color": "#24272A",
             "fontSize": 16,
           }
         }
@@ -73,7 +73,7 @@ exports[`HintModal should render correctly 1`] = `
     <Text
       style={
         Object {
-          "color": "#000000",
+          "color": "#24272A",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 24,
           "fontWeight": "600",
@@ -108,7 +108,8 @@ exports[`HintModal should render correctly 1`] = `
         testID="skip-backup-check"
         tintColors={
           Object {
-            "true": "#037dd6",
+            "false": "#BBC0C5",
+            "true": "#037DD6",
           }
         }
         value={false}
@@ -117,6 +118,7 @@ exports[`HintModal should render correctly 1`] = `
         onPress={[Function]}
         style={
           Object {
+            "color": "#24272A",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,

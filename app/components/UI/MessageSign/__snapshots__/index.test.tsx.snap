@@ -23,6 +23,11 @@ exports[`MessageSign should render correctly 1`] = `
   >
     <Text
       onTextLayout={[Function]}
+      style={
+        Object {
+          "color": "#24272A",
+        }
+      }
     >
       message
     </Text>

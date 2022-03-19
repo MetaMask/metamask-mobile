@@ -18,7 +18,8 @@ import Animated, {
 	set,
 } from 'react-native-reanimated';
 import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash/src/v1';
-import styles from './styles';
+import createStyles from './styles';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 const screenHeight = Dimensions.get('window').height;
 
 type DismissModal = () => void;
@@ -41,6 +42,8 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 	const navigation = useNavigation();
 	const safeAreaInsets = useSafeAreaInsets();
 	const trigger = useRef<DismissModal>();
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	// Animation config
 	const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
@@ -187,7 +190,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 
 	const renderOverlay = useCallback(() => {
 		return <Animated.View style={[styles.overlayBackground, animatedStyles.overlayBackground]} />;
-	}, [animatedStyles]);
+	}, [animatedStyles, styles]);
 
 	const renderContent = useCallback(() => {
 		return (

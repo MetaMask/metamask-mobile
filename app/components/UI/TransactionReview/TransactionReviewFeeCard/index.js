@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
-import { colors } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
@@ -10,48 +9,50 @@ import { isMainnetByChainId } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import FadeAnimationView from '../../FadeAnimationView';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	overview: {
-		marginHorizontal: 24,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		height: 10,
-		flex: 1,
-		alignItems: 'flex-end',
-	},
-	over: {
-		color: colors.red,
-	},
-	valuesContainer: {
-		flex: 1,
-		flexDirection: 'row',
-	},
-	gasInfoContainer: {
-		paddingHorizontal: 2,
-	},
-	gasInfoIcon: {
-		color: colors.blue,
-	},
-	amountContainer: {
-		flex: 1,
-	},
-	gasFeeTitleContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	primaryContainer: (flex) => {
-		if (flex) return { flex: 1 };
-		return { width: 86, marginLeft: 2 };
-	},
-	hitSlop: {
-		top: 10,
-		left: 10,
-		bottom: 10,
-		right: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		overview: {
+			marginHorizontal: 24,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			height: 10,
+			flex: 1,
+			alignItems: 'flex-end',
+		},
+		over: {
+			color: colors.error.default,
+		},
+		valuesContainer: {
+			flex: 1,
+			flexDirection: 'row',
+		},
+		gasInfoContainer: {
+			paddingHorizontal: 2,
+		},
+		gasInfoIcon: {
+			color: colors.primary.default,
+		},
+		amountContainer: {
+			flex: 1,
+		},
+		gasFeeTitleContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		primaryContainer: (flex) => {
+			if (flex) return { flex: 1 };
+			return { width: 86, marginLeft: 2 };
+		},
+		hitSlop: {
+			top: 10,
+			left: 10,
+			bottom: 10,
+			right: 10,
+		},
+	});
 
 /**
  * PureComponent that displays a transaction's fee and total details inside a card
@@ -128,8 +129,15 @@ class TransactionReviewFeeCard extends PureComponent {
 		showGasTooltip: false,
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderIfGasEstimationReady = (children) => {
 		const { gasEstimationReady } = this.props;
+		const styles = this.getStyles();
+
 		return !gasEstimationReady ? (
 			<View style={styles.loader}>
 				<ActivityIndicator size="small" />
@@ -190,6 +198,7 @@ class TransactionReviewFeeCard extends PureComponent {
 			animateOnChange,
 			isAnimating,
 		} = this.props;
+		const styles = this.getStyles();
 
 		const isMainnet = isMainnetByChainId(chainId);
 
@@ -347,5 +356,7 @@ const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
+
+TransactionReviewFeeCard.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(TransactionReviewFeeCard);

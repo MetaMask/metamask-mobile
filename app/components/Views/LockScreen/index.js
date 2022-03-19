@@ -1,5 +1,6 @@
+/* eslint-disable import/no-commonjs */
 import React, { PureComponent } from 'react';
-import { StyleSheet, Dimensions, Animated, View, AppState } from 'react-native';
+import { StyleSheet, Dimensions, Animated, View, AppState, Appearance } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
@@ -9,41 +10,51 @@ import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { logOut } from '../../../actions/user';
+import { getAssetFromTheme, mockTheme, ThemeContext } from '../../../util/theme';
 
 const LOGO_SIZE = 175;
-const styles = StyleSheet.create({
-	metamaskName: {
-		marginTop: 10,
-		height: 25,
-		width: 170,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	logoWrapper: {
-		marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2,
-		height: LOGO_SIZE,
-	},
-	foxAndName: {
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	animation: {
-		width: 110,
-		height: 110,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	fox: {
-		width: 110,
-		height: 110,
-		alignSelf: 'center',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		container: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		metamaskName: {
+			marginTop: 10,
+			height: 25,
+			width: 170,
+			alignSelf: 'center',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		logoWrapper: {
+			marginTop: Dimensions.get('window').height / 2 - LOGO_SIZE / 2,
+			height: LOGO_SIZE,
+		},
+		foxAndName: {
+			alignSelf: 'center',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		animation: {
+			width: 110,
+			height: 110,
+			alignSelf: 'center',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		fox: {
+			width: 110,
+			height: 110,
+			alignSelf: 'center',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+	});
+
+const wordmarkLight = require('../../../animations/wordmark-light.json');
+const wordmarkDark = require('../../../animations/wordmark-dark.json');
+
 /**
  * Main view component for the Lock screen
  */
@@ -58,6 +69,7 @@ class LockScreen extends PureComponent {
 		 */
 		passwordSet: PropTypes.bool,
 		logOut: PropTypes.func,
+		appTheme: PropTypes.string,
 	};
 
 	state = {
@@ -158,7 +170,17 @@ class LockScreen extends PureComponent {
 		}, 100);
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderAnimations() {
+		const { appTheme } = this.props;
+		const osColorScheme = Appearance.getColorScheme();
+		const wordmark = getAssetFromTheme(appTheme, osColorScheme, wordmarkLight, wordmarkDark);
+		const styles = this.getStyles();
+
 		if (!this.state.ready) {
 			return (
 				<LottieView
@@ -191,15 +213,17 @@ class LockScreen extends PureComponent {
 					}}
 					style={styles.metamaskName}
 					loop={false}
-					source={require('../../../animations/wordmark.json')}
+					source={wordmark}
 				/>
 			</View>
 		);
 	}
 
 	render() {
+		const styles = this.getStyles();
+
 		return (
-			<View style={baseStyles.flexGrow}>
+			<View style={[baseStyles.flexGrow, styles.container]}>
 				<Animated.View style={[styles.logoWrapper, { opacity: this.opacity }]}>
 					<View style={styles.fox}>{this.renderAnimations()}</View>
 				</Animated.View>
@@ -210,10 +234,13 @@ class LockScreen extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	passwordSet: state.user.passwordSet,
+	appTheme: state.user.appTheme,
 });
 
 const mapDispatchToProps = (dispatch) => ({
 	logOut: () => dispatch(logOut()),
 });
+
+LockScreen.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);
