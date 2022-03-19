@@ -2,20 +2,23 @@ import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
-import { colors } from '../../../../styles/common';
 import { useRatio } from '../utils';
-
 import Text from '../../../Base/Text';
-const styles = StyleSheet.create({
-	infoIcon: {
-		fontSize: 12,
-		margin: 3,
-		color: colors.blue,
-	},
-});
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+
+const createStyles = (colors) =>
+	StyleSheet.create({
+		infoIcon: {
+			fontSize: 12,
+			margin: 3,
+			color: colors.primary.default,
+		},
+	});
 function Ratio({ sourceAmount, sourceToken, destinationAmount, destinationToken, boldSymbol = false }) {
 	/* Get the ratio between the assets given the selected quote*/
 	const [ratioAsSource, setRatioAsSource] = useState(true);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const [numerator, denominator] = useMemo(() => {
 		const source = { ...sourceToken, amount: sourceAmount };

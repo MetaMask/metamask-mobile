@@ -3,58 +3,63 @@ import PropTypes from 'prop-types';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import Modal from 'react-native-modal';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
-import { colors } from '../../../../styles/common';
-
 import ModalDragger from '../../../Base/ModalDragger';
 import Text from '../../../Base/Text';
 import Alert, { AlertType } from '../../../Base/Alert';
 import TokenIcon from './TokenIcon';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		justifyContent: 'flex-end',
-	},
-	modalView: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	content: {
-		marginVertical: 14,
-		paddingHorizontal: 30,
-		alignItems: 'center',
-	},
-	alertIcon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
-	title: {
-		fontSize: 24,
-		marginVertical: 14,
-	},
-	tokenTitle: {
-		fontSize: 18,
-		textAlign: 'center',
-		marginVertical: 14,
-	},
-	tokenAddress: {
-		backgroundColor: colors.grey000,
-		width: '100%',
-		borderRadius: 20,
-		marginVertical: 6,
-		paddingHorizontal: 8,
-		paddingVertical: 4,
-	},
-	cta: {
-		marginTop: 10,
-		width: '100%',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			margin: 0,
+			justifyContent: 'flex-end',
+		},
+		modalView: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		content: {
+			marginVertical: 14,
+			paddingHorizontal: 30,
+			alignItems: 'center',
+		},
+		alertIcon: {
+			paddingTop: 4,
+			paddingRight: 8,
+		},
+		title: {
+			fontSize: 24,
+			marginVertical: 14,
+			color: colors.text.default,
+		},
+		tokenTitle: {
+			fontSize: 18,
+			textAlign: 'center',
+			marginVertical: 14,
+			color: colors.text.default,
+		},
+		tokenAddress: {
+			backgroundColor: colors.background.alternative,
+			width: '100%',
+			borderRadius: 20,
+			marginVertical: 6,
+			paddingHorizontal: 8,
+			paddingVertical: 4,
+		},
+		cta: {
+			marginTop: 10,
+			width: '100%',
+		},
+	});
 
 function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -64,6 +69,8 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 			swipeDirection="down"
 			propagateSwipe
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger borderless />
@@ -71,7 +78,12 @@ function TokenImportModal({ isVisible, dismiss, token, onPressImport }) {
 					<Alert
 						type={AlertType.Error}
 						renderIcon={() => (
-							<FAIcon name="info-circle" style={styles.alertIcon} color={colors.red} size={15} />
+							<FAIcon
+								name="info-circle"
+								style={styles.alertIcon}
+								color={colors.error.default}
+								size={15}
+							/>
 						)}
 					>
 						{(textStyle) => <Text style={textStyle}>{strings('swaps.add_warning')}</Text>}

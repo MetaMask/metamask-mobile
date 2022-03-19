@@ -1,5 +1,5 @@
 import React from 'react';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { StyleSheet, View, TextInput, SafeAreaView, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -10,105 +10,109 @@ import Modal from 'react-native-modal';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	keyboardAwareWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-	},
-	modal: {
-		minHeight: 200,
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-	},
-	modalContainer: {
-		margin: 24,
-	},
-	title: {
-		fontSize: 14,
-		color: colors.black,
-	},
-	nonceInput: {
-		width: 80,
-		fontSize: 36,
-		...fontStyles.bold,
-		color: colors.black,
-		textAlign: 'center',
-		marginHorizontal: 24,
-	},
-	desc: {
-		color: colors.black,
-		fontSize: 12,
-		lineHeight: 16,
-		marginVertical: 10,
-	},
-	nonceInputContainer: {
-		display: 'flex',
-		flexDirection: 'row',
-		alignItems: 'center',
-		alignSelf: 'center',
-		marginVertical: 10,
-	},
-	incrementDecrementNonceContainer: {
-		display: 'flex',
-		flexDirection: 'row',
-		alignItems: 'center',
-		alignSelf: 'center',
-	},
-	currentSuggested: {
-		fontSize: 14,
-		color: colors.grey500,
-		marginBottom: 10,
-	},
-	nonceWarning: {
-		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
-		padding: 16,
-		display: 'flex',
-		flexDirection: 'row',
-		borderRadius: 8,
-		marginTop: 10,
-		marginBottom: 16,
-	},
-	nonceWarningText: {
-		color: colors.black,
-		fontSize: 12,
-		lineHeight: 16,
-		width: '100%',
-		flex: 1,
-	},
-	descWarningContainer: {
-		height: 240,
-	},
-	actionRow: {
-		flexDirection: 'row',
-		marginBottom: 15,
-	},
-	actionButton: {
-		flex: 1,
-		marginHorizontal: 8,
-	},
-	incrementHit: {
-		padding: 4,
-	},
-	icon: {
-		flex: 0,
-		marginTop: 6,
-		paddingRight: 14,
-	},
-	incrementDecrementIcon: {
-		color: colors.blue,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		keyboardAwareWrapper: {
+			flex: 1,
+			justifyContent: 'flex-end',
+		},
+		modal: {
+			minHeight: 200,
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+		},
+		modalContainer: {
+			margin: 24,
+		},
+		title: {
+			fontSize: 14,
+			color: colors.text.default,
+		},
+		nonceInput: {
+			width: 80,
+			fontSize: 36,
+			...fontStyles.bold,
+			color: colors.text.default,
+			textAlign: 'center',
+			marginHorizontal: 24,
+		},
+		desc: {
+			color: colors.text.default,
+			fontSize: 12,
+			lineHeight: 16,
+			marginVertical: 10,
+		},
+		nonceInputContainer: {
+			display: 'flex',
+			flexDirection: 'row',
+			alignItems: 'center',
+			alignSelf: 'center',
+			marginVertical: 10,
+		},
+		incrementDecrementNonceContainer: {
+			display: 'flex',
+			flexDirection: 'row',
+			alignItems: 'center',
+			alignSelf: 'center',
+		},
+		currentSuggested: {
+			fontSize: 14,
+			color: colors.text.alternative,
+			marginBottom: 10,
+		},
+		nonceWarning: {
+			borderWidth: 1,
+			borderColor: colors.warning.default,
+			backgroundColor: colors.warning.muted,
+			padding: 16,
+			display: 'flex',
+			flexDirection: 'row',
+			borderRadius: 8,
+			marginTop: 10,
+			marginBottom: 16,
+		},
+		nonceWarningText: {
+			color: colors.text.default,
+			fontSize: 12,
+			lineHeight: 16,
+			width: '100%',
+			flex: 1,
+		},
+		descWarningContainer: {
+			height: 240,
+		},
+		actionRow: {
+			flexDirection: 'row',
+			marginBottom: 15,
+		},
+		actionButton: {
+			flex: 1,
+			marginHorizontal: 8,
+		},
+		incrementHit: {
+			padding: 4,
+		},
+		icon: {
+			flex: 0,
+			marginTop: 6,
+			paddingRight: 14,
+		},
+		incrementDecrementIcon: {
+			color: colors.primary.default,
+		},
+	});
 
 const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 	const [nonce, onChangeText] = React.useState(nonceValue);
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const incrementDecrementNonce = (decrement) => {
 		let newValue = nonce;
@@ -129,7 +133,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={close}
@@ -155,13 +160,14 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								autoCorrect={false}
 								onChangeText={onChangeText}
 								placeholder={String(proposedNonce)}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								spellCheck={false}
 								editable
 								style={styles.nonceInput}
 								value={String(nonce)}
 								numberOfLines={1}
 								onSubmitEditing={saveAndClose}
+								keyboardAppearance={themeAppearance}
 							/>
 						</View>
 						<Text centered style={styles.currentSuggested}>
@@ -183,7 +189,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
 								<View style={styles.nonceWarning}>
 									<Icon
 										name="exclamation-circle"
-										color={colors.yellow}
+										color={colors.warning.default}
 										size={16}
 										style={styles.icon}
 									/>

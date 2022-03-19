@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, TouchableHighlight, StyleSheet, Image, Text, View } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
@@ -18,53 +18,55 @@ import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice, util } from '@metamask/controllers/';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
-const styles = StyleSheet.create({
-	row: {
-		backgroundColor: colors.white,
-		flex: 1,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-	},
-	actionContainerStyle: {
-		height: 25,
-		width: 70,
-		padding: 0,
-	},
-	speedupActionContainerStyle: {
-		marginRight: 10,
-	},
-	actionStyle: {
-		fontSize: 10,
-		padding: 0,
-		paddingHorizontal: 10,
-	},
-	icon: {
-		width: 28,
-		height: 28,
-	},
-	summaryWrapper: {
-		padding: 15,
-	},
-	fromDeviceText: {
-		color: colors.fontSecondary,
-		fontSize: 14,
-		marginBottom: 10,
-		...fontStyles.normal,
-	},
-	importText: {
-		color: colors.fontSecondary,
-		fontSize: 14,
-		...fontStyles.bold,
-		alignContent: 'center',
-	},
-	importRowBody: {
-		alignItems: 'center',
-		backgroundColor: colors.grey000,
-		paddingTop: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		row: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		actionContainerStyle: {
+			height: 25,
+			width: 70,
+			padding: 0,
+		},
+		speedupActionContainerStyle: {
+			marginRight: 10,
+		},
+		actionStyle: {
+			fontSize: 10,
+			padding: 0,
+			paddingHorizontal: 10,
+		},
+		icon: {
+			width: 28,
+			height: 28,
+		},
+		summaryWrapper: {
+			padding: 15,
+		},
+		fromDeviceText: {
+			color: colors.text.alternative,
+			fontSize: 14,
+			marginBottom: 10,
+			...fontStyles.normal,
+		},
+		importText: {
+			color: colors.text.alternative,
+			fontSize: 14,
+			...fontStyles.bold,
+			alignContent: 'center',
+		},
+		importRowBody: {
+			alignItems: 'center',
+			backgroundColor: colors.background.alternative,
+			paddingTop: 10,
+		},
+	});
 
 /* eslint-disable import/no-commonjs */
 const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
@@ -177,6 +179,9 @@ class TransactionElement extends PureComponent {
 	 */
 	renderImportTime = () => {
 		const { tx, identities, selectedAddress } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		const accountImportTime = identities[selectedAddress]?.importTime;
 		if (tx.insertImportTime && accountImportTime) {
 			return (
@@ -196,6 +201,9 @@ class TransactionElement extends PureComponent {
 
 	renderTxElementIcon = (transactionElement, status) => {
 		const { transactionType } = transactionElement;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		const isFailedTransaction = status === 'cancelled' || status === 'failed';
 		let icon;
 		switch (transactionType) {
@@ -264,16 +272,21 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
-	renderCancelButton = () => (
-		<StyledButton
-			type={'cancel'}
-			containerStyle={styles.actionContainerStyle}
-			style={styles.actionStyle}
-			onPress={this.showCancelModal}
-		>
-			{strings('transaction.cancel')}
-		</StyledButton>
-	);
+	renderCancelButton = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<StyledButton
+				type={'cancel'}
+				containerStyle={styles.actionContainerStyle}
+				style={styles.actionStyle}
+				onPress={this.showCancelModal}
+			>
+				{strings('transaction.cancel')}
+			</StyledButton>
+		);
+	};
 
 	parseGas = () => {
 		const { tx } = this.props;
@@ -312,20 +325,27 @@ class TransactionElement extends PureComponent {
 		this.mounted && this.props.onSpeedUpAction(false);
 	};
 
-	renderSpeedUpButton = () => (
-		<StyledButton
-			type={'normal'}
-			containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
-			style={styles.actionStyle}
-			onPress={this.showSpeedUpModal}
-		>
-			{strings('transaction.speedup')}
-		</StyledButton>
-	);
+	renderSpeedUpButton = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<StyledButton
+				type={'normal'}
+				containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
+				style={styles.actionStyle}
+				onPress={this.showSpeedUpModal}
+			>
+				{strings('transaction.speedup')}
+			</StyledButton>
+		);
+	};
 
 	render() {
 		const { tx } = this.props;
 		const { detailsModalVisible, importModalVisible, transactionElement, transactionDetails } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		if (!transactionElement || !transactionDetails) return null;
 		return (
@@ -333,7 +353,7 @@ class TransactionElement extends PureComponent {
 				<TouchableHighlight
 					style={styles.row}
 					onPress={this.onPressItem}
-					underlayColor={colors.grey000}
+					underlayColor={colors.background.alternative}
 					activeOpacity={1}
 				>
 					{this.renderTxElement(transactionElement)}
@@ -345,6 +365,8 @@ class TransactionElement extends PureComponent {
 						onBackButtonPress={this.onCloseDetailsModal}
 						onSwipeComplete={this.onCloseDetailsModal}
 						swipeDirection={'down'}
+						backdropColor={colors.overlay.default}
+						backdropOpacity={1}
 					>
 						<DetailsModal>
 							<DetailsModal.Header>
@@ -367,6 +389,8 @@ class TransactionElement extends PureComponent {
 					onBackButtonPress={this.onCloseImportWalletModal}
 					onSwipeComplete={this.onCloseImportWalletModal}
 					swipeDirection={'down'}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<DetailsModal>
 						<DetailsModal.Header>
@@ -403,4 +427,7 @@ const mapStateToProps = (state) => ({
 	}, {}),
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
 });
+
+TransactionElement.contextType = ThemeContext;
+
 export default connect(mapStateToProps)(TransactionElement);

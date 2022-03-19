@@ -112,10 +112,8 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Light</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<true/>
+	<false/>
 	<key>branch_key</key>
 	<string>$(MM_BRANCH_KEY_LIVE)</string>
 	<key>fox_code</key>

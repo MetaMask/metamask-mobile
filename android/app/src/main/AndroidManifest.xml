@@ -125,13 +125,6 @@
 		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
 		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
 
-		<!-- Branch install referrer tracking (optional) -->
-		<receiver android:name="io.branch.referral.InstallListener" android:exported="true">
-			<intent-filter>
-				<action android:name="com.android.vending.INSTALL_REFERRER" />
-			</intent-filter>
-		</receiver>
-
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="io.metamask.provider"

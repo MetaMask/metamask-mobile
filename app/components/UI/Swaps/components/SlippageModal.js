@@ -2,42 +2,46 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, SafeAreaView, View } from 'react-native';
 import Modal from 'react-native-modal';
-import { colors } from '../../../../styles/common';
 
 import ModalDragger from '../../../Base/ModalDragger';
 import Text from '../../../Base/Text';
 import SlippageSlider from '../../SlippageSlider';
 import { strings } from '../../../../../locales/i18n';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		justifyContent: 'flex-end',
-	},
-	modalView: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	content: {
-		marginVertical: 14,
-		paddingHorizontal: 30,
-	},
-	slippageWrapper: {
-		marginVertical: 10,
-	},
-	warningTextWrapper: {
-		position: 'absolute',
-		width: '85%',
-		bottom: 30,
-		left: 10,
-	},
-	warningText: {
-		color: colors.red,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			margin: 0,
+			justifyContent: 'flex-end',
+		},
+		modalView: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		content: {
+			marginVertical: 14,
+			paddingHorizontal: 30,
+		},
+		slippageWrapper: {
+			marginVertical: 10,
+		},
+		warningTextWrapper: {
+			position: 'absolute',
+			width: '85%',
+			bottom: 30,
+			left: 10,
+		},
+		warningText: {
+			color: colors.error.default,
+		},
+	});
 
 function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	return (
 		<Modal
 			isVisible={isVisible}
@@ -47,6 +51,8 @@ function SlippageModal({ isVisible, dismiss, onChange, slippage }) {
 			swipeDirection="down"
 			propagateSwipe
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />

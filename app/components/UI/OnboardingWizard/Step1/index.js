@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	main: {
@@ -63,12 +64,17 @@ class Step1 extends PureComponent {
 	/**
 	 * Returns content for this step
 	 */
-	content = () => (
-		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step1.content1')}</Text>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step1.content2')}</Text>
-		</View>
-	);
+	content = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const dynamicOnboardingStyles = onboardingStyles(colors);
+
+		return (
+			<View style={dynamicOnboardingStyles.contentContainer}>
+				<Text style={dynamicOnboardingStyles.content}>{strings('onboarding_wizard.step1.content1')}</Text>
+				<Text style={dynamicOnboardingStyles.content}>{strings('onboarding_wizard.step1.content2')}</Text>
+			</View>
+		);
+	};
 
 	render() {
 		return (
@@ -91,5 +97,7 @@ class Step1 extends PureComponent {
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
+
+Step1.contextType = ThemeContext;
 
 export default connect(null, mapDispatchToProps)(Step1);

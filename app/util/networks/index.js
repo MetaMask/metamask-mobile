@@ -1,4 +1,3 @@
-import { colors } from '../../styles/common';
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/constants/network';
@@ -67,7 +66,7 @@ const NetworkList = {
 	[RPC]: {
 		name: 'Private Network',
 		shortName: 'Private',
-		color: colors.grey000,
+		color: '#f2f3f4',
 		networkType: 'rpc',
 	},
 };

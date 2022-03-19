@@ -10,7 +10,7 @@ import {
 	InteractionManager,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { getPaymentRequestOptionsTitle } from '../../UI/Navbar';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Fuse from 'fuse.js';
@@ -41,150 +41,162 @@ import { getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const KEYBOARD_OFFSET = 120;
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	contentWrapper: {
-		paddingTop: 24,
-		paddingHorizontal: 24,
-	},
-	title: {
-		...fontStyles.normal,
-		fontSize: 16,
-	},
-	searchWrapper: {
-		marginVertical: 8,
-	},
-	searchInput: {
-		marginHorizontal: 0,
-		paddingTop: Device.isAndroid() ? 12 : 2,
-		borderRadius: 8,
-		paddingHorizontal: 38,
-		fontSize: 16,
-		backgroundColor: colors.white,
-		height: 40,
-		width: '100%',
-		color: colors.grey400,
-		borderColor: colors.grey100,
-		borderWidth: 1,
-		...fontStyles.normal,
-	},
-	searchIcon: {
-		position: 'absolute',
-		textAlignVertical: 'center',
-		marginTop: Device.isAndroid() ? 9 : 10,
-		marginLeft: 12,
-	},
-	input: {
-		...fontStyles.normal,
-		backgroundColor: colors.white,
-		borderWidth: 0,
-		fontSize: 24,
-		paddingBottom: 0,
-		paddingRight: 0,
-		paddingLeft: 0,
-		paddingTop: 0,
-	},
-	eth: {
-		...fontStyles.normal,
-		fontSize: 24,
-		paddingTop: Device.isAndroid() ? 3 : 0,
-		paddingLeft: 10,
-		textTransform: 'uppercase',
-	},
-	fiatValue: {
-		...fontStyles.normal,
-		fontSize: 18,
-	},
-	split: {
-		flex: 1,
-		flexDirection: 'row',
-	},
-	ethContainer: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingLeft: 6,
-		paddingRight: 10,
-	},
-	container: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingRight: 10,
-		paddingVertical: 10,
-		paddingLeft: 14,
-		position: 'relative',
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
-		borderRadius: 4,
-		borderWidth: 1,
-	},
-	amounts: {
-		maxWidth: '70%',
-	},
-	switchContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'center',
-		right: 0,
-	},
-	switchTouchable: {
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-		right: 0,
-	},
-	enterAmountWrapper: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	button: {
-		marginBottom: 16,
-	},
-	buttonsWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		alignSelf: 'center',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-	scrollViewContainer: {
-		flexGrow: 1,
-	},
-	errorWrapper: {
-		backgroundColor: colors.red000,
-		borderRadius: 4,
-		marginTop: 8,
-	},
-	errorText: {
-		color: colors.fontError,
-		alignSelf: 'center',
-	},
-	assetsWrapper: {
-		marginTop: 16,
-	},
-	assetsTitle: {
-		...fontStyles.normal,
-		fontSize: 16,
-		marginBottom: 8,
-	},
-	secondaryAmount: {
-		flexDirection: 'row',
-	},
-	currencySymbol: {
-		...fontStyles.normal,
-		fontSize: 24,
-	},
-	currencySymbolSmall: {
-		...fontStyles.normal,
-		fontSize: 18,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		contentWrapper: {
+			paddingTop: 24,
+			paddingHorizontal: 24,
+		},
+		title: {
+			...fontStyles.normal,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		amountWrapper: {
+			marginVertical: 8,
+		},
+		searchWrapper: {
+			marginVertical: 8,
+			borderColor: colors.border.default,
+			borderWidth: 1,
+			borderRadius: 8,
+			flexDirection: 'row',
+			backgroundColor: colors.background.default,
+		},
+		searchInput: {
+			paddingTop: Device.isAndroid() ? 12 : 0,
+			paddingLeft: 8,
+			fontSize: 16,
+			height: 40,
+			flex: 1,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		searchIcon: {
+			textAlignVertical: 'center',
+			marginLeft: 12,
+			alignSelf: 'center',
+		},
+		clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
+		input: {
+			...fontStyles.normal,
+			backgroundColor: colors.background.default,
+			borderWidth: 0,
+			fontSize: 24,
+			paddingBottom: 0,
+			paddingRight: 0,
+			paddingLeft: 0,
+			paddingTop: 0,
+			color: colors.text.default,
+		},
+		eth: {
+			...fontStyles.normal,
+			fontSize: 24,
+			paddingTop: Device.isAndroid() ? 3 : 0,
+			paddingLeft: 10,
+			textTransform: 'uppercase',
+			color: colors.text.default,
+		},
+		fiatValue: {
+			...fontStyles.normal,
+			fontSize: 18,
+			color: colors.text.default,
+		},
+		split: {
+			flex: 1,
+			flexDirection: 'row',
+		},
+		ethContainer: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingLeft: 6,
+			paddingRight: 10,
+		},
+		container: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingRight: 10,
+			paddingVertical: 10,
+			paddingLeft: 14,
+			position: 'relative',
+			backgroundColor: colors.background.default,
+			borderColor: colors.border.default,
+			borderRadius: 4,
+			borderWidth: 1,
+		},
+		amounts: {
+			maxWidth: '70%',
+		},
+		switchContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'center',
+			right: 0,
+		},
+		switchTouchable: {
+			flexDirection: 'row',
+			alignSelf: 'flex-end',
+			right: 0,
+		},
+		enterAmountWrapper: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		button: {
+			marginBottom: 16,
+		},
+		buttonsWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			alignSelf: 'center',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+		scrollViewContainer: {
+			flexGrow: 1,
+		},
+		errorWrapper: {
+			backgroundColor: colors.error.muted,
+			borderRadius: 4,
+			marginTop: 8,
+		},
+		errorText: {
+			color: colors.text.default,
+			alignSelf: 'center',
+		},
+		assetsWrapper: {
+			marginTop: 16,
+		},
+		assetsTitle: {
+			...fontStyles.normal,
+			fontSize: 16,
+			marginBottom: 8,
+			color: colors.text.default,
+		},
+		secondaryAmount: {
+			flexDirection: 'row',
+		},
+		currencySymbol: {
+			...fontStyles.normal,
+			fontSize: 24,
+			color: colors.text.default,
+		},
+		currencySymbolSmall: {
+			...fontStyles.normal,
+			fontSize: 18,
+			color: colors.text.default,
+		},
+	});
 
 const fuse = new Fuse([], {
 	shouldSort: true,
@@ -223,9 +235,6 @@ const MODE_AMOUNT = 'amount';
  * View to generate a payment request link
  */
 class PaymentRequest extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -274,6 +283,7 @@ class PaymentRequest extends PureComponent {
 	};
 
 	amountInput = React.createRef();
+	searchInput = React.createRef();
 
 	state = {
 		searchInputValue: '',
@@ -289,11 +299,20 @@ class PaymentRequest extends PureComponent {
 		inputWidth: { width: '99%' },
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getPaymentRequestOptionsTitle(strings('payment_request.title'), navigation, route, colors)
+		);
+	};
+
 	/**
 	 * Set chainId, internalPrimaryCurrency and receiveAssets, if there is an asset set to this payment request chose it automatically, to state
 	 */
 	componentDidMount = () => {
 		const { primaryCurrency, route, tokenList } = this.props;
+		this.updateNavBar();
 		const receiveAsset = route?.params?.receiveAsset;
 		this.setState({
 			internalPrimaryCurrency: primaryCurrency,
@@ -308,6 +327,7 @@ class PaymentRequest extends PureComponent {
 	};
 
 	componentDidUpdate = () => {
+		this.updateNavBar();
 		InteractionManager.runAfterInteractions(() => {
 			this.amountInput.current && this.amountInput.current.focus();
 		});
@@ -357,6 +377,12 @@ class PaymentRequest extends PureComponent {
 		this.setState({ searchInputValue, results });
 	};
 
+	/** Clear search input and focus */
+	clearSearchInput = () => {
+		this.setState({ searchInputValue: '' });
+		this.searchInput.current?.focus?.();
+	};
+
 	/**
 	 * Renders a view that allows user to select assets to build the payment request
 	 * Either top picks and user's assets are available to select
@@ -365,6 +391,9 @@ class PaymentRequest extends PureComponent {
 		const { tokens, chainId, ticker, tokenList } = this.props;
 		const { inputWidth } = this.state;
 		let results;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
 
 		if (chainId === '1') {
 			results = this.state.searchInputValue ? this.state.results : defaultAssets;
@@ -386,27 +415,27 @@ class PaymentRequest extends PureComponent {
 				</View>
 				{chainId === '1' && (
 					<View style={styles.searchWrapper}>
+						<FeatherIcon name="search" size={18} color={colors.icon.muted} style={styles.searchIcon} />
 						<TextInput
+							ref={this.searchInput}
 							style={[styles.searchInput, inputWidth]}
 							autoCapitalize="none"
 							autoCorrect={false}
-							clearButtonMode="while-editing"
 							onChangeText={this.handleSearch}
 							onSubmitEditing={this.handleSearch}
 							placeholder={strings('payment_request.search_assets')}
-							placeholderTextColor={colors.grey400}
+							placeholderTextColor={colors.text.muted}
 							returnKeyType="go"
 							value={this.state.searchInputValue}
 							blurOnSubmit
 							testID={'request-search-asset-input'}
+							keyboardAppearance={themeAppearance}
 						/>
-						<FeatherIcon
-							onPress={this.focusInput}
-							name="search"
-							size={18}
-							color={colors.grey400}
-							style={styles.searchIcon}
-						/>
+						{this.state.searchInputValue ? (
+							<TouchableOpacity onPress={this.clearSearchInput} style={styles.clearButton}>
+								<FontAwesome name="times-circle" size={18} color={colors.icon.default} />
+							</TouchableOpacity>
+						) : null}
 					</View>
 				)}
 				<View style={styles.assetsWrapper} testID={'searched-asset-results'}>
@@ -585,6 +614,10 @@ class PaymentRequest extends PureComponent {
 		const currencySymbol = currencySymbols[currentCurrency];
 		const exchangeRate = selectedAsset && selectedAsset.address && contractExchangeRates[selectedAsset.address];
 		let switchable = true;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
+
 		if (!conversionRate) {
 			switchable = false;
 		} else if (selectedAsset.symbol !== 'ETH' && !exchangeRate) {
@@ -595,7 +628,7 @@ class PaymentRequest extends PureComponent {
 				<View>
 					<Text style={styles.title}>{strings('payment_request.enter_amount')}</Text>
 				</View>
-				<View style={styles.searchWrapper}>
+				<View style={styles.amountWrapper}>
 					<View style={styles.container}>
 						<View style={styles.ethContainer}>
 							<View style={styles.amounts}>
@@ -610,13 +643,14 @@ class PaymentRequest extends PureComponent {
 										numberOfLines={1}
 										onChangeText={this.updateAmount}
 										placeholder={strings('payment_request.amount_placeholder')}
-										placeholderTextColor={colors.grey100}
+										placeholderTextColor={colors.text.muted}
 										spellCheck={false}
 										style={styles.input}
 										value={amount}
 										onSubmitEditing={this.onNext}
 										ref={this.amountInput}
 										testID={'request-amount-input'}
+										keyboardAppearance={themeAppearance}
 									/>
 									<Text style={styles.eth} numberOfLines={1}>
 										{symbol}
@@ -640,10 +674,9 @@ class PaymentRequest extends PureComponent {
 										style={styles.switchTouchable}
 									>
 										<FontAwesome
-											onPress={this.focusInput}
 											name="exchange"
 											size={18}
-											color={colors.grey200}
+											color={colors.icon.default}
 											style={{ transform: [{ rotate: '270deg' }] }}
 										/>
 									</TouchableOpacity>
@@ -683,6 +716,9 @@ class PaymentRequest extends PureComponent {
 
 	render() {
 		const { mode } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper}>
 				<KeyboardAwareScrollView
@@ -696,6 +732,8 @@ class PaymentRequest extends PureComponent {
 		);
 	}
 }
+
+PaymentRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,

@@ -11,6 +11,7 @@ import Text from '../../../Base/Text';
 import Title from '../components/Title';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useAssetFromTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	title: {
@@ -34,12 +35,20 @@ const styles = StyleSheet.create({
 });
 
 /* eslint-disable import/no-commonjs */
-const ApplePayMarkIcon = require('../../../../images/ApplePayMark.png');
-const WyreLogoIcon = require('../../../../images/WyreLogo.png');
+const ApplePayMarkLightIcon = require('../../../../images/ApplePayMark-light.png');
+const ApplePayMarkDarkIcon = require('../../../../images/ApplePayMark-dark.png');
+const WyreLogoLightIcon = require('../../../../images/WyreLogo-light.png');
+const WyreLogoDarkIcon = require('../../../../images/WyreLogo-dark.png');
 /* eslint-enable import/no-commonjs */
 
-const ApplePayMark = () => <Image source={ApplePayMarkIcon} style={styles.applePay} />;
-const WyreLogo = () => <Image source={WyreLogoIcon} style={styles.wyre} />;
+const ApplePayMark = () => {
+	const applePayMarkIcon = useAssetFromTheme(ApplePayMarkLightIcon, ApplePayMarkDarkIcon);
+	return <Image source={applePayMarkIcon} style={styles.applePay} />;
+};
+const WyreLogo = () => {
+	const wyreLogoIcon = useAssetFromTheme(WyreLogoLightIcon, WyreLogoDarkIcon);
+	return <Image source={wyreLogoIcon} style={styles.wyre} />;
+};
 
 const WyreApplePayPaymentMethod = ({ onPress }) => {
 	const navigation = useNavigation();
@@ -58,12 +67,13 @@ const WyreApplePayPaymentMethod = ({ onPress }) => {
 						<ApplePayMark />
 					</PaymentMethod.Title>
 					<Text bold>{strings('fiat_on_ramp.fast_plus_lower_fees')}</Text>
-					<Text>{strings('fiat_on_ramp.debit_card_required')}</Text>
+					<Text>{strings('fiat_on_ramp.cards_type_required')}</Text>
 					<TouchableOpacity onPress={showModal}>
 						<PaymentMethod.InfoIconLine>
 							<Text>
-								<Text small>{strings('fiat_on_ramp.wyre_countries')}</Text> <PaymentMethod.InfoIcon />
+								<Text small>{strings('fiat_on_ramp.wyre_countries')}</Text>
 							</Text>
+							<PaymentMethod.InfoIcon />
 						</PaymentMethod.InfoIconLine>
 					</TouchableOpacity>
 

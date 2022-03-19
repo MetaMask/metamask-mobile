@@ -3,18 +3,19 @@ import TestHelpers from '../helpers';
 
 import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
-import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
-import ImportWalletView from '../pages/Onboarding/ImportWalletView';
-import { Browser } from '../pages/Drawer/Browser';
-import TransactionConfirmationView from '../pages/TransactionConfirmView';
-
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
-import DrawerView from '../pages/Drawer/DrawerView';
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
-import WalletView from '../pages/WalletView';
-import NetworkView from '../pages/Drawer/Settings/NetworksView';
+import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
+import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ConnectModal from '../pages/modals/ConnectModal';
+
+import { Browser } from '../pages/Drawer/Browser';
+import DrawerView from '../pages/Drawer/DrawerView';
+import NetworkView from '../pages/Drawer/Settings/NetworksView';
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+
+import TransactionConfirmationView from '../pages/TransactionConfirmView';
+import WalletView from '../pages/WalletView';
 
 const SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just raven';
 const PASSWORD = `12345678`;
@@ -22,15 +23,15 @@ const PASSWORD = `12345678`;
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 const POLYGON_RPC_URL = 'https://polygon-rpc.com/';
 
-const binanceDeepLink = 'https://metamask.app.link/send/0xB8B4EE5B1b693971eB60bDa15211570df2dB228A@56?value=1e14';
+const BINANCE_DEEPLINK_URL = 'https://metamask.app.link/send/0xB8B4EE5B1b693971eB60bDa15211570df2dB228A@56?value=1e14';
 
-const polygonDeepLink =
+const POLYGON_DEEPLINK_URL =
 	'https://metamask.app.link/send/0x0000000000000000000000000000000000001010@137/transfer?address=0xC5b2b5ae370876c0122910F92a13bef85A133E56&uint256=3e18';
 
-const ethereumDeepLink = 'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@1?value=1e13';
-const rinkebyDeepLink = 'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@4?value=1e13';
+const ETHEREUM_DEEPLINK_URL = 'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@1?value=1e13';
+const RINKEBY_DEEPLINK_URL = 'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@4?value=1e13';
 
-const dAppDeepLink = 'https://metamask.app.link/dapp/app.uniswap.org';
+const DAPP_DEEPLINK_URL = 'https://metamask.app.link/dapp/app.uniswap.org';
 
 describe('Deep linking Tests', () => {
 	beforeEach(() => {
@@ -70,13 +71,12 @@ describe('Deep linking Tests', () => {
 			//
 		}
 	});
-
-	it('should attempt to deep link to the send flow with a custom network not added to wallet', async () => {
+	it('should deep link to the send flow with a custom network not added to wallet', async () => {
 		const networkNotFoundText = 'Network not found';
 		const networkErrorBodyMessage =
 			'Network with chain id 56 not found in your wallet. Please add the network first.';
 
-		await TestHelpers.openDeepLink(binanceDeepLink);
+		await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
 		await TestHelpers.delay(3000);
 		await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
 		await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
@@ -144,7 +144,7 @@ describe('Deep linking Tests', () => {
 	});
 
 	it('should deep link to the send flow on matic', async () => {
-		await TestHelpers.openDeepLink(polygonDeepLink);
+		await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL);
 
 		await TestHelpers.delay(4500);
 		await TransactionConfirmationView.isVisible();
@@ -153,14 +153,14 @@ describe('Deep linking Tests', () => {
 		await TransactionConfirmationView.tapCancelButton();
 	});
 	it('should deep link to the send flow on BSC', async () => {
-		await TestHelpers.openDeepLink(binanceDeepLink);
+		await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
 		await TestHelpers.delay(4500);
 		await TransactionConfirmationView.isVisible();
 		await TransactionConfirmationView.isNetworkNameVisible('Binance Smart Chain Mainnet');
 	});
 
 	it('should deep link to the send flow on Rinkeby and submit the transaction', async () => {
-		await TestHelpers.openDeepLink(rinkebyDeepLink);
+		await TestHelpers.openDeepLink(RINKEBY_DEEPLINK_URL);
 		await TestHelpers.delay(4500);
 		await TransactionConfirmationView.isVisible();
 		await TransactionConfirmationView.isNetworkNameVisible('Rinkeby Test Network');
@@ -172,7 +172,7 @@ describe('Deep linking Tests', () => {
 	});
 
 	it('should deep link to the send flow on mainnet', async () => {
-		await TestHelpers.openDeepLink(ethereumDeepLink);
+		await TestHelpers.openDeepLink(ETHEREUM_DEEPLINK_URL);
 		await TestHelpers.delay(4500);
 
 		await TransactionConfirmationView.isVisible();
@@ -180,7 +180,7 @@ describe('Deep linking Tests', () => {
 	});
 
 	it('should deep link to a dapp (Uniswap)', async () => {
-		await TestHelpers.openDeepLink(dAppDeepLink);
+		await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
 		await TestHelpers.delay(4500);
 
 		await ConnectModal.isVisible();

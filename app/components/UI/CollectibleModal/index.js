@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../CollectibleMedia';
-import { baseStyles, colors } from '../../../styles/common';
+import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
 
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 16,
 		marginTop: Device.hasNotch() ? 36 : 16,
 		borderRadius: 12,
-		backgroundColor: colors.transparent,
+		backgroundColor: importedColors.transparent,
 	},
 });
 

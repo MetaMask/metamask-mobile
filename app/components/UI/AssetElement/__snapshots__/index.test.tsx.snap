@@ -6,7 +6,7 @@ exports[`AssetElement should render correctly 1`] = `
   onPress={[Function]}
   style={
     Object {
-      "borderBottomColor": "#d6d9dc",
+      "borderBottomColor": "#D6D9DC",
       "borderBottomWidth": 0.5,
       "flex": 1,
       "flexDirection": "row",
@@ -25,7 +25,7 @@ exports[`AssetElement should render correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#AAAAAA"
+      color="#BBC0C5"
       name="ios-arrow-forward"
       size={24}
       style={
