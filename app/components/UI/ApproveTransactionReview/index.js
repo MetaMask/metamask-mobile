@@ -45,6 +45,8 @@ import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../QRHardware/QRSigningModal';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -299,6 +301,8 @@ class ApproveTransactionReview extends PureComponent {
 		 * Check if nickname is saved
 		 */
 		nicknameExists: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	state = {
@@ -792,6 +796,11 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
+	renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState } = this.props;
+		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
+
 	render = () => {
 		const { viewDetails, editPermissionVisible } = this.state;
 
@@ -802,6 +811,7 @@ class ApproveTransactionReview extends PureComponent {
 					: editPermissionVisible
 					? this.renderEditPermission()
 					: this.renderDetails()}
+				{this.renderQRSigningModal()}
 			</View>
 		);
 	};
@@ -830,4 +840,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 ApproveTransactionReview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(withQRHardwareAwareness(ApproveTransactionReview)));
