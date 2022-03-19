@@ -1,3 +1,5 @@
+import { AppThemeKey } from '../../util/theme/models';
+
 const initialState = {
 	loadingMsg: '',
 	loadingSet: false,
@@ -10,6 +12,7 @@ const initialState = {
 	userLoggedIn: false,
 	isAuthChecked: false,
 	initialScreen: '',
+	appTheme: AppThemeKey.os,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -95,6 +98,11 @@ const userReducer = (state = initialState, action) => {
 			return {
 				...state,
 				nftDetectionDismissed: true,
+			};
+		case 'SET_APP_THEME':
+			return {
+				...state,
+				appTheme: action.payload.theme,
 			};
 		default:
 			return state;

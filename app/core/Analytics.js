@@ -1,19 +1,22 @@
 'use strict';
 
 import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
-import { NativeModules } from 'react-native';
+import { Appearance, NativeModules } from 'react-native';
+import AUTHENTICATION_TYPE from '../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
-import Engine from './Engine';
+import { store } from '../store';
 const RCTAnalytics = NativeModules.Analytics;
 
 const USER_PROFILE_PROPERTY = {
 	ENABLE_OPENSEA_API: 'Enable OpenSea API',
 	NFT_AUTODETECTION: 'NFT Autodetection',
+	THEME: 'Theme',
 
 	ON: 'ON',
 	OFF: 'OFF',
+	AUTHENTICATION_TYPE: 'Authentication Type',
 };
 
 /**
@@ -52,15 +55,21 @@ class Analytics {
 	 * Set the user profile state for current user to mixpanel
 	 */
 	_setUserProfileProperties = () => {
-		const state = Engine.context.PreferencesController.internalState;
+		const reduxState = store.getState();
+		const preferencesController = reduxState?.engine?.backgroundState?.PreferencesController;
+		const appTheme = reduxState?.user?.appTheme;
+		// This will return either "light" or "dark"
+		const appThemeStyle = appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
+
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
-			state?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+			preferencesController?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
 		RCTAnalytics.setUserProfileProperty(
 			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
-			state?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+			preferencesController?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
 		);
+		RCTAnalytics.setUserProfileProperty(USER_PROFILE_PROPERTY.THEME, appThemeStyle);
 	};
 
 	/**
@@ -150,6 +159,45 @@ class Analytics {
 	 */
 	trackEvent = (event, anonymously = false) => {
 		this._trackEvent('trackEvent', { event });
+	};
+
+	/**
+	 * Apply User Property
+	 *
+	 * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
+	 */
+	applyUserProperty = (property) => {
+		switch (property) {
+			case AUTHENTICATION_TYPE.BIOMETRIC:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.BIOMETRIC
+				);
+				break;
+			case AUTHENTICATION_TYPE.PASSCODE:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.PASSCODE
+				);
+				break;
+			case AUTHENTICATION_TYPE.REMEMBER_ME:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.REMEMBER_ME
+				);
+				break;
+			case AUTHENTICATION_TYPE.PASSWORD:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.PASSWORD
+				);
+				break;
+			default:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.UNKOWN
+				);
+		}
 	};
 
 	/**
@@ -254,6 +302,9 @@ export default {
 	},
 	trackEvent(event, anonymously) {
 		return instance && instance.trackEvent(event, anonymously);
+	},
+	applyUserProperty(property) {
+		return instance && instance.applyUserProperty(property);
 	},
 	trackEventWithParameters(event, parameters, anonymously) {
 		return instance && instance.trackEventWithParameters(event, parameters, anonymously);

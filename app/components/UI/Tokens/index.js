@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import TokenImage from '../TokenImage';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import ActionSheet from 'react-native-actionsheet';
 import { renderFromTokenMinimalUnit, balanceToFiat } from '../../../util/number';
@@ -17,71 +17,73 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		minHeight: 500,
-	},
-	emptyView: {
-		backgroundColor: colors.white,
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginTop: 50,
-	},
-	text: {
-		fontSize: 20,
-		color: colors.fontTertiary,
-		...fontStyles.normal,
-	},
-	add: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	addText: {
-		fontSize: 14,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30,
-		alignItems: 'center',
-		marginTop: 24,
-	},
-	balances: {
-		flex: 1,
-		justifyContent: 'center',
-	},
-	balance: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-		textTransform: 'uppercase',
-	},
-	balanceFiat: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.normal,
-		textTransform: 'uppercase',
-	},
-	balanceFiatTokenError: {
-		textTransform: 'capitalize',
-	},
-	ethLogo: {
-		width: 50,
-		height: 50,
-		overflow: 'hidden',
-		marginRight: 20,
-	},
-	emptyText: {
-		color: colors.greyAssetVisibility,
-		marginBottom: 8,
-		fontSize: 14,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			minHeight: 500,
+		},
+		emptyView: {
+			backgroundColor: colors.background.default,
+			justifyContent: 'center',
+			alignItems: 'center',
+			marginTop: 50,
+		},
+		text: {
+			fontSize: 20,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		add: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		addText: {
+			fontSize: 14,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		footer: {
+			flex: 1,
+			paddingBottom: 30,
+			alignItems: 'center',
+			marginTop: 24,
+		},
+		balances: {
+			flex: 1,
+			justifyContent: 'center',
+		},
+		balance: {
+			fontSize: 16,
+			color: colors.text.default,
+			...fontStyles.normal,
+			textTransform: 'uppercase',
+		},
+		balanceFiat: {
+			fontSize: 12,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+			textTransform: 'uppercase',
+		},
+		balanceFiatTokenError: {
+			textTransform: 'capitalize',
+		},
+		ethLogo: {
+			width: 50,
+			height: 50,
+			overflow: 'hidden',
+			marginRight: 20,
+		},
+		emptyText: {
+			color: colors.text.alternative,
+			marginBottom: 8,
+			fontSize: 14,
+		},
+	});
 
 /**
  * View that renders a list of ERC-20 Tokens
@@ -139,33 +141,46 @@ class Tokens extends PureComponent {
 		isAddTokenEnabled: true,
 	};
 
-	renderEmpty = () => (
-		<View style={styles.emptyView}>
-			<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
-		</View>
-	);
+	renderEmpty = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.emptyView}>
+				<Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
+			</View>
+		);
+	};
 
 	onItemPress = (token) => {
 		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
 	};
 
-	renderFooter = () => (
-		<View style={styles.footer} key={'tokens-footer'}>
-			<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
-			<TouchableOpacity
-				style={styles.add}
-				onPress={this.goToAddToken}
-				disabled={!this.state.isAddTokenEnabled}
-				testID={'add-token-button'}
-			>
-				<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
-			</TouchableOpacity>
-		</View>
-	);
+	renderFooter = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.footer} key={'tokens-footer'}>
+				<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
+				<TouchableOpacity
+					style={styles.add}
+					onPress={this.goToAddToken}
+					disabled={!this.state.isAddTokenEnabled}
+					testID={'add-token-button'}
+				>
+					<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	};
 
 	renderItem = (asset) => {
 		const { conversionRate, currentCurrency, tokenBalances, tokenExchangeRates, primaryCurrency, tokenList } =
 			this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		const itemAddress = safeToChecksumAddress(asset.address);
 		const logo = tokenList?.[itemAddress?.toLowerCase?.()]?.iconUrl;
 		const exchangeRate = itemAddress in tokenExchangeRates ? tokenExchangeRates[itemAddress] : undefined;
@@ -280,6 +295,10 @@ class Tokens extends PureComponent {
 
 	render = () => {
 		const { tokens } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.wrapper} testID={'tokens'}>
 				{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
@@ -290,6 +309,7 @@ class Tokens extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
 				/>
 			</View>
 		);
@@ -305,5 +325,7 @@ const mapStateToProps = (state) => ({
 	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
 	tokenList: getTokenList(state),
 });
+
+Tokens.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(Tokens);

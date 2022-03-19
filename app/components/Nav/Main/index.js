@@ -17,7 +17,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import PushNotification from 'react-native-push-notification';
 import I18n from '../../../../locales/i18n';
-import { colors } from '../../../styles/common';
 import LockManager from '../../../core/LockManager';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
@@ -41,27 +40,33 @@ import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '.
 
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
+import { colors as importedColors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 
-const styles = StyleSheet.create({
-	flex: {
-		flex: 1,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		flex: {
+			flex: 1,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+	});
+
 const Main = (props) => {
 	const [connected, setConnected] = useState(true);
 	const [forceReload, setForceReload] = useState(false);
 	const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);
@@ -257,7 +262,6 @@ const Main = (props) => {
 					onCancel={skipAccountModalSecureNow}
 					onConfirm={skipAccountModalSkip}
 					skipCheckbox={skipCheckbox}
-					onPress={skipAccountModalSkip}
 					toggleSkipCheckbox={toggleSkipCheckbox}
 				/>
 				<ProtectYourWalletModal navigation={props.navigation} />
@@ -339,7 +343,7 @@ const MainFlow = () => (
 	<Stack.Navigator
 		initialRouteName={'Main'}
 		mode={'modal'}
-		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: importedColors.transparent } }}
 	>
 		<Stack.Screen name={'Main'} component={ConnectedMain} />
 		<Stack.Screen name={'ReviewModal'} component={ReviewModal} options={{ animationEnabled: false }} />

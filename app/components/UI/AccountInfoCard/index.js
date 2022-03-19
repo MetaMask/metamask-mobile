@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
@@ -9,50 +9,52 @@ import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
 import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	accountInformation: {
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-	},
-	identicon: {
-		marginRight: 8,
-	},
-	accountInfoRow: {
-		flexGrow: 1,
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-	},
-	accountNameAndAddress: {
-		width: '100%',
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-	},
-	accountName: {
-		maxWidth: Device.isMediumDevice() ? '35%' : '45%',
-		...fontStyles.bold,
-		fontSize: 16,
-		marginRight: 2,
-		color: colors.black,
-	},
-	accountAddress: {
-		flexGrow: 1,
-		...fontStyles.bold,
-		fontSize: 16,
-		color: colors.black,
-	},
-	balanceText: {
-		...fontStyles.thin,
-		fontSize: 14,
-		alignSelf: 'flex-start',
-		color: colors.black,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		accountInformation: {
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: 16,
+		},
+		identicon: {
+			marginRight: 8,
+		},
+		accountInfoRow: {
+			flexGrow: 1,
+			flexDirection: 'column',
+			justifyContent: 'center',
+			alignItems: 'flex-start',
+		},
+		accountNameAndAddress: {
+			width: '100%',
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+		},
+		accountName: {
+			maxWidth: Device.isMediumDevice() ? '35%' : '45%',
+			...fontStyles.bold,
+			fontSize: 16,
+			marginRight: 2,
+			color: colors.text.default,
+		},
+		accountAddress: {
+			flexGrow: 1,
+			...fontStyles.bold,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		balanceText: {
+			...fontStyles.thin,
+			fontSize: 14,
+			alignSelf: 'flex-start',
+			color: colors.text.default,
+		},
+	});
 
 class AccountInfoCard extends PureComponent {
 	static propTypes = {
@@ -89,6 +91,9 @@ class AccountInfoCard extends PureComponent {
 	render() {
 		const { accounts, selectedAddress, identities, conversionRate, currentCurrency, operation, ticker } =
 			this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		const weiBalance = hexToBN(accounts[selectedAddress].balance);
 		const balance = `(${renderFromWei(weiBalance)} ${getTicker(ticker)})`;
 		const accountLabel = renderAccountName(selectedAddress, identities);
@@ -125,5 +130,7 @@ const mapStateToProps = (state) => ({
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
+
+AccountInfoCard.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(AccountInfoCard);

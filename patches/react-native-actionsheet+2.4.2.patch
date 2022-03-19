@@ -1,0 +1,223 @@
+diff --git a/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js b/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
+index 7446a82..71a0fca 100644
+--- a/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
++++ b/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
+@@ -1,7 +1,7 @@
+ import React from 'react'
+-import { Text, View, Dimensions, Modal, TouchableHighlight, Animated, ScrollView, Easing } from 'react-native'
++import { Text, View, Dimensions, Modal, TouchableOpacity, Animated, ScrollView, Easing } from 'react-native'
+ import * as utils from './utils'
+-import styles2 from './styles'
++import getStyles from './styles'
+ 
+ const WARN_COLOR = '#FF3B30'
+ const MAX_HEIGHT = Dimensions.get('window').height * 0.7
+@@ -9,10 +9,10 @@ const MAX_HEIGHT = Dimensions.get('window').height * 0.7
+ class ActionSheet extends React.Component {
+   static defaultProps = {
+     tintColor: '#007AFF',
+-    buttonUnderlayColor: '#F4F4F4',
+     onPress: () => {},
+     styles: {},
+-    useNativeDriver: true
++    useNativeDriver: true,
++    theme: 'light'
+   }
+ 
+   constructor (props) {
+@@ -30,8 +30,9 @@ class ActionSheet extends React.Component {
+   }
+ 
+   get styles () {
+-    const { styles } = this.props
++    const { styles, theme } = this.props
+     const obj = {}
++    const styles2 = getStyles(theme)
+     Object.keys(styles2).forEach((key) => {
+       const arr = [styles2[key]]
+       if (styles[key]) {
+@@ -87,7 +88,7 @@ class ActionSheet extends React.Component {
+    * box size: height, marginTop, marginBottom
+    */
+   _calculateHeight (props) {
+-    const styles = this.styles
++    const styles = this.styles;
+ 
+     const getHeight = (name) => {
+       const style = styles[name][styles[name].length - 1]
+@@ -154,21 +155,20 @@ class ActionSheet extends React.Component {
+ 
+   _createButton (title, index) {
+     const styles = this.styles
+-    const { buttonUnderlayColor, cancelButtonIndex, destructiveButtonIndex, tintColor } = this.props
++    const { cancelButtonIndex, destructiveButtonIndex, tintColor } = this.props
+     const fontColor = destructiveButtonIndex === index ? WARN_COLOR : tintColor
+     const buttonBoxStyle = cancelButtonIndex === index ? styles.cancelButtonBox : styles.buttonBox
+     return (
+-      <TouchableHighlight
++      <TouchableOpacity
+         key={index}
+-        activeOpacity={1}
+-        underlayColor={buttonUnderlayColor}
++        activeOpacity={0.5}
+         style={buttonBoxStyle}
+         onPress={() => this.hide(index)}
+       >
+         {React.isValidElement(title) ? title : (
+           <Text style={[styles.buttonText, {color: fontColor}]}>{title}</Text>
+         )}
+-      </TouchableHighlight>
++      </TouchableOpacity>
+     )
+   }
+ 
+diff --git a/node_modules/react-native-actionsheet/lib/options.js b/node_modules/react-native-actionsheet/lib/options.js
+index 7f7d230..1e01339 100644
+--- a/node_modules/react-native-actionsheet/lib/options.js
++++ b/node_modules/react-native-actionsheet/lib/options.js
+@@ -48,5 +48,11 @@ export default [
+    * @example
+    *   (buttonIndex) => if (buttonIndex === 1) { // do something }
+    */
+-  'onPress'
++  'onPress',
++
++  /**
++	 * App theme - 'light' | 'dark'
++	 * @type string
++	 */
++	'theme',
+ ]
+diff --git a/node_modules/react-native-actionsheet/lib/styles.js b/node_modules/react-native-actionsheet/lib/styles.js
+index 52ae1b2..e0a18bf 100644
+--- a/node_modules/react-native-actionsheet/lib/styles.js
++++ b/node_modules/react-native-actionsheet/lib/styles.js
+@@ -1,62 +1,70 @@
+ import { StyleSheet } from 'react-native'
+ export const hairlineWidth = StyleSheet.hairlineWidth
+-export default {
+-  overlay: {
+-    position: 'absolute',
+-    top: 0,
+-    right: 0,
+-    bottom: 0,
+-    left: 0,
+-    opacity: 0.4,
+-    backgroundColor: '#000'
+-  },
+-  wrapper: {
+-    flex: 1,
+-    flexDirection: 'row'
+-  },
+-  body: {
+-    flex: 1,
+-    alignSelf: 'flex-end',
+-    backgroundColor: '#e5e5e5'
+-  },
+-  titleBox: {
+-    height: 40,
+-    alignItems: 'center',
+-    justifyContent: 'center',
+-    backgroundColor: '#fff'
+-  },
+-  titleText: {
+-    color: '#757575',
+-    fontSize: 14
+-  },
+-  messageBox: {
+-    height: 30,
+-    paddingLeft: 10,
+-    paddingRight: 10,
+-    paddingBottom: 10,
+-    alignItems: 'center',
+-    justifyContent: 'center',
+-    backgroundColor: '#fff'
+-  },
+-  messageText: {
+-    color: '#9a9a9a',
+-    fontSize: 12
+-  },
+-  buttonBox: {
+-    height: 50,
+-    marginTop: hairlineWidth,
+-    alignItems: 'center',
+-    justifyContent: 'center',
+-    backgroundColor: '#fff'
+-  },
+-  buttonText: {
+-    fontSize: 18
+-  },
+-  cancelButtonBox: {
+-    height: 50,
+-    marginTop: 6,
+-    alignItems: 'center',
+-    justifyContent: 'center',
+-    backgroundColor: '#fff'
++export default function(theme) {
++  const isDarkMode = theme === 'dark';
++  const backgroundDefault = isDarkMode ? '#141618' : '#ffffff';
++  const backgroundAlternative = isDarkMode ? '#24272A' : '#F2F4F6';
++  const textDefault = isDarkMode ? '#ffffff' : '#24272A';
++  const textAlternative = isDarkMode ? '#FAFBFC' : '#535A61';
++  const overlay = isDarkMode ? '#FFFFFF66' : '#00000099';
++  return {
++    overlay: {
++      position: 'absolute',
++      top: 0,
++      right: 0,
++      bottom: 0,
++      left: 0,
++      opacity: 0.7,
++      backgroundColor: overlay
++    },
++    wrapper: {
++      flex: 1,
++      flexDirection: 'row'
++    },
++    body: {
++      flex: 1,
++      alignSelf: 'flex-end',
++      backgroundColor: backgroundAlternative
++    },
++    titleBox: {
++      height: 40,
++      alignItems: 'center',
++      justifyContent: 'center',
++      backgroundColor: backgroundDefault
++    },
++    titleText: {
++      color: textDefault,
++      fontSize: 14
++    },
++    messageBox: {
++      height: 30,
++      paddingLeft: 10,
++      paddingRight: 10,
++      paddingBottom: 10,
++      alignItems: 'center',
++      justifyContent: 'center',
++      backgroundColor: backgroundDefault
++    },
++    messageText: {
++      color: textAlternative,
++      fontSize: 12
++    },
++    buttonBox: {
++      height: 50,
++      marginTop: hairlineWidth,
++      alignItems: 'center',
++      justifyContent: 'center',
++      backgroundColor: backgroundDefault
++    },
++    buttonText: {
++      fontSize: 18
++    },
++    cancelButtonBox: {
++      height: 50,
++      marginTop: 6,
++      alignItems: 'center',
++      justifyContent: 'center',
++      backgroundColor: backgroundDefault
++    }
+   }
+ }

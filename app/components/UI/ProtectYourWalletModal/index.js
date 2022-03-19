@@ -2,63 +2,66 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, Image, TouchableOpacity, InteractionManager } from 'react-native';
 import ActionModal from '../ActionModal';
-import { fontStyles, colors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const protectWalletImage = require('../../../images/protect-wallet.jpg'); // eslint-disable-line
+const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
-const styles = StyleSheet.create({
-	wrapper: {
-		marginTop: 24,
-		marginHorizontal: 24,
-		flex: 1,
-	},
-	title: {
-		...fontStyles.bold,
-		color: colors.black,
-		textAlign: 'center',
-		fontSize: 20,
-		flex: 1,
-	},
-	imageWrapper: { flexDirection: 'column', alignItems: 'center', marginBottom: 12, marginTop: 30 },
-	image: {
-		width: scaling.scale(135, { baseModel: 1 }),
-		height: scaling.scale(160, { baseModel: 1 }),
-	},
-	text: {
-		...fontStyles.normal,
-		color: colors.black,
-		textAlign: 'center',
-		fontSize: 14,
-		marginBottom: 24,
-	},
-	closeIcon: {
-		padding: 5,
-	},
-	learnMoreText: {
-		textAlign: 'center',
-		...fontStyles.normal,
-		color: colors.blue,
-		marginBottom: 14,
-		fontSize: 14,
-	},
-	modalXIcon: {
-		fontSize: 16,
-	},
-	titleWrapper: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	auxCenter: {
-		width: 26,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			marginTop: 24,
+			marginHorizontal: 24,
+			flex: 1,
+		},
+		title: {
+			...fontStyles.bold,
+			color: colors.text.default,
+			textAlign: 'center',
+			fontSize: 20,
+			flex: 1,
+		},
+		imageWrapper: { flexDirection: 'column', alignItems: 'center', marginBottom: 12, marginTop: 30 },
+		image: {
+			width: scaling.scale(135, { baseModel: 1 }),
+			height: scaling.scale(160, { baseModel: 1 }),
+		},
+		text: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			textAlign: 'center',
+			fontSize: 14,
+			marginBottom: 24,
+		},
+		closeIcon: {
+			padding: 5,
+		},
+		learnMoreText: {
+			textAlign: 'center',
+			...fontStyles.normal,
+			color: colors.primary.default,
+			marginBottom: 14,
+			fontSize: 14,
+		},
+		modalXIcon: {
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		titleWrapper: {
+			flexDirection: 'row',
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		auxCenter: {
+			width: 26,
+		},
+	});
 
 /**
  * View that renders an action modal
@@ -116,6 +119,9 @@ class ProtectYourWalletModal extends PureComponent {
 	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<ActionModal
 				modalVisible={this.props.protectWalletModalVisible}
@@ -166,5 +172,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	protectWalletModalNotVisible: (enable) => dispatch(protectWalletModalNotVisible()),
 });
+
+ProtectYourWalletModal.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProtectYourWalletModal);

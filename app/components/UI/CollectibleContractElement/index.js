@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { colors as importedColors, fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
@@ -12,57 +12,60 @@ import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
-const styles = StyleSheet.create({
-	itemWrapper: {
-		paddingHorizontal: 15,
-		paddingBottom: 16,
-	},
-	collectibleContractIcon: { width: 30, height: 30 },
-	collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
-	titleContainer: {
-		flex: 1,
-		flexDirection: 'row',
-	},
-	verticalAlignedContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	titleText: {
-		fontSize: 18,
-		color: colors.black,
-		...fontStyles.normal,
-	},
-	collectibleIcon: {
-		width: COLLECTIBLE_WIDTH,
-		height: COLLECTIBLE_WIDTH,
-	},
-	collectibleInTheMiddle: {
-		marginHorizontal: 8,
-	},
-	collectiblesRowContainer: {
-		flex: 1,
-		flexDirection: 'row',
-		marginTop: 15,
-	},
-	collectibleBox: {
-		flex: 1,
-		flexDirection: 'row',
-	},
-	favoritesLogoWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: colors.yellow,
-		width: 32,
-		height: 32,
-		borderRadius: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		itemWrapper: {
+			paddingHorizontal: 15,
+			paddingBottom: 16,
+		},
+		collectibleContractIcon: { width: 30, height: 30 },
+		collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
+		titleContainer: {
+			flex: 1,
+			flexDirection: 'row',
+		},
+		verticalAlignedContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		titleText: {
+			fontSize: 18,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		collectibleIcon: {
+			width: COLLECTIBLE_WIDTH,
+			height: COLLECTIBLE_WIDTH,
+		},
+		collectibleInTheMiddle: {
+			marginHorizontal: 8,
+		},
+		collectiblesRowContainer: {
+			flex: 1,
+			flexDirection: 'row',
+			marginTop: 15,
+		},
+		collectibleBox: {
+			flex: 1,
+			flexDirection: 'row',
+		},
+		favoritesLogoWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			justifyContent: 'center',
+			alignItems: 'center',
+			// This yellow doesn't change colors between themes
+			backgroundColor: importedColors.yellow,
+			width: 32,
+			height: 32,
+			borderRadius: 16,
+		},
+	});
 
 const splitIntoSubArrays = (array, count) => {
 	const newArray = [];
@@ -88,6 +91,8 @@ function CollectibleContractElement({
 	const [collectiblesVisible, setCollectiblesVisible] = useState(propsCollectiblesVisible);
 	const actionSheetRef = useRef();
 	const longPressedCollectible = useRef(null);
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const toggleCollectibles = useCallback(() => {
 		setCollectiblesVisible(!collectiblesVisible);
@@ -149,7 +154,7 @@ function CollectibleContractElement({
 				</View>
 			);
 		},
-		[asset.favorites, collectibleContracts, onPressCollectible, onLongPressCollectible]
+		[asset.favorites, collectibleContracts, onPressCollectible, onLongPressCollectible, styles]
 	);
 
 	useEffect(() => {
@@ -164,7 +169,7 @@ function CollectibleContractElement({
 					<Icon
 						name={`ios-arrow-${collectiblesVisible ? 'down' : 'forward'}`}
 						size={12}
-						color={colors.black}
+						color={colors.text.default}
 						style={styles.arrowIcon}
 					/>
 				</View>
@@ -181,7 +186,7 @@ function CollectibleContractElement({
 						/>
 					) : (
 						<View style={styles.favoritesLogoWrapper}>
-							<AntIcons color={colors.white} name={'star'} size={24} />
+							<AntIcons color={importedColors.white} name={'star'} size={24} />
 						</View>
 					)}
 				</View>
@@ -208,6 +213,7 @@ function CollectibleContractElement({
 				destructiveButtonIndex={1}
 				// eslint-disable-next-line react/jsx-no-bind
 				onPress={handleMenuAction}
+				theme={themeAppearance}
 			/>
 		</View>
 	);

@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Platform, SafeAreaView, StyleSheet, TextInput, View, Text, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
@@ -14,75 +14,80 @@ import { isENS, renderShortAddress } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		flexDirection: 'column',
-	},
-	scrollWrapper: {
-		flex: 1,
-		paddingVertical: 12,
-	},
-	input: {
-		...fontStyles.normal,
-		flex: 1,
-		fontSize: 12,
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		padding: 10,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	resolvedInput: {
-		...fontStyles.normal,
-		fontSize: 10,
-	},
-	informationWrapper: {
-		flex: 1,
-		paddingHorizontal: 24,
-	},
-	label: {
-		fontSize: 14,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	buttonsWrapper: {
-		marginVertical: 12,
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-	scanIcon: {
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	iconWrapper: {
-		alignItems: 'flex-end',
-	},
-	textInput: {
-		...fontStyles.normal,
-		padding: 0,
-		color: colors.black,
-	},
-	inputWrapper: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	textInputDisaled: {
-		borderColor: colors.transparent,
-	},
-	actionButton: {
-		marginVertical: 4,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			flexDirection: 'column',
+		},
+		scrollWrapper: {
+			flex: 1,
+			paddingVertical: 12,
+		},
+		input: {
+			...fontStyles.normal,
+			flex: 1,
+			fontSize: 12,
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			padding: 10,
+			flexDirection: 'row',
+			alignItems: 'center',
+			color: colors.text.default,
+		},
+		resolvedInput: {
+			...fontStyles.normal,
+			fontSize: 10,
+			color: colors.text.default,
+		},
+		informationWrapper: {
+			flex: 1,
+			paddingHorizontal: 24,
+		},
+		label: {
+			fontSize: 14,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		buttonsWrapper: {
+			marginVertical: 12,
+			flexDirection: 'row',
+			alignSelf: 'flex-end',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+		scanIcon: {
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		iconWrapper: {
+			alignItems: 'flex-end',
+		},
+		textInput: {
+			...fontStyles.normal,
+			padding: 0,
+			paddingRight: 8,
+			color: colors.text.default,
+		},
+		inputWrapper: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		textInputDisaled: {
+			borderColor: colors.transparent,
+		},
+		actionButton: {
+			marginVertical: 4,
+		},
+	});
 
 const ADD = 'add';
 const EDIT = 'edit';
@@ -91,9 +96,6 @@ const EDIT = 'edit';
  * View that contains app information
  */
 class ContactForm extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getEditableOptions(strings(`address_book.${route.params?.mode ?? ADD}_contact_title`), navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -133,9 +135,23 @@ class ContactForm extends PureComponent {
 	addressInput = React.createRef();
 	memoInput = React.createRef();
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getEditableOptions(
+				strings(`address_book.${route.params?.mode ?? ADD}_contact_title`),
+				navigation,
+				route,
+				colors
+			)
+		);
+	};
+
 	componentDidMount = () => {
 		const { mode } = this.state;
 		const { navigation } = this.props;
+		this.updateNavBar();
 		// Workaround https://github.com/facebook/react-native/issues/9958
 		this.state.inputWidth &&
 			setTimeout(() => {
@@ -149,6 +165,10 @@ class ContactForm extends PureComponent {
 			this.setState({ address, name: contact.name, memo: contact.memo, addressReady: true, editable: false });
 			navigation && navigation.setParams({ dispatch: this.onEdit, mode: EDIT });
 		}
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	onEdit = () => {
@@ -254,6 +274,10 @@ class ContactForm extends PureComponent {
 
 	render = () => {
 		const { address, addressError, toEnsName, name, mode, addressReady, memo, editable, inputWidth } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'add-contact-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -265,7 +289,7 @@ class ContactForm extends PureComponent {
 							autoCorrect={false}
 							onChangeText={this.onChangeName}
 							placeholder={strings('address_book.nickname')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							spellCheck={false}
 							numberOfLines={1}
 							style={[
@@ -276,6 +300,7 @@ class ContactForm extends PureComponent {
 							value={name}
 							onSubmitEditing={this.jumpToAddressInput}
 							testID={'contact-name-input'}
+							keyboardAppearance={themeAppearance}
 						/>
 
 						<Text style={styles.label}>{strings('address_book.address')}</Text>
@@ -287,7 +312,7 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeAddress}
 									placeholder={strings('address_book.add_input_placeholder')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.text.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
@@ -295,13 +320,19 @@ class ContactForm extends PureComponent {
 									ref={this.addressInput}
 									onSubmitEditing={this.jumpToMemoInput}
 									testID={'contact-address-input'}
+									keyboardAppearance={themeAppearance}
 								/>
 								{toEnsName && <Text style={styles.resolvedInput}>{renderShortAddress(address)}</Text>}
 							</View>
 
 							{editable && (
 								<TouchableOpacity onPress={this.onScan} style={styles.iconWrapper}>
-									<AntIcon name="scan1" size={20} color={colors.grey500} style={styles.scanIcon} />
+									<AntIcon
+										name="scan1"
+										size={20}
+										color={colors.icon.default}
+										style={styles.scanIcon}
+									/>
 								</TouchableOpacity>
 							)}
 						</View>
@@ -316,13 +347,14 @@ class ContactForm extends PureComponent {
 									autoCorrect={false}
 									onChangeText={this.onChangeMemo}
 									placeholder={strings('address_book.memo')}
-									placeholderTextColor={colors.grey100}
+									placeholderTextColor={colors.text.muted}
 									spellCheck={false}
 									numberOfLines={1}
 									style={[styles.textInput, inputWidth ? { width: inputWidth } : {}]}
 									value={memo}
 									ref={this.memoInput}
 									testID={'contact-memo-input'}
+									keyboardAppearance={themeAppearance}
 								/>
 							</View>
 						</View>
@@ -366,12 +398,15 @@ class ContactForm extends PureComponent {
 						destructiveButtonIndex={0}
 						// eslint-disable-next-line react/jsx-no-bind
 						onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+						theme={themeAppearance}
 					/>
 				</KeyboardAwareScrollView>
 			</SafeAreaView>
 		);
 	};
 }
+
+ContactForm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,

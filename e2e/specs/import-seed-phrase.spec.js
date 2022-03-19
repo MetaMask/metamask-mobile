@@ -6,15 +6,15 @@ import OnboardingView from '../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../pages/Onboarding/OnboardingCarouselView';
 import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
-import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+//import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+//import RevealSecretRecoveryPhrase from '../pages/Drawer/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 
 import MetaMetricsOptIn from '../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../pages/WalletView';
 import LoginView from '../pages/LoginView';
 
-import DrawerView from '../pages/Drawer/DrawerView';
-import SettingsView from '../pages/Drawer/Settings/SettingsView';
+//import DrawerView from '../pages/Drawer/DrawerView';
+//import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 
@@ -79,27 +79,27 @@ describe('Import seedphrase flow', () => {
 		}
 	});
 
-	it('should validate secret recovery phrase in settings', async () => {
-		await WalletView.tapDrawerButton();
+	// it('should validate secret recovery phrase in settings', async () => {
+	// 	await WalletView.tapDrawerButton();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSettings();
+	// 	await DrawerView.isVisible();
+	// 	await DrawerView.tapSettings();
 
-		await SettingsView.tapSecurityAndPrivacy();
+	// 	await SettingsView.tapSecurityAndPrivacy();
 
-		await SecurityAndPrivacy.tapRevealSecretRecoveryPhrase();
-		await RevealSecretRecoveryPhrase.isVisible();
-		await RevealSecretRecoveryPhrase.enterPassword(SHORT_PASSWORD);
-		// Ensure error is displayed
-		await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
-		await RevealSecretRecoveryPhrase.enterPassword(CORRECT_PASSWORD);
+	// 	await SecurityAndPrivacy.tapRevealSecretRecoveryPhrase();
+	// 	await RevealSecretRecoveryPhrase.isVisible();
+	// 	await RevealSecretRecoveryPhrase.enterPassword(SHORT_PASSWORD);
+	// 	// Ensure error is displayed
+	// 	await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
+	// 	await RevealSecretRecoveryPhrase.enterPassword(CORRECT_PASSWORD);
 
-		await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
-		// Seed phrase should now be revealed
-		await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTouchableBoxVisible();
-		// Check that the seed phrase displayed matches what we inputted in the beginning
-		await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTextCorrect(CORRECT_SECRET_RECOVERY_PHRASE);
-	});
+	// 	await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
+	// 	// Seed phrase should now be revealed
+	// 	await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTouchableBoxVisible();
+	// 	// Check that the seed phrase displayed matches what we inputted in the beginning
+	// 	await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTextCorrect(CORRECT_SECRET_RECOVERY_PHRASE);
+	// });
 
 	it('should be able to log in', async () => {
 		// Relaunch app
