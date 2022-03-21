@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { toggleAccountsModal } from '../../../../actions/modals';
 import EthereumAddress from '../../EthereumAddress';
 import Identicon from '../../Identicon';
 import Text from '../../../Base/Text';
@@ -27,19 +26,19 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 	},
 });
-const Account = ({ toggleAccountsModal, selectedAddress, identities }) => (
+const Account = ({ selectedAddress, identities }) => (
 	<TouchableOpacity style={styles.selector}>
 		<View style={styles.container}>
 			<Identicon diameter={15} address={selectedAddress} />
 			<Text style={styles.accountText} primary centered numberOfLines={1}>
-				{identities[selectedAddress]?.name} (<EthereumAddress address={selectedAddress} type={'short'} />)
+				{identities[selectedAddress]?.name} (
+				<EthereumAddress address={selectedAddress} type={'short'} />)
 			</Text>
 		</View>
 	</TouchableOpacity>
 );
 
 Account.propTypes = {
-	toggleAccountsModal: PropTypes.func.isRequired,
 	selectedAddress: PropTypes.string.isRequired,
 	identities: PropTypes.object.isRequired,
 };
@@ -49,7 +48,4 @@ const mapStateToProps = (state) => ({
 	identities: state.engine.backgroundState.PreferencesController.identities,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
-});
-export default connect(mapStateToProps, mapDispatchToProps)(Account);
+export default connect(mapStateToProps)(Account);

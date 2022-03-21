@@ -4,21 +4,15 @@ import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../../StyledButton';
 import { useNavigation } from '@react-navigation/native';
 import TransactionDetail, { TransactionStage } from '../components/TransactionDetails';
-import AccountSelector from '../components/AccountSelector';
-import PropTypes from 'prop-types';
+
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
+
 const styles = StyleSheet.create({
 	screenLayout: {
 		paddingTop: 0,
 	},
 });
-
-AccountSelector.propTypes = {
-	toggleAccountsModal: PropTypes.func.isRequired,
-	selectedAddress: PropTypes.string.isRequired,
-	identities: PropTypes.object.isRequired,
-};
 
 const TransactionDetails = () => {
 	const navigation = useNavigation();
