@@ -47,7 +47,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
-import santizeUrl from '../../../util/santizeUrl';
+import sanitizeUrl from '../../../util/sanitizeUrl';
 import { onboardNetworkAction, networkSwitched } from '../../../actions/onboardNetwork';
 
 const createStyles = (colors) =>
@@ -410,10 +410,7 @@ class DrawerView extends PureComponent {
 		/**
 		 * returns switched network state
 		 */
-		switchedNetwork: {
-			networkUrl: PropTypes.string,
-			networkStatus: PropTypes.bool,
-		},
+		switchedNetwork: PropTypes.object,
 		/**
 		 * updates when network is switched
 		 */
@@ -421,7 +418,7 @@ class DrawerView extends PureComponent {
 		/**
 		 *
 		 */
-		networkOnboardedState: [PropTypes.string, PropTypes.bool],
+		networkOnboardedState: PropTypes.array,
 	};
 
 	state = {
@@ -567,7 +564,7 @@ class DrawerView extends PureComponent {
 		} = this.props;
 		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
 		!showNetworkOnboarding && this.toggleNetworksModal();
-		onboardNetworkAction(santizeUrl(networkUrl) || this.state.networkUrl || santizeUrl(switchedNetworkUrl));
+		onboardNetworkAction(sanitizeUrl(networkUrl) || sanitizeUrl(switchedNetworkUrl) || this.state.networkUrl);
 		networkSwitched({ networkUrl: '', networkStatus: false });
 		if (!manualClose) {
 			await this.hideDrawer();
@@ -1011,6 +1008,7 @@ class DrawerView extends PureComponent {
 			networkOnboardedState,
 			switchedNetwork,
 			networkModalVisible,
+			navigation,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -1040,7 +1038,7 @@ class DrawerView extends PureComponent {
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
 		const accountName = isDefaultAccountName(name) && ens ? ens : name;
 		const checkIfCustomNetworkExists = networkOnboardedState.filter(
-			(item) => item.network === santizeUrl(switchedNetwork.networkUrl)
+			(item) => item.network === sanitizeUrl(switchedNetwork.networkUrl)
 		);
 
 		return (
@@ -1207,6 +1205,7 @@ class DrawerView extends PureComponent {
 							onClose={this.onInfoNetworksModalClose}
 							type={networkType || networkOnboarding.networkType}
 							ticker={ticker}
+							navigation={navigation}
 						/>
 					) : (
 						<NetworkList

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { colors } from '../../styles/common';
 
@@ -10,8 +10,6 @@ const style = StyleSheet.create({
 	},
 });
 
-function LineDivide(): JSX.Element {
-	return <View style={style.divide} />;
-}
+const LineDivide = () => <View style={style.divide} />;
 
-export default LineDivide;
+export default memo(LineDivide);

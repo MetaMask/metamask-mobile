@@ -5,7 +5,7 @@ import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
-import { PRIVATENETWORK, MAINNET, RPC } from '../../../constants/network';
+import { MAINNET, RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
 
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 5,
 	},
 	unknownWrapper: {
-		backgroundColor: colors.grey300,
+		backgroundColor: colors.black,
 		marginRight: 6,
 		height: 20,
 		width: 20,
@@ -89,27 +89,33 @@ interface NetworkInfoProps {
 		ticker: {
 			networkTicker: string;
 		};
+		rpcTarget: string;
 	};
+	navigation: any;
 }
 
-const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
+const NetworkInfo = (props: NetworkInfoProps) => {
 	const {
 		onClose,
 		ticker,
-		networkProvider: { nickname, type, ticker: networkTicker },
+		networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
+		navigation,
 	} = props;
+
 	return (
 		<View style={styles.wrapper}>
 			<View style={styles.modalContentView} testID={'education-modal-container-id'}>
 				<Text style={styles.title}>{strings('network_information.switched_network')}</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
-						{ticker === PRIVATENETWORK ? (
+						{ticker === undefined ? (
 							<>
 								<View style={styles.unknownWrapper}>
 									<Text style={styles.unknownText}>?</Text>
 								</View>
-								<Text style={styles.tokenText}>{strings('network_information.unknown_network')}</Text>
+								<Text style={styles.tokenText}>
+									{`${nickname}` || strings('network_information.unknown_network')}
+								</Text>
 							</>
 						) : (
 							<>
@@ -124,7 +130,7 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 							</>
 						)}
 					</View>
-					{ticker === PRIVATENETWORK && <Text style={styles.rpcUrl}>{type}</Text>}
+					{ticker === undefined && <Text style={styles.rpcUrl}>{rpcTarget}</Text>}
 				</View>
 				<Text style={styles.messageTitle}>{strings('network_information.things_to_keep_in_mind')}:</Text>
 
@@ -148,13 +154,10 @@ const NetworkInfo = (props: NetworkInfoProps): JSX.Element => {
 						number={2}
 					/>
 					<Description
-						description={
-							ticker === PRIVATENETWORK
-								? strings('network_information.private_network_third_description')
-								: strings('network_information.third_description')
-						}
+						description={strings('network_information.third_description')}
 						clickableText={strings('network_information.add_token')}
 						number={3}
+						navigation={navigation}
 					/>
 				</View>
 				<StyledButton

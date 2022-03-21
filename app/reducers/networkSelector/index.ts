@@ -18,13 +18,32 @@ export const initialState = {
  * @returns
  */
 
-function networkOnboardReducer(state = initialState, action) {
+function networkOnboardReducer(
+	state = initialState,
+	action: {
+		nativeToken: string;
+		networkType: string;
+		networkUrl: string;
+		networkStatus: boolean;
+		showNetworkOnboarding: boolean;
+		type: string;
+		payload: any;
+	} = {
+		nativeToken: '',
+		networkType: '',
+		networkUrl: '',
+		networkStatus: false,
+		showNetworkOnboarding: false,
+		type: '',
+		payload: undefined,
+	}
+) {
 	switch (action.type) {
 		case 'SHOW_NETWORK_ONBOARDING':
 			return {
 				...state,
 				networkState: {
-					showNetworkOnboarding: true,
+					showNetworkOnboarding: action.showNetworkOnboarding,
 					nativeToken: action.nativeToken,
 					networkType: action.networkType,
 					networkUrl: action.networkUrl,

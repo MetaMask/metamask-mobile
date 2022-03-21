@@ -12,7 +12,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NETWORK_LIST_MODAL_CONTAINER_ID, OTHER_NETWORK_LIST_ID, NETWORK_SCROLL_ID } from '../../../constants/test-ids';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
-import santizeUrl from '../../../util/santizeUrl';
+import sanitizeUrl from '../../../util/sanitizeUrl';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -159,7 +159,7 @@ export class NetworkList extends PureComponent {
 
 	handleNetworkSelected = (type, ticker, url) => {
 		const { networkOnboardedState, switchModalContent, onClose, onNetworkSelected } = this.props;
-		const networkOnboarded = networkOnboardedState.filter((item) => item.network === santizeUrl(url));
+		const networkOnboarded = networkOnboardedState.filter((item) => item.network === sanitizeUrl(url));
 		if (networkOnboarded.length === 0) {
 			switchModalContent();
 		} else {
@@ -200,9 +200,9 @@ export class NetworkList extends PureComponent {
 			nickname,
 			rpcPrefs: { blockExplorerUrl },
 		} = rpc;
-		const useRpcName = nickname || santizeUrl(rpcUrl);
+		const useRpcName = nickname || sanitizeUrl(rpcUrl);
 		const useTicker = ticker || PRIVATENETWORK;
-		this.handleNetworkSelected(useRpcName, useTicker, santizeUrl(rpcUrl));
+		this.handleNetworkSelected(useRpcName, useTicker, sanitizeUrl(rpcUrl));
 
 		// If the network does not have chainId then show invalid custom network alert
 		const chainIdNumber = parseInt(chainId, 10);
