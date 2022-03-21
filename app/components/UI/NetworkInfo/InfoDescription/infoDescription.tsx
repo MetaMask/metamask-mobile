@@ -1,28 +1,37 @@
 import React, { memo } from 'react';
 import { View, Text, Linking, Alert, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
-import LineDivide from '../../../Base/LineDivide';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	descriptionContainer: {
-		marginBottom: 10,
-	},
-	contentContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginBottom: 4,
-	},
-	numberStyle: {
-		marginRight: 10,
-	},
-	link: {
-		color: colors.blue,
-	},
-	description: {
-		width: '94%',
-	},
-});
+const createStyles = (colors: {
+	background: { default: string };
+	text: { default: string };
+	border: { muted: string };
+	info: { default: string };
+}) =>
+	StyleSheet.create({
+		descriptionContainer: {
+			marginBottom: 10,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		contentContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginBottom: 4,
+		},
+		numberStyle: {
+			marginRight: 10,
+			color: colors.text.default,
+		},
+		link: {
+			color: colors.info.default,
+		},
+		description: {
+			width: '94%',
+			color: colors.text.default,
+		},
+	});
 
 interface DescriptionProps {
 	description: string;
@@ -37,6 +46,8 @@ const showAlertView = () => {
 
 const Description = (props: DescriptionProps) => {
 	const { description, clickableText, number, navigation } = props;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const handlePress = () => {
 		if (number === 2) {
@@ -66,7 +77,6 @@ const Description = (props: DescriptionProps) => {
 					)}
 				</Text>
 			</View>
-			<LineDivide />
 		</View>
 	);
 };

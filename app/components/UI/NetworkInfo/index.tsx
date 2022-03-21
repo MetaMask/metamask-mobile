@@ -1,83 +1,96 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '../../../styles/common';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { MAINNET, RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import {
+	NETWORK_EDUCATION_MODAL_CONTAINER_ID,
+	NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+} from '../../../constants/test-ids';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		borderRadius: 10,
-	},
-	modalContentView: {
-		padding: 20,
-	},
-	title: {
-		fontSize: 16,
-		fontWeight: 'bold',
-		marginVertical: 10,
-		textAlign: 'center',
-	},
-	tokenView: {
-		marginBottom: 30,
-	},
-	tokenType: {
-		backgroundColor: colors.grey100,
-		marginRight: 50,
-		marginLeft: 50,
-		padding: 10,
-		borderRadius: 40,
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-	},
-	ethLogo: {
-		width: 30,
-		height: 30,
-		overflow: 'hidden',
-		marginHorizontal: 5,
-	},
-	tokenText: {
-		fontSize: 15,
-		textTransform: 'capitalize',
-	},
-	messageTitle: {
-		fontSize: 14,
-		fontWeight: 'bold',
-		marginBottom: 15,
-		textAlign: 'center',
-	},
-	descriptionViews: {
-		marginBottom: 15,
-	},
-	closeButton: {
-		marginVertical: 20,
-	},
-	rpcUrl: {
-		fontSize: 10,
-		color: colors.grey500,
-		textAlign: 'center',
-		paddingVertical: 5,
-	},
-	unknownWrapper: {
-		backgroundColor: colors.black,
-		marginRight: 6,
-		height: 20,
-		width: 20,
-		borderRadius: 10,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	unknownText: {
-		color: colors.white,
-		fontSize: 13,
-	},
-});
+const createStyles = (colors: {
+	background: { default: string };
+	text: { default: string };
+	border: { muted: string };
+}) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			borderRadius: 10,
+		},
+		modalContentView: {
+			padding: 20,
+		},
+		title: {
+			fontSize: 16,
+			fontWeight: 'bold',
+			marginVertical: 10,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		tokenView: {
+			marginBottom: 30,
+		},
+		tokenType: {
+			marginRight: 50,
+			marginLeft: 50,
+			padding: 10,
+			borderRadius: 40,
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'row',
+			backgroundColor: colors.border.muted,
+		},
+		ethLogo: {
+			width: 30,
+			height: 30,
+			overflow: 'hidden',
+			marginHorizontal: 5,
+		},
+		tokenText: {
+			fontSize: 15,
+			color: colors.text.default,
+			textTransform: 'capitalize',
+		},
+		messageTitle: {
+			fontSize: 14,
+			fontWeight: 'bold',
+			marginBottom: 15,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		descriptionViews: {
+			marginBottom: 15,
+		},
+		closeButton: {
+			marginVertical: 20,
+			borderColor: colors.border.muted,
+		},
+		rpcUrl: {
+			fontSize: 10,
+			color: colors.border.muted,
+			textAlign: 'center',
+			paddingVertical: 5,
+		},
+		unknownWrapper: {
+			backgroundColor: colors.background.default,
+			marginRight: 6,
+			height: 20,
+			width: 20,
+			borderRadius: 10,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		unknownText: {
+			color: colors.text.default,
+			fontSize: 13,
+		},
+	});
 
 interface NetworkInfoProps {
 	onClose: () => void;
@@ -101,10 +114,12 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 		networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
 		navigation,
 	} = props;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	return (
 		<View style={styles.wrapper}>
-			<View style={styles.modalContentView} testID={'education-modal-container-id'}>
+			<View style={styles.modalContentView} testID={NETWORK_EDUCATION_MODAL_CONTAINER_ID}>
 				<Text style={styles.title}>{strings('network_information.switched_network')}</Text>
 				<View style={styles.tokenView}>
 					<View style={styles.tokenType}>
@@ -164,7 +179,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 					type="confirm"
 					onPress={onClose}
 					containerStyle={styles.closeButton}
-					testID={'close-network-info-button'}
+					testID={NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID}
 				>
 					{strings('network_information.got_it')}
 				</StyledButton>
