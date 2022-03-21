@@ -38,7 +38,7 @@ class DeeplinkManager {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 
 		// If current network is the same as the one we want to switch to, do nothing
-		if (NetworkController?.state?.provider?.chainId === switchToChainId) {
+		if (NetworkController?.state?.provider?.chainId === String(switchToChainId)) {
 			return;
 		}
 
@@ -117,8 +117,12 @@ class DeeplinkManager {
 		const txMeta = { ...ethUrl, source: url };
 
 		try {
-			// Validate and switch network before performing any other action
-			this._handleNetworkSwitch(ethUrl.chain_id);
+			/**
+			 * Validate and switch network before performing any other action
+			 * Defaults to mainnet if no chain_id is provided
+			 */
+			const chainId = ethUrl.chain_id || 1;
+			this._handleNetworkSwitch(chainId);
 
 			switch (ethUrl.function_name) {
 				case ETH_ACTIONS.TRANSFER: {
