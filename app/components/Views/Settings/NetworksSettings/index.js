@@ -61,12 +61,13 @@ const createStyles = (colors) =>
 			paddingVertical: 10,
 			borderRadius: 5,
 			borderWidth: 1,
-			borderColor: colors.grey100,
+			borderColor: colors.border.default,
+			color: colors.text.default,
 		},
 		input: {
 			flex: 1,
 			fontSize: 14,
-			color: colors.black,
+			color: colors.text.default,
 			...fontStyles.normal,
 			paddingLeft: 10,
 		},
@@ -78,7 +79,7 @@ const createStyles = (colors) =>
 		},
 		text: {
 			textAlign: 'center',
-			color: colors.white100,
+			color: colors.text.default,
 			fontSize: 10,
 			marginTop: 4,
 		},
@@ -198,7 +199,9 @@ class NetworksSettings extends PureComponent {
 								(image ? (
 									<ImageIcons image={image} style={styles.networkIcon} />
 								) : (
-									<View style={[styles.networkIcon, { backgroundColor: colors.grey000 }]} />
+									<View
+										style={[styles.networkIcon, { backgroundColor: colors.background.alternative }]}
+									/>
 								))}
 							{!isCustomRPC && (
 								<View style={[styles.networkIcon, { backgroundColor: image }]}>
@@ -207,7 +210,7 @@ class NetworksSettings extends PureComponent {
 							)}
 							<Text style={styles.networkLabel}>{name}</Text>
 							{!isCustomRPC && (
-								<FontAwesome name="lock" size={20} color={colors.grey100} style={styles.icon} />
+								<FontAwesome name="lock" size={20} color={colors.icon.default} style={styles.icon} />
 							)}
 						</View>
 					</TouchableOpacity>
@@ -260,12 +263,12 @@ class NetworksSettings extends PureComponent {
 					onPress={() => this.onNetworkPress(MAINNET)}
 				>
 					<View style={styles.networkWrapper}>
-						<ImageIcons image="ethereum" style={styles.networkIcon} />
+						<ImageIcons image="ETHEREUM" style={styles.networkIcon} />
 						<View style={styles.networkInfo}>
 							<Text style={styles.networkLabel}>{mainnetName}</Text>
 						</View>
 					</View>
-					<FontAwesome name="lock" size={20} color={colors.grey100} style={styles.icon} />
+					<FontAwesome name="lock" size={20} color={colors.icon.default} style={styles.icon} />
 				</TouchableOpacity>
 			</View>
 		);
@@ -315,16 +318,16 @@ class NetworksSettings extends PureComponent {
 		return (
 			<View style={styles.wrapper} testID={'networks-screen'}>
 				<View style={styles.inputWrapper}>
-					<Icon name="ios-search" size={20} color={colors.grey100} />
+					<Icon name="ios-search" size={20} color={colors.icon.default} />
 					<TextInput
 						style={styles.input}
 						placeholder={strings('networks.search')}
-						placeholderTextColor={colors.grey500}
+						placeholderTextColor={colors.text.default}
 						value={this.state.searchString}
 						onChangeText={this.handleSearchTextChange}
 					/>
 					{this.state.searchString.length > 0 && (
-						<Icon name="ios-close" size={20} color={colors.grey300} onPress={this.clearSearchInput} />
+						<Icon name="ios-close" size={20} color={colors.icon.default} onPress={this.clearSearchInput} />
 					)}
 				</View>
 				<ScrollView style={styles.networksWrapper}>

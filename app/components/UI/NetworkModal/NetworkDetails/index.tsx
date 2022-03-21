@@ -3,21 +3,22 @@ import { StyleSheet, View } from 'react-native';
 import ConnectHeader from '../../../UI/ConnectHeader';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { colors } from '../../../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	accountInformation: {
-		justifyContent: 'flex-start',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-		marginBottom: 10,
-	},
-	bottomSpace: {
-		marginBottom: 10,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		accountInformation: {
+			justifyContent: 'flex-start',
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: 16,
+			marginBottom: 10,
+		},
+		bottomSpace: {
+			marginBottom: 10,
+		},
+	});
 
 interface NetworkDetailsProps {
 	goBack: () => void;
@@ -30,6 +31,8 @@ interface NetworkDetailsProps {
 
 const NetworkDetails = (props: NetworkDetailsProps) => {
 	const { goBack, chainId, ticker, nickname, rpcUrl, blockExplorerUrl } = props;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const DisplayData = [
 		{

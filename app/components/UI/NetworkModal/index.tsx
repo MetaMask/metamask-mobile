@@ -2,9 +2,9 @@ import Modal from 'react-native-modal';
 import React from 'react';
 import { View, StyleSheet, Linking } from 'react-native';
 import StyledButton from '../StyledButton';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../Base/Text';
-import { colors, fontStyles } from '../../../styles/common';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
@@ -16,74 +16,78 @@ import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import {APPROVE_NETWORK_CANCEL_BUTTON_ID, APPROVE_NETWORK_APPROVE_BUTTON_ID } from '../../../constants/test-ids'
 
-const styles = StyleSheet.create({
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	modalContainer: {
-		borderRadius: 10,
-		backgroundColor: colors.white,
-		padding: 20,
-	},
-	buttonView: {
-		flexDirection: 'row',
-		paddingVertical: 16,
-	},
-	button: {
-		flex: 1,
-	},
-	cancel: {
-		marginRight: 8,
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
-		borderWidth: 1,
-	},
-	confirm: {
-		marginLeft: 8,
-	},
-	networkInformation: {
-		flexDirection: 'row',
-		justifyContent: 'flex-start',
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-		marginBottom: 10,
-	},
-	title: {
-		...fontStyles.bold,
-		fontSize: scaling.scale(18),
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 34,
-		marginVertical: 10,
-		paddingHorizontal: 16,
-	},
-	bottomSpace: {
-		marginBottom: 10,
-	},
-	nameWrapper: {
-		backgroundColor: colors.grey000,
-		marginRight: '15%',
-		marginLeft: '15%',
-		paddingVertical: 5,
-		borderRadius: 40,
-		justifyContent: 'center',
-		alignItems: 'center',
-		flexDirection: 'row',
-	},
-	infoIcon: {
-		fontSize: 12,
-		color: colors.grey400,
-	},
-	popularNetworkImage: {
-		width: 20,
-		height: 20,
-		marginRight: 10,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		modalContainer: {
+			borderRadius: 10,
+			backgroundColor: colors.background.default,
+			padding: 20,
+		},
+		buttonView: {
+			flexDirection: 'row',
+			paddingVertical: 16,
+		},
+		button: {
+			flex: 1,
+		},
+		cancel: {
+			marginRight: 8,
+			borderColor: colors.text.muted,
+			borderWidth: 1,
+		},
+		confirm: {
+			marginLeft: 8,
+		},
+		networkInformation: {
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+			borderWidth: 1,
+			borderColor: colors.text.muted,
+			borderRadius: 10,
+			padding: 16,
+			marginBottom: 10,
+		},
+		title: {
+			...fontStyles.bold,
+			fontSize: scaling.scale(18),
+			textAlign: 'center',
+			color: colors.text.default,
+			lineHeight: 34,
+			marginVertical: 10,
+			paddingHorizontal: 16,
+		},
+		bottomSpace: {
+			marginBottom: 10,
+		},
+		nameWrapper: {
+			backgroundColor: colors.background.default,
+			marginRight: '15%',
+			marginLeft: '15%',
+			paddingVertical: 5,
+			borderRadius: 40,
+			justifyContent: 'center',
+			alignItems: 'center',
+			flexDirection: 'row',
+		},
+		infoIcon: {
+			fontSize: 12,
+			color: colors.icon.default,
+		},
+		popularNetworkImage: {
+			width: 20,
+			height: 20,
+			marginRight: 10,
+			backgroundColor: colors.overlay.default,
+			borderRadius: 10,
+		},
+	});
 
 interface NetworkProps {
 	isVisible: boolean;
@@ -110,6 +114,9 @@ const NetworkModals = (props: NetworkProps) => {
 	const [networkAdded, setNetworkAdded] = React.useState(false);
 
 	const showDetailsModal = () => setShowDetails(!showDetails);
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const validateRpcUrl = (url: string) => {
 		if (!isWebUri(url)) return false;
@@ -236,7 +243,7 @@ const NetworkModals = (props: NetworkProps) => {
 								type={'cancel'}
 								onPress={onClose}
 								containerStyle={[styles.button, styles.cancel]}
-								testID={'connect-approve-button'}
+								testID={APPROVE_NETWORK_CANCEL_BUTTON_ID}
 							>
 								<Text centered>{strings('networks.cancel')}</Text>
 							</StyledButton>
@@ -244,7 +251,7 @@ const NetworkModals = (props: NetworkProps) => {
 								type={'confirm'}
 								onPress={addNetwork}
 								containerStyle={[styles.button, styles.confirm]}
-								testID={'connect-approve-button'}
+								testID={APPROVE_NETWORK_APPROVE_BUTTON_ID}
 								disabled={!validateRpcUrl(rpcUrl)}
 							>
 								{strings('networks.approve')}

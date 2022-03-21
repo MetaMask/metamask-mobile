@@ -3,26 +3,28 @@ import { StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { colors } from '../../../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	buttonView: {
-		flexDirection: 'row',
-		paddingVertical: 16,
-	},
-	button: {
-		flex: 1,
-	},
-	cancel: {
-		marginRight: 8,
-		backgroundColor: colors.white,
-		borderColor: colors.grey100,
-		borderWidth: 1,
-	},
-	confirm: {
-		marginLeft: 8,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		buttonView: {
+			flexDirection: 'row',
+			paddingVertical: 16,
+		},
+		button: {
+			flex: 1,
+		},
+		cancel: {
+			marginRight: 8,
+			backgroundColor: colors.background.default,
+			borderColor: colors.border.default,
+
+			borderWidth: 1,
+		},
+		confirm: {
+			marginLeft: 8,
+		},
+	});
 
 interface NetworkAddedProps {
 	nickname: string;
@@ -32,6 +34,8 @@ interface NetworkAddedProps {
 
 const NetworkAdded = (props: NetworkAddedProps) => {
 	const { nickname, goHome, switchNetwork } = props;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	return (
 		<View>
