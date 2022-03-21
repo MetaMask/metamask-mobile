@@ -16,11 +16,12 @@ import Logger from '../../util/Logger';
 import { logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { AnyAction, Dispatch } from 'redux';
+import AuthenticationError from './AuthenticationError';
 
 /**
  * Holds auth data used to determine auth configuration
  */
-interface AuthData {
+export interface AuthData {
 	type: AUTHENTICATION_TYPE; //Enum used to show type for authentication
 	biometryType: string; //Type of biometry used to store user password provide by SecureKeychain
 }
@@ -65,7 +66,7 @@ class AuthenticationService {
 				await recreateVaultWithSamePassword(password, selectedAddress);
 				await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
 			} catch (e: any) {
-				throw new Error('Unable to recreate vault');
+				throw new AuthenticationError(e, 'Unable to recreate vault', this.authData);
 			}
 		}
 	};
@@ -175,7 +176,7 @@ class AuthenticationService {
 		} catch (e: any) {
 			this.logout();
 			Logger.error(e.toString(), 'Failed wallet creation');
-			throw e;
+			throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
 		}
 	};
 
@@ -197,7 +198,7 @@ class AuthenticationService {
 		} catch (e: any) {
 			this.logout();
 			Logger.error(e.toString(), 'Failed wallet creation');
-			throw e;
+			throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
 		}
 	};
 
@@ -216,7 +217,7 @@ class AuthenticationService {
 		} catch (e: any) {
 			this.logout();
 			Logger.error(e.toString(), 'Failed to login');
-			throw e;
+			throw new AuthenticationError(e, 'Failed to login', this.authData);
 		}
 	};
 
@@ -234,7 +235,7 @@ class AuthenticationService {
 		} catch (e: any) {
 			this.logout();
 			Logger.error(e.toString(), 'appTriggeredAuth failed to login');
-			throw e;
+			throw new AuthenticationError(e, 'appTriggeredAuth failed to login', this.authData);
 		}
 	};
 
