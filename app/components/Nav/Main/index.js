@@ -183,7 +183,7 @@ const Main = (props) => {
 	};
 
 	const navigateToLockScreen = () => {
-		props.navigation.navigate('LockScreen', { backgroundMode: true });
+		props.navigation.dispatch('LockScreen', { backgroundMode: true });
 	};
 
 	useEffect(() => {
