@@ -156,7 +156,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
 	const finishSync = useCallback(
 		async (opts) => {
-			//TODO refactor to use AuthenticationService instead of SecureKeychain when the sync feature is enabled
+			//TODO refactor to use Authentication instead of SecureKeychain when the sync feature is enabled
 			if (opts.biometrics) {
 				try {
 					await SecureKeychain.setGenericPassword(opts.password, SecureKeychain.TYPES.BIOMETRICS);

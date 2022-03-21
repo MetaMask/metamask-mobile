@@ -40,7 +40,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core/';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -233,7 +233,7 @@ class ImportFromSeed extends PureComponent {
 	};
 
 	async componentDidMount() {
-		const authType = await AuthenticationService.getType();
+		const authType = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
@@ -296,12 +296,12 @@ class ImportFromSeed extends PureComponent {
 			try {
 				this.setState({ loading: true });
 
-				const type = await AuthenticationService.componentAuthenticationType(
+				const type = await Authentication.componentAuthenticationType(
 					this.state.biometryChoice,
 					this.state.rememberMe
 				);
 
-				await AuthenticationService.newWalletAndRestore(password, type, parsedSeed, true);
+				await Authentication.newWalletAndRestore(password, type, parsedSeed, true);
 
 				// Get onboarding wizard state
 				const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);

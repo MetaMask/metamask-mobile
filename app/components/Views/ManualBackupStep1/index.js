@@ -31,7 +31,7 @@ import {
 	WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -256,7 +256,7 @@ class ManualBackupStep1 extends PureComponent {
 
 		if (!this.words.length) {
 			try {
-				const credentials = await AuthenticationService.getPassowrd();
+				const credentials = await Authentication.getPassowrd();
 				if (credentials) {
 					this.words = await this.tryExportSeedPhrase(credentials.password);
 				} else {

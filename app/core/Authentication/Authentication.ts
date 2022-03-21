@@ -1,6 +1,6 @@
-import SecureKeychain from './SecureKeychain';
-import Engine from './Engine';
-import { recreateVaultWithSamePassword } from '../core/Vault';
+import SecureKeychain from '../SecureKeychain';
+import Engine from '../Engine';
+import { recreateVaultWithSamePassword } from '../Vault';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
 	ENCRYPTION_LIB,
@@ -11,10 +11,10 @@ import {
 	PASSCODE_DISABLED,
 	NEXT_MAKER_REMINDER,
 	SEED_PHRASE_HINTS,
-} from '../constants/storage';
-import Logger from '../util/Logger';
-import { logIn, logOut } from '../actions/user';
-import AUTHENTICATION_TYPE from '../constants/userProperties';
+} from '../../constants/storage';
+import Logger from '../../util/Logger';
+import { logIn, logOut } from '../../actions/user';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -27,6 +27,11 @@ interface AuthData {
 class AuthenticationService {
 	authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
 	store: any;
+
+	init(store: any) {
+		this.store = store;
+		this.store.dispatch(logOut());
+	}
 
 	/**
 	 * This method recreates the vault upon login if user is new and is not using the latest encryption lib
@@ -229,34 +234,8 @@ class AuthenticationService {
 		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
 		this.store?.dispatch(logOut());
 	};
+
+	getType = async () => await this.checkAuthenticationMethod(undefined);
 }
-
-let instance: AuthenticationService;
-
-export default {
-	init: (store: any) => {
-		if (!instance) {
-			instance = new AuthenticationService();
-			instance.store = store;
-			instance.store.dispatch(logOut());
-		}
-	},
-	userEntryAuth: async (password: string, authType: AuthData, selectedAddress: string) =>
-		await instance?.userEntryAuth(password, authType, selectedAddress),
-	appTriggeredAuth: async (selectedAddress: string) => await instance?.appTriggeredAuth(selectedAddress),
-	logout: async () => await instance?.logout(),
-	newWalletAndKeyChain: async (password: string, type: AuthData) => {
-		await instance?.newWalletAndKeyChain(password, type);
-	},
-	newWalletAndRestore: async (password: string, type: AuthData, parsedSeed: string, clearEngine: boolean) => {
-		await instance?.newWalletAndRestore(password, type, parsedSeed, clearEngine);
-	},
-	resetVault: async () => await instance?.resetVault(),
-	getType: async () => await instance?.checkAuthenticationMethod(undefined),
-	storePassword: async (password: string, authType: AUTHENTICATION_TYPE) => {
-		await instance?.storePassword(password, authType);
-	},
-	getPassword: async () => await instance?.getPassword(),
-	componentAuthenticationType: async (biometryChoice: boolean, rememberMe: boolean) =>
-		await instance?.componentAuthenticationType(biometryChoice, rememberMe),
-};
+// eslint-disable-next-line import/prefer-default-export
+export const Authentication = new AuthenticationService();

@@ -34,7 +34,7 @@ import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../c
 import { getVersion } from 'react-native-device-info';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core/';
 import { ThemeContext, useAppTheme } from '../../../util/theme';
 
 const Stack = createStackNavigator();
@@ -123,7 +123,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
 				if (existingUser && !userLoggedIn && !locked.current && selectedAddress) {
-					await AuthenticationService.appTriggeredAuth(selectedAddress);
+					await Authentication.appTriggeredAuth(selectedAddress);
 					locked.current = true;
 				}
 				//Cancel auth if the existing user has not been set

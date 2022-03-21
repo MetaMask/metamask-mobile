@@ -44,7 +44,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -593,7 +593,7 @@ class DrawerView extends PureComponent {
 
 	onPressLogout = async () => {
 		const { passwordSet } = this.props;
-		await AuthenticationService.logout();
+		await Authentication.logout();
 		if (!passwordSet) {
 			this.props.navigation.navigate('OnboardingRootNav', {
 				screen: 'OnboardingNav',

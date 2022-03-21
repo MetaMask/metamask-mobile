@@ -25,7 +25,7 @@ import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import ClipboardManager from '../../../core/ClipboardManager';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -225,13 +225,13 @@ class RevealPrivateCredential extends PureComponent {
 		this.updateNavBar();
 		// Try to use biometrics to unloc
 		// (if available)
-		const biometryType = await AuthenticationService.getType();
+		const biometryType = await Authentication.getType();
 		if (!this.props.passwordSet) {
 			this.tryUnlockWithPassword('');
 		} else if (biometryType) {
 			const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
 			if (biometryChoice !== '' && biometryChoice === biometryType) {
-				const credentials = await AuthenticationService.getPassword();
+				const credentials = await Authentication.getPassword();
 				if (credentials) {
 					this.tryUnlockWithPassword(credentials.password);
 				}

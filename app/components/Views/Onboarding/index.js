@@ -34,7 +34,7 @@ import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
@@ -259,10 +259,10 @@ class Onboarding extends PureComponent {
 	onLogin = async () => {
 		const { passwordSet } = this.props;
 		if (!passwordSet) {
-			await AuthenticationService.resetVault();
+			await Authentication.resetVault();
 			this.props.navigation.navigate('HomeNav');
 		} else {
-			await AuthenticationService.logout();
+			await Authentication.logout();
 			this.props.navigation.navigate('Login');
 		}
 	};

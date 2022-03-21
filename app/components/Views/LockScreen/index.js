@@ -7,7 +7,7 @@ import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core';
 import { getAssetFromTheme, mockTheme, ThemeContext } from '../../../util/theme';
 
 const LOGO_SIZE = 175;
@@ -106,7 +106,7 @@ class LockScreen extends PureComponent {
 	}
 
 	logOut = async () => {
-		await AuthenticationService.logout();
+		await Authentication.logout();
 		this.props.navigation.navigate('Login');
 	};
 
@@ -115,7 +115,7 @@ class LockScreen extends PureComponent {
 		try {
 			// Retreive the credentials
 			Logger.log('Lockscreen::unlockKeychain - getting credentials');
-			await AuthenticationService.appTriggeredAuth(this.props.selectedAddress);
+			await Authentication.appTriggeredAuth(this.props.selectedAddress);
 			this.locked = false;
 			this.setState({ ready: true });
 			Logger.log('Lockscreen::unlockKeychain - state: ready');

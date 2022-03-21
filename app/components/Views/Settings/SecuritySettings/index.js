@@ -45,7 +45,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import AuthenticationService from '../../../../core/AuthenticationService';
+import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useAppThemeFromContext, mockTheme, ThemeContext } from '../../../../util/theme';
 
@@ -353,7 +353,7 @@ class Settings extends PureComponent {
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
 
-		const authType = await AuthenticationService.getType();
+		const authType = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 
@@ -385,7 +385,7 @@ class Settings extends PureComponent {
 		this.setState({ loading: true }, async () => {
 			let credentials;
 			try {
-				credentials = await AuthenticationService.getPassword();
+				credentials = await Authentication.getPassword();
 			} catch (error) {
 				Logger.error(error);
 			}
@@ -415,7 +415,7 @@ class Settings extends PureComponent {
 	storeCredentials = async (password, enabled, type) => {
 		try {
 			//Undefined is being pass to reset the generic password
-			await AuthenticationService.storePassword(undefined, undefined);
+			await Authentication.storePassword(undefined, undefined);
 
 			await Engine.context.KeyringController.exportSeedPhrase(password);
 
@@ -441,7 +441,7 @@ class Settings extends PureComponent {
 				} else {
 					authType = AUTHENTICATION_TYPE.PASSWORD;
 				}
-				await AuthenticationService.storePassword(password, authType);
+				await Authentication.storePassword(password, authType);
 			} catch (error) {
 				Logger.error(error);
 			}

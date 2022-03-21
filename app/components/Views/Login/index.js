@@ -42,7 +42,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -246,7 +246,7 @@ class Login extends PureComponent {
 		}
 
 		//Setup UI to handle Biometric
-		const authType = await AuthenticationService.getType();
+		const authType = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
@@ -270,7 +270,7 @@ class Login extends PureComponent {
 	}
 
 	handleBackPress = async () => {
-		await AuthenticationService.logout();
+		await Authentication.logout();
 		return false;
 	};
 
@@ -281,13 +281,13 @@ class Login extends PureComponent {
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
 
-		const authType = await AuthenticationService.componentAuthenticationType(
+		const authType = await Authentication.componentAuthenticationType(
 			this.state.biometryChoice,
 			this.state.rememberMe
 		);
 
 		try {
-			await AuthenticationService.userEntryAuth(password, authType, this.props.selectedAddress);
+			await Authentication.userEntryAuth(password, authType, this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');
@@ -331,7 +331,7 @@ class Login extends PureComponent {
 		const { current: field } = this.fieldRef;
 		field.blur();
 		try {
-			await AuthenticationService.appTriggeredAuth(this.props.selectedAddress);
+			await Authentication.appTriggeredAuth(this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');
@@ -356,7 +356,7 @@ class Login extends PureComponent {
 	delete = async () => {
 		const { KeyringController } = Engine.context;
 		try {
-			await AuthenticationService.newWalletAndKeyChain(`${Date.now()}`);
+			await Authentication.newWalletAndKeyChain(`${Date.now()}`);
 			await KeyringController.setLocked();
 			this.deleteExistingUser();
 		} catch (error) {

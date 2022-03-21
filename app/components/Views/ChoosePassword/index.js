@@ -43,7 +43,7 @@ import { getPasswordStrengthWord, passwordRequirementsMet, MIN_PASSWORD_LENGTH }
 
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -278,7 +278,7 @@ class ChoosePassword extends PureComponent {
 
 	async componentDidMount() {
 		//Setup UI to handle Biometric
-		const authType = await AuthenticationService.getType();
+		const authType = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
@@ -343,13 +343,13 @@ class ChoosePassword extends PureComponent {
 			this.setState({ loading: true });
 			const previous_screen = this.props.route.params?.[PREVIOUS_SCREEN];
 
-			const authType = await AuthenticationService.componentAuthenticationType(
+			const authType = await Authentication.componentAuthenticationType(
 				this.state.biometryChoice,
 				this.state.rememberMe
 			);
 
 			if (previous_screen === ONBOARDING) {
-				await AuthenticationService.newWalletAndKeyChain(password, authType);
+				await Authentication.newWalletAndKeyChain(password, authType);
 				this.keyringControllerPasswordSet = true;
 				this.props.seedphraseNotBackedUp();
 				await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
@@ -403,7 +403,7 @@ class ChoosePassword extends PureComponent {
 	 * @param {*} error - error provide from try catch wrapping the biometric set password attempt
 	 */
 	handleRejectedOsBiometricPrompt = async (error) => {
-		const type = await AuthenticationService.getType();
+		const type = await Authentication.getType();
 		if (error.toString().includes(IOS_DENY_BIOMETRIC_ERROR) && !type) {
 			this.setState({
 				biometryType: type,
@@ -442,7 +442,7 @@ class ChoosePassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		await AuthenticationService.newWalletAndRestore(password, authType, seedPhrase, true);
+		await Authentication.newWalletAndRestore(password, authType, seedPhrase, true);
 		// Keyring is set with empty password or not
 		this.keyringControllerPasswordSet = password !== '';
 

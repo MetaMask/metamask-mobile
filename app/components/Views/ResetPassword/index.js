@@ -36,7 +36,7 @@ import { TRUE, BIOMETRY_CHOICE_DISABLED, PASSCODE_DISABLED } from '../../../cons
 import { getPasswordStrengthWord, passwordRequirementsMet } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
-import AuthenticationService from '../../../core/AuthenticationService';
+import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -315,7 +315,7 @@ class ResetPassword extends PureComponent {
 
 		const state = { view: CONFIRM_PASSWORD };
 
-		const authType = await AuthenticationService.getType();
+		const authType = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
 		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
@@ -434,12 +434,9 @@ class ResetPassword extends PureComponent {
 		}
 
 		// Recreate keyring with password given to this method
-		const type = await AuthenticationService.componentAuthenticationType(
-			this.state.biometryChoice,
-			this.state.rememberMe
-		);
+		const type = await Authentication.componentAuthenticationType(this.state.biometryChoice, this.state.rememberMe);
 
-		await AuthenticationService.newWalletAndRestore(newPassword, type, seedPhrase, false);
+		await Authentication.newWalletAndRestore(newPassword, type, seedPhrase, false);
 
 		// Get props to restore vault
 		const hdKeyring = KeyringController.state.keyrings[0];
