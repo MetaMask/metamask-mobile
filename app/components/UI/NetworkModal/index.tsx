@@ -17,7 +17,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import {APPROVE_NETWORK_CANCEL_BUTTON_ID, APPROVE_NETWORK_APPROVE_BUTTON_ID } from '../../../constants/test-ids'
+import { APPROVE_NETWORK_CANCEL_BUTTON_ID, APPROVE_NETWORK_APPROVE_BUTTON_ID } from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
 	StyleSheet.create({

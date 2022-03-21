@@ -36,7 +36,12 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { PRIVATENETWORK } from '../../../../../constants/network';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl from '../../../../../util/sanitizeUrl';
-import {REMOVE_NETWORK_ID, ADD_NETWORK_ID, RPC_SCREEN, ADD_NETWORK_BUTTON_ID} from '../../../../../constants/test-ids'
+import {
+	REMOVE_NETWORK_ID,
+	ADD_NETWORK_ID,
+	RPC_SCREEN,
+	ADD_NETWORK_BUTTON_ID,
+} from '../../../../../constants/test-ids';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
