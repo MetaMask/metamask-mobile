@@ -15,6 +15,8 @@ import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../QRHardware/QRSigningModal';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -147,6 +149,8 @@ class SignatureRequest extends PureComponent {
 		 * Expands the message box on press.
 		 */
 		toggleExpandedMessage: PropTypes.func,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	/**
@@ -248,6 +252,11 @@ class SignatureRequest extends PureComponent {
 		);
 	};
 
+	renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState } = this.props;
+		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
+
 	render() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		let expandedHeight;
@@ -283,6 +292,7 @@ class SignatureRequest extends PureComponent {
 						{this.renderActionViewChildren()}
 					</View>
 				</ActionView>
+				{this.renderQRSigningModal()}
 			</View>
 		);
 	}
@@ -294,4 +304,4 @@ const mapStateToProps = (state) => ({
 
 SignatureRequest.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(SignatureRequest);
+export default connect(mapStateToProps)(withQRHardwareAwareness(SignatureRequest));

@@ -32,6 +32,8 @@ import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../QRHardware/QRSigningModal';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -193,6 +195,8 @@ class TransactionReview extends PureComponent {
 		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 		 */
 		dappSuggestedGasWarning: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	state = {
@@ -336,6 +340,11 @@ class TransactionReview extends PureComponent {
 		return url;
 	}
 
+	renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState } = this.props;
+		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
+
 	render = () => {
 		const {
 			transactionConfirmed,
@@ -422,6 +431,7 @@ class TransactionReview extends PureComponent {
 						customGasHeight={customGasHeight}
 					/>
 				</Animated.View>
+				{this.renderQRSigningModal()}
 			</>
 		);
 	};
@@ -444,4 +454,4 @@ const mapStateToProps = (state) => ({
 
 TransactionReview.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(TransactionReview);
+export default connect(mapStateToProps)(withQRHardwareAwareness(TransactionReview));

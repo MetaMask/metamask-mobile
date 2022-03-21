@@ -389,8 +389,10 @@ const RootRPCMethodsUI = (props) => {
 	);
 
 	const renderQRSigningModal = () => {
-		const { isSigningQRObject, QRState } = props;
-		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+		const { isSigningQRObject, QRState, approveModalVisible, dappTransactionModalVisible } = props;
+		const shouldRenderThisModal =
+			!showPendingApproval && !approveModalVisible && !dappTransactionModalVisible && isSigningQRObject;
+		return shouldRenderThisModal && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
 	};
 
 	const onWalletConnectSessionApproval = () => {
