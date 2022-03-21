@@ -7,6 +7,7 @@ import LoadingAnimation from '../components/LoadingAnimation';
 import Quotes from '../components/Quotes';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
 	row: {
@@ -73,32 +74,34 @@ const GetQuotes = () => {
 		<ScreenLayout>
 			<ScreenLayout.Header description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app." />
 			<ScreenLayout.Body>
-				<ScreenLayout.Content>
-					{quotes.length <= 0 ? (
-						<Text black center>
-							No providers available!
-						</Text>
-					) : (
-						quotes
-							.filter(({ error }) => !error)
-							.map((quote) => (
-								<View key={quote.providerId} style={styles.row}>
-									<Quotes
-										providerName={quote.providerName}
-										amountOut={quote.amountOut}
-										crypto={quote.crypto}
-										fiat={quote.fiat}
-										networkFee={quote.netwrokFee}
-										processingFee={quote.providerFee}
-										amountIn={quote.amountIn}
-										onPress={() => handleOnPress(quote)}
-										onPressBuy={() => handleOnPressBuy(quote)}
-										highlighted={quote.providerId === providerId}
-									/>
-								</View>
-							))
-					)}
-				</ScreenLayout.Content>
+				<ScrollView>
+					<ScreenLayout.Content>
+						{quotes.length <= 0 ? (
+							<Text black center>
+								No providers available!
+							</Text>
+						) : (
+							quotes
+								.filter(({ error }) => !error)
+								.map((quote) => (
+									<View key={quote.providerId} style={styles.row}>
+										<Quotes
+											providerName={quote.providerName}
+											amountOut={quote.amountOut}
+											crypto={quote.crypto}
+											fiat={quote.fiat}
+											networkFee={quote.netwrokFee}
+											processingFee={quote.providerFee}
+											amountIn={quote.amountIn}
+											onPress={() => handleOnPress(quote)}
+											onPressBuy={() => handleOnPressBuy(quote)}
+											highlighted={quote.providerId === providerId}
+										/>
+									</View>
+								))
+						)}
+					</ScreenLayout.Content>
+				</ScrollView>
 			</ScreenLayout.Body>
 		</ScreenLayout>
 	);
