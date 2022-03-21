@@ -121,8 +121,8 @@ class DeeplinkManager {
 			 * Validate and switch network before performing any other action
 			 * Defaults to mainnet if no chain_id is provided
 			 */
-			const chainId = ethUrl.chain_id || 1;
-			this._handleNetworkSwitch(chainId);
+			ethUrl.chain_id = ethUrl.chain_id || 1;
+			this._handleNetworkSwitch(ethUrl.chain_id);
 
 			switch (ethUrl.function_name) {
 				case ETH_ACTIONS.TRANSFER: {
