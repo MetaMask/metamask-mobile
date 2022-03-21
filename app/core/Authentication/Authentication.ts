@@ -15,6 +15,7 @@ import {
 import Logger from '../../util/Logger';
 import { logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import { AnyAction, Dispatch } from 'redux';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -25,12 +26,27 @@ interface AuthData {
 }
 
 class AuthenticationService {
-	authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
-	store: any;
+	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
+	private dispatch: Dispatch<AnyAction> | undefined;
 
-	init(store: any) {
-		this.store = store;
-		this.store.dispatch(logOut());
+	/**
+	 * This method creates the instance of the authentication class
+	 * @param {Dispatch<AnyAction>} dispatch - A redux function that will dispatch global state actions
+	 */
+	init(dispatch: Dispatch<AnyAction>) {
+		this.dispatch = dispatch;
+	}
+
+	private dispatchLogin(): void {
+		if (this.dispatch) {
+			this.dispatch(logIn());
+		} else Logger.log('Attempted to dispatch login action but dispatch was not initialized');
+	}
+
+	private dispatchLogout(): void {
+		if (this.dispatch) {
+			this.dispatch(logOut());
+		} else Logger.log('Attempted to dispatch logout action but dispatch was not initialized');
 	}
 
 	/**
@@ -38,7 +54,7 @@ class AuthenticationService {
 	 * @param password - password entered on login
 	 * @param selectedAddress - current address pulled from persisted state
 	 */
-	_loginVaultCreation = async (password: string, selectedAddress: string) => {
+	private loginVaultCreation = async (password: string, selectedAddress: string) => {
 		// Restore vault with user entered password
 		const { KeyringController }: any = Engine.context;
 		await KeyringController.submitPassword(password);
@@ -60,7 +76,7 @@ class AuthenticationService {
 	 * @param parsedSeed - provided seed
 	 * @param clearEngine - clear the engine state before restoring vault
 	 */
-	_newWalletVaultAndRestore = async (password: string, parsedSeed: string, clearEngine: boolean) => {
+	private newWalletVaultAndRestore = async (password: string, parsedSeed: string, clearEngine: boolean) => {
 		// Restore vault with user entered password
 		const { KeyringController }: any = Engine.context;
 		if (clearEngine) await Engine.resetState();
@@ -72,7 +88,7 @@ class AuthenticationService {
 	 * This method creates a new wallet with all new data
 	 * @param password - password provided by user, biometric, pincode
 	 */
-	_createWalletVaultAndKeychain = async (password: string) => {
+	private createWalletVaultAndKeychain = async (password: string) => {
 		const { KeyringController }: any = Engine.context;
 		await Engine.resetState();
 		await KeyringController.createNewVaultAndKeychain(password);
@@ -150,11 +166,11 @@ class AuthenticationService {
 	 */
 	newWalletAndKeyChain = async (password: string, authData: AuthData) => {
 		try {
-			await this._createWalletVaultAndKeychain(password);
+			await this.createWalletVaultAndKeychain(password);
 			await this.storePassword(password, authData?.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			this.store?.dispatch(logIn());
+			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
@@ -172,11 +188,11 @@ class AuthenticationService {
 	 */
 	newWalletAndRestore = async (password: string, authData: AuthData, parsedSeed: string, clearEngine: boolean) => {
 		try {
-			await this._newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+			await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 			await this.storePassword(password, authData.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			this.store?.dispatch(logIn());
+			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
@@ -193,9 +209,9 @@ class AuthenticationService {
 	 */
 	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string) => {
 		try {
-			await this._loginVaultCreation(password, selectedAddress);
+			await this.loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
-			this.store?.dispatch(logIn());
+			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
@@ -212,9 +228,9 @@ class AuthenticationService {
 		const credentials: any = await SecureKeychain.getGenericPassword();
 		try {
 			const password = credentials?.password;
-			await this._loginVaultCreation(password, selectedAddress);
+			await this.loginVaultCreation(password, selectedAddress);
 			if (!credentials) await this.storePassword(password, this.authData.type);
-			this.store?.dispatch(logIn());
+			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout();
 			Logger.error(e.toString(), 'appTriggeredAuth failed to login');
@@ -232,7 +248,7 @@ class AuthenticationService {
 			await KeyringController.setLocked();
 		}
 		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
-		this.store?.dispatch(logOut());
+		this.dispatchLogout();
 	};
 
 	getType = async () => await this.checkAuthenticationMethod(undefined);

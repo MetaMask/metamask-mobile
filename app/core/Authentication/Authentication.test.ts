@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import { BIOMETRY_CHOICE_DISABLED, TRUE, PASSCODE_DISABLED } from '../../constants/storage';
-import configureMockStore from 'redux-mock-store';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 // eslint-disable-next-line import/no-namespace
@@ -9,12 +8,11 @@ import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 
 describe('Authentication', () => {
-	const mockStore = configureMockStore();
-	const store = mockStore({});
+	const mockDispatch = jest.fn();
 
 	beforeEach(() => {
 		Engine.init({});
-		Authentication.init(store);
+		Authentication.init(mockDispatch);
 	});
 
 	afterEach(() => {
