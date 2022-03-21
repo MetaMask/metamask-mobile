@@ -15,8 +15,9 @@ import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
 import Device from '../../../../util/device';
 
-const POLLING_INTERVAL = 10000;
-const POLLING_CYCLES = 1;
+const POLLING_INTERVAL = 20000;
+const POLLING_INTERVAL_HIGHLIGHT = 10000;
+const POLLING_CYCLES = 2;
 
 const styles = StyleSheet.create({
 	row: {
@@ -79,7 +80,7 @@ const GetQuotes = () => {
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 
 	const [isInPolling, setIsInPolling] = useState(false);
-	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(POLLING_CYCLES);
+	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
 
 	const [providerId, setProviderId] = useState(null);
@@ -111,7 +112,8 @@ const GetQuotes = () => {
 
 				if (newRemainingTime <= 0) {
 					setPollingCyclesLeft((cycles) => cycles - 1);
-					pollingCyclesLeft > -1 && fetchQuotes();
+					// we never fetch data if we run out of remaining polling cycles
+					pollingCyclesLeft > 0 && fetchQuotes();
 				}
 
 				return newRemainingTime > 0 ? newRemainingTime : POLLING_INTERVAL;
@@ -162,7 +164,11 @@ const GetQuotes = () => {
 					{pollingCyclesLeft > 0
 						? strings('fiat_on_ramp_aggregator.new_quotes_in')
 						: strings('fiat_on_ramp_aggregator.quotes_expire_in')}{' '}
-					<Text bold primary style={[styles.timer, remainingTime < 20000 && styles.timerHiglight]}>
+					<Text
+						bold
+						primary
+						style={[styles.timer, remainingTime < POLLING_INTERVAL_HIGHLIGHT && styles.timerHiglight]}
+					>
 						{new Date(remainingTime).toISOString().substr(15, 4)}
 					</Text>
 				</Text>
@@ -188,7 +194,7 @@ const GetQuotes = () => {
 						containerStyle={styles.ctaButton}
 						onPress={() => {
 							setIsLoading(true);
-							setPollingCyclesLeft(POLLING_CYCLES);
+							setPollingCyclesLeft(POLLING_CYCLES - 1);
 							setRemainingTime(POLLING_INTERVAL);
 							fetchQuotes();
 						}}
