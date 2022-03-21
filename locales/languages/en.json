@@ -1504,6 +1504,10 @@
 			"no_id_required": "No ID required",
 			"continue_to_amount": "Continue to amount"
 		},
+		"new_quotes_in": "New quotes in",
+		"fetching_new_quotes": "Fetching new quotes...",
+		"quotes_expire_in": "Quotes expire in",
+		"get_new_quotes": "Get new quotes",
 		"amount_to_buy": "Amount to Buy",
 		"get_quotes": "Get quotes",
 		"select_a_quote": "Select a Quote",

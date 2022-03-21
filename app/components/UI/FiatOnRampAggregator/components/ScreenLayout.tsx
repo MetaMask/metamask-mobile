@@ -50,7 +50,7 @@ interface IStaticComponents {
 }
 
 interface IPropsHeader {
-	title?: string;
+	title?: string | (() => void);
 	description?: string;
 	titleStyle?: TextStyle;
 	descriptionStyle?: TextStyle;
@@ -96,10 +96,12 @@ const Header: React.FC<IPropsHeader> = ({
 	...props
 }: IPropsHeader) => (
 	<View style={[styles.header, style]} {...props}>
-		{title && (
+		{typeof title === 'string' ? (
 			<Text style={titleStyle} big black centered bold={bold}>
 				{title}
 			</Text>
+		) : (
+			title?.()
 		)}
 		{description && (
 			<Text style={descriptionStyle} centered>
