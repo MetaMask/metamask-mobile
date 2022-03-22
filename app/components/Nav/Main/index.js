@@ -201,6 +201,7 @@ const Main = (props) => {
 
 	useEffect(() => {
 		AppState.addEventListener('change', handleAppStateChange);
+		console.log('LOCK TIME', props.lockTime);
 		lockManager.current = new LockManager(props.navigation, props.lockTime);
 		PushNotification.configure({
 			requestPermissions: false,

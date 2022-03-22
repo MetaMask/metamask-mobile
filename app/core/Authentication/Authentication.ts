@@ -29,18 +29,18 @@ export interface AuthData {
 
 class AuthenticationService {
 	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
-	// private dispatch: Dispatch<AnyAction> | undefined;
 	private store: Store | undefined = undefined;
 
 	/**
 	 * This method creates the instance of the authentication class
-	 * @param {Dispatch<AnyAction>} dispatch - A redux function that will dispatch global state actions
+	 * @param {Store} store - A redux function that will dispatch global state actions
 	 */
 	init(store: Store) {
 		this.store = store;
 	}
 
 	private dispatchLogin(): void {
+		console.log(this.store);
 		if (this.store) {
 			this.store.dispatch(logIn());
 		} else Logger.log('Attempted to dispatch logIn action but dispatch was not initialized');
@@ -159,6 +159,8 @@ class AuthenticationService {
 		const authType = await this.checkAuthenticationMethod(undefined);
 		if (rememberMe && !biometryChoice)
 			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType: authType.biometryType };
+		else if (!rememberMe && !biometryChoice)
+			return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType: authType.biometryType };
 		return authType;
 	};
 
