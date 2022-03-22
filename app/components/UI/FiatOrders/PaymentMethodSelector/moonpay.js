@@ -17,8 +17,6 @@ const styles = StyleSheet.create({
 	logo: {
 		marginVertical: 5,
 		aspectRatio: 137.18 / 25,
-		// width: Device.isIphone5() ? 109.75 : 137.18,
-		// height: Device.isIphone5() ? 20 : 25,
 		width: 109.75,
 		height: 20,
 		marginLeft: 5,
