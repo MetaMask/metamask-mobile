@@ -37,6 +37,11 @@ class DeeplinkManager {
 	_handleNetworkSwitch = (switchToChainId) => {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 
+		// If not specified, use the current network
+		if (!switchToChainId) {
+			return;
+		}
+
 		// If current network is the same as the one we want to switch to, do nothing
 		if (NetworkController?.state?.provider?.chainId === String(switchToChainId)) {
 			return;
@@ -119,9 +124,7 @@ class DeeplinkManager {
 		try {
 			/**
 			 * Validate and switch network before performing any other action
-			 * Defaults to mainnet if no chain_id is provided
 			 */
-			ethUrl.chain_id = ethUrl.chain_id || 1;
 			this._handleNetworkSwitch(ethUrl.chain_id);
 
 			switch (ethUrl.function_name) {
