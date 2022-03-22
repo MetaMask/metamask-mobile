@@ -15,13 +15,17 @@ import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
 import Device from '../../../../util/device';
 
-const POLLING_INTERVAL = 20000;
+const POLLING_INTERVAL = 15000;
 const POLLING_INTERVAL_HIGHLIGHT = 10000;
 const POLLING_CYCLES = 2;
 
 const styles = StyleSheet.create({
 	row: {
 		marginVertical: 8,
+	},
+	firstRow: {
+		marginTop: 0,
+		marginBottom: 8,
 	},
 	timerWrapper: {
 		backgroundColor: colors.grey000,
@@ -78,7 +82,7 @@ const GetQuotes = () => {
 	const navigation = useNavigation();
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
-
+	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
 	const [isInPolling, setIsInPolling] = useState(false);
 	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
@@ -103,7 +107,6 @@ const GetQuotes = () => {
 		selectedAddress
 	);
 
-	// first useInterval to update regular polling of data and refresh the quotes
 	// we only activate this interval polling once the first fetch of quotes is successfull
 	useInterval(
 		() => {
@@ -122,16 +125,24 @@ const GetQuotes = () => {
 		isInPolling ? 1000 : null
 	);
 
-	// This is acting as ON switch to activate the interval of fetching quotes
+	// Listen to the event of first fetch completed
 	useEffect(() => {
-		if (quotes && quotes.length > 0 && !isInPolling && !ErrorFetchingQuotes && !isFetchingQuotes) {
+		if (
+			!firstFetchCompleted &&
+			!isInPolling &&
+			!ErrorFetchingQuotes &&
+			!isFetchingQuotes &&
+			quotes &&
+			quotes.length
+		) {
+			setFirstFetchCompleted(true);
 			setIsInPolling(true);
 		}
-	}, [ErrorFetchingQuotes, isFetchingQuotes, isInPolling, pollingCyclesLeft, quotes]);
+	}, [ErrorFetchingQuotes, firstFetchCompleted, isFetchingQuotes, isInPolling, quotes]);
 
 	// The moment we have consumed all of our polling cycles, we need to stop fetching new quotes and clear the interval
 	useEffect(() => {
-		if (pollingCyclesLeft <= 0 || ErrorFetchingQuotes) {
+		if (pollingCyclesLeft < 0 || ErrorFetchingQuotes) {
 			setIsInPolling(false);
 		}
 	}, [ErrorFetchingQuotes, pollingCyclesLeft]);
@@ -182,10 +193,10 @@ const GetQuotes = () => {
 				<View style={[styles.errorContent, styles.errorViewContent]}>
 					{<MaterialCommunityIcons name="clock-outline" style={[styles.errorIcon, styles.expiredIcon]} />}
 					<Text primary centered style={styles.errorTitle}>
-						{strings('swaps.quotes_timeout')}
+						{strings('fiat_on_ramp_aggregator.quotes_timeout')}
 					</Text>
 					<Text centered style={styles.errorText}>
-						{strings('swaps.request_new_quotes')}
+						{strings('fiat_on_ramp_aggregator.request_new_quotes')}
 					</Text>
 				</View>
 				<View style={styles.bottomSection}>
@@ -194,6 +205,7 @@ const GetQuotes = () => {
 						containerStyle={styles.ctaButton}
 						onPress={() => {
 							setIsLoading(true);
+							setFirstFetchCompleted(false);
 							setPollingCyclesLeft(POLLING_CYCLES - 1);
 							setRemainingTime(POLLING_INTERVAL);
 							fetchQuotes();
@@ -205,6 +217,7 @@ const GetQuotes = () => {
 			</ScreenView>
 		);
 	}
+
 	if (isLoading) {
 		return (
 			<ScreenLayout>
@@ -222,15 +235,15 @@ const GetQuotes = () => {
 	return (
 		<ScreenLayout>
 			<ScreenLayout.Header
-				title={() => <QuotesPolling />}
+				title={() => (isInPolling ? <QuotesPolling /> : undefined)}
 				description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app."
 			/>
 			<ScreenLayout.Body>
 				<ScrollView>
 					<ScreenLayout.Content>
 						{isFetchingQuotes ? (
-							<Text>loading...</Text>
-						) : quotes.length <= 0 ? (
+							<Text centered>{strings('fiat_on_ramp_aggregator.loading')}</Text>
+						) : !quotes.length ? (
 							<Text black center>
 								No providers available!
 							</Text>
@@ -240,8 +253,8 @@ const GetQuotes = () => {
 									({ error, errorCode, amountIn, amountOut }) =>
 										!error && !errorCode && amountIn && amountOut
 								)
-								.map((quote) => (
-									<View key={quote.providerId} style={styles.row}>
+								.map((quote, index) => (
+									<View key={quote.providerId} style={index === 0 ? styles.firstRow : styles.row}>
 										<Quotes
 											providerName={quote.providerName}
 											amountOut={quote.amountOut}
