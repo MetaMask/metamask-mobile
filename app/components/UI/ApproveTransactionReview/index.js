@@ -46,7 +46,7 @@ import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionRevi
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningModal from '../QRHardware/QRSigningModal';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -796,13 +796,27 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
-	renderQRSigningModal = () => {
-		const { isSigningQRObject, QRState } = this.props;
-		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
-	};
+	renderQRDetails() {
+		const { host, spenderAddress } = this.state;
+		const {
+			activeTabUrl,
+			transaction: { origin },
+			QRState,
+		} = this.props;
+		const styles = this.getStyles();
+		return (
+			<View style={styles.actionViewQRObject} testID={'qr-details'}>
+				<TransactionHeader
+					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+				/>
+				<QRSigningDetails QRState={QRState} tighten showHint={false} showCancelButton />
+			</View>
+		);
+	}
 
 	render = () => {
 		const { viewDetails, editPermissionVisible } = this.state;
+		const { isSigningQRObject } = this.props;
 
 		return (
 			<View>
@@ -810,8 +824,9 @@ class ApproveTransactionReview extends PureComponent {
 					? this.renderTransactionReview()
 					: editPermissionVisible
 					? this.renderEditPermission()
+					: isSigningQRObject
+					? this.renderQRDetails()
 					: this.renderDetails()}
-				{this.renderQRSigningModal()}
 			</View>
 		);
 	};
