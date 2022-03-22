@@ -117,7 +117,7 @@ export const store = createStore(pReducer);
  */
 const onPersistComplete = () => {
 	EngineService.initalizeEngine(store);
-	Authentication.init(store.dispatch);
+	Authentication.init(store);
 };
 
 export const persistor = persistStore(store, null, onPersistComplete);
