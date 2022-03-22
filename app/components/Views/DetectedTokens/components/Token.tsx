@@ -7,9 +7,10 @@ import CheckBox from '@react-native-community/checkbox';
 import { strings } from '../../../../../locales/i18n';
 import TokenImage from '../../../UI/TokenImage';
 import { colors, fontStyles } from '../../../../styles/common';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { balanceToFiat, renderFromTokenMinimalUnit } from '../../../../util/number';
 
 const styles = StyleSheet.create({
 	logo: {
@@ -21,13 +22,13 @@ const styles = StyleSheet.create({
 	tokenUnitLabel: {
 		...(fontStyles.normal as any),
 		fontSize: 18,
-		color: 'black',
+		color: colors.black,
 		marginBottom: 4,
 	},
 	tokenDollarLabel: {
 		...(fontStyles.normal as any),
 		fontSize: 14,
-		color: 'gray',
+		color: colors.grey,
 		marginBottom: 4,
 	},
 	tokenAddressContainer: {
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
 	tokenAddressLabel: {
 		...(fontStyles.normal as any),
 		fontSize: 14,
-		color: 'gray',
+		color: colors.grey,
 	},
 	addressLinkContainer: {
 		flexDirection: 'row',
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
 	tokenAggregatorLabel: {
 		...(fontStyles.normal as any),
 		fontSize: 14,
-		color: 'black',
+		color: colors.black,
 	},
 	aggregatorLinkLabel: {
 		...(fontStyles.normal as any),
@@ -77,12 +78,25 @@ interface Props {
 }
 
 const Token = ({ token, selected, toggleSelected }: Props) => {
-	const { address, symbol, image, aggregators } = token;
+	const { address, symbol, aggregators, decimals } = token;
 	const [expandTokenList, setExpandTokenList] = useState(false);
-	const unitAmountLabel = `0.1234 ${symbol}`;
-	const dollarAmountLabel = '$12.22';
-	const addressLabel = `Token address: `;
-	const aggregatorLabel = `Token lists: ${aggregators.slice(0, expandTokenList ? aggregators.length : 2).join(', ')}`;
+	const tokenExchangeRates = useSelector(
+		(state: any) => state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	);
+	const tokenBalances = useSelector(
+		(state: any) => state.engine.backgroundState.TokenBalancesController.contractBalances
+	);
+	const conversionRate = useSelector(
+		(state: any) => state.engine.backgroundState.CurrencyRateController.conversionRate
+	);
+	const currentCurrency = useSelector(
+		(state: any) => state.engine.backgroundState.CurrencyRateController.currentCurrency
+	);
+	const exchangeRate = tokenExchangeRates[address];
+	const tokenBalance = renderFromTokenMinimalUnit(tokenBalances[address], decimals);
+	const tokenBalanceWithSymbol = `${tokenBalance === undefined ? '' : `${tokenBalance} `}${symbol}`;
+	const fiatBalance = balanceToFiat(tokenBalance, conversionRate, exchangeRate, currentCurrency);
+
 	const showMoreLink = !expandTokenList && aggregators.length > 2;
 	const dispatch = useDispatch();
 
@@ -113,22 +127,28 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 		<View style={styles.tokenContainer}>
 			<TokenImage asset={token} containerStyle={styles.logo} iconStyle={styles.logo} />
 			<View style={styles.tokenInfoContainer}>
-				<Text style={styles.tokenUnitLabel}>{unitAmountLabel}</Text>
-				<Text style={styles.tokenDollarLabel}>{dollarAmountLabel}</Text>
+				<Text style={styles.tokenUnitLabel}>{tokenBalanceWithSymbol}</Text>
+				{fiatBalance ? <Text style={styles.tokenDollarLabel}>{fiatBalance}</Text> : null}
 				<View style={styles.tokenAddressContainer}>
-					<Text style={styles.tokenAddressLabel}>{addressLabel}</Text>
+					<Text style={styles.tokenAddressLabel}>{strings('wallet.detected_token_address')}</Text>
 					<TouchableOpacity onPress={copyAddressToClipboard} style={styles.addressLinkContainer}>
 						<EthereumAddress style={styles.addressLinkLabel} address={address} type={'short'} />
 						<Icon style={styles.copyIcon} name={'copy'} size={16} />
 					</TouchableOpacity>
 				</View>
 				<View style={styles.tokenAggregatorContainer}>
-					<Text style={styles.tokenAggregatorLabel}>{aggregatorLabel}</Text>
+					<Text style={styles.tokenAggregatorLabel}>
+						{strings('wallet.detected_token_lists', {
+							listNames: aggregators.slice(0, expandTokenList ? aggregators.length : 2).join(', '),
+						})}
+					</Text>
 					{showMoreLink ? (
 						<TouchableOpacity onPress={triggerExpandTokenList}>
-							<Text style={styles.aggregatorLinkLabel}>{` + ${
-								aggregators.slice(2, aggregators.length).length
-							} more`}</Text>
+							<Text style={styles.aggregatorLinkLabel}>
+								{strings('wallet.detected_token_more', {
+									remainingListCount: aggregators.slice(2, aggregators.length).length,
+								})}
+							</Text>
 						</TouchableOpacity>
 					) : null}
 				</View>
@@ -138,7 +158,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 				value={selected}
 				onValueChange={triggerToggleSelected}
 				boxType={'square'}
-				tintColors={{ true: 'blue' }}
+				tintColors={{ true: colors.blue }}
 			/>
 		</View>
 	);

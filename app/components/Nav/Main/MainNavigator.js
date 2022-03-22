@@ -52,6 +52,7 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import DetectedTokens from '../../Views/DetectedTokens';
+import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -65,19 +66,36 @@ const styles = StyleSheet.create({
 		opacity: 0,
 	},
 });
+
+const clearStackNavigatorOptions = {
+	headerShown: false,
+	cardStyle: {
+		backgroundColor: 'transparent',
+		cardStyleInterpolator: () => ({
+			overlayStyle: {
+				opacity: 0,
+			},
+		}),
+	},
+	animationEnabled: false,
+};
+
 /**
  * Navigator component that wraps
  * the 2 main sections: Browser, Wallet
  */
 
+const DetectedTokensFlow = () => (
+	<Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions} initialRouteName={'DetectedTokens'}>
+		<Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+		<Stack.Screen name={'DetectedTokensConfirmation'} component={DetectedTokensConfirmation} />
+	</Stack.Navigator>
+);
+
 const WalletModalStack = () => (
-	<Stack.Navigator
-		initialRouteName={'WalletFlow'}
-		mode={'modal'}
-		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: 'transparent' } }}
-	>
-		<Stack.Screen name={'WalletFlow'} component={Wallet} options={{ headerShown: true }} />
-		<Stack.Screen name={'DetectedTokens'} component={DetectedTokens} options={{ animationEnabled: false }} />
+	<Stack.Navigator initialRouteName={'WalletFlow'} mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+		<Stack.Screen name={'WalletFlow'} component={Wallet} options={{ headerShown: true, animationEnabled: false }} />
+		<Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
 	</Stack.Navigator>
 );
 

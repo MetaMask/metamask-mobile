@@ -3,28 +3,32 @@ import { StyleSheet, View, Text, FlatList } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fontStyles } from '../../../styles/common';
+import { colors, fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { Token as TokenType } from '@metamask/controllers';
 import Token from './components/Token';
 import Engine from '../../../core/Engine';
-
-const safeAreaPaddingBottom = 32;
+import { useNavigation } from '@react-navigation/native';
+import NotificationManager from '../../../core/NotificationManager';
+import { strings } from '../../../../locales/i18n';
+import Logger from '../../../util/Logger';
 
 const styles = StyleSheet.create({
+	fill: {
+		flex: 1,
+	},
 	screen: { justifyContent: 'flex-end' },
 	sheet: {
-		backgroundColor: 'white',
+		backgroundColor: colors.white,
 		borderTopLeftRadius: 10,
 		borderTopRightRadius: 10,
-		paddingBottom: safeAreaPaddingBottom + 16,
 		height: '75%',
 	},
 	notch: {
 		width: 48,
 		height: 5,
 		borderRadius: 4,
-		backgroundColor: 'grey',
+		backgroundColor: colors.grey,
 		marginTop: 16,
 		alignSelf: 'center',
 	},
@@ -33,11 +37,11 @@ const styles = StyleSheet.create({
 		...(fontStyles.normal as any),
 		fontSize: 18,
 		paddingVertical: 16,
+		color: colors.black,
 	},
 	tokenList: { flex: 1, paddingHorizontal: 16 },
 	buttonsContainer: {
-		paddingHorizontal: 16,
-		paddingVertical: 8,
+		padding: 16,
 		flexDirection: 'row',
 	},
 	buttonDivider: {
@@ -51,17 +55,26 @@ interface IgnoredTokensByAddress {
 
 const DetectedTokens = () => {
 	const safeAreaInsets = useSafeAreaInsets();
+	const navigation = useNavigation();
 	const modalRef = useRef<ReusableModalRef>(null);
 	const detectedTokens = useSelector<any, TokenType[]>(
 		(state) => state.engine.backgroundState.TokensController.detectedTokens as TokenType[]
 	);
 	const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>({});
 
-	const triggerIgnoreAllTokens = async () => {
+	const triggerIgnoreAllTokens = () => {
 		const { TokensController } = Engine.context as any;
-		try {
-			await TokensController.ignoreTokens(detectedTokens);
-		} catch (err) {}
+		navigation.navigate('DetectedTokensConfirmation', {
+			onConfirm: async () => {
+				modalRef.current?.dismissModal(async () => {
+					try {
+						await TokensController.ignoreTokens(detectedTokens);
+					} catch (err) {
+						Logger.log(err, 'DetectedTokens: Failed to ignore all tokens!');
+					}
+				});
+			},
+		});
 	};
 
 	const triggerImportTokens = async () => {
@@ -74,17 +87,47 @@ const DetectedTokens = () => {
 			}
 			return !isIgnored;
 		});
-
-		try {
-			tokensToImport.length && (await TokensController.importTokens(tokensToImport));
-			tokensToIgnore.length && (await TokensController.ignoreTokens(tokensToIgnore));
-		} catch (err) {}
+		if (!tokensToIgnore.length) {
+			// Import all tokens
+			modalRef.current?.dismissModal(async () => {
+				try {
+					NotificationManager.showSimpleNotification({
+						status: `simple_notification`,
+						duration: 5000,
+						title: strings('wallet.tokens_imported_notif_title'),
+						description: strings('wallet.tokens_imported_notif_desc', {
+							tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
+						}),
+					});
+					await TokensController.importTokens(tokensToImport);
+				} catch (err) {
+					Logger.log(err, 'DetectedTokens: Failed to import all detected tokens!');
+				}
+			});
+		} else {
+			// Prompt confirmation to acknowledge ignored tokens
+			navigation.navigate('DetectedTokensConfirmation', {
+				onConfirm: async () => {
+					modalRef.current?.dismissModal(async () => {
+						try {
+							tokensToImport.length && (await TokensController.importTokens(tokensToImport));
+							tokensToIgnore.length && (await TokensController.ignoreTokens(tokensToIgnore));
+						} catch (err) {
+							Logger.log(err, 'DetectedTokens: Failed to both ignore and import tokens!');
+						}
+					});
+				},
+			});
+		}
 	};
 
 	const renderHeader = () => (
-		<Text style={styles.headerLabel}>{`${detectedTokens.length} new ${
-			detectedTokens.length > 1 ? 'tokens' : 'token'
-		} found`}</Text>
+		<Text style={styles.headerLabel}>
+			{strings('wallet.tokens_detected', {
+				tokenCount: detectedTokens.length,
+				tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
+			})}
+		</Text>
 	);
 
 	const renderToken = ({ item }: { item: TokenType }) => {
@@ -96,7 +139,7 @@ const DetectedTokens = () => {
 				token={item}
 				selected={isChecked}
 				toggleSelected={(selected) => {
-					let newIgnoredTokens = { ...ignoredTokens };
+					const newIgnoredTokens = { ...ignoredTokens };
 					if (selected) {
 						delete newIgnoredTokens[address];
 					} else {
@@ -122,11 +165,11 @@ const DetectedTokens = () => {
 
 	const renderButtons = () => (
 		<View style={styles.buttonsContainer}>
-			<StyledButton onPress={triggerIgnoreAllTokens} containerStyle={{ flex: 1 }} type={'normal'}>
+			<StyledButton onPress={triggerIgnoreAllTokens} containerStyle={styles.fill} type={'normal'}>
 				{'Ignore All'}
 			</StyledButton>
 			<View style={styles.buttonDivider} />
-			<StyledButton onPress={triggerImportTokens} containerStyle={{ flex: 1 }} type={'confirm'}>
+			<StyledButton onPress={triggerImportTokens} containerStyle={styles.fill} type={'confirm'}>
 				{'Import'}
 			</StyledButton>
 		</View>
@@ -134,7 +177,7 @@ const DetectedTokens = () => {
 
 	return (
 		<ReusableModal ref={modalRef} style={styles.screen}>
-			<View style={styles.sheet}>
+			<View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
 				<View style={styles.notch} />
 				{renderHeader()}
 				{renderDetectedTokens()}

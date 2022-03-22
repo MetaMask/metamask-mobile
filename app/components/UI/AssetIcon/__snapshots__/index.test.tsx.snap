@@ -16,6 +16,7 @@ exports[`AssetIcon should render correctly 1`] = `
   style={
     Array [
       Object {
+        "backgroundColor": "#D8D8D8",
         "borderRadius": 25,
         "height": 50,
         "overflow": "hidden",

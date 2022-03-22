@@ -255,7 +255,7 @@ class Tokens extends PureComponent {
 		return (
 			<TouchableOpacity style={styles.tokensDetectedButton} onPress={this.showDetectedTokens}>
 				<Text style={styles.tokensDetectedText}>
-					{strings('wallet.tokens_detected', {
+					{strings('wallet.tokens_detected_in_account', {
 						tokenCount: detectedTokens.length,
 						tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
 					})}
