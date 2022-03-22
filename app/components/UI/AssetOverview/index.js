@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
+import isUrl from 'is-url';
 import { swapsUtils } from '@metamask/swaps-controller';
 import AssetIcon from '../AssetIcon';
 import Identicon from '../Identicon';
@@ -210,7 +211,7 @@ class AssetOverview extends PureComponent {
 	renderLogo = () => {
 		const {
 			tokenList,
-			asset: { address, isETH },
+			asset: { address, isETH, image },
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -218,7 +219,8 @@ class AssetOverview extends PureComponent {
 		if (isETH) {
 			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
 		}
-		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
+		const assetImage = isUrl(image) ? image : null;
+		const iconUrl = assetImage || tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
 
 		return iconUrl ? <AssetIcon logo={iconUrl} /> : <Identicon address={address} />;
 	};
