@@ -154,33 +154,37 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		}
 	}, []);
 
-	useEffect(
-		() =>
-			branch.subscribe({
-				onOpenStart: (opts) => {
-					// Called reliably on iOS deeplink instances
-					Device.isIos() && handleDeeplink(opts);
-				},
-				onOpenComplete: (opts) => {
-					// Called reliably on Android deeplink instances
-					Device.isAndroid() && handleDeeplink(opts);
-				},
-			}),
-		[handleDeeplink]
-	);
-
 	useEffect(() => {
-		SharedDeeplinkManager.init({
-			navigation: {
-				navigate: (routeName, opts) => {
-					const params = { name: routeName, params: opts };
-					navigator.current?.dispatch?.(CommonActions.navigate(params));
+		if (navigator) {
+			// Initialize deep link manager
+			SharedDeeplinkManager.init({
+				navigation: {
+					navigate: (routeName, opts) => {
+						const params = { name: routeName, params: opts };
+						navigator.dispatch?.(CommonActions.navigate(params));
+					},
 				},
-			},
-			frequentRpcList,
-			dispatch,
-		});
-	}, [dispatch, frequentRpcList]);
+				frequentRpcList,
+				dispatch,
+			});
+			if (!prevNavigator.current) {
+				// Setup navigator with Sentry instrumentation
+				routingInstrumentation.registerNavigationContainer(navigator);
+				// Subscribe to incoming deeplinks
+				branch.subscribe({
+					onOpenStart: (opts) => {
+						// Called reliably on iOS deeplink instances
+						Device.isIos() && handleDeeplink(opts);
+					},
+					onOpenComplete: (opts) => {
+						// Called reliably on Android deeplink instances
+						Device.isAndroid() && handleDeeplink(opts);
+					},
+				});
+			}
+			prevNavigator.current = navigator;
+		}
+	}, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
 	useEffect(() => {
 		const initAnalytics = async () => {
@@ -260,10 +264,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
 					theme={{ colors: { background: theme.colors.background.default } }}
-					ref={navigator}
-					onReady={() => {
-						routingInstrumentation.registerNavigationContainer(navigator);
-					}}
+					ref={setNavigatorRef}
 					onStateChange={(state) => {
 						// Updates redux with latest route. Used by DrawerView component.
 						const currentRoute = findRouteNameFromNavigatorState(state.routes);
