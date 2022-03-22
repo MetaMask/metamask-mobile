@@ -3,8 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../../StyledButton';
 import { useNavigation } from '@react-navigation/native';
-import TransactionDetail, { TransactionStage } from '../components/TransactionDetails';
-
+import TransactionDetail from '../components/TransactionDetails';
+import PropTypes from 'prop-types';
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
 
@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const TransactionDetails = () => {
+const TransactionDetails = (props) => {
 	const navigation = useNavigation();
 
 	const handleMakeAnotherPurchase = useCallback(() => {
@@ -29,7 +29,7 @@ const TransactionDetails = () => {
 			<ScreenLayout.Body>
 				<ScreenLayout.Content style={styles.screenLayout}>
 					<TransactionDetail
-						stage={TransactionStage.Successful}
+						stage={props.route.params.stage}
 						transactionID="QY34A1TAY3R"
 						dateAndTime="FEB 2 2022, 5:05 PM UTC"
 						paymentMethod="DEBIT CARD 2755"
@@ -60,5 +60,12 @@ TransactionDetails.navigationOptions = () => ({
 	headerLeft: () => null,
 	title: strings('fiat_on_ramp_aggregator.transaction.details_main'),
 });
+
+TransactionDetails.propTypes = {
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
+	route: PropTypes.object,
+};
 
 export default TransactionDetails;
