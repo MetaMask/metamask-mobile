@@ -17,17 +17,18 @@ import { logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { AnyAction, Dispatch } from 'redux';
 import AuthenticationError from './AuthenticationError';
+import { BIOMETRY_TYPE } from 'react-native-keychain';
 
 /**
  * Holds auth data used to determine auth configuration
  */
 export interface AuthData {
 	type: AUTHENTICATION_TYPE; //Enum used to show type for authentication
-	biometryType: string; //Type of biometry used to store user password provide by SecureKeychain
+	biometryType?: BIOMETRY_TYPE;
 }
 
 class AuthenticationService {
-	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
+	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
 	private dispatch: Dispatch<AnyAction> | undefined;
 
 	/**
@@ -248,7 +249,7 @@ class AuthenticationService {
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
-		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN, biometryType: '' };
+		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
 		this.dispatchLogout();
 	};
 
