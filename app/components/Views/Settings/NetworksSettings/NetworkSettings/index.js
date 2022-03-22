@@ -276,13 +276,19 @@ class NetworkSettings extends PureComponent {
 	 */
 	addRpcUrl = async () => {
 		const { PreferencesController, NetworkController, CurrencyRateController } = Engine.context;
-		const { rpcUrl, chainId: stateChainId, nickname, blockExplorerUrl } = this.state;
+		const { rpcUrl, chainId: stateChainId, nickname, blockExplorerUrl, editable, enableAction } = this.state;
 		const ticker = this.state.ticker && this.state.ticker.toUpperCase();
 		const { navigation } = this.props;
+		// Check if CTA is disabled
+		const isCtaDisabled = !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+		if (isCtaDisabled) {
+			return;
+		}
+		// Conditionally check existence of network (Only check in Add Mode)
+		const isNetworkExists = editable ? [] : await this.checkIfNetworkExists(rpcUrl);
 
 		const formChainId = stateChainId.trim().toLowerCase();
 
-		const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
 		// Ensure chainId is a 0x-prefixed, lowercase hex string
 		let chainId = formChainId;
 		if (!chainId.startsWith('0x')) {
@@ -298,13 +304,15 @@ class NetworkSettings extends PureComponent {
 			const decimalChainId = this.getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.setNativeCurrency(ticker);
-			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
+			// Remove trailing slashes
+			const formattedHref = url.href.replace(/\/+$/, '');
+			PreferencesController.addToFrequentRpcList(formattedHref, decimalChainId, ticker, nickname, {
 				blockExplorerUrl,
 			});
-			NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
+			NetworkController.setRpcTarget(formattedHref, decimalChainId, ticker, nickname);
 
 			const analyticsParamsAdd = {
-				rpc_url: url.href,
+				rpc_url: formattedHref,
 				chain_id: decimalChainId,
 				source: 'Settings',
 				symbol: ticker,
