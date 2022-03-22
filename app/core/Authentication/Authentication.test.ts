@@ -6,13 +6,15 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
+import configureMockStore from 'redux-mock-store';
 
 describe('Authentication', () => {
-	const mockDispatch = jest.fn();
+	const mockStore = configureMockStore();
+	const store = mockStore({});
 
 	beforeEach(() => {
 		Engine.init({});
-		Authentication.init(mockDispatch);
+		Authentication.init(store);
 	});
 
 	afterEach(() => {

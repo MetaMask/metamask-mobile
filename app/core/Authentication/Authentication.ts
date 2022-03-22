@@ -15,7 +15,7 @@ import {
 import Logger from '../../util/Logger';
 import { logIn, logOut } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
-import { AnyAction, Dispatch } from 'redux';
+import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 
@@ -29,26 +29,27 @@ export interface AuthData {
 
 class AuthenticationService {
 	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
-	private dispatch: Dispatch<AnyAction> | undefined;
+	// private dispatch: Dispatch<AnyAction> | undefined;
+	private store: Store | undefined = undefined;
 
 	/**
 	 * This method creates the instance of the authentication class
 	 * @param {Dispatch<AnyAction>} dispatch - A redux function that will dispatch global state actions
 	 */
-	init(dispatch: Dispatch<AnyAction>) {
-		this.dispatch = dispatch;
+	init(store: Store) {
+		this.store = store;
 	}
 
 	private dispatchLogin(): void {
-		if (this.dispatch) {
-			this.dispatch(logIn());
-		} else Logger.log('Attempted to dispatch login action but dispatch was not initialized');
+		if (this.store) {
+			this.store.dispatch(logIn());
+		} else Logger.log('Attempted to dispatch logIn action but dispatch was not initialized');
 	}
 
 	private dispatchLogout(): void {
-		if (this.dispatch) {
-			this.dispatch(logOut());
-		} else Logger.log('Attempted to dispatch logout action but dispatch was not initialized');
+		if (this.store) {
+			this.store.dispatch(logOut());
+		} else Logger.log('Attempted to dispatch logOut action but dispatch was not initialized');
 	}
 
 	/**
