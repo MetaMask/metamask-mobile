@@ -21,7 +21,7 @@ import {
 } from '../../../../constants/on-ramp';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
-import { handleMoonPayReceipt, handleMoonPayRedirect, processMoonPayOrder } from '../orderProcessor/moonpay';
+import { handleMoonPayRedirect, processMoonPayOrder } from '../orderProcessor/moonpay';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
@@ -115,11 +115,8 @@ class MoonPayWebView extends PureComponent {
 	};
 
 	handleNavigationStateChange = async (navState) => {
-		const isReceipt = false; // navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_RECEIPT_URL) > -1;
-		const isRedirect = navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_REDIRECT_URL) > -1;
-		if (isReceipt || isRedirect) {
-			const handler = isReceipt ? handleMoonPayReceipt : handleMoonPayRedirect;
-			const partialOrder = handler(navState.url, this.props.network, this.props.selectedAddress);
+		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.MOONPAY_REDIRECT_URL) > -1) {
+			const partialOrder = handleMoonPayRedirect(navState.url, this.props.network, this.props.selectedAddress);
 			try {
 				const order = await processMoonPayOrder(partialOrder);
 				this.handleOrder(order);

@@ -50,7 +50,6 @@ export default {
 		MOONPAY_URL_STAGING: 'https://buy-sandbox.moonpay.com/',
 		MOONPAY_API_URL_PRODUCTION: 'https://api.moonpay.com/',
 		MOONPAY_REDIRECT_URL: 'about:blank',
-		// MOONPAY_RECEIPT_URL: '/transaction_receipt',
 		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
 		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
 		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',

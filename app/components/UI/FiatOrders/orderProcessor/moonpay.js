@@ -88,13 +88,6 @@ const MOONPAY_TRANSACTION_STATES = {
  * @property {string} transactionStatus
  */
 
-/**
- * Query params of the transaction receipt
- * @typedef MoonPayTransactionReceipt
- * @type {object}
- * @property {string} transactionId
- */
-
 //* Functions
 
 const MOONPAY_ALLOWED_NETWORKS = [
@@ -122,8 +115,7 @@ const getTransactionAmount = (transaction) =>
 
 //* Constants
 
-const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL, MOONPAY_RECEIPT_URL } =
-	AppConstants.FIAT_ORDERS;
+const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL } = AppConstants.FIAT_ORDERS;
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
@@ -231,20 +223,6 @@ const moonPayCallbackOrderToFiatOrder = (moonPayRedirectObject) => ({
 export const handleMoonPayRedirect = (url, network, account) => {
 	/** @type {MoonPayRedirectTransaction} */
 	const data = qs.parse(url.split(MOONPAY_REDIRECT_URL)[1]);
-	const order = { ...moonPayCallbackOrderToFiatOrder(data), network, account };
-	return order;
-};
-
-/**
- * Function to handle MoonPay flow transaction receipt
- * @param {String} url MoonPay URL of transaction receipt with `transactionId` query param
- * @param {String} network Current network selected in the app
- * @param {String} account Current account selected in the app
- * @returns {FiatOrder}
- */
-export const handleMoonPayReceipt = (url, network, account) => {
-	/** @type {MoonPayTransactionReceipt} */
-	const data = qs.parse(url.split(MOONPAY_RECEIPT_URL)[1]);
 	const order = { ...moonPayCallbackOrderToFiatOrder(data), network, account };
 	return order;
 };
