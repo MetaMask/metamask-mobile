@@ -118,7 +118,7 @@ const getTransactionAmount = (transaction) =>
 const { MOONPAY_URL, MOONPAY_URL_STAGING, MOONPAY_API_URL_PRODUCTION, MOONPAY_REDIRECT_URL } = AppConstants.FIAT_ORDERS;
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
-
+// MoonPay uses the same API URL for orders created in their sandbox and production environments
 const MOONPAY_API_BASE_URL = isDevelopment ? MOONPAY_API_URL_PRODUCTION : MOONPAY_API_URL_PRODUCTION;
 const MOONPAY_API_KEY = isDevelopment ? MOONPAY_API_KEY_STAGING : MOONPAY_API_KEY_PRODUCTION;
 const MOONPAY_SIGN_API_URL = isDevelopment
