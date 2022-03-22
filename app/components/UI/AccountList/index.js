@@ -229,9 +229,7 @@ class AccountList extends PureComponent {
 
 	connectHardware = () => {
 		this.props.onConnectHardware();
-		// InteractionManager.runAfterInteractions(() => {
-		// 	Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
-		// });
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET);
 	};
 
 	addAccount = async () => {

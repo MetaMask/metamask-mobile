@@ -122,11 +122,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	}, [QRState.sync, hideScanner, showScanner]);
 
 	const onConnectHardware = useCallback(async () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET, {});
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONTINUE_QR_HARDWARE_WALLET, {
+			device_type: 'QR Hardware',
+		});
 		resetError();
 		const _accounts = await KeyringController.connectQRHardware(0);
 		setAccounts(_accounts);
 	}, [KeyringController, resetError]);
+
 	const onScanSuccess = useCallback(
 		(ur: UR) => {
 			hideScanner();
