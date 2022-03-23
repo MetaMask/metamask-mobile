@@ -40,7 +40,6 @@ class AuthenticationService {
 	}
 
 	private dispatchLogin(): void {
-		console.log(this.store);
 		if (this.store) {
 			this.store.dispatch(logIn());
 		} else Logger.log('Attempted to dispatch logIn action but dispatch was not initialized');
@@ -134,7 +133,7 @@ class AuthenticationService {
 	 * @param credentials - credentials provided by the user
 	 * @returns @AuthData
 	 */
-	checkAuthenticationMethod = async (credentials: any) => {
+	checkAuthenticationMethod = async (credentials: any): Promise<AuthData> => {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
@@ -256,7 +255,7 @@ class AuthenticationService {
 		this.dispatchLogout();
 	};
 
-	getType = async () => await this.checkAuthenticationMethod(undefined);
+	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod(undefined);
 }
 // eslint-disable-next-line import/prefer-default-export
 export const Authentication = new AuthenticationService();

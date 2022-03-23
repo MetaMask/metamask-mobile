@@ -278,17 +278,17 @@ class ChoosePassword extends PureComponent {
 
 	async componentDidMount() {
 		//Setup UI to handle Biometric
-		const authType = await Authentication.getType();
+		const { type } = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
-		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC)
+		if (type === AUTHENTICATION_TYPE.BIOMETRIC)
 			this.setState({
-				biometryType: authType.type,
+				biometryType: type,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 			});
-		else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
+		else if (type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? authType.type + '_ios' : authType.type + '_android',
+				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 			});
 		this.updateNavBar();

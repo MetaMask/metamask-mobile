@@ -223,9 +223,8 @@ class RevealPrivateCredential extends PureComponent {
 
 	async componentDidMount() {
 		this.updateNavBar();
-		// Try to use biometrics to unloc
-		// (if available)
-		const biometryType = await Authentication.getType();
+		// Try to use biometrics to unlock
+		const { biometryType } = await Authentication.getType();
 		if (!this.props.passwordSet) {
 			this.tryUnlockWithPassword('');
 		} else if (biometryType) {
