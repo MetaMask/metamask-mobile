@@ -359,7 +359,7 @@ class Settings extends PureComponent {
 
 		if (authType.type === AUTHENTICATION_TYPE.BIOMETRIC || authType.type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
-				biometryType: Device.isAndroid() ? authType.type : authType.biometryType,
+				biometryType: Device.isAndroid() ? AUTHENTICATION_TYPE.BIOMETRIC : authType.biometryType,
 				biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
 				passcodeChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 				analyticsEnabled,

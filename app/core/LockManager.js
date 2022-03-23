@@ -22,7 +22,7 @@ export default class LockManager {
 			return;
 		}
 
-		if (nextAppState !== 'active' && !this.locked) {
+		if (nextAppState !== 'active') {
 			// Auto-lock immediately
 			if (this.lockTime === 0) {
 				this.lockApp();
@@ -51,7 +51,6 @@ export default class LockManager {
 
 	gotoLockScreen = () => {
 		this.navigation.navigate('LockScreen', { backgroundMode: true });
-		this.locked = true;
 	};
 
 	lockApp = async () => {

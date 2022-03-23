@@ -123,7 +123,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		const appTriggeredAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				if (existingUser && !userLoggedIn && !locked.current && selectedAddress) {
+				if (existingUser && !locked.current && selectedAddress) {
 					await Authentication.appTriggeredAuth(selectedAddress);
 					locked.current = true;
 				}
