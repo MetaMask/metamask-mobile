@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Image, StyleSheet, View, Text } from 'react-native';
-import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
@@ -52,10 +51,6 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 			fontSize: 12,
 		},
-		buttonWrapper: {
-			width: 120,
-			marginTop: 30,
-		},
 	});
 
 /**
@@ -67,18 +62,10 @@ export default class WebviewError extends PureComponent {
 		 * error info
 		 */
 		error: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]),
-		/**
-		 * Function that reloads the page
-		 */
-		onReload: PropTypes.func,
 	};
 
 	static defaultProps = {
 		error: false,
-	};
-
-	onReload = () => {
-		this.props.onReload();
 	};
 
 	render() {
@@ -103,11 +90,6 @@ export default class WebviewError extends PureComponent {
 							error.description
 						}`}</Text>
 					) : null}
-				</View>
-				<View style={styles.buttonWrapper}>
-					<StyledButton type={'confirm'} onPress={this.onReload}>
-						{strings('webview_error.try_again')}
-					</StyledButton>
 				</View>
 			</View>
 		) : null;
