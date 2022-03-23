@@ -198,7 +198,6 @@ class AuthenticationService {
 			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
-			Logger.error(e.toString(), 'Failed wallet creation');
 			throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
 		}
 	};
@@ -225,7 +224,6 @@ class AuthenticationService {
 			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
-			Logger.error(e.toString(), 'Failed wallet creation');
 			throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
 		}
 	};
@@ -244,7 +242,6 @@ class AuthenticationService {
 			this.authData = authData;
 		} catch (e: any) {
 			this.logout();
-			Logger.error(e.toString(), 'Failed to login');
 			throw new AuthenticationError(e, 'Failed to login', this.authData);
 		}
 	};
@@ -262,7 +259,6 @@ class AuthenticationService {
 			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout();
-			Logger.error(e.toString(), 'appTriggeredAuth failed to login');
 			throw new AuthenticationError(e, 'appTriggeredAuth failed to login', this.authData);
 		}
 	};

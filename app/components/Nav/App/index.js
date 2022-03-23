@@ -236,18 +236,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		startApp();
 	}, []);
 
-	// useEffect(() => {
-	// 	if (!isAuthChecked) {
-	// 		return;
-	// 	}
-	// 	const startAnimation = async () => {
-	// 		await new Promise((res) => setTimeout(res, 50));
-	// 		animation?.current?.play();
-	// 		animationName?.current?.play();
-	// 	};
-	// 	startAnimation();
-	// }, [isAuthChecked]);
-
 	const setNavigatorRef = (ref) => {
 		if (!prevNavigator.current) {
 			setNavigator(ref);
@@ -265,16 +253,19 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		});
 	}, [opacity]);
 
-	if (!animationPlayed) {
-		return (
-			<MetaMaskAnimation
-				animation={animation}
-				animationName={animationName}
-				opacity={opacity}
-				onAnimationFinish={onAnimationFinished}
-			/>
-		);
-	}
+	const renderSplash = () => {
+		if (!animationPlayed) {
+			return (
+				<MetaMaskAnimation
+					animation={animation}
+					animationName={animationName}
+					opacity={opacity}
+					onAnimationFinish={onAnimationFinished}
+				/>
+			);
+		}
+		return null;
+	};
 
 	return (
 		// do not render unless a route is defined
@@ -302,6 +293,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
+				{renderSplash()}
 			</ThemeContext.Provider>
 		)) ||
 		null
