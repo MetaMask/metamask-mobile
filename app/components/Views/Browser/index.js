@@ -12,6 +12,7 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -35,13 +36,14 @@ const Browser = (props) => {
 	} = props;
 	const { drawerRef } = useContext(DrawerContext);
 	const previousTabs = useRef(null);
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	useEffect(
 		() => {
-			navigation.setOptions(getBrowserViewNavbarOptions(navigation, route, drawerRef));
+			navigation.setOptions(getBrowserViewNavbarOptions(navigation, route, drawerRef, colors));
 		},
 		/* eslint-disable-next-line */
-		[navigation, route]
+		[navigation, route, colors]
 	);
 
 	const newTab = (url) => {
@@ -263,8 +265,6 @@ const mapDispatchToProps = (dispatch) => ({
 	setActiveTab: (id) => dispatch(setActiveTab(id)),
 	updateTab: (id, url) => dispatch(updateTab(id, url)),
 });
-
-Browser.contextType = DrawerContext;
 
 Browser.propTypes = {
 	/**

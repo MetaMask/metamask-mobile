@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -22,87 +22,91 @@ import compareVersions from 'compare-versions';
 import scaling from '../../../util/scaling';
 import PropTypes from 'prop-types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		marginTop: 24,
-		maxHeight: Device.getDeviceHeight() - 200,
-		flex: 1,
-	},
-	button: {
-		marginTop: 16,
-		borderColor: colors.blue,
-		borderWidth: 1,
-		borderRadius: 50,
-		padding: 12,
-		paddingHorizontal: 34,
-	},
-	buttonText: {
-		color: colors.blue,
-		textAlign: 'center',
-		...fontStyles.normal,
-		fontWeight: '500',
-	},
-	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginBottom: 24,
-		paddingHorizontal: 24,
-	},
-	headerCenterAux: {
-		flex: 1,
-	},
-	headerClose: {
-		flex: 1,
-		alignItems: 'flex-end',
-	},
-	headerText: {
-		...fontStyles.bold,
-		fontSize: 18,
-		color: colors.black,
-	},
-	newFeatureImageContainer: {
-		flexDirection: 'row',
-		flex: 1,
-		borderRadius: 10,
-		marginBottom: 24,
-	},
-	newFeatureImage: {
-		flex: 1,
-		borderRadius: 10,
-		width: scaling.scale(280, { baseModel: 1 }),
-		height: scaling.scale(128, { baseModel: 1 }),
-	},
-	newFeatureTitle: {
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 12,
-		textAlign: 'center',
-		color: colors.black,
-	},
-	newFeatureText: {
-		...fontStyles.normal,
-		fontSize: 14,
-		lineHeight: 20,
-		textAlign: 'center',
-		color: colors.black,
-		marginBottom: 12,
-	},
-	buttonContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-	},
-	featureContainer: {
-		marginBottom: 25,
-		paddingHorizontal: 24,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			marginTop: 24,
+			maxHeight: Device.getDeviceHeight() - 200,
+			flex: 1,
+		},
+		button: {
+			marginTop: 16,
+			borderColor: colors.primary.default,
+			borderWidth: 1,
+			borderRadius: 50,
+			padding: 12,
+			paddingHorizontal: 34,
+		},
+		buttonText: {
+			color: colors.primary.default,
+			textAlign: 'center',
+			...fontStyles.normal,
+			fontWeight: '500',
+		},
+		header: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginBottom: 24,
+			paddingHorizontal: 24,
+		},
+		headerCenterAux: {
+			flex: 1,
+		},
+		headerClose: {
+			flex: 1,
+			alignItems: 'flex-end',
+		},
+		headerText: {
+			...fontStyles.bold,
+			fontSize: 18,
+			color: colors.text.default,
+		},
+		newFeatureImageContainer: {
+			flexDirection: 'row',
+			flex: 1,
+			borderRadius: 10,
+			marginBottom: 24,
+		},
+		newFeatureImage: {
+			flex: 1,
+			borderRadius: 10,
+			width: scaling.scale(280, { baseModel: 1 }),
+			height: scaling.scale(128, { baseModel: 1 }),
+		},
+		newFeatureTitle: {
+			...fontStyles.bold,
+			fontSize: 16,
+			marginBottom: 12,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		newFeatureText: {
+			...fontStyles.normal,
+			fontSize: 14,
+			lineHeight: 20,
+			textAlign: 'center',
+			color: colors.text.default,
+			marginBottom: 12,
+		},
+		buttonContainer: {
+			flexDirection: 'row',
+			justifyContent: 'center',
+		},
+		featureContainer: {
+			marginBottom: 25,
+			paddingHorizontal: 24,
+		},
+	});
 
 const WhatsNewModal = (props) => {
 	const [featuresToShow, setFeaturesToShow] = useState(null);
 	const [show, setShow] = useState(false);
 	const routes = useNavigationState((state) => state.routes);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	useEffect(() => {
 		const shouldShow = async () => {

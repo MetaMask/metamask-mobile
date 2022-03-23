@@ -1,69 +1,110 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-// import Device from '../../util/device';
-import { colors, fontStyles } from '../../styles/common';
+import { fontStyles } from '../../styles/common';
 import Text from './Text';
+import { useAppThemeFromContext, mockTheme } from '../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		padding: 15,
-		// TODO(wachunei): check if this can be removed without breaking anything
-		// minHeight: Device.isIos() ? 55 : 100
-	},
-	date: {
-		color: colors.fontSecondary,
-		fontSize: 12,
-		marginBottom: 10,
-		...fontStyles.normal,
-	},
-	content: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	actions: {
-		flexDirection: 'row',
-		paddingTop: 10,
-		paddingLeft: 40,
-	},
-	icon: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	body: {
-		flex: 1,
-		marginLeft: 15,
-	},
-	amounts: {
-		flex: 0.6,
-		alignItems: 'flex-end',
-	},
-	title: {
-		fontSize: 15,
-		color: colors.fontPrimary,
-	},
-	amount: {
-		fontSize: 15,
-		color: colors.fontPrimary,
-	},
-	fiatAmount: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		textTransform: 'uppercase',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			padding: 15,
+			// TODO(wachunei): check if this can be removed without breaking anything
+			// minHeight: Device.isIos() ? 55 : 100
+		},
+		date: {
+			color: colors.text.default,
+			fontSize: 12,
+			marginBottom: 10,
+			...fontStyles.normal,
+		},
+		content: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		actions: {
+			flexDirection: 'row',
+			paddingTop: 10,
+			paddingLeft: 40,
+		},
+		icon: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		body: {
+			flex: 1,
+			marginLeft: 15,
+		},
+		amounts: {
+			flex: 0.6,
+			alignItems: 'flex-end',
+		},
+		title: {
+			fontSize: 15,
+			color: colors.text.default,
+		},
+		amount: {
+			fontSize: 15,
+			color: colors.text.default,
+		},
+		fiatAmount: {
+			fontSize: 12,
+			color: colors.text.alternative,
+			textTransform: 'uppercase',
+		},
+	});
 
-const ListItem = ({ style, ...props }) => <View style={[styles.wrapper, style]} {...props} />;
+const ListItem = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <View style={[styles.wrapper, style]} {...props} />;
+};
 
-const ListItemDate = ({ style, ...props }) => <Text style={[styles.date, style]} {...props} />;
-const ListItemContent = ({ style, ...props }) => <View style={[styles.content, style]} {...props} />;
-const ListItemActions = ({ style, ...props }) => <View style={[styles.actions, style]} {...props} />;
-const ListItemIcon = ({ style, ...props }) => <View style={[styles.icon, style]} {...props} />;
-const ListItemBody = ({ style, ...props }) => <View style={[styles.body, style]} {...props} />;
-const ListItemTitle = ({ style, ...props }) => <Text style={[styles.title, style]} {...props} />;
-const ListItemAmounts = ({ style, ...props }) => <View style={[styles.amounts, style]} {...props} />;
-const ListItemAmount = ({ style, ...props }) => <Text style={[styles.amount, style]} {...props} />;
-const ListItemFiatAmount = ({ style, ...props }) => <Text style={[styles.fiatAmount, style]} {...props} />;
+const ListItemDate = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <Text style={[styles.date, style]} {...props} />;
+};
+const ListItemContent = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <View style={[styles.content, style]} {...props} />;
+};
+const ListItemActions = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <View style={[styles.actions, style]} {...props} />;
+};
+const ListItemIcon = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <View style={[styles.icon, style]} {...props} />;
+};
+const ListItemBody = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <View style={[styles.body, style]} {...props} />;
+};
+const ListItemTitle = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <Text style={[styles.title, style]} {...props} />;
+};
+const ListItemAmounts = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <View style={[styles.amounts, style]} {...props} />;
+};
+const ListItemAmount = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <Text style={[styles.amount, style]} {...props} />;
+};
+const ListItemFiatAmount = ({ style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+	return <Text style={[styles.fiatAmount, style]} {...props} />;
+};
 
 ListItem.Date = ListItemDate;
 ListItem.Content = ListItemContent;

@@ -1,8 +1,10 @@
 import TestHelpers from '../../helpers';
+import {
+	NETWORK_SCROLL_ID,
+	NETWORK_LIST_MODAL_CONTAINER_ID,
+	OTHER_NETWORK_LIST_ID,
+} from '../../../app/constants/test-ids';
 
-const NETWORK_LIST_MODAL_CONTAINER_ID = 'networks-list';
-const OTHER_NETWORK_LIST_ID = 'other-network-name';
-const NETWORK_SCROLL_ID = 'other-networks-scroll';
 export default class NetworkListModal {
 	static async changeNetwork(networkName) {
 		await TestHelpers.tapByText(networkName);

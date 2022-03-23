@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -11,30 +11,32 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	messageText: {
-		color: colors.black,
-		...fontStyles.normal,
-		fontFamily: Device.isIos() ? 'Courier' : 'Roboto',
-	},
-	message: {
-		marginLeft: 10,
-	},
-	truncatedMessageWrapper: {
-		marginBottom: 4,
-		overflow: 'hidden',
-	},
-	iosHeight: {
-		height: 70,
-	},
-	androidHeight: {
-		height: 97,
-	},
-	msgKey: {
-		fontWeight: 'bold',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		messageText: {
+			color: colors.text.default,
+			...fontStyles.normal,
+			fontFamily: Device.isIos() ? 'Courier' : 'Roboto',
+		},
+		message: {
+			marginLeft: 10,
+		},
+		truncatedMessageWrapper: {
+			marginBottom: 4,
+			overflow: 'hidden',
+		},
+		iosHeight: {
+			height: 70,
+		},
+		androidHeight: {
+			height: 97,
+		},
+		msgKey: {
+			fontWeight: 'bold',
+		},
+	});
 
 /**
  * Component that supports eth_signTypedData and eth_signTypedData_v3
@@ -155,8 +157,15 @@ export default class TypedSign extends PureComponent {
 		this.setState({ truncateMessage: false });
 	};
 
-	renderTypedMessageV3 = (obj) =>
-		Object.keys(obj).map((key) => (
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
+	renderTypedMessageV3 = (obj) => {
+		const styles = this.getStyles();
+
+		return Object.keys(obj).map((key) => (
 			<View style={styles.message} key={key}>
 				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>
@@ -170,9 +179,12 @@ export default class TypedSign extends PureComponent {
 				)}
 			</View>
 		));
+	};
 
 	renderTypedMessage = () => {
 		const { messageParams } = this.props;
+		const styles = this.getStyles();
+
 		if (messageParams.version === 'V1') {
 			return (
 				<View style={styles.message}>
@@ -198,6 +210,8 @@ export default class TypedSign extends PureComponent {
 		const { truncateMessage } = this.state;
 		const messageWrapperStyles = [];
 		let domain;
+		const styles = this.getStyles();
+
 		if (messageParams.version === 'V3') {
 			domain = JSON.parse(messageParams.data).domain;
 		}
@@ -235,3 +249,5 @@ export default class TypedSign extends PureComponent {
 		return rootView;
 	}
 }
+
+TypedSign.contextType = ThemeContext;

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetActionButton from '../AssetActionButton';
@@ -12,39 +12,41 @@ import collectiblesTransferInformation from '../../../util/collectibles-transfer
 import { newAssetTransaction } from '../../../actions/transaction';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		paddingHorizontal: 20,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
-		alignContent: 'center',
-		alignItems: 'center',
-		paddingBottom: 30,
-	},
-	assetLogo: {
-		marginTop: 20,
-	},
-	information: {
-		flex: 1,
-		flexDirection: 'row',
-		marginTop: 10,
-		marginBottom: 20,
-	},
-	name: {
-		fontSize: 30,
-		textAlign: 'center',
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	actions: {
-		width: Device.isSmallDevice() ? '65%' : '50%',
-		justifyContent: 'space-around',
-		alignItems: 'flex-start',
-		flexDirection: 'row',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			paddingHorizontal: 20,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderBottomColor: colors.border.muted,
+			alignContent: 'center',
+			alignItems: 'center',
+			paddingBottom: 30,
+		},
+		assetLogo: {
+			marginTop: 20,
+		},
+		information: {
+			flex: 1,
+			flexDirection: 'row',
+			marginTop: 10,
+			marginBottom: 20,
+		},
+		name: {
+			fontSize: 30,
+			textAlign: 'center',
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		actions: {
+			width: Device.isSmallDevice() ? '65%' : '50%',
+			justifyContent: 'space-around',
+			alignItems: 'flex-start',
+			flexDirection: 'row',
+		},
+	});
 
 /**
  * View that displays a specific collectible contract
@@ -107,6 +109,8 @@ class CollectibleContractOverview extends PureComponent {
 			collectibleContract: { name, address },
 			ownerOf,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const lowerAddress = address.toLowerCase();
 		const leftActionButtonText =
 			lowerAddress in collectiblesTransferInformation
@@ -148,5 +152,7 @@ const mapDispatchToProps = (dispatch) => ({
 	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
+
+CollectibleContractOverview.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContractOverview);

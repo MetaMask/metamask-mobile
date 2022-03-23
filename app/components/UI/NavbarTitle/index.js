@@ -2,43 +2,45 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		alignItems: 'center',
-		flex: 1,
-	},
-	network: {
-		flexDirection: 'row',
-	},
-	networkName: {
-		fontSize: 11,
-		color: colors.grey400,
-		...fontStyles.normal,
-	},
-	networkIcon: {
-		width: 5,
-		height: 5,
-		borderRadius: 100,
-		marginRight: 5,
-		marginTop: Device.isIos() ? 4 : 5,
-	},
-	title: {
-		fontSize: 18,
-		...fontStyles.normal,
-		color: colors.black,
-	},
-	otherNetworkIcon: {
-		backgroundColor: colors.transparent,
-		borderColor: colors.grey100,
-		borderWidth: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			alignItems: 'center',
+			flex: 1,
+		},
+		network: {
+			flexDirection: 'row',
+		},
+		networkName: {
+			fontSize: 11,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		networkIcon: {
+			width: 5,
+			height: 5,
+			borderRadius: 100,
+			marginRight: 5,
+			marginTop: Device.isIos() ? 4 : 5,
+		},
+		title: {
+			fontSize: 18,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		otherNetworkIcon: {
+			backgroundColor: importedColors.transparent,
+			borderColor: colors.border.default,
+			borderWidth: 1,
+		},
+	});
 
 /**
  * UI PureComponent that renders inside the navbar
@@ -90,6 +92,8 @@ class NavbarTitle extends PureComponent {
 		const { network, title, translate } = this.props;
 		let name = null;
 		const color = (Networks[network.provider.type] && Networks[network.provider.type].color) || null;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		if (network.provider.nickname) {
 			name = network.provider.nickname;
@@ -123,6 +127,8 @@ class NavbarTitle extends PureComponent {
 		);
 	};
 }
+
+NavbarTitle.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController,

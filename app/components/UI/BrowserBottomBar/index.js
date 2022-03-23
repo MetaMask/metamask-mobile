@@ -9,49 +9,50 @@ import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
-import { colors } from '../../../styles/common';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const HOME_INDICATOR_HEIGHT = 18;
 const defaultBottomBarPadding = 0;
 
-const styles = StyleSheet.create({
-	bottomBar: {
-		backgroundColor: Device.isAndroid() ? colors.white : colors.grey000,
-		flexDirection: 'row',
-		paddingBottom:
-			Device.isIphoneX() && Device.isIos()
-				? defaultBottomBarPadding + HOME_INDICATOR_HEIGHT
-				: defaultBottomBarPadding,
-		flex: 0,
-		borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
-		borderColor: colors.grey200,
-		justifyContent: 'space-between',
-	},
-	iconButton: {
-		height: 24,
-		width: 24,
-		justifyContent: 'space-around',
-		alignItems: 'center',
-		textAlign: 'center',
-		flex: 1,
-		paddingTop: 30,
-		paddingBottom: 30,
-	},
-	tabIcon: {
-		marginTop: 0,
-		width: 24,
-		height: 24,
-	},
-	disabledIcon: {
-		color: colors.grey100,
-	},
-	icon: {
-		width: 24,
-		height: 24,
-		color: colors.grey500,
-		textAlign: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		bottomBar: {
+			backgroundColor: colors.background.default,
+			flexDirection: 'row',
+			paddingBottom:
+				Device.isIphoneX() && Device.isIos()
+					? defaultBottomBarPadding + HOME_INDICATOR_HEIGHT
+					: defaultBottomBarPadding,
+			flex: 0,
+			borderTopWidth: Device.isAndroid() ? 0 : StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+			justifyContent: 'space-between',
+		},
+		iconButton: {
+			height: 24,
+			width: 24,
+			justifyContent: 'space-around',
+			alignItems: 'center',
+			textAlign: 'center',
+			flex: 1,
+			paddingTop: 30,
+			paddingBottom: 30,
+		},
+		tabIcon: {
+			marginTop: 0,
+			width: 24,
+			height: 24,
+		},
+		disabledIcon: {
+			color: colors.icon.muted,
+		},
+		icon: {
+			width: 24,
+			height: 24,
+			color: colors.icon.default,
+			textAlign: 'center',
+		},
+	});
 
 /**
  * Browser bottom bar that contains icons for navigatio
@@ -110,6 +111,8 @@ export default class BrowserBottomBar extends PureComponent {
 	render() {
 		const { canGoBack, goBack, canGoForward, goForward, showTabs, goHome, showUrlModal, toggleOptions } =
 			this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		const onSearchPress = () => {
 			showUrlModal();
@@ -171,3 +174,5 @@ export default class BrowserBottomBar extends PureComponent {
 		);
 	}
 }
+
+BrowserBottomBar.contextType = ThemeContext;

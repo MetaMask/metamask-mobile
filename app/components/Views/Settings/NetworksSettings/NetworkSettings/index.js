@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View, TextInput, SafeAreaView } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import Networks, { isprivateConnection, getAllNetworks, isSafeChainId } from '../../../../../util/networks';
@@ -18,68 +18,71 @@ import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		flexDirection: 'column',
-	},
-	informationWrapper: {
-		flex: 1,
-		paddingHorizontal: 24,
-	},
-	scrollWrapper: {
-		flex: 1,
-		paddingVertical: 12,
-	},
-	input: {
-		...fontStyles.normal,
-		borderColor: colors.grey200,
-		borderRadius: 5,
-		borderWidth: 2,
-		padding: 10,
-	},
-	warningText: {
-		...fontStyles.normal,
-		color: colors.red,
-		marginTop: 4,
-		paddingLeft: 2,
-		paddingRight: 4,
-	},
-	warningContainer: {
-		marginTop: 4,
-		flexGrow: 1,
-		flexShrink: 1,
-	},
-	label: {
-		fontSize: 14,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	title: {
-		fontSize: 20,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-	desc: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	buttonsWrapper: {
-		marginVertical: 12,
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-	},
-	buttonsContainer: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'flex-end',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			flexDirection: 'column',
+		},
+		informationWrapper: {
+			flex: 1,
+			paddingHorizontal: 24,
+		},
+		scrollWrapper: {
+			flex: 1,
+			paddingVertical: 12,
+		},
+		input: {
+			...fontStyles.normal,
+			borderColor: colors.border.default,
+			borderRadius: 5,
+			borderWidth: 2,
+			padding: 10,
+			color: colors.text.default,
+		},
+		warningText: {
+			...fontStyles.normal,
+			color: colors.error.default,
+			marginTop: 4,
+			paddingLeft: 2,
+			paddingRight: 4,
+		},
+		warningContainer: {
+			marginTop: 4,
+			flexGrow: 1,
+			flexShrink: 1,
+		},
+		label: {
+			fontSize: 14,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		title: {
+			fontSize: 20,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+		desc: {
+			fontSize: 14,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		buttonsWrapper: {
+			marginVertical: 12,
+			flexDirection: 'row',
+			alignSelf: 'flex-end',
+		},
+		buttonsContainer: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'flex-end',
+		},
+	});
 
 const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = `https://api.infura.io/v1/jsonrpc/`;
@@ -101,9 +104,6 @@ class NetworkSettings extends PureComponent {
 		 */
 		route: PropTypes.object,
 	};
-
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
 
 	state = {
 		rpcUrl: undefined,
@@ -129,7 +129,16 @@ class NetworkSettings extends PureComponent {
 
 	getOtherNetworks = () => allNetworks.slice(1);
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation, false, colors)
+		);
+	};
+
 	componentDidMount = () => {
+		this.updateNavBar();
 		const { route, frequentRpcList } = this.props;
 		const network = route.params?.network;
 		let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
@@ -162,6 +171,10 @@ class NetworkSettings extends PureComponent {
 				inputWidth: { width: '100%' },
 			});
 		}, 100);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	/**
@@ -243,17 +256,39 @@ class NetworkSettings extends PureComponent {
 		return true;
 	};
 
+	checkIfNetworkExists = async (rpcUrl) => {
+		const checkCustomNetworks = this.props.frequentRpcList.filter((item) => item.rpcUrl === rpcUrl);
+		if (checkCustomNetworks.length > 0) {
+			this.setState({ warningRpcUrl: strings('app_settings.network_exists') });
+			return checkCustomNetworks;
+		}
+		const defaultNetworks = getAllNetworks().map((item) => Networks[item]);
+		const checkDefaultNetworks = defaultNetworks.filter((item) => Number(item.rpcUrl) === rpcUrl);
+		if (checkDefaultNetworks.length > 0) {
+			return checkDefaultNetworks;
+		}
+		return [];
+	};
+
 	/**
 	 * Add rpc url and parameters to PreferencesController
 	 * Setting NetworkController provider to this custom rpc
 	 */
 	addRpcUrl = async () => {
 		const { PreferencesController, NetworkController, CurrencyRateController } = Engine.context;
-		const { rpcUrl, chainId: stateChainId, nickname, blockExplorerUrl } = this.state;
+		const { rpcUrl, chainId: stateChainId, nickname, blockExplorerUrl, editable, enableAction } = this.state;
 		const ticker = this.state.ticker && this.state.ticker.toUpperCase();
 		const { navigation } = this.props;
+		// Check if CTA is disabled
+		const isCtaDisabled = !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+		if (isCtaDisabled) {
+			return;
+		}
+		// Conditionally check existence of network (Only check in Add Mode)
+		const isNetworkExists = editable ? [] : await this.checkIfNetworkExists(rpcUrl);
 
 		const formChainId = stateChainId.trim().toLowerCase();
+
 		// Ensure chainId is a 0x-prefixed, lowercase hex string
 		let chainId = formChainId;
 		if (!chainId.startsWith('0x')) {
@@ -264,18 +299,20 @@ class NetworkSettings extends PureComponent {
 			return;
 		}
 
-		if (this.validateRpcUrl()) {
+		if (this.validateRpcUrl() && isNetworkExists.length === 0) {
 			const url = new URL(rpcUrl);
 			const decimalChainId = this.getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			CurrencyRateController.setNativeCurrency(ticker);
-			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
+			// Remove trailing slashes
+			const formattedHref = url.href.replace(/\/+$/, '');
+			PreferencesController.addToFrequentRpcList(formattedHref, decimalChainId, ticker, nickname, {
 				blockExplorerUrl,
 			});
-			NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
+			NetworkController.setRpcTarget(formattedHref, decimalChainId, ticker, nickname);
 
 			const analyticsParamsAdd = {
-				rpc_url: url.href,
+				rpc_url: formattedHref,
 				chain_id: decimalChainId,
 				source: 'Settings',
 				symbol: ticker,
@@ -292,8 +329,9 @@ class NetworkSettings extends PureComponent {
 	 * Validates rpc url, setting a warningRpcUrl if is invalid
 	 * It also changes validatedRpcURL to true, indicating that was validated
 	 */
-	validateRpcUrl = () => {
+	validateRpcUrl = async () => {
 		const { rpcUrl } = this.state;
+		const isNetworkExists = await this.checkIfNetworkExists(rpcUrl);
 		if (!isWebUri(rpcUrl)) {
 			const appendedRpc = `http://${rpcUrl}`;
 			if (isWebUri(appendedRpc)) {
@@ -302,6 +340,10 @@ class NetworkSettings extends PureComponent {
 				this.setState({ warningRpcUrl: strings('app_settings.invalid_rpc_url') });
 			}
 			return false;
+		}
+
+		if (isNetworkExists.length > 0) {
+			return this.setState({ validatedRpcURL: true, warningRpcUrl: strings('app_settings.network_exists') });
 		}
 		const url = new URL(rpcUrl);
 		const privateConnection = isprivateConnection(url.hostname);
@@ -451,6 +493,10 @@ class NetworkSettings extends PureComponent {
 			enableAction,
 			inputWidth,
 		} = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
 				<KeyboardAwareScrollView style={styles.informationWrapper}>
@@ -471,9 +517,10 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onNicknameChange}
 							placeholder={strings('app_settings.network_name_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToRpcURL}
 							testID={'input-network-name'}
+							keyboardAppearance={themeAppearance}
 						/>
 
 						<Text style={styles.label}>{strings('app_settings.network_rpc_url_label')}</Text>
@@ -487,9 +534,10 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onRpcUrlChange}
 							onBlur={this.validateRpcUrl}
 							placeholder={strings('app_settings.network_rpc_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToChainId}
 							testID={'input-rpc-url'}
+							keyboardAppearance={themeAppearance}
 						/>
 						{warningRpcUrl && (
 							<View style={styles.warningContainer} testID={'rpc-url-warning'}>
@@ -508,10 +556,11 @@ class NetworkSettings extends PureComponent {
 							onChangeText={this.onChainIDChange}
 							onBlur={this.validateChainId}
 							placeholder={strings('app_settings.network_chain_id_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpToSymbol}
 							keyboardType={'numbers-and-punctuation'}
 							testID={'input-chain-id'}
+							keyboardAppearance={themeAppearance}
 						/>
 						{warningChainId ? (
 							<View style={styles.warningContainer}>
@@ -529,9 +578,10 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onTickerChange}
 							placeholder={strings('app_settings.network_symbol_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.jumpBlockExplorerURL}
 							testID={'input-network-symbol'}
+							keyboardAppearance={themeAppearance}
 						/>
 
 						<Text style={styles.label}>{strings('app_settings.network_block_explorer_label')}</Text>
@@ -544,8 +594,9 @@ class NetworkSettings extends PureComponent {
 							editable={editable}
 							onChangeText={this.onBlockExplorerUrlChange}
 							placeholder={strings('app_settings.network_block_explorer_placeholder')}
-							placeholderTextColor={colors.grey100}
+							placeholderTextColor={colors.text.muted}
 							onSubmitEditing={this.addRpcUrl}
+							keyboardAppearance={themeAppearance}
 						/>
 					</View>
 					{(addMode || editable) && (
@@ -570,6 +621,8 @@ class NetworkSettings extends PureComponent {
 		);
 	}
 }
+
+NetworkSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
