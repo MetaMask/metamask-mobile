@@ -330,11 +330,6 @@ class Send extends PureComponent {
 			// TODO: We should add here support for sending tokens
 			// or calling smart contract functions
 		}
-		if (!newTxMeta.gas || !newTxMeta.gasPrice) {
-			const { gas, gasPrice } = await Engine.context.TransactionController.estimateGas(this.props.transaction);
-			newTxMeta.gas = toBN(gas);
-			newTxMeta.gasPrice = toBN(gasPrice);
-		}
 
 		if (!newTxMeta.value) {
 			newTxMeta.value = toBN(0);
