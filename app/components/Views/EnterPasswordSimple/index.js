@@ -41,9 +41,6 @@ const createStyles = (colors) =>
  * View where users can re-enter their password
  */
 export default class EnterPasswordSimple extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('enter_password.title'), navigation);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -63,9 +60,23 @@ export default class EnterPasswordSimple extends PureComponent {
 
 	mounted = true;
 
-	componentWillUnmount() {
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(getNavigationOptionsTitle(strings('enter_password.title'), navigation, false, colors));
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
+
+	componentWillUnmount = () => {
 		this.mounted = false;
-	}
+	};
 
 	onPressConfirm = async () => {
 		if (this.state.loading) return;
