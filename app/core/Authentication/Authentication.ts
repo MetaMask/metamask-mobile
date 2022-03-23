@@ -56,7 +56,7 @@ class AuthenticationService {
 	 * @param password - password entered on login
 	 * @param selectedAddress - current address pulled from persisted state
 	 */
-	private loginVaultCreation = async (password: string, selectedAddress: string) => {
+	private loginVaultCreation = async (password: string, selectedAddress: string): Promise<void> => {
 		// Restore vault with user entered password
 		const { KeyringController }: any = Engine.context;
 		await KeyringController.submitPassword(password);
@@ -78,7 +78,11 @@ class AuthenticationService {
 	 * @param parsedSeed - provided seed
 	 * @param clearEngine - clear the engine state before restoring vault
 	 */
-	private newWalletVaultAndRestore = async (password: string, parsedSeed: string, clearEngine: boolean) => {
+	private newWalletVaultAndRestore = async (
+		password: string,
+		parsedSeed: string,
+		clearEngine: boolean
+	): Promise<void> => {
 		// Restore vault with user entered password
 		const { KeyringController }: any = Engine.context;
 		if (clearEngine) await Engine.resetState();
@@ -90,7 +94,7 @@ class AuthenticationService {
 	 * This method creates a new wallet with all new data
 	 * @param password - password provided by user, biometric, pincode
 	 */
-	private createWalletVaultAndKeychain = async (password: string) => {
+	private createWalletVaultAndKeychain = async (password: string): Promise<void> => {
 		const { KeyringController }: any = Engine.context;
 		await Engine.resetState();
 		await KeyringController.createNewVaultAndKeychain(password);
@@ -99,7 +103,7 @@ class AuthenticationService {
 	/**
 	 * Reset vault will empty password used to clear/reset vault upon errors during login/creation
 	 */
-	resetVault = async () => {
+	resetVault = async (): Promise<void> => {
 		const { KeyringController }: any = Engine.context;
 		// Restore vault with empty password
 		await KeyringController.submitPassword('');
@@ -111,7 +115,7 @@ class AuthenticationService {
 	 * @param password - password provided by user
 	 * @param authType - type of authentication required to fetch password from keychain
 	 */
-	storePassword = async (password: string, authType: AUTHENTICATION_TYPE) => {
+	storePassword = async (password: string, authType: AUTHENTICATION_TYPE): Promise<void> => {
 		if (authType === AUTHENTICATION_TYPE.BIOMETRIC) {
 			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
 		} else if (authType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -154,7 +158,7 @@ class AuthenticationService {
 	 * @param rememberMe - remember me setting (//TODO: to be removed)
 	 * @returns @AuthData
 	 */
-	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean) => {
+	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean): Promise<AuthData> => {
 		const authType = await this.checkAuthenticationMethod(undefined);
 		if (rememberMe && !biometryChoice)
 			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType: authType.biometryType };
@@ -168,7 +172,7 @@ class AuthenticationService {
 	 * @param password - password provided by user
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
-	newWalletAndKeyChain = async (password: string, authData: AuthData) => {
+	newWalletAndKeyChain = async (password: string, authData: AuthData): Promise<void> => {
 		try {
 			await this.createWalletVaultAndKeychain(password);
 			await this.storePassword(password, authData?.type);
@@ -190,7 +194,12 @@ class AuthenticationService {
 	 * @param parsedSeed
 	 * @param clearEngine
 	 */
-	newWalletAndRestore = async (password: string, authData: AuthData, parsedSeed: string, clearEngine: boolean) => {
+	newWalletAndRestore = async (
+		password: string,
+		authData: AuthData,
+		parsedSeed: string,
+		clearEngine: boolean
+	): Promise<void> => {
 		try {
 			await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 			await this.storePassword(password, authData.type);
@@ -211,7 +220,7 @@ class AuthenticationService {
 	 * @param password - password provided by user
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
-	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string) => {
+	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string): Promise<void> => {
 		try {
 			await this.loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
@@ -228,7 +237,7 @@ class AuthenticationService {
 	 * Attempts to use biometric/pin code/remember me to login
 	 * @param selectedAddress - current address pulled from persisted state
 	 */
-	appTriggeredAuth = async (selectedAddress: string) => {
+	appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
 		try {
 			const password = credentials?.password;
@@ -245,7 +254,7 @@ class AuthenticationService {
 	/**
 	 * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
 	 */
-	logout = async () => {
+	logout = async (): Promise<void> => {
 		const { KeyringController }: any = Engine.context;
 		await SecureKeychain.resetGenericPassword();
 		if (KeyringController.isUnlocked()) {
