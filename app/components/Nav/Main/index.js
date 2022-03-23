@@ -43,7 +43,7 @@ import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
-import AuthenticationService from '../../../core/AuthenticationService';
+import Authentication from '../../../core/Authentication';
 
 const Stack = createStackNavigator();
 
@@ -183,6 +183,7 @@ const Main = (props) => {
 	};
 
 	const navigateToLockScreen = () => {
+		console.log('navigateToLockScreen');
 		props.navigation.dispatch('LockScreen', { backgroundMode: true });
 	};
 
@@ -194,11 +195,11 @@ const Main = (props) => {
 		}
 
 		if (props.navigation) {
-			AuthenticationService.setNavigateToLockScreen(navigateToLockScreen);
+			Authentication.setNavigateToLockScreen(navigateToLockScreen);
 		}
 
 		if (prevLockTime !== props.lockTime) {
-			AuthenticationService.setLockTime(props.lockTime);
+			Authentication.setLockTime(props.lockTime);
 		}
 	});
 
