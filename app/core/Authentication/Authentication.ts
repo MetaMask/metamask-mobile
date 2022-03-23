@@ -158,13 +158,23 @@ class AuthenticationService {
 	 * @param rememberMe - remember me setting (//TODO: to be removed)
 	 * @returns @AuthData
 	 */
-	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean): Promise<AuthData> => {
-		const authType = await this.checkAuthenticationMethod(undefined);
-		if (rememberMe && !biometryChoice)
-			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType: authType.biometryType };
-		else if (!rememberMe && !biometryChoice)
-			return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType: authType.biometryType };
-		return authType;
+	componentAuthenticationType = async (biometryChoice: boolean, rememberMe: boolean) => {
+		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
+		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
+		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
+
+		if (biometryType && biometryChoice && !(biometryPreviouslyDisabled && biometryPreviouslyDisabled === TRUE)) {
+			return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
+		} else if (rememberMe) {
+			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
+		} else if (
+			biometryType &&
+			biometryChoice &&
+			!(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)
+		) {
+			return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
+		}
+		return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType };
 	};
 
 	/**

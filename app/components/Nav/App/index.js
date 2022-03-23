@@ -105,8 +105,9 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
-	const navigator = useRef();
 	const locked = useRef(false);
+	const [navigator, setNavigator] = useState(undefined);
+	const prevNavigator = useRef(navigator);
 	const [route, setRoute] = useState();
 	const [authCancelled, setAuthCancelled] = useState(false);
 	const [animationPlayed, setAnimationPlayed] = useState();
@@ -234,6 +235,24 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 		startApp();
 	}, []);
+
+	// useEffect(() => {
+	// 	if (!isAuthChecked) {
+	// 		return;
+	// 	}
+	// 	const startAnimation = async () => {
+	// 		await new Promise((res) => setTimeout(res, 50));
+	// 		animation?.current?.play();
+	// 		animationName?.current?.play();
+	// 	};
+	// 	startAnimation();
+	// }, [isAuthChecked]);
+
+	const setNavigatorRef = (ref) => {
+		if (!prevNavigator.current) {
+			setNavigator(ref);
+		}
+	};
 
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
