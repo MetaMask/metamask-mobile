@@ -1,6 +1,7 @@
 # Changelog
 
 ## Current Main Branch
+- [#3940](https://github.com/MetaMask/metamask-mobile/pull/3940): [FIX] Fix browser crash
 
 ## v4.3.0 - March 16, 2022
 - [#3916](https://github.com/MetaMask/metamask-mobile/pull/3916): [FIX] Patch Android clipboard crasher
