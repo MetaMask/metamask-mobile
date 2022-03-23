@@ -314,27 +314,30 @@ export async function getTransactionActionKey(transaction, chainId) {
  * @returns {string} - Transaction type message
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
-	if (tx && tx.isTransfer) {
-		const selfSent = safeToChecksumAddress(tx.transaction.from) === selectedAddress;
-		const translationKey = selfSent ? 'transactions.self_sent_unit' : 'transactions.received_unit';
-		// Third party sending wrong token symbol
-		if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) tx.transferInformation.symbol = 'SAI';
-		return strings(translationKey, { unit: tx.transferInformation.symbol });
-	}
 	const actionKey = await getTransactionActionKey(tx, chainId);
 	if (actionKey === SEND_ETHER_ACTION_KEY) {
+		let currencySymbol = ticker;
+
+		if (tx?.isTransfer) {
+			// Third party sending wrong token symbol
+			if (tx.transferInformation.contractAddress === SAI_ADDRESS.toLowerCase()) {
+				tx.transferInformation.symbol = 'SAI';
+			}
+			currencySymbol = tx.transferInformation.symbol;
+		}
+
 		const incoming = safeToChecksumAddress(tx.transaction.to) === selectedAddress;
 		const selfSent = incoming && safeToChecksumAddress(tx.transaction.from) === selectedAddress;
 		return incoming
 			? selfSent
-				? ticker
-					? strings('transactions.self_sent_unit', { unit: ticker })
+				? currencySymbol
+					? strings('transactions.self_sent_unit', { unit: currencySymbol })
 					: strings('transactions.self_sent_ether')
-				: ticker
-				? strings('transactions.received_unit', { unit: ticker })
+				: currencySymbol
+				? strings('transactions.received_unit', { unit: currencySymbol })
 				: strings('transactions.received_ether')
-			: ticker
-			? strings('transactions.sent_unit', { unit: ticker })
+			: currencySymbol
+			? strings('transactions.sent_unit', { unit: currencySymbol })
 			: strings('transactions.sent_ether');
 	}
 	const transactionActionKey = actionKeys[actionKey];
