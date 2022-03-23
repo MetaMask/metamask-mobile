@@ -21,7 +21,6 @@ export default class LockManager {
 		if (this.lockTime === -1) {
 			return;
 		}
-		console.log('APP STATE', nextAppState);
 
 		if (nextAppState !== 'active' && !this.locked) {
 			// Auto-lock immediately
@@ -52,7 +51,6 @@ export default class LockManager {
 
 	gotoLockScreen = () => {
 		this.navigation.navigate('LockScreen', { backgroundMode: true });
-		console.log('GO TO LOCK');
 		this.locked = true;
 	};
 

@@ -30,13 +30,19 @@ export interface AuthData {
 class AuthenticationService {
 	private authData: AuthData = { type: AUTHENTICATION_TYPE.UNKNOWN };
 	private store: Store | undefined = undefined;
+	private static isInitialized = false;
 
 	/**
 	 * This method creates the instance of the authentication class
 	 * @param {Store} store - A redux function that will dispatch global state actions
 	 */
 	init(store: Store) {
-		this.store = store;
+		if (AuthenticationService.isInitialized === false) {
+			AuthenticationService.isInitialized = true;
+			this.store = store;
+		} else {
+			Logger.log('Attempted to call init on AuthenticationService but an instance has already been initialized');
+		}
 	}
 
 	private dispatchLogin(): void {

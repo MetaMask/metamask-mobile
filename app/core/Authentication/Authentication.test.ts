@@ -7,6 +7,7 @@ import * as Keychain from 'react-native-keychain';
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import configureMockStore from 'redux-mock-store';
+import Logger from '../../util/Logger';
 
 describe('Authentication', () => {
 	const mockStore = configureMockStore();
@@ -20,6 +21,15 @@ describe('Authentication', () => {
 	afterEach(() => {
 		AsyncStorage.clear();
 		jest.restoreAllMocks();
+	});
+
+	it('Does not initialize class more than once', async () => {
+		const spy = jest.spyOn(Logger, 'log');
+		Authentication.init(store);
+		Authentication.init(store);
+		expect(spy).toHaveBeenCalledWith(
+			'Attempted to call init on AuthenticationService but an instance has already been initialized'
+		);
 	});
 
 	it('should return a type password', async () => {
