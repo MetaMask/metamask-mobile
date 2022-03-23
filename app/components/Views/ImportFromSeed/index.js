@@ -11,6 +11,7 @@ import {
 	SafeAreaView,
 	StyleSheet,
 	InteractionManager,
+	Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -51,6 +52,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+
+const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -380,9 +383,13 @@ class ImportFromSeed extends PureComponent {
 
 	onSeedWordsChange = async (seed) => {
 		this.setState({ seed });
-		// only clear on android since iOS will notify users when we getString()
+		// Only clear on android since iOS will notify users when we getString()
 		if (Device.isAndroid()) {
-			await this.clearSecretRecoveryPhrase(seed);
+			const androidOSVersion = parseInt(Platform.constants.Release, 10);
+			// This conditional is necessary to avoid an error in Android 8.1.0 or lower
+			if (androidOSVersion >= MINIMUM_SUPPORTED_CLIPBOARD_VERSION) {
+				await this.clearSecretRecoveryPhrase(seed);
+			}
 		}
 	};
 
