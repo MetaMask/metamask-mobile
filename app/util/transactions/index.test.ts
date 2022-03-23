@@ -1,6 +1,5 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
-import { strings } from '../../../locales/i18n';
 
 import {
 	generateTransferData,
@@ -12,6 +11,7 @@ import {
 	TOKEN_METHOD_TRANSFER_FROM,
 } from '.';
 import Engine from '../../core/Engine';
+import { strings } from '../../../locales/i18n';
 
 jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
@@ -26,6 +26,7 @@ const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
 
 const UNI_TICKER = 'UNI';
+const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
 
 const MOCK_CHAIN_ID = '1';
 
@@ -173,5 +174,28 @@ describe('Transactions utils :: getActionKey', () => {
 		};
 		const result = await getActionKey(tx, MOCK_ADDRESS2, UNI_TICKER, MOCK_CHAIN_ID);
 		expect(result).toBe(strings('transactions.received_unit', { unit: UNI_TICKER }));
+	});
+
+	it('should be labeled as "Smart Contract Interaction" if the receiver is a smart contract', async () => {
+		spyOnQueryMethod(UNI_ADDRESS);
+		const tx = {
+			transaction: {
+				to: UNI_ADDRESS,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.smart_contract_interaction'));
+	});
+
+	it('should be labeled as "Smart Contract Interaction" if the tx is to a smart contract', async () => {
+		spyOnQueryMethod(UNI_ADDRESS);
+		const tx = {
+			transaction: {
+				to: UNI_ADDRESS,
+			},
+			toSmartContract: true,
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.smart_contract_interaction'));
 	});
 });
