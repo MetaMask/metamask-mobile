@@ -16,7 +16,7 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningModal from '../QRHardware/QRSigningModal';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -252,12 +252,7 @@ class SignatureRequest extends PureComponent {
 		);
 	};
 
-	renderQRSigningModal = () => {
-		const { isSigningQRObject, QRState } = this.props;
-		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
-	};
-
-	render() {
+	renderSignatureRequest() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		let expandedHeight;
 		const styles = this.getStyles();
@@ -292,9 +287,24 @@ class SignatureRequest extends PureComponent {
 						{this.renderActionViewChildren()}
 					</View>
 				</ActionView>
-				{this.renderQRSigningModal()}
 			</View>
 		);
+	}
+
+	renderQRDetails() {
+		const { QRState } = this.props;
+		const styles = this.getStyles();
+
+		return (
+			<View style={[styles.root]}>
+				<QRSigningDetails QRState={QRState} showCancelButton showHint={false} />
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderSignatureRequest();
 	}
 }
 

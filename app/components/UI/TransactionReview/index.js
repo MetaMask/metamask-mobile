@@ -33,7 +33,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import QRSigningModal from '../QRHardware/QRSigningModal';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -55,6 +55,9 @@ const createStyles = (colors) =>
 		},
 		actionViewChildren: {
 			height: 330,
+		},
+		actionViewQRObject: {
+			height: 624,
 		},
 		accountInfoCardWrapper: {
 			paddingHorizontal: 24,
@@ -340,12 +343,7 @@ class TransactionReview extends PureComponent {
 		return url;
 	}
 
-	renderQRSigningModal = () => {
-		const { isSigningQRObject, QRState } = this.props;
-		return isSigningQRObject && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
-	};
-
-	render = () => {
+	renderTransactionReview = () => {
 		const {
 			transactionConfirmed,
 			primaryCurrency,
@@ -431,10 +429,26 @@ class TransactionReview extends PureComponent {
 						customGasHeight={customGasHeight}
 					/>
 				</Animated.View>
-				{this.renderQRSigningModal()}
 			</>
 		);
 	};
+
+	renderQRDetails() {
+		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		const { QRState } = this.props;
+		const styles = this.getStyles();
+		return (
+			<View style={styles.actionViewQRObject}>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<QRSigningDetails QRState={QRState} tighten showCancelButton showHint={false} />
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderTransactionReview();
+	}
 }
 
 const mapStateToProps = (state) => ({
