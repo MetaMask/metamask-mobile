@@ -59,6 +59,7 @@ const createStyles = (colors) =>
 			paddingTop: 4,
 			position: 'absolute',
 			right: 16,
+			color: colors.icon.default,
 		},
 		modalsContainer: {
 			position: 'absolute',
@@ -218,7 +219,7 @@ function TransactionNotification(props) {
 	useEffect(() => onCloseNotification(), [onCloseNotification]);
 
 	return (
-		<View style={styles.absoluteFill}>
+		<>
 			<Animated.View
 				style={[
 					styles.notification,
@@ -301,7 +302,7 @@ function TransactionNotification(props) {
 					</Animated.View>
 				</View>
 			)}
-		</View>
+		</>
 	);
 }
 
