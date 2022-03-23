@@ -315,7 +315,7 @@ export async function getTransactionActionKey(transaction, chainId) {
  */
 export async function getActionKey(tx, selectedAddress, ticker, chainId) {
 	const actionKey = await getTransactionActionKey(tx, chainId);
-	if (actionKey === SEND_ETHER_ACTION_KEY || actionKey === SEND_TOKEN_ACTION_KEY) {
+	if (actionKey === SEND_ETHER_ACTION_KEY) {
 		let currencySymbol = ticker;
 
 		if (tx?.isTransfer) {

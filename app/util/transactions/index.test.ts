@@ -198,4 +198,14 @@ describe('Transactions utils :: getActionKey', () => {
 		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
 		expect(result).toBe(strings('transactions.smart_contract_interaction'));
 	});
+
+	it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
+		spyOnQueryMethod(UNI_ADDRESS);
+		const tx = {
+			transaction: {},
+			toSmartContract: true,
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.contract_deploy'));
+	});
 });
