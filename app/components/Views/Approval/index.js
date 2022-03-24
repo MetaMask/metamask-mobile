@@ -96,40 +96,49 @@ class Approval extends PureComponent {
 		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, {}, colors));
 	};
 
-	componentDidMount = () => {
-		this.updateNavBar();
-	};
-
 	componentDidUpdate = () => {
 		this.updateNavBar();
 	};
 
 	componentWillUnmount = () => {
-		const { transactionHandled } = this.state;
-		const { transaction, selectedAddress } = this.props;
-		const { KeyringController } = Engine.context;
-		if (!transactionHandled) {
-			if (isQRHardwareAccount(selectedAddress)) {
-				KeyringController.cancelQRSignRequest();
-			} else {
-				Engine.context.TransactionController.cancelTransaction(transaction.id);
+		try {
+			const { transactionHandled } = this.state;
+			const { transaction, selectedAddress } = this.props;
+			const { KeyringController } = Engine.context;
+			if (!transactionHandled) {
+				if (isQRHardwareAccount(selectedAddress)) {
+					KeyringController.cancelQRSignRequest();
+				} else {
+					Engine.context.TransactionController.cancelTransaction(transaction.id);
+				}
+				Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
+				AppState.removeEventListener('change', this.handleAppStateChange);
+				this.clear();
+			}
+		} catch (e) {
+			if (e) {
+				throw e;
 			}
 		}
-		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
-		AppState.removeEventListener('change', this.handleAppStateChange);
-		this.clear();
 	};
 
 	handleAppStateChange = (appState) => {
-		if (appState !== 'active') {
-			const { transaction } = this.props;
-			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
-			this.props.toggleDappTransactionModal(false);
+		try {
+			if (appState !== 'active') {
+				const { transaction } = this.props;
+				transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+				this.props.toggleDappTransactionModal(false);
+			}
+		} catch (e) {
+			if (e) {
+				throw e;
+			}
 		}
 	};
 
 	componentDidMount = () => {
 		const { navigation } = this.props;
+		this.updateNavBar();
 		AppState.addEventListener('change', this.handleAppStateChange);
 		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
