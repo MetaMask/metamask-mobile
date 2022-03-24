@@ -35,7 +35,7 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { ThemeContext, useAppTheme } from '../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -109,6 +109,7 @@ const App = ({ userLoggedIn }) => {
 	const prevNavigator = useRef(navigator);
 	const [route, setRoute] = useState();
 	const [animationPlayed, setAnimationPlayed] = useState();
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
 	const dispatch = useDispatch();
@@ -261,15 +262,13 @@ const App = ({ userLoggedIn }) => {
 		return null;
 	};
 
-	const theme = useAppTheme();
-
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<ThemeContext.Provider value={theme}>
+			<>
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
-					theme={{ colors: { background: theme.colors.background.default } }}
+					theme={{ colors: { background: colors.background.default } }}
 					ref={setNavigatorRef}
 					onStateChange={(state) => {
 						// Updates redux with latest route. Used by DrawerView component.
@@ -290,7 +289,7 @@ const App = ({ userLoggedIn }) => {
 					</Stack.Navigator>
 				</NavigationContainer>
 				{renderSplash()}
-			</ThemeContext.Provider>
+			</>
 		)) ||
 		null
 	);
