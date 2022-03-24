@@ -8,7 +8,7 @@ import Identicon from '../../../UI/Identicon';
 import { renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { hasZeroWidthPoints } from '../../../../util/validators';
+import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
