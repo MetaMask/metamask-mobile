@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, Text, Linking, Alert, StyleSheet } from 'react-native';
+import { View, Text, Linking, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
@@ -48,7 +48,7 @@ const Description = (props: DescriptionProps) => {
 
 	const handlePress = () => {
 		if (number === 2) {
-			Linking.openURL(strings('network_information.learn_more_url'))
+			Linking.openURL(strings('network_information.learn_more_url'));
 		} else {
 			onClose();
 			navigation.push('AddAsset', { assetType: 'token' });
