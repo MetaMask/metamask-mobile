@@ -41,10 +41,6 @@ interface DescriptionProps {
 	onClose: () => void;
 }
 
-const showAlertView = () => {
-	Alert.alert(strings('network_information.error_title'), strings('network_information.error_message'));
-};
-
 const Description = (props: DescriptionProps) => {
 	const { description, clickableText, number, navigation, onClose } = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
@@ -52,13 +48,7 @@ const Description = (props: DescriptionProps) => {
 
 	const handlePress = () => {
 		if (number === 2) {
-			Linking.canOpenURL(strings('network_information.learn_more_url')).then((supported) => {
-				if (supported) {
-					Linking.openURL(strings('network_information.learn_more_url'));
-				} else {
-					showAlertView();
-				}
-			});
+			Linking.openURL(strings('network_information.learn_more_url'))
 		} else {
 			onClose();
 			navigation.push('AddAsset', { assetType: 'token' });
