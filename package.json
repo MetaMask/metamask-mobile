@@ -97,8 +97,8 @@
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
-    "@keystonehq/metamask-airgapped-keyring": "^0.2.6-alpha.2",
-    "@keystonehq/ur-decoder": "^0.2.0",
+    "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
+    "@keystonehq/ur-decoder": "^0.3.0",
     "@metamask/contract-metadata": "^1.30.0",
     "@metamask/design-tokens": "1.4.2",
     "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#53a95f9a1c419c99c8428a4b61055ac8901ea45e",
