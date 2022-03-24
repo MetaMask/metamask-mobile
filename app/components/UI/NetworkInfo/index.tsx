@@ -35,10 +35,9 @@ const createStyles = (colors: {
 		},
 		tokenView: {
 			marginBottom: 30,
+			alignItems: 'center',
 		},
 		tokenType: {
-			marginRight: 50,
-			marginLeft: 50,
 			padding: 10,
 			borderRadius: 40,
 			alignItems: 'center',
@@ -56,6 +55,8 @@ const createStyles = (colors: {
 			fontSize: 15,
 			color: colors.text.default,
 			textTransform: 'capitalize',
+			textAlign: 'center',
+			paddingRight: 10,
 		},
 		messageTitle: {
 			fontSize: 14,
@@ -173,6 +174,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						clickableText={strings('network_information.add_token')}
 						number={3}
 						navigation={navigation}
+						onClose={onClose}
 					/>
 				</View>
 				<StyledButton

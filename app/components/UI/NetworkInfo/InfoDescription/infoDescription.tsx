@@ -38,6 +38,7 @@ interface DescriptionProps {
 	clickableText: string | undefined;
 	number: number;
 	navigation: any;
+	onClose: () => void;
 }
 
 const showAlertView = () => {
@@ -45,7 +46,7 @@ const showAlertView = () => {
 };
 
 const Description = (props: DescriptionProps) => {
-	const { description, clickableText, number, navigation } = props;
+	const { description, clickableText, number, navigation, onClose } = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
@@ -59,6 +60,7 @@ const Description = (props: DescriptionProps) => {
 				}
 			});
 		} else {
+			onClose();
 			navigation.push('AddAsset', { assetType: 'token' });
 		}
 	};
