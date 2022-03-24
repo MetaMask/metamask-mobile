@@ -40,6 +40,9 @@ const createStyles = (colors) =>
 		primary: {
 			color: colors.text.default,
 		},
+		muted: {
+			color: colors.text.muted,
+		},
 		small: {
 			fontSize: 12,
 		},
@@ -88,6 +91,7 @@ const Text = ({
 	red,
 	orange,
 	primary,
+	muted,
 	small,
 	big,
 	upper,
@@ -119,6 +123,7 @@ const Text = ({
 				orange && style.orange,
 				black && style.black,
 				primary && style.primary,
+				muted && style.muted,
 				disclaimer && [style.small, style.disclaimer],
 				small && style.small,
 				big && style.big,
@@ -146,6 +151,7 @@ Text.defaultProps = {
 	blue: false,
 	red: false,
 	primary: false,
+	muted: false,
 	disclaimer: false,
 	modal: false,
 	small: false,
@@ -202,6 +208,10 @@ Text.propTypes = {
 	 * Makes text fontPrimary color
 	 */
 	primary: PropTypes.bool,
+	/**
+	 * Makes text muted color
+	 */
+	muted: PropTypes.bool,
 	/**
 	 * Makes text italic and tight
 	 * used in disclaimers

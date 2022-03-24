@@ -3,9 +3,9 @@ import { Animated, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Device from '../../../../../util/device';
 import Title from '../../../../Base/Title';
-import { colors } from '../../../../../styles/common';
 import Fox from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
+import { useTheme } from '../../../../../util/theme';
 
 const ANIM_MULTIPLIER = 0.67;
 const START_DURATION = 1000 * ANIM_MULTIPLIER;
@@ -16,37 +16,41 @@ const IS_NARROW = Device.getDeviceWidth() <= 320;
 const STAGE_SIZE = IS_NARROW ? 240 : 260;
 const FINALIZING_PERCENTAGE = 80;
 
-const styles = StyleSheet.create({
-	screen: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	content: {
-		width: '100%',
-		paddingHorizontal: 60,
-		marginVertical: 15,
-	},
-	progressWrapper: {
-		backgroundColor: colors.grey100,
-		height: 3,
-		borderRadius: 3,
-		marginVertical: 15,
-	},
-	progressBar: {
-		backgroundColor: colors.blue,
-		height: 3,
-		width: 3,
-		borderRadius: 3,
-		flex: 1,
-	},
-	foxContainer: {
-		width: STAGE_SIZE,
-		height: STAGE_SIZE,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		screen: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		content: {
+			width: '100%',
+			paddingHorizontal: 60,
+			marginVertical: 15,
+		},
+		progressWrapper: {
+			backgroundColor: colors.primary.muted,
+			height: 3,
+			borderRadius: 3,
+			marginVertical: 15,
+		},
+		progressBar: {
+			backgroundColor: colors.primary.default,
+			height: 3,
+			width: 3,
+			borderRadius: 3,
+			flex: 1,
+		},
+		foxContainer: {
+			width: STAGE_SIZE,
+			height: STAGE_SIZE,
+		},
+	});
 
-const customStyle = `
+const customStyle = (colors) => `
+	body {
+		background-color: ${colors.background.default};
+	}
 	#head {
 		height: 35%;
 		top: 50%;
@@ -70,6 +74,8 @@ const customStyle = `
 `;
 
 function LoadingAnimation({ title, finish, onAnimationEnd }) {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
 	const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
 	const [hasStarted, setHasStarted] = useState(false);
 
@@ -133,7 +139,7 @@ function LoadingAnimation({ title, finish, onAnimationEnd }) {
 				</View>
 			</View>
 			<View style={styles.foxContainer} pointerEvents="none">
-				<Fox ref={foxRef} customContent={backgroundShapes} customStyle={customStyle} />
+				<Fox ref={foxRef} customContent={backgroundShapes} customStyle={customStyle(colors)} />
 			</View>
 		</View>
 	);

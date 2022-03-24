@@ -2,13 +2,14 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
-import { colors } from '../../../../styles/common';
 import { Image } from 'react-native-animatable';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import PaymentIcon, { Icon } from './PaymentIcon';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
+import { useTheme } from '../../../../util/theme';
+
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const visa = require('./images/visa.png');
 const sepa = require('./images/sepa.png');
@@ -31,30 +32,32 @@ interface Props {
 	highlighted?: boolean;
 }
 
-const styles = StyleSheet.create({
-	//TODO: remove hardcoded color later
-	/* eslint-disable react-native/no-color-literals */
-	icon: {
-		width: 38,
-		height: 38,
-		backgroundColor: '#F0F0F2',
-		borderRadius: 6,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	cardIcons: {
-		flexDirection: 'row',
-	},
-	cardIcon: {
-		marginLeft: 6,
-		marginBottom: 14,
-	},
-	line: {
-		backgroundColor: colors.grey050,
-		height: 1,
-		marginVertical: 12,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		iconWrapper: {
+			width: 38,
+			height: 38,
+			backgroundColor: colors.background.alternative,
+			borderRadius: 6,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		icon: {
+			color: colors.text.default,
+		},
+		cardIcons: {
+			flexDirection: 'row',
+		},
+		cardIcon: {
+			marginLeft: 6,
+			marginBottom: 14,
+		},
+		line: {
+			backgroundColor: colors.border.muted,
+			height: 1,
+			marginVertical: 12,
+		},
+	});
 
 const renderDescription = (description: TimeDescriptions | string) => {
 	switch (description) {
@@ -112,54 +115,58 @@ const PaymentOption: React.FC<Props> = ({
 	paymentType,
 	onPress,
 	highlighted,
-}: Props) => (
-	<Box onPress={onPress} highlighted={highlighted}>
-		<ListItem.Content>
-			<ListItem.Icon>
-				<View style={styles.icon}>
-					<PaymentIcon iconType={paymentType} size={16} style={undefined} />
-				</View>
-			</ListItem.Icon>
-			<ListItem.Body>
-				<ListItem.Title>
-					<Text big primary bold>
-						{title}
-					</Text>
-				</ListItem.Title>
-				<Text small grey>
-					{idRequired
-						? strings('fiat_on_ramp_aggregator.paymentMethod.id_required')
-						: strings('fiat_on_ramp_aggregator.paymentMethod.no_id_required')}
-				</Text>
-			</ListItem.Body>
-			<ListItem.Amounts>
-				<ListItem.Amount>
-					<View style={styles.cardIcons}>
-						{cardImage ? (
-							<>
-								<Image source={visa} style={styles.cardIcon} />
-								<Image source={mastercard} style={styles.cardIcon} />
-							</>
-						) : (
-							<Image source={sepa} style={styles.cardIcon} />
-						)}
+}: Props) => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+	return (
+		<Box onPress={onPress} highlighted={highlighted}>
+			<ListItem.Content>
+				<ListItem.Icon>
+					<View style={styles.iconWrapper}>
+						<PaymentIcon iconType={paymentType} size={16} style={styles.icon} />
 					</View>
-				</ListItem.Amount>
-			</ListItem.Amounts>
-		</ListItem.Content>
+				</ListItem.Icon>
+				<ListItem.Body>
+					<ListItem.Title>
+						<Text big primary bold>
+							{title}
+						</Text>
+					</ListItem.Title>
+					<Text small grey>
+						{idRequired
+							? strings('fiat_on_ramp_aggregator.paymentMethod.id_required')
+							: strings('fiat_on_ramp_aggregator.paymentMethod.no_id_required')}
+					</Text>
+				</ListItem.Body>
+				<ListItem.Amounts>
+					<ListItem.Amount>
+						<View style={styles.cardIcons}>
+							{cardImage ? (
+								<>
+									<Image source={visa} style={styles.cardIcon} />
+									<Image source={mastercard} style={styles.cardIcon} />
+								</>
+							) : (
+								<Image source={sepa} style={styles.cardIcon} />
+							)}
+						</View>
+					</ListItem.Amount>
+				</ListItem.Amounts>
+			</ListItem.Content>
 
-		<View style={styles.line} />
+			<View style={styles.line} />
 
-		<Text primary small>
-			<Feather name="clock" /> {renderTime(time)} •{' '}
-			{new Array(amountTier[1]).fill('').map((_, index) => (
-				<Text small primary={index < amountTier[0]} key={index}>
-					$
-				</Text>
-			))}{' '}
-			{renderTiers(amountTier)}
-		</Text>
-	</Box>
-);
+			<Text primary small>
+				<Feather name="clock" /> {renderTime(time)} •{' '}
+				{new Array(amountTier[1]).fill('').map((_, index) => (
+					<Text small muted={index >= amountTier[0]} key={index}>
+						$
+					</Text>
+				))}{' '}
+				{renderTiers(amountTier)}
+			</Text>
+		</Box>
+	);
+};
 
 export default PaymentOption;
