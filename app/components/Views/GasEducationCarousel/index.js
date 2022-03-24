@@ -136,7 +136,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 	useEffect(() => {
 		const setGasEstimates = async () => {
 			const { GasFeeController } = Engine.context;
-			const gas = TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT;
+			const gas = hexToBN(TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT);
 			let estimatedTotalGas;
 			try {
 				const gasEstimates = await GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false });
