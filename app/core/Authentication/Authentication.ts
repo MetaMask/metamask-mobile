@@ -190,7 +190,6 @@ class AuthenticationService {
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
 	newWalletAndKeyChain = async (password: string, authData: AuthData): Promise<void> => {
-		console.log('newWallet');
 		try {
 			await this.createWalletVaultAndKeychain(password);
 			await this.storePassword(password, authData?.type);

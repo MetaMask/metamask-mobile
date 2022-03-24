@@ -130,7 +130,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 				//Cancel auth if the existing user has not been set
 				if (existingUser == null) setAuthCancelled(true);
 			} catch (error) {
-				trackErrorAsAnalytics('Lockscreen: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
+				trackErrorAsAnalytics('App: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
 				setAuthCancelled(true);
 			}
 		};
@@ -202,7 +202,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			setRoute(route);
 		}
 		if (locked.current || authCancelled) checkExsiting();
-	});
+	}, [authCancelled]);
 
 	useEffect(() => {
 		async function startApp() {
