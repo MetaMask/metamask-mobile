@@ -1,110 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`EnterPasswordSimple should render correctly 1`] = `
-<RCTSafeAreaView
-  emulateUnlessSupported={true}
-  style={
+<ContextProvider
+  value={
     Object {
-      "backgroundColor": "#FFFFFF",
-      "flex": 1,
+      "options": undefined,
     }
   }
 >
-  <View
-    style={
+  <ThemeProvider
+    value={
       Object {
-        "flex": 1,
-        "padding": 16,
+        "colors": Object {
+          "background": "rgb(242, 242, 242)",
+          "border": "rgb(216, 216, 216)",
+          "card": "rgb(255, 255, 255)",
+          "notification": "rgb(255, 59, 48)",
+          "primary": "rgb(0, 122, 255)",
+          "text": "rgb(28, 28, 30)",
+        },
+        "dark": false,
       }
     }
-    testID="enter-password-screen"
   >
-    <KeyboardAwareScrollView
-      enableAutomaticScroll={true}
-      enableOnAndroid={false}
-      enableResetScrollToCoords={true}
-      extraHeight={75}
-      extraScrollHeight={0}
-      keyboardOpeningTime={250}
-      resetScrollToCoords={
-        Object {
-          "x": 0,
-          "y": 0,
-        }
-      }
-      style={
-        Object {
-          "flex": 1,
-          "padding": 16,
-        }
-      }
-      viewIsInsideTabBar={false}
-    >
-      <View
-        style={
+    <ForwardRef(BaseNavigationContainer)>
+      <EnterPasswordSimple
+        route={
           Object {
-            "flex": 1,
+            "params": Object {},
           }
         }
-      >
-        <View>
-          <Text
-            style={
-              Object {
-                "color": "#24272A",
-                "fontSize": 16,
-                "marginBottom": 15,
-              }
-            }
-          >
-            Please enter your password in order to continue
-          </Text>
-          <TextInput
-            keyboardAppearance="light"
-            onChangeText={[Function]}
-            onSubmitEditing={[Function]}
-            placeholder="Password"
-            placeholderTextColor="#BBC0C5"
-            secureTextEntry={true}
-            style={
-              Object {
-                "borderColor": "#BBC0C5",
-                "borderRadius": 5,
-                "borderWidth": 2,
-                "color": "#24272A",
-                "padding": 10,
-              }
-            }
-          />
-        </View>
-        <View
-          style={
-            Object {
-              "marginTop": 10,
-            }
-          }
-        >
-          <StyledButton
-            disabled={false}
-            disabledContainerStyle={
-              Object {
-                "opacity": 0.6,
-              }
-            }
-            onPress={[Function]}
-            styleDisabled={
-              Object {
-                "opacity": 0.6,
-              }
-            }
-            testID="submit-button"
-            type="blue"
-          >
-            Confirm
-          </StyledButton>
-        </View>
-      </View>
-    </KeyboardAwareScrollView>
-  </View>
-</RCTSafeAreaView>
+      />
+    </ForwardRef(BaseNavigationContainer)>
+  </ThemeProvider>
+</ContextProvider>
 `;
