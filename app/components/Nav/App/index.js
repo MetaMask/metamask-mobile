@@ -271,6 +271,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		// do not render unless a route is defined
 		(route && (
 			<ThemeContext.Provider value={theme}>
+				{renderSplash()}
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
 					theme={{ colors: { background: theme.colors.background.default } }}
@@ -293,7 +294,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
-				{renderSplash()}
 			</ThemeContext.Provider>
 		)) ||
 		null
