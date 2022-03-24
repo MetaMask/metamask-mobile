@@ -1,33 +1,43 @@
+import { swapsUtils } from '@metamask/swaps-controller';
+import { util } from '@metamask/controllers';
+
 import {
 	generateTransferData,
 	decodeTransferData,
 	getMethodData,
-	// isSmartContractAddress,
-	// getTransactionActionKey,
+	getActionKey,
 	TOKEN_METHOD_TRANSFER,
 	CONTRACT_METHOD_DEPLOY,
-	// SEND_ETHER_ACTION_KEY,
-	// DEPLOY_CONTRACT_ACTION_KEY,
-	// SEND_TOKEN_ACTION_KEY,
 	TOKEN_METHOD_TRANSFER_FROM,
-	// TRANSFER_FROM_ACTION_KEY,
-	// SMART_CONTRACT_INTERACTION_ACTION_KEY
 } from '.';
-// import Engine from '../core/Engine';
+import Engine from '../../core/Engine';
+import { strings } from '../../../locales/i18n';
 
-// const MOCK_ENGINE = {
-// 	context: {
-// 		TransactionController: {
-// 			query(get, [address]) {
-// 				if (address === '0x0') {
-// 					return '0x';
-// 				} else if (address === '0x1') {
-// 					return '0x1';
-// 				}
-// 			}
-// 		}
-// 	}
-// };
+jest.mock('../../core/Engine');
+const ENGINE_MOCK = Engine as jest.MockedClass<any>;
+
+ENGINE_MOCK.context = {
+	TransactionController: {
+		ethQuery: null,
+	},
+};
+
+const MOCK_ADDRESS1 = '0x0001';
+const MOCK_ADDRESS2 = '0x0002';
+
+const UNI_TICKER = 'UNI';
+const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
+
+const MOCK_CHAIN_ID = '1';
+
+const spyOnQueryMethod = (returnValue: string | undefined) => {
+	jest.spyOn(util, 'query').mockImplementation(
+		() =>
+			new Promise<string | undefined>((resolve) => {
+				resolve(returnValue);
+			})
+	);
+};
 
 describe('Transactions utils :: generateTransferData', () => {
 	it('generateTransferData should throw if undefined values', () => {
@@ -87,99 +97,115 @@ describe('Transactions utils :: getMethodData', () => {
 	});
 });
 
-// describe('Transactions utils :: isSmartContractAddress', () => {
-// 	it('isSmartContractAddress', async () => {
-// 		Engine.context = MOCK_ENGINE.context;
-// 		const isFirst = await isSmartContractAddress('0x0');
-// 		const isSecond = await isSmartContractAddress('0x1');
-// 		expect(isFirst).toEqual(false);
-// 		expect(isSecond).toEqual(true);
-// 	});
+describe('Transactions utils :: getActionKey', () => {
+	beforeEach(() => {
+		jest.spyOn(swapsUtils, 'getSwapsContractAddress').mockImplementation(() => 'SWAPS_CONTRACT_ADDRESS');
+	});
 
-// 	it('isSmartContractAddress should work with contract map', async () => {
-// 		Engine.context = MOCK_ENGINE.context;
-// 		const stub = spyOn(Engine.context.TransactionController, 'query');
-// 		await isSmartContractAddress('0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359');
-// 		expect(stub).not.toBeCalled();
-// 	});
+	it('should be "Sent Yourself Ether"', async () => {
+		spyOnQueryMethod(undefined);
+		const tx = {
+			transaction: {
+				from: MOCK_ADDRESS1,
+				to: MOCK_ADDRESS1,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.self_sent_ether'));
+	});
 
-// 	it('isSmartContractAddress should call query if not cached', async () => {
-// 		Engine.context = MOCK_ENGINE.context;
-// 		const stub = spyOn(Engine.context.TransactionController, 'query');
-// 		await isSmartContractAddress('0x1', '0x123');
-// 		expect(stub).toBeCalled();
-// 	});
+	it('should be labeled as "Sent Yourself UNI"', async () => {
+		spyOnQueryMethod(undefined);
+		const tx = {
+			transaction: {
+				from: MOCK_ADDRESS1,
+				to: MOCK_ADDRESS1,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, UNI_TICKER, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.self_sent_unit', { unit: UNI_TICKER }));
+	});
 
-// 	it('isSmartContractAddress should call query if only address was provided', async () => {
-// 		Engine.context = MOCK_ENGINE.context;
-// 		const stub = spyOn(Engine.context.TransactionController, 'query');
-// 		await isSmartContractAddress('0x1');
-// 		expect(stub).toBeCalled();
-// 	});
-// });
+	it('should be labeled as "Sent Ether"', async () => {
+		spyOnQueryMethod(undefined);
+		const tx = {
+			transaction: {
+				from: MOCK_ADDRESS1,
+				to: MOCK_ADDRESS2,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.sent_ether'));
+	});
 
-// describe('Transactions utils :: getTransactionActionKey', () => {
-// 	Engine.context = MOCK_ENGINE.context;
-// 	const transferData =
-// 		'0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001';
-// 	const contractData =
-// 		'0x60a060405260046060527f48302e31000000000000000000000000000000000000000000000000000000006080526006805460008290527f48302e310000000000000000000000000000000000000000000000000000000882556100b5907ff652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f602060026001841615610100026000190190931692909204601f01919091048101905b8082111561017957600081556001016100a1565b505060405161094b38038061094b833981';
-// 	const randomData = '0x987654321';
-// 	const transferFromData = '0x23b872dd0000000000000000000000000000';
-// 	it('getTransactionActionKey send ether', async () => {
-// 		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { to: '0x0' } });
-// 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
-// 	});
+	it('should be labeled as "Sent UNI"', async () => {
+		spyOnQueryMethod(undefined);
 
-// 	it('getTransactionActionKey send ether with empty data', async () => {
-// 		const get = await getTransactionActionKey({ transactionHash: '0x1', transaction: { data: '0x', to: '0x0' } });
-// 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
-// 	});
-// 	it('getTransactionActionKey send token', async () => {
-// 		const get = await getTransactionActionKey({
-// 			transactionHash: '0x2',
-// 			transaction: { data: transferData, to: '0x0' }
-// 		});
-// 		expect(get).toEqual(SEND_TOKEN_ACTION_KEY);
-// 	});
+		const tx = {
+			transaction: {
+				from: MOCK_ADDRESS1,
+				to: MOCK_ADDRESS2,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, UNI_TICKER, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.sent_unit', { unit: UNI_TICKER }));
+	});
 
-// 	it('getTransactionActionKey send collectible', async () => {
-// 		const get = await getTransactionActionKey({
-// 			transactionHash: '0x6',
-// 			transaction: { data: transferFromData, to: '0x0' }
-// 		});
-// 		expect(get).toEqual(TRANSFER_FROM_ACTION_KEY);
-// 	});
+	it('should be labeled as "Received Ether"', async () => {
+		spyOnQueryMethod(undefined);
 
-// 	it('getTransactionActionKey deploy contract', async () => {
-// 		const get = await getTransactionActionKey({
-// 			transactionHash: '0x3',
-// 			transaction: { data: contractData, to: '0x1' }
-// 		});
-// 		expect(get).toEqual(DEPLOY_CONTRACT_ACTION_KEY);
-// 	});
+		const tx = {
+			transaction: {
+				from: MOCK_ADDRESS1,
+				to: MOCK_ADDRESS2,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS2, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.received_ether'));
+	});
 
-// 	it('getTransactionActionKey send ether to contract', async () => {
-// 		const get = await getTransactionActionKey({
-// 			transactionHash: '0x4',
-// 			transaction: { data: randomData, to: '0x1' }
-// 		});
-// 		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
-// 	});
+	it('should be labeled as "Received UNI"', async () => {
+		spyOnQueryMethod(undefined);
+		const tx = {
+			transaction: {
+				from: MOCK_ADDRESS1,
+				to: MOCK_ADDRESS2,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS2, UNI_TICKER, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.received_unit', { unit: UNI_TICKER }));
+	});
 
-// 	it('getTransactionActionKey send ether to address', async () => {
-// 		const get = await getTransactionActionKey({
-// 			transactionHash: '0x5',
-// 			transaction: { to: '0x0' }
-// 		});
-// 		expect(get).toEqual(SEND_ETHER_ACTION_KEY);
-// 	});
+	it('should be labeled as "Smart Contract Interaction" if the receiver is a smart contract', async () => {
+		spyOnQueryMethod(UNI_ADDRESS);
+		const tx = {
+			transaction: {
+				to: UNI_ADDRESS,
+			},
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.smart_contract_interaction'));
+	});
 
-// 	it('getTransactionActionKey unknown interaction with smart contract', async () => {
-// 		const get = await getTransactionActionKey({
-// 			transactionHash: '0x7',
-// 			transaction: { data: randomData, to: '0x1' }
-// 		});
-// 		expect(get).toEqual(SMART_CONTRACT_INTERACTION_ACTION_KEY);
-// 	});
-// });
+	it('should be labeled as "Smart Contract Interaction" if the tx is to a smart contract', async () => {
+		spyOnQueryMethod(UNI_ADDRESS);
+		const tx = {
+			transaction: {
+				to: UNI_ADDRESS,
+			},
+			toSmartContract: true,
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.smart_contract_interaction'));
+	});
+
+	it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
+		spyOnQueryMethod(UNI_ADDRESS);
+		const tx = {
+			transaction: {},
+			toSmartContract: true,
+		};
+		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
+		expect(result).toBe(strings('transactions.contract_deploy'));
+	});
+});
