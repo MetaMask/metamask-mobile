@@ -16,8 +16,8 @@ RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
 RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}."
 
 # maybe use metamaskbot for this?
-git config user.name github-actions
-git config user.email github-actions@github.com
+git config user.name metamaskbot
+git config user.email metamaskbot@users.noreply.github.com
 
 git checkout -b "${RELEASE_BRANCH_NAME}"
 
