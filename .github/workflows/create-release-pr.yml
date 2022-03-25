@@ -1,0 +1,41 @@
+name: Create Release Pull Request
+
+on:
+  workflow_dispatch:
+    inputs:
+      base-branch:
+        description: 'The base branch for git operations and the pull request.'
+        default: 'main'
+        required: true
+      semver-version:
+        description: 'A SemVer version.'
+        required: true
+      version-number:
+        description: 'A specific version.'
+        required: true
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Node.js version
+        id: nvm
+        run: echo ::set-output name=NODE_VERSION::$(cat .nvmrc)
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+      - name: Set Versions
+        id: set-versions
+        shell: bash
+        run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn create-release
+      - name: Create Release PR
+        id: create-release-pr
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
