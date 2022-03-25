@@ -38,7 +38,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="#24272A"
                 name="ios-arrow-back"
                 size={24}
               />
@@ -360,7 +360,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#BBC0C5",
                               }
                             }
                           />
@@ -430,7 +430,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#BBC0C5",
                               }
                             }
                           />
@@ -548,7 +548,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                             size={14}
                             style={
                               Object {
-                                "color": "#bbc0c5",
+                                "color": "#BBC0C5",
                               }
                             }
                           />

@@ -6,7 +6,7 @@ import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
@@ -45,221 +45,237 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		width: 315,
-		backgroundColor: colors.white,
-	},
-	header: {
-		paddingTop: Device.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.grey000,
-		height: Device.isIphoneX() ? 110 : 74,
-		flexDirection: 'column',
-		paddingBottom: 0,
-	},
-	metamaskLogo: {
-		flexDirection: 'row',
-		flex: 1,
-		marginTop: Device.isAndroid() ? 0 : 12,
-		marginLeft: 15,
-		paddingTop: Device.isAndroid() ? 10 : 0,
-	},
-	metamaskFox: {
-		height: 27,
-		width: 27,
-		marginRight: 15,
-	},
-	metamaskName: {
-		marginTop: 4,
-		width: 90,
-		height: 18,
-	},
-	account: {
-		flex: 1,
-		backgroundColor: colors.grey000,
-	},
-	accountBgOverlay: {
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1,
-		padding: 17,
-	},
-	identiconWrapper: {
-		marginBottom: 12,
-		width: 56,
-		height: 56,
-	},
-	identiconBorder: {
-		borderRadius: 96,
-		borderWidth: 2,
-		padding: 2,
-		borderColor: colors.blue,
-	},
-	accountNameWrapper: {
-		flexDirection: 'row',
-		paddingRight: 17,
-	},
-	accountName: {
-		fontSize: 20,
-		lineHeight: 24,
-		marginBottom: 5,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	caretDown: {
-		textAlign: 'right',
-		marginLeft: 7,
-		marginTop: 3,
-		fontSize: 18,
-		color: colors.fontPrimary,
-	},
-	accountBalance: {
-		fontSize: 14,
-		lineHeight: 17,
-		marginBottom: 5,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	accountAddress: {
-		fontSize: 12,
-		lineHeight: 17,
-		color: colors.fontSecondary,
-		...fontStyles.normal,
-	},
-	buttons: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1,
-		padding: 15,
-	},
-	button: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 30,
-		borderWidth: 1.5,
-	},
-	leftButton: {
-		marginRight: 5,
-	},
-	rightButton: {
-		marginLeft: 5,
-	},
-	buttonText: {
-		paddingLeft: 8,
-		fontSize: 15,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	buttonContent: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	buttonIcon: {
-		marginTop: 0,
-	},
-	buttonReceive: {
-		transform: [{ rotate: '90deg' }],
-	},
-	menu: {},
-	noTopBorder: {
-		borderTopWidth: 0,
-	},
-	menuSection: {
-		borderTopWidth: 1,
-		borderColor: colors.grey100,
-		paddingVertical: 10,
-	},
-	menuItem: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingVertical: 9,
-		paddingLeft: 17,
-	},
-	selectedRoute: {
-		backgroundColor: colors.blue000,
-		marginRight: 10,
-		borderTopRightRadius: 20,
-		borderBottomRightRadius: 20,
-	},
-	selectedName: {
-		color: colors.blue,
-	},
-	menuItemName: {
-		flex: 1,
-		paddingHorizontal: 15,
-		paddingTop: 2,
-		fontSize: 16,
-		color: colors.grey400,
-		...fontStyles.normal,
-	},
-	menuItemWarningText: {
-		color: colors.red,
-		fontSize: 12,
-		...fontStyles.normal,
-	},
-	noIcon: {
-		paddingLeft: 0,
-	},
-	menuItemIconImage: {
-		width: 22,
-		height: 22,
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	importedWrapper: {
-		marginTop: 10,
-		width: 73,
-		paddingHorizontal: 10,
-		paddingVertical: 3,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.grey400,
-	},
-	importedText: {
-		color: colors.grey400,
-		fontSize: 10,
-		...fontStyles.bold,
-	},
-	protectWalletContainer: {
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingVertical: 16,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		paddingHorizontal: 40,
-	},
-	protectWalletIconContainer: {
-		alignSelf: 'center',
-		width: 56,
-		height: 56,
-		borderRadius: 28,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderWidth: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	protectWalletIcon: { alignSelf: 'center', color: colors.red },
-	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
-	protectWalletContent: {
-		textAlign: 'center',
-		fontSize: 14,
-		marginVertical: 8,
-		justifyContent: 'center',
-		...fontStyles.normal,
-	},
-	protectWalletButtonWrapper: { marginVertical: 8 },
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			width: 315,
+			backgroundColor: colors.background.default,
+		},
+		header: {
+			paddingTop: Device.isIphoneX() ? 60 : 24,
+			backgroundColor: colors.background.alternative,
+			height: Device.isIphoneX() ? 110 : 74,
+			flexDirection: 'column',
+			paddingBottom: 0,
+		},
+		metamaskLogo: {
+			flexDirection: 'row',
+			flex: 1,
+			marginTop: Device.isAndroid() ? 0 : 12,
+			marginLeft: 15,
+			paddingTop: Device.isAndroid() ? 10 : 0,
+		},
+		metamaskFox: {
+			height: 27,
+			width: 27,
+			marginRight: 15,
+		},
+		metamaskName: {
+			marginTop: 4,
+			width: 90,
+			height: 18,
+			tintColor: colors.text.default,
+		},
+		account: {
+			flex: 1,
+			backgroundColor: colors.background.alternative,
+		},
+		accountBgOverlay: {
+			borderBottomColor: colors.border.muted,
+			borderBottomWidth: 1,
+			padding: 17,
+		},
+		identiconWrapper: {
+			marginBottom: 12,
+			width: 56,
+			height: 56,
+		},
+		identiconBorder: {
+			borderRadius: 96,
+			borderWidth: 2,
+			padding: 2,
+			borderColor: colors.primary.default,
+		},
+		accountNameWrapper: {
+			flexDirection: 'row',
+			paddingRight: 17,
+		},
+		accountName: {
+			fontSize: 20,
+			lineHeight: 24,
+			marginBottom: 5,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		caretDown: {
+			textAlign: 'right',
+			marginLeft: 7,
+			marginTop: 3,
+			fontSize: 18,
+			color: colors.icon.default,
+		},
+		accountBalance: {
+			fontSize: 14,
+			lineHeight: 17,
+			marginBottom: 5,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		accountAddress: {
+			fontSize: 12,
+			lineHeight: 17,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		buttons: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderBottomColor: colors.border.muted,
+			borderBottomWidth: 1,
+			padding: 15,
+		},
+		button: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderRadius: 30,
+			borderWidth: 1.5,
+		},
+		leftButton: {
+			marginRight: 5,
+		},
+		rightButton: {
+			marginLeft: 5,
+		},
+		buttonText: {
+			paddingLeft: 8,
+			fontSize: 15,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		buttonContent: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		buttonIcon: {
+			marginTop: 0,
+		},
+		buttonReceive: {
+			transform: [{ rotate: '90deg' }],
+		},
+		menu: {},
+		noTopBorder: {
+			borderTopWidth: 0,
+		},
+		menuSection: {
+			borderTopWidth: 1,
+			borderColor: colors.border.muted,
+			paddingVertical: 10,
+		},
+		menuItem: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingVertical: 9,
+			paddingLeft: 17,
+		},
+		selectedRoute: {
+			backgroundColor: colors.primary.muted,
+			marginRight: 10,
+			borderTopRightRadius: 20,
+			borderBottomRightRadius: 20,
+		},
+		selectedName: {
+			color: colors.primary.default,
+		},
+		menuItemName: {
+			flex: 1,
+			paddingHorizontal: 15,
+			paddingTop: 2,
+			fontSize: 16,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		menuItemWarningText: {
+			color: colors.text.default,
+			fontSize: 12,
+			...fontStyles.normal,
+		},
+		noIcon: {
+			paddingLeft: 0,
+		},
+		menuItemIconImage: {
+			width: 22,
+			height: 22,
+			tintColor: colors.icon.default,
+		},
+		selectedMenuItemIconImage: {
+			width: 22,
+			height: 22,
+			tintColor: colors.primary.default,
+		},
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		importedWrapper: {
+			marginTop: 10,
+			width: 73,
+			paddingHorizontal: 10,
+			paddingVertical: 3,
+			borderRadius: 10,
+			borderWidth: 1,
+			color: colors.icon.default,
+		},
+		importedText: {
+			color: colors.icon.default,
+			fontSize: 10,
+			...fontStyles.bold,
+		},
+		protectWalletContainer: {
+			backgroundColor: colors.background.default,
+			paddingTop: 24,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			paddingVertical: 16,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+			paddingHorizontal: 40,
+		},
+		protectWalletIconContainer: {
+			alignSelf: 'center',
+			width: 56,
+			height: 56,
+			borderRadius: 28,
+			backgroundColor: colors.error.muted,
+			borderColor: colors.error.default,
+			borderWidth: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		protectWalletIcon: { alignSelf: 'center', color: colors.error.default },
+		protectWalletTitle: {
+			textAlign: 'center',
+			fontSize: 18,
+			marginVertical: 8,
+			...fontStyles.bold,
+			color: colors.text.default,
+		},
+		protectWalletContent: {
+			textAlign: 'center',
+			fontSize: 14,
+			marginVertical: 8,
+			justifyContent: 'center',
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		protectWalletButtonWrapper: { marginVertical: 8 },
+	});
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
@@ -696,35 +712,53 @@ class DrawerView extends PureComponent {
 	};
 
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.grey400} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <Icon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <FeatherIcon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <MaterialIcon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getImageIcon(name) {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.blue} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <Icon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <FeatherIcon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <MaterialIcon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedImageIcon(name) {
-		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.selectedMenuItemIconImage} />;
 	}
 
 	getSections = () => {
@@ -867,34 +901,40 @@ class DrawerView extends PureComponent {
 		});
 	};
 
-	renderProtectModal = () => (
-		<Modal
-			isVisible={this.state.showProtectWalletModal}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={600}
-			animationOutTiming={600}
-		>
-			<View style={styles.protectWalletContainer}>
-				<View style={styles.protectWalletIconContainer}>
-					<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+	renderProtectModal = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<Modal
+				isVisible={this.state.showProtectWalletModal}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
+				animationInTiming={600}
+				animationOutTiming={600}
+			>
+				<View style={styles.protectWalletContainer}>
+					<View style={styles.protectWalletIconContainer}>
+						<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+					</View>
+					<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+					<Text style={styles.protectWalletContent}>
+						{!this.props.passwordSet
+							? strings('protect_your_wallet_modal.body_for_password')
+							: strings('protect_your_wallet_modal.body_for_seedphrase')}
+					</Text>
+					<View style={styles.protectWalletButtonWrapper}>
+						<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
+							{strings('protect_your_wallet_modal.button')}
+						</StyledButton>
+					</View>
 				</View>
-				<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
-				<Text style={styles.protectWalletContent}>
-					{!this.props.passwordSet
-						? strings('protect_your_wallet_modal.body_for_password')
-						: strings('protect_your_wallet_modal.body_for_seedphrase')}
-				</Text>
-				<View style={styles.protectWalletButtonWrapper}>
-					<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
-						{strings('protect_your_wallet_modal.button')}
-					</StyledButton>
-				</View>
-			</View>
-		</Modal>
-	);
+			</Modal>
+		);
+	};
 
 	render() {
 		const {
@@ -908,6 +948,8 @@ class DrawerView extends PureComponent {
 			seedphraseBackedUp,
 			currentRoute,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		const {
 			invalidCustomNetwork,
@@ -990,7 +1032,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'arrow-top-right'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary.default}
 									style={styles.buttonIcon}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -1006,7 +1048,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'keyboard-tab'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary.default}
 									style={[styles.buttonIcon, styles.buttonReceive]}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
@@ -1084,6 +1126,8 @@ class DrawerView extends PureComponent {
 					onSwipeComplete={this.toggleNetworksModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<NetworkList
 						navigation={this.props.navigation}
@@ -1091,7 +1135,7 @@ class DrawerView extends PureComponent {
 						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
 					/>
 				</Modal>
-				<Modal isVisible={!!invalidCustomNetwork}>
+				<Modal backdropColor={colors.overlay.default} backdropOpacity={1} isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
 						navigation={this.props.navigation}
 						network={invalidCustomNetwork}
@@ -1106,6 +1150,8 @@ class DrawerView extends PureComponent {
 					onSwipeComplete={this.toggleAccountsModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<AccountList
 						enableAccountsAddition
@@ -1126,6 +1172,8 @@ class DrawerView extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 					style={styles.bottomModal}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<ReceiveRequest
 						navigation={this.props.navigation}
@@ -1171,5 +1219,7 @@ const mapDispatchToProps = (dispatch) => ({
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 	logOut: () => dispatch(logOut()),
 });
+
+DrawerView.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);

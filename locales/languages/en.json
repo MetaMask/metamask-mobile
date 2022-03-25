@@ -551,6 +551,12 @@
 		"hide_zero_balance_tokens_desc": "Prevents tokens with no balance from displaying in your token listing.",
 		"token_detection_title": "Enhanced Token Detection",
 		"token_detection_description": "We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.",
+		"theme_button_text": "Change Theme",
+		"theme_title": "Theme ({{theme}})",
+		"theme_description": "Change your app appearance by setting the theme.",
+		"theme_os": "System",
+		"theme_light": "Light",
+		"theme_dark": "Dark",
 		"network_exists": "This network has already been added."
 	},
 	"app_information": {
@@ -755,6 +761,8 @@
 		"gas_education_learn_more": "Learn more about gas fees",
 		"confusable_title": "Check the recipient address",
 		"confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
+		"similar_to": "is similar to",
+		"contains_zero_width": "contains zero width character",
 		"dapp_suggested_gas": "This gas fee has been suggested by %{origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
 		"dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions."
 	},

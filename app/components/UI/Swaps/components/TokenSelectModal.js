@@ -24,7 +24,7 @@ import { balanceToFiat, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiT
 import { safeToChecksumAddress } from '../../../../util/address';
 import { isSwapsNativeAsset } from '../utils';
 import { strings } from '../../../../../locales/i18n';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
@@ -37,78 +37,82 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		justifyContent: 'flex-end',
-	},
-	modalView: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	inputWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginHorizontal: 30,
-		marginVertical: 10,
-		paddingVertical: Device.isAndroid() ? 0 : 10,
-		paddingHorizontal: 5,
-		borderRadius: 5,
-		borderWidth: 1,
-		borderColor: colors.grey100,
-	},
-	searchIcon: {
-		marginHorizontal: 8,
-	},
-	input: {
-		...fontStyles.normal,
-		flex: 1,
-	},
-	modalTitle: {
-		marginTop: Device.isIphone5() ? 10 : 15,
-		marginBottom: Device.isIphone5() ? 5 : 5,
-	},
-	resultsView: {
-		height: Device.isSmallDevice() ? 200 : 280,
-		marginTop: 10,
-	},
-	resultRow: {
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-	},
-	emptyList: {
-		marginVertical: 10,
-		marginHorizontal: 30,
-	},
-	importButton: {
-		paddingVertical: 6,
-		paddingHorizontal: 10,
-		backgroundColor: colors.blue,
-		borderRadius: 100,
-	},
-	importButtonText: {
-		color: colors.white,
-	},
-	loadingIndicator: {
-		margin: 10,
-	},
-	loadingTokenView: {
-		marginVertical: 10,
-		marginHorizontal: 30,
-		justifyContent: 'center',
-		alignItems: 'center',
-		flexDirection: 'row',
-	},
-	footer: {
-		padding: 30,
-	},
-	footerIcon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			margin: 0,
+			justifyContent: 'flex-end',
+		},
+		modalView: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		inputWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginHorizontal: 30,
+			marginVertical: 10,
+			paddingVertical: Device.isAndroid() ? 0 : 10,
+			paddingHorizontal: 5,
+			borderRadius: 5,
+			borderWidth: 1,
+			borderColor: colors.border.default,
+		},
+		searchIcon: {
+			marginHorizontal: 8,
+			color: colors.icon.default,
+		},
+		input: {
+			...fontStyles.normal,
+			flex: 1,
+			color: colors.text.default,
+		},
+		modalTitle: {
+			marginTop: Device.isIphone5() ? 10 : 15,
+			marginBottom: Device.isIphone5() ? 5 : 5,
+		},
+		resultsView: {
+			height: Device.isSmallDevice() ? 200 : 280,
+			marginTop: 10,
+		},
+		resultRow: {
+			borderTopWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		emptyList: {
+			marginVertical: 10,
+			marginHorizontal: 30,
+		},
+		importButton: {
+			paddingVertical: 6,
+			paddingHorizontal: 10,
+			backgroundColor: colors.primary.default,
+			borderRadius: 100,
+		},
+		importButtonText: {
+			color: colors.primary.inverse,
+		},
+		loadingIndicator: {
+			margin: 10,
+		},
+		loadingTokenView: {
+			marginVertical: 10,
+			marginHorizontal: 30,
+			justifyContent: 'center',
+			alignItems: 'center',
+			flexDirection: 'row',
+		},
+		footer: {
+			padding: 30,
+		},
+		footerIcon: {
+			paddingTop: 4,
+			paddingRight: 8,
+		},
+	});
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -136,6 +140,8 @@ function TokenSelectModal({
 	const [searchString, setSearchString] = useState('');
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] = useModalHandler(false);
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const excludedAddresses = useMemo(
 		() => excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
@@ -222,7 +228,7 @@ function TokenSelectModal({
 				</TouchableOpacity>
 			);
 		},
-		[balances, accounts, selectedAddress, conversionRate, currentCurrency, tokenExchangeRates, onItemPress]
+		[balances, accounts, selectedAddress, conversionRate, currentCurrency, tokenExchangeRates, onItemPress, styles]
 	);
 
 	const handleSearchPress = () => searchInput?.current?.focus();
@@ -264,7 +270,7 @@ function TokenSelectModal({
 			<TouchableWithoutFeedback>
 				<Alert
 					renderIcon={() => (
-						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.blue} size={15} />
+						<FAIcon name="info-circle" style={styles.footerIcon} color={colors.primary.default} size={15} />
 					)}
 				>
 					{(textStyle) => (
@@ -287,7 +293,7 @@ function TokenSelectModal({
 				</Alert>
 			</TouchableWithoutFeedback>
 		),
-		[explorer.isValid, explorer.name, handleBlockExplorerPress]
+		[explorer.isValid, explorer.name, handleBlockExplorerPress, styles, colors]
 	);
 
 	const renderEmptyList = useMemo(
@@ -296,7 +302,7 @@ function TokenSelectModal({
 				<Text>{strings('swaps.no_tokens_result', { searchString })}</Text>
 			</View>
 		),
-		[searchString]
+		[searchString, styles]
 	);
 
 	const handleSearchTextChange = useCallback((text) => {
@@ -320,6 +326,8 @@ function TokenSelectModal({
 			avoidKeyboard
 			onModalHide={() => setSearchString('')}
 			style={styles.modal}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 		>
 			<SafeAreaView style={styles.modalView}>
 				<ModalDragger />
@@ -333,18 +341,14 @@ function TokenSelectModal({
 							ref={searchInput}
 							style={styles.input}
 							placeholder={strings('swaps.search_token')}
-							placeholderTextColor={colors.grey500}
+							placeholderTextColor={colors.text.muted}
 							value={searchString}
 							onChangeText={handleSearchTextChange}
+							keyboardAppearance={themeAppearance}
 						/>
 						{searchString.length > 0 && (
 							<TouchableOpacity onPress={handleClearSearch}>
-								<Icon
-									name="ios-close-circle"
-									size={20}
-									style={styles.searchIcon}
-									color={colors.grey300}
-								/>
+								<Icon name="ios-close-circle" size={20} style={styles.searchIcon} />
 							</TouchableOpacity>
 						)}
 					</View>

@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, InteractionManager, Linking } from 
 import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../UI/Navbar';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
@@ -44,115 +44,117 @@ import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const { hexToBN } = util;
-const styles = StyleSheet.create({
-	section: {
-		minWidth: '100%',
-		width: '100%',
-		paddingVertical: 10,
-	},
-	title: {
-		...fontStyles.bold,
-		fontSize: scaling.scale(24),
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 34,
-		marginVertical: 8,
-		paddingHorizontal: 16,
-	},
-	explanation: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.black,
-		lineHeight: 20,
-		paddingHorizontal: 16,
-	},
-	editPermissionText: {
-		...fontStyles.bold,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 20,
-		textAlign: 'center',
-		marginVertical: 10,
-		borderWidth: 1,
-		borderRadius: 20,
-		borderColor: colors.blue,
-		paddingVertical: 8,
-		paddingHorizontal: 16,
-	},
-	viewDetailsText: {
-		...fontStyles.normal,
-		color: colors.blue,
-		fontSize: 12,
-		lineHeight: 16,
-		marginTop: 8,
-		textAlign: 'center',
-	},
-	actionTouchable: {
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	addressWrapper: {
-		backgroundColor: colors.blue000,
-		flexDirection: 'row',
-		alignItems: 'center',
-		borderRadius: 40,
-		paddingHorizontal: 10,
-		paddingVertical: 5,
-	},
-	address: {
-		fontSize: 13,
-		marginHorizontal: 8,
-		color: colors.blue700,
-		...fontStyles.normal,
-		maxWidth: 120,
-	},
-	errorWrapper: {
-		marginTop: 12,
-		paddingHorizontal: 10,
-		paddingVertical: 8,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderRadius: 8,
-		borderWidth: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	error: {
-		color: colors.red,
-		fontSize: 12,
-		lineHeight: 16,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-	underline: {
-		textDecorationLine: 'underline',
-		...fontStyles.bold,
-	},
-	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 200 : 280,
-	},
-	paddingHorizontal: {
-		paddingHorizontal: 16,
-	},
-	contactWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginVertical: 15,
-	},
-	nickname: {
-		...fontStyles.normal,
-		textAlign: 'center',
-		color: colors.blue500,
-		marginBottom: 10,
-	},
-	actionIcon: {
-		color: colors.blue,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		section: {
+			minWidth: '100%',
+			width: '100%',
+			paddingVertical: 10,
+		},
+		title: {
+			...fontStyles.bold,
+			fontSize: scaling.scale(24),
+			textAlign: 'center',
+			color: colors.text.default,
+			lineHeight: 34,
+			marginVertical: 16,
+			paddingHorizontal: 16,
+		},
+		explanation: {
+			...fontStyles.normal,
+			fontSize: 14,
+			textAlign: 'center',
+			color: colors.text.default,
+			lineHeight: 20,
+			paddingHorizontal: 16,
+		},
+		editPermissionText: {
+			...fontStyles.bold,
+			color: colors.primary.default,
+			fontSize: 12,
+			lineHeight: 20,
+			textAlign: 'center',
+			marginVertical: 10,
+			borderWidth: 1,
+			borderRadius: 20,
+			borderColor: colors.primary.default,
+			paddingVertical: 8,
+			paddingHorizontal: 16,
+		},
+		viewDetailsText: {
+			...fontStyles.normal,
+			color: colors.primary.default,
+			fontSize: 12,
+			lineHeight: 16,
+			marginTop: 8,
+			textAlign: 'center',
+		},
+		actionTouchable: {
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		addressWrapper: {
+			backgroundColor: colors.primary.muted,
+			flexDirection: 'row',
+			alignItems: 'center',
+			borderRadius: 40,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
+		},
+		address: {
+			fontSize: 13,
+			marginHorizontal: 8,
+			color: colors.text.default,
+			...fontStyles.normal,
+			maxWidth: 120,
+		},
+		errorWrapper: {
+			marginTop: 12,
+			paddingHorizontal: 10,
+			paddingVertical: 8,
+			backgroundColor: colors.error.muted,
+			borderColor: colors.error.default,
+			borderRadius: 8,
+			borderWidth: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		error: {
+			color: colors.text.default,
+			fontSize: 12,
+			lineHeight: 16,
+			...fontStyles.normal,
+			textAlign: 'center',
+		},
+		underline: {
+			textDecorationLine: 'underline',
+			...fontStyles.bold,
+		},
+		actionViewWrapper: {
+			height: Device.isMediumDevice() ? 200 : 280,
+		},
+		paddingHorizontal: {
+			paddingHorizontal: 16,
+		},
+		contactWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginVertical: 15,
+		},
+		nickname: {
+			...fontStyles.normal,
+			textAlign: 'center',
+			color: colors.primary.default,
+			marginBottom: 10,
+		},
+		actionIcon: {
+			color: colors.primary.default,
+		},
+	});
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -533,13 +535,15 @@ class ApproveTransactionReview extends PureComponent {
 		);
 	};
 
-	toggleDisplay = () => {
-		this.props.onUpdateContractNickname();
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
 	};
+
+	toggleDisplay = () => this.props.onUpdateContractNickname();
 
 	renderDetails = () => {
 		const { host, tokenSymbol, spenderAddress } = this.state;
-
 		const {
 			primaryCurrency,
 			gasError,
@@ -557,6 +561,7 @@ class ApproveTransactionReview extends PureComponent {
 			gasEstimationReady,
 			transactionConfirmed,
 		} = this.props;
+		const styles = this.getStyles();
 		const is_main_net = isMainNet(network);
 		const originIsDeeplink = origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
 		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
@@ -611,7 +616,7 @@ class ApproveTransactionReview extends PureComponent {
 									type={'short'}
 								/>
 							)}
-							<Feather name="copy" size={18} color={colors.blue} style={styles.actionIcon} />
+							<Feather name="copy" size={18} style={styles.actionIcon} />
 						</TouchableOpacity>
 					</View>
 					<Text style={styles.nickname} onPress={this.toggleDisplay}>
@@ -626,80 +631,78 @@ class ApproveTransactionReview extends PureComponent {
 							onConfirmPress={this.onConfirmPress}
 							confirmDisabled={Boolean(gasError) || transactionConfirmed}
 						>
-							<View style={styles.actionViewChildren}>
-								<View style={styles.paddingHorizontal}>
-									<AccountInfoCard />
-									<View style={styles.section}>
-										{showFeeMarket ? (
-											<TransactionReviewEIP1559
-												totalNative={EIP1559GasData.renderableTotalMinNative}
-												totalConversion={EIP1559GasData.renderableTotalMinConversion}
-												totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
-												gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-												gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-												gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-												gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
-												primaryCurrency={primaryCurrency}
-												timeEstimate={EIP1559GasData.timeEstimate}
-												timeEstimateColor={EIP1559GasData.timeEstimateColor}
-												timeEstimateId={EIP1559GasData.timeEstimateId}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												onUpdatingValuesStart={onUpdatingValuesStart}
-												onUpdatingValuesEnd={onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-											/>
-										) : (
-											<TransactionReviewEIP1559
-												totalNative={LegacyGasData.transactionTotalAmount}
-												totalConversion={LegacyGasData.transactionTotalAmountFiat}
-												gasFeeNative={LegacyGasData.transactionFee}
-												gasFeeConversion={LegacyGasData.transactionFeeFiat}
-												primaryCurrency={primaryCurrency}
-												hideTotal
-												noMargin
-												onEdit={this.edit}
-												over={Boolean(LegacyGasData.error)}
-												onUpdatingValuesStart={this.onUpdatingValuesStart}
-												onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-												animateOnChange={animateOnChange}
-												isAnimating={isAnimating}
-												gasEstimationReady={gasEstimationReady}
-												legacy
-											/>
-										)}
+							<View style={styles.paddingHorizontal}>
+								<AccountInfoCard />
+								<View style={styles.section}>
+									{showFeeMarket ? (
+										<TransactionReviewEIP1559
+											totalNative={EIP1559GasData.renderableTotalMinNative}
+											totalConversion={EIP1559GasData.renderableTotalMinConversion}
+											totalMaxNative={EIP1559GasData.renderableTotalMaxNative}
+											gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
+											gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
+											gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
+											gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+											primaryCurrency={primaryCurrency}
+											timeEstimate={EIP1559GasData.timeEstimate}
+											timeEstimateColor={EIP1559GasData.timeEstimateColor}
+											timeEstimateId={EIP1559GasData.timeEstimateId}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											onUpdatingValuesStart={onUpdatingValuesStart}
+											onUpdatingValuesEnd={onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+										/>
+									) : (
+										<TransactionReviewEIP1559
+											totalNative={LegacyGasData.transactionTotalAmount}
+											totalConversion={LegacyGasData.transactionTotalAmountFiat}
+											gasFeeNative={LegacyGasData.transactionFee}
+											gasFeeConversion={LegacyGasData.transactionFeeFiat}
+											primaryCurrency={primaryCurrency}
+											hideTotal
+											noMargin
+											onEdit={this.edit}
+											over={Boolean(LegacyGasData.error)}
+											onUpdatingValuesStart={this.onUpdatingValuesStart}
+											onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+											gasEstimationReady={gasEstimationReady}
+											legacy
+										/>
+									)}
 
-										{gasError && (
-											<View style={styles.errorWrapper}>
-												<TouchableOpacity onPress={errorPress}>
-													<Text reset style={styles.error}>
-														{gasError}
+									{gasError && (
+										<View style={styles.errorWrapper}>
+											<TouchableOpacity onPress={errorPress}>
+												<Text reset style={styles.error}>
+													{gasError}
+												</Text>
+												{/* only show buy more on mainnet */}
+												{over && is_main_net && (
+													<Text reset style={[styles.error, styles.underline]}>
+														{errorLinkText}
 													</Text>
-													{/* only show buy more on mainnet */}
-													{over && is_main_net && (
-														<Text reset style={[styles.error, styles.underline]}>
-															{errorLinkText}
-														</Text>
-													)}
-												</TouchableOpacity>
-											</View>
-										)}
-										{!gasError && (
-											<TouchableOpacity
-												style={styles.actionTouchable}
-												onPress={this.toggleViewDetails}
-											>
-												<View>
-													<Text reset style={styles.viewDetailsText}>
-														{strings('spend_limit_edition.view_details')}
-													</Text>
-												</View>
+												)}
 											</TouchableOpacity>
-										)}
-									</View>
+										</View>
+									)}
+									{!gasError && (
+										<TouchableOpacity
+											style={styles.actionTouchable}
+											onPress={this.toggleViewDetails}
+										>
+											<View>
+												<Text reset style={styles.viewDetailsText}>
+													{strings('spend_limit_edition.view_details')}
+												</Text>
+											</View>
+										</TouchableOpacity>
+									)}
 								</View>
 							</View>
 						</ActionView>
@@ -811,5 +814,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	showAlert: (config) => dispatch(showAlert(config)),
 });
+
+ApproveTransactionReview.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));
