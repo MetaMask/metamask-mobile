@@ -140,7 +140,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 							<>
 								<NetworkMainAssetLogo style={styles.ethLogo} />
 								<Text
-									style={[styles.tokenText, styles.capitalizeText]}
+									style={type === RPC ? styles.tokenText : [styles.tokenText, styles.capitalizeText]}
 									testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
 								>
 									{type === RPC
