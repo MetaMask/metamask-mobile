@@ -54,9 +54,11 @@ const createStyles = (colors: {
 		tokenText: {
 			fontSize: 15,
 			color: colors.text.default,
-			textTransform: 'capitalize',
 			textAlign: 'center',
 			paddingRight: 10,
+		},
+		capitalizeText: {
+			textTransform: 'capitalize',
 		},
 		messageTitle: {
 			fontSize: 14,
@@ -136,7 +138,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						) : (
 							<>
 								<NetworkMainAssetLogo style={styles.ethLogo} />
-								<Text style={styles.tokenText}>
+								<Text style={[styles.tokenText, styles.capitalizeText]}>
 									{type === RPC
 										? `${nickname}`
 										: type === MAINNET
