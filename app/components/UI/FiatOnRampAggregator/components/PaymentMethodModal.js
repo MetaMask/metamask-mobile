@@ -60,6 +60,7 @@ function PaymentMethodModal({ isVisible, dismiss, title }) {
 			swipeDirection="down"
 			propagateSwipe
 			avoidKeyboard
+			backdropColor={colors.overlay.default}
 			style={styles.modal}
 		>
 			<SafeAreaView style={styles.modalView}>
