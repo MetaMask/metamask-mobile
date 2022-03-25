@@ -101,9 +101,13 @@ class Asset extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
+		const { isETH } = route.params;
 		navigation.setOptions(
-			getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation, () =>
-				navigation.navigate('AssetOptions')
+			getNetworkNavbarOptions(
+				route.params?.symbol ?? '',
+				false,
+				navigation,
+				isETH ? null : () => navigation.navigate('AssetOptions')
 			)
 		);
 	};

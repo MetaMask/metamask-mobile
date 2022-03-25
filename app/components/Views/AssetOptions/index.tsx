@@ -4,6 +4,10 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fontStyles } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { RPC } from '../../../constants/network';
+import { findBlockExplorerForRpc } from '../../../util/networks';
+import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 
 const styles = StyleSheet.create({
 	screen: { justifyContent: 'flex-end' },
@@ -42,25 +46,54 @@ interface Option {
 	onPress: () => void;
 }
 
-const AssetOptions = () => {
+interface Props {
+	route: {
+		params: {
+			address: string;
+		};
+	};
+}
+
+const AssetOptions = (props: Props) => {
+	const { address } = props.route.params;
 	const safeAreaInsets = useSafeAreaInsets();
 	const navigation = useNavigation();
 	const modalRef = useRef<ReusableModalRef>(null);
+	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
+	const frequentRpcList = useSelector(
+		(state: any) => state.engine.backgroundState.PreferencesController.frequentRpcList
+	);
+
+	const goToBrowserUrl = (url: string, title: string) => {
+		modalRef.current?.dismissModal(() => {
+			navigation.navigate('Webview', {
+				screen: 'SimpleWebview',
+				params: {
+					url,
+					title,
+				},
+			});
+		});
+	};
 
 	const openOnEtherscan = () => {
-		modalRef.current?.dismissModal(() => {
-			navigation.navigate('AssetDetails');
-		});
-		// const url = `${rpcBlockExplorer}/tx/${transactionHash}`;
-		// const title = new URL(rpcBlockExplorer).hostname;
-		// navigation.push('Webview', {
-		// 	screen: 'SimpleWebview',
-		// 	params: { url, title },
-		// });
+		const { rpcTarget, type } = network.provider;
+		if (network.provider.type === RPC) {
+			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+			const url = `${blockExplorer}/token/${address}`;
+			const title = new URL(blockExplorer).hostname;
+			goToBrowserUrl(url, title);
+		} else {
+			const url = getEtherscanAddressUrl(type, address);
+			const etherscanUrl = getEtherscanBaseUrl(type).replace('https://', '');
+			goToBrowserUrl(url, etherscanUrl);
+		}
 	};
 
 	const openTokenDetails = () => {
-		navigation.navigate('');
+		modalRef.current?.dismissModal(() => {
+			navigation.navigate('AssetDetails');
+		});
 	};
 
 	const renderOptions = () => {

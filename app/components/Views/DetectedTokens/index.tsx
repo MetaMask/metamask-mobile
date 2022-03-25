@@ -91,6 +91,7 @@ const DetectedTokens = () => {
 			// Import all tokens
 			modalRef.current?.dismissModal(async () => {
 				try {
+					await TokensController.importTokens(tokensToImport);
 					NotificationManager.showSimpleNotification({
 						status: `simple_notification`,
 						duration: 5000,
@@ -99,7 +100,6 @@ const DetectedTokens = () => {
 							tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
 						}),
 					});
-					await TokensController.importTokens(tokensToImport);
 				} catch (err) {
 					Logger.log(err, 'DetectedTokens: Failed to import all detected tokens!');
 				}
@@ -110,8 +110,20 @@ const DetectedTokens = () => {
 				onConfirm: async () => {
 					modalRef.current?.dismissModal(async () => {
 						try {
-							tokensToImport.length && (await TokensController.importTokens(tokensToImport));
 							tokensToIgnore.length && (await TokensController.ignoreTokens(tokensToIgnore));
+							if (tokensToImport.length) {
+								await TokensController.importTokens(tokensToImport);
+								NotificationManager.showSimpleNotification({
+									status: `simple_notification`,
+									duration: 5000,
+									title: strings('wallet.tokens_imported_notif_title'),
+									description: strings('wallet.tokens_imported_notif_desc', {
+										tokenSymbols: tokensToImport
+											.map((token) => token.symbol.toUpperCase())
+											.join(', '),
+									}),
+								});
+							}
 						} catch (err) {
 							Logger.log(err, 'DetectedTokens: Failed to both ignore and import tokens!');
 						}

@@ -19,6 +19,7 @@ import Asset from '../../Views/Asset';
 import AssetOptions from '../../Views/AssetOptions';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
+import AssetIgnoreConfirmation from '../../Views/AssetIgnoreConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
@@ -105,14 +106,23 @@ const WalletModalStack = () => (
 const AssetStackFlow = (props) => (
 	<Stack.Navigator>
 		<Stack.Screen name={'Asset'} component={Asset} initialParams={props.route.params} />
-		<Stack.Screen name={'AssetDetails'} component={AssetDetails} />
+		<Stack.Screen name={'AssetDetails'} component={AssetDetails} initialParams={props.route.params} />
 	</Stack.Navigator>
 );
 
 const AssetModalFlow = (props) => (
 	<Stack.Navigator mode={'modal'} initialRouteName={'AssetStackFlow'} screenOptions={clearStackNavigatorOptions}>
 		<Stack.Screen name={'AssetStackFlow'} component={AssetStackFlow} initialParams={props.route.params} />
-		<Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+		<Stack.Screen
+			name={'AssetOptions'}
+			component={AssetOptions}
+			initialParams={{ address: props.route.params?.address }}
+		/>
+		<Stack.Screen
+			name={'AssetIgnoreConfirmation'}
+			component={AssetIgnoreConfirmation}
+			initialParams={{ address: props.route.params?.address }}
+		/>
 	</Stack.Navigator>
 );
 /* eslint-enable react/prop-types */

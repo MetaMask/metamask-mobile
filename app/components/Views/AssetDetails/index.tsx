@@ -1,15 +1,19 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-// import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { colors, fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
+import TokenImage from '../../UI/TokenImage';
+import Networks from '../../../util/networks';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	container: {
@@ -17,18 +21,19 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		alignItems: 'flex-start',
 	},
-	balanceContainer: { flexDirection: 'row', alignItems: 'center' },
+	balanceContainer: { marginTop: 8 },
 	balanceAmountLabel: {
 		...(fontStyles.bold as any),
 		fontSize: 32,
 		color: colors.black,
+		marginTop: 8,
 	},
 	fiatAmountLabel: {
 		...(fontStyles.normal as any),
 		fontSize: 16,
 		color: colors.black,
 	},
-	tokenImage: { height: 26, width: 26 },
+	tokenImage: { height: 50, width: 50 },
 	sectionTitleLabel: {
 		...(fontStyles.bold as any),
 		fontSize: 16,
@@ -63,32 +68,59 @@ const styles = StyleSheet.create({
 		marginLeft: 4,
 		color: colors.blue,
 	},
+	warning: {
+		borderRadius: 8,
+		color: colors.black,
+		...(fontStyles.normal as any),
+		fontSize: 14,
+		lineHeight: 20,
+		borderWidth: 1,
+		borderColor: colors.yellow,
+		backgroundColor: colors.yellow100,
+		padding: 20,
+	},
+	warningLinks: {
+		color: colors.blue,
+	},
 });
 
 interface Props {
 	route: {
 		params: {
+			address: string;
+			decimals: number;
+			symbol: string;
+			aggregators: string[];
 			balance: string;
 			balanceFiat: string;
-			decimals: number;
+			balanceError?: string;
 			logo: string;
-			aggregators: string[];
-			address: string;
 		};
 	};
 }
 
 const AssetDetails = (props: Props) => {
-	// const { balance, balanceFiat, decimals, logo, aggregators, address } = props.route.params;
+	const { address, decimals, symbol, aggregators, balance, balanceFiat, balanceError, logo } = props.route.params;
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
+	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
+
+	const getNetworkName = () => {
+		let name = '';
+		if (network.provider.nickname) {
+			name = network.provider.nickname;
+		} else {
+			name = (Networks as any)[network.provider.type]?.name || { ...Networks.rpc, color: null }.name;
+		}
+		return name;
+	};
 
 	useEffect(() => {
 		navigation.setOptions(getNetworkNavbarOptions('Token Details', false, navigation));
 	}, [navigation]);
 
 	const copyAddressToClipboard = async () => {
-		// await ClipboardManager.setString(address);
+		await ClipboardManager.setString(address);
 		dispatch(
 			showAlert({
 				isVisible: true,
@@ -99,15 +131,41 @@ const AssetDetails = (props: Props) => {
 		);
 	};
 
-	const renderBalanceSection = () => (
-		<>
+	const triggerIgnoreAllTokens = () => {
+		const { TokensController } = Engine.context as any;
+		navigation.navigate('AssetIgnoreConfirmation', {
+			onConfirm: async () => {
+				try {
+					navigation.navigate('WalletView');
+					// await TokensController.removeAndIgnoreToken(address);
+					NotificationManager.showSimpleNotification({
+						status: `simple_notification`,
+						duration: 5000,
+						title: 'Token Ignored',
+						description: `Ignoring ${symbol} from wallet`,
+					});
+				} catch (err) {
+					Logger.log(err, 'AssetIgnoreConfirmation: Failed to ignore token!');
+				}
+			},
+		});
+	};
+
+	const renderBalanceSection = () => {
+		return balanceError ? (
+			renderWarning()
+		) : (
 			<View style={styles.balanceContainer}>
-				<Text style={styles.balanceAmountLabel}>{'200'}</Text>
-				<Image source={{}} style={styles.tokenImage} />
+				<TokenImage
+					asset={props.route.params}
+					containerStyle={styles.tokenImage}
+					iconStyle={styles.tokenImage}
+				/>
+				<Text style={styles.balanceAmountLabel}>{`${balance} ${symbol}`}</Text>
+				<Text style={styles.fiatAmountLabel}>{balanceFiat}</Text>
 			</View>
-			<Text style={styles.fiatAmountLabel}>{'$2231.21'}</Text>
-		</>
-	);
+		);
+	};
 
 	const renderSectionTitle = (title: string) => <Text style={styles.sectionTitleLabel}>{title}</Text>;
 
@@ -116,7 +174,11 @@ const AssetDetails = (props: Props) => {
 	);
 
 	const renderHideButton = () => (
-		<TouchableOpacity hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }} style={styles.hideButton}>
+		<TouchableOpacity
+			onPress={triggerIgnoreAllTokens}
+			hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+			style={styles.hideButton}
+		>
 			<Text style={styles.hideButtonLabel}>{'Hide token'}</Text>
 		</TouchableOpacity>
 	);
@@ -127,10 +189,36 @@ const AssetDetails = (props: Props) => {
 			onPress={copyAddressToClipboard}
 			style={styles.addressLinkContainer}
 		>
-			<EthereumAddress style={styles.addressLinkLabel} address={'address'} type={'short'} />
+			<EthereumAddress style={styles.addressLinkLabel} address={address} type={'short'} />
 			<Icon style={styles.copyIcon} name={'copy'} size={16} />
 		</TouchableOpacity>
 	);
+
+	const renderWarning = () => {
+		const { symbol } = props.route.params;
+
+		const supportArticleUrl =
+			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
+		return (
+			<TouchableOpacity
+				onPress={() =>
+					navigation.navigate('BrowserTabHome', {
+						screen: 'BrowserView',
+						params: {
+							newTabUrl: supportArticleUrl,
+							timestamp: Date.now(),
+						},
+					})
+				}
+			>
+				<Text style={styles.warning}>
+					{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
+					<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
+					{strings('asset_overview.for_help')}
+				</Text>
+			</TouchableOpacity>
+		);
+	};
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
@@ -138,11 +226,11 @@ const AssetDetails = (props: Props) => {
 			{renderSectionTitle('Token contract address')}
 			{renderTokenAddressLink()}
 			{renderSectionTitle('Token decimal')}
-			{renderSectionDescription('18')}
+			{renderSectionDescription(String(decimals))}
 			{renderSectionTitle('Network')}
-			{renderSectionDescription('Ethereum Mainnet')}
+			{renderSectionDescription(getNetworkName())}
 			{renderSectionTitle('Token lists')}
-			{renderSectionDescription('AirswapLight, Bancor, CMC, CoinGecko, Zerion, Kleros')}
+			{renderSectionDescription(aggregators.join(', '))}
 			{renderHideButton()}
 		</ScrollView>
 	);
