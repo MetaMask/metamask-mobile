@@ -14,8 +14,23 @@ const styles = StyleSheet.create({
 	},
 });
 
-const TransactionDetails = (props) => {
+const TransactionDetails = ({ route }) => {
+	const mockOrder = {
+		status: 'confirmed',
+		transactionID: 'QY34A1TAY3R',
+		dateAndTime: 'FEB 2 2022, 5:05 PM UTC',
+		paymentMethod: 'DEBIT CARD 2755',
+		tokenAmount: '0.0687202',
+		fiatAmount: '$280.54',
+		exchangeRate: '1 ETH @ $4,3427.86',
+		totalFees: '$19.46',
+		providerName: 'MoonPay',
+		purchaseAmountTotal: '$300 USD',
+		paymentType: 'bank',
+	};
+	const order = mockOrder;
 	const navigation = useNavigation();
+	console.log(route);
 
 	const handleMakeAnotherPurchase = useCallback(() => {
 		navigation.navigate('PaymentMethod');
@@ -28,19 +43,7 @@ const TransactionDetails = (props) => {
 			</ScreenLayout.Header>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content style={styles.screenLayout}>
-					<TransactionDetail
-						stage={props.route.params.stage}
-						transactionID="QY34A1TAY3R"
-						dateAndTime="FEB 2 2022, 5:05 PM UTC"
-						paymentMethod="DEBIT CARD 2755"
-						tokenAmount="0.06878071 ETH"
-						fiatAmount="$280.54"
-						exchangeRate="1 ETH @ $4,3427.86"
-						totalFees="$19.46"
-						providerName="MoonPay"
-						purchaseAmountTotal="$300 USD"
-						paymentType="bank"
-					/>
+					<TransactionDetail order={order} />
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>

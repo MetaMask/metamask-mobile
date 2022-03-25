@@ -5,7 +5,6 @@ import { colors, fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
@@ -17,6 +16,7 @@ import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice, util } from '@metamask/controllers/';
+
 const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const styles = StyleSheet.create({
@@ -117,6 +117,11 @@ class TransactionElement extends PureComponent {
 		 * Chain Id
 		 */
 		chainId: PropTypes.string,
+		/**
+		 * Navigation object required to push
+		 * the Transaction details view
+		 */
+		navigation: PropTypes.object,
 	};
 
 	state = {
@@ -332,44 +337,29 @@ class TransactionElement extends PureComponent {
 		</StyledButton>
 	);
 
+	handleTransactionDetailsNavigation = (id) => {
+		this.props.navigation.navigate('TransactionsHome', {
+			screen: 'TransactionDetails',
+			params: {
+				id,
+			},
+		});
+	};
+
 	render() {
-		const { tx } = this.props;
-		const { detailsModalVisible, importModalVisible, transactionElement, transactionDetails } = this.state;
+		const { importModalVisible, transactionElement, transactionDetails } = this.state;
 
 		if (!transactionElement || !transactionDetails) return null;
 		return (
 			<>
 				<TouchableHighlight
 					style={styles.row}
-					onPress={this.onPressItem}
+					onPress={() => this.handleTransactionDetailsNavigation('1234')}
 					underlayColor={colors.grey000}
 					activeOpacity={1}
 				>
 					{this.renderTxElement(transactionElement)}
 				</TouchableHighlight>
-				{detailsModalVisible && (
-					<Modal
-						isVisible={detailsModalVisible}
-						onBackdropPress={this.onCloseDetailsModal}
-						onBackButtonPress={this.onCloseDetailsModal}
-						onSwipeComplete={this.onCloseDetailsModal}
-						swipeDirection={'down'}
-					>
-						<DetailsModal>
-							<DetailsModal.Header>
-								<DetailsModal.Title onPress={this.onCloseDetailsModal}>
-									{transactionElement?.actionKey}
-								</DetailsModal.Title>
-								<DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
-							</DetailsModal.Header>
-							<TransactionDetails
-								transactionObject={tx}
-								transactionDetails={transactionDetails}
-								close={this.onCloseDetailsModal}
-							/>
-						</DetailsModal>
-					</Modal>
-				)}
 				<Modal
 					isVisible={importModalVisible}
 					onBackdropPress={this.onCloseImportWalletModal}

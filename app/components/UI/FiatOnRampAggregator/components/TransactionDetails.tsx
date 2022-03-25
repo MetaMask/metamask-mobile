@@ -58,14 +58,9 @@ const styles = StyleSheet.create({
 	},
 });
 
-export enum TransactionStage {
-	Successful,
-	Failed,
-	Processing,
-}
-const renderStage = (stage: TransactionStage, paymentType: string) => {
+const renderStage = (stage: string, paymentType: string) => {
 	switch (stage) {
-		case TransactionStage.Successful: {
+		case 'confirmed': {
 			return (
 				<>
 					<Feather name="check-circle" size={32} color={colors.green500} />
@@ -78,12 +73,12 @@ const renderStage = (stage: TransactionStage, paymentType: string) => {
 				</>
 			);
 		}
-		case TransactionStage.Failed: {
+		case 'failed' || 'cancelled': {
 			return (
 				<>
 					<Image source={failedIcon} />
 					<Text bold big primary centered style={styles.stageDescription}>
-						{strings('fiat_on_ramp_aggregator.transaction.failed')}
+						{stage === 'failed' ? strings('fiat_on_ramp_aggregator.transaction.failed') : 'cancelled'}
 					</Text>
 					<Text small centered style={styles.stageMessage}>
 						{strings('fiat_on_ramp_aggregator.transaction.failed_description')}
@@ -91,12 +86,12 @@ const renderStage = (stage: TransactionStage, paymentType: string) => {
 				</>
 			);
 		}
-		case TransactionStage.Processing: {
+		case 'pending' || 'submitted': {
 			return (
 				<>
 					<Spinner />
 					<Text bold big primary centered style={styles.stageDescription}>
-						{strings('fiat_on_ramp_aggregator.transaction.processing')}
+						{stage === 'pending' ? strings('fiat_on_ramp_aggregator.transaction.processing') : 'submitted'}
 					</Text>
 					{paymentType === 'bank' ? (
 						<Text small centered style={styles.stageMessage}>
@@ -114,136 +109,114 @@ const renderStage = (stage: TransactionStage, paymentType: string) => {
 };
 
 interface Props {
-	stage: TransactionStage;
-	transactionID?: string;
-	dateAndTime?: string;
-	paymentMethod?: string;
-	paymentType: string;
-	tokenAmount?: string;
-	fiatAmount?: string;
-	exchangeRate?: string;
-	totalFees?: string;
-	providerName?: string;
-	purchaseAmountTotal?: string;
+	order: any;
 }
-const TransactionDetails: React.FC<Props> = ({
-	stage,
-	transactionID,
-	dateAndTime,
-	paymentMethod,
-	paymentType,
-	tokenAmount,
-	fiatAmount,
-	exchangeRate,
-	totalFees,
-	providerName,
-	purchaseAmountTotal,
-}: Props) => {
-	const values = [
-		{
-			id: 1,
-			title: 'Transaction ID',
-			variable: transactionID,
-		},
-		{
-			id: 2,
-			title: 'Date and Time',
-			variable: dateAndTime,
-		},
-		{
-			id: 3,
-			title: 'Payment Method',
-			variable: paymentMethod,
-		},
-		{
-			id: 4,
-			title: 'Token Amount',
-			variable: tokenAmount,
-		},
-		{
-			id: 5,
-			title: 'USD Amount',
-			variable: fiatAmount,
-		},
-		{
-			id: 6,
-			title: 'Exchange Rate',
-			variable: exchangeRate,
-		},
-		{
-			id: 7,
-			title: 'Total Fees',
-			variable: totalFees,
-		},
-	];
-	return (
-		<View>
-			<View style={styles.stage}>{renderStage(stage, paymentType)}</View>
-			<Text centered primary style={styles.tokenAmount}>
-				{tokenAmount}
+
+const values = [
+	{
+		id: 1,
+		title: 'Transaction ID',
+		variable: 'transactionID',
+	},
+	{
+		id: 2,
+		title: 'Date and Time',
+		variable: 'dateAndTime',
+	},
+	{
+		id: 3,
+		title: 'Payment Method',
+		variable: 'paymentMethod',
+	},
+	{
+		id: 4,
+		title: 'Token Amount',
+		variable: 'tokenAmount',
+	},
+	{
+		id: 5,
+		title: 'USD Amount',
+		variable: 'fiatAmount',
+	},
+	{
+		id: 6,
+		title: 'Exchange Rate',
+		variable: 'exchangeRate',
+	},
+	{
+		id: 7,
+		title: 'Total Fees',
+		variable: 'totalFees',
+	},
+];
+
+const TransactionDetails: React.FC<Props> = ({ order }: Props) => (
+	<View>
+		<View style={styles.stage}>{renderStage(order.status, order.paymentType)}</View>
+		<Text centered primary style={styles.tokenAmount}>
+			{order.tokenAmount}
+		</Text>
+		<Text centered small style={styles.fiatColor}>
+			{order.fiatAmount}
+		</Text>
+		<Box>
+			<Text bold primary style={styles.transactionTitle}>
+				{strings('fiat_on_ramp_aggregator.transaction.details')}
 			</Text>
-			<Text centered small style={styles.fiatColor}>
-				{fiatAmount}
-			</Text>
-			<Box>
-				<Text bold primary style={styles.transactionTitle}>
-					{strings('fiat_on_ramp_aggregator.transaction.details')}
-				</Text>
-				{values.map(({ id, title, variable }) => (
-					<View key={id}>
-						<ListItem.Content style={styles.listItems}>
-							<ListItem.Body>
-								<Text black small>
-									{title}
-								</Text>
-							</ListItem.Body>
-							<ListItem.Amount>
-								<Text small bold primary>
-									{variable}
-								</Text>
-							</ListItem.Amount>
-						</ListItem.Content>
-						{variable === paymentMethod && (
-							<Text small style={styles.provider}>
-								{strings('fiat_on_ramp_aggregator.transaction.via')} {providerName}
+			{values.map(({ id, title, variable }) => (
+				<View key={id}>
+					<ListItem.Content style={styles.listItems}>
+						<ListItem.Body>
+							<Text black small>
+								{title}
 							</Text>
-						)}
-					</View>
-				))}
+						</ListItem.Body>
+						<ListItem.Amount>
+							<Text small bold primary>
+								{order[variable]}
+							</Text>
+						</ListItem.Amount>
+					</ListItem.Content>
+					{order[variable] === order.paymentMethod && (
+						<Text small style={styles.provider}>
+							{strings('fiat_on_ramp_aggregator.transaction.via')} {order.providerName}
+						</Text>
+					)}
+				</View>
+			))}
 
-				<View style={styles.line} />
+			<View style={styles.line} />
 
-				<ListItem.Content style={styles.listItems}>
-					<ListItem.Body>
-						<Text black small>
-							{strings('fiat_on_ramp_aggregator.transaction.purchase_amount')}
-						</Text>
-					</ListItem.Body>
-					<ListItem.Amount>
-						<Text small bold primary>
-							{purchaseAmountTotal}
-						</Text>
-					</ListItem.Amount>
-				</ListItem.Content>
-				{stage === TransactionStage.Successful && (
-					<TouchableOpacity>
-						<Text blue small centered style={styles.link}>
-							{strings('fiat_on_ramp_aggregator.transaction.etherscan')}
-						</Text>
-					</TouchableOpacity>
-				)}
-			</Box>
-			<View style={styles.contactDesc}>
-				<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
+			<ListItem.Content style={styles.listItems}>
+				<ListItem.Body>
+					<Text black small>
+						{strings('fiat_on_ramp_aggregator.transaction.purchase_amount')}
+					</Text>
+				</ListItem.Body>
+				<ListItem.Amount>
+					<Text small bold primary>
+						{order.purchaseAmountTotal}
+					</Text>
+				</ListItem.Amount>
+			</ListItem.Content>
+			{order.stage === 'confirmed' && (
 				<TouchableOpacity>
-					<Text small underline>
-						{strings('fiat_on_ramp_aggregator.transaction.contact')} {providerName}{' '}
-						{strings('fiat_on_ramp_aggregator.transaction.support')}
+					<Text blue small centered style={styles.link}>
+						{strings('fiat_on_ramp_aggregator.transaction.etherscan')}
 					</Text>
 				</TouchableOpacity>
-			</View>
+			)}
+		</Box>
+		<View style={styles.contactDesc}>
+			<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
+			<TouchableOpacity>
+				<Text small underline>
+					{strings('fiat_on_ramp_aggregator.transaction.contact')} {order.providerName}{' '}
+					{strings('fiat_on_ramp_aggregator.transaction.support')}
+				</Text>
+			</TouchableOpacity>
 		</View>
-	);
-};
+	</View>
+);
 
 export default TransactionDetails;

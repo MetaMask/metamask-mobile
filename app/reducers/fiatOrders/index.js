@@ -93,6 +93,9 @@ export const getPendingOrders = createSelector(
 		)
 );
 
+export const makeOrderIdSelector = (orderId) =>
+	createSelector(ordersSelector, (orders) => orders.filter((order) => order.id === orderId));
+
 export const getHasOrders = createSelector(getOrders, (orders) => orders.length > 0);
 
 const initialState = {

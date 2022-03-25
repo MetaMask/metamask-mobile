@@ -100,6 +100,11 @@ const BrowserTabHome = () => (
 const TransactionsHome = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="TransactionsView" component={ActivityView} />
+		<Stack.Screen
+			name="TransactionDetails"
+			component={TransactionDetails}
+			options={TransactionDetails.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
@@ -290,11 +295,6 @@ const FiatOnRampAggregator = () => (
 			<Stack.Screen name="GetQuotes" component={GetQuotes} options={GetQuotes.navigationOptions} />
 			<Stack.Screen name="Checkout" component={CheckoutWebView} options={CheckoutWebView.navigationOptions} />
 			<Stack.Screen name="Region" component={Region} options={Region.navigationOptions} />
-			<Stack.Screen
-				name="TransactionDetails"
-				component={TransactionDetails}
-				options={TransactionDetails.navigationOptions}
-			/>
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
 );
