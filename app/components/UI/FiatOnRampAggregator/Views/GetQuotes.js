@@ -39,7 +39,8 @@ const GetQuotes = () => {
 		selectedAsset?.id,
 		selectedFiatCurrencyId,
 		params.amount,
-		selectedAddress
+		selectedAddress,
+		'https://dummy.url.metamask.io'
 	);
 
 	useEffect(() => {

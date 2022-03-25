@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk } from '@chingiz-mardanov/on-ramp-sdk';
+import { OnRampSdk, IOnRampSdk, Environment } from '@chingiz-mardanov/on-ramp-sdk';
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
@@ -32,7 +32,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
 	useEffect(() => {
 		(async () => {
-			setSdkModule(await OnRampSdk.getSDK('stg'));
+			setSdkModule(await OnRampSdk.getSDK(Environment.Staging));
 		})();
 	}, []);
 
