@@ -1,9 +1,8 @@
-import currencyFormatter from 'currency-formatter';
-import currencies from 'currency-formatter/currencies';
 import BigNumber from 'bignumber.js';
 import { addHexPrefix } from './number';
 
 import { conversionUtil, addCurrencies, multiplyCurrencies, conversionGreaterThan } from './conversion';
+import I18n from '../../locales/i18n';
 
 export function increaseLastGasPrice(lastGasPrice) {
 	return addHexPrefix(
@@ -86,13 +85,13 @@ export function getTransactionFee({ value, fromCurrency = 'ETH', toCurrency, con
 export function formatCurrency(value, currencyCode) {
 	const upperCaseCurrencyCode = currencyCode.toUpperCase();
 
-	return currencies.find((currency) => currency.code === upperCaseCurrencyCode)
-		? currencyFormatter.format(Number(value), {
-				code: upperCaseCurrencyCode,
-				style: 'currency',
-				// eslint-disable-next-line no-mixed-spaces-and-tabs
-		  })
-		: `value ${upperCaseCurrencyCode}`;
+	const formatedCurrency = new Intl.NumberFormat(I18n.locale, {
+		currency: upperCaseCurrencyCode,
+		style: 'currency',
+		// eslint-disable-next-line no-mixed-spaces-and-tabs
+	}).format(Number(value));
+
+	return formatedCurrency;
 }
 
 export function convertTokenToFiat({ value, fromCurrency = 'ETH', toCurrency, conversionRate, contractExchangeRate }) {
