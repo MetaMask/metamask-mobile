@@ -5,6 +5,7 @@ export const FIAT_ORDER_PROVIDERS = {
 	WYRE: 'WYRE',
 	WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
 	TRANSAK: 'TRANSAK',
+	MOONPAY: 'MOONPAY',
 };
 
 /**
@@ -48,7 +49,7 @@ export const NETWORKS_CHAIN_ID = {
 	FANTOM: '250',
 };
 
-const NETWORK_NAMES = {
+const TRANSAK_NETWORK_NAMES = {
 	[NETWORKS_CHAIN_ID.MAINNET]: 'ethereum',
 	[NETWORKS_CHAIN_ID.BSC]: 'bsc',
 	[NETWORKS_CHAIN_ID.POLYGON]: 'polygon',
@@ -78,16 +79,28 @@ export const NETWORK_ALLOWED_TOKENS = {
 		{ symbol: 'USDC', address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', decimals: 6 },
 		{ symbol: 'DAI', address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', decimals: 18 },
 	],
+	[NETWORKS_CHAIN_ID.CELO]: [
+		{ symbol: 'CUSD', address: '0x765DE816845861e75A25fCA122bb6898B8B1282a', decimals: 18 },
+		{ symbol: 'CEUR', address: '0xD8763CBa276a3738E6DE85b4b3bF5FDed6D6cA73', decimals: 18 },
+	],
 };
 
-export const NETWORK_PARAMETERS = Object.keys(NETWORK_NAMES).reduce(
+export const TRANSAK_NETWORK_PARAMETERS = Object.keys(TRANSAK_NETWORK_NAMES).reduce(
 	(acc, key) => ({
 		...acc,
 		[key]: [
-			NETWORK_NAMES[key],
+			TRANSAK_NETWORK_NAMES[key],
 			NETWORK_NATIVE_SYMBOL[key],
 			[NETWORK_NATIVE_SYMBOL[key], ...(NETWORK_ALLOWED_TOKENS[key] || []).map(({ symbol }) => symbol)].join(','),
 		],
 	}),
 	{}
 );
+
+export const MOONPAY_NETWORK_PARAMETERS = {
+	[NETWORKS_CHAIN_ID.MAINNET]: ['eth', 'eth,usdt,usdc,dai'],
+	[NETWORKS_CHAIN_ID.BSC]: ['bnb_bsc', 'bnb_bsc,busd_bsc'],
+	[NETWORKS_CHAIN_ID.POLYGON]: ['matic_polygon', 'matic_polygon,usdc_polygon'],
+	[NETWORKS_CHAIN_ID.AVAXCCHAIN]: ['avax_cchain', 'avax_cchain'],
+	[NETWORKS_CHAIN_ID.CELO]: ['celo', 'celo,cusd'],
+};
