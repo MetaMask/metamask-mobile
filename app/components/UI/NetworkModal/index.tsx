@@ -17,7 +17,12 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { APPROVE_NETWORK_CANCEL_BUTTON_ID, APPROVE_NETWORK_APPROVE_BUTTON_ID } from '../../../constants/test-ids';
+import {
+	APPROVE_NETWORK_DISPLAY_NAME_ID,
+	APPROVE_NETWORK_MODAL_ID,
+	APPROVE_NETWORK_CANCEL_BUTTON_ID,
+	APPROVE_NETWORK_APPROVE_BUTTON_ID,
+} from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -199,7 +204,7 @@ const NetworkModals = (props: NetworkProps) => {
 								clickPress={undefined}
 							/>
 						)}
-						<View style={styles.nameWrapper}>
+						<View style={styles.nameWrapper} testID={APPROVE_NETWORK_MODAL_ID}>
 							<ImageIcons image={imageUrl} style={styles.popularNetworkImage} />
 							<Text black>{nickname}</Text>
 						</View>
@@ -222,7 +227,7 @@ const NetworkModals = (props: NetworkProps) => {
 						<View style={styles.networkInformation}>
 							<View>
 								<Text black>{strings('networks.network_display_name')}</Text>
-								<Text bold black style={styles.bottomSpace}>
+								<Text bold black style={styles.bottomSpace} testID={APPROVE_NETWORK_DISPLAY_NAME_ID}>
 									{nickname}
 								</Text>
 								<Text black>{strings('networks.network_chain_id')}</Text>
