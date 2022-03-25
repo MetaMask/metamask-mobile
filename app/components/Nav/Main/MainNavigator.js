@@ -16,6 +16,8 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
+import AssetOptions from '../../Views/AssetOptions';
+import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
@@ -99,10 +101,26 @@ const WalletModalStack = () => (
 	</Stack.Navigator>
 );
 
+/* eslint-disable react/prop-types */
+const AssetStackFlow = (props) => (
+	<Stack.Navigator>
+		<Stack.Screen name={'Asset'} component={Asset} initialParams={props.route.params} />
+		<Stack.Screen name={'AssetDetails'} component={AssetDetails} />
+	</Stack.Navigator>
+);
+
+const AssetModalFlow = (props) => (
+	<Stack.Navigator mode={'modal'} initialRouteName={'AssetStackFlow'} screenOptions={clearStackNavigatorOptions}>
+		<Stack.Screen name={'AssetStackFlow'} component={AssetStackFlow} initialParams={props.route.params} />
+		<Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+	</Stack.Navigator>
+);
+/* eslint-enable react/prop-types */
+
 const WalletTabHome = () => (
 	<Stack.Navigator initialRouteName={'WalletView'}>
 		<Stack.Screen name="WalletView" component={WalletModalStack} options={{ headerShown: false }} />
-		<Stack.Screen name="Asset" component={Asset} options={Asset.navigationOptions} />
+		<Stack.Screen name="Asset" component={AssetModalFlow} options={{ headerShown: false }} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
 		<Stack.Screen

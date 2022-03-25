@@ -704,11 +704,11 @@ export function getWalletNavbarOptions(title, navigation, drawerRef) {
  * Function that returns the navigation options containing title and network indicator
  *
  * @param {string} title - Title in string format
- * @param {string} translate - Boolean that specifies if the title needs translation
+ * @param {boolean} translate - Boolean that specifies if the title needs translation
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getNetworkNavbarOptions(title, translate, navigation) {
+export function getNetworkNavbarOptions(title, translate, navigation, onRightPress = undefined) {
 	return {
 		headerTitle: () => <NavbarTitle title={title} translate={translate} />,
 		headerLeft: () => (
@@ -721,7 +721,13 @@ export function getNetworkNavbarOptions(title, translate, navigation) {
 				/>
 			</TouchableOpacity>
 		),
-		headerRight: () => <View />,
+		headerRight: onRightPress
+			? () => (
+					<TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+						<MaterialCommunityIcon name={'dots-horizontal'} size={28} style={styles.backIcon} />
+					</TouchableOpacity>
+			  )
+			: () => <View />,
 	};
 }
 

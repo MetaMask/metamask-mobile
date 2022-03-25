@@ -99,10 +99,17 @@ class Asset extends PureComponent {
 	navSymbol = undefined;
 	navAddress = undefined;
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		navigation.setOptions(
+			getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation, () =>
+				navigation.navigate('AssetOptions')
+			)
+		);
+	};
 
 	componentDidMount() {
+		this.updateNavBar();
 		InteractionManager.runAfterInteractions(() => {
 			this.normalizeTransactions();
 			this.mounted = true;
@@ -117,6 +124,7 @@ class Asset extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
+		this.updateNavBar();
 		if (prevProps.chainId !== this.props.chainId || prevProps.selectedAddress !== this.props.selectedAddress) {
 			this.showLoaderAndNormalize();
 		} else {
