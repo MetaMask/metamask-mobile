@@ -1,11 +1,23 @@
 import TestHelpers from '../../helpers';
+import {
+	NETWORK_EDUCATION_MODAL_CONTAINER_ID,
+	NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+	NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
+} from '../../../app/constants/test-ids';
+import { strings } from '../../../locales/i18n';
 
-const NETWORK_EDUCATION_MODAL_CONTAINER_ID = 'education-modal-container-id';
-const GOT_IT_BUTTON_ID = 'close-network-info-button';
-
+const manuallyAddTokenText = strings('network_information.add_token');
 export default class NetworkEducationModal {
 	static async tapGotItButton() {
-		await TestHelpers.tap(GOT_IT_BUTTON_ID);
+		await TestHelpers.tap(NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID);
+	}
+
+	static async tapManuallyAddTokenLink() {
+		await TestHelpers.tapByText(manuallyAddTokenText);
+	}
+
+	static async isNetworkNameCorrect(network) {
+		await TestHelpers.checkIfElementHasString(NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID, network);
 	}
 
 	static async isVisible() {

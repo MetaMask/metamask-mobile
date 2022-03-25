@@ -11,6 +11,7 @@ import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import {
 	NETWORK_EDUCATION_MODAL_CONTAINER_ID,
 	NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+	NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
 
 const createStyles = (colors: {
@@ -138,7 +139,10 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						) : (
 							<>
 								<NetworkMainAssetLogo style={styles.ethLogo} />
-								<Text style={[styles.tokenText, styles.capitalizeText]}>
+								<Text
+									style={[styles.tokenText, styles.capitalizeText]}
+									testID={NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID}
+								>
 									{type === RPC
 										? `${nickname}`
 										: type === MAINNET
