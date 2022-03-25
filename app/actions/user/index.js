@@ -83,6 +83,13 @@ export function logOut() {
 	};
 }
 
+export function setAppTheme(theme) {
+	return {
+		type: 'SET_APP_THEME',
+		payload: { theme },
+	};
+}
+
 /**
  * Temporary action to control auth flow
  *

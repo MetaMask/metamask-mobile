@@ -8,6 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import onboardingStyles from './../styles';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const INDICATOR_HEIGHT = 10;
 const styles = StyleSheet.create({
@@ -77,19 +78,30 @@ class Step2 extends PureComponent {
 		});
 	};
 
+	getOnboardingStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return onboardingStyles(colors);
+	};
+
 	/**
 	 * Returns content for this step
 	 */
-	content = () => (
-		<View style={onboardingStyles.contentContainer}>
-			<Text style={onboardingStyles.content} testID={'step2-title'}>
-				{strings('onboarding_wizard.step2.content1')}
-			</Text>
-			<Text style={onboardingStyles.content}>{strings('onboarding_wizard.step2.content2')}</Text>
-		</View>
-	);
+	content = () => {
+		const dynamicOnboardingStyles = this.getOnboardingStyles();
+
+		return (
+			<View style={dynamicOnboardingStyles.contentContainer}>
+				<Text style={dynamicOnboardingStyles.content} testID={'step2-title'}>
+					{strings('onboarding_wizard.step2.content1')}
+				</Text>
+				<Text style={dynamicOnboardingStyles.content}>{strings('onboarding_wizard.step2.content2')}</Text>
+			</View>
+		);
+	};
 
 	render() {
+		const dynamicOnboardingStyles = this.getOnboardingStyles();
+
 		return (
 			<View style={styles.main}>
 				<View style={[styles.coachmarkContainer, { top: this.state.coachmarkTop }]}>
@@ -98,7 +110,7 @@ class Step2 extends PureComponent {
 						content={this.content()}
 						onNext={this.onNext}
 						onBack={this.onBack}
-						style={onboardingStyles.coachmark}
+						style={dynamicOnboardingStyles.coachmark}
 						topIndicatorPosition={'topCenter'}
 						currentStep={1}
 					/>
@@ -111,5 +123,7 @@ class Step2 extends PureComponent {
 const mapDispatchToProps = (dispatch) => ({
 	setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
+
+Step2.contextType = ThemeContext;
 
 export default connect(null, mapDispatchToProps)(Step2);

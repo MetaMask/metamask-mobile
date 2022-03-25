@@ -1,21 +1,23 @@
 import React, { PureComponent } from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	text: {
-		...fontStyles.normal,
-		color: colors.grey500,
-		textAlign: 'center',
-		fontSize: 10,
-	},
-	link: {
-		textDecorationLine: 'underline',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		text: {
+			...fontStyles.normal,
+			color: colors.text.alternative,
+			textAlign: 'center',
+			fontSize: 10,
+		},
+		link: {
+			textDecorationLine: 'underline',
+		},
+	});
 
 /**
  * View that is displayed in the flow to agree terms and conditions
@@ -40,6 +42,9 @@ export default class TermsAndConditions extends PureComponent {
 	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<TouchableOpacity onPress={this.press}>
 				<Text style={styles.text}>
@@ -50,3 +55,5 @@ export default class TermsAndConditions extends PureComponent {
 		);
 	}
 }
+
+TermsAndConditions.contextType = ThemeContext;

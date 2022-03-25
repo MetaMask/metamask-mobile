@@ -8,65 +8,73 @@ import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
 import Device from '../../../../../util/device';
 import { strings } from '../../../../../../locales/i18n';
-import { colors, fontStyles } from '../../../../../styles/common';
+import { fontStyles } from '../../../../../styles/common';
 import ScreenLayout from '../ScreenLayout';
 
 import Text from '../../../../Base/Text';
 import ListItem from '../../../../Base/ListItem';
 import ModalDragger from '../../../../Base/ModalDragger';
+import { useTheme } from '../../../../../util/theme';
 
-const styles = StyleSheet.create({
-	modal: {
-		margin: 0,
-		justifyContent: 'flex-end',
-	},
-	modalView: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		flex: 0.75,
-	},
-	inputWrapper: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginHorizontal: 24,
-		marginTop: 10,
-		paddingVertical: Device.isAndroid() ? 0 : 10,
-		paddingHorizontal: 5,
-		borderRadius: 5,
-		borderWidth: 1,
-		borderColor: colors.grey100,
-	},
-	searchIcon: {
-		marginHorizontal: 8,
-	},
-	input: {
-		...fontStyles.normal,
-		flex: 1,
-	},
-	headerDescription: {
-		paddingHorizontal: 24,
-	},
-	resultsView: {
-		marginTop: 0,
-		flex: 1,
-	},
-	emptyList: {
-		marginVertical: 10,
-		marginHorizontal: 30,
-	},
-	listItem: {
-		paddingHorizontal: 24,
-		paddingVertical: 24,
-	},
-	separator: {
-		height: 1,
-		width: '100%',
-		backgroundColor: colors.grey000,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		modal: {
+			margin: 0,
+			justifyContent: 'flex-end',
+		},
+		modalView: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+			flex: 0.75,
+		},
+		inputWrapper: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginHorizontal: 24,
+			marginTop: 10,
+			paddingVertical: Device.isAndroid() ? 0 : 10,
+			paddingHorizontal: 5,
+			borderRadius: 5,
+			borderWidth: 1,
+			borderColor: colors.border.default,
+		},
+		searchIcon: {
+			marginHorizontal: 8,
+			color: colors.icon.default,
+		},
+		input: {
+			...fontStyles.normal,
+			color: colors.text.default,
+			flex: 1,
+		},
+		headerDescription: {
+			paddingHorizontal: 24,
+		},
+		resultsView: {
+			marginTop: 0,
+			flex: 1,
+		},
+		emptyList: {
+			marginVertical: 10,
+			marginHorizontal: 30,
+		},
+		listItem: {
+			paddingHorizontal: 24,
+			paddingVertical: 24,
+		},
+		separator: {
+			height: 1,
+			width: '100%',
+			backgroundColor: colors.border.muted,
+		},
+	});
 
-const Separator = () => <View style={styles.separator} />;
+const Separator = () => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+	return <View style={styles.separator} />;
+};
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -79,6 +87,8 @@ function FiatSelectModal({
 	onItemPress,
 	excludeAddresses = [],
 }) {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
 	const searchInput = useRef(null);
 	const list = useRef();
 	const [searchString, setSearchString] = useState('');
@@ -123,7 +133,7 @@ function FiatSelectModal({
 				</ListItem>
 			</TouchableOpacity>
 		),
-		[onItemPress]
+		[onItemPress, styles.listItem]
 	);
 
 	const handleSearchPress = () => searchInput?.current?.focus();
@@ -134,7 +144,7 @@ function FiatSelectModal({
 				<Text>{strings('fiat_on_ramp_aggregator.no_tokens_result', { searchString })}</Text>
 			</View>
 		),
-		[searchString]
+		[searchString, styles.emptyList]
 	);
 
 	const handleSearchTextChange = useCallback((text) => {
@@ -157,6 +167,7 @@ function FiatSelectModal({
 			propagateSwipe
 			avoidKeyboard
 			onModalHide={() => setSearchString('')}
+			backdropColor={colors.overlay.default}
 			style={styles.modal}
 		>
 			<SafeAreaView style={styles.modalView}>
@@ -175,7 +186,7 @@ function FiatSelectModal({
 									ref={searchInput}
 									style={styles.input}
 									placeholder={strings('fiat_on_ramp_aggregator.search_by_currency')}
-									placeholderTextColor={colors.grey500}
+									placeholderTextColor={colors.text.muted}
 									value={searchString}
 									onChangeText={handleSearchTextChange}
 								/>
@@ -185,7 +196,7 @@ function FiatSelectModal({
 											name="ios-close-circle"
 											size={20}
 											style={styles.searchIcon}
-											color={colors.grey300}
+											color={colors.icon.default}
 										/>
 									</TouchableOpacity>
 								)}

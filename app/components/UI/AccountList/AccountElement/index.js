@@ -2,81 +2,83 @@ import React, { PureComponent } from 'react';
 import Identicon from '../../Identicon';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { renderFromWei } from '../../../../util/number';
 import { getTicker } from '../../../../util/transactions';
 import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';
 
-const styles = StyleSheet.create({
-	account: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-		flexDirection: 'row',
-		paddingHorizontal: 20,
-		paddingVertical: 20,
-		height: 80,
-	},
-	disabledAccount: {
-		opacity: 0.5,
-	},
-	accountInfo: {
-		marginLeft: 15,
-		marginRight: 0,
-		flex: 1,
-		flexDirection: 'row',
-	},
-	accountLabel: {
-		fontSize: 18,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	accountBalanceWrapper: {
-		display: 'flex',
-		flexDirection: 'row',
-	},
-	accountBalance: {
-		paddingTop: 5,
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.normal,
-	},
-	accountBalanceError: {
-		color: colors.fontError,
-		marginLeft: 4,
-	},
-	importedView: {
-		flex: 0.5,
-		alignItems: 'center',
-		marginTop: 2,
-	},
-	accountMain: {
-		flex: 1,
-		flexDirection: 'column',
-	},
-	selectedWrapper: {
-		flex: 0.2,
-		alignItems: 'flex-end',
-	},
-	importedText: {
-		color: colors.grey400,
-		fontSize: 10,
-		...fontStyles.bold,
-	},
-	importedWrapper: {
-		width: 73,
-		paddingHorizontal: 10,
-		paddingVertical: 3,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.grey400,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		account: {
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+			flexDirection: 'row',
+			paddingHorizontal: 20,
+			paddingVertical: 20,
+			height: 80,
+		},
+		disabledAccount: {
+			opacity: 0.5,
+		},
+		accountInfo: {
+			marginLeft: 15,
+			marginRight: 0,
+			flex: 1,
+			flexDirection: 'row',
+		},
+		accountLabel: {
+			fontSize: 18,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		accountBalanceWrapper: {
+			display: 'flex',
+			flexDirection: 'row',
+		},
+		accountBalance: {
+			paddingTop: 5,
+			fontSize: 12,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		accountBalanceError: {
+			color: colors.error.default,
+			marginLeft: 4,
+		},
+		importedView: {
+			flex: 0.5,
+			alignItems: 'center',
+			marginTop: 2,
+		},
+		accountMain: {
+			flex: 1,
+			flexDirection: 'column',
+		},
+		selectedWrapper: {
+			flex: 0.2,
+			alignItems: 'flex-end',
+		},
+		importedText: {
+			color: colors.text.alternative,
+			fontSize: 10,
+			...fontStyles.bold,
+		},
+		importedWrapper: {
+			width: 73,
+			paddingHorizontal: 10,
+			paddingVertical: 3,
+			borderRadius: 10,
+			borderWidth: 1,
+			borderColor: colors.icon.default,
+		},
+	});
 
 /**
  * View that renders specific account element in AccountList
@@ -121,7 +123,10 @@ class AccountElement extends PureComponent {
 	render() {
 		const { disabled, updatedBalanceFromStore, ticker } = this.props;
 		const { address, name, ens, isSelected, isImported, balanceError } = this.props.item;
-		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.blue} /> : null;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary.default} /> : null;
 		const imported = isImported ? (
 			<View style={styles.importedWrapper}>
 				<Text numberOfLines={1} style={styles.importedText}>
@@ -186,5 +191,7 @@ const mapStateToProps = (
 		updatedBalanceFromStore,
 	};
 };
+
+AccountElement.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(AccountElement);

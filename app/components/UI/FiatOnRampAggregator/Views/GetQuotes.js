@@ -7,6 +7,8 @@ import LoadingAnimation from '../components/LoadingAnimation';
 import Quotes from '../components/Quotes';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
+import { getFiatOnRampAggNavbar } from '../../Navbar';
+import { useTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
 	row: {
@@ -17,6 +19,7 @@ const styles = StyleSheet.create({
 const GetQuotes = () => {
 	const { params } = useRoute();
 	const navigation = useNavigation();
+	const { colors } = useTheme();
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
@@ -38,6 +41,10 @@ const GetQuotes = () => {
 		params.amount,
 		selectedAddress
 	);
+
+	useEffect(() => {
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Get Quotes' }, colors));
+	}, [navigation, colors]);
 
 	useEffect(() => {
 		if (isFetchingQuotes) return;

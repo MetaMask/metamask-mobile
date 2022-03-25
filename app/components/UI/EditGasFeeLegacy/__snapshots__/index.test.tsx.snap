@@ -38,7 +38,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#24292E"
+                color="#24272A"
                 name="ios-arrow-back"
                 size={24}
               />
@@ -52,6 +52,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               green={false}
               link={false}
               modal={false}
+              muted={false}
               primary={false}
               red={false}
               reset={false}
@@ -103,6 +104,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   green={false}
                   link={false}
                   modal={false}
+                  muted={false}
                   primary={false}
                   red={false}
                   reset={false}
@@ -129,6 +131,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 green={false}
                 link={false}
                 modal={false}
+                muted={false}
                 primary={false}
                 red={false}
                 reset={false}
@@ -161,6 +164,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               green={false}
               link={false}
               modal={false}
+              muted={false}
               primary={false}
               red={false}
               reset={false}
@@ -179,6 +183,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 green={false}
                 link={false}
                 modal={false}
+                muted={false}
                 primary={false}
                 red={false}
                 reset={false}
@@ -232,6 +237,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         green={false}
                         link={false}
                         modal={false}
+                        muted={false}
                         noMargin={true}
                         primary={false}
                         red={false}
@@ -262,7 +268,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "#BBC0C5",
                             }
                           }
                         />
@@ -302,6 +308,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         green={false}
                         link={false}
                         modal={false}
+                        muted={false}
                         noMargin={true}
                         primary={false}
                         red={false}
@@ -332,7 +339,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             Object {
-                              "color": "#bbc0c5",
+                              "color": "#BBC0C5",
                             }
                           }
                         />
@@ -381,6 +388,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 infoModal={true}
                 link={false}
                 modal={false}
+                muted={false}
                 primary={false}
                 red={false}
                 reset={false}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
 import { connect } from 'react-redux';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
@@ -21,57 +21,60 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		minHeight: 500,
-		marginTop: 16,
-	},
-	emptyView: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginTop: 10,
-	},
-	add: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	addText: {
-		fontSize: 14,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	footer: {
-		flex: 1,
-		paddingBottom: 30,
-		alignItems: 'center',
-		marginTop: 24,
-	},
-	emptyContainer: {
-		flex: 1,
-		marginBottom: 18,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	emptyImageContainer: {
-		width: 76,
-		height: 76,
-		marginTop: 30,
-		marginBottom: 12,
-	},
-	emptyTitleText: {
-		fontSize: 24,
-		color: colors.grey200,
-	},
-	emptyText: {
-		color: colors.greyAssetVisibility,
-		marginBottom: 8,
-		fontSize: 14,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			minHeight: 500,
+			marginTop: 16,
+		},
+		emptyView: {
+			justifyContent: 'center',
+			alignItems: 'center',
+			marginTop: 10,
+		},
+		add: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		addText: {
+			fontSize: 14,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		footer: {
+			flex: 1,
+			paddingBottom: 30,
+			alignItems: 'center',
+			marginTop: 24,
+		},
+		emptyContainer: {
+			flex: 1,
+			marginBottom: 18,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		emptyImageContainer: {
+			width: 76,
+			height: 76,
+			marginTop: 30,
+			marginBottom: 12,
+			tintColor: colors.icon.default,
+		},
+		emptyTitleText: {
+			fontSize: 24,
+			color: colors.text.alternative,
+		},
+		emptyText: {
+			color: colors.text.alternative,
+			marginBottom: 8,
+			fontSize: 14,
+		},
+	});
 
 /**
  * View that renders a list of CollectibleContract
@@ -89,6 +92,8 @@ const CollectibleContracts = ({
 	setNftDetectionDismissed,
 	nftDetectionDismissed,
 }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 	const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
 
 	const onItemPress = useCallback(

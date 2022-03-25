@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, {
 	useSharedValue,
@@ -14,6 +14,7 @@ import Animated, {
 	Extrapolate,
 	runOnUI,
 } from 'react-native-reanimated';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const radius = 14;
@@ -23,58 +24,59 @@ const innerRadius = radius - strokeWidth / 2;
 const circumference = 2 * Math.PI * innerRadius;
 const animationDuration = 1200;
 
-const styles = StyleSheet.create({
-	container: {
-		backgroundColor: colors.blue,
-		alignItems: 'center',
-		justifyContent: 'center',
-		flexDirection: 'row',
-		paddingVertical: 12,
-		paddingHorizontal: 24,
-		borderRadius: 99,
-	},
-	progressContainer: {
-		height: radius * 2,
-		width: radius * 2,
-		marginRight: 12,
-	},
-	absoluteFillWithCenter: {
-		...StyleSheet.absoluteFillObject,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	absoluteFill: {
-		...StyleSheet.absoluteFillObject,
-	},
-	preCompletedContainerStyle: {
-		...StyleSheet.absoluteFillObject,
-		borderRadius: radius,
-		backgroundColor: colors.blue,
-	},
-	outerCircle: {
-		...StyleSheet.absoluteFillObject,
-		borderRadius: radius,
-		backgroundColor: colors.white,
-	},
-	innerCircle: {
-		flex: 1,
-		borderRadius: radius - strokeWidth,
-		margin: strokeWidth,
-		backgroundColor: colors.blue,
-	},
-	label: {
-		color: colors.white,
-		fontSize: 18,
-		...(fontStyles.normal as any),
-	},
-	animatedCircle: {
-		transform: [
-			{
-				rotate: '-90deg',
-			},
-		],
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		container: {
+			backgroundColor: colors.primary.default,
+			alignItems: 'center',
+			justifyContent: 'center',
+			flexDirection: 'row',
+			paddingVertical: 12,
+			paddingHorizontal: 24,
+			borderRadius: 99,
+		},
+		progressContainer: {
+			height: radius * 2,
+			width: radius * 2,
+			marginRight: 12,
+		},
+		absoluteFillWithCenter: {
+			...StyleSheet.absoluteFillObject,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		absoluteFill: {
+			...StyleSheet.absoluteFillObject,
+		},
+		preCompletedContainerStyle: {
+			...StyleSheet.absoluteFillObject,
+			borderRadius: radius,
+			backgroundColor: colors.primary.default,
+		},
+		outerCircle: {
+			...StyleSheet.absoluteFillObject,
+			borderRadius: radius,
+			backgroundColor: colors.primary.inverse,
+		},
+		innerCircle: {
+			flex: 1,
+			borderRadius: radius - strokeWidth,
+			margin: strokeWidth,
+			backgroundColor: colors.primary.default,
+		},
+		label: {
+			color: colors.primary.inverse,
+			fontSize: 18,
+			...(fontStyles.normal as any),
+		},
+		animatedCircle: {
+			transform: [
+				{
+					rotate: '-90deg',
+				},
+			],
+		},
+	});
 
 interface Props {
 	onLongPress: () => void;
@@ -92,6 +94,9 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 	const progressContainerOpacity = useSharedValue(1);
 	// Value for scaling down the progress container
 	const postCompleteControl = useSharedValue(0);
+	// Colors
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	// Animate SVG via props
 	const animatedProps = useAnimatedProps(() => ({
@@ -205,7 +210,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 				<Animated.View style={[styles.innerCircle, innerCircleStyle]} />
 			</Animated.View>
 			<Animated.View style={[styles.absoluteFillWithCenter, checkIconStyle]}>
-				<Icon name={'check'} color={colors.white} size={iconSize * 1.5} />
+				<Icon name={'check'} color={colors.primary.inverse} size={iconSize * 1.5} />
 			</Animated.View>
 		</View>
 	);
@@ -213,14 +218,14 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 	const renderPreCompletedContent = () => (
 		<Animated.View style={[styles.preCompletedContainerStyle, preCompletedContainerStyle]}>
 			<Animated.View style={[styles.absoluteFillWithCenter, lockIconStyle]}>
-				<Icon name={'lock'} color={colors.white} size={iconSize} />
+				<Icon name={'lock'} color={colors.primary.inverse} size={iconSize} />
 			</Animated.View>
 			<Svg style={styles.absoluteFill}>
 				<Circle
 					cx={radius}
 					cy={radius}
 					r={innerRadius}
-					stroke={colors.blue600}
+					stroke={colors.primary.alternative}
 					strokeWidth={strokeWidth}
 					strokeLinecap={'round'}
 				/>
@@ -231,7 +236,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
 					cx={radius}
 					cy={radius}
 					r={innerRadius}
-					stroke={colors.white}
+					stroke={colors.primary.inverse}
 					strokeWidth={strokeWidth}
 					strokeLinecap={'round'}
 					strokeDasharray={`${circumference} ${circumference}`}

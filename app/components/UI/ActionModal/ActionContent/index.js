@@ -1,44 +1,45 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import { colors } from '../../../../styles/common';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	viewWrapper: {
-		flexDirection: 'column',
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginHorizontal: 24,
-	},
-	viewContainer: {
-		width: '100%',
-		backgroundColor: colors.white,
-		borderRadius: 10,
-	},
-	actionHorizontalContainer: {
-		flexDirection: 'row',
-		padding: 16,
-		borderTopWidth: 1,
-		borderTopColor: colors.grey200,
-	},
-	actionVerticalContainer: {
-		flexDirection: 'column',
-		paddingHorizontal: 16,
-		paddingVertical: 8,
-	},
-	childrenContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	button: {
-		margin: 8,
-	},
-	buttonHorizontal: {
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		viewWrapper: {
+			flexDirection: 'column',
+			justifyContent: 'center',
+			alignItems: 'center',
+			marginHorizontal: 24,
+		},
+		viewContainer: {
+			width: '100%',
+			backgroundColor: colors.background.default,
+			borderRadius: 10,
+		},
+		actionHorizontalContainer: {
+			flexDirection: 'row',
+			padding: 16,
+			borderTopWidth: 1,
+			borderTopColor: colors.border.muted,
+		},
+		actionVerticalContainer: {
+			flexDirection: 'column',
+			paddingHorizontal: 16,
+			paddingVertical: 8,
+		},
+		childrenContainer: {
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		button: {
+			margin: 8,
+		},
+		buttonHorizontal: {
+			flex: 1,
+		},
+	});
 
 /**
  * View that renders the content of an action modal
@@ -65,6 +66,9 @@ export default function ActionContent({
 	childrenContainerStyle,
 	verticalButtons,
 }) {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	return (
 		<View style={[styles.viewWrapper, viewWrapperStyle]}>
 			<View style={[styles.viewContainer, viewContainerStyle]}>

@@ -1,62 +1,66 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
-import { colors, fontStyles, baseStyles } from '../../../../styles/common';
+import { fontStyles, baseStyles } from '../../../../styles/common';
 import WebsiteIcon from '../../WebsiteIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { getHost } from '../../../../util/browser';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	expandedRoot: {
-		backgroundColor: colors.white,
-		minHeight: Device.isIos() ? '70%' : '80%',
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		padding: 24,
-		paddingBottom: Device.isIphoneX() ? 44 : 24,
-	},
+const createStyles = (colors) =>
+	StyleSheet.create({
+		expandedRoot: {
+			backgroundColor: colors.background.default,
+			minHeight: Device.isIos() ? '70%' : '80%',
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			padding: 24,
+			paddingBottom: Device.isIphoneX() ? 44 : 24,
+		},
 
-	expandedMessageHeader: {
-		width: '100%',
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 20,
-	},
-	arrowIcon: {
-		...baseStyles.flexGrow,
-		color: colors.grey200,
-	},
-	iconHidden: {
-		...baseStyles.flexGrow,
-	},
-	messageLabelTextExpanded: {
-		...baseStyles.flexGrow,
-		textAlign: 'center',
-		...fontStyles.bold,
-		fontSize: 16,
-	},
-	messageIntroWrapper: {
-		alignItems: 'center',
-		marginBottom: 20,
-	},
-	domainLogo: {
-		width: 40,
-		height: 40,
-		borderRadius: 20,
-		marginBottom: 20,
-	},
-	messageFromLabel: {
-		textAlign: 'center',
-		...fontStyles.bold,
-		fontSize: 16,
-	},
-	scrollView: {
-		...baseStyles.flexGrow,
-	},
-});
+		expandedMessageHeader: {
+			width: '100%',
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			marginBottom: 20,
+		},
+		arrowIcon: {
+			...baseStyles.flexGrow,
+			color: colors.icon.muted,
+		},
+		iconHidden: {
+			...baseStyles.flexGrow,
+		},
+		messageLabelTextExpanded: {
+			...baseStyles.flexGrow,
+			textAlign: 'center',
+			...fontStyles.bold,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		messageIntroWrapper: {
+			alignItems: 'center',
+			marginBottom: 20,
+		},
+		domainLogo: {
+			width: 40,
+			height: 40,
+			borderRadius: 20,
+			marginBottom: 20,
+		},
+		messageFromLabel: {
+			textAlign: 'center',
+			...fontStyles.bold,
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		scrollView: {
+			...baseStyles.flexGrow,
+		},
+	});
 
 /**
  * Component that supports eth_signTypedData and eth_signTypedData_v3
@@ -81,6 +85,9 @@ export default class ExpandedMessage extends PureComponent {
 		const { currentPageInformation, renderMessage, toggleExpandedMessage } = this.props;
 		const url = currentPageInformation.url;
 		const title = getHost(url);
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.expandedRoot}>
 				<TouchableOpacity style={styles.expandedMessageHeader} onPress={toggleExpandedMessage}>
@@ -103,3 +110,5 @@ export default class ExpandedMessage extends PureComponent {
 		);
 	}
 }
+
+ExpandedMessage.contextType = ThemeContext;

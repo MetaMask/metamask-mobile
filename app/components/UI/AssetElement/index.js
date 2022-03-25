@@ -1,26 +1,27 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View } from 'react-native';
-import { colors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	itemWrapper: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
-	},
-	arrow: {
-		flex: 1,
-		alignSelf: 'flex-end',
-	},
-	arrowIcon: {
-		marginTop: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		itemWrapper: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingHorizontal: 15,
+			paddingVertical: 10,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderBottomColor: colors.border.muted,
+		},
+		arrow: {
+			flex: 1,
+			alignSelf: 'flex-end',
+		},
+		arrowIcon: {
+			marginTop: 16,
+		},
+	});
 
 /**
  * Customizable view to render assets in lists
@@ -57,6 +58,9 @@ export default class AssetElement extends PureComponent {
 
 	render = () => {
 		const { children } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<TouchableOpacity
 				onPress={this.handleOnPress}
@@ -65,9 +69,11 @@ export default class AssetElement extends PureComponent {
 			>
 				{children}
 				<View styles={styles.arrow}>
-					<Icon name="ios-arrow-forward" size={24} color={colors.fontTertiary} style={styles.arrowIcon} />
+					<Icon name="ios-arrow-forward" size={24} color={colors.icon.muted} style={styles.arrowIcon} />
 				</View>
 			</TouchableOpacity>
 		);
 	};
 }
+
+AssetElement.contextType = ThemeContext;

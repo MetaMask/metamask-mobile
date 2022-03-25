@@ -33,7 +33,6 @@ import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
 import { strings } from '../../../../locales/i18n';
-import { colors } from '../../../styles/common';
 import { setQuotesNavigationsParams, isSwapsNativeAsset, isDynamicToken } from './utils';
 import { getSwapsAmountNavbar } from '../Navbar';
 
@@ -53,87 +52,91 @@ import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	screen: {
-		flexGrow: 1,
-		justifyContent: 'space-between',
-	},
-	content: {
-		flexGrow: 1,
-		justifyContent: 'center',
-	},
-	keypad: {
-		flexGrow: 1,
-		justifyContent: 'space-around',
-	},
-	tokenButtonContainer: {
-		flexDirection: 'row',
-		justifyContent: 'center',
-		margin: Device.isIphone5() ? 5 : 10,
-	},
-	amountContainer: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginHorizontal: 25,
-	},
-	amount: {
-		textAlignVertical: 'center',
-		fontSize: Device.isIphone5() ? 30 : 40,
-		height: Device.isIphone5() ? 40 : 50,
-	},
-	amountInvalid: {
-		color: colors.red,
-	},
-	verifyToken: {
-		marginHorizontal: 40,
-	},
-	tokenAlert: {
-		marginTop: 10,
-		marginHorizontal: 30,
-	},
-	linkText: {
-		color: colors.blue,
-	},
-	horizontalRuleContainer: {
-		flexDirection: 'row',
-		paddingHorizontal: 30,
-		marginVertical: Device.isIphone5() ? 5 : 10,
-		alignItems: 'center',
-	},
-	horizontalRule: {
-		flex: 1,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		height: 1,
-		borderBottomColor: colors.grey100,
-	},
-	arrowDown: {
-		color: colors.blue,
-		fontSize: 25,
-		marginHorizontal: 15,
-	},
-	buttonsContainer: {
-		marginTop: Device.isIphone5() ? 10 : 30,
-		marginBottom: 5,
-		paddingHorizontal: 30,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
-	},
-	column: {
-		flex: 1,
-	},
-	ctaContainer: {
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
-	},
-	cta: {
-		paddingHorizontal: Device.isIphone5() ? 10 : 20,
-	},
-	disabled: {
-		opacity: 0.4,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		container: { backgroundColor: colors.background.default },
+		screen: {
+			flexGrow: 1,
+			justifyContent: 'space-between',
+			backgroundColor: colors.background.default,
+		},
+		content: {
+			flexGrow: 1,
+			justifyContent: 'center',
+		},
+		keypad: {
+			flexGrow: 1,
+			justifyContent: 'space-around',
+		},
+		tokenButtonContainer: {
+			flexDirection: 'row',
+			justifyContent: 'center',
+			margin: Device.isIphone5() ? 5 : 10,
+		},
+		amountContainer: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginHorizontal: 25,
+		},
+		amount: {
+			textAlignVertical: 'center',
+			fontSize: Device.isIphone5() ? 30 : 40,
+			height: Device.isIphone5() ? 40 : 50,
+		},
+		amountInvalid: {
+			color: colors.error.default,
+		},
+		verifyToken: {
+			marginHorizontal: 40,
+		},
+		tokenAlert: {
+			marginTop: 10,
+			marginHorizontal: 30,
+		},
+		linkText: {
+			color: colors.primary.default,
+		},
+		horizontalRuleContainer: {
+			flexDirection: 'row',
+			paddingHorizontal: 30,
+			marginVertical: Device.isIphone5() ? 5 : 10,
+			alignItems: 'center',
+		},
+		horizontalRule: {
+			flex: 1,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			height: 1,
+			borderBottomColor: colors.border.muted,
+		},
+		arrowDown: {
+			color: colors.primary.default,
+			fontSize: 25,
+			marginHorizontal: 15,
+		},
+		buttonsContainer: {
+			marginTop: Device.isIphone5() ? 10 : 30,
+			marginBottom: 5,
+			paddingHorizontal: 30,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'space-between',
+		},
+		column: {
+			flex: 1,
+		},
+		ctaContainer: {
+			flexDirection: 'row',
+			justifyContent: 'flex-end',
+		},
+		cta: {
+			paddingHorizontal: Device.isIphone5() ? 10 : 20,
+		},
+		disabled: {
+			opacity: 0.4,
+		},
+	});
 
 const SWAPS_NATIVE_ADDRESS = swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS;
 const TOKEN_MINIMUM_SOURCES = 1;
@@ -159,6 +162,8 @@ function SwapsAmountView({
 }) {
 	const navigation = useNavigation();
 	const route = useRoute();
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const initialSource = route.params?.sourceToken ?? SWAPS_NATIVE_ADDRESS;
@@ -184,6 +189,10 @@ function SwapsAmountView({
 	const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
 	const [isTokenVerificationModalVisisble, toggleTokenVerificationModal, , hideTokenVerificationModal] =
 		useModalHandler(false);
+
+	useEffect(() => {
+		navigation.setOptions(getSwapsAmountNavbar(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	useEffect(() => {
 		(async () => {
@@ -465,14 +474,14 @@ function SwapsAmountView({
 
 	if (!userHasOnboarded) {
 		return (
-			<ScreenView contentContainerStyle={styles.screen}>
+			<ScreenView style={styles.container} contentContainerStyle={styles.screen}>
 				<Onboarding setHasOnboarded={setHasOnboarded} />
 			</ScreenView>
 		);
 	}
 
 	return (
-		<ScreenView contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
+		<ScreenView style={styles.container} contentContainerStyle={styles.screen} keyboardShouldPersistTaps="handled">
 			<View style={styles.content}>
 				<View
 					style={[styles.tokenButtonContainer, disabledView && styles.disabled]}
@@ -727,8 +736,6 @@ function SwapsAmountView({
 		</ScreenView>
 	);
 }
-
-SwapsAmountView.navigationOptions = ({ navigation, route }) => getSwapsAmountNavbar(navigation, route);
 
 SwapsAmountView.propTypes = {
 	swapsTokens: PropTypes.arrayOf(PropTypes.object),

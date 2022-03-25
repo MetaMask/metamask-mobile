@@ -1,20 +1,19 @@
-import React, { useCallback, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import Text from '../../../Base/Text';
-import ScreenLayout from '../components/ScreenLayout';
-import useModalHandler from '../../../Base/hooks/useModalHandler';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
-import { strings } from '../../../../../locales/i18n';
-import StyledButton from '../../StyledButton';
-import Box from '../components/Box';
 import ListItem from '../../../Base/ListItem';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { colors } from '../../../../styles/common';
-import { useNavigation } from '@react-navigation/native';
-
+import useModalHandler from '../../../Base/hooks/useModalHandler';
+import ScreenLayout from '../components/ScreenLayout';
+import Box from '../components/Box';
 import RegionModal from '../components/RegionModal';
+import StyledButton from '../../StyledButton';
+import { getFiatOnRampAggNavbar } from '../../Navbar';
+import { useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 
 const styles = StyleSheet.create({
 	checkbox: {
@@ -32,6 +31,8 @@ const styles = StyleSheet.create({
 });
 
 const Region = () => {
+	const navigation = useNavigation();
+	const { colors } = useTheme();
 	const [rememberRegion, setRememberRegion] = useState(false);
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
@@ -39,7 +40,9 @@ const Region = () => {
 	const [showAlert, setShowAlert] = useState(false);
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 
-	const navigation = useNavigation();
+	useEffect(() => {
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Region' }, colors));
+	}, [navigation, colors]);
 
 	const handleChangeRememberRegion = () => {
 		setRememberRegion((currentRememberRegion) => !currentRememberRegion);
@@ -129,7 +132,7 @@ const Region = () => {
 									)}
 								</ListItem.Body>
 								<ListItem.Amounts>
-									<FontAwesome name="caret-down" size={15} />
+									<FontAwesome name="caret-down" size={15} color={colors.primary.inverse} />
 								</ListItem.Amounts>
 							</ListItem.Content>
 						</Box>
@@ -143,8 +146,8 @@ const Region = () => {
 							animationDuration={0.2}
 							onAnimationType="fill"
 							offAnimationType="fill"
-							onFillColor={colors.blue500}
-							onCheckColor={colors.white}
+							onFillColor={colors.primary}
+							onCheckColor={colors.background.default}
 							style={styles.checkbox}
 						/>
 						<Text black style={styles.checkboxMargin}>
@@ -176,9 +179,5 @@ const Region = () => {
 		</ScreenLayout>
 	);
 };
-
-Region.navigationOptions = ({ navigation, route }) => ({
-	title: strings('fiat_on_ramp_aggregator.onboarding.buy_crypto_token'),
-});
 
 export default Region;
