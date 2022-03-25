@@ -195,7 +195,9 @@ const Main = (props) => {
 		}
 
 		if (props.navigation) {
-			Authentication.setNavigateToLockScreen(navigateToLockScreen);
+			Authentication.setNavigateToLockScreen(() => {
+				navigateToLockScreen();
+			});
 		}
 
 		if (prevLockTime !== props.lockTime) {

@@ -201,8 +201,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
 		}
-		if (locked.current || authCancelled) checkExsiting();
-	}, [authCancelled]);
+		if (authCancelled || userLoggedIn) checkExsiting();
+	}, [authCancelled, userLoggedIn, animationPlayed]);
 
 	useEffect(() => {
 		async function startApp() {
