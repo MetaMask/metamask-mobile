@@ -13,6 +13,7 @@ import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
 import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
+import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -21,7 +22,8 @@ import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = (chainId) => isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId);
+export const allowedToBuy = (chainId) =>
+	isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId) || isMoonpayAllowedToBuy(chainId);
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION,
