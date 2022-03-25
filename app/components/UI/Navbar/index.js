@@ -1194,16 +1194,6 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 		headerStyle: innerStyles.headerStyle,
 	};
 }
-export function getFiatOnRampNavbar(navigation) {
-	return {
-		headerBackTitle: strings('navigation.back'),
-		headerRight: () => (
-			<TouchableOpacity style={styles.closeButton} onPress={() => navigation.dangerouslyGetParent()?.pop()}>
-				<Text style={styles.closeButtonText}>{strings('navigation.cancel')}</Text>
-			</TouchableOpacity>
-		),
-	};
-}
 
 export function getFiatOnRampAggNavbar(navigation, { title, showBack = true } = {}, themeColors) {
 	const innerStyles = StyleSheet.create({

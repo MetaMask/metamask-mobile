@@ -6,8 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import PaymentMethod from '../components/PaymentMethod';
 import Title from '../../../Base/Title';
 import Text from '../../../Base/Text';
-
-import Device from '../../../../util/device';
+import { useAssetFromTheme } from '../../../../util/theme';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
 
 const styles = StyleSheet.create({
@@ -17,23 +16,29 @@ const styles = StyleSheet.create({
 	},
 	logo: {
 		marginVertical: 5,
-		aspectRatio: 95 / 25,
-		width: Device.isIphone5() ? 80 : 95,
-		height: Device.isIphone5() ? 20 : 25,
+		aspectRatio: 137.18 / 25,
+		width: 109.75,
+		height: 20,
 		marginLeft: 5,
 	},
 });
 
-// eslint-disable-next-line import/no-commonjs
-const TransakLogoIcon = require('../../../../images/TransakLogo.png');
-const TransakLogo = () => <Image source={TransakLogoIcon} style={styles.logo} />;
+/* eslint-disable import/no-commonjs */
+const MoonPayLogoLightIcon = require('../../../../images/MoonPayLogo-light.png');
+const MoonPayLogoDarkIcon = require('../../../../images/MoonPayLogo-dark.png');
+/* eslint-enable import/no-commonjs */
+
+const MoonPayLogo = () => {
+	const moonPayLogoIcon = useAssetFromTheme(MoonPayLogoLightIcon, MoonPayLogoDarkIcon);
+	return <Image source={moonPayLogoIcon} style={styles.logo} />;
+};
 
 const hasStablecoins = (chainId) =>
 	[NETWORKS_CHAIN_ID.MAINNET, NETWORKS_CHAIN_ID.BSC, NETWORKS_CHAIN_ID.POLYGON, NETWORKS_CHAIN_ID.CELO].includes(
 		chainId
 	);
 
-const TransakPaymentMethod = ({ onPress, ticker, chainId }) => (
+const MoonPayPaymentMethod = ({ onPress, ticker, chainId }) => (
 	<PaymentMethod onPress={onPress}>
 		<PaymentMethod.Content>
 			<PaymentMethod.Details>
@@ -43,26 +48,26 @@ const TransakPaymentMethod = ({ onPress, ticker, chainId }) => (
 							? strings('fiat_on_ramp.buy_ticker_stablecoins', { ticker })
 							: strings('fiat_on_ramp.buy_ticker', { ticker })}
 					</Title>
-					<TransakLogo />
+					<MoonPayLogo />
 				</PaymentMethod.Title>
 				<Text bold>{strings('fiat_on_ramp.multiple_payment_methods')}</Text>
 				<Text>{strings('fiat_on_ramp.debit_credit_bank_transfers_country')}</Text>
 
 				<PaymentMethod.InfoIconLine>
-					<Text small>{strings('fiat_on_ramp.options_fees_vary')}</Text>
+					<Text small>{strings('fiat_on_ramp.moonpay_options_fees_vary')}</Text>
 				</PaymentMethod.InfoIconLine>
 			</PaymentMethod.Details>
 		</PaymentMethod.Content>
 	</PaymentMethod>
 );
 
-TransakPaymentMethod.propTypes = {
+MoonPayPaymentMethod.propTypes = {
 	onPress: PropTypes.func,
 	ticker: PropTypes.string,
 	chainId: PropTypes.string,
 };
-TransakPaymentMethod.defaultProps = {
+MoonPayPaymentMethod.defaultProps = {
 	onPress: undefined,
 };
 
-export default TransakPaymentMethod;
+export default MoonPayPaymentMethod;
