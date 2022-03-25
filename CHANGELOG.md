@@ -2,6 +2,11 @@
 
 ## Current Main Branch
 
+## v4.3.1 - March 23, 2022
+- [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
+- [#3947](https://github.com/MetaMask/metamask-mobile/pull/3947): [FIX] Fix gas carousel price estimate
+- [#3940](https://github.com/MetaMask/metamask-mobile/pull/3940): [FIX] Fix browser crash
+
 ## v4.3.0 - March 16, 2022
 - [#3916](https://github.com/MetaMask/metamask-mobile/pull/3916): [FIX] Patch Android clipboard crasher
 - [#3776](https://github.com/MetaMask/metamask-mobile/pull/3776): [IMPROVEMENT] Enable dark mode
