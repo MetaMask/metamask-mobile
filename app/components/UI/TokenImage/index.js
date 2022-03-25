@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 });
 
 export function TokenImage({ asset, containerStyle, iconStyle, tokenList }) {
-	const assetImage = isUrl(asset.image) ? asset.image : null;
+	const assetImage = isUrl(asset?.image) ? asset.image : null;
 	const iconUrl =
 		assetImage || tokenList[asset?.address]?.iconUrl || tokenList[asset?.address?.toLowerCase()]?.iconUrl || '';
 
@@ -28,7 +28,7 @@ export function TokenImage({ asset, containerStyle, iconStyle, tokenList }) {
 			{iconUrl ? (
 				<AssetIcon logo={iconUrl} customStyle={iconStyle} />
 			) : (
-				<Identicon address={asset.address} customStyle={iconStyle} />
+				<Identicon address={asset?.address} customStyle={iconStyle} />
 			)}
 		</View>
 	);
