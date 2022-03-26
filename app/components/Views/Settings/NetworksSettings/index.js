@@ -39,6 +39,9 @@ const createStyles = (colors) =>
 			paddingVertical: 12,
 			alignItems: 'center',
 		},
+		otherNetworkIcon: {
+			backgroundColor: colors.overlay.alternative,
+		},
 		networkWrapper: {
 			flex: 0,
 			flexDirection: 'row',
@@ -172,6 +175,7 @@ class NetworksSettings extends PureComponent {
 		}
 		const { PreferencesController } = Engine.context;
 		PreferencesController.removeFromFrequentRpcList(this.networkToRemove);
+		this.setState({ filteredNetworks: [] });
 	};
 
 	createActionSheetRef = (ref) => {
@@ -197,11 +201,9 @@ class NetworksSettings extends PureComponent {
 						<View style={styles.network}>
 							{isCustomRPC &&
 								(image ? (
-									<ImageIcons image={image} style={styles.networkIcon} />
+									<ImageIcons image={image} style={[styles.networkIcon, styles.otherNetworkIcon]} />
 								) : (
-									<View
-										style={[styles.networkIcon, { backgroundColor: colors.background.alternative }]}
-									/>
+									<View style={[styles.networkIcon, styles.otherNetworkIcon]} />
 								))}
 							{!isCustomRPC && (
 								<View style={[styles.networkIcon, { backgroundColor: image }]}>

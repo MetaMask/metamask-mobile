@@ -99,8 +99,6 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 			return ethLogo;
 		}
 
-		// console.log(symbol, 'symbol')
-
 		if (Object.keys(imageIcons).includes(symbol)) {
 			return imageIcons[symbol];
 		}

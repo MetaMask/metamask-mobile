@@ -117,7 +117,7 @@ const createStyles = (colors) =>
 		},
 		tabUnderlineStyle: {
 			height: 2,
-			backgroundColor: colors.background.default,
+			backgroundColor: colors.primary.default,
 		},
 		tabStyle: {
 			paddingVertical: 8,
@@ -130,7 +130,7 @@ const createStyles = (colors) =>
 			width: 20,
 			height: 20,
 			marginRight: 10,
-			backgroundColor: colors.overlay.default,
+			backgroundColor: colors.overlay.alternative,
 			borderRadius: 10,
 		},
 		popularWrapper: {
