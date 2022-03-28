@@ -692,7 +692,9 @@
 		"gas_education_4": "가스 요금은 네트워크 트래픽과 거래 복잡성에 따라 변동됩니다.",
 		"gas_education_learn_more": "가스 요금 자세히 알아보기",
 		"confusable_title": "수신인 주소를 확인하십시오.",
-		"confusable_msg": "ENS 이름에서 혼동하기 쉬운 문자를 발견했습니다. 잠재적 사기를 막기 위해 ENS 이름을 확인하십시오."
+		"confusable_msg": "ENS 이름에서 혼동하기 쉬운 문자를 발견했습니다. 잠재적 사기를 막기 위해 ENS 이름을 확인하십시오.",
+		"address_invalid": "받는 사람 주소가 잘못되었습니다.",
+		"ens_not_found": "이 이름에 대해 설정된 주소가 없습니다."
 	},
 	"custom_gas": {
 		"total": "합계",

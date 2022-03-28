@@ -692,7 +692,9 @@
 		"gas_education_4": "ガス費は、ネットワーク トラフィックやトランザクションの複雑さに応じて変動します。",
 		"gas_education_learn_more": "ガス費の詳細を表示",
 		"confusable_title": "受信者のアドレスを確認する",
-		"confusable_msg": "ENS の名称の中に混乱しやすい文字を発見しました。詐欺を防ぐためにENSの名称を確認して下さい。"
+		"confusable_msg": "ENS の名称の中に混乱しやすい文字を発見しました。詐欺を防ぐためにENSの名称を確認して下さい。",
+		"address_invalid": "受信者のアドレスが無効です。",
+		"ens_not_found": "この名前にはアドレスが設定されていません。"
 	},
 	"custom_gas": {
 		"total": "合計",

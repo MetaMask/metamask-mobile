@@ -627,7 +627,9 @@
 		"tokenContractAddressWarning_2": "代币合约地址",
 		"tokenContractAddressWarning_3": ".如果将代币发送到此地址，您将失去代币。",
 		"smartContractAddressWarning": "此地址是智能合约地址。请确保您了解此地址的用途，否则您将面临资金损失风险。",
-		"continueError": "我了解风险，继续"
+		"continueError": "我了解风险，继续",
+		"address_invalid": "收件人地址无效。",
+		"ens_not_found": "没有为此名称设置地址。"
 	},
 	"custom_gas": {
 		"total": "总计",

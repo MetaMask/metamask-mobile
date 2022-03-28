@@ -5,11 +5,13 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
-import { renderShortAddress } from '../../../../util/address';
+import { renderShortAddress, renderSlightlyLongAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { isENS } from '../../../../util/address';
+import Device from '../../../../util/device';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -53,6 +55,7 @@ const createStyles = (colors) =>
 			alignItems: 'center',
 			position: 'relative',
 		},
+		identIcon: { marginRight: 8 },
 		exclamation: {
 			backgroundColor: colors.background.default,
 			borderRadius: 12,
@@ -89,10 +92,16 @@ const createStyles = (colors) =>
 		textInput: {
 			...fontStyles.normal,
 			paddingLeft: 0,
-			paddingRight: 8,
-			width: '100%',
+			paddingRight: 6,
 			color: colors.text.default,
 		},
+		addressReadyWrapper: {
+			flexDirection: 'row',
+			justifyContent: 'flex-start',
+			flex: 1,
+			alignItems: 'center',
+		},
+		checkIcon: { alignItems: 'center', justifyContent: 'center' },
 		scanIcon: {
 			flexDirection: 'column',
 			alignItems: 'center',
@@ -131,6 +140,8 @@ const createStyles = (colors) =>
 		toInputWrapper: {
 			flexDirection: 'row',
 		},
+		checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
+		checkIcon: { paddingRight: 4 },
 	});
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
@@ -189,47 +200,17 @@ export const AddressTo = (props) => {
 		inputWidth,
 		confusableCollection,
 		displayExclamation,
+		confirmScreen = false,
 	} = props;
 	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
-	return (
-		<View style={styles.wrapper}>
-			<View style={styles.label}>
-				<Text style={styles.labelText}>To:</Text>
-			</View>
-			{!addressToReady ? (
-				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
-					<View style={styles.input}>
-						<TextInput
-							ref={inputRef}
-							autoCapitalize="none"
-							autoCorrect={false}
-							onChangeText={onToSelectedAddressChange}
-							placeholder={strings('transactions.address_to_placeholder')}
-							placeholderTextColor={colors.text.muted}
-							spellCheck={false}
-							style={[styles.textInput, inputWidth]}
-							numberOfLines={1}
-							onFocus={onInputFocus}
-							onBlur={onInputBlur}
-							onSubmitEditing={onSubmit}
-							value={toSelectedAddress}
-							testID={'txn-to-address-input'}
-							keyboardAppearance={themeAppearance}
-						/>
-					</View>
-					{!!onScan && (
-						<TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
-							<AntIcon
-								name="scan1"
-								size={20}
-								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
-							/>
-						</TouchableOpacity>
-					)}
+	if (confirmScreen) {
+		return (
+			<View style={styles.wrapper}>
+				<View style={styles.label}>
+					<Text style={styles.labelText}>To:</Text>
 				</View>
-			) : (
 				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
 					<View style={styles.addressToInformation}>
 						<Identicon address={toSelectedAddress} diameter={30} />
@@ -260,7 +241,47 @@ export const AddressTo = (props) => {
 							</View>
 						</View>
 					</View>
-					{!!onClear && (
+				</View>
+			</View>
+		);
+	}
+
+	return (
+		<View style={styles.wrapper}>
+			<View style={styles.label}>
+				<Text style={styles.labelText}>To:</Text>
+			</View>
+			{!addressToReady ? (
+				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+					<View style={styles.input}>
+						<TextInput
+							ref={inputRef}
+							autoCapitalize="none"
+							autoCorrect={false}
+							onChangeText={onToSelectedAddressChange}
+							placeholder={strings('transactions.address_to_placeholder')}
+							placeholderTextColor={colors.text.muted}
+							spellCheck={false}
+							style={[styles.textInput, inputWidth]}
+							numberOfLines={1}
+							onFocus={onInputFocus}
+							autoFocus
+							onBlur={onInputBlur}
+							onSubmitEditing={onSubmit}
+							value={toSelectedAddress}
+							testID={'txn-to-address-input'}
+							keyboardAppearance={themeAppearance}
+						/>
+					</View>
+					{!toSelectedAddress?.length > 0 ? (
+						<TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
+							<AntIcon
+								name="scan1"
+								size={20}
+								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+							/>
+						</TouchableOpacity>
+					) : (
 						<TouchableOpacity onPress={onClear} style={styles.iconWrapper} testID={'clear-address-button'}>
 							<AntIcon
 								name="close"
@@ -268,6 +289,66 @@ export const AddressTo = (props) => {
 								style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
 							/>
 						</TouchableOpacity>
+					)}
+				</View>
+			) : (
+				<View style={[styles.selectWrapper, highlighted ? styles.borderHighlighted : styles.borderOpaque]}>
+					<View style={styles.addressToInformation}>
+						<Identicon address={toSelectedAddress} diameter={30} customStyle={styles.identIcon} />
+						{displayExclamation && (
+							<View style={styles.exclamation}>
+								<FontAwesome color={colors.error.default} name="exclamation-circle" size={14} />
+							</View>
+						)}
+						<View style={styles.addressReadyWrapper}>
+							{isENS(toAddressName) ? (
+								<TextInput
+									ref={inputRef}
+									autoCapitalize="none"
+									autoCorrect={false}
+									onChangeText={onToSelectedAddressChange}
+									placeholder={strings('transactions.address_to_placeholder')}
+									placeholderTextColor={colors.text.muted}
+									spellCheck={false}
+									style={Device.isIos() ? styles.textInput : [styles.textInput, { flex: 1 }]}
+									numberOfLines={1}
+									autoFocus
+									onFocus={onInputFocus}
+									onBlur={onInputBlur}
+									onSubmitEditing={onSubmit}
+									value={toAddressName}
+									testID={'txn-to-address-input'}
+									keyboardAppearance={themeAppearance}
+								/>
+							) : (
+								<Text style={styles.textInput} numberOfLines={1}>
+									{renderSlightlyLongAddress(toSelectedAddress, 4, 11)}
+								</Text>
+							)}
+							{!!onClear && (
+								<AntIcon
+									name="check"
+									color={colors.success.default}
+									size={15}
+									style={styles.checkIcon}
+								/>
+							)}
+						</View>
+					</View>
+					{!!onClear && (
+						<View style={styles.checkCleanWrapper}>
+							<TouchableOpacity
+								onPress={onClear}
+								style={styles.iconWrapper}
+								testID={'clear-address-button'}
+							>
+								<AntIcon
+									name="close"
+									size={20}
+									style={[styles.scanIcon, highlighted ? styles.iconHighlighted : styles.iconOpaque]}
+								/>
+							</TouchableOpacity>
+						</View>
 					)}
 				</View>
 			)}

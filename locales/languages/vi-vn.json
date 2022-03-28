@@ -692,7 +692,9 @@
 		"gas_education_4": "Phí gas dao động theo lưu lượng truy cập mạng và độ phức tạp của giao dịch.",
 		"gas_education_learn_more": "Tìm hiểu thêm về phí gas",
 		"confusable_title": "Kiểm tra địa chỉ người nhận",
-		"confusable_msg": "Chúng tôi đã phát hiện thấy một ký tự có thể gây nhầm lẫn trong tên ENS. Hãy kiểm tra tên ENS để tránh khả năng bị lừa đảo."
+		"confusable_msg": "Chúng tôi đã phát hiện thấy một ký tự có thể gây nhầm lẫn trong tên ENS. Hãy kiểm tra tên ENS để tránh khả năng bị lừa đảo.",
+		"address_invalid": "Địa chỉ người nhận không hợp lệ.",
+		"ens_not_found": "Không có địa chỉ nào được đặt cho tên này."
 	},
 	"custom_gas": {
 		"total": "Tổng",

@@ -692,7 +692,9 @@
 		"gas_education_4": "Las cuotas de Gas fluctúan en función del tráfico de la red y la complejidad de la transacción.",
 		"gas_education_learn_more": "Obtenga más información sobre las cuotas de Gas",
 		"confusable_title": "Verifique la dirección del destinatario",
-		"confusable_msg": "Se detectó un carácter que puede confundirse con otro similar en el nombre de ENS. Verifique el nombre de ENS para evitar una posible estafa."
+		"confusable_msg": "Se detectó un carácter que puede confundirse con otro similar en el nombre de ENS. Verifique el nombre de ENS para evitar una posible estafa.",
+		"address_invalid": "La dirección del destinatario no es válida.",
+		"ens_not_found": "No se ha establecido ninguna dirección para este nombre."
 	},
 	"custom_gas": {
 		"total": "Total",

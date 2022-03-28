@@ -1225,6 +1225,7 @@ class Confirm extends PureComponent {
 				onToSelectedAddressChange={this.onToSelectedAddressChange}
 				confusableCollection={(!existingContact && confusableCollection) || []}
 				displayExclamation={displayExclamation}
+				confirmScreen
 			/>
 		);
 

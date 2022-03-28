@@ -692,7 +692,9 @@
 		"gas_education_4": "As taxas de gas flutuam com base no tráfego da rede e na complexidade das transações.",
 		"gas_education_learn_more": "Saiba mais sobre as taxas de gas",
 		"confusable_title": "Confira o endereço do destinatário",
-		"confusable_msg": "Detectamos uma caractere confuso no nome ENS. Verificar o nome ENS para evitar fraudes em potencial."
+		"confusable_msg": "Detectamos uma caractere confuso no nome ENS. Verificar o nome ENS para evitar fraudes em potencial.",
+		"address_invalid": "O endereço do destinatário é inválido.",
+		"ens_not_found": "Nenhum endereço foi definido para este nome."
 	},
 	"custom_gas": {
 		"total": "Total",

@@ -116,8 +116,8 @@ const createStyles = (colors) =>
 			margin: 16,
 		},
 		footerContainer: {
-			flex: 1,
 			justifyContent: 'flex-end',
+			marginBottom: 16,
 		},
 		warningContainer: {
 			marginTop: 20,
@@ -347,6 +347,9 @@ class SendFlow extends PureComponent {
 						networkAddressBook[checksummedToSelectedAddress].name) ||
 					(identities[checksummedToSelectedAddress] && identities[checksummedToSelectedAddress].name);
 			} else {
+				toAddressName = await doENSReverseLookup(toSelectedAddress, network);
+
+				toAddressName = toAddressName === undefined ? toSelectedAddress : toAddressName;
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
@@ -580,7 +583,6 @@ class SendFlow extends PureComponent {
 
 		return (
 			<>
-				{'\n'}
 				<Text bold style={styles.buyEth} onPress={this.goToBuy}>
 					{strings('fiat_on_ramp.buy', { ticker: getTicker(this.props.ticker) })}
 				</Text>
@@ -642,6 +644,18 @@ class SendFlow extends PureComponent {
 						confusableCollection={(!existingContact && confusableCollection) || []}
 					/>
 				</View>
+
+				{!toSelectedAddressReady && !!toSelectedAddress && (
+					<View style={styles.warningContainer}>
+						<WarningMessage
+							warningMessage={
+								toSelectedAddress.substring(0, 2) === '0x'
+									? strings('transaction.address_invalid')
+									: strings('transaction.ens_not_found')
+							}
+						/>
+					</View>
+				)}
 
 				{!toSelectedAddressReady ? (
 					<AddressList
@@ -708,20 +722,24 @@ class SendFlow extends PureComponent {
 								</View>
 							)}
 						</ScrollView>
-						<View style={styles.footerContainer} testID={'no-eth-message'}>
-							{!errorContinue && (
-								<View style={styles.buttonNextWrapper}>
-									<StyledButton
-										type={'confirm'}
-										containerStyle={styles.buttonNext}
-										onPress={this.onTransactionDirectionSet}
-										testID={'address-book-next-button'}
-									>
-										{strings('address_book.next')}
-									</StyledButton>
-								</View>
-							)}
-						</View>
+					</View>
+				)}
+
+				{!errorContinue && (
+					<View style={styles.footerContainer} testID={'no-eth-message'}>
+						{!errorContinue && (
+							<View style={styles.buttonNextWrapper}>
+								<StyledButton
+									type={'confirm'}
+									containerStyle={styles.buttonNext}
+									onPress={this.onTransactionDirectionSet}
+									testID={'address-book-next-button'}
+									disabled={!toSelectedAddressReady}
+								>
+									{strings('address_book.next')}
+								</StyledButton>
+							</View>
+						)}
 					</View>
 				)}
 
