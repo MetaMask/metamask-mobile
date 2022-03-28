@@ -1211,6 +1211,7 @@ export function getFiatOnRampAggNavbar(navigation, { title, showBack = true } = 
 			fontSize: 20,
 			...fontStyles.normal,
 			color: themeColors.text.default,
+			...(!showBack && { textAlign: 'center' }),
 		},
 	});
 	const headerTitle = title ?? 'No title';
