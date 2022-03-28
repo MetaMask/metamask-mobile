@@ -32,6 +32,7 @@ const CheckoutWebView = () => {
 	const transformOrder = (order) => ({
 		...order,
 		provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+		network: selectedChainId,
 		amount: order.fiatAmount,
 		fee: order.totalFeesFiat,
 		currency: order.fiatCurrency?.symbol,
