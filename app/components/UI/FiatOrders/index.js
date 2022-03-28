@@ -10,10 +10,10 @@ import { renderNumber } from '../../../util/number';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
-import processOrder from './orderProcessor';
 import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
+import processOrder from '../FiatOnRampAggregator/orderProcessor';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder

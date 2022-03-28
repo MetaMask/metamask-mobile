@@ -5,6 +5,7 @@ import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
 	selectedAddressSelector,
+	chainIdSelector,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
@@ -24,6 +25,7 @@ export interface IFiatOnRampSDK {
 	setSelectedFiatCurrencyId: (asset: string) => void;
 
 	selectedAddress: string;
+	selectedChainId: string;
 }
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
@@ -42,6 +44,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 
 	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
 	const selectedAddress: string = useSelector(selectedAddressSelector);
+	const selectedChainId: string = useSelector(chainIdSelector);
 
 	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
@@ -95,6 +98,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOn
 		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
 
 		selectedAddress,
+		selectedChainId,
 	};
 
 	return <SDKContext.Provider value={value || contextValue} {...props} />;

@@ -69,7 +69,7 @@ export const getProviderName = (provider) => {
 const INITIAL_SELECTED_COUNTRY = '/us';
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
-const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
+export const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
 
 export const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
