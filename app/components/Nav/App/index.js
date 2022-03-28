@@ -35,7 +35,7 @@ import { getVersion } from 'react-native-device-info';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { ThemeContext, useAppTheme } from '../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -111,13 +111,12 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	const [route, setRoute] = useState();
 	const [authCancelled, setAuthCancelled] = useState(false);
 	const [animationPlayed, setAnimationPlayed] = useState();
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const dispatch = useDispatch();
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
 	const frequentRpcList = useSelector(
 		(state) => state?.engine?.backgroundState?.PreferencesController?.frequentRpcList
 	);
-
-	const theme = useAppTheme();
 
 	useEffect(() => {
 		const appTriggeredAuth = async () => {
@@ -270,11 +269,10 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<ThemeContext.Provider value={theme}>
-				{renderSplash()}
+			<>
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
-					theme={{ colors: { background: theme.colors.background.default } }}
+					theme={{ colors: { background: colors.background.default } }}
 					ref={setNavigatorRef}
 					onStateChange={(state) => {
 						// Updates redux with latest route. Used by DrawerView component.
@@ -294,7 +292,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
-			</ThemeContext.Provider>
+				{renderSplash()}
+			</>
 		)) ||
 		null
 	);

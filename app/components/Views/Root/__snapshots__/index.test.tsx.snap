@@ -28,12 +28,7 @@ exports[`Root should render correctly 1`] = `
       }
     }
   >
-    <ErrorBoundary
-      onError={[Function]}
-      view="Root"
-    >
-      <Connect(App) />
-    </ErrorBoundary>
+    <ConnectedRoot />
   </PersistGate>
 </Provider>
 `;
