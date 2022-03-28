@@ -8,6 +8,14 @@ exports[`NetworkList should render correctly 1`] = `
       "http://10.0.2.2:8545",
     ]
   }
+  networkOnboardedState={
+    Array [
+      Object {
+        "network": "mainnet",
+        "onboarded": true,
+      },
+    ]
+  }
   provider={
     Object {
       "rpcTarget": "http://10.0.2.2:8545",
