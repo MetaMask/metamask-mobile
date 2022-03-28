@@ -125,10 +125,12 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 	const query = useCallback(async () => {
 		try {
 			setIsFetching(true);
-			// @ts-expect-error spreading params error
-			const sdkMethod = (...a) => sdk[method](...a);
-			const response = await sdkMethod(...params);
-			setData(response);
+			if (sdk) {
+				// @ts-expect-error spreading params error
+				const sdkMethod = (...a) => sdk[method](...a);
+				const response = await sdkMethod(...params);
+				setData(response);
+			}
 		} catch (responseError) {
 			// logging maybe
 			setError((responseError as Error).message);
