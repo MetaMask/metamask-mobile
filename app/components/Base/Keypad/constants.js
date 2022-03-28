@@ -68,8 +68,8 @@ export const CURRENCIES = {
 		symbol: 'Kč',
 	},
 	default: {
-		decimalSeparator: '.',
-		handler: createKeypadRule({ decimalSeparator: '.' }),
+		decimalSeparator: null,
+		handler: createKeypadRule({ decimalSeparator: null }),
 		symbol: null,
 	},
 	DKK: {
