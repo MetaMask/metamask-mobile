@@ -8,6 +8,7 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ConnectModal from '../pages/modals/ConnectModal';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
 import { Browser } from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
@@ -111,11 +112,19 @@ describe('Deep linking Tests', () => {
 		await NetworkView.tapRpcNetworkAddButton();
 
 		await WalletView.isVisible();
-		await WalletView.isNetworkNameVisible('Binance Smart Chain Mainnet');
-		await WalletView.tapDrawerButton(); // tapping burger menu
+	});
+
+	it('should dismiss network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.isNetworkNameCorrect('Binance Smart Chain Mainnet');
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
 	});
 
 	it('should return to settings then networks', async () => {
+		await WalletView.isNetworkNameVisible('Binance Smart Chain Mainnet');
+		await WalletView.tapDrawerButton(); // tapping burger menu
+
 		// Open Drawer
 		await DrawerView.isVisible();
 		await DrawerView.tapSettings();
@@ -141,6 +150,13 @@ describe('Deep linking Tests', () => {
 
 		await WalletView.isVisible();
 		await WalletView.isNetworkNameVisible('Polygon Mainnet');
+	});
+
+	it('should dismiss the network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.isNetworkNameCorrect('Polygon Mainnet');
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
 	});
 
 	it('should deep link to the send flow on matic', async () => {
