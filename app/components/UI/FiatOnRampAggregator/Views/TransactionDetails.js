@@ -7,6 +7,8 @@ import TransactionDetail from '../components/TransactionDetails';
 import PropTypes from 'prop-types';
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
+import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
+import { useSelector } from 'react-redux';
 
 const styles = StyleSheet.create({
 	screenLayout: {
@@ -28,9 +30,10 @@ const TransactionDetails = ({ route }) => {
 		purchaseAmountTotal: '$300 USD',
 		paymentType: 'bank',
 	};
-	const order = mockOrder;
+
+	const orderById = useSelector(makeOrderIdSelector(route.params.id));
+	const order = orderById.length > 0 ? orderById : mockOrder;
 	const navigation = useNavigation();
-	console.log(route);
 
 	const handleMakeAnotherPurchase = useCallback(() => {
 		navigation.navigate('PaymentMethod');
