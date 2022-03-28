@@ -50,6 +50,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
+import { networkSwitched } from '../../../actions/onboardNetwork';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -503,6 +504,7 @@ const RootRPCMethodsUI = (props) => {
 	const onSwitchCustomNetworkConfirm = () => {
 		setShowPendingApproval(false);
 		acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
+		props.networkSwitched({ networkUrl: customNetworkToSwitch.data.rpcUrl, networkStatus: true });
 	};
 
 	/**
@@ -737,6 +739,10 @@ RootRPCMethodsUI.propTypes = {
 	chainId: PropTypes.string,
 	isSigningQRObject: PropTypes.bool,
 	QRState: PropTypes.object,
+	/**
+	 * updates redux when network is switched
+	 */
+	networkSwitched: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -754,6 +760,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
+	networkSwitched: ({ networkUrl, networkStatus }) => dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(RootRPCMethodsUI));

@@ -72,7 +72,7 @@ const createStyles = (colors) =>
 		},
 		networkText: {
 			fontSize: 12,
-			colors: colors.text.default,
+			color: colors.text.default,
 		},
 	});
 
