@@ -8,7 +8,6 @@
 - [#3731](https://github.com/MetaMask/metamask-mobile/pull/3731): [FIX] Fix formatting of gas price for all conversion currencies
 - [#3846](https://github.com/MetaMask/metamask-mobile/pull/3846): [FEATURE] Add MoonPay on-ramp support. Add CUSD and CEUR support for Transak
 - [#3792](https://github.com/MetaMask/metamask-mobile/pull/3792): [FIX] Self sent token transactions copy
-- [#3916](https://github.com/MetaMask/metamask-mobile/pull/3916): [FIX] Patch clipboard crash on Android 8.1.0 and
 - [#3902](https://github.com/MetaMask/metamask-mobile/pull/3902): [IMPROVEMENT] Add better messaging around ENS validation
 
 ## v4.3.1 - March 23, 2022
