@@ -22,6 +22,11 @@ export default class ImportTokensView {
 	static async tapOnImportButton() {
 		await TestHelpers.tapByText('IMPORT');
 	}
+
+	static async tapOnCancelButton() {
+		await TestHelpers.tapByText('CANCEL');
+	}
+
 	static async isVisible() {
 		await TestHelpers.checkIfVisible(CUSTOM_TOKEN_CONTAINER_ID);
 	}
