@@ -2269,19 +2269,19 @@
   resolved "https://registry.yarnpkg.com/@lavamoat/preinstall-always-fail/-/preinstall-always-fail-1.0.0.tgz#e78a6e3d9e212a4fef869ec37d4f5fb498dea373"
   integrity sha512-vD2DcC0ffJj1w2y1Lu0OU39wHmlPEd2tCDW04Bm6Kf4LyRnCHCezTsS8yzeSJ+4so7XP+TITuR5FGJRWxPb+GA==
 
-"@metamask/contract-metadata@^1.30.0", "@metamask/contract-metadata@^1.31.0":
+"@metamask/contract-metadata@^1.30.0", "@metamask/contract-metadata@^1.31.0", "@metamask/contract-metadata@^1.33.0":
   version "1.30.0"
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.30.0.tgz#fa8e1b0c3e7aaa963986088f691fb553ffbe3904"
   integrity sha512-b2usYW/ptQYnE6zhUmr4T+nvOAQJK5ABcpKudyQANpy4K099elpv4aN0WcrcOcwV99NHOdMzFP3ZuG0HoAyOBQ==
 
-"@metamask/controllers@^26.0.0":
-  version "26.0.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
+"@metamask/controllers@27.1.0":
+  version "27.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-27.1.0.tgz#df4acc022cce0995daabf6c28757a6f64e2e7336"
+  integrity sha512-bdAkFAgJdQw4hh60Jk4YkIh0RE06po5DxpO/XFRLj0hB1y8v25nd/nrzA4NW0hRb/tkc/Eof868pur5eFfC0UA==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@keystonehq/metamask-airgapped-keyring" "^0.2.2"
-    "@metamask/contract-metadata" "^1.31.0"
+    "@metamask/contract-metadata" "^1.33.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
     "@types/uuid" "^8.3.0"
@@ -2293,7 +2293,7 @@
     eth-json-rpc-infura "^5.1.0"
     eth-keyring-controller "^6.2.1"
     eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.14"
+    eth-phishing-detect "^1.1.16"
     eth-query "^2.1.2"
     eth-rpc-errors "^4.0.0"
     eth-sig-util "^3.0.0"
@@ -2314,12 +2314,13 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#53a95f9a1c419c99c8428a4b61055ac8901ea45e":
-  version "27.0.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#53a95f9a1c419c99c8428a4b61055ac8901ea45e"
+"@metamask/controllers@^26.0.0":
+  version "26.0.0"
+  resolved "git+https://github.com/MetaMask/controllers.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
+    "@keystonehq/metamask-airgapped-keyring" "^0.2.2"
     "@metamask/contract-metadata" "^1.31.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
@@ -7662,6 +7663,13 @@ eth-phishing-detect@^1.1.14:
   version "1.1.15"
   resolved "https://registry.yarnpkg.com/eth-phishing-detect/-/eth-phishing-detect-1.1.15.tgz#c42e1aad6cd1c5eeee41c6bf932dcfd0e523d499"
   integrity sha512-RVNSGMVIuO6VZ1Uv4v8dljjj0ephW+APVAU5QL5mBu3VEqfBluPMNb6jw66kxYrIFrSNalnb/pMeDpAA+W3cvg==
+  dependencies:
+    fast-levenshtein "^2.0.6"
+
+eth-phishing-detect@^1.1.16:
+  version "1.1.16"
+  resolved "https://registry.yarnpkg.com/eth-phishing-detect/-/eth-phishing-detect-1.1.16.tgz#637158d5774819e1a861f6d169e6d77d076a47fd"
+  integrity sha512-/o9arK5qFOKVdfZK9hJVAQP0eKXjAvImIKNBMfF9Nj1HGicD3wfsVuXDu1OHrxuEi6+4kYtD9wyAn/3G7g7VrA==
   dependencies:
     fast-levenshtein "^2.0.6"
 
