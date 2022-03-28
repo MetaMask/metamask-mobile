@@ -13,6 +13,9 @@ const initialState = {
 			},
 		},
 	},
+	networkOnboarded: {
+		networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
+	},
 };
 const store = mockStore(initialState);
 
