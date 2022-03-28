@@ -30,6 +30,7 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { formatId } from '../utils';
 import { strings } from '../../../../../locales/i18n';
+import Device from '../../../../util/device';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -238,7 +239,7 @@ const AmountToBuy = () => {
 	}, [amountFocused, keyboardHeight, keypadOffset]);
 
 	const displayAmount = useMemo(() => {
-		if (Intl?.NumberFormat) {
+		if (Device.isIos() && Intl && Intl?.NumberFormat) {
 			return amountFocused ? amount : new Intl.NumberFormat().format(amountNumber);
 		}
 		return amount;
