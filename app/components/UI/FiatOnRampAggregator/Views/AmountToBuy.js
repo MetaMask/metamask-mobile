@@ -28,7 +28,7 @@ import { PAYMENT_METHOD_ICON } from '../constants';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
-import { currencyToKeypadCurrency, formatId } from '../utils';
+import { formatId } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 
 const createStyles = (colors) =>
@@ -66,6 +66,7 @@ const AmountToBuy = () => {
 	const styles = createStyles(colors);
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
+	const [amountNumber, setAmountNumber] = useState(0);
 	const [tokens, setTokens] = useState([]);
 	const [, setShowAlert] = useState(false);
 	const keyboardHeight = useRef(1000);
@@ -116,6 +117,7 @@ const AmountToBuy = () => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
 		if (currencies && selectedFiatCurrencyId && selectedFiatCurrencyId !== formatId(selectedCountry?.currency)) {
 			setAmount('0');
+			setAmountNumber(0);
 			return currencies.find((currency) => currency.id === selectedFiatCurrencyId);
 		}
 
@@ -145,8 +147,13 @@ const AmountToBuy = () => {
 		setAmountFocused(true);
 	}, []);
 
-	const handleKeypadChange = useCallback((newAmount) => {
-		setAmount(`${newAmount}`);
+	const handleKeypadChange = useCallback(({ value, valueAsNumber }) => {
+		setAmount(`${value}`);
+		setAmountNumber(valueAsNumber);
+	}, []);
+	const handleQuickAmountPress = useCallback((value) => {
+		setAmount(`${value}`);
+		setAmountNumber(value);
 	}, []);
 
 	const onKeypadLayout = useCallback((event) => {
@@ -223,17 +230,19 @@ const AmountToBuy = () => {
 	}, [togglePaymentMethodModal]);
 
 	const handleGetQuotePress = useCallback(() => {
-		navigation.navigate('GetQuotes', { amount });
-	}, [amount, navigation]);
+		navigation.navigate('GetQuotes', { amount: amountNumber });
+	}, [amountNumber, navigation]);
 
 	useEffect(() => {
 		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
 	}, [amountFocused, keyboardHeight, keypadOffset]);
 
-	const displayAmount = useMemo(
-		() => (amountFocused ? amount : new Intl.NumberFormat().format(amount)),
-		[amount, amountFocused]
-	);
+	const displayAmount = useMemo(() => {
+		if (Intl?.NumberFormat) {
+			return amountFocused ? amount : new Intl.NumberFormat().format(amountNumber);
+		}
+		return amount;
+	}, [amount, amountFocused, amountNumber]);
 
 	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
 	useEffect(() => {
@@ -342,7 +351,7 @@ const AmountToBuy = () => {
 						<StyledButton
 							type="confirm"
 							onPress={handleGetQuotePress}
-							disabled={Number(amount) <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
+							disabled={amountNumber <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
 						>
 							Get Quotes
 						</StyledButton>
@@ -352,7 +361,7 @@ const AmountToBuy = () => {
 
 			<Animated.View style={[styles.keypadContainer, keypadContainerStyle]} onLayout={onKeypadLayout}>
 				<QuickAmounts
-					onAmountPress={handleKeypadChange}
+					onAmountPress={handleQuickAmountPress}
 					amounts={
 						currentCurrency?.id === '/currencies/fiat/usd'
 							? [
@@ -365,11 +374,7 @@ const AmountToBuy = () => {
 							: []
 					}
 				/>
-				<Keypad
-					value={amount}
-					onChange={handleKeypadChange}
-					currency={currencyToKeypadCurrency(currentCurrency)}
-				/>
+				<Keypad value={amount} onChange={handleKeypadChange} currency={currentCurrency?.symbol} />
 				<ScreenLayout.Content>
 					<StyledButton type="confirm" onPress={handleKeypadDone}>
 						Done
