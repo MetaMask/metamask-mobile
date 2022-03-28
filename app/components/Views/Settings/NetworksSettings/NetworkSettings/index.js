@@ -30,10 +30,9 @@ import PopularList from '../../../../../util/networks/customNetworks';
 import NetworkModals from '../../../../UI/NetworkModal';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { MAINNET } from '../../../../../constants/network';
+import { MAINNET, PRIVATENETWORK } from '../../../../../constants/network';
 import ImageIcons from '../../../../UI/ImageIcon';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
-import { PRIVATENETWORK } from '../../../../../constants/network';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
 import sanitizeUrl from '../../../../../util/sanitizeUrl';
 import {
