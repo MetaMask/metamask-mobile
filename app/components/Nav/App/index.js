@@ -105,7 +105,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
-	const locked = useRef(false);
+	const [locked, setLocked] = useState(false);
 	const [navigator, setNavigator] = useState(undefined);
 	const prevNavigator = useRef(navigator);
 	const [route, setRoute] = useState();
@@ -122,19 +122,20 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		const appTriggeredAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				if (existingUser && !locked.current && selectedAddress) {
+				if (existingUser && !locked && selectedAddress) {
 					await Authentication.appTriggeredAuth(selectedAddress);
-					locked.current = true;
+					setLocked(true);
 				}
+
 				//Cancel auth if the existing user has not been set
 				if (existingUser == null) setAuthCancelled(true);
 			} catch (error) {
-				trackErrorAsAnalytics('Lockscreen: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
+				trackErrorAsAnalytics('App: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
 				setAuthCancelled(true);
 			}
 		};
 		appTriggeredAuth();
-	}, [userLoggedIn, selectedAddress]);
+	}, [locked, selectedAddress]);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -200,8 +201,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
 		}
-		if (locked.current || authCancelled) checkExsiting();
-	});
+		if (locked || authCancelled) checkExsiting();
+	}, [locked, authCancelled]);
 
 	useEffect(() => {
 		async function startApp() {
