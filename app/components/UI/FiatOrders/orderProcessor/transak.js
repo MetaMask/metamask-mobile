@@ -7,7 +7,7 @@ import {
 	FIAT_ORDER_PROVIDERS,
 	FIAT_ORDER_STATES,
 	NETWORKS_CHAIN_ID,
-	NETWORK_PARAMETERS,
+	TRANSAK_NETWORK_PARAMETERS,
 } from '../../../../constants/on-ramp';
 
 //* env vars
@@ -99,7 +99,7 @@ const TRANSAK_API_KEY_SECRET = isDevelopment ? TRANSAK_API_KEY_SECRET_STAGING : 
  * https://integrate.transak.com/69a2474c8d8d40daa04bd5bbe804fb6d?v=48a0c9fd98854078a4eaf5ec9a0a4f65
  * @enum {string}
  */
-export const TRANSAK_ORDER_STATES = {
+const TRANSAK_ORDER_STATES = {
 	AWAITING_PAYMENT_FROM_USER: 'AWAITING_PAYMENT_FROM_USER',
 	PAYMENT_DONE_MARKED_BY_USER: 'PAYMENT_DONE_MARKED_BY_USER',
 	PROCESSING: 'PROCESSING',
@@ -236,7 +236,7 @@ export async function processTransakOrder(order) {
 export const useTransakFlowURL = (address, chainId) => {
 	const params = useMemo(() => {
 		const selectedChainId = isTransakAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
-		const [network, defaultCryptoCurrency, cryptoCurrencyList] = NETWORK_PARAMETERS[selectedChainId];
+		const [network, defaultCryptoCurrency, cryptoCurrencyList] = TRANSAK_NETWORK_PARAMETERS[selectedChainId];
 		return qs.stringify({
 			apiKey: TRANSAK_API_KEY,
 			defaultCryptoCurrency,

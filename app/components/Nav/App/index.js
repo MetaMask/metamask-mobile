@@ -35,7 +35,7 @@ import { getVersion } from 'react-native-device-info';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { ThemeContext, useAppTheme } from '../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -105,28 +105,28 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
-	const locked = useRef(false);
+	const [locked, setLocked] = useState(false);
 	const [navigator, setNavigator] = useState(undefined);
 	const prevNavigator = useRef(navigator);
 	const [route, setRoute] = useState();
 	const [authCancelled, setAuthCancelled] = useState(false);
 	const [animationPlayed, setAnimationPlayed] = useState();
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const dispatch = useDispatch();
 	const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
 	const frequentRpcList = useSelector(
 		(state) => state?.engine?.backgroundState?.PreferencesController?.frequentRpcList
 	);
 
-	const theme = useAppTheme();
-
 	useEffect(() => {
 		const appTriggeredAuth = async () => {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				if (existingUser && !locked.current && selectedAddress) {
+				if (existingUser && !locked && selectedAddress) {
 					await Authentication.appTriggeredAuth(selectedAddress);
-					locked.current = true;
+					setLocked(true);
 				}
+
 				//Cancel auth if the existing user has not been set
 				if (existingUser == null) setAuthCancelled(true);
 			} catch (error) {
@@ -135,7 +135,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			}
 		};
 		appTriggeredAuth();
-	}, [userLoggedIn, selectedAddress]);
+	}, [locked, selectedAddress]);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -201,8 +201,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
 			setRoute(route);
 		}
-		if (authCancelled || userLoggedIn) checkExsiting();
-	}, [authCancelled, userLoggedIn, animationPlayed]);
+		if (locked || authCancelled) checkExsiting();
+	}, [locked, authCancelled]);
 
 	useEffect(() => {
 		async function startApp() {
@@ -270,11 +270,11 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<ThemeContext.Provider value={theme}>
+			<>
 				{renderSplash()}
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
-					theme={{ colors: { background: theme.colors.background.default } }}
+					theme={{ colors: { background: colors.background.default } }}
 					ref={setNavigatorRef}
 					onStateChange={(state) => {
 						// Updates redux with latest route. Used by DrawerView component.
@@ -294,7 +294,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
-			</ThemeContext.Provider>
+			</>
 		)) ||
 		null
 	);

@@ -93,7 +93,7 @@ class LockScreen extends PureComponent {
 	handleAppStateChange = async (nextAppState) => {
 		// Try to unlock when coming from the background
 		if (this.locked && this.appState !== 'active' && nextAppState === 'active') {
-			this.firstAnimation.play();
+			this.firstAnimation?.play();
 			this.appState = nextAppState;
 			// Avoid trying to unlock with the app in background
 			this.unlockKeychain();
