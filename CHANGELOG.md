@@ -1,6 +1,7 @@
 # Changelog
 
 ## Current Main Branch
+- [#3958](https://github.com/MetaMask/metamask-mobile/pull/3958): Update pod install msg
 
 ## v4.3.1 - March 23, 2022
 - [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
