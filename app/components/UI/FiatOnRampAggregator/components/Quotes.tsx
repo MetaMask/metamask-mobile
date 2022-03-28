@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
@@ -51,9 +51,11 @@ const Quotes: React.FC<Props> = ({
 			<ListItem.Content>
 				<ListItem.Body>
 					<ListItem.Title>
-						<Text big primary bold>
-							{providerName} <Feather name="info" size={12} />
-						</Text>
+						<TouchableOpacity>
+							<Text big primary bold>
+								{providerName} <Feather name="info" size={12} />
+							</Text>
+						</TouchableOpacity>
 					</ListItem.Title>
 				</ListItem.Body>
 				<ListItem.Amounts>

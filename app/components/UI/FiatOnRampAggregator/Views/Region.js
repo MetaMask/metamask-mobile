@@ -14,6 +14,7 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import RegionAlert from '../components/RegionAlert';
 
 const styles = StyleSheet.create({
 	checkbox: {
@@ -36,8 +37,9 @@ const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
-	// eslint-disable-next-line no-unused-vars
+
 	const [showAlert, setShowAlert] = useState(false);
+	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 
 	useEffect(() => {
@@ -56,22 +58,16 @@ const Region = () => {
 		navigation.navigate('PaymentMethod');
 	}, [navigation]);
 
-	const handleCountryPress = useCallback(
-		(country) => {
-			if (country.unsupported) {
-				setShowAlert(true);
-			} else {
-				setSelectedCountry(country);
-				hideRegionModal();
-			}
-		},
-		[hideRegionModal, setSelectedCountry]
-	);
+	const handleCountryPress = (country) => {
+		setSelectedCountry(country);
+		hideRegionModal();
+	};
 
 	const handleRegionPress = useCallback(
 		(region, country) => {
 			if (region.unsupported) {
 				setShowAlert(true);
+				setSelectedUnsupportedLocation(region);
 			} else {
 				setSelectedRegion(region);
 				setSelectedCountry(country);
@@ -110,7 +106,14 @@ const Region = () => {
 				title={strings('fiat_on_ramp_aggregator.region.your_region')}
 				description={strings('fiat_on_ramp_aggregator.region.subtitle_description')}
 			/>
-
+			<RegionAlert
+				isVisible={showAlert}
+				subtitle={`${selectedUnsupportedLocation.emoji}   ${selectedUnsupportedLocation.name}`}
+				dismiss={() => setShowAlert(!showAlert)}
+				title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+				body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+			/>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					<TouchableOpacity onPress={handleRegionButton}>
@@ -146,8 +149,8 @@ const Region = () => {
 							animationDuration={0.2}
 							onAnimationType="fill"
 							offAnimationType="fill"
-							onFillColor={colors.primary}
-							onCheckColor={colors.background.default}
+							onFillColor={colors.blue500}
+							onCheckColor={colors.white}
 							style={styles.checkbox}
 						/>
 						<Text black style={styles.checkboxMargin}>
