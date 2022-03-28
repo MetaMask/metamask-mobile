@@ -43,6 +43,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
 import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
 import TransakWebView from '../../UI/FiatOrders/TransakWebView';
+import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
@@ -272,6 +273,7 @@ const FiatOnRamp = () => (
 			options={PaymentMethodApplePay.navigationOptions}
 		/>
 		<Stack.Screen name="TransakFlow" component={TransakWebView} options={TransakWebView.navigationOptions} />
+		<Stack.Screen name="MoonPayFlow" component={MoonPayWebView} options={MoonPayWebView.navigationOptions} />
 		<Stack.Screen
 			name="GasEducationCarousel"
 			component={GasEducationCarousel}
