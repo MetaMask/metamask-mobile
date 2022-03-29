@@ -80,7 +80,7 @@ export const getOrders = createSelector(
 	selectedAddressSelector,
 	chainIdSelector,
 	(orders, selectedAddress, chainId) =>
-		orders.filter((order) => order.account === selectedAddress && order.network === chainId)
+		orders.filter((order) => order.account === selectedAddress && Number(order.network) === Number(chainId))
 );
 
 export const getPendingOrders = createSelector(
