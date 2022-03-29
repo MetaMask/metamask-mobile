@@ -78,6 +78,7 @@ interface AnimatedQRScannerProps {
 	onScanSuccess: (ur: UR) => void;
 	onScanError: (error: string) => void;
 	hideModal: () => void;
+	pauseQRCode?: (x: boolean) => void;
 }
 
 export const SupportedURType = {
@@ -87,7 +88,7 @@ export const SupportedURType = {
 };
 
 const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
-	const { visible, onScanError, purpose, onScanSuccess, hideModal } = props;
+	const { visible, onScanError, purpose, onScanSuccess, hideModal, pauseQRCode } = props;
 	const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
 	const [progress, setProgress] = useState(0);
 
@@ -194,7 +195,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 	);
 
 	return (
-		<Modal isVisible={visible} style={styles.modal} onModalHide={reset}>
+		<Modal
+			isVisible={visible}
+			style={styles.modal}
+			onModalHide={() => {
+				reset();
+				pauseQRCode?.(false);
+			}}
+			onModalWillShow={() => pauseQRCode?.(true)}
+		>
 			<View style={styles.container}>
 				<RNCamera
 					onMountError={onError}
