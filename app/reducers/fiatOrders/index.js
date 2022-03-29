@@ -61,7 +61,8 @@ export const getProviderName = (provider, data = {}) => {
 			return 'MoonPay';
 		}
 		case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
-			return `On-Ramp ${data.provider?.name && '(' + data.provider?.name + ')'}`;
+			const providerName = data.provider?.name;
+			return `On-Ramp ${providerName ? '(' + providerName + ')' : ''}`;
 		}
 		default: {
 			return provider;
