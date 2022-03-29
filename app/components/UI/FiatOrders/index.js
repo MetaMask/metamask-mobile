@@ -1,12 +1,12 @@
+import React from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
-
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
@@ -14,6 +14,7 @@ import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
+import { FiatOnRampSDKProvider, useFiatOnRampSDK } from '../FiatOnRampAggregator/sdk';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -112,11 +113,12 @@ export const getNotificationDetails = (fiatOrder) => {
 };
 
 function FiatOrders({ pendingOrders, updateFiatOrder }) {
+	const { sdk } = useFiatOnRampSDK();
 	useInterval(
 		async () => {
 			await Promise.all(
 				pendingOrders.map(async (order) => {
-					const updatedOrder = await processOrder(order);
+					const updatedOrder = await processOrder(order, sdk);
 					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
 						InteractionManager.runAfterInteractions(() => {
@@ -151,4 +153,11 @@ const mapDispatchToProps = (dispatch) => ({
 	updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(FiatOrders);
+const withFiatOnRampSDK = (Component) => (props) =>
+	(
+		<FiatOnRampSDKProvider>
+			<Component {...props} />
+		</FiatOnRampSDKProvider>
+	);
+
+export default connect(mapStateToProps, mapDispatchToProps)(withFiatOnRampSDK(FiatOrders));
