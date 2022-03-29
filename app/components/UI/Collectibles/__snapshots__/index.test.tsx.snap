@@ -13,7 +13,13 @@ exports[`Collectibles should render correctly 1`] = `
   <ScrollView
     refreshControl={
       <RefreshControlMock
+        colors={
+          Array [
+            "#037DD6",
+          ]
+        }
         refreshing={false}
+        tintColor="#6A737D"
       />
     }
   >
@@ -30,7 +36,7 @@ exports[`Collectibles should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#AAAAAA",
+            "color": "#BBC0C5",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 20,
             "fontWeight": "400",

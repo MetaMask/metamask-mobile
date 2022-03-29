@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import { Image, View, ViewPropTypes } from 'react-native';
 import { toDataUrl } from '../../../util/blockies.js';
 import FadeIn from 'react-native-fade-in-image';
-import { colors } from '../../../styles/common.js';
 import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 /**
  * UI component that renders an Identicon
@@ -16,6 +16,7 @@ import { connect } from 'react-redux';
 // eslint-disable-next-line react/display-name
 const Identicon = React.memo((props) => {
 	const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	if (!address) return null;
 	const uri = useBlockieIcon && toDataUrl(address);
 
@@ -40,7 +41,7 @@ const Identicon = React.memo((props) => {
 	if (noFadeIn) {
 		return image;
 	}
-	return <FadeIn placeholderStyle={{ backgroundColor: colors.white }}>{image}</FadeIn>;
+	return <FadeIn placeholderStyle={{ backgroundColor: colors.background.alternative }}>{image}</FadeIn>;
 });
 
 Identicon.propTypes = {

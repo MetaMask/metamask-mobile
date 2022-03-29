@@ -18,6 +18,7 @@ import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -34,9 +35,6 @@ const styles = StyleSheet.create({
  * PureComponent that manages transaction approval from the dapp browser
  */
 class Approval extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getTransactionOptionsTitle('approval.title', navigation, route);
-
 	static propTypes = {
 		/**
 		 * react-navigation object used for switching between screens
@@ -85,6 +83,20 @@ class Approval extends PureComponent {
 		mode: REVIEW,
 		transactionHandled: false,
 		transactionConfirmed: false,
+	};
+
+	updateNavBar = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const { navigation } = this.props;
+		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, {}, colors));
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	componentWillUnmount = () => {
@@ -341,15 +353,18 @@ class Approval extends PureComponent {
 	};
 
 	render = () => {
-		const { transaction, dappTransactionModalVisible } = this.props;
+		const { dappTransactionModalVisible } = this.props;
 		const { mode, transactionConfirmed } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+
 		return (
 			<Modal
 				isVisible={dappTransactionModalVisible}
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onCancel}
@@ -364,7 +379,6 @@ class Approval extends PureComponent {
 					onCancel={this.onCancel}
 					onConfirm={this.onConfirm}
 					onModeChange={this.onModeChange}
-					transaction={transaction}
 					dappTransactionModalVisible={dappTransactionModalVisible}
 					transactionConfirmed={transactionConfirmed}
 				/>
@@ -385,5 +399,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	resetTransaction: () => dispatch(resetTransaction()),
 });
+
+Approval.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Approval);

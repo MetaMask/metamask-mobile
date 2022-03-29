@@ -13,6 +13,7 @@ import useInterval from '../../hooks/useInterval';
 import processOrder from './orderProcessor';
 import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
+import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -21,7 +22,8 @@ import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = (chainId) => isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId);
+export const allowedToBuy = (chainId) =>
+	isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId) || isMoonpayAllowedToBuy(chainId);
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION,
@@ -70,6 +72,7 @@ export const getNotificationDetails = (fiatOrder) => {
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
 					currency: fiatOrder.cryptocurrency,
 				}),
+				description: strings('fiat_on_ramp.notifications.purchase_failed_description'),
 				status: 'error',
 			};
 		}
@@ -77,6 +80,7 @@ export const getNotificationDetails = (fiatOrder) => {
 			return {
 				...baseNotificationDetails,
 				title: strings('fiat_on_ramp.notifications.purchase_cancelled_title'),
+				description: strings('fiat_on_ramp.notifications.purchase_cancelled_description'),
 				status: 'cancelled',
 			};
 		}

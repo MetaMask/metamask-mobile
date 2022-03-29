@@ -1,6 +1,60 @@
 # Changelog
 
-## Current Develop Branch
+## Current Main Branch
+
+## v4.3.1 - March 23, 2022
+- [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
+- [#3947](https://github.com/MetaMask/metamask-mobile/pull/3947): [FIX] Fix gas carousel price estimate
+- [#3940](https://github.com/MetaMask/metamask-mobile/pull/3940): [FIX] Fix browser crash
+
+## v4.3.0 - March 16, 2022
+- [#3916](https://github.com/MetaMask/metamask-mobile/pull/3916): [FIX] Patch Android clipboard crasher
+- [#3776](https://github.com/MetaMask/metamask-mobile/pull/3776): [IMPROVEMENT] Enable dark mode
+- [#3899](https://github.com/MetaMask/metamask-mobile/pull/3899): [IMPROVEMENT] Improve WalletConnect checks
+- [#3898](https://github.com/MetaMask/metamask-mobile/pull/3898): [FIX] Exclude deps in build.gradle (Fix Android build)
+- [#3900](https://github.com/MetaMask/metamask-mobile/pull/3900): [IMPROVEMENT] Safe delete copied object instead of original one
+- [#3703](https://github.com/MetaMask/metamask-mobile/pull/3703): [IMPROVEMENT] Add credit card support and change copy
+- [#3892](https://github.com/MetaMask/metamask-mobile/pull/3892): [FIX] Fix undefined gas price crash
+- [#3850](https://github.com/MetaMask/metamask-mobile/pull/3850): [FIX] Fix 'io.branch.referral.installListener' crashes on Android
+- [#3888](https://github.com/MetaMask/metamask-mobile/pull/3888): [FIX] Fix go to ens domain when coming from qr code
+- [#3692](https://github.com/MetaMask/metamask-mobile/pull/3692): [IMPROVEMENT] Show the contract receiving token allowances on the allowance screen
+- [#3878](https://github.com/MetaMask/metamask-mobile/pull/3878): [IMPROVEMENT] Upgrade controllers v26.0.0 and Swaps controller to v6.6.0
+- [#3756](https://github.com/MetaMask/metamask-mobile/pull/3756): [FIX] Prioritise specified transaction gas to allow gasless network transactions
+- [#3863](https://github.com/MetaMask/metamask-mobile/pull/3863): [FIX] Fix spend limit bug
+- [#3851](https://github.com/MetaMask/metamask-mobile/pull/3851): [IMPROVEMENT] Clear browser tabs when cleaning history
+- [#3790](https://github.com/MetaMask/metamask-mobile/pull/3790): [FIX] "Speed up" and "Cancel" buttons showing up in the receiver side
+- [#3819](https://github.com/MetaMask/metamask-mobile/pull/3819): [FIX] The recent list doesn’t convert addresses to my nickname
+- [#3802](https://github.com/MetaMask/metamask-mobile/pull/3802): [FIX] Check that network exists when adding a custom network
+- [#3837](https://github.com/MetaMask/metamask-mobile/pull/3837): [FIX] Fix onramp BUSD address
+- [#3824](https://github.com/MetaMask/metamask-mobile/pull/3824): [FIX] Add tokens/NFTs button triggers multiple times
+- [#3803](https://github.com/MetaMask/metamask-mobile/pull/3803): [FIX] Fix gas fee on education wizard and related JSON parse error
+- [#3825](https://github.com/MetaMask/metamask-mobile/pull/3825): [FIX] Fix lack of full ENS namespace support
+- [#3638](https://github.com/MetaMask/metamask-mobile/pull/3638): [IMPROVEMENT] Upgrade controllers to 25.1.0
+
+## v4.2.2 - February 24, 2022
+- [#3841](https://github.com/MetaMask/metamask-mobile/pull/3841): [FIX] Fix custom network icons on Wallet Overview
+- [#3839](https://github.com/MetaMask/metamask-mobile/pull/3839): [FIX] Update en.json
+- [#3838](https://github.com/MetaMask/metamask-mobile/pull/3838): [FIX] Fix onramp BUSD address. Add wc_description string
+- [#3811](https://github.com/MetaMask/metamask-mobile/pull/3811): [FIX] Problem when loading unknown icons on Swap token list
+- [#3791](https://github.com/MetaMask/metamask-mobile/pull/3791): [FIX] Update style of ErrorMessage
+- [#3797](https://github.com/MetaMask/metamask-mobile/pull/3797): [ENHANCEMENT] Add Fantom FTM and Celo CELO — Add token after fiat on ramp order
+- [#3685](https://github.com/MetaMask/metamask-mobile/pull/3685): [ENHANCEMENT] WalletConnect, Deeplink and RPC methods refactors
+- [#3766](https://github.com/MetaMask/metamask-mobile/pull/3766): [ENHANCEMENT] Swaps: Add Avalanche
+- [#3806](https://github.com/MetaMask/metamask-mobile/pull/3806): [FIX] Custom network token crash
+- [#3547](https://github.com/MetaMask/metamask-mobile/pull/3547): [IMPROVEMENT] Warn when exporting SRP
+- [#3788](https://github.com/MetaMask/metamask-mobile/pull/3788): [UPGRADE] Bump url-parse from 1.5.2 to 1.5.9
+- [#3764](https://github.com/MetaMask/metamask-mobile/pull/3764): [UPGRADE] Bump vm2 from 3.9.5 to 3.9.8
+- [#3787](https://github.com/MetaMask/metamask-mobile/pull/3787): [FIX] Default spent limit value
+- [#3774](https://github.com/MetaMask/metamask-mobile/pull/3774): [FIX] Address book e2e
+- [#3770](https://github.com/MetaMask/metamask-mobile/pull/3770): [FIX] Delete wallet e2e
+- [#3767](https://github.com/MetaMask/metamask-mobile/pull/3767): [FIX] Edit contact e2e
+- [#3762](https://github.com/MetaMask/metamask-mobile/pull/3762): [ENHANCEMENT] Enhance auto-detection warning
+- [#3618](https://github.com/MetaMask/metamask-mobile/pull/3618): [FIX] Modal view when adding wallet address to address book
+- [#3724](https://github.com/MetaMask/metamask-mobile/pull/3724): [ENHANCEMENT] Update texts to use lock/unlock terminology
+- [#3701](https://github.com/MetaMask/metamask-mobile/pull/3701): [FIX] Make selected option comes first in picker component on Android
+- [#3752](https://github.com/MetaMask/metamask-mobile/pull/3752): [FIX] Fix OpenSea typo
+- [#3548](https://github.com/MetaMask/metamask-mobile/pull/3548): [FIX] Fixes text field frame got cut off
+- [#3690](https://github.com/MetaMask/metamask-mobile/pull/3690): [FIX] Revert svg crash
 
 ## v4.1.1 - February 23, 2022
 - [3810](https://github.com/MetaMask/metamask-mobile/pull/3810) [FIX] Avalanche token crash

@@ -14,6 +14,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
+const Engine = ImportedEngine as any;
 
 let appVersion = '';
 
@@ -44,8 +45,52 @@ interface RPCMethodsMiddleParameters {
 	// Wizard
 	wizardScrollAdjusted: { current: boolean };
 	// For the browser
-	isTabActive: () => boolean;
+	tabId: string;
+	// For WalletConnect
+	isWalletConnect: boolean;
 }
+
+export const checkActiveAccountAndChainId = ({ address, chainId, activeAccounts }: any) => {
+	if (address) {
+		if (!activeAccounts || !activeAccounts.length || address.toLowerCase() !== activeAccounts?.[0]?.toLowerCase()) {
+			throw ethErrors.rpc.invalidParams({
+				message: `Invalid parameters: must provide an Ethereum address.`,
+			});
+		}
+	}
+
+	if (chainId) {
+		const { provider } = Engine.context.NetworkController.state;
+		const networkProvider = provider;
+		const networkType = provider.type as NetworkType;
+		const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
+		let activeChainId;
+
+		if (isInitialNetwork) {
+			activeChainId = NetworksChainId[networkType];
+		} else if (networkType === RPC) {
+			activeChainId = networkProvider.chainId;
+		}
+
+		if (activeChainId && !activeChainId.startsWith('0x')) {
+			// Convert to hex
+			activeChainId = `0x${parseInt(activeChainId, 10).toString(16)}`;
+		}
+
+		let chainIdRequest = String(chainId);
+		if (chainIdRequest && !chainIdRequest.startsWith('0x')) {
+			// Convert to hex
+			chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
+		}
+
+		if (activeChainId !== chainIdRequest) {
+			Alert.alert(`Active chainId is ${activeChainId} but received ${chainIdRequest}`);
+			throw ethErrors.rpc.invalidParams({
+				message: `Invalid parameters: active chainId is different than the one provided.`,
+			});
+		}
+	}
+};
 
 /**
  * Handle RPC methods called by dapps
@@ -70,24 +115,28 @@ export const getRpcMethodMiddleware = ({
 	// Wizard
 	wizardScrollAdjusted,
 	// For the browser
-	isTabActive,
+	tabId,
+	// For WalletConnect
+	isWalletConnect,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
-		const Engine = ImportedEngine as any;
-		const getAccounts = async () => {
+		const getAccounts = (): string[] => {
 			const {
 				privacy: { privacyMode },
 			} = store.getState();
 
 			const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-			const isEnabled = !privacyMode || getApprovedHosts()[hostname];
+
+			const isEnabled = isWalletConnect || !privacyMode || getApprovedHosts()[hostname];
 
 			return isEnabled && selectedAddress ? [selectedAddress] : [];
 		};
 
 		const checkTabActive = () => {
-			if (!isTabActive()) throw ethErrors.provider.userRejectedRequest();
+			if (!tabId) return true;
+			const { browser } = store.getState();
+			if (tabId !== browser.activeTab) throw ethErrors.provider.userRejectedRequest();
 		};
 
 		const requestUserApproval = async ({ type = '', requestData = {} }) => {
@@ -156,7 +205,7 @@ export const getRpcMethodMiddleware = ({
 
 				selectedAddress = selectedAddress?.toLowerCase();
 
-				if (!privacyMode || ((!params || !params.force) && getApprovedHosts()[hostname])) {
+				if (isWalletConnect || !privacyMode || ((!params || !params.force) && getApprovedHosts()[hostname])) {
 					res.result = [selectedAddress];
 				} else {
 					try {
@@ -179,6 +228,15 @@ export const getRpcMethodMiddleware = ({
 				const accounts = await getAccounts();
 				res.result = accounts.length > 0 ? accounts[0] : null;
 			},
+			eth_sendTransaction: () => {
+				checkTabActive();
+				checkActiveAccountAndChainId({
+					address: req.params[0].from,
+					chainId: req.params[0].chainId,
+					activeAccounts: getAccounts(),
+				});
+				next();
+			},
 			eth_signTransaction: async () => {
 				// This is implemented later in our middleware stack – specifically, in
 				// eth-json-rpc-middleware – but our UI does not support it.
@@ -195,6 +253,7 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				checkActiveAccountAndChainId({ address: req.params[0].from, activeAccounts: getAccounts() });
 
 				if (req.params[1].length === 66 || req.params[1].length === 67) {
 					const rawSig = await MessageManager.addUnapprovedMessageAsync({
@@ -233,6 +292,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				checkActiveAccountAndChainId({ address: params.from, activeAccounts: getAccounts() });
+
 				const rawSig = await PersonalMessageManager.addUnapprovedMessageAsync({
 					...params,
 					...pageMeta,
@@ -253,6 +314,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				checkActiveAccountAndChainId({ address: req.params[1], activeAccounts: getAccounts() });
+
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[0],
@@ -269,28 +332,8 @@ export const getRpcMethodMiddleware = ({
 			eth_signTypedData_v3: async () => {
 				const { TypedMessageManager } = Engine.context;
 
-				const { provider } = Engine.context.NetworkController.state;
-				const networkProvider = provider;
-				const networkType = provider.type as NetworkType;
-				const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
-
-				let activeChainId;
-
-				if (isInitialNetwork) {
-					activeChainId = NetworksChainId[networkType];
-				} else if (networkType === RPC) {
-					activeChainId = networkProvider.chainId;
-				}
-
 				const data = JSON.parse(req.params[1]);
 				const chainId = data.domain.chainId;
-
-				// eslint-disable-next-line
-				if (chainId && chainId != activeChainId) {
-					throw ethErrors.rpc.invalidRequest(
-						`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-					);
-				}
 
 				const pageMeta = {
 					meta: {
@@ -301,6 +344,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				checkActiveAccountAndChainId({ address: req.params[0], chainId, activeAccounts: getAccounts() });
+
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],
@@ -317,28 +362,8 @@ export const getRpcMethodMiddleware = ({
 			eth_signTypedData_v4: async () => {
 				const { TypedMessageManager } = Engine.context;
 
-				const { provider } = Engine.context.NetworkController.state;
-				const networkProvider = provider;
-				const networkType = provider.type as NetworkType;
-				const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
-
-				let activeChainId;
-
-				if (isInitialNetwork) {
-					activeChainId = NetworksChainId[networkType];
-				} else if (networkType === RPC) {
-					activeChainId = networkProvider.chainId;
-				}
-
 				const data = JSON.parse(req.params[1]);
 				const chainId = data.domain.chainId;
-
-				// eslint-disable-next-line eqeqeq
-				if (chainId && chainId != activeChainId) {
-					throw ethErrors.rpc.invalidRequest(
-						`Provided chainId (${chainId}) must match the active chainId (${activeChainId})`
-					);
-				}
 
 				const pageMeta = {
 					meta: {
@@ -349,6 +374,8 @@ export const getRpcMethodMiddleware = ({
 				};
 
 				checkTabActive();
+				checkActiveAccountAndChainId({ address: req.params[0], chainId, activeAccounts: getAccounts() });
+
 				const rawSig = await TypedMessageManager.addUnapprovedMessageAsync(
 					{
 						data: req.params[1],

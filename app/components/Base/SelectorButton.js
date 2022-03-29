@@ -2,27 +2,31 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { colors } from '../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../util/theme';
 
-const styles = StyleSheet.create({
-	container: {
-		backgroundColor: colors.grey000,
-		paddingVertical: 8,
-		paddingHorizontal: 10,
-		borderRadius: 100,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	caretDown: {
-		textAlign: 'right',
-		color: colors.grey500,
-		marginLeft: 10,
-		marginRight: 5,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		container: {
+			backgroundColor: colors.background.alternative,
+			paddingVertical: 8,
+			paddingHorizontal: 10,
+			borderRadius: 100,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		caretDown: {
+			textAlign: 'right',
+			color: colors.text.alternative,
+			marginLeft: 10,
+			marginRight: 5,
+		},
+	});
 
 function SelectorButton({ onPress, disabled, children, ...props }) {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	return (
 		<TouchableOpacity onPress={onPress} disabled={disabled} {...props}>
 			<View style={styles.container}>

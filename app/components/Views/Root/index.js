@@ -2,15 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
-
 import { store, persistor } from '../../../store/';
 import SplashScreen from 'react-native-splash-screen';
-
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
 import ErrorBoundary from '../ErrorBoundary';
+import { useAppTheme, ThemeContext } from '../../../util/theme';
 
 /**
  * Top level of the component hierarchy
@@ -32,7 +31,7 @@ export default class Root extends PureComponent {
 	constructor(props) {
 		super(props);
 		if (props.foxCode === '') {
-			Logger.log('Error: foxCode is an empty string');
+			Logger.error('WARN - foxCode is an empty string');
 		}
 		SecureKeychain.init(props.foxCode);
 		// Init EntryScriptWeb3 asynchronously on the background
@@ -43,10 +42,20 @@ export default class Root extends PureComponent {
 	render = () => (
 		<Provider store={store}>
 			<PersistGate persistor={persistor}>
-				<ErrorBoundary onError={this.errorHandler} view="Root">
-					<App />
-				</ErrorBoundary>
+				<ConnectedRoot />
 			</PersistGate>
 		</Provider>
 	);
 }
+
+const ConnectedRoot = () => {
+	const theme = useAppTheme();
+
+	return (
+		<ThemeContext.Provider value={theme}>
+			<ErrorBoundary onError={this.errorHandler} view="Root">
+				<App />
+			</ErrorBoundary>
+		</ThemeContext.Provider>
+	);
+};
