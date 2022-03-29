@@ -20,6 +20,7 @@ import ImportTokensView from '../pages/ImportTokensView';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
 const SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just raven';
 const PASSWORD = `12345678`;
@@ -138,6 +139,12 @@ describe('Wallet Tests', () => {
 		await WalletView.isNetworkNameVisible(RINKEBY);
 	});
 
+	it('should dismiss network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
+	});
+
 	it('should add a collectible', async () => {
 		await WalletView.isVisible();
 		// Tap on COLLECTIBLES tab
@@ -173,8 +180,7 @@ describe('Wallet Tests', () => {
 		await WalletView.isNFTNameVisible('1 CryptoKitties');
 	});
 
-	it('should add a token', async () => {
-		// Check that we are on the wallet screen
+	it('should switch back to Mainnet network', async () => {
 		await WalletView.isVisible();
 		// Tap on TOKENS tab
 		await WalletView.tapTokensTab();
@@ -184,7 +190,16 @@ describe('Wallet Tests', () => {
 		await NetworkListModal.isVisible();
 		await NetworkListModal.changeNetwork(ETHEREUM);
 		await WalletView.isNetworkNameVisible(ETHEREUM);
+	});
 
+	it('should dismiss mainnet network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
+	});
+
+	it('should add a token', async () => {
+		// Check that we are on the wallet screen
 		// Tap on Add Tokens
 		await WalletView.tapImportTokensButton();
 		// Search for SAI

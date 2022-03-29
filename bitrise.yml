@@ -336,3 +336,7 @@ app:
         - opts:
               is_expand: false
           IOS_APP_LINK: ''
+meta:
+  bitrise.io:
+    stack: osx-xcode-13.3.x
+
