@@ -2,20 +2,26 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/o
 import Logger from '../../../../util/Logger';
 
 //* Helpers
-
+// TODO: replace this with order status types imported from SDK
+const SDK_ORDER_STATUS = {
+	Pending: 'PENDING',
+	Failed: 'FAILED',
+	Completed: 'COMPLETED',
+	Cancelled: 'CANCELLED',
+};
 /**
- * Transforms a TransakOrder state into a FiatOrder state
- * @param {TRANSAK_ORDER_STATES} transakOrderState
+ * Transforms an AggregatorOrder state into a FiatOrder state
+ * @param {AGGREGATOR_ORDER_STATES} aggregatorOrderState
  */
 const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
 	switch (aggregatorOrderState) {
-		case FIAT_ORDER_STATES.COMPLETED: {
+		case SDK_ORDER_STATUS.Completed: {
 			return FIAT_ORDER_STATES.COMPLETED;
 		}
-		case FIAT_ORDER_STATES.FAILED: {
+		case SDK_ORDER_STATUS.Failed: {
 			return FIAT_ORDER_STATES.FAILED;
 		}
-		case FIAT_ORDER_STATES.CANCELLED: {
+		case SDK_ORDER_STATUS.Cancelled: {
 			return FIAT_ORDER_STATES.CANCELLED;
 		}
 		default: {
