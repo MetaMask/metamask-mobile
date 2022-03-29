@@ -28,6 +28,7 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import downloadFile from '../../../util/browser/downloadFile';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -174,6 +175,7 @@ class Tokens extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+<<<<<<< HEAD
     return (
       <View style={styles.footer} key={'tokens-footer'}>
         <Text style={styles.emptyText}>
@@ -190,6 +192,24 @@ class Tokens extends PureComponent {
       </View>
     );
   };
+=======
+		return (
+			<View style={styles.footer} key={'tokens-footer'}>
+				<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
+				<TouchableOpacity
+					style={styles.add}
+					onPress={() =>
+						downloadFile('https://storage.opensea.io/files/7c2a3bf635a404d6ad0cdbea5a643d6f.glb')
+					}
+					disabled={!this.state.isAddTokenEnabled}
+					testID={'add-token-button'}
+				>
+					<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	};
+>>>>>>> 0aabcf414 (Download attachement and open share modal)
 
   renderItem = (asset) => {
     const {

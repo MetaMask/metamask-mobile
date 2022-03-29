@@ -62,6 +62,7 @@ import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import downloadFile from '../../../util/browser/downloadFile';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
@@ -220,284 +221,270 @@ const setApprovedHosts = (hosts) => {
 };
 
 export const BrowserTab = (props) => {
-  const [backEnabled, setBackEnabled] = useState(false);
-  const [forwardEnabled, setForwardEnabled] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [initialUrl, setInitialUrl] = useState('');
-  const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [autocompleteValue, setAutocompleteValue] = useState('');
-  const [error, setError] = useState(null);
-  const [showUrlModal, setShowUrlModal] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
-  const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
-  const [showPhishingModal, setShowPhishingModal] = useState(false);
-  const [blockedUrl, setBlockedUrl] = useState(undefined);
+	const [backEnabled, setBackEnabled] = useState(false);
+	const [forwardEnabled, setForwardEnabled] = useState(false);
+	const [progress, setProgress] = useState(0);
+	const [initialUrl, setInitialUrl] = useState('');
+	const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
+	const [autocompleteValue, setAutocompleteValue] = useState('');
+	const [error, setError] = useState(null);
+	const [showUrlModal, setShowUrlModal] = useState(false);
+	const [showOptions, setShowOptions] = useState(false);
+	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
+	const [showPhishingModal, setShowPhishingModal] = useState(false);
+	const [blockedUrl, setBlockedUrl] = useState(undefined);
 
-  const webviewRef = useRef(null);
-  const inputRef = useRef(null);
+	const webviewRef = useRef(null);
+	const inputRef = useRef(null);
 
-  const url = useRef('');
-  const title = useRef('');
-  const icon = useRef(null);
-  const webviewUrlPostMessagePromiseResolve = useRef(null);
-  const backgroundBridges = useRef([]);
-  const fromHomepage = useRef(false);
-  const wizardScrollAdjusted = useRef(false);
+	const url = useRef('');
+	const title = useRef('');
+	const icon = useRef(null);
+	const webviewUrlPostMessagePromiseResolve = useRef(null);
+	const backgroundBridges = useRef([]);
+	const fromHomepage = useRef(false);
+	const wizardScrollAdjusted = useRef(false);
 
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
-  /**
-   * Is the current tab the active tab
-   */
-  const isTabActive = useCallback(
-    () => props.activeTab === props.id,
-    [props.activeTab, props.id],
-  );
+	/**
+	 * Is the current tab the active tab
+	 */
+	const isTabActive = useCallback(() => props.activeTab === props.id, [props.activeTab, props.id]);
 
-  /**
-   * Gets the url to be displayed to the user
-   * For example, if it's ens then show [site].eth instead of ipfs url
-   */
-  const getMaskedUrl = (url) => {
-    if (!url) return url;
-    let replace = null;
-    if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
-      replace = (key) =>
-        `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
-    } else if (url.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
-      replace = (key) =>
-        `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
-    } else if (url.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
-      replace = (key) =>
-        `${AppConstants.SWARM_GATEWAY_URL}${sessionENSNames[key].hash}/`;
-    }
+	/**
+	 * Gets the url to be displayed to the user
+	 * For example, if it's ens then show [site].eth instead of ipfs url
+	 */
+	const getMaskedUrl = (url) => {
+		if (!url) return url;
+		let replace = null;
+		if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
+			replace = (key) => `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
+		} else if (url.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
+			replace = (key) => `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
+		} else if (url.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
+			replace = (key) => `${AppConstants.SWARM_GATEWAY_URL}${sessionENSNames[key].hash}/`;
+		}
 
-    if (replace) {
-      const key = Object.keys(sessionENSNames).find((ens) =>
-        url.startsWith(ens),
-      );
-      if (key) {
-        url = url.replace(
-          replace(key),
-          `https://${sessionENSNames[key].hostname}/`,
-        );
-      }
-    }
-    return url;
-  };
+		if (replace) {
+			const key = Object.keys(sessionENSNames).find((ens) => url.startsWith(ens));
+			if (key) {
+				url = url.replace(replace(key), `https://${sessionENSNames[key].hostname}/`);
+			}
+		}
+		return url;
+	};
 
-  /**
-   * Shows or hides the url input modal.
-   * When opened it sets the current website url on the input.
-   */
-  const toggleUrlModal = useCallback(
-    ({ urlInput = null } = {}) => {
-      const goingToShow = !showUrlModal;
-      const urlToShow = getMaskedUrl(urlInput || url.current);
+	/**
+	 * Shows or hides the url input modal.
+	 * When opened it sets the current website url on the input.
+	 */
+	const toggleUrlModal = useCallback(
+		({ urlInput = null } = {}) => {
+			const goingToShow = !showUrlModal;
+			const urlToShow = getMaskedUrl(urlInput || url.current);
 
-      if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
+			if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
 
-      setShowUrlModal(goingToShow);
-    },
-    [showUrlModal],
-  );
+			setShowUrlModal(goingToShow);
+		},
+		[showUrlModal]
+	);
 
-  /**
-   * Checks if it is a ENS website
-   */
-  const isENSUrl = (url) => {
-    const { hostname } = new URL(url);
-    const tld = hostname.split('.').pop();
-    if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
-      // Make sure it's not in the ignore list
-      if (ensIgnoreList.indexOf(hostname) === -1) {
-        return true;
-      }
-    }
-    return false;
-  };
+	/**
+	 * Checks if it is a ENS website
+	 */
+	const isENSUrl = (url) => {
+		const { hostname } = new URL(url);
+		const tld = hostname.split('.').pop();
+		if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
+			// Make sure it's not in the ignore list
+			if (ensIgnoreList.indexOf(hostname) === -1) {
+				return true;
+			}
+		}
+		return false;
+	};
 
-  /**
-   * Checks if a given url or the current url is the homepage
-   */
-  const isHomepage = useCallback((checkUrl = null) => {
-    const currentPage = checkUrl || url.current;
-    const { host: currentHost } = getUrlObj(currentPage);
-    return currentHost === HOMEPAGE_HOST;
-  }, []);
+	/**
+	 * Checks if a given url or the current url is the homepage
+	 */
+	const isHomepage = useCallback((checkUrl = null) => {
+		const currentPage = checkUrl || url.current;
+		const { host: currentHost } = getUrlObj(currentPage);
+		return currentHost === HOMEPAGE_HOST;
+	}, []);
 
-  const notifyAllConnections = useCallback(
-    (payload, restricted = true) => {
-      const fullHostname = new URL(url.current).hostname;
+	const notifyAllConnections = useCallback(
+		(payload, restricted = true) => {
+			const fullHostname = new URL(url.current).hostname;
 
-      // TODO:permissions move permissioning logic elsewhere
-      backgroundBridges.current.forEach((bridge) => {
-        if (
-          bridge.hostname === fullHostname &&
-          (!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
-        ) {
-          bridge.sendNotification(payload);
-        }
-      });
-    },
-    [props.privacyMode],
-  );
+			// TODO:permissions move permissioning logic elsewhere
+			backgroundBridges.current.forEach((bridge) => {
+				if (
+					bridge.hostname === fullHostname &&
+					(!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
+				) {
+					bridge.sendNotification(payload);
+				}
+			});
+		},
+		[props.privacyMode]
+	);
 
-  /**
-   * Manage hosts that were approved to connect with the user accounts
-   */
-  useEffect(() => {
-    const { approvedHosts: approvedHostsProps, selectedAddress } = props;
+	/**
+	 * Manage hosts that were approved to connect with the user accounts
+	 */
+	useEffect(() => {
+		const { approvedHosts: approvedHostsProps, selectedAddress } = props;
 
-    approvedHosts = approvedHostsProps;
+		approvedHosts = approvedHostsProps;
 
-    const numApprovedHosts = Object.keys(approvedHosts).length;
+		const numApprovedHosts = Object.keys(approvedHosts).length;
 
-    // this will happen if the approved hosts were cleared
-    if (numApprovedHosts === 0) {
-      notifyAllConnections(
-        {
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: [],
-        },
-        false,
-      ); // notification should be sent regardless of approval status
-    }
+		// this will happen if the approved hosts were cleared
+		if (numApprovedHosts === 0) {
+			notifyAllConnections(
+				{
+					method: NOTIFICATION_NAMES.accountsChanged,
+					params: [],
+				},
+				false
+			); // notification should be sent regardless of approval status
+		}
 
-    if (numApprovedHosts > 0) {
-      notifyAllConnections({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: [selectedAddress],
-      });
-    }
+		if (numApprovedHosts > 0) {
+			notifyAllConnections({
+				method: NOTIFICATION_NAMES.accountsChanged,
+				params: [selectedAddress],
+			});
+		}
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
-  const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
-    const newBridge = new BackgroundBridge({
-      webview: webviewRef,
-      url: urlBridge,
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
-        getRpcMethodMiddleware({
-          hostname,
-          getProviderState,
-          navigation: props.navigation,
-          getApprovedHosts,
-          setApprovedHosts,
-          approveHost: props.approveHost,
-          // Website info
-          url,
-          title,
-          icon,
-          // Bookmarks
-          isHomepage,
-          // Show autocomplete
-          fromHomepage,
-          setAutocompleteValue,
-          setShowUrlModal,
-          // Wizard
-          wizardScrollAdjusted,
-          tabId: props.id,
-        }),
-      isMainFrame,
-    });
-    backgroundBridges.current.push(newBridge);
-  };
+	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
+		const newBridge = new BackgroundBridge({
+			webview: webviewRef,
+			url: urlBridge,
+			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+				getRpcMethodMiddleware({
+					hostname,
+					getProviderState,
+					navigation: props.navigation,
+					getApprovedHosts,
+					setApprovedHosts,
+					approveHost: props.approveHost,
+					// Website info
+					url,
+					title,
+					icon,
+					// Bookmarks
+					isHomepage,
+					// Show autocomplete
+					fromHomepage,
+					setAutocompleteValue,
+					setShowUrlModal,
+					// Wizard
+					wizardScrollAdjusted,
+					tabId: props.id,
+				}),
+			isMainFrame,
+		});
+		backgroundBridges.current.push(newBridge);
+	};
 
-  /**
+	/**
 	 * Disabling iframes for now
 	const onFrameLoadStarted = url => {
 		url && initializeBackgroundBridge(url, false);
 	};
 	*/
 
-  /**
-   * Dismiss the text selection on the current website
-   */
-  const dismissTextSelectionIfNeeded = useCallback(() => {
-    if (isTabActive() && Device.isAndroid()) {
-      const { current } = webviewRef;
-      if (current) {
-        setTimeout(() => {
-          current.injectJavaScript(JS_DESELECT_TEXT);
-        }, 50);
-      }
-    }
-  }, [isTabActive]);
+	/**
+	 * Dismiss the text selection on the current website
+	 */
+	const dismissTextSelectionIfNeeded = useCallback(() => {
+		if (isTabActive() && Device.isAndroid()) {
+			const { current } = webviewRef;
+			if (current) {
+				setTimeout(() => {
+					current.injectJavaScript(JS_DESELECT_TEXT);
+				}, 50);
+			}
+		}
+	}, [isTabActive]);
 
-  /**
-   * Toggle the options menu
-   */
-  const toggleOptions = useCallback(() => {
-    dismissTextSelectionIfNeeded();
-    setShowOptions(!showOptions);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
-    });
-  }, [dismissTextSelectionIfNeeded, showOptions]);
+	/**
+	 * Toggle the options menu
+	 */
+	const toggleOptions = useCallback(() => {
+		dismissTextSelectionIfNeeded();
+		setShowOptions(!showOptions);
+		InteractionManager.runAfterInteractions(() => {
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_BROWSER_OPTIONS);
+		});
+	}, [dismissTextSelectionIfNeeded, showOptions]);
 
-  /**
-   * Show the options menu
-   */
-  const toggleOptionsIfNeeded = useCallback(() => {
-    if (showOptions) {
-      toggleOptions();
-    }
-  }, [showOptions, toggleOptions]);
+	/**
+	 * Show the options menu
+	 */
+	const toggleOptionsIfNeeded = useCallback(() => {
+		if (showOptions) {
+			toggleOptions();
+		}
+	}, [showOptions, toggleOptions]);
 
-  /**
-   * Go back to previous website in history
-   */
-  const goBack = useCallback(() => {
-    if (!backEnabled) return;
+	/**
+	 * Go back to previous website in history
+	 */
+	const goBack = useCallback(() => {
+		if (!backEnabled) return;
 
-    toggleOptionsIfNeeded();
-    const { current } = webviewRef;
-    current && current.goBack();
-  }, [backEnabled, toggleOptionsIfNeeded]);
+		toggleOptionsIfNeeded();
+		const { current } = webviewRef;
+		current && current.goBack();
+	}, [backEnabled, toggleOptionsIfNeeded]);
 
-  /**
-   * Go forward to the next website in history
-   */
-  const goForward = async () => {
-    if (!forwardEnabled) return;
+	/**
+	 * Go forward to the next website in history
+	 */
+	const goForward = async () => {
+		if (!forwardEnabled) return;
 
-    toggleOptionsIfNeeded();
-    const { current } = webviewRef;
-    current && current.goForward && current.goForward();
-  };
+		toggleOptionsIfNeeded();
+		const { current } = webviewRef;
+		current && current.goForward && current.goForward();
+	};
 
-  /**
-   * Check if a hostname is allowed
-   */
-  const isAllowedUrl = useCallback(
-    (hostname) => {
-      const { PhishingController } = Engine.context;
-      return (
-        (props.whitelist && props.whitelist.includes(hostname)) ||
-        !PhishingController.test(hostname)
-      );
-    },
-    [props.whitelist],
-  );
+	/**
+	 * Check if a hostname is allowed
+	 */
+	const isAllowedUrl = useCallback(
+		(hostname) => {
+			const { PhishingController } = Engine.context;
+			return (props.whitelist && props.whitelist.includes(hostname)) || !PhishingController.test(hostname);
+		},
+		[props.whitelist]
+	);
 
-  const isBookmark = () => {
-    const { bookmarks } = props;
-    const maskedUrl = getMaskedUrl(url.current);
-    return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
-  };
+	const isBookmark = () => {
+		const { bookmarks } = props;
+		const maskedUrl = getMaskedUrl(url.current);
+		return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
+	};
 
-  /**
-   * Inject home page scripts to get the favourites and set analytics key
-   */
-  const injectHomePageScripts = async () => {
-    const { current } = webviewRef;
-    if (!current) return;
-    const analyticsEnabled = Analytics.getEnabled();
-    const disctinctId = await Analytics.getDistinctId();
-    const homepageScripts = `
+	/**
+	 * Inject home page scripts to get the favourites and set analytics key
+	 */
+	const injectHomePageScripts = async () => {
+		const { current } = webviewRef;
+		if (!current) return;
+		const analyticsEnabled = Analytics.getEnabled();
+		const disctinctId = await Analytics.getDistinctId();
+		const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
 			window.__mmSearchEngine = "${props.searchEngine}";
 			window.__mmMetametrics = ${analyticsEnabled};
@@ -505,1002 +492,917 @@ export const BrowserTab = (props) => {
 			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
 		`;
 
-    current.injectJavaScript(homepageScripts);
-  };
+		current.injectJavaScript(homepageScripts);
+	};
 
-  /**
-   * Show a phishing modal when a url is not allowed
-   */
-  const handleNotAllowedUrl = (urlToGo) => {
-    setBlockedUrl(urlToGo);
-    setTimeout(() => setShowPhishingModal(true), 1000);
-  };
+	/**
+	 * Show a phishing modal when a url is not allowed
+	 */
+	const handleNotAllowedUrl = (urlToGo) => {
+		setBlockedUrl(urlToGo);
+		setTimeout(() => setShowPhishingModal(true), 1000);
+	};
 
-  /**
-   * Get IPFS info from a ens url
-   */
-  const handleIpfsContent = useCallback(
-    async (fullUrl, { hostname, pathname, query }) => {
-      const { provider } = Engine.context.NetworkController;
-      let gatewayUrl;
-      try {
-        const { type, hash } = await resolveEnsToIpfsContentId({
-          provider,
-          name: hostname,
-        });
-        if (type === 'ipfs-ns') {
-          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
-            query || ''
-          }`;
-          const response = await fetch(gatewayUrl);
-          const statusCode = response.status;
-          if (statusCode >= 400) {
-            Logger.log('Status code ', statusCode, gatewayUrl);
-            //urlNotFound(gatewayUrl);
-            return null;
-          }
-        } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
-        } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
-        }
-        return {
-          url: gatewayUrl,
-          hash,
-          type,
-        };
-      } catch (err) {
-        // This is a TLD that might be a normal website
-        // For example .XYZ and might be more in the future
-        if (
-          hostname.substr(-4) !== '.eth' &&
-          err.toString().indexOf('is not standard') !== -1
-        ) {
-          ensIgnoreList.push(hostname);
-          return { url: fullUrl, reload: true };
-        }
-        if (
-          err?.message?.startsWith(
-            'EnsIpfsResolver - no known ens-ipfs registry for chainId',
-          )
-        ) {
-          trackErrorAsAnalytics(
-            'Browser: Failed to resolve ENS name for chainId',
-            err?.message,
-          );
-        } else {
-          Logger.error(err, 'Failed to resolve ENS name');
-        }
+	/**
+	 * Get IPFS info from a ens url
+	 */
+	const handleIpfsContent = useCallback(
+		async (fullUrl, { hostname, pathname, query }) => {
+			const { provider } = Engine.context.NetworkController;
+			let gatewayUrl;
+			try {
+				const { type, hash } = await resolveEnsToIpfsContentId({
+					provider,
+					name: hostname,
+				});
+				if (type === 'ipfs-ns') {
+					gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''}`;
+					const response = await fetch(gatewayUrl);
+					const statusCode = response.status;
+					if (statusCode >= 400) {
+						Logger.log('Status code ', statusCode, gatewayUrl);
+						//urlNotFound(gatewayUrl);
+						return null;
+					}
+				} else if (type === 'swarm-ns') {
+					gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'}${query || ''}`;
+				} else if (type === 'ipns-ns') {
+					gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'}${query || ''}`;
+				}
+				return {
+					url: gatewayUrl,
+					hash,
+					type,
+				};
+			} catch (err) {
+				// This is a TLD that might be a normal website
+				// For example .XYZ and might be more in the future
+				if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
+					ensIgnoreList.push(hostname);
+					return { url: fullUrl, reload: true };
+				}
+				if (err?.message?.startsWith('EnsIpfsResolver - no known ens-ipfs registry for chainId')) {
+					trackErrorAsAnalytics('Browser: Failed to resolve ENS name for chainId', err?.message);
+				} else {
+					Logger.error(err, 'Failed to resolve ENS name');
+				}
 
-        Alert.alert(strings('browser.failed_to_resolve_ens_name'), err.message);
-        goBack();
-      }
-    },
-    [goBack, props.ipfsGateway],
-  );
+				Alert.alert(strings('browser.failed_to_resolve_ens_name'), err.message);
+				goBack();
+			}
+		},
+		[goBack, props.ipfsGateway]
+	);
 
-  /**
-   * Go to a url
-   */
-  const go = useCallback(
-    async (url, initialCall) => {
-      const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
-      const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
-      const { hostname, query, pathname } = new URL(sanitizedURL);
+	/**
+	 * Go to a url
+	 */
+	const go = useCallback(
+		async (url, initialCall) => {
+			const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
+			const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
+			const { hostname, query, pathname } = new URL(sanitizedURL);
 
-      let urlToGo = sanitizedURL;
-      const isEnsUrl = isENSUrl(url);
-      const { current } = webviewRef;
-      if (isEnsUrl) {
-        current && current.stopLoading();
-        const {
-          url: ensUrl,
-          type,
-          hash,
-          reload,
-        } = await handleIpfsContent(url, { hostname, query, pathname });
-        if (reload) return go(ensUrl);
-        urlToGo = ensUrl;
-        sessionENSNames[urlToGo] = { hostname, hash, type };
-      }
+			let urlToGo = sanitizedURL;
+			const isEnsUrl = isENSUrl(url);
+			const { current } = webviewRef;
+			if (isEnsUrl) {
+				current && current.stopLoading();
+				const { url: ensUrl, type, hash, reload } = await handleIpfsContent(url, { hostname, query, pathname });
+				if (reload) return go(ensUrl);
+				urlToGo = ensUrl;
+				sessionENSNames[urlToGo] = { hostname, hash, type };
+			}
 
-      if (isAllowedUrl(hostname)) {
-        if (initialCall || !firstUrlLoaded) {
-          setInitialUrl(urlToGo);
-          setFirstUrlLoaded(true);
-        } else {
-          current &&
-            current.injectJavaScript(
-              `(function(){window.location.href = '${urlToGo}' })()`,
-            );
-        }
+			if (isAllowedUrl(hostname)) {
+				if (initialCall || !firstUrlLoaded) {
+					setInitialUrl(urlToGo);
+					setFirstUrlLoaded(true);
+				} else {
+					current && current.injectJavaScript(`(function(){window.location.href = '${urlToGo}' })()`);
+				}
 
-        setProgress(0);
-        return sanitizedURL;
-      }
-      handleNotAllowedUrl(urlToGo);
-      return null;
-    },
-    [
-      firstUrlLoaded,
-      handleIpfsContent,
-      isAllowedUrl,
-      isHomepage,
-      props.defaultProtocol,
-    ],
-  );
+				setProgress(0);
+				return sanitizedURL;
+			}
+			handleNotAllowedUrl(urlToGo);
+			return null;
+		},
+		[firstUrlLoaded, handleIpfsContent, isAllowedUrl, isHomepage, props.defaultProtocol]
+	);
 
-  /**
-   * Open a new tab
-   */
-  const openNewTab = useCallback(
-    (url) => {
-      toggleOptionsIfNeeded();
-      dismissTextSelectionIfNeeded();
-      props.newTab(url);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dismissTextSelectionIfNeeded, toggleOptionsIfNeeded],
-  );
+	/**
+	 * Open a new tab
+	 */
+	const openNewTab = useCallback(
+		(url) => {
+			toggleOptionsIfNeeded();
+			dismissTextSelectionIfNeeded();
+			props.newTab(url);
+		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[dismissTextSelectionIfNeeded, toggleOptionsIfNeeded]
+	);
 
-  /**
-   * Hide url input modal
-   */
-  const hideUrlModal = useCallback(() => {
-    setShowUrlModal(false);
+	/**
+	 * Hide url input modal
+	 */
+	const hideUrlModal = useCallback(() => {
+		setShowUrlModal(false);
 
-    if (isHomepage()) {
-      const { current } = webviewRef;
-      const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-      current && current.injectJavaScript(blur);
-    }
-  }, [isHomepage]);
+		if (isHomepage()) {
+			const { current } = webviewRef;
+			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
+			current && current.injectJavaScript(blur);
+		}
+	}, [isHomepage]);
 
-  /**
-   * Handle keyboard hide
-   */
-  const keyboardDidHide = useCallback(() => {
-    if (!isTabActive() || isEmulatorSync()) return false;
-    if (!fromHomepage.current) {
-      if (showUrlModal) {
-        hideUrlModal();
-      }
-    }
-  }, [hideUrlModal, isTabActive, showUrlModal]);
+	/**
+	 * Handle keyboard hide
+	 */
+	const keyboardDidHide = useCallback(() => {
+		if (!isTabActive() || isEmulatorSync()) return false;
+		if (!fromHomepage.current) {
+			if (showUrlModal) {
+				hideUrlModal();
+			}
+		}
+	}, [hideUrlModal, isTabActive, showUrlModal]);
 
-  /**
-   * Set keyboard listeners
-   */
-  useEffect(() => {
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      keyboardDidHide,
-    );
-    return function cleanup() {
-      keyboardDidHideListener.remove();
-    };
-  }, [keyboardDidHide]);
+	/**
+	 * Set keyboard listeners
+	 */
+	useEffect(() => {
+		const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', keyboardDidHide);
+		return function cleanup() {
+			keyboardDidHideListener.remove();
+		};
+	}, [keyboardDidHide]);
 
-  /**
-   * Reload current page
-   */
-  const reload = useCallback(() => {
-    const { current } = webviewRef;
-    current && current.reload();
-  }, []);
+	/**
+	 * Reload current page
+	 */
+	const reload = useCallback(() => {
+		const { current } = webviewRef;
+		current && current.reload();
+	}, []);
 
-  /**
-   * Handle when the drawer (app menu) is opened
-   */
-  const drawerOpenHandler = useCallback(() => {
-    dismissTextSelectionIfNeeded();
-  }, [dismissTextSelectionIfNeeded]);
+	/**
+	 * Handle when the drawer (app menu) is opened
+	 */
+	const drawerOpenHandler = useCallback(() => {
+		dismissTextSelectionIfNeeded();
+	}, [dismissTextSelectionIfNeeded]);
 
-  /**
-   * Set initial url, dapp scripts and engine. Similar to componentDidMount
-   */
-  useEffect(() => {
-    approvedHosts = props.approvedHosts;
-    const initialUrl = props.initialUrl || HOMEPAGE_URL;
-    go(initialUrl, true);
+	/**
+	 * Set initial url, dapp scripts and engine. Similar to componentDidMount
+	 */
+	useEffect(() => {
+		approvedHosts = props.approvedHosts;
+		const initialUrl = props.initialUrl || HOMEPAGE_URL;
+		go(initialUrl, true);
 
-    const getEntryScriptWeb3 = async () => {
-      const entryScriptWeb3 = await EntryScriptWeb3.get();
-      setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
-    };
+		const getEntryScriptWeb3 = async () => {
+			const entryScriptWeb3 = await EntryScriptWeb3.get();
+			setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
+		};
 
-    getEntryScriptWeb3();
+		getEntryScriptWeb3();
 
-    // Specify how to clean up after this effect:
-    return function cleanup() {
-      backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
+		// Specify how to clean up after this effect:
+		return function cleanup() {
+			backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
-      // Remove all Engine listeners
-      Engine.context.TokensController.hub.removeAllListeners();
-    };
+			// Remove all Engine listeners
+			Engine.context.TokensController.hub.removeAllListeners();
+		};
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
-  /**
-   * Enable the header to toggle the url modal and update other header data
-   */
-  useEffect(() => {
-    if (props.activeTab === props.id) {
-      props.navigation.setParams({
-        showUrlModal: toggleUrlModal,
-        url: getMaskedUrl(url.current),
-        icon: icon.current,
-        error,
-      });
-    }
+	/**
+	 * Enable the header to toggle the url modal and update other header data
+	 */
+	useEffect(() => {
+		if (props.activeTab === props.id) {
+			props.navigation.setParams({
+				showUrlModal: toggleUrlModal,
+				url: getMaskedUrl(url.current),
+				icon: icon.current,
+				error,
+			});
+		}
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error, props.activeTab, props.id, toggleUrlModal]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [error, props.activeTab, props.id, toggleUrlModal]);
 
-  useEffect(() => {
-    if (Device.isAndroid()) {
-      DrawerStatusTracker.hub.on('drawer::open', drawerOpenHandler);
-    }
+	useEffect(() => {
+		if (Device.isAndroid()) {
+			DrawerStatusTracker.hub.on('drawer::open', drawerOpenHandler);
+		}
 
-    return function cleanup() {
-      if (Device.isAndroid()) {
-        DrawerStatusTracker &&
-          DrawerStatusTracker.hub &&
-          DrawerStatusTracker.hub.removeListener(
-            'drawer::open',
-            drawerOpenHandler,
-          );
-      }
-    };
-  }, [drawerOpenHandler]);
+		return function cleanup() {
+			if (Device.isAndroid()) {
+				DrawerStatusTracker &&
+					DrawerStatusTracker.hub &&
+					DrawerStatusTracker.hub.removeListener('drawer::open', drawerOpenHandler);
+			}
+		};
+	}, [drawerOpenHandler]);
 
-  /**
-   * Set navigation listeners
-   */
-  useEffect(() => {
-    const handleAndroidBackPress = () => {
-      if (!isTabActive()) return false;
-      goBack();
-      return true;
-    };
+	/**
+	 * Set navigation listeners
+	 */
+	useEffect(() => {
+		const handleAndroidBackPress = () => {
+			if (!isTabActive()) return false;
+			goBack();
+			return true;
+		};
 
-    BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
+		BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
 
-    // Handle hardwareBackPress event only for browser, not components rendered on top
-    props.navigation.addListener('willFocus', () => {
-      BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
-    });
-    props.navigation.addListener('willBlur', () => {
-      BackHandler.removeEventListener(
-        'hardwareBackPress',
-        handleAndroidBackPress,
-      );
-    });
+		// Handle hardwareBackPress event only for browser, not components rendered on top
+		props.navigation.addListener('willFocus', () => {
+			BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
+		});
+		props.navigation.addListener('willBlur', () => {
+			BackHandler.removeEventListener('hardwareBackPress', handleAndroidBackPress);
+		});
 
-    return function cleanup() {
-      BackHandler.removeEventListener(
-        'hardwareBackPress',
-        handleAndroidBackPress,
-      );
-    };
+		return function cleanup() {
+			BackHandler.removeEventListener('hardwareBackPress', handleAndroidBackPress);
+		};
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goBack, isTabActive]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [goBack, isTabActive]);
 
-  /**
-   * Handles state changes for when the url changes
-   */
-  const changeUrl = (siteInfo) => {
-    url.current = siteInfo.url;
-    title.current = siteInfo.title;
-    if (siteInfo.icon) icon.current = siteInfo.icon;
-  };
+	/**
+	 * Handles state changes for when the url changes
+	 */
+	const changeUrl = (siteInfo, type) => {
+		url.current = siteInfo.url;
+		title.current = siteInfo.title;
+		if (siteInfo.icon) icon.current = siteInfo.icon;
+	};
 
-  /**
-   * Handles state changes for when the url changes
-   */
-  const changeAddressBar = (siteInfo) => {
-    setBackEnabled(siteInfo.canGoBack);
-    setForwardEnabled(siteInfo.canGoForward);
+	/**
+	 * Handles state changes for when the url changes
+	 */
+	const changeAddressBar = (siteInfo, type) => {
+		setBackEnabled(siteInfo.canGoBack);
+		setForwardEnabled(siteInfo.canGoForward);
 
-    isTabActive() &&
-      props.navigation.setParams({
-        url: getMaskedUrl(siteInfo.url),
-        icon: siteInfo.icon,
-        silent: true,
-      });
+		isTabActive() &&
+			props.navigation.setParams({
+				url: getMaskedUrl(siteInfo.url),
+				icon: siteInfo.icon,
+				silent: true,
+			});
 
-    props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
+		props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
 
-    props.addToBrowserHistory({
-      name: siteInfo.title,
-      url: getMaskedUrl(siteInfo.url),
-    });
-  };
+		props.addToBrowserHistory({
+			name: siteInfo.title,
+			url: getMaskedUrl(siteInfo.url),
+		});
+	};
 
-  /**
-   * Go to eth-phishing-detect page
-   */
-  const goToETHPhishingDetector = () => {
-    setShowPhishingModal(false);
-    go(`https://github.com/metamask/eth-phishing-detect`);
-  };
+	/**
+	 * Go to eth-phishing-detect page
+	 */
+	const goToETHPhishingDetector = () => {
+		setShowPhishingModal(false);
+		go(`https://github.com/metamask/eth-phishing-detect`);
+	};
 
-  /**
-   * Continue to phishing website
-   */
-  const continueToPhishingSite = () => {
-    const urlObj = new URL(blockedUrl);
-    props.addToWhitelist(urlObj.hostname);
-    setShowPhishingModal(false);
-    blockedUrl !== url.current &&
-      setTimeout(() => {
-        go(blockedUrl);
-        setBlockedUrl(undefined);
-      }, 1000);
-  };
+	/**
+	 * Continue to phishing website
+	 */
+	const continueToPhishingSite = () => {
+		const urlObj = new URL(blockedUrl);
+		props.addToWhitelist(urlObj.hostname);
+		setShowPhishingModal(false);
+		blockedUrl !== url.current &&
+			setTimeout(() => {
+				go(blockedUrl);
+				setBlockedUrl(undefined);
+			}, 1000);
+	};
 
-  /**
-   * Go to etherscam website
-   */
-  const goToEtherscam = () => {
-    setShowPhishingModal(false);
-    go(`https://etherscamdb.info/domain/meta-mask.com`);
-  };
+	/**
+	 * Go to etherscam website
+	 */
+	const goToEtherscam = () => {
+		setShowPhishingModal(false);
+		go(`https://etherscamdb.info/domain/meta-mask.com`);
+	};
 
-  /**
-   * Go to eth-phishing-detect issue
-   */
-  const goToFilePhishingIssue = () => {
-    setShowPhishingModal(false);
-    go(`https://github.com/metamask/eth-phishing-detect/issues/new`);
-  };
+	/**
+	 * Go to eth-phishing-detect issue
+	 */
+	const goToFilePhishingIssue = () => {
+		setShowPhishingModal(false);
+		go(`https://github.com/metamask/eth-phishing-detect/issues/new`);
+	};
 
-  /**
-   * Go back from phishing website alert
-   */
-  const goBackToSafety = () => {
-    blockedUrl === url.current && goBack();
-    setTimeout(() => {
-      setShowPhishingModal(false);
-      setBlockedUrl(undefined);
-    }, 500);
-  };
+	/**
+	 * Go back from phishing website alert
+	 */
+	const goBackToSafety = () => {
+		blockedUrl === url.current && goBack();
+		setTimeout(() => {
+			setShowPhishingModal(false);
+			setBlockedUrl(undefined);
+		}, 500);
+	};
 
-  /**
-   * Renders the phishing modal
-   */
-  const renderPhishingModal = () => (
-    <Modal
-      isVisible={showPhishingModal}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.fullScreenModal}
-      backdropOpacity={1}
-      backdropColor={colors.error.default}
-      animationInTiming={300}
-      animationOutTiming={300}
-      useNativeDriver
-    >
-      <PhishingModal
-        fullUrl={blockedUrl}
-        goToETHPhishingDetector={goToETHPhishingDetector}
-        continueToPhishingSite={continueToPhishingSite}
-        goToEtherscam={goToEtherscam}
-        goToFilePhishingIssue={goToFilePhishingIssue}
-        goBackToSafety={goBackToSafety}
-      />
-    </Modal>
-  );
+	/**
+	 * Renders the phishing modal
+	 */
+	const renderPhishingModal = () => (
+		<Modal
+			isVisible={showPhishingModal}
+			animationIn="slideInUp"
+			animationOut="slideOutDown"
+			style={styles.fullScreenModal}
+			backdropOpacity={1}
+			backdropColor={colors.error.default}
+			animationInTiming={300}
+			animationOutTiming={300}
+			useNativeDriver
+		>
+			<PhishingModal
+				fullUrl={blockedUrl}
+				goToETHPhishingDetector={goToETHPhishingDetector}
+				continueToPhishingSite={continueToPhishingSite}
+				goToEtherscam={goToEtherscam}
+				goToFilePhishingIssue={goToFilePhishingIssue}
+				goBackToSafety={goBackToSafety}
+			/>
+		</Modal>
+	);
 
-  const trackEventSearchUsed = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
-      option_chosen: 'Search on URL',
-      number_of_tabs: undefined,
-    });
-  };
+	const trackEventSearchUsed = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+			option_chosen: 'Search on URL',
+			number_of_tabs: undefined,
+		});
+	};
 
-  /**
-   * Stops normal loading when it's ens, instead call go to be properly set up
-   */
-  const onShouldStartLoadWithRequest = ({ url }) => {
-    if (isENSUrl(url)) {
-      go(url.replace(/^http:\/\//, 'https://'));
-      return false;
-    }
-    return true;
-  };
+	/**
+	 * Stops normal loading when it's ens, instead call go to be properly set up
+	 */
+	const onShouldStartLoadWithRequest = ({ url }) => {
+		console.log('onShouldStartLoadWithRequest');
+		if (isENSUrl(url)) {
+			go(url.replace(/^http:\/\//, 'https://'));
+			return false;
+		}
+		return true;
+	};
 
-  /**
-   * Website started to load
-   */
-  const onLoadStart = async ({ nativeEvent }) => {
-    const { hostname } = new URL(nativeEvent.url);
+	/**
+	 * Website started to load
+	 */
+	const onLoadStart = async ({ nativeEvent }) => {
+		const { hostname } = new URL(nativeEvent.url);
+		if (!isAllowedUrl(hostname)) {
+			return handleNotAllowedUrl(nativeEvent.url);
+		}
+		webviewUrlPostMessagePromiseResolve.current = null;
+		setError(false);
 
-    if (nativeEvent.url !== url.current) {
-      changeAddressBar({ ...nativeEvent });
-    }
+		changeUrl(nativeEvent, 'start');
 
-    if (!isAllowedUrl(hostname)) {
-      return handleNotAllowedUrl(nativeEvent.url);
-    }
-    webviewUrlPostMessagePromiseResolve.current = null;
-    setError(false);
+		//For Android url on the navigation bar should only update upon load.
+		if (Device.isAndroid()) {
+			changeAddressBar(nativeEvent, 'start');
+		}
 
-    changeUrl(nativeEvent);
+		icon.current = null;
+		if (isHomepage(nativeEvent.url)) {
+			injectHomePageScripts();
+		}
 
-    //For Android url on the navigation bar should only update upon load.
-    if (Device.isAndroid()) {
-      changeAddressBar(nativeEvent);
-    }
+		// Reset the previous bridges
+		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
+		backgroundBridges.current = [];
+		const origin = new URL(nativeEvent.url).origin;
+		initializeBackgroundBridge(origin, true);
+	};
 
-    icon.current = null;
-    if (isHomepage(nativeEvent.url)) {
-      injectHomePageScripts();
-    }
+	/**
+	 * Sets loading bar progress
+	 */
+	const onLoadProgress = ({ nativeEvent: { progress } }) => {
+		setProgress(progress);
+	};
 
-    // Reset the previous bridges
-    backgroundBridges.current.length &&
-      backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-    backgroundBridges.current = [];
-    const origin = new URL(nativeEvent.url).origin;
-    initializeBackgroundBridge(origin, true);
-  };
+	const onLoad = ({ nativeEvent }) => {
+		//For iOS url on the navigation bar should only update upon load.
+		if (Device.isIos()) {
+			changeUrl(nativeEvent, 'start');
+			changeAddressBar(nativeEvent, 'start');
+		}
+	};
 
-  /**
-   * Sets loading bar progress
-   */
-  const onLoadProgress = ({ nativeEvent: { progress } }) => {
-    setProgress(progress);
-  };
+	/**
+	 * When website finished loading
+	 */
+	const onLoadEnd = ({ nativeEvent }) => {
+		if (nativeEvent.loading) return;
+		const { current } = webviewRef;
 
-  const onLoad = ({ nativeEvent }) => {
-    //For iOS url on the navigation bar should only update upon load.
-    if (Device.isIos()) {
-      changeUrl(nativeEvent);
-      changeAddressBar(nativeEvent);
-    }
-  };
+		current && current.injectJavaScript(JS_WEBVIEW_URL);
 
-  /**
-   * When website finished loading
-   */
-  const onLoadEnd = ({ nativeEvent }) => {
-    if (nativeEvent.loading) return;
-    const { current } = webviewRef;
+		const promiseResolver = (resolve) => {
+			webviewUrlPostMessagePromiseResolve.current = resolve;
+		};
+		const promise = current ? new Promise(promiseResolver) : Promise.resolve(url.current);
 
-    current && current.injectJavaScript(JS_WEBVIEW_URL);
+		promise.then((info) => {
+			const { hostname: currentHostname } = new URL(url.current);
+			const { hostname } = new URL(nativeEvent.url);
+			if (info.url === nativeEvent.url && currentHostname === hostname) {
+				changeUrl({ ...nativeEvent, icon: info.icon }, 'end-promise');
+				changeAddressBar({ ...nativeEvent, icon: info.icon }, 'end-promise');
+			}
+		});
+	};
 
-    const promiseResolver = (resolve) => {
-      webviewUrlPostMessagePromiseResolve.current = resolve;
-    };
-    const promise = current
-      ? new Promise(promiseResolver)
-      : Promise.resolve(url.current);
+	/**
+	 * Handle message from website
+	 */
+	const onMessage = ({ nativeEvent }) => {
+		let data = nativeEvent.data;
+		try {
+			data = typeof data === 'string' ? JSON.parse(data) : data;
+			if (!data || (!data.type && !data.name)) {
+				return;
+			}
+			if (data.name) {
+				backgroundBridges.current.forEach((bridge) => {
+					if (bridge.isMainFrame) {
+						const { origin } = data && data.origin && new URL(data.origin);
+						bridge.url === origin && bridge.onMessage(data);
+					} else {
+						bridge.url === data.origin && bridge.onMessage(data);
+					}
+				});
+				return;
+			}
 
-    promise.then((info) => {
-      const { hostname: currentHostname } = new URL(url.current);
-      const { hostname } = new URL(nativeEvent.url);
-      if (info.url === nativeEvent.url && currentHostname === hostname) {
-        changeUrl({ ...nativeEvent, icon: info.icon });
-        changeAddressBar({ ...nativeEvent, icon: info.icon });
-      }
-    });
-  };
-
-  /**
-   * Handle message from website
-   */
-  const onMessage = ({ nativeEvent }) => {
-    let data = nativeEvent.data;
-    try {
-      data = typeof data === 'string' ? JSON.parse(data) : data;
-      if (!data || (!data.type && !data.name)) {
-        return;
-      }
-      if (data.name) {
-        backgroundBridges.current.forEach((bridge) => {
-          if (bridge.isMainFrame) {
-            const { origin } = data && data.origin && new URL(data.origin);
-            bridge.url === origin && bridge.onMessage(data);
-          } else {
-            bridge.url === data.origin && bridge.onMessage(data);
-          }
-        });
-        return;
-      }
-
-      switch (data.type) {
-        /**
+			switch (data.type) {
+				/**
 				* Disabling iframes for now
 				case 'FRAME_READY': {
 					const { url } = data.payload;
 					onFrameLoadStarted(url);
 					break;
 				}*/
-        case 'GET_WEBVIEW_URL': {
-          const { url } = data.payload;
-          if (url === nativeEvent.url)
-            webviewUrlPostMessagePromiseResolve.current &&
-              webviewUrlPostMessagePromiseResolve.current(data.payload);
-        }
-      }
-    } catch (e) {
-      Logger.error(e, `Browser::onMessage on ${url.current}`);
-    }
-  };
+				case 'GET_WEBVIEW_URL': {
+					const { url } = data.payload;
+					if (url === nativeEvent.url)
+						webviewUrlPostMessagePromiseResolve.current &&
+							webviewUrlPostMessagePromiseResolve.current(data.payload);
+				}
+			}
+		} catch (e) {
+			Logger.error(e, `Browser::onMessage on ${url.current}`);
+		}
+	};
 
-  /**
-   * Go to home page, reload if already on homepage
-   */
-  const goToHomepage = async () => {
-    toggleOptionsIfNeeded();
-    if (url.current === HOMEPAGE_URL) return reload();
-    await go(HOMEPAGE_URL);
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
-  };
+	/**
+	 * Go to home page, reload if already on homepage
+	 */
+	const goToHomepage = async () => {
+		toggleOptionsIfNeeded();
+		if (url.current === HOMEPAGE_URL) return reload();
+		await go(HOMEPAGE_URL);
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_HOME);
+	};
 
-  /**
-   * Render the progress bar
-   */
-  const renderProgressBar = () => (
-    <View style={styles.progressBarWrapper}>
-      <WebviewProgressBar progress={progress} />
-    </View>
-  );
+	/**
+	 * Render the progress bar
+	 */
+	const renderProgressBar = () => (
+		<View style={styles.progressBarWrapper}>
+			<WebviewProgressBar progress={progress} />
+		</View>
+	);
 
-  /**
-   * When url input changes
-   */
-  const onURLChange = (inputValue) => {
-    setAutocompleteValue(inputValue);
-  };
+	/**
+	 * When url input changes
+	 */
+	const onURLChange = (inputValue) => {
+		setAutocompleteValue(inputValue);
+	};
 
-  /**
-   * Handle url input submit
-   */
-  const onUrlInputSubmit = async (input = null) => {
-    const inputValue =
-      (typeof input === 'string' && input) || autocompleteValue;
-    trackEventSearchUsed();
-    if (!inputValue) {
-      toggleUrlModal();
-      return;
-    }
-    const { defaultProtocol, searchEngine } = props;
-    const sanitizedInput = onUrlSubmit(
-      inputValue,
-      searchEngine,
-      defaultProtocol,
-    );
-    await go(sanitizedInput);
-    toggleUrlModal();
-  };
+	/**
+	 * Handle url input submit
+	 */
+	const onUrlInputSubmit = async (input = null) => {
+		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
+		trackEventSearchUsed();
+		if (!inputValue) {
+			toggleUrlModal();
+			return;
+		}
+		const { defaultProtocol, searchEngine } = props;
+		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
+		await go(sanitizedInput);
+		toggleUrlModal();
+	};
 
-  /** Clear search input and focus */
-  const clearSearchInput = () => {
-    setAutocompleteValue('');
-    inputRef.current?.focus?.();
-  };
+	/** Clear search input and focus */
+	const clearSearchInput = () => {
+		setAutocompleteValue('');
+		inputRef.current?.focus?.();
+	};
 
-  /**
-   * Render url input modal
-   */
-  const renderUrlModal = () => {
-    if (showUrlModal && inputRef) {
-      setTimeout(() => {
-        const { current } = inputRef;
-        if (current && !current.isFocused()) {
-          current.focus();
-        }
-      }, ANIMATION_TIMING);
-    }
+	/**
+	 * Render url input modal
+	 */
+	const renderUrlModal = () => {
+		if (showUrlModal && inputRef) {
+			setTimeout(() => {
+				const { current } = inputRef;
+				if (current && !current.isFocused()) {
+					current.focus();
+				}
+			}, ANIMATION_TIMING);
+		}
 
-    return (
-      <Modal
-        isVisible={showUrlModal}
-        style={styles.urlModal}
-        onBackdropPress={toggleUrlModal}
-        onBackButtonPress={toggleUrlModal}
-        animationIn="slideInDown"
-        animationOut="slideOutUp"
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        animationInTiming={ANIMATION_TIMING}
-        animationOutTiming={ANIMATION_TIMING}
-        useNativeDriver
-      >
-        <View style={styles.urlModalContent} testID={'url-modal'}>
-          <View style={styles.searchWrapper}>
-            <TextInput
-              keyboardType="web-search"
-              ref={inputRef}
-              autoCapitalize="none"
-              autoCorrect={false}
-              testID={'url-input'}
-              onChangeText={onURLChange}
-              onSubmitEditing={onUrlInputSubmit}
-              placeholder={strings('autocomplete.placeholder')}
-              placeholderTextColor={colors.text.muted}
-              returnKeyType="go"
-              style={styles.urlInput}
-              value={autocompleteValue}
-              selectTextOnFocus
-              keyboardAppearance={themeAppearance}
-            />
-            {autocompleteValue ? (
-              <TouchableOpacity
-                onPress={clearSearchInput}
-                style={styles.clearButton}
-              >
-                <Icon
-                  name="times-circle"
-                  size={18}
-                  color={colors.icon.default}
-                  style={styles.clearIcon}
-                />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            testID={'cancel-url-button'}
-            onPress={toggleUrlModal}
-          >
-            <Text style={styles.cancelButtonText}>
-              {strings('browser.cancel')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <UrlAutocomplete
-          onSubmit={onUrlInputSubmit}
-          input={autocompleteValue}
-          onDismiss={toggleUrlModal}
-        />
-      </Modal>
-    );
-  };
+		return (
+			<Modal
+				isVisible={showUrlModal}
+				style={styles.urlModal}
+				onBackdropPress={toggleUrlModal}
+				onBackButtonPress={toggleUrlModal}
+				animationIn="slideInDown"
+				animationOut="slideOutUp"
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
+				animationInTiming={ANIMATION_TIMING}
+				animationOutTiming={ANIMATION_TIMING}
+				useNativeDriver
+			>
+				<View style={styles.urlModalContent} testID={'url-modal'}>
+					<View style={styles.searchWrapper}>
+						<TextInput
+							keyboardType="web-search"
+							ref={inputRef}
+							autoCapitalize="none"
+							autoCorrect={false}
+							testID={'url-input'}
+							onChangeText={onURLChange}
+							onSubmitEditing={onUrlInputSubmit}
+							placeholder={strings('autocomplete.placeholder')}
+							placeholderTextColor={colors.text.muted}
+							returnKeyType="go"
+							style={styles.urlInput}
+							value={autocompleteValue}
+							selectTextOnFocus
+							keyboardAppearance={themeAppearance}
+						/>
+						{autocompleteValue ? (
+							<TouchableOpacity onPress={clearSearchInput} style={styles.clearButton}>
+								<Icon
+									name="times-circle"
+									size={18}
+									color={colors.icon.default}
+									style={styles.clearIcon}
+								/>
+							</TouchableOpacity>
+						) : null}
+					</View>
+					<TouchableOpacity style={styles.cancelButton} testID={'cancel-url-button'} onPress={toggleUrlModal}>
+						<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
+					</TouchableOpacity>
+				</View>
+				<UrlAutocomplete onSubmit={onUrlInputSubmit} input={autocompleteValue} onDismiss={toggleUrlModal} />
+			</Modal>
+		);
+	};
 
-  /**
-   * Handle error, for example, ssl certificate error
-   */
-  const onError = ({ nativeEvent: errorInfo }) => {
-    Logger.log(errorInfo);
-    props.navigation.setParams({
-      error: true,
-    });
-    setError(errorInfo);
-  };
+	/**
+	 * Handle error, for example, ssl certificate error
+	 */
+	const onError = ({ nativeEvent: errorInfo }) => {
+		Logger.log(errorInfo);
+		props.navigation.setParams({
+			error: true,
+		});
+		setError(errorInfo);
+	};
 
-  /**
-   * Track new tab event
-   */
-  const trackNewTabEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
-      option_chosen: 'Browser Options',
-      number_of_tabs: undefined,
-    });
-  };
+	/**
+	 * Track new tab event
+	 */
+	const trackNewTabEvent = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
+			option_chosen: 'Browser Options',
+			number_of_tabs: undefined,
+		});
+	};
 
-  /**
-   * Track add site to favorites event
-   */
-  const trackAddToFavoritesEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_ADD_FAVORITES, {
-      dapp_name: title.current || '',
-      dapp_url: url.current || '',
-    });
-  };
+	/**
+	 * Track add site to favorites event
+	 */
+	const trackAddToFavoritesEvent = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_ADD_FAVORITES, {
+			dapp_name: title.current || '',
+			dapp_url: url.current || '',
+		});
+	};
 
-  /**
-   * Track share site event
-   */
-  const trackShareEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SHARE_SITE);
-  };
+	/**
+	 * Track share site event
+	 */
+	const trackShareEvent = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SHARE_SITE);
+	};
 
-  /**
-   * Track change network event
-   */
-  const trackSwitchNetworkEvent = ({ from }) => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK,
-      {
-        from_chain_id: from,
-      },
-    );
-  };
+	/**
+	 * Track change network event
+	 */
+	const trackSwitchNetworkEvent = ({ from }) => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK, {
+			from_chain_id: from,
+		});
+	};
 
-  /**
-   * Track reload site event
-   */
-  const trackReloadEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_RELOAD);
-  };
+	/**
+	 * Track reload site event
+	 */
+	const trackReloadEvent = () => {
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_RELOAD);
+	};
 
-  /**
-   * Add bookmark
-   */
-  const addBookmark = () => {
-    toggleOptionsIfNeeded();
-    props.navigation.push('AddBookmarkView', {
-      screen: 'AddBookmark',
-      params: {
-        title: title.current || '',
-        url: getMaskedUrl(url.current),
-        onAddBookmark: async ({ name, url }) => {
-          props.addBookmark({ name, url });
-          if (Device.isIos()) {
-            const item = {
-              uniqueIdentifier: url,
-              title: name || getMaskedUrl(url),
-              contentDescription: `Launch ${name || url} on MetaMask`,
-              keywords: [name.split(' '), url, 'dapp'],
-              thumbnail: {
-                uri:
-                  icon.current ||
-                  `https://api.faviconkit.com/${getHost(url)}/256`,
-              },
-            };
-            try {
-              SearchApi.indexSpotlightItem(item);
-            } catch (e) {
-              Logger.error(e, 'Error adding to spotlight');
-            }
-          }
-        },
-      },
-    });
-    trackAddToFavoritesEvent();
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
-  };
+	/**
+	 * Add bookmark
+	 */
+	const addBookmark = () => {
+		toggleOptionsIfNeeded();
+		props.navigation.push('AddBookmarkView', {
+			screen: 'AddBookmark',
+			params: {
+				title: title.current || '',
+				url: getMaskedUrl(url.current),
+				onAddBookmark: async ({ name, url }) => {
+					props.addBookmark({ name, url });
+					if (Device.isIos()) {
+						const item = {
+							uniqueIdentifier: url,
+							title: name || getMaskedUrl(url),
+							contentDescription: `Launch ${name || url} on MetaMask`,
+							keywords: [name.split(' '), url, 'dapp'],
+							thumbnail: {
+								uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`,
+							},
+						};
+						try {
+							SearchApi.indexSpotlightItem(item);
+						} catch (e) {
+							Logger.error(e, 'Error adding to spotlight');
+						}
+					}
+				},
+			},
+		});
+		trackAddToFavoritesEvent();
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_ADD_TO_FAVORITE);
+	};
 
-  /**
-   * Share url
-   */
-  const share = () => {
-    toggleOptionsIfNeeded();
-    Share.open({
-      url: url.current,
-    }).catch((err) => {
-      Logger.log('Error while trying to share address', err);
-    });
-    trackShareEvent();
-  };
+	/**
+	 * Share url
+	 */
+	const share = () => {
+		toggleOptionsIfNeeded();
+		Share.open({
+			url: url.current,
+		}).catch((err) => {
+			Logger.log('Error while trying to share address', err);
+		});
+		trackShareEvent();
+	};
 
-  /**
-   * Open external link
-   */
-  const openInBrowser = () => {
-    toggleOptionsIfNeeded();
-    Linking.openURL(url.current).catch((error) =>
-      Logger.log(
-        `Error while trying to open external link: ${url.current}`,
-        error,
-      ),
-    );
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
-  };
+	/**
+	 * Open external link
+	 */
+	const openInBrowser = () => {
+		toggleOptionsIfNeeded();
+		Linking.openURL(url.current).catch((error) =>
+			Logger.log(`Error while trying to open external link: ${url.current}`, error)
+		);
+		Analytics.trackEvent(ANALYTICS_EVENT_OPTS.DAPP_OPEN_IN_BROWSER);
+	};
 
-  /**
-   * Handles reload button press
-   */
-  const onReloadPress = () => {
-    toggleOptionsIfNeeded();
-    reload();
-    trackReloadEvent();
-  };
+	/**
+	 * Handles reload button press
+	 */
+	const onReloadPress = () => {
+		toggleOptionsIfNeeded();
+		reload();
+		trackReloadEvent();
+	};
 
-  /**
-   * Render non-homepage options menu
-   */
-  const renderNonHomeOptions = () => {
-    if (isHomepage()) return null;
+	/**
+	 * Render non-homepage options menu
+	 */
+	const renderNonHomeOptions = () => {
+		if (isHomepage()) return null;
 
-    return (
-      <React.Fragment>
-        <Button onPress={onReloadPress} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="refresh" size={15} style={styles.optionIcon} />
-          </View>
-          <Text style={styles.optionText} numberOfLines={2}>
-            {strings('browser.reload')}
-          </Text>
-        </Button>
-        {!isBookmark() && (
-          <Button onPress={addBookmark} style={styles.option}>
-            <View style={styles.optionIconWrapper}>
-              <Icon name="star" size={16} style={styles.optionIcon} />
-            </View>
-            <Text style={styles.optionText} numberOfLines={2}>
-              {strings('browser.add_to_favorites')}
-            </Text>
-          </Button>
-        )}
-        <Button onPress={share} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="share" size={15} style={styles.optionIcon} />
-          </View>
-          <Text style={styles.optionText} numberOfLines={2}>
-            {strings('browser.share')}
-          </Text>
-        </Button>
-        <Button onPress={openInBrowser} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="expand" size={16} style={styles.optionIcon} />
-          </View>
-          <Text style={styles.optionText} numberOfLines={2}>
-            {strings('browser.open_in_browser')}
-          </Text>
-        </Button>
-      </React.Fragment>
-    );
-  };
+		return (
+			<React.Fragment>
+				<Button onPress={onReloadPress} style={styles.option}>
+					<View style={styles.optionIconWrapper}>
+						<Icon name="refresh" size={15} style={styles.optionIcon} />
+					</View>
+					<Text style={styles.optionText} numberOfLines={2}>
+						{strings('browser.reload')}
+					</Text>
+				</Button>
+				{!isBookmark() && (
+					<Button onPress={addBookmark} style={styles.option}>
+						<View style={styles.optionIconWrapper}>
+							<Icon name="star" size={16} style={styles.optionIcon} />
+						</View>
+						<Text style={styles.optionText} numberOfLines={2}>
+							{strings('browser.add_to_favorites')}
+						</Text>
+					</Button>
+				)}
+				<Button onPress={share} style={styles.option}>
+					<View style={styles.optionIconWrapper}>
+						<Icon name="share" size={15} style={styles.optionIcon} />
+					</View>
+					<Text style={styles.optionText} numberOfLines={2}>
+						{strings('browser.share')}
+					</Text>
+				</Button>
+				<Button onPress={openInBrowser} style={styles.option}>
+					<View style={styles.optionIconWrapper}>
+						<Icon name="expand" size={16} style={styles.optionIcon} />
+					</View>
+					<Text style={styles.optionText} numberOfLines={2}>
+						{strings('browser.open_in_browser')}
+					</Text>
+				</Button>
+			</React.Fragment>
+		);
+	};
 
-  /**
-   * Handle new tab button press
-   */
-  const onNewTabPress = () => {
-    openNewTab();
-    trackNewTabEvent();
-  };
+	/**
+	 * Handle new tab button press
+	 */
+	const onNewTabPress = () => {
+		openNewTab();
+		trackNewTabEvent();
+	};
 
-  /**
-   * Handle switch network press
-   */
-  const switchNetwork = () => {
-    const { toggleNetworkModal, network } = props;
-    toggleOptionsIfNeeded();
-    toggleNetworkModal();
-    trackSwitchNetworkEvent({ from: network });
-  };
+	/**
+	 * Handle switch network press
+	 */
+	const switchNetwork = () => {
+		const { toggleNetworkModal, network } = props;
+		toggleOptionsIfNeeded();
+		toggleNetworkModal();
+		trackSwitchNetworkEvent({ from: network });
+	};
 
-  /**
-   * Render options menu
-   */
-  const renderOptions = () => {
-    if (showOptions) {
-      return (
-        <TouchableWithoutFeedback onPress={toggleOptions}>
-          <View style={styles.optionsOverlay}>
-            <View
-              style={[
-                styles.optionsWrapper,
-                Device.isAndroid()
-                  ? styles.optionsWrapperAndroid
-                  : styles.optionsWrapperIos,
-              ]}
-            >
-              <Button onPress={onNewTabPress} style={styles.option}>
-                <View style={styles.optionIconWrapper}>
-                  <MaterialCommunityIcon
-                    name="plus"
-                    size={18}
-                    style={styles.optionIcon}
-                  />
-                </View>
-                <Text style={styles.optionText} numberOfLines={1}>
-                  {strings('browser.new_tab')}
-                </Text>
-              </Button>
-              {renderNonHomeOptions()}
-              <Button onPress={switchNetwork} style={styles.option}>
-                <View style={styles.optionIconWrapper}>
-                  <MaterialCommunityIcon
-                    name="earth"
-                    size={18}
-                    style={styles.optionIcon}
-                  />
-                </View>
-                <Text style={styles.optionText} numberOfLines={2}>
-                  {strings('browser.switch_network')}
-                </Text>
-              </Button>
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      );
-    }
-  };
+	/**
+	 * Render options menu
+	 */
+	const renderOptions = () => {
+		if (showOptions) {
+			return (
+				<TouchableWithoutFeedback onPress={toggleOptions}>
+					<View style={styles.optionsOverlay}>
+						<View
+							style={[
+								styles.optionsWrapper,
+								Device.isAndroid() ? styles.optionsWrapperAndroid : styles.optionsWrapperIos,
+							]}
+						>
+							<Button onPress={onNewTabPress} style={styles.option}>
+								<View style={styles.optionIconWrapper}>
+									<MaterialCommunityIcon name="plus" size={18} style={styles.optionIcon} />
+								</View>
+								<Text style={styles.optionText} numberOfLines={1}>
+									{strings('browser.new_tab')}
+								</Text>
+							</Button>
+							{renderNonHomeOptions()}
+							<Button onPress={switchNetwork} style={styles.option}>
+								<View style={styles.optionIconWrapper}>
+									<MaterialCommunityIcon name="earth" size={18} style={styles.optionIcon} />
+								</View>
+								<Text style={styles.optionText} numberOfLines={2}>
+									{strings('browser.switch_network')}
+								</Text>
+							</Button>
+						</View>
+					</View>
+				</TouchableWithoutFeedback>
+			);
+		}
+	};
 
-  /**
-   * Show the different tabs
-   */
-  const showTabs = () => {
-    dismissTextSelectionIfNeeded();
-    props.showTabs();
-  };
+	/**
+	 * Show the different tabs
+	 */
+	const showTabs = () => {
+		dismissTextSelectionIfNeeded();
+		props.showTabs();
+	};
 
-  /**
-   * Render the bottom (navigation/options) bar
-   */
-  const renderBottomBar = () => (
-    <BrowserBottomBar
-      canGoBack={backEnabled}
-      canGoForward={forwardEnabled}
-      goForward={goForward}
-      goBack={goBack}
-      showTabs={showTabs}
-      showUrlModal={toggleUrlModal}
-      toggleOptions={toggleOptions}
-      goHome={goToHomepage}
-    />
-  );
+	/**
+	 * Render the bottom (navigation/options) bar
+	 */
+	const renderBottomBar = () => (
+		<BrowserBottomBar
+			canGoBack={backEnabled}
+			canGoForward={forwardEnabled}
+			goForward={goForward}
+			goBack={goBack}
+			showTabs={showTabs}
+			showUrlModal={toggleUrlModal}
+			toggleOptions={toggleOptions}
+			goHome={goToHomepage}
+		/>
+	);
 
-  /**
-   * Render the onboarding wizard browser step
-   */
-  const renderOnboardingWizard = () => {
-    const { wizardStep } = props;
-    if ([6].includes(wizardStep)) {
-      if (!wizardScrollAdjusted.current) {
-        setTimeout(() => {
-          reload();
-        }, 1);
-        wizardScrollAdjusted.current = true;
-      }
-      return <OnboardingWizard navigation={props.navigation} />;
-    }
-    return null;
-  };
+	/**
+	 * Render the onboarding wizard browser step
+	 */
+	const renderOnboardingWizard = () => {
+		const { wizardStep } = props;
+		if ([6].includes(wizardStep)) {
+			if (!wizardScrollAdjusted.current) {
+				setTimeout(() => {
+					reload();
+				}, 1);
+				wizardScrollAdjusted.current = true;
+			}
+			return <OnboardingWizard navigation={props.navigation} />;
+		}
+		return null;
+	};
 
-  /**
-   * Return to the MetaMask Dapp Homepage
-   */
-  const returnHome = () => {
-    go(HOMEPAGE_HOST);
-  };
+	/**
+	 * Return to the MetaMask Dapp Homepage
+	 */
+	const returnHome = () => {
+		go(HOMEPAGE_HOST);
+	};
 
-  /**
-   * Main render
-   */
-  return (
-    <ErrorBoundary view="BrowserTab">
-      <View
-        style={[styles.wrapper, !isTabActive() && styles.hide]}
-        {...(Device.isAndroid() ? { collapsable: false } : {})}
-      >
-        <View style={styles.webview}>
-          {!!entryScriptWeb3 && firstUrlLoaded && (
-            <WebView
-              decelerationRate={'normal'}
-              ref={webviewRef}
-              renderError={() => (
-                <WebviewError error={error} returnHome={returnHome} />
-              )}
-              source={{ uri: initialUrl }}
-              injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-              style={styles.webview}
-              onLoadStart={onLoadStart}
-              onLoad={onLoad}
-              onLoadEnd={onLoadEnd}
-              onLoadProgress={onLoadProgress}
-              onMessage={onMessage}
-              onError={onError}
-              onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-              userAgent={USER_AGENT}
-              sendCookies
-              javascriptEnabled
-              allowsInlineMediaPlayback
-              useWebkit
-              testID={'browser-webview'}
-            />
-          )}
-        </View>
-        {renderProgressBar()}
-        {isTabActive() && renderPhishingModal()}
-        {isTabActive() && renderUrlModal()}
-        {isTabActive() && renderOptions()}
-        {isTabActive() && renderBottomBar()}
-        {isTabActive() && renderOnboardingWizard()}
-      </View>
-    </ErrorBoundary>
-  );
+	/**
+	 * Main render
+	 */
+	 {console.log('Browser tab rendered')}
+	return (
+		<ErrorBoundary view="BrowserTab">
+			<View
+				style={[styles.wrapper, !isTabActive() && styles.hide]}
+				{...(Device.isAndroid() ? { collapsable: false } : {})}
+			>
+				<View style={styles.webview}>
+					{!!entryScriptWeb3 && firstUrlLoaded && (
+						<WebView
+							decelerationRate={'normal'}
+							ref={webviewRef}
+							renderError={() => <WebviewError error={error} returnHome={returnHome} />}
+							source={{ uri: initialUrl }}
+							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+							style={styles.webview}
+							onLoadStart={onLoadStart}
+							onLoad={onLoad}
+							onLoadEnd={onLoadEnd}
+							onLoadProgress={onLoadProgress}
+							onMessage={onMessage}
+							onError={onError}
+							onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+							userAgent={USER_AGENT}
+							sendCookies
+							javascriptEnabled
+							allowsInlineMediaPlayback
+							useWebkit
+							testID={'browser-webview'}
+							onFileDownload={({ nativeEvent: { downloadUrl } }) => downloadFile(downloadUrl)}
+						/>
+					)}
+				</View>
+				{renderProgressBar()}
+				{isTabActive() && renderPhishingModal()}
+				{isTabActive() && renderUrlModal()}
+				{isTabActive() && renderOptions()}
+				{isTabActive() && renderBottomBar()}
+				{isTabActive() && renderOnboardingWizard()}
+			</View>
+		</ErrorBoundary>
+	);
 };
 
 BrowserTab.propTypes = {
