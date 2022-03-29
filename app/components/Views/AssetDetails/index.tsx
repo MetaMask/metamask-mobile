@@ -14,6 +14,7 @@ import Networks from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
 	container: {
@@ -100,7 +101,8 @@ interface Props {
 }
 
 const AssetDetails = (props: Props) => {
-	const { address, decimals, symbol, aggregators, balance, balanceFiat, balanceError, logo } = props.route.params;
+	const { address, decimals, symbol, aggregators, balance, balanceFiat, balanceError } = props.route.params;
+	const asset = props.route.params;
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
 	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
@@ -131,13 +133,13 @@ const AssetDetails = (props: Props) => {
 		);
 	};
 
-	const triggerIgnoreAllTokens = () => {
+	const triggerIgnoreToken = () => {
 		const { TokensController } = Engine.context as any;
-		navigation.navigate('AssetIgnoreConfirmation', {
+		navigation.navigate('AssetHideConfirmation', {
 			onConfirm: async () => {
 				try {
+					await TokensController.removeAndIgnoreToken(address);
 					navigation.navigate('WalletView');
-					// await TokensController.removeAndIgnoreToken(address);
 					NotificationManager.showSimpleNotification({
 						status: `simple_notification`,
 						duration: 5000,
@@ -145,27 +147,42 @@ const AssetDetails = (props: Props) => {
 						description: `Ignoring ${symbol} from wallet`,
 					});
 				} catch (err) {
-					Logger.log(err, 'AssetIgnoreConfirmation: Failed to ignore token!');
+					Logger.log(err, 'AssetDetails: Failed to ignore token!');
 				}
 			},
 		});
 	};
 
-	const renderBalanceSection = () => {
-		return balanceError ? (
+	const renderWarning = () => (
+		<TouchableOpacity
+			onPress={() =>
+				navigation.navigate('BrowserTabHome', {
+					screen: 'BrowserView',
+					params: {
+						newTabUrl: AppConstants.URLS.TOKEN_BALANCE,
+						timestamp: Date.now(),
+					},
+				})
+			}
+		>
+			<Text style={styles.warning}>
+				{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
+				<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
+				{strings('asset_overview.for_help')}
+			</Text>
+		</TouchableOpacity>
+	);
+
+	const renderBalanceSection = () =>
+		balanceError ? (
 			renderWarning()
 		) : (
 			<View style={styles.balanceContainer}>
-				<TokenImage
-					asset={props.route.params}
-					containerStyle={styles.tokenImage}
-					iconStyle={styles.tokenImage}
-				/>
+				<TokenImage asset={asset} containerStyle={styles.tokenImage} iconStyle={styles.tokenImage} />
 				<Text style={styles.balanceAmountLabel}>{`${balance} ${symbol}`}</Text>
 				<Text style={styles.fiatAmountLabel}>{balanceFiat}</Text>
 			</View>
 		);
-	};
 
 	const renderSectionTitle = (title: string) => <Text style={styles.sectionTitleLabel}>{title}</Text>;
 
@@ -175,7 +192,7 @@ const AssetDetails = (props: Props) => {
 
 	const renderHideButton = () => (
 		<TouchableOpacity
-			onPress={triggerIgnoreAllTokens}
+			onPress={triggerIgnoreToken}
 			hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
 			style={styles.hideButton}
 		>
@@ -193,32 +210,6 @@ const AssetDetails = (props: Props) => {
 			<Icon style={styles.copyIcon} name={'copy'} size={16} />
 		</TouchableOpacity>
 	);
-
-	const renderWarning = () => {
-		const { symbol } = props.route.params;
-
-		const supportArticleUrl =
-			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
-		return (
-			<TouchableOpacity
-				onPress={() =>
-					navigation.navigate('BrowserTabHome', {
-						screen: 'BrowserView',
-						params: {
-							newTabUrl: supportArticleUrl,
-							timestamp: Date.now(),
-						},
-					})
-				}
-			>
-				<Text style={styles.warning}>
-					{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
-					<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
-					{strings('asset_overview.for_help')}
-				</Text>
-			</TouchableOpacity>
-		);
-	};
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>

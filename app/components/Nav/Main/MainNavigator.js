@@ -19,7 +19,7 @@ import Asset from '../../Views/Asset';
 import AssetOptions from '../../Views/AssetOptions';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import AssetIgnoreConfirmation from '../../Views/AssetIgnoreConfirmation';
+import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
@@ -119,8 +119,8 @@ const AssetModalFlow = (props) => (
 			initialParams={{ address: props.route.params?.address }}
 		/>
 		<Stack.Screen
-			name={'AssetIgnoreConfirmation'}
-			component={AssetIgnoreConfirmation}
+			name={'AssetHideConfirmation'}
+			component={AssetHideConfirmation}
 			initialParams={{ address: props.route.params?.address }}
 		/>
 	</Stack.Navigator>
