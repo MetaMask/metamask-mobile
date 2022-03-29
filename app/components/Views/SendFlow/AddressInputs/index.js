@@ -5,12 +5,11 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
-import { renderShortAddress, renderSlightlyLongAddress } from '../../../../util/address';
+import { renderShortAddress, renderSlightlyLongAddress, isENS } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-import { isENS } from '../../../../util/address';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -101,7 +100,7 @@ const createStyles = (colors) =>
 			flex: 1,
 			alignItems: 'center',
 		},
-		checkIcon: { alignItems: 'center', justifyContent: 'center' },
+		checkIcon: { alignItems: 'center', justifyContent: 'center', paddingRight: 8 },
 		scanIcon: {
 			flexDirection: 'column',
 			alignItems: 'center',
@@ -141,7 +140,6 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 		},
 		checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
-		checkIcon: { paddingRight: 8 },
 	});
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
@@ -414,6 +412,10 @@ AddressTo.propTypes = {
 	 * Display Exclamation Icon
 	 */
 	displayExclamation: PropTypes.bool,
+	/**
+	 * Confirm screen confirmation
+	 */
+	confirmScreen: PropTypes.bool,
 };
 
 export const AddressFrom = (props) => {
