@@ -1,5 +1,28 @@
-import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
+
+//* Helpers
+
+/**
+ * Transforms a TransakOrder state into a FiatOrder state
+ * @param {TRANSAK_ORDER_STATES} transakOrderState
+ */
+const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
+	switch (aggregatorOrderState) {
+		case FIAT_ORDER_STATES.COMPLETED: {
+			return FIAT_ORDER_STATES.COMPLETED;
+		}
+		case FIAT_ORDER_STATES.FAILED: {
+			return FIAT_ORDER_STATES.FAILED;
+		}
+		case FIAT_ORDER_STATES.CANCELLED: {
+			return FIAT_ORDER_STATES.CANCELLED;
+		}
+		default: {
+			return FIAT_ORDER_STATES.PENDING;
+		}
+	}
+};
 
 const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
 	id: aggregatorOrder.id,
@@ -12,7 +35,7 @@ const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
 	currency: aggregatorOrder.fiatCurrency?.symbol || '',
 	cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
 	network: aggregatorOrder.cryptoCurrency?.network || '',
-	state: aggregatorOrder.status,
+	state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
 	account: aggregatorOrder.walletAddress,
 	txHash: aggregatorOrder.txHash,
 	data: aggregatorOrder,
