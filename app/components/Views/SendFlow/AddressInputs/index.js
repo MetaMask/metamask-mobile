@@ -11,7 +11,6 @@ import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import { isENS } from '../../../../util/address';
-import Device from '../../../../util/device';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -94,6 +93,7 @@ const createStyles = (colors) =>
 			paddingLeft: 0,
 			paddingRight: 6,
 			color: colors.text.default,
+			flex: 1,
 		},
 		addressReadyWrapper: {
 			flexDirection: 'row',
@@ -141,7 +141,7 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 		},
 		checkCleanWrapper: { flexDirection: 'row', alignItems: 'center' },
-		checkIcon: { paddingRight: 4 },
+		checkIcon: { paddingRight: 8 },
 	});
 
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
@@ -310,7 +310,7 @@ export const AddressTo = (props) => {
 									placeholder={strings('transactions.address_to_placeholder')}
 									placeholderTextColor={colors.text.muted}
 									spellCheck={false}
-									style={Device.isIos() ? styles.textInput : [styles.textInput, { flex: 1 }]}
+									style={styles.textInput}
 									numberOfLines={1}
 									autoFocus
 									onFocus={onInputFocus}
@@ -322,12 +322,12 @@ export const AddressTo = (props) => {
 								/>
 							) : (
 								<Text style={styles.textInput} numberOfLines={1}>
-									{renderSlightlyLongAddress(toSelectedAddress, 4, 11)}
+									{renderSlightlyLongAddress(toSelectedAddress, 4, 9)}
 								</Text>
 							)}
 							{!!onClear && (
 								<AntIcon
-									name="check"
+									name="checkcircle"
 									color={colors.success.default}
 									size={15}
 									style={styles.checkIcon}
