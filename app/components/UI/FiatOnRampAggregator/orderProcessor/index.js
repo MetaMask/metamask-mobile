@@ -26,6 +26,4 @@ function processOrder(order, sdk) {
 	}
 }
 
-export const callbackBaseUrl = 'https://dummy.url.metamask.io';
-
 export default processOrder;

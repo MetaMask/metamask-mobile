@@ -6,7 +6,6 @@ import { WebView } from 'react-native-webview';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { callbackBaseUrl } from '../orderProcessor';
 import { useFiatOnRampSDK } from '../sdk';
 import WebviewError from '../../WebviewError';
 import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
@@ -14,7 +13,7 @@ import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
-import { processAggregatorOrder } from '../orderProcessor/aggregator';
+import { callbackBaseUrl, processAggregatorOrder } from '../orderProcessor/aggregator';
 
 const CheckoutWebView = () => {
 	const { sdk, selectedAddress, selectedChainId } = useFiatOnRampSDK();

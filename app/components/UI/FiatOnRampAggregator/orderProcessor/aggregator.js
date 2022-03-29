@@ -23,7 +23,6 @@ const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
  * @param {FiatOrder} order Order coming from the state
  * @returns {FiatOrder} Fiat order to update in the state
  */
-// eslint-disable-next-line import/prefer-default-export
 export async function processAggregatorOrder(order, sdk) {
 	try {
 		if (sdk) {
@@ -43,3 +42,5 @@ export async function processAggregatorOrder(order, sdk) {
 		return order;
 	}
 }
+
+export const callbackBaseUrl = 'https://dummy.url.metamask.io';

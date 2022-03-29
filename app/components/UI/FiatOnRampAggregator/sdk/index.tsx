@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, createContext, useContext, ProviderProps, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { OnRampSdk, IOnRampSdk, Environment } from '@chingiz-mardanov/on-ramp-sdk';
 import {
@@ -28,9 +28,14 @@ export interface IFiatOnRampSDK {
 	selectedChainId: string;
 }
 
+interface IProviderProps<T> {
+	value?: T;
+	children?: React.ReactNode | undefined;
+}
+
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
-export const FiatOnRampSDKProvider = ({ value, ...props }: ProviderProps<IFiatOnRampSDK>) => {
+export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatOnRampSDK>) => {
 	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
 	useEffect(() => {
 		(async () => {
@@ -154,5 +159,12 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 
 	return [{ data, error, isFetching }, query];
 }
+
+export const withFiatOnRampSDK = (Component: React.FC) => (props: any) =>
+	(
+		<FiatOnRampSDKProvider>
+			<Component {...props} />
+		</FiatOnRampSDKProvider>
+	);
 
 export default SDKContext;

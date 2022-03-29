@@ -1,4 +1,3 @@
-import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { InteractionManager } from 'react-native';
@@ -14,7 +13,7 @@ import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
-import { FiatOnRampSDKProvider, useFiatOnRampSDK } from '../FiatOnRampAggregator/sdk';
+import { useFiatOnRampSDK, withFiatOnRampSDK } from '../FiatOnRampAggregator/sdk';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -152,12 +151,5 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
 });
-
-const withFiatOnRampSDK = (Component) => (props) =>
-	(
-		<FiatOnRampSDKProvider>
-			<Component {...props} />
-		</FiatOnRampSDKProvider>
-	);
 
 export default connect(mapStateToProps, mapDispatchToProps)(withFiatOnRampSDK(FiatOrders));

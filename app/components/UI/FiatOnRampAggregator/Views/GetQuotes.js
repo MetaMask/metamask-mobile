@@ -9,7 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
-import { callbackBaseUrl } from '../orderProcessor';
+import { callbackBaseUrl } from '../orderProcessor/aggregator';
 
 const styles = StyleSheet.create({
 	row: {
