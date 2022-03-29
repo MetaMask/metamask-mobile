@@ -1,4 +1,4 @@
-const InfuraKey = process.env.MM_INFURA_PROJECT_ID
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 const PopularList = [

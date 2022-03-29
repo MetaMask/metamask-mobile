@@ -16,7 +16,7 @@ import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
-import {useDispatch} from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 
@@ -171,7 +171,7 @@ const NetworkModals = (props: NetworkProps) => {
 		const decimalChainId = getDecimalChainId(chainId);
 		NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
 		goHome();
-		dispatch(networkSwitched(({ networkUrl: url.href, networkStatus: true })));
+		dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
 	};
 
 	return (
