@@ -24,24 +24,24 @@ const styles = StyleSheet.create({
 });
 
 const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
-	const urEncoder = useMemo(
-		() => new UREncoder(new UR(Buffer.from(cbor, 'hex'), type), MAX_FRAGMENT_LENGTH),
+	const urs = useMemo(
+		() => new UREncoder(new UR(Buffer.from(cbor, 'hex'), type), MAX_FRAGMENT_LENGTH).encodeWhole(),
 		[cbor, type]
 	);
-	const [currentQRCode, setCurrentQRCode] = useState(urEncoder.nextPart());
+	const [currentIndex, setCurrentIndex] = useState(0);
 	useEffect(() => {
 		if (!shouldPause) {
 			const id = setInterval(() => {
-				setCurrentQRCode(urEncoder.nextPart());
-			}, 100);
+				setCurrentIndex((i) => (i + 1) % urs.length);
+			}, 250);
 			return () => {
 				clearInterval(id);
 			};
 		}
-	}, [urEncoder, shouldPause]);
+	}, [urs, shouldPause]);
 	return (
 		<View style={styles.wrapper}>
-			<QRCode value={currentQRCode.toUpperCase()} size={QR_CODE_SIZE} />
+			<QRCode value={urs[currentIndex].toUpperCase()} size={QR_CODE_SIZE} ecl={'L'} />
 		</View>
 	);
 };

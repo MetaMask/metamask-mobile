@@ -113,6 +113,7 @@ const QRSigningDetails = ({
 	}, []);
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
+	const [shouldPause, setShouldPause] = useState(false);
 
 	const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
@@ -208,7 +209,7 @@ const QRSigningDetails = ({
 							<AnimatedQRCode
 								cbor={QRState.sign.request.payload.cbor}
 								type={QRState.sign.request.payload.type}
-								shouldPause={scannerVisible || !shouldStartAnimated}
+								shouldPause={scannerVisible || !shouldStartAnimated || shouldPause}
 							/>
 							{showHint ? (
 								<View style={[styles.description, tighten ? styles.descriptionTighten : undefined]}>
@@ -237,6 +238,7 @@ const QRSigningDetails = ({
 				</ScrollView>
 			)}
 			<AnimatedQRScannerModal
+				pauseQRCode={setShouldPause}
 				visible={scannerVisible}
 				purpose={'sign'}
 				onScanSuccess={onScanSuccess}
