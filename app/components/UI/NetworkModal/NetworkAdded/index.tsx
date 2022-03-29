@@ -4,6 +4,10 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import {
+	NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
+	NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
+} from '../../../../constants/test-ids';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -47,10 +51,20 @@ const NetworkAdded = (props: NetworkAddedProps) => {
 				<Text>{strings('networks.network_added')}</Text>
 			</Text>
 			<View style={styles.buttonView}>
-				<StyledButton type={'cancel'} onPress={goHome} containerStyle={[styles.button, styles.cancel]}>
+				<StyledButton
+					type={'cancel'}
+					testID={NEW_NETWORK_ADDED_CLOSE_BUTTON_ID}
+					onPress={goHome}
+					containerStyle={[styles.button, styles.cancel]}
+				>
 					{strings('networks.close')}
 				</StyledButton>
-				<StyledButton type={'confirm'} onPress={switchNetwork} containerStyle={[styles.button, styles.confirm]}>
+				<StyledButton
+					type={'confirm'}
+					onPress={switchNetwork}
+					testID={NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID}
+					containerStyle={[styles.button, styles.confirm]}
+				>
 					{strings('networks.switch_network')}
 				</StyledButton>
 			</View>

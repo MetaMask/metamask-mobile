@@ -5,10 +5,6 @@ import {
 	APPROVE_NETWORK_CANCEL_BUTTON_ID,
 	APPROVE_NETWORK_APPROVE_BUTTON_ID,
 } from '../../../app/constants/test-ids';
-import { strings } from '../../../locales/i18n';
-
-const switchToNetwork = strings('networks.switch_network');
-const closeNetworks = strings('networks.close');
 export default class NetworkApprovalModal {
 	static async tapApproveButton() {
 		await TestHelpers.tap(APPROVE_NETWORK_APPROVE_BUTTON_ID);
@@ -16,13 +12,6 @@ export default class NetworkApprovalModal {
 
 	static async tapCanelButton() {
 		await TestHelpers.tap(APPROVE_NETWORK_CANCEL_BUTTON_ID);
-	}
-
-	static async tapSwitchToNetwork() {
-		await TestHelpers.tapByText(switchToNetwork);
-	}
-	static async tapClose() {
-		await TestHelpers.tapByText(closeNetworks);
 	}
 
 	static async isVisible() {

@@ -55,3 +55,6 @@ export const REMOVE_NETWORK_ID = 'remove-network-button';
 export const ADD_NETWORK_ID = 'add-network-button';
 export const ADD_NETWORK_BUTTON_ID = 'add-network-button';
 export const RPC_SCREEN = 'new-rpc-screen';
+
+export const NEW_NETWORK_ADDED_CLOSE_BUTTON_ID = 'close-network-button';
+export const NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID = 'switch-to-network-button';

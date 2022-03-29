@@ -8,8 +8,9 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ConnectModal from '../pages/modals/ConnectModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+//import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
+import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
 
 import { Browser } from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
@@ -114,19 +115,20 @@ describe('Deep linking Tests', () => {
 		await NetworkApprovalModal.isDisplayNameVisible('Binance Smart Chain Mainnet');
 		await NetworkApprovalModal.isNetworkURLVisible(BINANCE_RPC_URL);
 		await NetworkApprovalModal.isChainIDVisible('56');
-
 		await NetworkApprovalModal.tapApproveButton();
-		await NetworkApprovalModal.tapSwitchToNetwork();
+
+		await NetworkAddedModal.isVisible();
+		await NetworkAddedModal.tapCloseButton();
 
 		await WalletView.isVisible();
 	});
 
-	it('should dismiss network education modal', async () => {
-		await NetworkEducationModal.isVisible();
-		await NetworkEducationModal.isNetworkNameCorrect('Binance Smart Chain Mainnet');
-		await NetworkEducationModal.tapGotItButton();
-		await NetworkEducationModal.isNotVisible();
-	});
+	// it('should dismiss network education modal', async () => {
+	// 	await NetworkEducationModal.isVisible();
+	// 	await NetworkEducationModal.isNetworkNameCorrect('Binance Smart Chain Mainnet');
+	// 	await NetworkEducationModal.tapGotItButton();
+	// 	await NetworkEducationModal.isNotVisible();
+	// });
 
 	it('should return to settings then networks', async () => {
 		await WalletView.isNetworkNameVisible('Binance Smart Chain Mainnet');
@@ -154,18 +156,21 @@ describe('Deep linking Tests', () => {
 		await NetworkApprovalModal.isChainIDVisible('137');
 
 		await NetworkApprovalModal.tapApproveButton();
-		await NetworkApprovalModal.tapClose();
+		await TestHelpers.delay(1000);
+
+		await NetworkAddedModal.isVisible();
+		await NetworkAddedModal.tapSwitchToNetwork();
 
 		await WalletView.isVisible();
 		await WalletView.isNetworkNameVisible('Polygon Mainnet');
 	});
 
-	it('should dismiss the network education modal', async () => {
-		await NetworkEducationModal.isVisible();
-		await NetworkEducationModal.isNetworkNameCorrect('Polygon Mainnet');
-		await NetworkEducationModal.tapGotItButton();
-		await NetworkEducationModal.isNotVisible();
-	});
+	// it('should dismiss the network education modal', async () => {
+	// 	await NetworkEducationModal.isVisible();
+	// 	await NetworkEducationModal.isNetworkNameCorrect('Polygon Mainnet');
+	// 	await NetworkEducationModal.tapGotItButton();
+	// 	await NetworkEducationModal.isNotVisible();
+	// });
 
 	it('should deep link to the send flow on matic', async () => {
 		await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL);
