@@ -29,17 +29,18 @@ const CheckoutWebView = () => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Checkout' }, colors));
 	}, [navigation, colors]);
 
-	// eslint-disable-next-line no-unused-vars
 	const addTokenToTokensController = async (token) => {
-		const { TokensController } = Engine.context;
 		const { address, symbol, decimals, network } = token;
-
 		const chainId = network || selectedChainId;
 
-		if (NETWORK_NATIVE_SYMBOL[chainId] !== symbol) {
-			if (!TokensController.state.tokens.includes((t) => toLowerCaseEquals(t.address, address))) {
-				await TokensController.addToken(address, symbol, decimals);
-			}
+		if (!token || NETWORK_NATIVE_SYMBOL[chainId.toString()] === symbol) {
+			return;
+		}
+
+		const { TokensController } = Engine.context;
+
+		if (!TokensController.state.tokens.includes((t) => toLowerCaseEquals(t.address, address))) {
+			await TokensController.addToken(address, symbol, decimals);
 		}
 	};
 
@@ -62,7 +63,7 @@ const CheckoutWebView = () => {
 				// add the order to the redux global store
 				handleAddFiatOrder(transformedOrder);
 				// register the token automatically
-				// await addTokenToTokensController(transformedOrder?.cryptoCurrency);
+				await addTokenToTokensController(transformedOrder?.data?.cryptoCurrency);
 				// prompt user to protect his/her wallet
 				handleDispatchUserWalletProtection();
 				// close the checkout webview
