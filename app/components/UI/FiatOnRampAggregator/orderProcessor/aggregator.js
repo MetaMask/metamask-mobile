@@ -10,7 +10,7 @@ const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
 	cryptoAmount: '',
 	cryptoFee: '',
 	currency: aggregatorOrder.fiatCurrency?.symbol || '',
-	cryptoCurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
+	cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
 	network: aggregatorOrder.cryptoCurrency?.network || '',
 	state: aggregatorOrder.status,
 	account: aggregatorOrder.walletAddress,

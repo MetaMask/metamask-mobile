@@ -48,7 +48,7 @@ export const setFiatOrdersCountryAGG = (countryCode) => ({ type: ACTIONS.FIAT_SE
  * Get the provider display name
  * @param {FIAT_ORDER_PROVIDERS} provider
  */
-export const getProviderName = (provider) => {
+export const getProviderName = (provider, data = {}) => {
 	switch (provider) {
 		case FIAT_ORDER_PROVIDERS.WYRE:
 		case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
@@ -59,6 +59,9 @@ export const getProviderName = (provider) => {
 		}
 		case FIAT_ORDER_PROVIDERS.MOONPAY: {
 			return 'MoonPay';
+		}
+		case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
+			return `On-Ramp ${data.provider?.name && '(' + data.provider?.name + ')'}`;
 		}
 		default: {
 			return provider;
