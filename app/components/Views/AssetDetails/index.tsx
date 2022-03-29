@@ -101,8 +101,8 @@ interface Props {
 }
 
 const AssetDetails = (props: Props) => {
-	const { address, decimals, symbol, aggregators, balance, balanceFiat, balanceError } = props.route.params;
 	const asset = props.route.params;
+	const { address, decimals, symbol, aggregators, balance, balanceFiat, balanceError } = asset;
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
 	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
