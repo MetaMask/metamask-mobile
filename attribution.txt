@@ -4063,7 +4063,7 @@ authors: aaronisme <aarondongchen@gmail.com>
 ******************************
 
 @keystonehq/bc-ur-registry
-0.5.0-alpha.5 <https://github.com/KeystoneHQ/ur-registry>
+0.4.4 <https://github.com/KeystoneHQ/ur-registry>
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
