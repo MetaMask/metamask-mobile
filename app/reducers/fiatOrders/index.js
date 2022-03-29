@@ -91,7 +91,7 @@ export const getPendingOrders = createSelector(
 		orders.filter(
 			(order) =>
 				order.account === selectedAddress &&
-				order.network === chainId &&
+				Number(order.network) === Number(chainId) &&
 				order.state === FIAT_ORDER_STATES.PENDING
 		)
 );
