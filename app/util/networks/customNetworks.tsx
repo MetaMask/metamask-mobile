@@ -1,3 +1,6 @@
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+
 const PopularList = [
 	{
 		chainId: '43114',
@@ -13,7 +16,7 @@ const PopularList = [
 	{
 		chainId: '42161',
 		nickname: 'Arbitrum One',
-		rpcUrl: `https://arbitrum-mainnet.infura.io/v3`,
+		rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
 		ticker: 'ETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.arbitrum.io',
@@ -22,7 +25,7 @@ const PopularList = [
 	},
 	{
 		chainId: '56',
-		nickname: 'Binance Smart Chain Mainnet',
+		nickname: 'BNB Smart Chain',
 		rpcUrl: 'https://bsc-dataseed1.binance.org',
 		ticker: 'BNB',
 		warning: true,
@@ -56,7 +59,7 @@ const PopularList = [
 	{
 		chainId: '10',
 		nickname: 'Optimism',
-		rpcUrl: `https://optimism-mainnet.infura.io/v3`,
+		rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
 		ticker: 'ETH',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://optimistic.etherscan.io',
@@ -66,7 +69,7 @@ const PopularList = [
 	{
 		chainId: '137',
 		nickname: 'Polygon Mainnet',
-		rpcUrl: `https://polygon-mainnet.infura.io/v3`,
+		rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
 		ticker: 'MATIC',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://polygonscan.com',
@@ -76,7 +79,7 @@ const PopularList = [
 	{
 		chainId: '11297108109',
 		nickname: 'Palm',
-		rpcUrl: `https://palm-mainnet.infura.io/v3`,
+		rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
 		ticker: 'PALM',
 		rpcPrefs: {
 			blockExplorerUrl: 'https://explorer.palm.io',

@@ -16,7 +16,10 @@ import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
+import {useDispatch} from 'react-redux';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { networkSwitched } from '../../../actions/onboardNetwork';
+
 import {
 	APPROVE_NETWORK_DISPLAY_NAME_ID,
 	APPROVE_NETWORK_MODAL_ID,
@@ -72,7 +75,7 @@ const createStyles = (colors) =>
 			marginBottom: 10,
 		},
 		nameWrapper: {
-			backgroundColor: colors.background.default,
+			backgroundColor: colors.background.alternative,
 			marginRight: '15%',
 			marginLeft: '15%',
 			paddingVertical: 5,
@@ -89,7 +92,6 @@ const createStyles = (colors) =>
 			width: 20,
 			height: 20,
 			marginRight: 10,
-			backgroundColor: colors.overlay.default,
 			borderRadius: 10,
 		},
 	});
@@ -122,6 +124,8 @@ const NetworkModals = (props: NetworkProps) => {
 
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+
+	const dispatch = useDispatch();
 
 	const validateRpcUrl = (url: string) => {
 		if (!isWebUri(url)) return false;
@@ -167,6 +171,7 @@ const NetworkModals = (props: NetworkProps) => {
 		const decimalChainId = getDecimalChainId(chainId);
 		NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
 		goHome();
+		dispatch(networkSwitched(({ networkUrl: url.href, networkStatus: true })));
 	};
 
 	return (

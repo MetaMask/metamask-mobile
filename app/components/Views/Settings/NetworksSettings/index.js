@@ -39,9 +39,6 @@ const createStyles = (colors) =>
 			paddingVertical: 12,
 			alignItems: 'center',
 		},
-		otherNetworkIcon: {
-			backgroundColor: colors.overlay.alternative,
-		},
 		networkWrapper: {
 			flex: 0,
 			flexDirection: 'row',
@@ -201,9 +198,9 @@ class NetworksSettings extends PureComponent {
 						<View style={styles.network}>
 							{isCustomRPC &&
 								(image ? (
-									<ImageIcons image={image} style={[styles.networkIcon, styles.otherNetworkIcon]} />
+									<ImageIcons image={image} style={styles.networkIcon} />
 								) : (
-									<View style={[styles.networkIcon, styles.otherNetworkIcon]} />
+									<View style={styles.networkIcon} />
 								))}
 							{!isCustomRPC && (
 								<View style={[styles.networkIcon, { backgroundColor: image }]}>

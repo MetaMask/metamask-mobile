@@ -129,7 +129,6 @@ const createStyles = (colors) =>
 			width: 20,
 			height: 20,
 			marginRight: 10,
-			backgroundColor: colors.overlay.alternative,
 			borderRadius: 10,
 		},
 		popularWrapper: {
@@ -618,13 +617,6 @@ class NetworkSettings extends PureComponent {
 						/>
 					)}
 					<View style={styles.scrollWrapper}>
-						{addMode && (
-							<Text style={styles.title} testID={'rpc-screen-title'}>
-								{strings('app_settings.new_RPC_URL')}
-							</Text>
-						)}
-						{addMode && <Text style={styles.desc}>{strings('app_settings.rpc_desc')}</Text>}
-
 						<Text style={styles.label}>{strings('app_settings.network_name_label')}</Text>
 						<TextInput
 							style={[styles.input, inputWidth]}
