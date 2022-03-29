@@ -62,23 +62,11 @@ const DetectedTokens = () => {
 	);
 	const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>({});
 
-	const triggerIgnoreAllTokens = () => {
+	const dismissModalAndTriggerAction = () => {
 		const { TokensController } = Engine.context as any;
-		navigation.navigate('DetectedTokensConfirmation', {
-			onConfirm: async () => {
-				modalRef.current?.dismissModal(async () => {
-					try {
-						await TokensController.ignoreTokens(detectedTokens);
-					} catch (err) {
-						Logger.log(err, 'DetectedTokens: Failed to ignore all tokens!');
-					}
-				});
-			},
-		});
-	};
-
-	const triggerImportTokens = async () => {
-		const { TokensController } = Engine.context as any;
+		let title = '';
+		let description = '';
+		let errorMsg = '';
 		const tokensToIgnore: TokenType[] = [];
 		const tokensToImport = detectedTokens.filter((token) => {
 			const isIgnored = ignoredTokens[token.address];
@@ -87,49 +75,53 @@ const DetectedTokens = () => {
 			}
 			return !isIgnored;
 		});
-		if (!tokensToIgnore.length) {
+
+		if (tokensToImport.length === 0 && tokensToIgnore.length > 0) {
+			// Ignoring all tokens
+			title = strings('wallet.tokens_ignored_notif_title');
+			description = strings('wallet.tokens_ignored_notif_desc');
+			errorMsg = 'DetectedTokens: Failed to ignore all detected tokens!';
+		} else if (
+			(tokensToImport.length > 0 && tokensToIgnore.length > 0) ||
+			(tokensToImport.length > 0 && tokensToIgnore.length === 0)
+		) {
+			// At least some tokens are imported
+			title = strings('wallet.tokens_imported_notif_title');
+			description = strings('wallet.tokens_imported_notif_desc', {
+				tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
+			});
+			errorMsg = 'DetectedTokens: Failed to import detected tokens!';
+		}
+
+		modalRef.current?.dismissModal(async () => {
+			try {
+				tokensToIgnore && (await TokensController.ignoreTokens(tokensToIgnore));
+				tokensToImport && (await TokensController.importTokens(tokensToImport));
+				NotificationManager.showSimpleNotification({
+					status: `simple_notification`,
+					duration: 5000,
+					title,
+					description,
+				});
+			} catch (err) {
+				Logger.log(err, errorMsg);
+			}
+		});
+	};
+
+	const triggerOpenConfirmModal = () => {
+		navigation.navigate('DetectedTokensConfirmation', {
+			onConfirm: dismissModalAndTriggerAction,
+		});
+	};
+
+	const triggerImportTokens = async () => {
+		if (Object.keys(ignoredTokens).length === 0) {
 			// Import all tokens
-			modalRef.current?.dismissModal(async () => {
-				try {
-					await TokensController.importTokens(tokensToImport);
-					NotificationManager.showSimpleNotification({
-						status: `simple_notification`,
-						duration: 5000,
-						title: strings('wallet.tokens_imported_notif_title'),
-						description: strings('wallet.tokens_imported_notif_desc', {
-							tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
-						}),
-					});
-				} catch (err) {
-					Logger.log(err, 'DetectedTokens: Failed to import all detected tokens!');
-				}
-			});
+			dismissModalAndTriggerAction();
 		} else {
-			// Prompt confirmation to acknowledge ignored tokens
-			navigation.navigate('DetectedTokensConfirmation', {
-				onConfirm: async () => {
-					modalRef.current?.dismissModal(async () => {
-						try {
-							tokensToIgnore.length && (await TokensController.ignoreTokens(tokensToIgnore));
-							if (tokensToImport.length) {
-								await TokensController.importTokens(tokensToImport);
-								NotificationManager.showSimpleNotification({
-									status: `simple_notification`,
-									duration: 5000,
-									title: strings('wallet.tokens_imported_notif_title'),
-									description: strings('wallet.tokens_imported_notif_desc', {
-										tokenSymbols: tokensToImport
-											.map((token) => token.symbol.toUpperCase())
-											.join(', '),
-									}),
-								});
-							}
-						} catch (err) {
-							Logger.log(err, 'DetectedTokens: Failed to both ignore and import tokens!');
-						}
-					});
-				},
-			});
+			// Handle ignoring all or mix of imports and ignored tokens
+			triggerOpenConfirmModal();
 		}
 	};
 
@@ -177,12 +169,12 @@ const DetectedTokens = () => {
 
 	const renderButtons = () => (
 		<View style={styles.buttonsContainer}>
-			<StyledButton onPress={triggerIgnoreAllTokens} containerStyle={styles.fill} type={'normal'}>
-				{'Ignore All'}
+			<StyledButton onPress={triggerOpenConfirmModal} containerStyle={styles.fill} type={'normal'}>
+				{strings('wallet.tokens_detected_hide')}
 			</StyledButton>
 			<View style={styles.buttonDivider} />
 			<StyledButton onPress={triggerImportTokens} containerStyle={styles.fill} type={'confirm'}>
-				{'Import'}
+				{strings('wallet.tokens_detected_import')}
 			</StyledButton>
 		</View>
 	);
