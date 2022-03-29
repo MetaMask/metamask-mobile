@@ -8,7 +8,6 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 import ListItem from './ListItem';
 import Text from './Text';
-import { colors } from '../../styles/common';
 
 const exampleItems = [
 	{
@@ -71,7 +70,6 @@ storiesOf('Base / ListItem', module)
 						<TouchableOpacity
 							style={{
 								borderBottomWidth: StyleSheet.hairlineWidth,
-								borderColor: colors.grey100,
 							}}
 							onPress={action(`onPress ${item.title}`)}
 						>

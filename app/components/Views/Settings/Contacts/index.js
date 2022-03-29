@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
-import { colors } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -9,17 +8,19 @@ import AddressList from '../../SendFlow/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import ActionSheet from 'react-native-actionsheet';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	addContact: {
-		marginHorizontal: 24,
-		marginBottom: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		addContact: {
+			marginHorizontal: 24,
+			marginBottom: 16,
+		},
+	});
 
 const EDIT = 'edit';
 const ADD = 'add';
@@ -28,9 +29,6 @@ const ADD = 'add';
  * View that contains app information
  */
 class Contacts extends PureComponent {
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.contacts_title'), navigation);
-
 	static propTypes = {
 		/**
 		 * Map representing the address book
@@ -53,7 +51,20 @@ class Contacts extends PureComponent {
 	actionSheet;
 	contactAddressToRemove;
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.contacts_title'), navigation, false, colors)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
 	componentDidUpdate = (prevProps) => {
+		this.updateNavBar();
 		const { network } = this.props;
 		if (
 			prevProps.addressBook &&
@@ -96,16 +107,16 @@ class Contacts extends PureComponent {
 		this.props.navigation.navigate('ContactForm', { mode: ADD });
 	};
 
-	goToEditContact = () => {
-		this.props.navigation.navigate('ContactsEdit');
-	};
-
 	createActionSheetRef = (ref) => {
 		this.actionSheet = ref;
 	};
 
 	render = () => {
 		const { reloadAddressList } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'contacts-screen'}>
 				<AddressList
@@ -130,11 +141,14 @@ class Contacts extends PureComponent {
 					destructiveButtonIndex={0}
 					// eslint-disable-next-line react/jsx-no-bind
 					onPress={(index) => (index === 0 ? this.deleteContact() : null)}
+					theme={themeAppearance}
 				/>
 			</SafeAreaView>
 		);
 	};
 }
+
+Contacts.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	addressBook: state.engine.backgroundState.AddressBookController.addressBook,

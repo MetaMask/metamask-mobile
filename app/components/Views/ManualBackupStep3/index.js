@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
 import AsyncStorage from '@react-native-community/async-storage';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -26,55 +26,57 @@ import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ONBOARDING_WIZARD, SEED_PHRASE_HINTS } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	mainWrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	actionView: {
-		paddingTop: 40,
-	},
-	wrapper: {
-		flex: 1,
-		paddingHorizontal: 50,
-	},
-	onBoardingWrapper: {
-		paddingHorizontal: 20,
-	},
-	congratulations: {
-		fontSize: Device.isMediumDevice() ? 28 : 32,
-		marginBottom: 12,
-		color: colors.fontPrimary,
-		justifyContent: 'center',
-		textAlign: 'center',
-		...fontStyles.bold,
-	},
-	baseText: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		textAlign: 'center',
-		...fontStyles.normal,
-	},
-	successText: {
-		marginBottom: 32,
-	},
-	hintText: {
-		marginBottom: 26,
-		color: colors.blue,
-	},
-	learnText: {
-		color: colors.blue,
-	},
-	recoverText: {
-		marginBottom: 26,
-	},
-	emoji: {
-		textAlign: 'center',
-		fontSize: 65,
-		marginBottom: 16,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		mainWrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		actionView: {
+			paddingTop: 40,
+		},
+		wrapper: {
+			flex: 1,
+			paddingHorizontal: 50,
+		},
+		onBoardingWrapper: {
+			paddingHorizontal: 20,
+		},
+		congratulations: {
+			fontSize: Device.isMediumDevice() ? 28 : 32,
+			marginBottom: 12,
+			color: colors.text.default,
+			justifyContent: 'center',
+			textAlign: 'center',
+			...fontStyles.bold,
+		},
+		baseText: {
+			fontSize: 16,
+			color: colors.text.default,
+			textAlign: 'center',
+			...fontStyles.normal,
+		},
+		successText: {
+			marginBottom: 32,
+		},
+		hintText: {
+			marginBottom: 26,
+			color: colors.primary.default,
+		},
+		learnText: {
+			color: colors.primary.default,
+		},
+		recoverText: {
+			marginBottom: 26,
+		},
+		emoji: {
+			textAlign: 'center',
+			fontSize: 65,
+			marginBottom: 16,
+		},
+	});
 
 const hardwareBackPress = () => ({});
 const HARDWARE_BACK_PRESS = 'hardwareBackPress';
@@ -84,8 +86,6 @@ const HARDWARE_BACK_PRESS = 'hardwareBackPress';
  * the backup seed phrase flow
  */
 class ManualBackupStep3 extends PureComponent {
-	static navigationOptions = ({ navigation }) => getTransparentOnboardingNavbarOptions(navigation);
-
 	constructor(props) {
 		super(props);
 		this.steps = props.route.params?.steps;
@@ -108,11 +108,18 @@ class ManualBackupStep3 extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+	};
+
 	componentWillUnmount = () => {
 		BackHandler.removeEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
 	};
 
 	componentDidMount = async () => {
+		this.updateNavBar();
 		const currentSeedphraseHints = await AsyncStorage.getItem(SEED_PHRASE_HINTS);
 		const parsedHints = currentSeedphraseHints && JSON.parse(currentSeedphraseHints);
 		const manualBackup = parsedHints?.manualBackup;
@@ -123,6 +130,10 @@ class ManualBackupStep3 extends PureComponent {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_COMPLETED);
 		});
 		BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	toggleHint = () => {
@@ -189,6 +200,9 @@ class ManualBackupStep3 extends PureComponent {
 	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.mainWrapper}>
 				<Confetti />
@@ -232,6 +246,8 @@ class ManualBackupStep3 extends PureComponent {
 		);
 	}
 }
+
+ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),

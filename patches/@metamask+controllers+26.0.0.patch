@@ -1,0 +1,200 @@
+diff --git a/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js b/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
+index 5c55cd9..e07b7c8 100644
+--- a/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
++++ b/node_modules/@metamask/controllers/dist/assets/AssetsContractController.js
+@@ -265,11 +265,10 @@ class AssetsContractController extends BaseController_1.BaseController {
+      */
+     getBalancesInSingleCall(selectedAddress, tokensToDetect) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth
+-                .contract(single_call_balance_checker_abi_1.default)
+-                .at(SINGLE_CALL_BALANCES_ADDRESS);
++            const contract = new this.web3.eth
++                .Contract(single_call_balance_checker_abi_1.default, SINGLE_CALL_BALANCES_ADDRESS);
+             return new Promise((resolve, reject) => {
+-                contract.balances([selectedAddress], tokensToDetect, (error, result) => {
++                contract.methods.balances([selectedAddress], tokensToDetect).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -281,7 +280,7 @@ class AssetsContractController extends BaseController_1.BaseController {
+                         tokensToDetect.forEach((tokenAddress, index) => {
+                             const balance = result[index];
+                             /* istanbul ignore else */
+-                            if (!balance.isZero()) {
++                            if (String(balance) !== '0') {
+                                 nonZeroBalances[tokenAddress] = balance;
+                             }
+                         });
+diff --git a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js
+index 09eb7cf..85c6ca8 100644
+--- a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js
++++ b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC1155/ERC1155Standard.js
+@@ -50,9 +50,9 @@ class ERC1155Standard {
+          * @returns Promise resolving to the 'tokenURI'.
+          */
+         this.getTokenURI = (address, tokenId) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC1155).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC1155, address);
+             return new Promise((resolve, reject) => {
+-                contract.uri(tokenId, (error, result) => {
++                contract.methods.uri(tokenId).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -71,9 +71,9 @@ class ERC1155Standard {
+          * @returns Promise resolving to the 'balanceOf'.
+          */
+         this.getBalanceOf = (contractAddress, address, tokenId) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC1155).at(contractAddress);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC1155, contractAddress);
+             return new Promise((resolve, reject) => {
+-                contract.balanceOf(address, tokenId, (error, result) => {
++                contract.methods.balanceOf(address, tokenId).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -96,9 +96,9 @@ class ERC1155Standard {
+          * @returns Promise resolving to the 'transferSingle'.
+          */
+         this.transferSingle = (operator, from, to, id, value) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC1155).at(operator);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC1155, operator);
+             return new Promise((resolve, reject) => {
+-                contract.transferSingle(operator, from, to, id, value, (error, result) => {
++                contract.methods.transferSingle(operator, from, to, id, value).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -116,9 +116,9 @@ class ERC1155Standard {
+          * @returns Promise resolving to whether the contract implements `interfaceID`.
+          */
+         this.contractSupportsInterface = (address, interfaceId) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC1155).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC1155, address);
+             return new Promise((resolve, reject) => {
+-                contract.supportsInterface(interfaceId, (error, result) => {
++                contract.methods.supportsInterface(interfaceId).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+diff --git a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js
+index 0e0b926..e574f14 100644
+--- a/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js
++++ b/node_modules/@metamask/controllers/dist/assets/Standards/CollectibleStandards/ERC721/ERC721Standard.js
+@@ -51,9 +51,9 @@ class ERC721Standard {
+          * @returns Promise resolving to token identifier for the 'index'th asset assigned to 'selectedAddress'.
+          */
+         this.getCollectibleTokenId = (address, selectedAddress, index) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC721).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC721, address);
+             return new Promise((resolve, reject) => {
+-                contract.tokenOfOwnerByIndex(selectedAddress, index, (error, result) => {
++                contract.methods.tokenOfOwnerByIndex(selectedAddress, index).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -71,13 +71,13 @@ class ERC721Standard {
+          * @returns Promise resolving to the 'tokenURI'.
+          */
+         this.getTokenURI = (address, tokenId) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC721).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC721, address);
+             const supportsMetadata = yield this.contractSupportsMetadataInterface(address);
+             if (!supportsMetadata) {
+                 throw new Error('Contract does not support ERC721 metadata interface.');
+             }
+             return new Promise((resolve, reject) => {
+-                contract.tokenURI(tokenId, (error, result) => {
++                contract.methods.tokenURI(tokenId).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -94,9 +94,9 @@ class ERC721Standard {
+          * @returns Promise resolving to the 'name'.
+          */
+         this.getAssetName = (address) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC721).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC721, address);
+             return new Promise((resolve, reject) => {
+-                contract.name((error, result) => {
++                contract.methods.name().call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -113,9 +113,9 @@ class ERC721Standard {
+          * @returns Promise resolving to the 'symbol'.
+          */
+         this.getAssetSymbol = (address) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC721).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC721, address);
+             return new Promise((resolve, reject) => {
+-                contract.symbol((error, result) => {
++                contract.methods.symbol().call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -133,9 +133,9 @@ class ERC721Standard {
+          * @returns Promise resolving to whether the contract implements `interfaceID`.
+          */
+         this.contractSupportsInterface = (address, interfaceId) => __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC721).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC721, address);
+             return new Promise((resolve, reject) => {
+-                contract.supportsInterface(interfaceId, (error, result) => {
++                contract.methods.supportsInterface(interfaceId).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -204,9 +204,9 @@ class ERC721Standard {
+      */
+     getOwnerOf(address, tokenId) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC721).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC721, address);
+             return new Promise((resolve, reject) => {
+-                contract.ownerOf(tokenId, (error, result) => {
++                contract.methods.ownerOf(tokenId).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+diff --git a/node_modules/@metamask/controllers/dist/assets/Standards/ERC20Standard.js b/node_modules/@metamask/controllers/dist/assets/Standards/ERC20Standard.js
+index 5300699..df812c7 100644
+--- a/node_modules/@metamask/controllers/dist/assets/Standards/ERC20Standard.js
++++ b/node_modules/@metamask/controllers/dist/assets/Standards/ERC20Standard.js
+@@ -25,9 +25,9 @@ class ERC20Standard {
+      */
+     getBalanceOf(address, selectedAddress) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC20).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC20, address);
+             return new Promise((resolve, reject) => {
+-                contract.balanceOf(selectedAddress, (error, result) => {
++                contract.methods.balanceOf(selectedAddress).call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -46,9 +46,9 @@ class ERC20Standard {
+      */
+     getTokenDecimals(address) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC20).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC20, address);
+             return new Promise((resolve, reject) => {
+-                contract.decimals((error, result) => {
++                contract.methods.decimals().call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);
+@@ -67,9 +67,9 @@ class ERC20Standard {
+      */
+     getTokenSymbol(address) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const contract = this.web3.eth.contract(metamask_eth_abis_1.abiERC20).at(address);
++            const contract = new this.web3.eth.Contract(metamask_eth_abis_1.abiERC20, address);
+             return new Promise((resolve, reject) => {
+-                contract.symbol((error, result) => {
++                contract.methods.symbol().call((error, result) => {
+                     /* istanbul ignore if */
+                     if (error) {
+                         reject(error);

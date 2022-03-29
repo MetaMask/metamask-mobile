@@ -10,17 +10,23 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	expandedMessage: {
-		textAlign: 'center',
-		...fontStyles.regular,
-		fontSize: 14,
-	},
-	messageWrapper: {
-		marginBottom: 4,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		expandedMessage: {
+			textAlign: 'center',
+			...fontStyles.regular,
+			fontSize: 14,
+			color: colors.text.default,
+		},
+		messageText: {
+			color: colors.text.default,
+		},
+		messageWrapper: {
+			marginBottom: 4,
+		},
+	});
 
 /**
  * Component that supports eth_sign
@@ -128,20 +134,28 @@ export default class MessageSign extends PureComponent {
 		this.props.onConfirm();
 	};
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderMessageText = () => {
 		const { messageParams, showExpandedMessage } = this.props;
 		const { truncateMessage } = this.state;
+		const styles = this.getStyles();
 
 		let messageText;
 		if (showExpandedMessage) {
 			messageText = <Text style={styles.expandedMessage}>{messageParams.data}</Text>;
 		} else {
 			messageText = truncateMessage ? (
-				<Text numberOfLines={5} ellipsizeMode={'tail'}>
+				<Text style={styles.messageText} numberOfLines={5} ellipsizeMode={'tail'}>
 					{messageParams.data}
 				</Text>
 			) : (
-				<Text onTextLayout={this.shouldTruncateMessage}>{messageParams.data}</Text>
+				<Text style={styles.messageText} onTextLayout={this.shouldTruncateMessage}>
+					{messageParams.data}
+				</Text>
 			);
 		}
 		return messageText;
@@ -157,6 +171,8 @@ export default class MessageSign extends PureComponent {
 
 	render() {
 		const { currentPageInformation, navigation, showExpandedMessage, toggleExpandedMessage } = this.props;
+		const styles = this.getStyles();
+
 		const rootView = showExpandedMessage ? (
 			<ExpandedMessage
 				currentPageInformation={currentPageInformation}
@@ -181,3 +197,5 @@ export default class MessageSign extends PureComponent {
 		return rootView;
 	}
 }
+
+MessageSign.contextType = ThemeContext;

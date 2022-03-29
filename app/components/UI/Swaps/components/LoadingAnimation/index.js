@@ -8,9 +8,9 @@ import { strings } from '../../../../../../locales/i18n';
 
 import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
-import { colors } from '../../../../../styles/common';
 import Fox from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
+import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
@@ -28,58 +28,66 @@ const PAN_RADIO = STAGE_SIZE * 0.6;
 // "finalizing" animationg
 const FINALIZING_PERCENTAGE = 80;
 
-const styles = StyleSheet.create({
-	screen: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	content: {
-		width: '100%',
-		paddingHorizontal: 60,
-		marginVertical: 15,
-	},
-	progressWrapper: {
-		backgroundColor: colors.grey100,
-		height: 3,
-		borderRadius: 3,
-		marginVertical: 15,
-	},
-	progressBar: {
-		backgroundColor: colors.blue,
-		height: 3,
-		width: 3,
-		borderRadius: 3,
-		flex: 1,
-	},
-	aggContainer: {
-		position: 'absolute',
-		backgroundColor: colors.black,
-		paddingHorizontal: 10,
-		paddingVertical: 5,
-		borderRadius: 20,
-		opacity: 0,
-		top: '50%',
-		left: '50%',
-		shadowOffset: {
-			width: 0,
-			height: 4,
+const createStyles = (colors) =>
+	StyleSheet.create({
+		screen: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+			backgroundColor: colors.background.default,
 		},
-		shadowOpacity: 0.45,
-		shadowRadius: 10,
-		elevation: 15,
-	},
-	aggImage: {
-		width: 75,
-		height: 30,
-	},
-	foxContainer: {
-		width: STAGE_SIZE,
-		height: STAGE_SIZE,
-	},
-});
+		content: {
+			width: '100%',
+			paddingHorizontal: 60,
+			marginVertical: 15,
+		},
+		progressWrapper: {
+			backgroundColor: colors.primary.muted,
+			height: 3,
+			borderRadius: 3,
+			marginVertical: 15,
+		},
+		progressBar: {
+			backgroundColor: colors.primary.default,
+			height: 3,
+			width: 3,
+			borderRadius: 3,
+			flex: 1,
+		},
+		aggContainer: {
+			position: 'absolute',
+			backgroundColor: colors.background.default,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
+			borderRadius: 20,
+			opacity: 0,
+			top: '50%',
+			left: '50%',
+			shadowOffset: {
+				width: 0,
+				height: 4,
+			},
+			shadowOpacity: 0.45,
+			shadowRadius: 10,
+			elevation: 15,
+		},
+		aggImage: {
+			width: 75,
+			height: 30,
+		},
+		foxContainer: {
+			width: STAGE_SIZE,
+			height: STAGE_SIZE,
+		},
+		text: {
+			color: colors.text.default,
+		},
+	});
 
-const customStyle = `
+const customStyle = (colors) => `
+	body {
+		background-color: ${colors.background.default};
+	}
 	#head {
 		height: 35%;
 		top: 50%;
@@ -124,6 +132,9 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 		inputRange: [0, 100],
 		outputRange: ['0%', '100%'],
 	});
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	/* Animation constructions */
 
@@ -372,7 +383,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 			<View style={styles.content}>
 				{headPan ? (
 					<>
-						<Text small centered>
+						<Text style={styles.text} small centered>
 							{hasStarted ? (
 								<>
 									{strings('swaps.quote')}{' '}
@@ -384,17 +395,27 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 								''
 							)}
 						</Text>
-						{!hasStarted && <Title centered>{strings('swaps.starting')}</Title>}
+						{!hasStarted && (
+							<Title style={styles.text} centered>
+								{strings('swaps.starting')}
+							</Title>
+						)}
 						{hasStarted && !hasFinished && (
-							<Title centered>
+							<Title style={styles.text} centered>
 								{strings('swaps.checking')} {metadata[currentQuoteIndex]?.title}...
 							</Title>
 						)}
-						{hasFinished && <Title centered>{strings('swaps.finalizing')}</Title>}
+						{hasFinished && (
+							<Title style={styles.text} centered>
+								{strings('swaps.finalizing')}
+							</Title>
+						)}
 					</>
 				) : (
 					<>
-						<Title centered>{strings('swaps.fetching_quotes')}</Title>
+						<Title style={styles.text} centered>
+							{strings('swaps.fetching_quotes')}
+						</Title>
 					</>
 				)}
 
@@ -406,7 +427,7 @@ function LoadingAnimation({ finish, onAnimationEnd, aggregatorMetadata, headPan 
 				<Fox
 					ref={foxRef}
 					customContent={backgroundShapes}
-					customStyle={customStyle}
+					customStyle={customStyle(colors)}
 					renderLoading={() => null}
 				/>
 				{renderLogos &&

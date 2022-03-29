@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { ViewPropTypes, Text } from 'react-native';
 import Button from 'react-native-button';
 import getStyles from './styledButtonStyles';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 /**
  * UI component that renders a styled button
@@ -64,7 +65,8 @@ export default class StyledButton extends PureComponent {
 	render = () => {
 		const { type, onPress, onPressOut, style, children, disabled, styleDisabled, testID, disabledContainerStyle } =
 			this.props;
-		const { fontStyle, containerStyle } = getStyles(type);
+		const colors = this.context.colors || mockTheme.colors;
+		const { fontStyle, containerStyle } = getStyles(type, colors);
 
 		return (
 			<Button
@@ -82,3 +84,5 @@ export default class StyledButton extends PureComponent {
 		);
 	};
 }
+
+StyledButton.contextType = ThemeContext;

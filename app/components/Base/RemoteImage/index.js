@@ -9,6 +9,7 @@ import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { util } from '@metamask/controllers';
+import { colors as importedColors } from '../../../styles/common';
 
 const RemoteImage = (props) => {
 	// Avoid using this component with animated SVG
@@ -42,7 +43,7 @@ const RemoteImage = (props) => {
 		return (
 			<ComponentErrorBoundary onError={props.onError} componentLabel="RemoteImage-SVG">
 				<View style={style}>
-					<SvgUri {...props} uri={uri} width={'100%'} height={'100%'} fill={'black'} />
+					<SvgUri {...props} uri={uri} width={'100%'} height={'100%'} fill={importedColors.black} />
 				</View>
 			</ComponentErrorBoundary>
 		);

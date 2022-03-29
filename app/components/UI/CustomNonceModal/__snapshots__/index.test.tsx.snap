@@ -7,8 +7,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={600}
   avoidKeyboard={false}
-  backdropColor="black"
-  backdropOpacity={0.7}
+  backdropColor="#00000099"
+  backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
   coverScreen={true}
@@ -98,7 +98,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#24292E",
+              "color": "#24272A",
               "fontSize": 14,
             }
           }
@@ -122,17 +122,18 @@ exports[`CustomNonceModal should render correctly 1`] = `
             autoCapitalize="none"
             autoCorrect={false}
             editable={true}
+            keyboardAppearance="light"
             keyboardType="numeric"
             numberOfLines={1}
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="26"
-            placeholderTextColor="#d6d9dc"
+            placeholderTextColor="#BBC0C5"
             showSoftInputOnFocus={false}
             spellCheck={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
                 "fontWeight": "600",
@@ -161,7 +162,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           strikethrough={false}
           style={
             Object {
-              "color": "#6a737d",
+              "color": "#535A61",
               "fontSize": 14,
               "marginBottom": 10,
             }
@@ -216,7 +217,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037dd6",
+                  "color": "#037DD6",
                 }
               }
             />
@@ -235,7 +236,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               size={64}
               style={
                 Object {
-                  "color": "#037dd6",
+                  "color": "#037DD6",
                 }
               }
             />
@@ -251,7 +252,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#fffcdb",
+                "backgroundColor": "#FFD33D19",
                 "borderColor": "#FFD33D",
                 "borderRadius": 8,
                 "borderWidth": 1,
@@ -293,7 +294,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               strikethrough={false}
               style={
                 Object {
-                  "color": "#24292E",
+                  "color": "#24272A",
                   "flex": 1,
                   "fontSize": 12,
                   "lineHeight": 16,
@@ -323,7 +324,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             strikethrough={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "#24272A",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -351,7 +352,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             strikethrough={false}
             style={
               Object {
-                "color": "#24292E",
+                "color": "#24272A",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
