@@ -6,14 +6,15 @@ import { WebView } from 'react-native-webview';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { allowedCallbackBaseUrls } from '../orderProcessor';
+import { callbackBaseUrl } from '../orderProcessor';
 import { useFiatOnRampSDK } from '../sdk';
 import WebviewError from '../../WebviewError';
-import { FIAT_ORDER_PROVIDERS, NETWORK_ALLOWED_TOKENS, NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
+import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
+import { processAggregatorOrder } from '../orderProcessor/aggregator';
 
 const CheckoutWebView = () => {
 	const { sdk, selectedAddress, selectedChainId } = useFiatOnRampSDK();
@@ -28,38 +29,21 @@ const CheckoutWebView = () => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Checkout' }, colors));
 	}, [navigation, colors]);
 
-	// util methods
-	const transformOrder = (order) => ({
-		...order,
-		provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
-		network: selectedChainId,
-		amount: order.fiatAmount,
-		fee: order.totalFeesFiat,
-		currency: order.fiatCurrency?.symbol,
-		cryptoCurrency: order.cryptoCurrency?.symbol,
-		providerInfo: order.provider,
-		state: order.status,
-		account: order.walletAddress,
-		data: order,
-	});
-
-	const addTokenToTokensController = async (symbol, chainId) => {
+	// eslint-disable-next-line no-unused-vars
+	const addTokenToTokensController = async (token) => {
 		const { TokensController } = Engine.context;
+		const { address, symbol, decimals, network } = token;
+
+		const chainId = network || selectedChainId;
+
 		if (NETWORK_NATIVE_SYMBOL[chainId] !== symbol) {
-			const newToken = (NETWORK_ALLOWED_TOKENS[chainId] || []).find(
-				({ symbol: tokenSymbol }) => symbol === tokenSymbol
-			);
-			if (
-				newToken &&
-				!TokensController.state.tokens.includes((token) => toLowerCaseEquals(token.address, newToken.address))
-			) {
-				const { address, symbol, decimals } = newToken;
+			if (!TokensController.state.tokens.includes((t) => toLowerCaseEquals(t.address, address))) {
 				await TokensController.addToken(address, symbol, decimals);
 			}
 		}
 	};
 
-	const handleDispatchOrder = useCallback(
+	const handleAddFiatOrder = useCallback(
 		(order) => {
 			dispatch(addFiatOrder(order));
 		},
@@ -71,15 +55,14 @@ const CheckoutWebView = () => {
 	}, [dispatch]);
 
 	const handleNavigationStateChange = async (navState) => {
-		if (allowedCallbackBaseUrls.some((callbackBaseUrl) => navState?.url.startsWith(callbackBaseUrl))) {
+		if (navState?.url.startsWith(callbackBaseUrl)) {
 			try {
 				const orderId = await sdk.getOrderIdFromCallback(params?.providerId, navState?.url);
-				const order = await sdk.getOrder(orderId, selectedAddress);
-				const transformedOrder = transformOrder(order);
+				const transformedOrder = await processAggregatorOrder({ id: orderId, account: selectedAddress }, sdk);
 				// add the order to the redux global store
-				handleDispatchOrder(transformedOrder);
+				handleAddFiatOrder(transformedOrder);
 				// register the token automatically
-				await addTokenToTokensController(transformOrder?.cryptoCurrency, selectedChainId);
+				// await addTokenToTokensController(transformedOrder?.cryptoCurrency);
 				// prompt user to protect his/her wallet
 				handleDispatchUserWalletProtection();
 				// close the checkout webview

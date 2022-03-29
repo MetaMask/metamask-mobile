@@ -26,11 +26,6 @@ function processOrder(order, sdk) {
 	}
 }
 
-export const allowedCallbackBaseUrls = [
-	'http://dummy.url.metamask.io',
-	'https://dummy.url.metamask.io',
-	'http://about:blank',
-	'https://about:blank',
-];
+export const callbackBaseUrl = 'https://dummy.url.metamask.io';
 
 export default processOrder;

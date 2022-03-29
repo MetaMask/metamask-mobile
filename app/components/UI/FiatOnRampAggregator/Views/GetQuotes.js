@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
+import { callbackBaseUrl } from '../orderProcessor';
 
 const styles = StyleSheet.create({
 	row: {
@@ -40,7 +41,7 @@ const GetQuotes = () => {
 		selectedFiatCurrencyId,
 		params.amount,
 		selectedAddress,
-		'https://dummy.url.metamask.io'
+		callbackBaseUrl
 	);
 
 	useEffect(() => {
