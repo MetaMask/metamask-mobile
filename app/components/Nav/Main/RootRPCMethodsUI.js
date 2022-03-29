@@ -46,6 +46,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { networkSwitched } from '../../../actions/onboardNetwork';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -487,6 +488,7 @@ const RootRPCMethodsUI = (props) => {
 	const onSwitchCustomNetworkConfirm = () => {
 		setShowPendingApproval(false);
 		acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
+		props.networkSwitched({ networkUrl: customNetworkToSwitch.data.rpcUrl, networkStatus: true });
 	};
 
 	/**
@@ -718,6 +720,10 @@ RootRPCMethodsUI.propTypes = {
 	 * Chain id
 	 */
 	chainId: PropTypes.string,
+	/**
+	 * updates redux when network is switched
+	 */
+	networkSwitched: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -735,6 +741,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
+	networkSwitched: ({ networkUrl, networkStatus }) => dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
