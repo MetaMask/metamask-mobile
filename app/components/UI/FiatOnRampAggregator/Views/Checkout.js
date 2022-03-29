@@ -32,7 +32,11 @@ const CheckoutWebView = () => {
 		const { address, symbol, decimals, network } = token;
 		const chainId = network || selectedChainId;
 
-		if (!token || NETWORK_NATIVE_SYMBOL[chainId.toString()] === symbol) {
+		if (
+			!token ||
+			Number(network) !== Number(selectedChainId) ||
+			NETWORK_NATIVE_SYMBOL[chainId.toString()] === symbol
+		) {
 			return;
 		}
 
