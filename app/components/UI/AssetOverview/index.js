@@ -215,7 +215,7 @@ class AssetOverview extends PureComponent {
 		}
 		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
 
-		return iconUrl ? <AssetIcon logo={iconUrl} /> : <Identicon address={address} />;
+		return iconUrl ? <AssetIcon address={address} logo={iconUrl} /> : <Identicon address={address} />;
 	};
 
 	componentDidMount = async () => {

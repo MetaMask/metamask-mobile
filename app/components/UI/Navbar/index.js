@@ -708,9 +708,15 @@ export function getWalletNavbarOptions(title, navigation, drawerRef) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
-export function getNetworkNavbarOptions(title, translate, navigation, onRightPress = undefined) {
+export function getNetworkNavbarOptions(
+	title,
+	translate,
+	navigation,
+	onRightPress = undefined,
+	disableNetwork = false
+) {
 	return {
-		headerTitle: () => <NavbarTitle title={title} translate={translate} />,
+		headerTitle: () => <NavbarTitle disableNetwork={disableNetwork} title={title} translate={translate} />,
 		headerLeft: () => (
 			// eslint-disable-next-line react/jsx-no-bind
 			<TouchableOpacity onPress={() => navigation.pop()} style={styles.backButton} testID={'asset-back-button'}>
@@ -726,6 +732,7 @@ export function getNetworkNavbarOptions(title, translate, navigation, onRightPre
 					<TouchableOpacity style={styles.backButton} onPress={onRightPress}>
 						<MaterialCommunityIcon name={'dots-horizontal'} size={28} style={styles.backIcon} />
 					</TouchableOpacity>
+					// eslint-disable-next-line no-mixed-spaces-and-tabs
 			  )
 			: () => <View />,
 	};

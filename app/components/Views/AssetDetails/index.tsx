@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { colors, fontStyles } from '../../../styles/common';
@@ -22,30 +22,21 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.white,
 		alignItems: 'flex-start',
 	},
-	balanceContainer: { marginTop: 8 },
-	balanceAmountLabel: {
-		...(fontStyles.bold as any),
-		fontSize: 32,
-		color: colors.black,
-		marginTop: 8,
-	},
-	fiatAmountLabel: {
-		...(fontStyles.normal as any),
-		fontSize: 16,
-		color: colors.black,
-	},
-	tokenImage: { height: 50, width: 50 },
+	descriptionContainer: { marginTop: 4, flexDirection: 'row', alignItems: 'center' },
+	tokenImage: { height: 36, width: 36, marginRight: 8 },
 	sectionTitleLabel: {
 		...(fontStyles.bold as any),
 		fontSize: 16,
 		color: colors.black,
 		marginTop: 32,
 	},
-	sectionDescription: {
+	firstSectionTitle: {
+		marginTop: 8,
+	},
+	descriptionLabel: {
 		...(fontStyles.normal as any),
 		fontSize: 16,
 		color: colors.black,
-		marginTop: 4,
 	},
 	hideButton: {
 		marginTop: 48,
@@ -54,11 +45,6 @@ const styles = StyleSheet.create({
 		...(fontStyles.normal as any),
 		fontSize: 16,
 		color: colors.red,
-	},
-	addressLinkContainer: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginTop: 4,
 	},
 	addressLinkLabel: {
 		...(fontStyles.normal as any),
@@ -118,7 +104,7 @@ const AssetDetails = (props: Props) => {
 	};
 
 	useEffect(() => {
-		navigation.setOptions(getNetworkNavbarOptions('Token Details', false, navigation));
+		navigation.setOptions(getNetworkNavbarOptions('Token Details', false, navigation, undefined, true));
 	}, [navigation]);
 
 	const copyAddressToClipboard = async () => {
@@ -136,19 +122,21 @@ const AssetDetails = (props: Props) => {
 	const triggerIgnoreToken = () => {
 		const { TokensController } = Engine.context as any;
 		navigation.navigate('AssetHideConfirmation', {
-			onConfirm: async () => {
-				try {
-					await TokensController.removeAndIgnoreToken(address);
-					navigation.navigate('WalletView');
-					NotificationManager.showSimpleNotification({
-						status: `simple_notification`,
-						duration: 5000,
-						title: 'Token Ignored',
-						description: `Ignoring ${symbol} from wallet`,
-					});
-				} catch (err) {
-					Logger.log(err, 'AssetDetails: Failed to ignore token!');
-				}
+			onConfirm: () => {
+				navigation.navigate('WalletView');
+				InteractionManager.runAfterInteractions(async () => {
+					try {
+						await TokensController.removeAndIgnoreToken(address);
+						NotificationManager.showSimpleNotification({
+							status: `simple_notification`,
+							duration: 5000,
+							title: strings('wallet.token_hidden_notif_title'),
+							description: strings('wallet.token_hidden_notif_desc', { tokenSymbol: symbol }),
+						});
+					} catch (err) {
+						Logger.log(err, 'AssetDetails: Failed to ignore token!');
+					}
+				});
 			},
 		});
 	};
@@ -173,22 +161,29 @@ const AssetDetails = (props: Props) => {
 		</TouchableOpacity>
 	);
 
-	const renderBalanceSection = () =>
+	const renderSectionTitle = (title: string, isFirst?: boolean) => (
+		<Text style={[styles.sectionTitleLabel, isFirst && styles.firstSectionTitle]}>{title}</Text>
+	);
+
+	const renderSectionDescription = (description: string) => (
+		<Text style={[styles.descriptionLabel, styles.descriptionContainer]}>{description}</Text>
+	);
+
+	const renderTokenSymbol = () => (
+		<View style={styles.descriptionContainer}>
+			<TokenImage asset={asset} containerStyle={styles.tokenImage} iconStyle={styles.tokenImage} />
+			<Text style={styles.descriptionLabel}>{symbol}</Text>
+		</View>
+	);
+
+	const renderTokenBalance = () =>
 		balanceError ? (
 			renderWarning()
 		) : (
-			<View style={styles.balanceContainer}>
-				<TokenImage asset={asset} containerStyle={styles.tokenImage} iconStyle={styles.tokenImage} />
-				<Text style={styles.balanceAmountLabel}>{`${balance} ${symbol}`}</Text>
-				<Text style={styles.fiatAmountLabel}>{balanceFiat}</Text>
+			<View style={styles.descriptionContainer}>
+				<Text style={styles.descriptionLabel}>{`${balance}${balanceFiat ? ` (${balanceFiat})` : ''}`}</Text>
 			</View>
 		);
-
-	const renderSectionTitle = (title: string) => <Text style={styles.sectionTitleLabel}>{title}</Text>;
-
-	const renderSectionDescription = (description: string) => (
-		<Text style={styles.sectionDescription}>{description}</Text>
-	);
 
 	const renderHideButton = () => (
 		<TouchableOpacity
@@ -196,7 +191,7 @@ const AssetDetails = (props: Props) => {
 			hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
 			style={styles.hideButton}
 		>
-			<Text style={styles.hideButtonLabel}>{'Hide token'}</Text>
+			<Text style={styles.hideButtonLabel}>{strings('asset_details.hide_cta')}</Text>
 		</TouchableOpacity>
 	);
 
@@ -204,7 +199,7 @@ const AssetDetails = (props: Props) => {
 		<TouchableOpacity
 			hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
 			onPress={copyAddressToClipboard}
-			style={styles.addressLinkContainer}
+			style={styles.descriptionContainer}
 		>
 			<EthereumAddress style={styles.addressLinkLabel} address={address} type={'short'} />
 			<Icon style={styles.copyIcon} name={'copy'} size={16} />
@@ -213,14 +208,17 @@ const AssetDetails = (props: Props) => {
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
-			{renderBalanceSection()}
-			{renderSectionTitle('Token contract address')}
+			{renderSectionTitle(strings('asset_details.token'), true)}
+			{renderTokenSymbol()}
+			{renderSectionTitle(strings('asset_details.amount'))}
+			{renderTokenBalance()}
+			{renderSectionTitle(strings('asset_details.address'))}
 			{renderTokenAddressLink()}
-			{renderSectionTitle('Token decimal')}
+			{renderSectionTitle(strings('asset_details.decimal'))}
 			{renderSectionDescription(String(decimals))}
-			{renderSectionTitle('Network')}
+			{renderSectionTitle(strings('asset_details.network'))}
 			{renderSectionDescription(getNetworkName())}
-			{renderSectionTitle('Token lists')}
+			{renderSectionTitle(strings('asset_details.lists'))}
 			{renderSectionDescription(aggregators.join(', '))}
 			{renderHideButton()}
 		</ScrollView>

@@ -78,16 +78,16 @@ const DetectedTokens = () => {
 
 		if (tokensToImport.length === 0 && tokensToIgnore.length > 0) {
 			// Ignoring all tokens
-			title = strings('wallet.tokens_ignored_notif_title');
-			description = strings('wallet.tokens_ignored_notif_desc');
+			title = strings('wallet.token_toast.tokens_hidden_title');
+			description = strings('wallet.token_toast.tokens_hidden_desc');
 			errorMsg = 'DetectedTokens: Failed to ignore all detected tokens!';
 		} else if (
 			(tokensToImport.length > 0 && tokensToIgnore.length > 0) ||
 			(tokensToImport.length > 0 && tokensToIgnore.length === 0)
 		) {
 			// At least some tokens are imported
-			title = strings('wallet.tokens_imported_notif_title');
-			description = strings('wallet.tokens_imported_notif_desc', {
+			title = strings('wallet.token_toast.tokens_imported_title');
+			description = strings('wallet.token_toast.tokens_imported_desc', {
 				tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
 			});
 			errorMsg = 'DetectedTokens: Failed to import detected tokens!';
@@ -127,9 +127,8 @@ const DetectedTokens = () => {
 
 	const renderHeader = () => (
 		<Text style={styles.headerLabel}>
-			{strings('wallet.tokens_detected', {
+			{strings(`detected_tokens.title${detectedTokens.length > 1 ? '_plural' : ''}`, {
 				tokenCount: detectedTokens.length,
-				tokensLabel: detectedTokens.length > 1 ? 'tokens' : 'token',
 			})}
 		</Text>
 	);
@@ -170,11 +169,11 @@ const DetectedTokens = () => {
 	const renderButtons = () => (
 		<View style={styles.buttonsContainer}>
 			<StyledButton onPress={triggerOpenConfirmModal} containerStyle={styles.fill} type={'normal'}>
-				{strings('wallet.tokens_detected_hide')}
+				{strings('detected_tokens.hide_cta')}
 			</StyledButton>
 			<View style={styles.buttonDivider} />
 			<StyledButton onPress={triggerImportTokens} containerStyle={styles.fill} type={'confirm'}>
-				{strings('wallet.tokens_detected_import')}
+				{strings('detected_tokens.import_cta')}
 			</StyledButton>
 		</View>
 	);

@@ -58,20 +58,18 @@ const AssetHideConfirmation = ({ route }: Props) => {
 		modalRef.current?.dismissModal(onConfirm);
 	};
 
-	const renderHeader = () => <Text style={styles.headerLabel}>{strings('wallet.confirm_hide_token_title')}</Text>;
+	const renderHeader = () => <Text style={styles.headerLabel}>{strings('wallet.hide_token.title')}</Text>;
 
-	const renderDescription = () => (
-		<Text style={styles.description}>{strings('wallet.confirm_hide_token_description')}</Text>
-	);
+	const renderDescription = () => <Text style={styles.description}>{strings('wallet.hide_token.desc')}</Text>;
 
 	const renderButtons = () => (
 		<View style={styles.buttonsContainer}>
 			<StyledButton onPress={triggerCancel} containerStyle={styles.fill} type={'normal'}>
-				{strings('wallet.confirm_hide_token_cancel')}
+				{strings('wallet.hide_token.cancel_cta')}
 			</StyledButton>
 			<View style={styles.buttonDivider} />
 			<StyledButton onPress={triggerConfirm} containerStyle={styles.fill} type={'confirm'}>
-				{strings('wallet.confirm_hide_token_confirm')}
+				{strings('wallet.hide_token.confirm_cta')}
 			</StyledButton>
 		</View>
 	);

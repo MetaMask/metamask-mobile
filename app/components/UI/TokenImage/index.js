@@ -23,7 +23,7 @@ const TokenImage = ({ asset, containerStyle, iconStyle, tokenList }) => {
 	return (
 		<View style={[styles.itemLogoWrapper, containerStyle, styles.roundImage]}>
 			{iconUrl ? (
-				<AssetIcon logo={iconUrl} customStyle={iconStyle} />
+				<AssetIcon address={asset?.address} logo={iconUrl} customStyle={iconStyle} />
 			) : (
 				<Identicon address={asset.address} customStyle={iconStyle} />
 			)}

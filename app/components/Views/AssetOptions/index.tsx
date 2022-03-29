@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { RPC } from '../../../constants/network';
 import { findBlockExplorerForRpc } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
 	screen: { justifyContent: 'flex-end' },
@@ -98,8 +99,8 @@ const AssetOptions = (props: Props) => {
 
 	const renderOptions = () => {
 		const options: Option[] = [
-			{ label: 'View on block explorer', onPress: openOnEtherscan },
-			{ label: 'Token Details', onPress: openTokenDetails },
+			{ label: strings('asset_details.options.view_on_block'), onPress: openOnEtherscan },
+			{ label: strings('asset_details.options.token_details'), onPress: openTokenDetails },
 		];
 		return (
 			<>

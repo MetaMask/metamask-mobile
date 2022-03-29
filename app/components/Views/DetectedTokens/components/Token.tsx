@@ -130,7 +130,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 				<Text style={styles.tokenUnitLabel}>{tokenBalanceWithSymbol}</Text>
 				{fiatBalance ? <Text style={styles.tokenDollarLabel}>{fiatBalance}</Text> : null}
 				<View style={styles.tokenAddressContainer}>
-					<Text style={styles.tokenAddressLabel}>{strings('wallet.detected_token_address')}</Text>
+					<Text style={styles.tokenAddressLabel}>{strings('detected_tokens.token_address')}</Text>
 					<TouchableOpacity onPress={copyAddressToClipboard} style={styles.addressLinkContainer}>
 						<EthereumAddress style={styles.addressLinkLabel} address={address} type={'short'} />
 						<Icon style={styles.copyIcon} name={'copy'} size={16} />
@@ -138,14 +138,14 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 				</View>
 				<View style={styles.tokenAggregatorContainer}>
 					<Text style={styles.tokenAggregatorLabel}>
-						{strings('wallet.detected_token_lists', {
+						{strings('detected_tokens.token_lists', {
 							listNames: aggregators.slice(0, expandTokenList ? aggregators.length : 2).join(', '),
 						})}
 					</Text>
 					{showMoreLink ? (
 						<TouchableOpacity onPress={triggerExpandTokenList}>
 							<Text style={styles.aggregatorLinkLabel}>
-								{strings('wallet.detected_token_more', {
+								{strings('detected_tokens.token_more', {
 									remainingListCount: aggregators.slice(2, aggregators.length).length,
 								})}
 							</Text>

@@ -58,22 +58,18 @@ const DetectedTokensConfirmation = ({ route }: Props) => {
 		modalRef.current?.dismissModal(onConfirm);
 	};
 
-	const renderHeader = () => (
-		<Text style={styles.headerLabel}>{strings('wallet.confirm_detected_tokens_title')}</Text>
-	);
+	const renderHeader = () => <Text style={styles.headerLabel}>{strings('detected_tokens.confirm.title')}</Text>;
 
-	const renderDescription = () => (
-		<Text style={styles.description}>{strings('wallet.confirm_detected_tokens_desc')}</Text>
-	);
+	const renderDescription = () => <Text style={styles.description}>{strings('detected_tokens.confirm.desc')}</Text>;
 
 	const renderButtons = () => (
 		<View style={styles.buttonsContainer}>
 			<StyledButton onPress={triggerCancel} containerStyle={styles.fill} type={'normal'}>
-				{strings('wallet.confirm_detected_tokens_cancel')}
+				{strings('detected_tokens.confirm.cancel_cta')}
 			</StyledButton>
 			<View style={styles.buttonDivider} />
 			<StyledButton onPress={triggerConfirm} containerStyle={styles.fill} type={'confirm'}>
-				{strings('wallet.confirm_detected_tokens_confirm')}
+				{strings('detected_tokens.confirm.confirm_cta')}
 			</StyledButton>
 		</View>
 	);
