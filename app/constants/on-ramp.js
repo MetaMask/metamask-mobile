@@ -6,6 +6,8 @@ export const FIAT_ORDER_PROVIDERS = {
 	WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
 	TRANSAK: 'TRANSAK',
 	MOONPAY: 'MOONPAY',
+	// The key for fiat on-ramp aggregator
+	AGGREGATOR: 'AGGREGATOR',
 };
 
 /**

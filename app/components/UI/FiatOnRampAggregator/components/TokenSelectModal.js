@@ -133,7 +133,7 @@ function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onIt
 								{/* TODO: Make a component for networks labels with respective colors */}
 								<View style={styles.networkLabel}>
 									<Text bold upper style={styles.networkLabelText}>
-										{CHAIN_ID_NETWORKS[item.network]}
+										{CHAIN_ID_NETWORKS[item.network?.chainId] || item.network?.chainId}
 									</Text>
 								</View>
 							</ListItem.Amount>
