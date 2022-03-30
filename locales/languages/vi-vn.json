@@ -1277,7 +1277,8 @@
 	"webview_error": {
 		"title": "Rất tiếc! Đã xảy ra sự cố...",
 		"message": "Chúng tôi không thể tải trang đó.",
-		"reason": "Lý do"
+		"reason": "Lý do",
+		"try_again": "Thử lại"
 	},
 	"offline_mode": {
 		"title": "Bạn đang không kết nối mạng",

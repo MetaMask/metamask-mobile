@@ -1358,7 +1358,8 @@
 	"webview_error": {
 		"title": "Ooops! something went wrong...",
 		"message": "We weren't able to load that page.",
-		"reason": "Reason"
+		"reason": "Reason",
+		"try_again": "Try again"
 	},
 	"offline_mode": {
 		"title": "You're offline",

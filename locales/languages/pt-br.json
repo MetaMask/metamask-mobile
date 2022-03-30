@@ -1277,7 +1277,8 @@
 	"webview_error": {
 		"title": "Ops! Algo deu errado...",
 		"message": "Não conseguimos carregar essa página.",
-		"reason": "Motivo"
+		"reason": "Motivo",
+		"try_again": "Tente novamente"
 	},
 	"offline_mode": {
 		"title": "Você está offline",

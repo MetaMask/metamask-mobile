@@ -1277,7 +1277,8 @@
 	"webview_error": {
 		"title": "Ooops! Nagkaproblema...",
 		"message": "Hindi namin na-load ang page na iyon.",
-		"reason": "Dahilan"
+		"reason": "Dahilan",
+		"try_again": "Subukan ulit"
 	},
 	"offline_mode": {
 		"title": "Offline ka",
