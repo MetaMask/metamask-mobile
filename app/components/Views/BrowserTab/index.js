@@ -1355,7 +1355,7 @@ export const BrowserTab = (props) => {
 						<WebView
 							decelerationRate={'normal'}
 							ref={webviewRef}
-							renderError={() => <WebviewError error={error} />}
+							renderError={() => <WebviewError error={error} onReload={() => null} />}
 							source={{ uri: initialUrl }}
 							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
 							style={styles.webview}
