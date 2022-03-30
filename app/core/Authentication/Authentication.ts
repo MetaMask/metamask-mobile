@@ -32,6 +32,7 @@ class AuthenticationService {
 	private store: Store | undefined = undefined;
 	private static isInitialized = false;
 	private lockManagerInstance?: LockManager;
+	private static LOCK_IMMEDIATE = 0;
 
 	/**
 	 * This method creates the instance of the authentication class
@@ -191,11 +192,11 @@ class AuthenticationService {
 	 */
 	newWalletAndKeyChain = async (password: string, authData: AuthData): Promise<void> => {
 		try {
+			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			await this.createWalletVaultAndKeychain(password);
 			await this.storePassword(password, authData?.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
@@ -218,11 +219,11 @@ class AuthenticationService {
 		clearEngine: boolean
 	): Promise<void> => {
 		try {
+			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 			await this.storePassword(password, authData.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
 			await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
@@ -239,9 +240,9 @@ class AuthenticationService {
 	 */
 	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string): Promise<void> => {
 		try {
+			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			await this.loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
-			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
@@ -257,10 +258,10 @@ class AuthenticationService {
 	appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
 		try {
+			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			const password = credentials?.password;
 			await this.loginVaultCreation(password, selectedAddress);
 			if (!credentials) await this.storePassword(password, this.authData.type);
-			this.lockManagerInstance = new LockManager(this.store?.getState().settings.lockTime);
 			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout();
@@ -270,10 +271,11 @@ class AuthenticationService {
 
 	/**
 	 * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
+	 * @param reset - boolean to reset the SecureKeychain wiping credentials default is true
 	 */
-	logout = async (): Promise<void> => {
+	logout = async (reset = true): Promise<void> => {
 		const { KeyringController }: any = Engine.context;
-		await SecureKeychain.resetGenericPassword();
+		if (reset) await SecureKeychain.resetGenericPassword();
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
@@ -286,17 +288,21 @@ class AuthenticationService {
 	 * Set the lock time
 	 */
 	setLockTime = (lockTime: number): void => {
-		if (lockTime) this.lockManagerInstance?.updateLockTime(lockTime);
+		this.lockManagerInstance?.updateLockTime(lockTime);
 	};
 
 	/**
-	 * Set the navigate to lock screen callback
+	 * Gets the type of auth data
+	 * @returns Currently configured AuthData
 	 */
-	setNavigateToLockScreen = (navigateToLockScreen: any): void => {
-		if (navigateToLockScreen) this.lockManagerInstance?.setNavigateToLockScreen(navigateToLockScreen);
-	};
-
 	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod(undefined);
+
+	/**
+	 * Sets the selected address in the lock manager instance
+	 * @param selectedAddress - current address of the user
+	 */
+	setSelectedAddress = (selectedAddress: string): void =>
+		this.lockManagerInstance?.setSelectedAddress(selectedAddress);
 }
 // eslint-disable-next-line import/prefer-default-export
 export const Authentication = new AuthenticationService();

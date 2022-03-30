@@ -34,9 +34,7 @@ import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { util } from '@metamask/controllers';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
-
 import { setInfuraAvailabilityBlocked, setInfuraAvailabilityNotBlocked } from '../../../actions/infuraAvailability';
-
 import { createStackNavigator } from '@react-navigation/stack';
 import ReviewModal from '../../UI/ReviewModal';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
@@ -67,7 +65,6 @@ const Main = (props) => {
 	const [skipCheckbox, setSkipCheckbox] = useState(false);
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
-
 	const backgroundMode = useRef(false);
 	const locale = useRef(I18n.locale);
 	const removeConnectionStatusListener = useRef();
@@ -182,11 +179,6 @@ const Main = (props) => {
 		if (skipCheckbox) toggleRemindLater();
 	};
 
-	const navigateToLockScreen = () => {
-		console.log('navigateToLockScreen');
-		props.navigation.dispatch('LockScreen', { backgroundMode: true });
-	};
-
 	useEffect(() => {
 		if (locale.current !== I18n.locale) {
 			locale.current = I18n.locale;
@@ -194,16 +186,10 @@ const Main = (props) => {
 			return;
 		}
 
-		if (props.navigation) {
-			Authentication.setNavigateToLockScreen(() => {
-				navigateToLockScreen();
-			});
-		}
-
 		if (prevLockTime !== props.lockTime) {
 			Authentication.setLockTime(props.lockTime);
 		}
-	});
+	}, [prevLockTime, props.lockTime]);
 
 	// Remove all notifications that aren't visible
 	useEffect(() => {

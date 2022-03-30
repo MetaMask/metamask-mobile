@@ -1,12 +1,16 @@
 import { AppState } from 'react-native';
 import SecureKeychain from './SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
-import Engine from '../core/Engine';
 import Logger from '../util/Logger';
+import Authentication from './Authentication';
+import { trackErrorAsAnalytics } from '../util/analyticsV2';
 
 export default class LockManager {
 	constructor(lockTime) {
 		this.navigateToLockScreen = undefined;
+		this.selectedAddress = undefined;
+		this.unlockAttempts = 0;
+		this.locked = false;
 		this.lockTime = lockTime;
 		this.appState = 'active';
 		AppState.addEventListener('change', this.handleAppStateChange);
@@ -14,6 +18,10 @@ export default class LockManager {
 
 	updateLockTime(lockTime) {
 		this.lockTime = lockTime;
+	}
+
+	setSelectedAddress(selectedAddress) {
+		this.selectedAddress = selectedAddress;
 	}
 
 	handleAppStateChange = async (nextAppState) => {
@@ -40,30 +48,45 @@ export default class LockManager {
 				BackgroundTimer.clearTimeout(this.lockTimer);
 				this.lockTimer = null;
 			}
+
+			//Attemp to login if the app is locked and in the foreground
+			if (this.locked) this.login();
 		}
 
 		this.appState = nextAppState;
+	};
+
+	login = async () => {
+		this.unlockAttempts++;
+		try {
+			await Authentication.appTriggeredAuth(this.selectedAddress);
+			this.unlockAttempts = 0;
+			this.locked = false;
+		} catch (error) {
+			if (this.unlockAttempts <= 3) {
+				this.login();
+			} else {
+				trackErrorAsAnalytics(
+					'LockApp: Max Attempts Reached',
+					error?.message,
+					`Unlock attempts: ${this.unlockAttempts}`
+				);
+				await Authentication.logout(false);
+				this.unlockAttempts = 0;
+				this.locked = false;
+			}
+		}
 	};
 
 	setLockedError = (error) => {
 		Logger.log('Failed to lock KeyringController', error);
 	};
 
-	setNavigateToLockScreen = (navigateToLockScreen) => {
-		this.navigateToLockScreen = navigateToLockScreen;
-	};
-
-	gotoLockScreen = () => {
-		this.navigateToLockScreen();
-	};
-
 	lockApp = async () => {
 		if (!SecureKeychain.getInstance().isAuthenticating) {
-			const { KeyringController } = Engine.context;
 			try {
-				// await SecureKeychain.resetGenericPassword();
-				await KeyringController.setLocked();
-				this.gotoLockScreen();
+				await Authentication.logout(false);
+				this.locked = true;
 			} catch (e) {
 				this.setLockedError(e);
 			}

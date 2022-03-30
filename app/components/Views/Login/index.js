@@ -240,11 +240,6 @@ class Login extends PureComponent {
 	async componentDidMount() {
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
-		if (this.props.userLoggedIn) {
-			this.props.navigation.replace('HomeNav');
-			return;
-		}
-
 		//Setup UI to handle Biometric
 		const { type } = await Authentication.getType();
 		const previouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
@@ -263,6 +258,14 @@ class Login extends PureComponent {
 				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
 				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
 			});
+	}
+
+	componentDidUpdate() {
+		// If the user logs in nav to Home View
+		if (this.props.userLoggedIn) {
+			this.props.navigation.replace('HomeNav');
+			return;
+		}
 	}
 
 	componentWillUnmount() {
