@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import NetworkInfo from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { MAINNET } from '../../../constants/network';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -12,15 +13,16 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			NetworkController: {
-				provider: { type: 'mainnet', rpcTarget: 'http://10.0.2.2:8545' },
+				provider: { type: MAINNET, rpcTarget: 'http://10.0.2.2:8545' },
 			},
-			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
+			PreferencesController: { useStaticTokenList: true, frequentRpcList: ['http://10.0.2.2:8545'] },
 		},
 	},
 	networkOnboarded: {
-		networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
+		networkOnboardedState: [{ network: MAINNET, onboarded: true }],
 	},
 };
+
 const store = mockStore(initialState);
 
 describe('NetworkInfo', () => {

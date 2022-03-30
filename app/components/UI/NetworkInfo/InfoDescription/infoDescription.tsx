@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, Linking, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors: {
@@ -37,22 +38,28 @@ interface DescriptionProps {
 	description: string;
 	clickableText: string | undefined;
 	number: number;
-	navigation: any;
 	onClose: () => void;
+	mainnet_token_detection_off: boolean;
 }
 
 const Description = (props: DescriptionProps) => {
-	const { description, clickableText, number, navigation, onClose } = props;
+	const { description, clickableText, number, onClose, mainnet_token_detection_off } = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+	const navigation = useNavigation();
 
 	const handlePress = () => {
 		if (number === 2) {
 			Linking.openURL(strings('network_information.learn_more_url'));
 		} else {
 			onClose();
-			navigation.push('AddAsset', { assetType: 'token' });
+			navigation.navigate('AddAsset', { assetType: 'token' });
 		}
+	};
+
+	const handleNavigation = () => {
+		onClose();
+		navigation.navigate('ExperimentalSettings');
 	};
 
 	return (
@@ -60,12 +67,23 @@ const Description = (props: DescriptionProps) => {
 			<View style={styles.contentContainer}>
 				<Text style={styles.numberStyle}>{number}.</Text>
 				<Text style={styles.description}>
-					<Text>{description}</Text>
+					<Text>
+						{description} {''}
+					</Text>
 					{clickableText && (
-						<Text onPress={handlePress} style={styles.link}>
-							{' '}
-							{clickableText}
-						</Text>
+						<>
+							{mainnet_token_detection_off && (
+								<>
+									<Text style={styles.link} onPress={handleNavigation}>
+										{strings('network_information.enable_token_detection')}
+									</Text>{' '}
+									{strings('network_information.or')}{' '}
+								</>
+							)}
+							<Text style={styles.link} onPress={handlePress}>
+								{clickableText}
+							</Text>
+						</>
 					)}
 				</Text>
 			</View>

@@ -111,18 +111,21 @@ interface NetworkInfoProps {
 		};
 		rpcTarget: string;
 	};
-	navigation: any;
+	isTokenDetectionEnabled: boolean;
 }
 
 const NetworkInfo = (props: NetworkInfoProps) => {
 	const {
 		onClose,
 		ticker,
+		isTokenDetectionEnabled,
 		networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
-		navigation,
 	} = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+
+	const mainnet_token_detection_on = type === MAINNET && isTokenDetectionEnabled;
+	const mainnet_token_detection_off = type === MAINNET && !isTokenDetectionEnabled;
 
 	return (
 		<View style={styles.wrapper}>
@@ -177,12 +180,21 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						description={strings('network_information.second_description')}
 						clickableText={strings('network_information.learn_more')}
 						number={2}
+						mainnet_token_detection_off={false}
 					/>
 					<Description
-						description={strings('network_information.third_description')}
-						clickableText={strings('network_information.add_token')}
+						description={
+							mainnet_token_detection_on
+								? strings('network_information.token_detection_mainnet_title')
+								: strings('network_information.third_description')
+						}
+						clickableText={
+							mainnet_token_detection_on
+								? strings('network_information.token_detection_mainnet_link')
+								: strings('network_information.add_token_manually')
+						}
 						number={3}
-						navigation={navigation}
+						mainnet_token_detection_off={mainnet_token_detection_off}
 						onClose={onClose}
 					/>
 				</View>
@@ -200,6 +212,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
+	isTokenDetectionEnabled: !state.engine.backgroundState.PreferencesController.useStaticTokenList,
 	networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 
