@@ -124,7 +124,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 			>
 				<>
 					<Text style={styles.tokenDetectionDescription}>
-						{strings('add_asset.token_detection_feature', { network: FORMATTED_NETWORK_NAMES[chainId] })}
+						{strings('add_asset.banners.search_desc', { network: FORMATTED_NETWORK_NAMES[chainId] })}
 					</Text>
 					<Text
 						suppressHighlighting
@@ -138,7 +138,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 						}}
 						style={styles.tokenDetectionLink}
 					>
-						{strings('add_asset.token_detection_link')}
+						{strings('add_asset.banners.search_link')}
 					</Text>
 				</>
 			</Alert>

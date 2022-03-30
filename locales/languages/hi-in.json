@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "टोकन का प्रतीक",
 		"token_address": "टोकन का पता",
-		"token_precision": "टोकन परिशुद्धता",
 		"search_tokens_placeholder": "टोकन खोजें",
 		"address_cant_be_empty": "टोकन का पता खाली नहीं हो सकता।",
 		"address_must_be_valid": "टोकन का पता एक मान्य पता होना चाहिए।",

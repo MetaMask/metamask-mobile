@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "Simbol Token",
 		"token_address": "Alamat Token",
-		"token_precision": "Token Presisi",
 		"search_tokens_placeholder": "Cari Token",
 		"address_cant_be_empty": "Alamat token tidak boleh kosong.",
 		"address_must_be_valid": "Alamat token harus berupa alamat yang valid.",

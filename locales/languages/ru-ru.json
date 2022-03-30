@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "Символ токена",
 		"token_address": "Адрес токена",
-		"token_precision": "Знак точности",
 		"search_tokens_placeholder": "Поиск токенов",
 		"address_cant_be_empty": "Адрес токена не может быть пустым.",
 		"address_must_be_valid": "Адрес токена должен быть действительным.",

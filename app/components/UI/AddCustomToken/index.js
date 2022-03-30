@@ -8,8 +8,10 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import AppConstants from '../../../core/AppConstants';
+import Alert, { AlertType } from '../../Base/Alert';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -26,13 +28,13 @@ const styles = StyleSheet.create({
 		padding: 16,
 		...fontStyles.normal,
 	},
-	warningText: {
-		marginTop: 15,
-		color: colors.red,
-		...fontStyles.normal,
+	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20 },
+	tokenDetectionDescription: { color: colors.black },
+	tokenDetectionLink: { color: colors.blue },
+	tokenDetectionIcon: {
+		paddingTop: 4,
+		paddingRight: 8,
 	},
-	warningContainer: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	warningLink: { color: colors.blue },
 });
 
 /**
@@ -53,6 +55,10 @@ export default class AddCustomToken extends PureComponent {
 		/* navigation object required to push new views
 		*/
 		navigation: PropTypes.object,
+		/**
+		 * Checks if token detection is supported
+		 */
+		isTokenDetectionSupported: PropTypes.bool,
 	};
 
 	getAnalyticsParams = () => {
@@ -191,33 +197,78 @@ export default class AddCustomToken extends PureComponent {
 		current && current.focus();
 	};
 
-	renderWarning = () => (
-		<WarningMessage
-			style={styles.warningContainer}
-			warningMessage={
+	renderInfoBanner = () => {
+		const { navigation } = this.props;
+		return (
+			<Alert
+				type={AlertType.Info}
+				style={styles.tokenDetectionBanner}
+				renderIcon={() => (
+					<FontAwesome
+						style={styles.tokenDetectionIcon}
+						name={'exclamation-circle'}
+						color={colors.blue}
+						size={18}
+					/>
+				)}
+			>
 				<>
-					{strings('add_asset.warning_body_description')}
+					<Text style={styles.tokenDetectionDescription}>
+						{strings('add_asset.banners.custom_info_desc')}
+					</Text>
 					<Text
 						suppressHighlighting
 						onPress={() => {
-							// TODO: This functionality exists in a bunch of other places. We need to unify this into a utils function
-							this.props.navigation.navigate('Webview', {
+							navigation.navigate('Webview', {
 								screen: 'SimpleWebview',
 								params: {
 									url: AppConstants.URLS.SECURITY,
-									title: strings('add_asset.security_tips'),
+									title: strings('add_asset.banners.custom_security_tips'),
 								},
 							});
 						}}
-						style={styles.warningLink}
-						testID={'add-asset-warning-message'}
+						style={styles.tokenDetectionLink}
 					>
-						{strings('add_asset.warning_link')}
+						{strings('add_asset.banners.custom_info_link')}
 					</Text>
 				</>
-			}
-		/>
-	);
+			</Alert>
+		);
+	};
+
+	renderWarningBanner = () => {
+		const { navigation } = this.props;
+		return (
+			<WarningMessage
+				style={styles.tokenDetectionBanner}
+				testID={'add-asset-warning-message'}
+				warningMessage={
+					<>
+						<Text style={styles.tokenDetectionDescription}>
+							{strings('add_asset.banners.custom_warning_desc')}
+						</Text>
+						<Text
+							suppressHighlighting
+							onPress={() => {
+								navigation.navigate('Webview', {
+									screen: 'SimpleWebview',
+									params: {
+										url: AppConstants.URLS.SECURITY,
+										title: strings('add_asset.banners.custom_security_tips'),
+									},
+								});
+							}}
+							style={styles.tokenDetectionLink}
+						>
+							{strings('add_asset.banners.custom_warning_link')}
+						</Text>
+					</>
+				}
+			/>
+		);
+	};
+
+	renderBanner = () => (this.props.isTokenDetectionSupported ? this.renderWarningBanner() : this.renderInfoBanner());
 
 	render = () => {
 		const { address, symbol, decimals } = this.state;
@@ -234,7 +285,7 @@ export default class AddCustomToken extends PureComponent {
 					confirmDisabled={!(address && symbol && decimals)}
 				>
 					<View>
-						{this.renderWarning()}
+						{this.renderBanner()}
 						<View style={styles.rowWrapper}>
 							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
 							<TextInput
@@ -269,7 +320,7 @@ export default class AddCustomToken extends PureComponent {
 							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 						</View>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_precision')}</Text>
+							<Text style={fontStyles.normal}>{strings('token.token_decimal')}</Text>
 							<TextInput
 								style={styles.textInput}
 								value={this.state.decimals}

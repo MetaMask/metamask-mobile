@@ -291,7 +291,7 @@
 			"token_hidden_desc": "Hiding {{tokenSymbol}}"
 		},
 		"hide_token": {
-			"title": "Hide Token",
+			"title": "Hide Token?",
 			"desc": "You can add this token back in the future by going to “Import token” and searching for the token.",
 			"cancel_cta": "Cancel",
 			"confirm_cta": "Confirm"
@@ -313,8 +313,6 @@
 		"refresh_metadata": "Refresh Metadata",
 		"token_removal_issue_title": "Issue removing token.",
 		"token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
-		"token_removed_title": "Token removed!",
-		"token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
 		"collectible_removed_title": "Collectible removed!",
 		"collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
 		"remove": "Remove",
@@ -359,11 +357,15 @@
 			"cancel_add_collectible": "CANCEL",
 			"add_collectible": "IMPORT"
 		},
-		"warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
-		"warning_link": "scams and security risks.",
-		"security_tips": "Security Tips",
-		"token_detection_feature": "Improved token detection is currently available on {{network}} network. ",
-		"token_detection_link": "Enable it from Settings."
+		"banners": {
+			"search_desc": "Improved token detection is currently available on {{network}} network. ",
+			"search_link": "Enable it from Settings.",
+			"custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
+			"custom_warning_link": "scams and security risks.",
+			"custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+			"custom_info_link": "token scams and security risks.",
+			"custom_security_tips": "Security Tips"
+		}
 	},
 	"terms_and_conditions": {
 		"title": "Terms and Conditions",
@@ -387,9 +389,9 @@
 		"action_description_6": "Never sell data for profit. Ever!"
 	},
 	"token": {
-		"token_symbol": "Token Symbol",
-		"token_address": "Token Address",
-		"token_precision": "Token of Precision",
+		"token_symbol": "Token symbol",
+		"token_address": "Token address",
+		"token_decimal": "Token decimal",
 		"search_tokens_placeholder": "Search Tokens",
 		"address_cant_be_empty": "Token address can't be empty.",
 		"address_must_be_valid": "Token address must be a valid address.",
@@ -658,7 +660,8 @@
 		"were_unable": "We’re unable to load your",
 		"balance": "balance. See the support article",
 		"troubleshooting_missing": "troubleshooting missing balances",
-		"for_help": "for help."
+		"for_help": "for help.",
+		"troubleshoot": "Troubleshoot"
 	},
 	"account_details": {
 		"title": "Account Details",

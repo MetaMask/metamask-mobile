@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
 import TokenImage from '../TokenImage';
 import { colors, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -17,6 +17,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -297,15 +298,20 @@ class Tokens extends PureComponent {
 		this.actionSheet.show();
 	};
 
-	removeToken = () => {
+	removeToken = async () => {
 		const { TokensController } = Engine.context;
 		const tokenAddress = this.tokenToRemove?.address;
+		const symbol = this.tokenToRemove?.symbol;
 		try {
-			TokensController.removeAndIgnoreToken(tokenAddress);
-			Alert.alert(strings('wallet.token_removed_title'), strings('wallet.token_removed_desc'));
-		} catch (error) {
-			Logger.log('Error while trying to remove token', error, tokenAddress);
-			Alert.alert(strings('wallet.token_removal_issue_title'), strings('wallet.token_removal_issue_desc'));
+			await TokensController.removeAndIgnoreToken(tokenAddress);
+			NotificationManager.showSimpleNotification({
+				status: `simple_notification`,
+				duration: 5000,
+				title: strings('wallet.token_toast.token_hidden_title'),
+				description: strings('wallet.token_toast.token_hidden_desc', { tokenSymbol: symbol }),
+			});
+		} catch (err) {
+			Logger.log(err, 'Wallet: Failed to hide token!');
 		}
 	};
 

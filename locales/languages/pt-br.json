@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "Símbolo do token",
 		"token_address": "Endereço do token",
-		"token_precision": "Token de precisão",
 		"search_tokens_placeholder": "Buscar tokens",
 		"address_cant_be_empty": "O endereço do token não pode estar vazio.",
 		"address_must_be_valid": "O endereço do token deve ser válido.",

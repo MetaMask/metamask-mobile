@@ -100,6 +100,7 @@ class AddAsset extends PureComponent {
 			useCollectibleDetection,
 		} = this.props;
 		const { dismissNftInfo } = this.state;
+		const isTokenDetectionSupported = isTokenDetectionEnabledForNetwork(chainId);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
@@ -109,8 +110,8 @@ class AddAsset extends PureComponent {
 					</View>
 				)}
 				{assetType === 'token' ? (
-					<ScrollableTabView renderTabBar={this.renderTabBar}>
-						{isTokenDetectionEnabledForNetwork(chainId) && (
+					<ScrollableTabView key={chainId} renderTabBar={this.renderTabBar}>
+						{isTokenDetectionSupported && (
 							<SearchTokenAutocomplete
 								navigation={navigation}
 								tabLabel={strings('add_asset.search_token')}
@@ -119,6 +120,7 @@ class AddAsset extends PureComponent {
 						)}
 						<AddCustomToken
 							navigation={navigation}
+							isTokenDetectionSupported={isTokenDetectionSupported}
 							tabLabel={strings('add_asset.custom_token')}
 							testID={'tab-add-custom-token'}
 						/>

@@ -107,7 +107,8 @@ class Asset extends PureComponent {
 				route.params?.symbol ?? '',
 				false,
 				navigation,
-				isETH ? null : () => navigation.navigate('AssetOptions')
+				isETH ? null : () => navigation.navigate('AssetOptions'),
+				true
 			)
 		);
 	};

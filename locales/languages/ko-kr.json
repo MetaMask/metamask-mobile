@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "토큰 기호",
 		"token_address": "토큰 주소",
-		"token_precision": "정밀 토큰",
 		"search_tokens_placeholder": "토큰 검색",
 		"address_cant_be_empty": "토큰 주소는 비워둘 수 없습니다.",
 		"address_must_be_valid": "토큰 주소는 유효한 주소여야 합니다.",

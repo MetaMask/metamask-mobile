@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "トークン シンボル",
 		"token_address": "トークン アドレス",
-		"token_precision": "トークン桁数",
 		"search_tokens_placeholder": "トークンの検索",
 		"address_cant_be_empty": "トークン アドレスは空にはできません。",
 		"address_must_be_valid": "トークン アドレスは有効なアドレスである必要があります。",

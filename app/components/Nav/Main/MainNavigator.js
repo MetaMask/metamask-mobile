@@ -95,9 +95,9 @@ const DetectedTokensFlow = () => (
 	</Stack.Navigator>
 );
 
-const WalletModalStack = () => (
-	<Stack.Navigator initialRouteName={'WalletFlow'} mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-		<Stack.Screen name={'WalletFlow'} component={Wallet} options={{ headerShown: true, animationEnabled: false }} />
+const WalletModalFlow = () => (
+	<Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+		<Stack.Screen name={'Wallet'} component={Wallet} options={{ headerShown: true, animationEnabled: false }} />
 		<Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
 	</Stack.Navigator>
 );
@@ -106,7 +106,11 @@ const WalletModalStack = () => (
 const AssetStackFlow = (props) => (
 	<Stack.Navigator>
 		<Stack.Screen name={'Asset'} component={Asset} initialParams={props.route.params} />
-		<Stack.Screen name={'AssetDetails'} component={AssetDetails} initialParams={props.route.params} />
+		<Stack.Screen
+			name={'AssetDetails'}
+			component={AssetDetails}
+			initialParams={{ address: props.route.params?.address }}
+		/>
 	</Stack.Navigator>
 );
 
@@ -118,18 +122,13 @@ const AssetModalFlow = (props) => (
 			component={AssetOptions}
 			initialParams={{ address: props.route.params?.address }}
 		/>
-		<Stack.Screen
-			name={'AssetHideConfirmation'}
-			component={AssetHideConfirmation}
-			initialParams={{ address: props.route.params?.address }}
-		/>
 	</Stack.Navigator>
 );
 /* eslint-enable react/prop-types */
 
-const WalletTabHome = () => (
+const WalletTabStackFlow = () => (
 	<Stack.Navigator initialRouteName={'WalletView'}>
-		<Stack.Screen name="WalletView" component={WalletModalStack} options={{ headerShown: false }} />
+		<Stack.Screen name="WalletView" component={WalletModalFlow} options={{ headerShown: false }} />
 		<Stack.Screen name="Asset" component={AssetModalFlow} options={{ headerShown: false }} />
 		<Stack.Screen name="AddAsset" component={AddAsset} options={AddAsset.navigationOptions} />
 		<Stack.Screen name="Collectible" component={Collectible} options={Collectible.navigationOptions} />
@@ -138,6 +137,13 @@ const WalletTabHome = () => (
 			component={RevealPrivateCredential}
 			options={RevealPrivateCredential.navigationOptions}
 		/>
+	</Stack.Navigator>
+);
+
+const WalletTabModalFlow = () => (
+	<Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+		<Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
+		<Stack.Screen name={'AssetHideConfirmation'} component={AssetHideConfirmation} />
 	</Stack.Navigator>
 );
 
@@ -166,7 +172,11 @@ const HomeTabs = () => {
 					tabBarOptions={{ style: styles.hidden }}
 					screenOptions={{ tabBarVisible: false }}
 				>
-					<Tab.Screen name="WalletTabHome" component={WalletTabHome} options={{ tabBarVisible: false }} />
+					<Tab.Screen
+						name="WalletTabHome"
+						component={WalletTabModalFlow}
+						options={{ tabBarVisible: false }}
+					/>
 					<Tab.Screen name="BrowserTabHome" component={BrowserTabHome} options={{ tabBarVisible: false }} />
 					<Tab.Screen
 						name="TransactionsHome"

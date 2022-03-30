@@ -80,7 +80,7 @@ const DetectedTokens = () => {
 			// Ignoring all tokens
 			title = strings('wallet.token_toast.tokens_hidden_title');
 			description = strings('wallet.token_toast.tokens_hidden_desc');
-			errorMsg = 'DetectedTokens: Failed to ignore all detected tokens!';
+			errorMsg = 'DetectedTokens: Failed to hide all detected tokens!';
 		} else if (
 			(tokensToImport.length > 0 && tokensToIgnore.length > 0) ||
 			(tokensToImport.length > 0 && tokensToIgnore.length === 0)

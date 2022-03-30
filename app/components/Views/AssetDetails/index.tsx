@@ -15,6 +15,9 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
 import AppConstants from '../../../core/AppConstants';
+import { Token as TokenType } from '@metamask/controllers';
+import { balanceToFiat, renderFromTokenMinimalUnit } from '../../../util/number';
+import WarningMessage from '../SendFlow/WarningMessage';
 
 const styles = StyleSheet.create({
 	container: {
@@ -55,43 +58,40 @@ const styles = StyleSheet.create({
 		marginLeft: 4,
 		color: colors.blue,
 	},
-	warning: {
-		borderRadius: 8,
-		color: colors.black,
-		...(fontStyles.normal as any),
-		fontSize: 14,
-		lineHeight: 20,
-		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
-		padding: 20,
-	},
-	warningLinks: {
-		color: colors.blue,
-	},
+	warningBanner: { marginTop: 8 },
+	warningBannerDesc: { color: colors.black },
+	warningBannerLink: { color: colors.blue },
 });
 
 interface Props {
 	route: {
 		params: {
 			address: string;
-			decimals: number;
-			symbol: string;
-			aggregators: string[];
-			balance: string;
-			balanceFiat: string;
-			balanceError?: string;
-			logo: string;
 		};
 	};
 }
 
 const AssetDetails = (props: Props) => {
-	const asset = props.route.params;
-	const { address, decimals, symbol, aggregators, balance, balanceFiat, balanceError } = asset;
+	const { address } = props.route.params;
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
 	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
+	const tokens = useSelector((state: any) => state.engine.backgroundState.TokensController.tokens as TokenType[]);
+	const conversionRate = useSelector(
+		(state: any) => state.engine.backgroundState.CurrencyRateController.conversionRate
+	);
+	const currentCurrency = useSelector(
+		(state: any) => state.engine.backgroundState.CurrencyRateController.currentCurrency
+	);
+	const primaryCurrency = useSelector((state: any) => state.settings.primaryCurrency);
+	const tokenBalances = useSelector(
+		(state: any) => state.engine.backgroundState.TokenBalancesController.contractBalances
+	);
+	const tokenExchangeRates = useSelector(
+		(state: any) => state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	);
+	const token = tokens.find((rawToken) => rawToken.address === address);
+	const { symbol, decimals, aggregators = [] } = token as TokenType;
 
 	const getNetworkName = () => {
 		let name = '';
@@ -130,35 +130,44 @@ const AssetDetails = (props: Props) => {
 						NotificationManager.showSimpleNotification({
 							status: `simple_notification`,
 							duration: 5000,
-							title: strings('wallet.token_hidden_notif_title'),
-							description: strings('wallet.token_hidden_notif_desc', { tokenSymbol: symbol }),
+							title: strings('wallet.token_toast.token_hidden_title'),
+							description: strings('wallet.token_toast.token_hidden_desc', { tokenSymbol: symbol }),
 						});
 					} catch (err) {
-						Logger.log(err, 'AssetDetails: Failed to ignore token!');
+						Logger.log(err, 'AssetDetails: Failed to hide token!');
 					}
 				});
 			},
 		});
 	};
 
-	const renderWarning = () => (
-		<TouchableOpacity
-			onPress={() =>
-				navigation.navigate('BrowserTabHome', {
-					screen: 'BrowserView',
-					params: {
-						newTabUrl: AppConstants.URLS.TOKEN_BALANCE,
-						timestamp: Date.now(),
-					},
-				})
+	const renderWarningBanner = () => (
+		<WarningMessage
+			style={styles.warningBanner}
+			warningMessage={
+				<>
+					<Text style={styles.warningBannerDesc}>
+						{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
+						<Text
+							suppressHighlighting
+							onPress={() => {
+								navigation.navigate('Webview', {
+									screen: 'SimpleWebview',
+									params: {
+										url: AppConstants.URLS.TOKEN_BALANCE,
+										title: strings('asset_overview.troubleshoot'),
+									},
+								});
+							}}
+							style={styles.warningBannerLink}
+						>
+							{strings('asset_overview.troubleshooting_missing')}{' '}
+						</Text>
+						{strings('asset_overview.for_help')}
+					</Text>
+				</>
 			}
-		>
-			<Text style={styles.warning}>
-				{strings('asset_overview.were_unable')} {symbol} {strings('asset_overview.balance')}{' '}
-				<Text style={styles.warningLinks}>{strings('asset_overview.troubleshooting_missing')}</Text>{' '}
-				{strings('asset_overview.for_help')}
-			</Text>
-		</TouchableOpacity>
+		/>
 	);
 
 	const renderSectionTitle = (title: string, isFirst?: boolean) => (
@@ -171,19 +180,35 @@ const AssetDetails = (props: Props) => {
 
 	const renderTokenSymbol = () => (
 		<View style={styles.descriptionContainer}>
-			<TokenImage asset={asset} containerStyle={styles.tokenImage} iconStyle={styles.tokenImage} />
+			<TokenImage asset={{ address }} containerStyle={styles.tokenImage} iconStyle={styles.tokenImage} />
 			<Text style={styles.descriptionLabel}>{symbol}</Text>
 		</View>
 	);
 
-	const renderTokenBalance = () =>
-		balanceError ? (
-			renderWarning()
-		) : (
+	const renderTokenBalance = () => {
+		let balanceDisplay = '';
+		const exchangeRate = address in tokenExchangeRates ? tokenExchangeRates[address] : undefined;
+		const balance =
+			address in tokenBalances ? renderFromTokenMinimalUnit(tokenBalances[address], decimals) : undefined;
+		const balanceFiat = balance ? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency) : undefined;
+
+		if (balance === undefined && balanceFiat === undefined) {
+			// Couldn't load balance
+			return renderWarningBanner();
+		}
+
+		if (primaryCurrency === 'ETH') {
+			balanceDisplay = balanceFiat ? `${balance} (${balanceFiat})` : `${balance}`;
+		} else {
+			balanceDisplay = balanceFiat ? `${balanceFiat} (${balance})` : `${balance}`;
+		}
+
+		return (
 			<View style={styles.descriptionContainer}>
-				<Text style={styles.descriptionLabel}>{`${balance}${balanceFiat ? ` (${balanceFiat})` : ''}`}</Text>
+				<Text style={styles.descriptionLabel}>{balanceDisplay}</Text>
 			</View>
 		);
+	};
 
 	const renderHideButton = () => (
 		<TouchableOpacity

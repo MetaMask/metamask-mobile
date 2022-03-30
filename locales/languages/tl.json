@@ -340,7 +340,6 @@
 	"token": {
 		"token_symbol": "Simbolo ng Token",
 		"token_address": "Address ng Token",
-		"token_precision": "Token ng Katumpakan",
 		"search_tokens_placeholder": "Maghanap ng Mga Token",
 		"address_cant_be_empty": "Hindi maaaring walang laman ang address ng token.",
 		"address_must_be_valid": "Ang address ng token ay dapat na valid na address.",
