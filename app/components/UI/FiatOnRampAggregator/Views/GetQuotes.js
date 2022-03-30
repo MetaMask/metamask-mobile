@@ -9,6 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
+import InfoAlert from '../components/InfoAlert';
 
 const styles = StyleSheet.create({
 	row: {
@@ -23,6 +24,8 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
+	const [showInfo, setShowInfo] = useState(false);
+	const [selectedProviderInfo, setSelectedProviderInfo] = useState({});
 	const {
 		selectedPaymentMethod,
 		selectedCountry,
@@ -63,6 +66,23 @@ const GetQuotes = () => {
 		[navigation]
 	);
 
+	const renderInfo = useCallback(
+		(providerName) => {
+			//get info from sdk using providerName or id
+			const providerInfo = {
+				name: providerName,
+				body: strings('fiat_on_ramp_aggregator.quotes.' + providerName + '.body'),
+				subtitle: strings('fiat_on_ramp_aggregator.quotes.' + providerName + '.subtitle'),
+				website: 'https://metamask.io/',
+				privacyPolicy: 'https://metamask.io/',
+				support: 'https://metamask.io/',
+			};
+			setSelectedProviderInfo(providerInfo);
+			setShowInfo(!showInfo);
+		},
+		[showInfo]
+	);
+
 	if (isLoading) {
 		return (
 			<ScreenLayout>
@@ -80,6 +100,17 @@ const GetQuotes = () => {
 	return (
 		<ScreenLayout>
 			<ScreenLayout.Header description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app." />
+			<InfoAlert
+				isVisible={showInfo}
+				subtitle={selectedProviderInfo.subtitle}
+				dismiss={() => setShowInfo(!showInfo)}
+				providerName={selectedProviderInfo.name}
+				body={selectedProviderInfo.body}
+				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+				providerWebsite={selectedProviderInfo.website}
+				providerPrivacyPolicy={selectedProviderInfo.privacyPolicy}
+				providerSupport={selectedProviderInfo.support}
+			/>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					{quotes.length <= 0 ? (
@@ -102,6 +133,7 @@ const GetQuotes = () => {
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
 										highlighted={quote.providerId === providerId}
+										showInfo={() => renderInfo(quote.providerName)}
 									/>
 								</View>
 							))

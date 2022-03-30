@@ -30,7 +30,9 @@ interface Props {
 	onPress?: () => any;
 	onPressBuy?: () => any;
 	highlighted?: boolean;
+	showInfo: () => any;
 }
+
 const Quotes: React.FC<Props> = ({
 	amountIn,
 	amountOut,
@@ -42,6 +44,7 @@ const Quotes: React.FC<Props> = ({
 	onPress,
 	onPressBuy,
 	highlighted,
+	showInfo,
 }: Props) => {
 	const totalFees = networkFee + processingFee;
 	const price = amountIn - totalFees;
@@ -51,7 +54,7 @@ const Quotes: React.FC<Props> = ({
 			<ListItem.Content>
 				<ListItem.Body>
 					<ListItem.Title>
-						<TouchableOpacity>
+						<TouchableOpacity onPress={showInfo}>
 							<Text big primary bold>
 								{providerName} <Feather name="info" size={12} />
 							</Text>

@@ -1527,8 +1527,24 @@
 			"select_region": "Select your region",
 			"unsupported": "Region Not Supported",
 			"unsupported_description": "We are working hard to expand coverage to your region. In the meantime, enjoy consectetur adipiscing elit consectetur adipiscing elit",
-			"unsupported_link": "link to support article with information"
-		}
+			"unsupported_link": "link to support article with information",
+			"explore_app": "Explore App"
+		},
+		"quotes": {
+			"Transak": {
+				"body": "Easily buy ETH with a debit card, credit card, or bank transfer using all major payment methods including debit and credit card, local bank transfers, Apple Pay, Google Pay, and Samsung Pay. MoonPay is active in more than 160 countries and is trusted by 250+ leading wallets, websites, and applications to accept payments and defeat fraud.",
+				"subtitle": "100 Pine Street Suite 1250 San Francisco, CA 94111 United States"
+			},
+			"MoonPay": {
+				"body": "Easily buy ETH with a debit card, credit card, or bank transfer using all major payment methods including debit and credit card, local bank transfers, Apple Pay, Google Pay, and Samsung Pay. MoonPay is active in more than 160 countries and is trusted by 250+ leading wallets, websites, and applications to accept payments and defeat fraud.",
+				"subtitle": "100 Pine Street Suite 1250 San Francisco, CA 94111 United States"
+			},
+			"Wyre": {
+				"body": "Easily buy ETH with a debit card, credit card, or bank transfer using all major payment methods including debit and credit card, local bank transfers, Apple Pay, Google Pay, and Samsung Pay. MoonPay is active in more than 160 countries and is trusted by 250+ leading wallets, websites, and applications to accept payments and defeat fraud.",
+				"subtitle": "100 Pine Street Suite 1250 San Francisco, CA 94111 United States"
+			}
+		},
+		"support": "support"
 	},
 	"swaps": {
 		"onboarding": {

@@ -47,7 +47,7 @@ const Region = () => {
 	}, [navigation, colors]);
 
 	const handleChangeRememberRegion = () => {
-		setRememberRegion((currentRememberRegion) => !currentRememberRegion);
+		setRememberRegion(!rememberRegion);
 	};
 
 	const handleRegionButton = () => {
@@ -174,7 +174,7 @@ const Region = () => {
 				<ScreenLayout.Content>
 					<View>
 						<StyledButton type="confirm" onPress={handleOnPress} disabled={!selectedCountry?.id}>
-							Continue
+							{strings('swaps.continue')}
 						</StyledButton>
 					</View>
 				</ScreenLayout.Content>
