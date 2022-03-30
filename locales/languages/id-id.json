@@ -692,9 +692,7 @@
 		"gas_education_4": "Biaya jaringan berfluktuasi berdasarkan lalu lintas jaringan dan kompleksitas transaksi.",
 		"gas_education_learn_more": "Pelajari selengkapnya tentang biaya jaringan",
 		"confusable_title": "Periksa alamat penerima",
-		"confusable_msg": "Kami telah mendeteksi karakter yang membingungkan di nama ENS. Periksa nama ENS untuk menghindari kemungkinan scam.",
-		"address_invalid": "Alamat penerima tidak valid.",
-		"ens_not_found": "Tidak ada alamat yang ditetapkan untuk nama ini."
+		"confusable_msg": "Kami telah mendeteksi karakter yang membingungkan di nama ENS. Periksa nama ENS untuk menghindari kemungkinan scam."
 	},
 	"custom_gas": {
 		"total": "Total",

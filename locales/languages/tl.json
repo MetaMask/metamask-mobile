@@ -692,9 +692,7 @@
 		"gas_education_4": "Nagbabago-bago ang mga bayarin sa gas batay sa trapiko sa network at pagkakumplikado ng transaksyon.",
 		"gas_education_learn_more": "Matuto pa tungkol sa mga bayarin sa gas",
 		"confusable_title": "Tingnan ang address ng tatanggap",
-		"confusable_msg": "May na-detect kaming nakakalitong character sa ENS name. Tingnan ang ENS name para maiwasan ang potensyal na scam.",
-		"address_invalid": "Di-wasto ang address ng tatanggap.",
-		"ens_not_found": "Walang naitakdang address para sa pangalang ito."
+		"confusable_msg": "May na-detect kaming nakakalitong character sa ENS name. Tingnan ang ENS name para maiwasan ang potensyal na scam."
 	},
 	"custom_gas": {
 		"total": "Kabuuan",

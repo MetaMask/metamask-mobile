@@ -349,7 +349,7 @@ class SendFlow extends PureComponent {
 			} else {
 				toAddressName = await doENSReverseLookup(toSelectedAddress, network);
 
-				toAddressName = toAddressName === undefined ? toSelectedAddress : toAddressName;
+				toAddressName = toAddressName || toSelectedAddress;
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}

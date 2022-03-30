@@ -203,6 +203,8 @@ export const AddressTo = (props) => {
 	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
+	const isInputFilled = toSelectedAddress?.length;
+
 	if (confirmScreen) {
 		return (
 			<View style={styles.wrapper}>
@@ -271,7 +273,7 @@ export const AddressTo = (props) => {
 							keyboardAppearance={themeAppearance}
 						/>
 					</View>
-					{!toSelectedAddress?.length > 0 ? (
+					{!isInputFilled ? (
 						<TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
 							<AntIcon
 								name="scan1"
