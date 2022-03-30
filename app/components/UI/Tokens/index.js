@@ -19,7 +19,6 @@ import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import Text from '../../Base/Text';
 
-// eslint-disable-next-line import/no-commonjs
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
@@ -151,11 +150,11 @@ class Tokens extends PureComponent {
 		this.props.navigation.navigate('Asset', { ...token, transactions: this.props.transactions });
 	};
 
-	handleTransactionDetailsNavigation = (stage) =>
+	handleTransactionDetailsNavigation = (id) =>
 		this.props.navigation.navigate('FiatOnRampAggregator', {
 			screen: 'TransactionDetails',
 			params: {
-				stage,
+				id,
 			},
 		});
 

@@ -15,24 +15,23 @@ const styles = StyleSheet.create({
 		paddingTop: 0,
 	},
 });
+const mockOrder = {
+	status: 'confirmed',
+	transactionID: 'QY34A1TAY3R',
+	dateAndTime: 'FEB 2 2022, 5:05 PM UTC',
+	paymentMethod: 'DEBIT CARD 2755',
+	tokenAmount: '0.0687202',
+	fiatAmount: '$280.54',
+	exchangeRate: '1 ETH @ $4,3427.86',
+	totalFees: '$19.46',
+	providerName: 'MoonPay',
+	purchaseAmountTotal: '$300 USD',
+	paymentType: 'bank',
+};
 
 const TransactionDetails = ({ route }) => {
-	const mockOrder = {
-		status: 'confirmed',
-		transactionID: 'QY34A1TAY3R',
-		dateAndTime: 'FEB 2 2022, 5:05 PM UTC',
-		paymentMethod: 'DEBIT CARD 2755',
-		tokenAmount: '0.0687202',
-		fiatAmount: '$280.54',
-		exchangeRate: '1 ETH @ $4,3427.86',
-		totalFees: '$19.46',
-		providerName: 'MoonPay',
-		purchaseAmountTotal: '$300 USD',
-		paymentType: 'bank',
-	};
-
 	const orderById = useSelector(makeOrderIdSelector(route.params.id));
-	const order = orderById.length > 0 ? orderById : mockOrder;
+	const order = orderById || mockOrder;
 	const navigation = useNavigation();
 
 	const handleMakeAnotherPurchase = useCallback(() => {

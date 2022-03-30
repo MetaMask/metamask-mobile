@@ -22,8 +22,9 @@ const styles = StyleSheet.create({
 	},
 	provider: {
 		alignSelf: 'flex-end',
-		bottom: 3,
+		marginTop: 0,
 	},
+
 	listItems: {
 		paddingVertical: 4,
 	},
@@ -73,7 +74,8 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
-		case 'failed' || 'cancelled': {
+		case 'failed':
+		case 'cancelled': {
 			return (
 				<>
 					<Image source={failedIcon} />
@@ -86,7 +88,8 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
-		case 'pending' || 'submitted': {
+		case 'pending':
+		case 'submitted': {
 			return (
 				<>
 					<Spinner />
@@ -114,37 +117,30 @@ interface Props {
 
 const values = [
 	{
-		id: 1,
 		title: 'Transaction ID',
 		variable: 'transactionID',
 	},
 	{
-		id: 2,
 		title: 'Date and Time',
 		variable: 'dateAndTime',
 	},
 	{
-		id: 3,
 		title: 'Payment Method',
 		variable: 'paymentMethod',
 	},
 	{
-		id: 4,
 		title: 'Token Amount',
 		variable: 'tokenAmount',
 	},
 	{
-		id: 5,
 		title: 'USD Amount',
 		variable: 'fiatAmount',
 	},
 	{
-		id: 6,
 		title: 'Exchange Rate',
 		variable: 'exchangeRate',
 	},
 	{
-		id: 7,
 		title: 'Total Fees',
 		variable: 'totalFees',
 	},
@@ -163,8 +159,8 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => (
 			<Text bold primary style={styles.transactionTitle}>
 				{strings('fiat_on_ramp_aggregator.transaction.details')}
 			</Text>
-			{values.map(({ id, title, variable }) => (
-				<View key={id}>
+			{values.map(({ title, variable }) => (
+				<View key={variable}>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
