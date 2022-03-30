@@ -496,11 +496,10 @@ class Amount extends PureComponent {
 			providerType,
 			onConfirm,
 		} = this.props;
-		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, hasExchangeRate, maxFiatInput } =
-			this.state;
+		const { inputValue, inputValueConversion, internalPrimaryCurrencyIsCrypto, maxFiatInput } = this.state;
 
 		let value;
-		if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
+		if (internalPrimaryCurrencyIsCrypto) {
 			value = inputValue;
 		} else {
 			value = inputValueConversion;
@@ -514,7 +513,7 @@ class Amount extends PureComponent {
 		if (value && value.includes(',')) {
 			value = inputValue.replace(',', '.');
 		}
-		if (!selectedAsset.tokenId && this.validateAmount(value)) {
+		if (!selectedAsset.tokenId && this.validateAmount(value, internalPrimaryCurrencyIsCrypto)) {
 			return;
 		} else if (selectedAsset.tokenId) {
 			const isOwner = await this.validateCollectibleOwnership();
@@ -643,9 +642,14 @@ class Amount extends PureComponent {
 	 * @param {string} - Crypto value
 	 * @returns - Whether there is an error with the amount
 	 */
-	validateAmount = (inputValue) => {
-		const { accounts, selectedAddress, contractBalances, selectedAsset } = this.props;
-		const { estimatedTotalGas } = this.state;
+	validateAmount = (inputValue, internalPrimaryCurrencyIsCrypto) => {
+		const { accounts, selectedAddress, selectedAsset, contractBalances } = this.props;
+		const { estimatedTotalGas, inputValueConversion } = this.state;
+
+		if (!internalPrimaryCurrencyIsCrypto) {
+			inputValue = inputValueConversion;
+		}
+
 		let weiBalance, weiInput, amountError;
 		if (isDecimal(inputValue)) {
 			if (selectedAsset.isETH) {
