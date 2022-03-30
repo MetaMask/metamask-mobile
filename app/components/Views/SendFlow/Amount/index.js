@@ -637,7 +637,6 @@ class Amount extends PureComponent {
 
 	/**
 	 * Validates crypto value only
-	 * Independent of current internalPrimaryCurrencyIsCrypto
 	 *
 	 * @param {string} - Crypto value
 	 * @returns - Whether there is an error with the amount
