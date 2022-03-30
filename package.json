@@ -96,7 +96,9 @@
     "web3": "1.6.1",
     "simple-get": "4.0.1",
     "oss-attribution-generator/**/underscore": "1.12.1",
-    "oss-attribution-generator/**/deep-extend": "0.5.1"
+    "oss-attribution-generator/**/deep-extend": "0.5.1",
+    "**/plist": "3.0.5",
+    "**/minimist": "1.2.6"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -407,7 +409,8 @@
       "bufferutil": false,
       "utf-8-validate": false,
       "web3-shh": false,
-      "highlight.js": false
+      "highlight.js": false,
+      "es5-ext": false
     }
   }
 }
