@@ -1280,8 +1280,7 @@
 	"webview_error": {
 		"title": "糟糕！出问题了...",
 		"message": "我们无法加载该页面。",
-		"reason": "原因",
-		"try_again": "重试"
+		"reason": "原因"
 	},
 	"offline_mode": {
 		"title": "您已离线",
