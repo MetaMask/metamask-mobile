@@ -53,7 +53,7 @@ const createStyles = (colors) =>
 			fontSize: 12,
 		},
 		buttonWrapper: {
-			width: 120,
+			width: 200,
 			marginTop: 30,
 		},
 	});
@@ -70,15 +70,15 @@ export default class WebviewError extends PureComponent {
 		/**
 		 * Function that reloads the page
 		 */
-		onReload: PropTypes.func,
+		returnHome: PropTypes.func,
 	};
 
 	static defaultProps = {
 		error: false,
 	};
 
-	onReload = () => {
-		this.props.onReload();
+	returnHome = () => {
+		this.props.returnHome();
 	};
 
 	render() {
@@ -105,8 +105,8 @@ export default class WebviewError extends PureComponent {
 					) : null}
 				</View>
 				<View style={styles.buttonWrapper}>
-					<StyledButton type={'confirm'} onPress={this.onReload}>
-						{strings('webview_error.try_again')}
+					<StyledButton type={'confirm'} onPress={this.returnHome}>
+						{strings('webview_error.return_home')}
 					</StyledButton>
 				</View>
 			</View>
