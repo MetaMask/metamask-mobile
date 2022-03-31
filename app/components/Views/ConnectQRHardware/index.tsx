@@ -60,10 +60,12 @@ const createStyles = (colors: any) =>
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+
 	const KeyringController = useMemo(() => {
 		const { KeyringController: keyring } = Engine.context as any;
 		return keyring;
 	}, []);
+
 	const AccountTrackerController = useMemo(() => (Engine.context as any).AccountTrackerController, []);
 
 	const [QRState, setQRState] = useState({
@@ -80,13 +82,23 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	const resetError = useCallback(() => {
 		setErrorMsg('');
 	}, []);
+
 	const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
+
+	const showScanner = useCallback(() => {
+		setScannerVisible(true);
+	}, []);
+
+	const hideScanner = useCallback(() => {
+		setScannerVisible(false);
+	}, []);
 
 	useEffect(() => {
 		KeyringController.getAccounts().then((value: string[]) => {
 			setExistingAccounts(value);
 		});
 	}, [KeyringController]);
+
 	useEffect(() => {
 		KeyringController.getQRKeyringState().then((memstore: any) => {
 			memstore.subscribe((value: any) => {
@@ -94,6 +106,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			});
 		});
 	}, [KeyringController]);
+
 	useEffect(() => {
 		const unTrackedAccounts: string[] = [];
 		accounts.forEach((account) => {
@@ -107,12 +120,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			});
 		}
 	}, [AccountTrackerController, accounts, trackedAccounts]);
-	const showScanner = useCallback(() => {
-		setScannerVisible(true);
-	}, []);
-	const hideScanner = useCallback(() => {
-		setScannerVisible(false);
-	}, []);
+
 	useEffect(() => {
 		if (QRState.sync.reading) {
 			showScanner();
@@ -145,6 +153,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		},
 		[KeyringController, hideScanner, resetError]
 	);
+
 	const onScanError = useCallback(
 		(error: string) => {
 			hideScanner();
