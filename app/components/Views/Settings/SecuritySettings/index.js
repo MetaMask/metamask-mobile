@@ -48,7 +48,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import { isTokenDetectionEnabledForNetwork } from '../../../../util/networks';
+import { util as controllerUtils } from '@metamask/controllers';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
@@ -948,7 +948,7 @@ class Settings extends PureComponent {
 
 	renderTokenDetectionSection = () => {
 		const { isTokenDetectionEnabled, chainId } = this.props;
-		if (!isTokenDetectionEnabledForNetwork(chainId)) {
+		if (!controllerUtils.isTokenDetectionEnabledForNetwork(chainId)) {
 			return null;
 		}
 		return (

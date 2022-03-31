@@ -11,7 +11,8 @@ import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
-import { isMainNet, isTokenDetectionEnabledForNetwork } from '../../../util/networks';
+import { isMainNet } from '../../../util/networks';
+import { util as controllerUtils } from '@metamask/controllers';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -100,7 +101,7 @@ class AddAsset extends PureComponent {
 			useCollectibleDetection,
 		} = this.props;
 		const { dismissNftInfo } = this.state;
-		const isTokenDetectionSupported = isTokenDetectionEnabledForNetwork(chainId);
+		const isTokenDetectionSupported = controllerUtils.isTokenDetectionEnabledForNetwork(chainId);
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={`add-${assetType}-screen`}>
