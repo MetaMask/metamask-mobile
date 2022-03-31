@@ -1,7 +1,8 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { View, Text, Linking, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import { MAINNET } from '../../../../constants/network';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors: {
@@ -39,46 +40,44 @@ interface DescriptionProps {
 	clickableText: string | undefined;
 	number: number;
 	onClose: () => void;
-	mainnetTokenDetection: boolean;
-	isMainnet: boolean;
+	isMainnetTokenDetectionEnabled: boolean;
+	network: string;
 }
 
 const Description = (props: DescriptionProps) => {
-	const { description, clickableText, number, onClose, mainnetTokenDetection, isMainnet } = props;
+	const { description, clickableText, number, onClose, isMainnetTokenDetectionEnabled, network } = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const navigation = useNavigation();
 
-	const handlePress = () => {
+	const handlePress = useCallback(() => {
 		if (number === 2) {
 			Linking.openURL(strings('network_information.learn_more_url'));
 		} else {
 			onClose();
 			navigation.navigate('AddAsset', { assetType: 'token' });
 		}
-	};
+	}, [navigation, onClose, number]);
 
-	const handleNavigation = () => {
+	const handleNavigation = useCallback(() => {
 		onClose();
 		navigation.navigate('ExperimentalSettings');
-	};
+	}, [navigation, onClose]);
 
 	return (
 		<View style={styles.descriptionContainer}>
 			<View style={styles.contentContainer}>
 				<Text style={styles.numberStyle}>{number}.</Text>
 				<Text style={styles.description}>
-					<Text>
-						{description} {''}
-					</Text>
+					<Text>{`${description} `}</Text>
 					{clickableText && (
 						<>
-							{!mainnetTokenDetection && isMainnet && (
+							{!isMainnetTokenDetectionEnabled && network === MAINNET && (
 								<>
 									<Text style={styles.link} onPress={handleNavigation}>
-										{strings('network_information.enable_token_detection')}
-									</Text>{' '}
-									{strings('network_information.or')}{' '}
+										{`${strings('network_information.enable_token_detection')} `}
+									</Text>
+									{`${strings('network_information.or')} `}
 								</>
 							)}
 							<Text style={styles.link} onPress={handlePress}>

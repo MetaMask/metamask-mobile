@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -124,18 +124,12 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
-	let mainnetTokenDetection = false;
-	let isMainnet = false;
-
-	if (type === MAINNET && isTokenDetectionEnabled) {
-		mainnetTokenDetection = true;
-	} else if (type === MAINNET && !isTokenDetectionEnabled) {
-		mainnetTokenDetection = false;
-	}
-
-	if (type === MAINNET) {
-		isMainnet = true;
-	}
+	const isMainnetTokenDetectionEnabled = useMemo(() => {
+		if (type === MAINNET && isTokenDetectionEnabled) {
+			return true;
+		}
+		return false;
+	}, [isTokenDetectionEnabled, type]);
 
 	return (
 		<View style={styles.wrapper}>
@@ -190,23 +184,22 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						description={strings('network_information.second_description')}
 						clickableText={strings('network_information.learn_more')}
 						number={2}
-						mainnetTokenDetection={false}
 					/>
 					<Description
 						description={
-							mainnetTokenDetection
+							isMainnetTokenDetectionEnabled
 								? strings('network_information.token_detection_mainnet_title')
 								: strings('network_information.third_description')
 						}
 						clickableText={
-							mainnetTokenDetection
+							isMainnetTokenDetectionEnabled
 								? strings('network_information.token_detection_mainnet_link')
 								: strings('network_information.add_token_manually')
 						}
 						number={3}
-						mainnetTokenDetection={mainnetTokenDetection}
+						isMainnetTokenDetectionEnabled={isMainnetTokenDetectionEnabled}
 						onClose={onClose}
-						isMainnet={isMainnet}
+						network={type}
 					/>
 				</View>
 				<StyledButton
