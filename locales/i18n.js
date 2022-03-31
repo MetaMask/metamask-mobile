@@ -18,6 +18,7 @@ import ru from './languages/ru-ru.json';
 import tl from './languages/tl.json';
 import vi from './languages/vi-vn.json';
 import zh from './languages/zh-cn.json';
+import zh-Hant-TW from './languages/zh-tw.json';
 
 // Should the app fallback to English if user locale doesn't exists
 I18n.fallbacks = true;
@@ -35,6 +36,7 @@ I18n.translations = {
 	tl,
 	vi,
 	zh,
+	zh-Hant-TW,
 };
 // If language selected get locale
 getUserPreferableLocale();
@@ -72,6 +74,8 @@ getUserPreferableLocale();
 // 			return require(`intl/locale-data/jsonp/vi.js`);
 // 		case 'zh':
 // 			return require(`intl/locale-data/jsonp/zh.js`);
+//      case 'zh-Hant-TW':
+// 			return require(`intl/locale-data/jsonp/zh-Hant-TW.js`);
 // 		default:
 // 	}
 // }
@@ -100,6 +104,7 @@ export function getLanguages() {
 		tl: 'Filipino',
 		vi: 'Vietnamese',
 		zh: 'Chinese - China',
+		zh-Hant-TW: 'Chinese - Taiwan',
 	};
 }
 
