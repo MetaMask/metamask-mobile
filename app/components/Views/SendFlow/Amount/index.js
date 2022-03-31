@@ -37,6 +37,7 @@ import {
 	handleWeiNumber,
 	fromTokenMinimalUnitString,
 	toHexadecimal,
+	renderNumber,
 } from '../../../../util/number';
 import { getTicker, generateTransferData, getEther, calculateEIP1559GasFeeHexes } from '../../../../util/transactions';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
@@ -693,7 +694,7 @@ class Amount extends PureComponent {
 			const realMaxValue = balanceBN.sub(estimatedTotalGas);
 			const maxValue = balanceBN.isZero() || realMaxValue.isNeg() ? new BN(0) : realMaxValue;
 			if (internalPrimaryCurrencyIsCrypto) {
-				input = fromWei(maxValue);
+				input = renderNumber(fromWei(maxValue));
 			} else {
 				input = `${weiToFiatNumber(maxValue, conversionRate)}`;
 				this.setState({ maxFiatInput: `${weiToFiatNumber(maxValue, conversionRate, 12)}` });
