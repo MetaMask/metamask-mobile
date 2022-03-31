@@ -29,6 +29,9 @@ const createStyles = (colors) =>
 			height: 2,
 			backgroundColor: colors.primary.default,
 		},
+		tabBar: {
+			borderColor: colors.border.muted,
+		},
 		tabStyle: {
 			paddingBottom: 0,
 		},
@@ -102,6 +105,7 @@ class AddAsset extends PureComponent {
 				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
+				style={styles.tabBar}
 			/>
 		);
 	}
