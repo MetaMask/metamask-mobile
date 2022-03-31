@@ -25,7 +25,7 @@ const GetQuotes = () => {
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
 	const [showInfo, setShowInfo] = useState(false);
-	const [selectedProviderInfo, setSelectedProviderInfo] = useState({});
+	const [selectedProviderInfo] = useState({});
 	const {
 		selectedPaymentMethod,
 		selectedCountry,
@@ -66,22 +66,9 @@ const GetQuotes = () => {
 		[navigation]
 	);
 
-	const renderInfo = useCallback(
-		(providerName) => {
-			//get info from sdk using providerName or id
-			const providerInfo = {
-				name: providerName,
-				body: strings('fiat_on_ramp_aggregator.quotes.' + providerName + '.body'),
-				subtitle: strings('fiat_on_ramp_aggregator.quotes.' + providerName + '.subtitle'),
-				website: 'https://metamask.io/',
-				privacyPolicy: 'https://metamask.io/',
-				support: 'https://metamask.io/',
-			};
-			setSelectedProviderInfo(providerInfo);
-			setShowInfo(!showInfo);
-		},
-		[showInfo]
-	);
+	const renderInfo = useCallback(() => {
+		setShowInfo(!showInfo);
+	}, [showInfo]);
 
 	if (isLoading) {
 		return (
@@ -106,7 +93,6 @@ const GetQuotes = () => {
 				dismiss={() => setShowInfo(!showInfo)}
 				providerName={selectedProviderInfo.name}
 				body={selectedProviderInfo.body}
-				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
 				providerWebsite={selectedProviderInfo.website}
 				providerPrivacyPolicy={selectedProviderInfo.privacyPolicy}
 				providerSupport={selectedProviderInfo.support}
@@ -133,7 +119,7 @@ const GetQuotes = () => {
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
 										highlighted={quote.providerId === providerId}
-										showInfo={() => renderInfo(quote.providerName)}
+										showInfo={() => renderInfo()}
 									/>
 								</View>
 							))

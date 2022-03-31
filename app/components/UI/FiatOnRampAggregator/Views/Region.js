@@ -135,13 +135,12 @@ const Region = () => {
 									)}
 								</ListItem.Body>
 								<ListItem.Amounts>
-									<FontAwesome name="caret-down" size={15} color={colors.primary.inverse} />
+									<FontAwesome name="caret-down" size={15} color={colors.icon.default} />
 								</ListItem.Amounts>
 							</ListItem.Content>
 						</Box>
 					</TouchableOpacity>
-
-					<TouchableOpacity onPress={handleChangeRememberRegion} style={styles.checkboxView}>
+					<View style={styles.checkboxView}>
 						<CheckBox
 							value={rememberRegion}
 							onValueChange={handleChangeRememberRegion}
@@ -149,14 +148,16 @@ const Region = () => {
 							animationDuration={0.2}
 							onAnimationType="fill"
 							offAnimationType="fill"
-							onFillColor={colors.blue500}
-							onCheckColor={colors.white}
+							onFillColor={colors.primary.default}
+							onCheckColor={colors.background.default}
 							style={styles.checkbox}
 						/>
-						<Text black style={styles.checkboxMargin}>
-							{strings('fiat_on_ramp_aggregator.region.remember_region')}
-						</Text>
-					</TouchableOpacity>
+						<TouchableOpacity activeOpacity={1} onPress={handleChangeRememberRegion}>
+							<Text black style={styles.checkboxMargin}>
+								{strings('fiat_on_ramp_aggregator.region.remember_region')}
+							</Text>
+						</TouchableOpacity>
+					</View>
 				</ScreenLayout.Content>
 
 				<RegionModal

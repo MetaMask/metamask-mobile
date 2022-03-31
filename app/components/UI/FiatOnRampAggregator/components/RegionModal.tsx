@@ -74,7 +74,7 @@ const createStyles = (colors: any) =>
 		separator: {
 			height: 1,
 			width: '100%',
-			backgroundColor: colors.border.muted,
+			backgroundColor: colors.background.alternative,
 		},
 		subheader: {
 			flexDirection: 'row',
@@ -277,6 +277,7 @@ const RegionModal: React.FC<Props> = ({
 			isVisible={isVisible}
 			onBackdropPress={dismiss}
 			swipeDirection="down"
+			onSwipeComplete={dismiss}
 			propagateSwipe
 			avoidKeyboard
 			onModalHide={onModalHide}

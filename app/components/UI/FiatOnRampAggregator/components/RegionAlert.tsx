@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
-import { colors } from '../../../../styles/common';
 import CustomText from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -60,7 +59,7 @@ const RegionAlert: React.FC<Props> = ({ isVisible, title, subtitle, body, dismis
 		>
 			<Box style={styles.box}>
 				<TouchableOpacity onPress={dismiss} style={styles.cancel}>
-					<EvilIcons name="close" size={17} />
+					<EvilIcons name="close" size={17} color={colors.icon.default} />
 				</TouchableOpacity>
 				<View style={styles.row}>
 					<Text bold primary big style={styles.title}>

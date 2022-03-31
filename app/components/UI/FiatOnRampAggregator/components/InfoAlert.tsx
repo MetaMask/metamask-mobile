@@ -78,7 +78,7 @@ const InfoAlert: React.FC<Props> = ({
 		>
 			<Box style={styles.box}>
 				<TouchableOpacity onPress={dismiss} style={styles.cancel}>
-					<EvilIcons name="close" size={17} />
+					<EvilIcons name="close" size={17} color={colors.icon.default} />
 				</TouchableOpacity>
 				<View style={styles.row}>
 					<Text bold primary big centered style={styles.title}>
