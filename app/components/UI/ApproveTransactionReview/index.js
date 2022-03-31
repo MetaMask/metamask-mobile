@@ -809,7 +809,13 @@ class ApproveTransactionReview extends PureComponent {
 				<TransactionHeader
 					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
 				/>
-				<QRSigningDetails QRState={QRState} tighten showHint={false} showCancelButton />
+				<QRSigningDetails
+					QRState={QRState}
+					tighten
+					showHint={false}
+					showCancelButton
+					bypassAndroidCameraAccessCheck={false}
+				/>
 			</View>
 		);
 	}

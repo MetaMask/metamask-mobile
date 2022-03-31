@@ -1,16 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React from 'react';
 import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
-import { renderShortAddress } from '../../../../util/address';
+import { isQRHardwareAccount, renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
-import Engine from '../../../../core/Engine';
-import { QR_HARDWARE_WALLET_DEVICE } from '../../../../constants/keyringTypes';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
@@ -354,20 +352,7 @@ AddressTo.propTypes = {
 
 export const AddressFrom = (props) => {
 	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
-
-	const KeyringController = useMemo(() => {
-		const { KeyringController: keyring } = Engine.context;
-		return keyring;
-	}, []);
-	const [isHardwareAccount, setIsHardwareAccount] = useState(false);
-	useEffect(() => {
-		KeyringController.getAccountKeyringType(fromAccountAddress).then((type) => {
-			if (type === QR_HARDWARE_WALLET_DEVICE) {
-				setIsHardwareAccount(true);
-			}
-		});
-	}, [KeyringController, fromAccountAddress]);
-
+	const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 

@@ -498,6 +498,9 @@
 		"custom_nonce_desc": "Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.",
 		"accounts_identicon_title": "Account Identicon",
 		"accounts_identicon_desc": "Jazzicons and Blockies are two different styles of unique icons that help you identify an account at a glance.",
+		"android_camera_access_title": "Camera Permission",
+		"android_camera_access_desc": "Grant camera access when you have trouble with Keystone.",
+		"android_camera_access_error": "Unable to request camera access again, please go to system settings.",
 		"jazzicons": "Jazzicons",
 		"blockies": "Blockies",
 		"general_title": "General",
@@ -793,6 +796,7 @@
 		"invalid_qr_code_sync": "Invalid QR code. Please scan the sync QR code of the hardware wallet.",
 		"no_camera_permission": "Camera not authorized. Please give permission and retry",
 		"invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
+		"no_camera_permission_android": "You need to grant MetaMask access to your camera to proceed. In MetaMask go to Settings > Security & Privacy and then enable \"Camera Permission\" at the bottom of the screen. You may also need to change your system settings.",
 		"mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'."
 	},
 	"custom_gas": {
