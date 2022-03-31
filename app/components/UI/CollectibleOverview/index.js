@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View, Easing, Animated, SafeAreaView, TouchableWithoutFeedback } from 'react-native';
+import {
+	StyleSheet,
+	View,
+	Easing,
+	Animated,
+	SafeAreaView,
+	TouchableWithoutFeedback,
+	ActivityIndicator,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { baseStyles } from '../../../styles/common';
@@ -108,6 +116,11 @@ const createStyles = (colors) =>
 		description: {
 			marginTop: 8,
 		},
+		loader: {
+			backgroundColor: colors.background.default,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
 	});
 
 /**
@@ -124,6 +137,8 @@ const CollectibleOverview = ({
 	isInFavorites,
 	openLink,
 	onTranslation,
+	onViewTransactionDetails,
+	isTransacting,
 }) => {
 	const [headerHeight, setHeaderHeight] = useState(0);
 	const [wrapperHeight, setWrapperHeight] = useState(0);
@@ -322,13 +337,21 @@ const CollectibleOverview = ({
 					<View style={[styles.generalContainer, styles.buttonContainer]}>
 						{tradable && (
 							<StyledButton
-								onPressOut={onSend}
+								onPressOut={isTransacting ? onViewTransactionDetails : onSend}
 								type={'rounded-normal'}
 								containerStyle={[baseStyles.flexGrow, styles.button, styles.leftButton]}
 							>
 								<Text link big={!IS_SMALL_DEVICE} bold noMargin>
-									{strings('asset_overview.send_button')}
+									{isTransacting
+										? strings('asset_overview.view_transactions')
+										: strings('asset_overview.send_button')}
 								</Text>
+
+								{isTransacting && (
+									<View style={styles.loader}>
+										<ActivityIndicator size="small" />
+									</View>
+								)}
 							</StyledButton>
 						)}
 						{collectible?.externalLink && (
@@ -433,6 +456,14 @@ CollectibleOverview.propTypes = {
 	 * callback to trigger when modal is being animated
 	 */
 	onTranslation: PropTypes.func,
+	/**
+	 * When the collectible is being transacted, this func will navigate to Transactions View
+	 */
+	onViewTransactionDetails: PropTypes.func,
+	/**
+	 * Returns if the collectible is being transacted or not
+	 */
+	isTransacting: PropTypes.bool,
 };
 
 const mapStateToProps = (state, props) => ({

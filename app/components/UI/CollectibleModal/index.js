@@ -9,6 +9,7 @@ import CollectibleMedia from '../CollectibleMedia';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
+import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
 	bottomModal: {
@@ -35,15 +36,25 @@ const styles = StyleSheet.create({
  */
 const CollectibleModal = (props) => {
 	const { route, navigation, newAssetTransaction } = props;
+	const { CollectiblesController } = Engine.context;
 	const { contractName, collectible } = route.params;
 
 	const [mediaZIndex, setMediaZIndex] = useState(20);
 	const [overviewZIndex, setOverviewZIndex] = useState(10);
 
+	const isTransacting = CollectiblesController.getCollectibleTransactionStatus(
+		collectible.address,
+		collectible.tokenId
+	);
+
 	const onSend = useCallback(async () => {
 		newAssetTransaction({ contractName, ...collectible });
 		navigation.replace('SendFlowView');
 	}, [contractName, collectible, newAssetTransaction, navigation]);
+
+	const onViewTransactionDetails = useCallback(() => {
+		navigation.navigate('TransactionsHome');
+	}, [navigation]);
 
 	const isTradable = useCallback(() => {
 		// This might be deprecated
@@ -101,8 +112,10 @@ const CollectibleModal = (props) => {
 						collectible={{ ...collectible, contractName }}
 						tradable={isTradable()}
 						onSend={onSend}
+						onViewTransactionDetails={onViewTransactionDetails}
 						openLink={openLink}
 						onTranslation={onCollectibleOverviewTranslation}
+						isTransacting={isTransacting}
 					/>
 				</View>
 			</>

@@ -636,7 +636,8 @@
 		"were_unable": "We’re unable to load your",
 		"balance": "balance. See the support article",
 		"troubleshooting_missing": "troubleshooting missing balances",
-		"for_help": "for help."
+		"for_help": "for help.",
+		"view_transactions": "View transactions"
 	},
 	"account_details": {
 		"title": "Account Details",

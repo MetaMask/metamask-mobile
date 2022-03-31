@@ -818,7 +818,7 @@ class Confirm extends PureComponent {
 	};
 
 	onNext = async () => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, CollectiblesController } = Engine.context;
 		const {
 			transactionState: { assetType, selectedAsset },
 			navigation,
@@ -853,6 +853,13 @@ class Confirm extends PureComponent {
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
 			}
+			if (assetType === 'ERC721') {
+				await CollectiblesController.updateCollectibleTransactionStatus(
+					selectedAsset.address,
+					selectedAsset.tokenId,
+					true
+				);
+			}
 
 			InteractionManager.runAfterInteractions(() => {
 				NotificationManager.watchSubmittedTransaction({
@@ -874,6 +881,13 @@ class Confirm extends PureComponent {
 				{ text: strings('navigation.ok') },
 			]);
 			Logger.error(error, 'error while trying to send transaction (Confirm)');
+			if (assetType === 'ERC721') {
+				CollectiblesController.updateCollectibleTransactionStatus(
+					selectedAsset.address,
+					selectedAsset.tokenId,
+					false
+				);
+			}
 		}
 		this.setState({ transactionConfirmed: false });
 	};
