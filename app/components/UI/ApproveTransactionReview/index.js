@@ -11,7 +11,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit } from '../../../util/number';
 import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
@@ -19,7 +19,7 @@ import {
 	getActiveTabUrl,
 	getMethodData,
 	decodeApproveData,
-	generateApproveData,
+	generateTxWithNewTokenAllowance,
 } from '../../../util/transactions';
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
@@ -456,23 +456,12 @@ class ApproveTransactionReview extends PureComponent {
 
 		try {
 			const { setTransactionObject } = this.props;
-			const uint = toTokenMinimalUnit(
+			const newApprovalTransaction = generateTxWithNewTokenAllowance(
+				token.decimals,
+				spenderAddress,
 				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
-				token.decimals
-			).toString(10);
-
-			const approvalData = generateApproveData({
-				spender: spenderAddress,
-				value: Number(uint).toString(16),
-			});
-			const newApprovalTransaction = {
-				...transaction,
-				data: approvalData,
-				transaction: {
-					...transaction.transaction,
-					data: approvalData,
-				},
-			};
+				transaction
+			);
 
 			setTransactionObject(newApprovalTransaction);
 		} catch (err) {

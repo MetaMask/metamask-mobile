@@ -14,6 +14,7 @@ import {
 	renderFromWei,
 	weiToFiat,
 	weiToFiatNumber,
+	toTokenMinimalUnit,
 } from '../number';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
@@ -1171,3 +1172,24 @@ export function getTokenValue(tokenParams = []) {
 	const valueData = tokenParams.find((param) => param.name === '_value');
 	return valueData && valueData.value;
 }
+
+/**
+ * Generates a new transaction with the token allowance
+ * @param {Number} tokenDecimals - Token decimal
+ * @param {String} spenderAddress - Address to which the allowance will be granted
+ * @param {String} tokenValue - value for the token aallowance
+ * @param {Object} transaction - Transaction to update
+ * @returns A new transaction with the token allowance
+ */
+export const generateTxWithNewTokenAllowance = (tokenDecimals, spenderAddress, tokenValue, transaction) => {
+	const uint = toTokenMinimalUnit(tokenValue, tokenDecimals).toString();
+	const approvalData = generateApproveData({
+		spender: spenderAddress,
+		value: new BigNumber(uint).toString(16),
+	});
+	const newApprovalTransaction = {
+		...transaction,
+		data: approvalData,
+	};
+	return newApprovalTransaction;
+};
