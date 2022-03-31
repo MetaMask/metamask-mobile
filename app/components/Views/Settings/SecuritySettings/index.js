@@ -12,6 +12,9 @@ import {
 	Keyboard,
 	InteractionManager,
 	Linking,
+	// eslint-disable-next-line react-native/split-platform-components
+	PermissionsAndroid,
+	AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { connect } from 'react-redux';
@@ -81,6 +84,13 @@ const createStyles = (colors) =>
 		desc: {
 			...fontStyles.normal,
 			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		error: {
+			...fontStyles.normal,
+			color: colors.error.default,
 			fontSize: 14,
 			lineHeight: 20,
 			marginTop: 12,
@@ -289,6 +299,9 @@ class Settings extends PureComponent {
 		passcodeChoice: false,
 		showHint: false,
 		hintText: '',
+		// ios handled camera perfectly in this situation, we just need to check permission with android.
+		hasAndroidCameraPermission: isIos(),
+		stillAbleToRequestCameraAccess: true,
 	};
 
 	autolockOptions = [
@@ -336,6 +349,25 @@ class Settings extends PureComponent {
 
 	scrollView = undefined;
 
+	requestAndroidCameraAccess = async () => {
+		const status = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+		if (status === PermissionsAndroid.RESULTS.GRANTED) {
+			this.setState({ hasAndroidCameraPermission: true });
+		}
+		if (status === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+			this.setState({ stillAbleToRequestCameraAccess: false });
+		}
+	};
+
+	handleAppStateChange = (status) => {
+		if (status === 'active') {
+			this.setState({ stillAbleToRequestCameraAccess: true });
+		}
+		PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((value) => {
+			this.setState({ hasAndroidCameraPermission: value });
+		});
+	};
+
 	updateNavBar = () => {
 		const { navigation } = this.props;
 		const colors = this.context.colors || mockTheme.colors;
@@ -376,7 +408,16 @@ class Settings extends PureComponent {
 		}
 
 		if (this.props.route?.params?.scrollToBottom) this.scrollView?.scrollToEnd({ animated: true });
+
+		PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((value) => {
+			this.setState({ hasAndroidCameraPermission: value });
+		});
+		AppState.addEventListener('change', this.handleAppStateChange);
 	};
+
+	componentWillUnmount() {
+		AppState.removeEventListener('change', this.handleAppStateChange);
+	}
 
 	componentDidUpdate = async () => {
 		this.updateNavBar();
@@ -996,6 +1037,34 @@ class Settings extends PureComponent {
 		);
 	};
 
+	renderCameraAccess = () => {
+		const { styles, colors } = this.getStyles();
+		return (
+			!this.state.hasAndroidCameraPermission && (
+				<View style={styles.setting}>
+					<Text style={styles.title}>{strings('app_settings.android_camera_access_title')}</Text>
+					{this.state.stillAbleToRequestCameraAccess ? (
+						<>
+							<Text style={styles.desc}>{strings('app_settings.android_camera_access_desc')}</Text>
+							<View style={styles.marginTop}>
+								<Switch
+									value={this.state.hasAndroidCameraPermission}
+									onValueChange={this.requestAndroidCameraAccess}
+									trackColor={{ true: colors.primary.default, false: colors.border.muted }}
+									thumbColor={importedColors.white}
+									style={styles.switch}
+									ios_backgroundColor={colors.border.muted}
+								/>
+							</View>
+						</>
+					) : (
+						<Text style={styles.error}>{strings('app_settings.android_camera_access_error')}</Text>
+					)}
+				</View>
+			)
+		);
+	};
+
 	render = () => {
 		const { biometryType, biometryChoice, loading } = this.state;
 		const { styles } = this.getStyles();
@@ -1035,6 +1104,7 @@ class Settings extends PureComponent {
 					{this.renderCookiesModal()}
 					{this.isMainnet() && this.renderOpenSeaSettings()}
 					{this.renderHint()}
+					{!isIos() && this.renderCameraAccess()}
 				</View>
 			</ScrollView>
 		);

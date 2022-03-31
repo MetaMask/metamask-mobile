@@ -297,7 +297,12 @@ class SignatureRequest extends PureComponent {
 
 		return (
 			<View style={[styles.root]}>
-				<QRSigningDetails QRState={QRState} showCancelButton showHint={false} />
+				<QRSigningDetails
+					QRState={QRState}
+					showCancelButton
+					showHint={false}
+					bypassAndroidCameraAccessCheck={false}
+				/>
 			</View>
 		);
 	}

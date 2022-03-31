@@ -61,6 +61,7 @@ const QRSigningModal = ({ isVisible, QRState, onSuccess, onCancel, onFailure }: 
 					successCallback={onSuccess}
 					cancelCallback={onCancel}
 					failureCallback={onFailure}
+					bypassAndroidCameraAccessCheck={false}
 				/>
 			</View>
 		</Modal>

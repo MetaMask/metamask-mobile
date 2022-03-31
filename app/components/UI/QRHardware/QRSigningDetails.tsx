@@ -1,6 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../core/Engine';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
+// eslint-disable-next-line react-native/split-platform-components
+import { StyleSheet, Text, View, ScrollView, PermissionsAndroid } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
@@ -15,6 +16,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useNavigation } from '@react-navigation/native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import Device from '../../../util/device';
 
 interface IQRSigningDetails {
 	QRState: IQRState;
@@ -26,6 +28,7 @@ interface IQRSigningDetails {
 	tighten?: boolean;
 	showHint?: boolean;
 	shouldStartAnimated?: boolean;
+	bypassAndroidCameraAccessCheck?: boolean;
 }
 
 const createStyles = (colors: any) =>
@@ -89,6 +92,7 @@ const createStyles = (colors: any) =>
 			color: colors.error.default,
 		},
 		alert: {
+			marginHorizontal: 16,
 			marginTop: 12,
 		},
 	});
@@ -103,6 +107,7 @@ const QRSigningDetails = ({
 	tighten = false,
 	showHint = true,
 	shouldStartAnimated = true,
+	bypassAndroidCameraAccessCheck = true,
 }: IQRSigningDetails) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
@@ -114,6 +119,20 @@ const QRSigningDetails = ({
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [shouldPause, setShouldPause] = useState(false);
+
+	// ios handled camera perfectly in this situation, we just need to check permission with android.
+	const [hasCameraPermission, setCameraPermission] = useState(Device.isIos() || bypassAndroidCameraAccessCheck);
+
+	useEffect(() => {
+		if (Device.isAndroid() && !hasCameraPermission) {
+			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((_hasPermission) => {
+				setCameraPermission(_hasPermission);
+				if (!_hasPermission) {
+					setErrorMessage(strings('transaction.no_camera_permission_android'));
+				}
+			});
+		}
+	}, [hasCameraPermission]);
 
 	const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
@@ -190,6 +209,7 @@ const QRSigningDetails = ({
 			{QRState?.sign?.request && (
 				<ScrollView contentContainerStyle={styles.wrapper}>
 					<ActionView
+						confirmDisabled={!hasCameraPermission}
 						showCancelButton={showCancelButton}
 						confirmButtonMode={confirmButtonMode}
 						cancelText={strings('transaction.reject')}
