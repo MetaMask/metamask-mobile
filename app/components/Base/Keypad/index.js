@@ -20,9 +20,15 @@ function KeypadComponent({
 	const handleKeypadPress = useCallback(
 		(pressedKey) => {
 			const newValue = handler(value, pressedKey);
-			onChange(newValue, pressedKey);
+			let valueAsNumber = 0;
+			try {
+				valueAsNumber = Number(newValue.replace(decimalSeparator, '.'));
+			} catch (error) {
+				console.error(error);
+			}
+			onChange({ value: newValue, valueAsNumber, pressedKey });
 		},
-		[handler, onChange, value]
+		[decimalSeparator, handler, onChange, value]
 	);
 	const handleKeypadPress1 = useCallback(() => handleKeypadPress(KEYS.DIGIT_1), [handleKeypadPress]);
 	const handleKeypadPress2 = useCallback(() => handleKeypadPress(KEYS.DIGIT_2), [handleKeypadPress]);

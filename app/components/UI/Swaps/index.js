@@ -388,7 +388,7 @@ function SwapsAmountView({
 
 	/* Keypad Handlers */
 	const handleKeypadChange = useCallback(
-		(value) => {
+		({ value }) => {
 			if (value === amount) {
 				return;
 			}
