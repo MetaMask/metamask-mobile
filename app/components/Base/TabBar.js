@@ -17,6 +17,9 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 			fontSize: 14,
 		},
+		tabBar: {
+			borderColor: colors.border.muted,
+		},
 	});
 
 function TabBar({ ...props }) {
@@ -31,6 +34,7 @@ function TabBar({ ...props }) {
 			backgroundColor={colors.background.default}
 			tabStyle={styles.tabStyle}
 			textStyle={styles.textStyle}
+			style={styles.tabBar}
 			{...props}
 		/>
 	);
