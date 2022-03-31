@@ -39,11 +39,12 @@ interface DescriptionProps {
 	clickableText: string | undefined;
 	number: number;
 	onClose: () => void;
-	mainnet_token_detection_off: boolean;
+	mainnetTokenDetection: boolean;
+	isMainnet: boolean;
 }
 
 const Description = (props: DescriptionProps) => {
-	const { description, clickableText, number, onClose, mainnet_token_detection_off } = props;
+	const { description, clickableText, number, onClose, mainnetTokenDetection, isMainnet } = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const navigation = useNavigation();
@@ -72,7 +73,7 @@ const Description = (props: DescriptionProps) => {
 					</Text>
 					{clickableText && (
 						<>
-							{mainnet_token_detection_off && (
+							{!mainnetTokenDetection && isMainnet && (
 								<>
 									<Text style={styles.link} onPress={handleNavigation}>
 										{strings('network_information.enable_token_detection')}

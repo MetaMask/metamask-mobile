@@ -6,7 +6,7 @@ exports[`NetworkInfo should render correctly 1`] = `
   isTokenDetectionEnabled={false}
   networkProvider={
     Object {
-      "rpcTarget": "http://10.0.2.2:8545",
+      "rpcTarget": "",
       "type": "mainnet",
     }
   }

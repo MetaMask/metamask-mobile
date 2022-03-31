@@ -124,8 +124,18 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
-	const mainnet_token_detection_on = type === MAINNET && isTokenDetectionEnabled;
-	const mainnet_token_detection_off = type === MAINNET && !isTokenDetectionEnabled;
+	let mainnetTokenDetection = false;
+	let isMainnet = false;
+
+	if (type === MAINNET && isTokenDetectionEnabled) {
+		mainnetTokenDetection = true;
+	} else if (type === MAINNET && !isTokenDetectionEnabled) {
+		mainnetTokenDetection = false;
+	}
+
+	if (type === MAINNET) {
+		isMainnet = true;
+	}
 
 	return (
 		<View style={styles.wrapper}>
@@ -180,22 +190,23 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						description={strings('network_information.second_description')}
 						clickableText={strings('network_information.learn_more')}
 						number={2}
-						mainnet_token_detection_off={false}
+						mainnetTokenDetection={false}
 					/>
 					<Description
 						description={
-							mainnet_token_detection_on
+							mainnetTokenDetection
 								? strings('network_information.token_detection_mainnet_title')
 								: strings('network_information.third_description')
 						}
 						clickableText={
-							mainnet_token_detection_on
+							mainnetTokenDetection
 								? strings('network_information.token_detection_mainnet_link')
 								: strings('network_information.add_token_manually')
 						}
 						number={3}
-						mainnet_token_detection_off={mainnet_token_detection_off}
+						mainnetTokenDetection={mainnetTokenDetection}
 						onClose={onClose}
+						isMainnet={isMainnet}
 					/>
 				</View>
 				<StyledButton

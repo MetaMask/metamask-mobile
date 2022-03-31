@@ -13,9 +13,9 @@ const initialState = {
 	engine: {
 		backgroundState: {
 			NetworkController: {
-				provider: { type: MAINNET, rpcTarget: 'http://10.0.2.2:8545' },
+				provider: { type: MAINNET, rpcTarget: '' },
 			},
-			PreferencesController: { useStaticTokenList: true, frequentRpcList: ['http://10.0.2.2:8545'] },
+			PreferencesController: { useStaticTokenList: true, frequentRpcList: [] },
 		},
 	},
 	networkOnboarded: {
