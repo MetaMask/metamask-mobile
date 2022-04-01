@@ -1277,8 +1277,7 @@
 	"webview_error": {
 		"title": "Lo lamentamos, se produjo un error…",
 		"message": "No pudimos cargar esa página.",
-		"reason": "Motivo",
-		"try_again": "Vuelva a intentarlo"
+		"reason": "Motivo"
 	},
 	"offline_mode": {
 		"title": "Está desconectado",
