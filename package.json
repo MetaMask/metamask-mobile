@@ -114,7 +114,7 @@
     "@react-native-clipboard/clipboard": "^1.8.4",
     "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
-    "@react-native-community/checkbox": "^0.4.2",
+    "@react-native-community/checkbox": "^0.5.12",
     "@react-native-community/cookies": "^5.0.1",
     "@react-native-community/netinfo": "6.0.0",
     "@react-native-community/viewpager": "3.3.1",
