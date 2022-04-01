@@ -102,7 +102,8 @@ const AmountToBuy = () => {
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
 		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
-		selectedPaymentMethod
+		selectedPaymentMethod,
+		selectedFiatCurrencyId
 	);
 
 	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
