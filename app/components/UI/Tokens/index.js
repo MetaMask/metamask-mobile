@@ -145,6 +145,10 @@ class Tokens extends PureComponent {
 		 * List of detected tokens from TokensController
 		 */
 		detectedTokens: PropTypes.array,
+		/**
+		 * Boolean that indicates if token detection is enabled
+		 */
+		isTokenDetectionEnabled: PropTypes.bool,
 	};
 
 	actionSheet = null;
@@ -249,8 +253,8 @@ class Tokens extends PureComponent {
 	};
 
 	renderTokensDetectedSection = () => {
-		const { detectedTokens } = this.props;
-		if (!detectedTokens?.length) {
+		const { isTokenDetectionEnabled, detectedTokens } = this.props;
+		if (!isTokenDetectionEnabled || !detectedTokens?.length) {
 			return null;
 		}
 		return (
@@ -349,6 +353,7 @@ const mapStateToProps = (state) => ({
 	hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
 	tokenList: getTokenList(state),
 	detectedTokens: state.engine.backgroundState.TokensController.detectedTokens,
+	isTokenDetectionEnabled: state.engine.backgroundState.PreferencesController.useTokenDetection,
 });
 
 export default connect(mapStateToProps)(Tokens);
