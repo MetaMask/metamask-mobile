@@ -10,7 +10,7 @@ import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-export const MINIMUM_VALUE = '1';
+export const MINIMUM_VALUE = '0.000000000000000001';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
