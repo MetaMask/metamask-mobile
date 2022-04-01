@@ -151,6 +151,9 @@ const createStyles = (colors) =>
 		revealModalText: {
 			marginBottom: 20,
 		},
+		tabBar: {
+			borderColor: colors.border.muted,
+		},
 	});
 
 const WRONG_PASSWORD_ERROR = 'error: Invalid password';
@@ -369,6 +372,7 @@ class RevealPrivateCredential extends PureComponent {
 				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
+				style={styles.tabBar}
 			/>
 		);
 	}
