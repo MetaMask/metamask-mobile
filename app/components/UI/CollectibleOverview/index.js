@@ -117,6 +117,7 @@ const createStyles = (colors) =>
 			marginTop: 8,
 		},
 		loader: {
+			marginLeft: 4,
 			backgroundColor: colors.background.default,
 			justifyContent: 'center',
 			alignItems: 'center',
