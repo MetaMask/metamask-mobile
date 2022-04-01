@@ -255,4 +255,13 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
 		const decodedHexValue = decodeAmount(newTx.data);
 		expect(expectedHexValue).toBe(decodedHexValue);
 	});
+	it('should encode the minimum amount uint256 can store correctly and return a new transaction', () => {
+		const maxAmount = '0.000000000000000001';
+		const newTx = generateTxWithNewTokenAllowance(maxAmount, mockDecimal, MOCK_ADDRESS3, mockTx);
+		expect(newTx.data).toBeTruthy();
+
+		const expectedHexValue = '0x0000000000000000000000000000000000000000000000000000000000000001';
+		const decodedHexValue = decodeAmount(newTx.data);
+		expect(expectedHexValue).toBe(decodedHexValue);
+	});
 });
