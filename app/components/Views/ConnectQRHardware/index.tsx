@@ -99,13 +99,22 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 		});
 	}, [KeyringController]);
 
+	const subscribeKeyringState = useCallback((storeValue: any) => {
+		setQRState(storeValue);
+	}, []);
+
 	useEffect(() => {
-		KeyringController.getQRKeyringState().then((memstore: any) => {
-			memstore.subscribe((value: any) => {
-				setQRState(value);
-			});
+		let memStore: any;
+		KeyringController.getQRKeyringState().then((_memStore: any) => {
+			memStore = _memStore;
+			memStore.subscribe(subscribeKeyringState);
 		});
-	}, [KeyringController]);
+		return () => {
+			if (memStore) {
+				memStore.unsubscribe(subscribeKeyringState);
+			}
+		};
+	}, [KeyringController, subscribeKeyringState]);
 
 	useEffect(() => {
 		const unTrackedAccounts: string[] = [];
