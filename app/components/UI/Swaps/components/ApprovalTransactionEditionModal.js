@@ -49,9 +49,9 @@ function ApprovalTransactionEditionModal({
 	const onSetApprovalAmount = useCallback(() => {
 		try {
 			const newApprovalTransaction = generateTxWithNewTokenAllowance(
+				spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
 				sourceToken.decimals,
 				swapsUtils.getSwapsContractAddress(chainId),
-				spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
 				approvalTransaction
 			);
 			setApprovalTransaction(newApprovalTransaction);
