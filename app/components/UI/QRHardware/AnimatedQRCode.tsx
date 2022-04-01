@@ -28,7 +28,9 @@ const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
 		() => new UREncoder(new UR(Buffer.from(cbor, 'hex'), type), MAX_FRAGMENT_LENGTH),
 		[cbor, type]
 	);
+
 	const [currentQRCode, setCurrentQRCode] = useState(urEncoder.nextPart());
+
 	useEffect(() => {
 		if (!shouldPause) {
 			const id = setInterval(() => {
@@ -39,6 +41,7 @@ const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
 			};
 		}
 	}, [urEncoder, shouldPause]);
+
 	return (
 		<View style={styles.wrapper}>
 			<QRCode value={currentQRCode.toUpperCase()} size={QR_CODE_SIZE} />
