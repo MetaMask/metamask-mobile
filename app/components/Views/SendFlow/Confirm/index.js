@@ -857,7 +857,8 @@ class Confirm extends PureComponent {
 				await CollectiblesController.updateCollectibleTransactionStatus(
 					selectedAsset.address,
 					selectedAsset.tokenId,
-					true
+					true,
+					transactionMeta.id
 				);
 			}
 

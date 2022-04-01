@@ -42,7 +42,7 @@ const CollectibleModal = (props) => {
 	const [mediaZIndex, setMediaZIndex] = useState(20);
 	const [overviewZIndex, setOverviewZIndex] = useState(10);
 
-	const isTransacting = CollectiblesController.getCollectibleTransactionStatus(
+	const { isTransacting } = CollectiblesController.getCollectibleTransactionStatus(
 		collectible.address,
 		collectible.tokenId
 	);

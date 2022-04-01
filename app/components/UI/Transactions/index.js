@@ -402,6 +402,14 @@ class Transactions extends PureComponent {
 	};
 
 	onCancelCompleted = () => {
+		const { CollectiblesController } = Engine.context;
+
+		const resetResult = CollectiblesController.resetCollectibleTransactionStatusByTransactionId(this.cancelTxId);
+
+		if (!resetResult) {
+			Logger.error(e, { message: `resetCollectibleTransactionStatusByTransactionId failed `, cancelTxId });
+		}
+
 		this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
 		this.existingGas = null;
 		this.cancelTxId = null;
