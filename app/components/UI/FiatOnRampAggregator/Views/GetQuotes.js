@@ -4,7 +4,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import LoadingAnimation from '../components/LoadingAnimation';
-import Quotes from '../components/Quotes';
+import Quote from '../components/Quote';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -92,14 +92,8 @@ const GetQuotes = () => {
 							.filter(({ error }) => !error)
 							.map((quote) => (
 								<View key={quote.providerId} style={styles.row}>
-									<Quotes
-										providerName={quote.providerName}
-										amountOut={quote.amountOut}
-										crypto={quote.crypto}
-										fiat={quote.fiat}
-										networkFee={quote.netwrokFee}
-										processingFee={quote.providerFee}
-										amountIn={quote.amountIn}
+									<Quote
+										quote={quote}
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
 										highlighted={quote.providerId === providerId}
