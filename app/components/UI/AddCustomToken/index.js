@@ -12,6 +12,7 @@ import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -99,6 +100,12 @@ export default class AddCustomToken extends PureComponent {
 			() => {
 				InteractionManager.runAfterInteractions(() => {
 					this.props.navigation.goBack();
+					NotificationManager.showSimpleNotification({
+						status: `simple_notification`,
+						duration: 5000,
+						title: strings('wallet.token_toast.token_imported_title'),
+						description: strings('wallet.token_toast.token_imported_desc', { tokenSymbol: symbol }),
+					});
 				});
 			}
 		);

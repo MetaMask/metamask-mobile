@@ -283,8 +283,10 @@
 		"add_tokens": "Import Tokens",
 		"tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
 		"token_toast": {
-			"tokens_imported_title": "Tokens imported",
+			"tokens_imported_title": "Imported Tokens",
 			"tokens_imported_desc": "Successfully imported {{tokenSymbols}}",
+			"token_imported_title": "Imported Token",
+			"token_imported_desc": "Successfully imported {{tokenSymbol}}",
 			"tokens_hidden_title": "Hiding Tokens",
 			"tokens_hidden_desc": "Hiding detected tokens from your wallet",
 			"token_hidden_title": "Hiding Token",

@@ -11,6 +11,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
+import NotificationManager from '../../../core/NotificationManager';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -102,6 +103,12 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
 		InteractionManager.runAfterInteractions(() => {
 			navigation.goBack();
+			NotificationManager.showSimpleNotification({
+				status: `simple_notification`,
+				duration: 5000,
+				title: strings('wallet.token_toast.token_imported_title'),
+				description: strings('wallet.token_toast.token_imported_desc', { tokenSymbol: symbol }),
+			});
 		});
 	}, [address, symbol, decimals, setSearchResults, setSearchQuery, setSelectedAsset, navigation, getAnalyticsParams]);
 
