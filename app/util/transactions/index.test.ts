@@ -1,6 +1,8 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
 import { BNToHex } from '../number';
+import { MAX_UNSIGNED_256_INT } from '../../constants/transaction';
+import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 
 import {
 	generateTransferData,
@@ -9,6 +11,7 @@ import {
 	getMethodData,
 	getActionKey,
 	generateTxWithNewTokenAllowance,
+	minimumTokenAllowance,
 	TOKEN_METHOD_TRANSFER,
 	CONTRACT_METHOD_DEPLOY,
 	TOKEN_METHOD_TRANSFER_FROM,
@@ -247,8 +250,7 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
 	});
 
 	it('should encode the maximun amount uint256 can store correctly and return a new transaction', () => {
-		const maxAmount = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-		const newTx = generateTxWithNewTokenAllowance(maxAmount, 0, MOCK_ADDRESS3, mockTx);
+		const newTx = generateTxWithNewTokenAllowance(MAX_UNSIGNED_256_INT, 0, MOCK_ADDRESS3, mockTx);
 		expect(newTx.data).toBeTruthy();
 
 		const expectedHexValue = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
@@ -256,12 +258,40 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
 		expect(expectedHexValue).toBe(decodedHexValue);
 	});
 	it('should encode the minimum amount uint256 can store correctly and return a new transaction', () => {
-		const maxAmount = '0.000000000000000001';
-		const newTx = generateTxWithNewTokenAllowance(maxAmount, mockDecimal, MOCK_ADDRESS3, mockTx);
+		const minAmount = '0.000000000000000001';
+		const newTx = generateTxWithNewTokenAllowance(minAmount, mockDecimal, MOCK_ADDRESS3, mockTx);
 		expect(newTx.data).toBeTruthy();
 
 		const expectedHexValue = '0x0000000000000000000000000000000000000000000000000000000000000001';
 		const decodedHexValue = decodeAmount(newTx.data);
 		expect(expectedHexValue).toBe(decodedHexValue);
+	});
+});
+
+describe('Transactions utils :: minimumTokenAllowance', () => {
+	it('should show up to 18 decimals', () => {
+		const result = minimumTokenAllowance(18);
+		const expectedResult = '0.000000000000000001';
+		expect(result).toBe(expectedResult);
+	});
+	it('should show up to 5 decimals', () => {
+		const result = minimumTokenAllowance(5);
+		const expectedResult = '0.00001';
+		expect(result).toBe(expectedResult);
+	});
+	it('should show up to 1 decimals', () => {
+		const result = minimumTokenAllowance(1);
+		const expectedResult = '0.1';
+		expect(result).toBe(expectedResult);
+	});
+	it('should show 1', () => {
+		const result = minimumTokenAllowance(0);
+		const expectedResult = '1';
+		expect(result).toBe(expectedResult);
+	});
+	it('should throw an error for negative values', () => {
+		expect(() => {
+			minimumTokenAllowance(-1);
+		}).toThrow(NEGATIVE_TOKEN_DECIMALS);
 	});
 });
