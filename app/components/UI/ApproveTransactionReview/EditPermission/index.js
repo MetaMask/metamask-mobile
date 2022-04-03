@@ -9,7 +9,6 @@ import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-import { MINIMUM_VALUE } from '../../../../constants/transaction';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -240,9 +239,6 @@ function EditPermission({
 		</View>
 	);
 }
-EditPermission.defaultProps = {
-	minimumSpendLimit: MINIMUM_VALUE,
-};
 
 EditPermission.propTypes = {
 	host: PropTypes.string.isRequired,
