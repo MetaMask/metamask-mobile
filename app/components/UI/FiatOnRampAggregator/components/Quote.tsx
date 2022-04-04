@@ -5,6 +5,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
+import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
@@ -20,30 +21,55 @@ const styles = StyleSheet.create({
 });
 
 interface Props {
-	amountIn: number;
-	amountOut: number;
-	crypto: string;
-	fiat: string;
-	networkFee: number;
-	processingFee: number;
-	providerName: string;
+	quote: {
+		providerId: string;
+		providerName: string;
+		providerLogos: {
+			light: string;
+			dark: string;
+		};
+		providerLinks: string[];
+		providerHQ: string;
+		description: string;
+		crypto: {
+			id: string;
+			network: string;
+			symbol: string;
+			logo: string;
+			decimals: number;
+			address: string;
+			name: string;
+		};
+		cryptoId: string;
+		fiat: {
+			id: string;
+			symbol: string;
+			name: string;
+			decimals: number;
+			denomSymbol: string;
+		};
+		fiatId: string;
+		networkFee: number;
+		providerFee: number;
+		amountIn: number;
+		amountOut: number;
+		buyURL?: string;
+		status?: number;
+		message?: string;
+		error?: boolean;
+		paymentMethod?: any;
+		receiver?: string;
+		getApplePayRequestInfo?: () => any;
+		purchaseWithApplePay?: () => Promise<any>;
+	};
 	onPress?: () => any;
 	onPressBuy?: () => any;
 	highlighted?: boolean;
 }
-const Quotes: React.FC<Props> = ({
-	amountIn,
-	amountOut,
-	crypto,
-	fiat,
-	networkFee,
-	processingFee,
-	providerName,
-	onPress,
-	onPressBuy,
-	highlighted,
-}: Props) => {
-	const totalFees = networkFee + processingFee;
+
+const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Props) => {
+	const { networkFee, providerFee, amountIn, amountOut, fiat, providerName, crypto } = quote;
+	const totalFees = networkFee + providerFee;
 	const price = amountIn - totalFees;
 
 	return (
@@ -57,21 +83,23 @@ const Quotes: React.FC<Props> = ({
 					</ListItem.Title>
 				</ListItem.Body>
 				<ListItem.Amounts>
-					<Text big primary bold>
-						{amountOut.toFixed(7)} {crypto}
+					<Text big primary bold right>
+						{renderFromTokenMinimalUnit(
+							toTokenMinimalUnit(amountOut, crypto.decimals).toString(),
+							crypto.decimals
+						)}{' '}
+						{crypto.symbol}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
 
 			<ListItem.Content>
 				<ListItem.Body>
-					<Text black small>
-						Price {fiat}
-					</Text>
+					<Text small>Price {fiat?.symbol}</Text>
 				</ListItem.Body>
 				<ListItem.Amounts>
-					<Text black small>
-						≈ ${price}
+					<Text small right>
+						≈ {fiat.denomSymbol} {renderFiat(price, fiat.symbol, fiat.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -83,31 +111,36 @@ const Quotes: React.FC<Props> = ({
 					</Text>
 				</ListItem.Body>
 				<ListItem.Amounts>
-					<Text black small>
-						${totalFees}
+					<Text black small right>
+						{fiat.denomSymbol} {renderFiat(totalFees, fiat.symbol, fiat.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
 
 			<ListItem.Content>
 				<ListItem.Body>
-					<Text small style={styles.fee}>
+					<Text grey small style={styles.fee}>
 						Processing fee
 					</Text>
 				</ListItem.Body>
 				<ListItem.Amounts>
-					<Text small>${processingFee}</Text>
+					<Text grey small right>
+						{fiat.denomSymbol} {renderFiat(providerFee, fiat.symbol, fiat.decimals)}
+					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
 
 			<ListItem.Content>
 				<ListItem.Body>
-					<Text small style={styles.fee}>
+					<Text grey small style={styles.fee}>
 						Network fee
 					</Text>
 				</ListItem.Body>
 				<ListItem.Amounts>
-					<Text small>${networkFee}</Text>
+					<Text grey small right>
+						{fiat.denomSymbol}
+						{renderFiat(networkFee, fiat.symbol, fiat.decimals)}
+					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
 
@@ -118,9 +151,8 @@ const Quotes: React.FC<Props> = ({
 					</Text>
 				</ListItem.Body>
 				<ListItem.Amounts>
-					<Text black small>
-						${amountIn}
-						{amountOut % 1 !== 0 && '.00'}
+					<Text black small right>
+						{fiat.denomSymbol} {renderFiat(amountIn, fiat.symbol, fiat.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -136,4 +168,4 @@ const Quotes: React.FC<Props> = ({
 	);
 };
 
-export default Quotes;
+export default Quote;

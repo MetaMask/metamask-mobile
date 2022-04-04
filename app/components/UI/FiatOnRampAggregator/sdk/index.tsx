@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk, Environment } from '@chingiz-mardanov/on-ramp-sdk';
+import { OnRampSdk, IOnRampSdk, Environment, Context } from '@chingiz-mardanov/on-ramp-sdk';
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
@@ -33,14 +33,26 @@ interface IProviderProps<T> {
 	children?: React.ReactNode | undefined;
 }
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const VERBOSE_SDK = isDevelopment;
+
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatOnRampSDK>) => {
 	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
 	useEffect(() => {
 		(async () => {
-			setSdkModule(await OnRampSdk.getSDK(Environment.Staging));
+			setSdkModule(
+				await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, {
+					verbose: VERBOSE_SDK,
+					maxInstanceCount: 2,
+				})
+			);
 		})();
+
+		return () => {
+			OnRampSdk.destructInstance();
+		};
 	}, []);
 
 	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
