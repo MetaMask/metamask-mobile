@@ -1359,7 +1359,7 @@
 		"title": "Ooops! something went wrong...",
 		"message": "We weren't able to load that page.",
 		"reason": "Reason",
-		"try_again": "Try again"
+		"return_home": "Return to home page"
 	},
 	"offline_mode": {
 		"title": "You're offline",
