@@ -113,7 +113,7 @@ describe('Custom RPC Tests', () => {
 		await NetworkView.tapAddNetworkButton();
 		await NetworkView.switchToCustomNetworks();
 
-		await NetworkView.isRpcViewVisible();
+		//await NetworkView.isRpcViewVisible();
 		await NetworkView.typeInNetworkName('xDai');
 		await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
 		await NetworkView.isRPCWarningVisble(); // Check that warning is displayed
