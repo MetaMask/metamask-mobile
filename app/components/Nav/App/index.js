@@ -25,7 +25,6 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
@@ -154,15 +153,15 @@ const App = ({ userLoggedIn }) => {
 				// Setup navigator with Sentry instrumentation
 				routingInstrumentation.registerNavigationContainer(navigator);
 				// Subscribe to incoming deeplinks
-				branch.subscribe({
-					onOpenStart: (opts) => {
-						// Called reliably on iOS deeplink instances
-						Device.isIos() && handleDeeplink(opts);
-					},
-					onOpenComplete: (opts) => {
-						// Called reliably on Android deeplink instances
-						Device.isAndroid() && handleDeeplink(opts);
-					},
+				branch.subscribe((opts) => {
+					const { error } = opts;
+
+					if (error) {
+						Logger.error('Error from Branch: ' + error);
+						return;
+					}
+
+					handleDeeplink(opts);
 				});
 			}
 			prevNavigator.current = navigator;
