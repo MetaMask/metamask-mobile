@@ -99,7 +99,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Pro
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text small right>
-						≈ {fiat?.denomSymbol} {renderFiat(price, fiat.symbol, fiat.decimals)}
+						≈ {fiat.denomSymbol} {renderFiat(price, fiat.symbol, fiat.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -112,7 +112,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Pro
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text black small right>
-						{fiat?.denomSymbol} {renderFiat(totalFees, fiat.symbol, fiat.decimals)}
+						{fiat.denomSymbol} {renderFiat(totalFees, fiat.symbol, fiat.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
