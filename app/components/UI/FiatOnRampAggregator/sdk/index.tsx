@@ -42,8 +42,17 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
 	useEffect(() => {
 		(async () => {
-			setSdkModule(await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, VERBOSE_SDK));
+			setSdkModule(
+				await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, {
+					verbose: VERBOSE_SDK,
+					maxInstanceCount: 2,
+				})
+			);
 		})();
+
+		return () => {
+			OnRampSdk.destructInstance();
+		};
 	}, []);
 
 	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
