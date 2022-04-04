@@ -108,10 +108,10 @@ describe('Deep linking Tests', () => {
 		await NetworkView.tapAddNetworkButton();
 
 		await NetworkView.isRpcViewVisible();
-		await NetworkView.tapPopularNetworkByName('Binance Smart Chain Mainnet');
+		await NetworkView.tapPopularNetworkByName('BNB Smart Chain');
 
 		await NetworkApprovalModal.isVisible();
-		await NetworkApprovalModal.isDisplayNameVisible('Binance Smart Chain Mainnet');
+		await NetworkApprovalModal.isDisplayNameVisible('BNB Smart Chain');
 		await NetworkApprovalModal.isNetworkURLVisible(BINANCE_RPC_URL);
 		await NetworkApprovalModal.isChainIDVisible('56');
 		await NetworkApprovalModal.tapApproveButton();
