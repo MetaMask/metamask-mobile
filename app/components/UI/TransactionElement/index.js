@@ -387,6 +387,8 @@ class TransactionElement extends PureComponent {
 							<TransactionDetails
 								transactionObject={tx}
 								transactionDetails={transactionDetails}
+								showSpeedUpModal={this.showSpeedUpModal}
+								showCancelModal={this.showCancelModal}
 								close={this.onCloseDetailsModal}
 							/>
 						</DetailsModal>
