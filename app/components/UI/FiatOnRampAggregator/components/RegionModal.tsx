@@ -74,7 +74,7 @@ const createStyles = (colors: any) =>
 		separator: {
 			height: 1,
 			width: '100%',
-			backgroundColor: colors.background.alternative,
+			backgroundColor: colors.border.muted,
 		},
 		subheader: {
 			flexDirection: 'row',
@@ -291,7 +291,7 @@ const RegionModal: React.FC<Props> = ({
 						<RegionAlert
 							isVisible={showAlert}
 							subtitle={`${selectedCountryInTransit.emoji}   ${selectedCountryInTransit.name}`}
-							dismiss={() => setShowAlert(!showAlert)}
+							dismiss={() => setShowAlert(false)}
 							title={strings('fiat_on_ramp_aggregator.region.unsupported')}
 							body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
 							link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}

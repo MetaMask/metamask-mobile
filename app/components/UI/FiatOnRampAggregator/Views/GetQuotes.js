@@ -66,10 +66,6 @@ const GetQuotes = () => {
 		[navigation]
 	);
 
-	const renderInfo = useCallback(() => {
-		setShowInfo(!showInfo);
-	}, [showInfo]);
-
 	if (isLoading) {
 		return (
 			<ScreenLayout>
@@ -90,7 +86,7 @@ const GetQuotes = () => {
 			<InfoAlert
 				isVisible={showInfo}
 				subtitle={selectedProviderInfo.subtitle}
-				dismiss={() => setShowInfo(!showInfo)}
+				dismiss={() => setShowInfo(false)}
 				providerName={selectedProviderInfo.name}
 				body={selectedProviderInfo.body}
 				providerWebsite={selectedProviderInfo.website}
@@ -119,7 +115,7 @@ const GetQuotes = () => {
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
 										highlighted={quote.providerId === providerId}
-										showInfo={() => renderInfo()}
+										showInfo={() => setShowInfo(true)}
 									/>
 								</View>
 							))

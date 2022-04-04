@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
@@ -47,7 +47,7 @@ const Region = () => {
 	}, [navigation, colors]);
 
 	const handleChangeRememberRegion = () => {
-		setRememberRegion(!rememberRegion);
+		setRememberRegion((currentRememberRegion) => !currentRememberRegion);
 	};
 
 	const handleRegionButton = () => {
@@ -109,7 +109,7 @@ const Region = () => {
 			<RegionAlert
 				isVisible={showAlert}
 				subtitle={`${selectedUnsupportedLocation.emoji}   ${selectedUnsupportedLocation.name}`}
-				dismiss={() => setShowAlert(!showAlert)}
+				dismiss={() => setShowAlert(false)}
 				title={strings('fiat_on_ramp_aggregator.region.unsupported')}
 				body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
 				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
@@ -140,10 +140,9 @@ const Region = () => {
 							</ListItem.Content>
 						</Box>
 					</TouchableOpacity>
-					<View style={styles.checkboxView}>
+					<Pressable onPress={handleChangeRememberRegion} style={styles.checkboxView}>
 						<CheckBox
 							value={rememberRegion}
-							onValueChange={handleChangeRememberRegion}
 							boxType="square"
 							animationDuration={0.2}
 							onAnimationType="fill"
@@ -152,14 +151,11 @@ const Region = () => {
 							onCheckColor={colors.background.default}
 							style={styles.checkbox}
 						/>
-						<TouchableOpacity activeOpacity={1} onPress={handleChangeRememberRegion}>
-							<Text black style={styles.checkboxMargin}>
-								{strings('fiat_on_ramp_aggregator.region.remember_region')}
-							</Text>
-						</TouchableOpacity>
-					</View>
+						<Text black style={styles.checkboxMargin}>
+							{strings('fiat_on_ramp_aggregator.region.remember_region')}
+						</Text>
+					</Pressable>
 				</ScreenLayout.Content>
-
 				<RegionModal
 					isVisible={isRegionModalVisible}
 					title={strings('fiat_on_ramp_aggregator.region.title')}
