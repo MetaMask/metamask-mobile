@@ -56,6 +56,9 @@ const createStyles = (colors: any) =>
 			fontSize: 14,
 			color: colors.red,
 		},
+		text: {
+			color: colors.text.default,
+		},
 	});
 
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
@@ -274,7 +277,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 				hideModal={hideScanner}
 			/>
 			<BlockingActionModal modalVisible={blockingModalVisible} isLoadingAction>
-				<Text>{strings('connect_qr_hardware.please_wait')}</Text>
+				<Text style={styles.text}>{strings('connect_qr_hardware.please_wait')}</Text>
 			</BlockingActionModal>
 		</Fragment>
 	);
