@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
 		marginTop: 100,
 	},
 	hint: {
-		backgroundColor: colors.whitetransparent,
+		backgroundColor: colors.whiteTransparent,
 		width: '100%',
 		height: 120,
 		alignItems: 'center',
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 		...fontStyles.normal,
 	},
 	bold: {
-		fontWeight: 'bold',
+		...fontStyles.bold,
 	},
 });
 

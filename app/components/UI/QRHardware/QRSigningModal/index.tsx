@@ -40,6 +40,7 @@ const QRSigningModal = ({ isVisible, QRState, onSuccess, onCancel, onFailure }: 
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
 			animationInTiming={600}
 			animationOutTiming={600}
 			hideModalContentWhileAnimating

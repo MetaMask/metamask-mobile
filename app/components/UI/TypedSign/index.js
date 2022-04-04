@@ -37,7 +37,7 @@ const createStyles = (colors) =>
 			height: 97,
 		},
 		msgKey: {
-			fontWeight: 'bold',
+			...fontStyles.bold,
 		},
 	});
 

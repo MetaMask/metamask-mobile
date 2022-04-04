@@ -71,6 +71,7 @@ const createStyle = (colors: any) =>
 			alignItems: 'center',
 		},
 		paginationText: {
+			...fontStyles.normal,
 			fontSize: 18,
 			color: colors.primary.default,
 		},
@@ -78,7 +79,6 @@ const createStyle = (colors: any) =>
 			flexDirection: 'row',
 			alignItems: 'center',
 			marginRight: 8,
-			...fontStyles.normal,
 		},
 		bottom: {
 			alignItems: 'center',

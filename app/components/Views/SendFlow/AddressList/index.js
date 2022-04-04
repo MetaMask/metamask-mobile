@@ -203,7 +203,7 @@ class AddressList extends PureComponent {
 	renderMyAccounts = () => {
 		const { identities, onAccountPress, inputSearch, onAccountLongPress } = this.props;
 		const { myAccountsOpened } = this.state;
-		const { colors } = this.context || mockTheme;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (inputSearch) return;
@@ -233,7 +233,7 @@ class AddressList extends PureComponent {
 
 	renderElement = (element) => {
 		const { onAccountPress, onAccountLongPress } = this.props;
-		const { colors } = this.context || mockTheme;
+		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (typeof element === 'string') {

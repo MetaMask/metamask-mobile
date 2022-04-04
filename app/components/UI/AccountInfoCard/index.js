@@ -77,7 +77,7 @@ const createStyles = (colors) =>
 		tagText: {
 			textAlign: 'center',
 			fontSize: 8,
-			fontWeight: 'bold',
+			...fontStyles.bold,
 			color: colors.text.default,
 		},
 	});

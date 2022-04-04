@@ -105,8 +105,7 @@ const createStyles = (colors) =>
 			marginVertical: 3,
 		},
 		textAmount: {
-			...fontStyles.normal,
-			fontWeight: fontStyles.light.fontWeight,
+			...fontStyles.light,
 			color: colors.text.default,
 			fontSize: 44,
 			textAlign: 'center',

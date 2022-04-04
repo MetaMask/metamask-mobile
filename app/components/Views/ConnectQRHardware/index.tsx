@@ -15,6 +15,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
+import { fontStyles } from '../../../styles/common';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -53,11 +54,14 @@ const createStyles = (colors: any) =>
 			alignSelf: 'flex-start',
 		},
 		error: {
+			...fontStyles.normal,
 			fontSize: 14,
 			color: colors.red,
 		},
 		text: {
 			color: colors.text.default,
+			fontSize: 14,
+			...fontStyles.normal,
 		},
 	});
 

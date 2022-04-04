@@ -61,8 +61,8 @@ const createStyles = (colors: any) =>
 			marginBottom: 6,
 		},
 		titleText: {
-			fontFamily: fontStyles.normal.fontFamily,
-			fontWeight: 'normal',
+			...fontStyles.normal,
+			fontSize: 14,
 			color: colors.text.default,
 		},
 		description: {
@@ -73,14 +73,12 @@ const createStyles = (colors: any) =>
 		},
 		descriptionTighten: {
 			marginVertical: 12,
-			fontSize: 12,
 		},
 		padding: {
 			height: 40,
 		},
 		descriptionText: {
-			fontFamily: fontStyles.normal.fontFamily,
-			fontWeight: 'normal',
+			...fontStyles.normal,
 			fontSize: 14,
 			color: colors.text.default,
 		},
@@ -88,6 +86,7 @@ const createStyles = (colors: any) =>
 			fontSize: 12,
 		},
 		errorText: {
+			...fontStyles.normal,
 			fontSize: 12,
 			color: colors.error.default,
 		},

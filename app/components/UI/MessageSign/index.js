@@ -19,7 +19,7 @@ const createStyles = (colors) =>
 	StyleSheet.create({
 		expandedMessage: {
 			textAlign: 'center',
-			...fontStyles.regular,
+			...fontStyles.normal,
 			fontSize: 14,
 			color: colors.text.default,
 		},
@@ -150,11 +150,6 @@ class MessageSign extends PureComponent {
 				this.props.onCancel();
 			}
 		}
-	};
-
-	getStyles = () => {
-		const colors = this.context.colors || mockTheme.colors;
-		return createStyles(colors);
 	};
 
 	getStyles = () => {

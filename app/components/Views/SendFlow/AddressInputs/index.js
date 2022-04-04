@@ -79,7 +79,7 @@ const createStyles = (colors) =>
 		accountNameLabelText: {
 			marginLeft: 4,
 			paddingHorizontal: 8,
-			fontWeight: '700',
+			...fontStyles.bold,
 			color: colors.primary.alternative,
 			borderWidth: 1,
 			borderRadius: 8,
