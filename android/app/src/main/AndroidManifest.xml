@@ -64,37 +64,37 @@
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
-				<data android:scheme="metamask" android:host="open" />
+				<data android:scheme="metamask" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 			<intent-filter>
-				<data android:scheme="ethereum" android:host="open" />
+				<data android:scheme="ethereum" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 			<intent-filter>
-				<data android:scheme="dapp" android:host="open" />
+				<data android:scheme="dapp" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 			<intent-filter>
-				<data android:scheme="wc" android:host="open" />
+				<data android:scheme="wc" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 			<intent-filter>
-				<data android:scheme="http" android:host="open" />
+				<data android:scheme="http" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
 			<intent-filter>
-				<data android:scheme="https" android:host="open" />
+				<data android:scheme="https" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
