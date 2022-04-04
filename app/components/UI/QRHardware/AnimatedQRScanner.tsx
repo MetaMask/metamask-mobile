@@ -12,6 +12,7 @@ import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 
 const styles = StyleSheet.create({
 	modal: {
@@ -81,12 +82,6 @@ interface AnimatedQRScannerProps {
 	pauseQRCode?: (x: boolean) => void;
 }
 
-export const SupportedURType = {
-	CRYPTO_HDKEY: 'crypto-hdkey',
-	CRYPTO_ACCOUNT: 'crypto-account',
-	ETH_SIGNATURE: 'eth-signature',
-};
-
 const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 	const { visible, onScanError, purpose, onScanSuccess, hideModal, pauseQRCode } = props;
 	const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
@@ -94,9 +89,9 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
 	let expectedURTypes: string[];
 	if (purpose === 'sync') {
-		expectedURTypes = [SupportedURType.CRYPTO_HDKEY, SupportedURType.CRYPTO_ACCOUNT];
+		expectedURTypes = [SUPPORTED_UR_TYPE.CRYPTO_HDKEY, SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT];
 	} else {
-		expectedURTypes = [SupportedURType.ETH_SIGNATURE];
+		expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
 	}
 
 	const reset = useCallback(() => {
@@ -118,24 +113,17 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 		[purpose]
 	);
 
-	const getAnalyticParams = useCallback(
-		() => ({
-			purpose,
-		}),
-		[purpose]
-	);
-
 	const onError = useCallback(
 		(error) => {
 			if (onScanError && error) {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
-					...getAnalyticParams(),
+					purpose,
 					error,
 				});
 				onScanError(error.message);
 			}
 		},
-		[getAnalyticParams, onScanError]
+		[purpose, onScanError]
 	);
 
 	const onBarCodeRead = useCallback(
@@ -152,7 +140,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 				setProgress(Math.ceil(urDecoder.getProgress() * 100));
 				if (urDecoder.isError()) {
 					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
-						...getAnalyticParams(),
+						purpose,
 						error: urDecoder.resultError(),
 					});
 					onScanError(strings('transaction.unknown_qr_code'));
@@ -164,14 +152,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 						setURDecoder(new URRegistryDecoder());
 					} else if (purpose === 'sync') {
 						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
-							...getAnalyticParams(),
+							purpose,
 							received_ur_type: ur.type,
 							error: 'invalid `sync` qr code',
 						});
 						onScanError(strings('transaction.invalid_qr_code_sync'));
 					} else {
 						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR, {
-							...getAnalyticParams(),
+							purpose,
 							received_ur_type: ur.type,
 							error: 'invalid `sign` qr code',
 						});
@@ -182,7 +170,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 				onScanError(strings('transaction.unknown_qr_code'));
 			}
 		},
-		[visible, urDecoder, getAnalyticParams, onScanError, expectedURTypes, purpose, onScanSuccess]
+		[visible, urDecoder, onScanError, expectedURTypes, purpose, onScanSuccess]
 	);
 
 	const onStatusChange = useCallback(
