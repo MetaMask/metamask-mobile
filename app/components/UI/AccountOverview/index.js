@@ -222,8 +222,6 @@ class AccountOverview extends PureComponent {
 
 	input = React.createRef();
 
-	KeyringController = Engine.context.KeyringController;
-
 	componentDidMount = () => {
 		const { identities, selectedAddress, onRef } = this.props;
 		const accountLabel = renderAccountName(selectedAddress, identities);
