@@ -1091,10 +1091,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@chingiz-mardanov/on-ramp-sdk@^0.0.15":
-  version "0.0.15"
-  resolved "https://registry.yarnpkg.com/@chingiz-mardanov/on-ramp-sdk/-/on-ramp-sdk-0.0.15.tgz#a9f6ef649847fe35c1ffc3932e2b6765dd8ce9a4"
-  integrity sha512-JUXFMLq/ugayOQ6TANerxJm9SryvCV2zoxXJcn7uU8whoRS9Jhrrj1PxWfdEC7IkeJbewQjhqEuJ204k3pi9Gg==
+"@chingiz-mardanov/on-ramp-sdk@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@chingiz-mardanov/on-ramp-sdk/-/on-ramp-sdk-0.0.16.tgz#42b571602b7f4c0199322cb38712c9bd6831909c"
+  integrity sha512-14nC2WdRQjJziAoEPxt6B4JH5714oDaZRY1/Jcw2XECNd/V9+ir8u92wqncbvaR8/XYwXYbzl01zBPP9JgT4Yg==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
