@@ -75,9 +75,6 @@ fi
 CURRENT_SEMVER_NAT=$(semver_to_nat "$CURRENT_SEMVER")
 SEMVER_VERSION_NAT=$(semver_to_nat "$SEMVER_VERSION")
 
-echo "$CURRENT_SEMVER_NAT"
-echo "$SEMVER_VERSION_NAT"
-
 if [[ "$SEMVER_VERSION_NAT" -le "$CURRENT_SEMVER_NAT" ]]; then
   echo "semver $SEMVER_VERSION is less than or equal to current: $CURRENT_SEMVER"
   exit 1
