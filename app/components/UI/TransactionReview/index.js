@@ -53,6 +53,9 @@ const createStyles = (colors) =>
 		actionViewChildren: {
 			height: 330,
 		},
+		accountTransactionWrapper: {
+			flex: 1,
+		},
 		accountInfoCardWrapper: {
 			paddingHorizontal: 24,
 			paddingBottom: 12,
@@ -366,7 +369,10 @@ class TransactionReview extends PureComponent {
 						>
 							<View style={styles.actionViewChildren}>
 								<ScrollView>
-									<View style={{ flex: 1 }} onStartShouldSetResponder={() => true}>
+									<View
+										style={styles.accountTransactionWrapper}
+										onStartShouldSetResponder={() => true}
+									>
 										<View style={styles.accountInfoCardWrapper}>
 											<AccountInfoCard />
 										</View>
