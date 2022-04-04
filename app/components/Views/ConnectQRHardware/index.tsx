@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '../../../core/Engine';
-import AnimatedQRScannerModal, { SupportedURType } from '../../UI/QRHardware/AnimatedQRScanner';
+import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,6 +14,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -153,7 +154,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET_SUCCESS, {
 				device_type: 'QR Hardware',
 			});
-			if (ur.type === SupportedURType.CRYPTO_HDKEY) {
+			if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
 				KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
 			} else {
 				KeyringController.submitQRCryptoAccount(ur.cbor.toString('hex'));
