@@ -48,30 +48,36 @@ perform_updates () {
 
 # abort if values are empty
 if [[ -z $SEMVER_VERSION ]]; then
-  echo "SEMVER_VERSION not specified, aborting release"
+  echo "SEMVER_VERSION not specified, aborting!"
   exit 1
 fi
 
 if [[ -z $VERSION_NUMBER ]]; then
-  echo "VERSION_NUMBER not specified, aborting release"
+  echo "VERSION_NUMBER not specified, aborting!"
   exit 1
 fi
 
 # check if SEMVER_VERSION is not valid semver
 if ! [[ $SEMVER_VERSION =~ $SEMVER_REGEX ]]; then
   echo "SEMVER_VERSION is invalid semver!"
+  echo "$SEMVER_VERSION is invalid."
   exit 1
 fi
 
 # check if VERSION_NUMBER is not natural number
-if ! [[ $VERSION_NUMBER =~ $NAT ]]; then
-  echo "VERSION_NUMBER is not a number!"
+if ! [[ $VERSION_NUMBER =~ $NAT ]] || [[ $VERSION_NUMBER =~ $SEMVER_REGEX ]]; then
+  echo "VERSION_NUMBER is not a natural number!"
+  echo "$VERSION_NUMBER is invalid."
   exit 1
 fi
 
 # ensure SEMVER_VERSION goes up
 CURRENT_SEMVER_NAT=$(semver_to_nat "$CURRENT_SEMVER")
 SEMVER_VERSION_NAT=$(semver_to_nat "$SEMVER_VERSION")
+
+echo "$CURRENT_SEMVER_NAT"
+echo "$SEMVER_VERSION_NAT"
+
 if [[ "$SEMVER_VERSION_NAT" -le "$CURRENT_SEMVER_NAT" ]]; then
   echo "semver $SEMVER_VERSION is less than or equal to current: $CURRENT_SEMVER"
   exit 1
