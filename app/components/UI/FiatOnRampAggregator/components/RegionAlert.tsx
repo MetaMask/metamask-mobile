@@ -16,9 +16,6 @@ const createStyles = (colors: any) =>
 			paddingHorizontal: 20,
 			paddingBottom: 20,
 		},
-		title: {
-			fontSize: 18,
-		},
 		cancel: {
 			alignSelf: 'flex-end',
 		},
@@ -62,7 +59,7 @@ const RegionAlert: React.FC<Props> = ({ isVisible, title, subtitle, body, dismis
 					<EvilIcons name="close" size={17} color={colors.icon.default} />
 				</TouchableOpacity>
 				<View style={styles.row}>
-					<Text bold primary big style={styles.title}>
+					<Text bold primary bigger>
 						{title}
 					</Text>
 					<Text black>{subtitle}</Text>
