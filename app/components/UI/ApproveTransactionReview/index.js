@@ -32,6 +32,7 @@ import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
+import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
@@ -372,7 +373,7 @@ class ApproveTransactionReview extends PureComponent {
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
-			const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+			const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
 			const params = {
 				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: transaction?.origin,
