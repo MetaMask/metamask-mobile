@@ -123,7 +123,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							value={item.checked}
 							onValueChange={() => toggleAccount(item.index)}
 							boxType={'square'}
-							tintColors={{ true: colors.primary.defaults, false: colors.border.default }}
+							tintColors={{ true: colors.primary.default, false: colors.border.default }}
 							testID={'skip-backup-check'}
 						/>
 						<Text style={styles.number}>{item.index}</Text>
