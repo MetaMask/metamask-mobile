@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
+import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, FlatList, TouchableHighlight } from 'react-native';
 import Modal from 'react-native-modal';
@@ -9,7 +9,8 @@ import ModalHandler from '../../Base/ModalHandler';
 import OrderListItem from './OrderListItem';
 import OrderDetails from './OrderDetails';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import TransactionDetails from '../../UI/FiatOnRampAggregator/Views/TransactionDetails';
+import { useNavigation } from '@react-navigation/native';
+import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
  */
@@ -30,8 +31,21 @@ const createStyles = (colors) =>
 function FiatOrdersView({ orders, ...props }) {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+	const navigation = useNavigation();
 
 	const keyExtractor = (item) => item.id;
+
+	const handleNavigateToTxDetails = useCallback(
+		(orderId) => {
+			navigation.navigate('FiatOnRampAggregator', {
+				screen: 'TransactionDetails',
+				params: {
+					orderId,
+				},
+			});
+		},
+		[navigation]
+	);
 
 	/* eslint-disable-next-line */
 	const renderItem = ({ item }) => {
@@ -42,7 +56,9 @@ function FiatOrdersView({ orders, ...props }) {
 						<TouchableHighlight
 							style={styles.row}
 							onPress={() => {
-								toggleModal();
+								item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
+									? handleNavigateToTxDetails(item.id)
+									: toggleModal();
 							}}
 							underlayColor={colors.background.alternative}
 							activeOpacity={1}
@@ -58,13 +74,8 @@ function FiatOrdersView({ orders, ...props }) {
 							swipeDirection="down"
 							backdropColor={colors.overlay.default}
 							backdropOpacity={1}
-							style={item.provider === 'AGGREGATOR' && styles.modal}
 						>
-							{item.provider === 'AGGREGATOR' ? (
-								<TransactionDetails orderId={item.id} />
-							) : (
-								<OrderDetails order={item} closeModal={toggleModal} />
-							)}
+							<OrderDetails order={item} closeModal={toggleModal} />
 						</Modal>
 					</>
 				)}
