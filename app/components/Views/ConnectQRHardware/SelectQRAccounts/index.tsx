@@ -42,7 +42,6 @@ const createStyle = (colors: any) =>
 			alignItems: 'center',
 			height: 36,
 			width: '100%',
-			paddingHorizontal: 12,
 			paddingVertical: 4,
 		},
 		checkBox: {
@@ -66,7 +65,7 @@ const createStyle = (colors: any) =>
 			color: colors.text.default,
 		},
 		pagination: {
-			marginTop: 4,
+			marginTop: 16,
 			alignSelf: 'flex-end',
 			flexDirection: 'row',
 			alignItems: 'center',
@@ -88,7 +87,7 @@ const createStyle = (colors: any) =>
 			justifyContent: 'space-between',
 		},
 		button: {
-			width: '80%',
+			width: '100%',
 			padding: 12,
 		},
 	});
@@ -117,14 +116,14 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 				data={accounts}
 				keyExtractor={(item) => `address-${item.index}`}
 				renderItem={({ item }) => (
-					<View style={[styles.account, item.checked ? styles.accountChecked : styles.accountUnchecked]}>
+					<View style={[styles.account]}>
 						<CheckBox
-							style={styles.checkBox}
+							style={[styles.checkBox]}
 							disabled={item.exist}
 							value={item.checked}
 							onValueChange={() => toggleAccount(item.index)}
 							boxType={'square'}
-							tintColors={{ true: colors.background.default, false: colors.background.default }}
+							tintColors={{ true: colors.primary.defaults, false: colors.border.default }}
 							testID={'skip-backup-check'}
 						/>
 						<Text style={styles.number}>{item.index}</Text>
