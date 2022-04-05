@@ -11,7 +11,7 @@ on:
         description: 'A semantic version. eg: x.x.x'
         required: true
       version-number:
-        description: 'A specific natural version number. eg: 862'
+        description: 'A natural version number. eg: 862'
         required: true
 
 jobs:
