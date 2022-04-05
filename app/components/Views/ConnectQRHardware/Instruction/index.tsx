@@ -4,6 +4,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
+import { KEYSTONE_SUPPORT, KEYSTONE_SUPPORT_VIDEO } from '../../../../constants/urls';
 import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import StyledButton from '../../../UI/StyledButton';
@@ -83,7 +84,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
-				url: 'https://keyst.one/mmmvideo',
+				url: KEYSTONE_SUPPORT_VIDEO,
 				title: strings('connect_qr_hardware.description2'),
 			},
 		});
@@ -92,7 +93,7 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
-				url: 'https://keyst.one/mmm',
+				url: KEYSTONE_SUPPORT,
 				title: strings('connect_qr_hardware.description4'),
 			},
 		});
