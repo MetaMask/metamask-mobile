@@ -279,7 +279,7 @@ class TransactionElement extends PureComponent {
 							{this.renderCancelButton()}
 						</ListItem.Actions>
 					)}
-					{!!renderUnsignedQRActions && (
+					{renderUnsignedQRActions && (
 						<ListItem.Actions>
 							{this.renderQRSignButton()}
 							{this.renderCancelUnsignedButton()}
