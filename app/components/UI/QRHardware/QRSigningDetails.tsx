@@ -1,7 +1,16 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import Engine from '../../../core/Engine';
-// eslint-disable-next-line react-native/split-platform-components
-import { StyleSheet, Text, View, ScrollView, PermissionsAndroid } from 'react-native';
+import {
+	StyleSheet,
+	Text,
+	View,
+	ScrollView,
+	// eslint-disable-next-line react-native/split-platform-components
+	PermissionsAndroid,
+	Linking,
+	AppState,
+	AppStateStatus,
+} from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
@@ -118,20 +127,43 @@ const QRSigningDetails = ({
 	const [scannerVisible, setScannerVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [shouldPause, setShouldPause] = useState(false);
+	const [cameraError, setCameraError] = useState('');
 
 	// ios handled camera perfectly in this situation, we just need to check permission with android.
 	const [hasCameraPermission, setCameraPermission] = useState(Device.isIos() || bypassAndroidCameraAccessCheck);
 
+	const checkAndroidCamera = useCallback(() => {
+		PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((_hasPermission) => {
+			setCameraPermission(_hasPermission);
+			if (!_hasPermission) {
+				setCameraError(strings('transaction.no_camera_permission_android'));
+			} else {
+				setCameraError('');
+			}
+		});
+	}, []);
+
+	const handleAppState = useCallback(
+		(appState: AppStateStatus) => {
+			if (appState === 'active') {
+				checkAndroidCamera();
+			}
+		},
+		[checkAndroidCamera]
+	);
+
 	useEffect(() => {
 		if (Device.isAndroid() && !hasCameraPermission) {
-			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((_hasPermission) => {
-				setCameraPermission(_hasPermission);
-				if (!_hasPermission) {
-					setErrorMessage(strings('transaction.no_camera_permission_android'));
-				}
-			});
+			checkAndroidCamera();
 		}
-	}, [hasCameraPermission]);
+	}, [checkAndroidCamera, hasCameraPermission]);
+
+	useEffect(() => {
+		AppState.addEventListener('change', handleAppState);
+		return () => {
+			AppState.removeEventListener('change', handleAppState);
+		};
+	}, [handleAppState]);
 
 	const [hasSentOrCanceled, setSentOrCanceled] = useState(false);
 
@@ -203,6 +235,13 @@ const QRSigningDetails = ({
 			</Alert>
 		);
 
+	const renderCameraAlert = () =>
+		cameraError !== '' && (
+			<Alert type={AlertType.Error} style={styles.alert} onPress={Linking.openSettings}>
+				<Text style={styles.errorText}>{cameraError}</Text>
+			</Alert>
+		);
+
 	return (
 		<Fragment>
 			{QRState?.sign?.request && (
@@ -221,6 +260,7 @@ const QRSigningDetails = ({
 								<AccountInfoCard showFiatBalance={false} />
 							</View>
 							{renderAlert()}
+							{renderCameraAlert()}
 							<View style={[styles.title, tighten ? styles.titleTighten : undefined]}>
 								<Text style={styles.titleText}>{strings('transactions.sign_title_scan')}</Text>
 								<Text style={styles.titleText}>{strings('transactions.sign_title_device')}</Text>
