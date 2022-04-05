@@ -20,7 +20,11 @@ CURRENT_SEMVER=$(awk '/VERSION_NAME: /{print $2}' bitrise.yml);
 CURRENT_VERSION_NUMBER=$(awk '/VERSION_NUMBER: /{print $2}' bitrise.yml);
 
 semver_to_nat () {
-  echo ${1//./}
+  echo "${1//./}"
+}
+
+log_and_exit () {
+  echo "$1" && exit 1
 }
 
 perform_updates () {
@@ -38,7 +42,7 @@ perform_updates () {
 
 
   # update bitrise.yml
-  sed -i -e 's/SEMVER_VERSION: .*/SEMVER_VERSION: '"$SEMVER_VERSION"'/' bitrise.yml
+  sed -i -e 's/VERSION_NAME: .*/VERSION_NAME: '"$SEMVER_VERSION"'/' bitrise.yml
   sed -i -e 's/VERSION_NUMBER: [0-9]\+/VERSION_NUMBER: '"$VERSION_NUMBER"'/' bitrise.yml
 
   # update ios/MetaMask.xcodeproj/project.pbxproj
@@ -48,27 +52,21 @@ perform_updates () {
 
 # abort if values are empty
 if [[ -z $SEMVER_VERSION ]]; then
-  echo "SEMVER_VERSION not specified, aborting!"
-  exit 1
+  log_and_exit "SEMVER_VERSION not specified, aborting!"
 fi
 
 if [[ -z $VERSION_NUMBER ]]; then
-  echo "VERSION_NUMBER not specified, aborting!"
-  exit 1
+  log_and_exit "VERSION_NUMBER not specified, aborting!"
 fi
 
 # check if SEMVER_VERSION is not valid semver
 if ! [[ $SEMVER_VERSION =~ $SEMVER_REGEX ]]; then
-  echo "SEMVER_VERSION is invalid semver!"
-  echo "$SEMVER_VERSION is invalid."
-  exit 1
+  log_and_exit "$SEMVER_VERSION is invalid semver!"
 fi
 
 # check if VERSION_NUMBER is not natural number
 if ! [[ $VERSION_NUMBER =~ $NAT ]] || [[ $VERSION_NUMBER =~ $SEMVER_REGEX ]]; then
-  echo "VERSION_NUMBER is not a natural number!"
-  echo "$VERSION_NUMBER is invalid."
-  exit 1
+  log_and_exit "$VERSION_NUMBER is not a natural number!"
 fi
 
 # ensure SEMVER_VERSION goes up
