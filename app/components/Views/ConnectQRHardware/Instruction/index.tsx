@@ -2,10 +2,11 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import StyledButton from '../../../UI/StyledButton';
 
 interface IConnectQRInstructionProps {
 	navigation: any;
@@ -23,7 +24,6 @@ const createStyles = (colors: any) =>
 			alignItems: 'center',
 		},
 		container: {
-			width: '100%',
 			flexDirection: 'column',
 			alignItems: 'center',
 			paddingHorizontal: 32,
@@ -53,16 +53,14 @@ const createStyles = (colors: any) =>
 			color: colors.primary.default,
 			...fontStyles.bold,
 		},
-		button: {
-			backgroundColor: colors.primary.default,
-			width: '80%',
-			borderRadius: 25,
-			height: 50,
+		bottom: {
 			alignItems: 'center',
-			justifyContent: 'center',
-			padding: 12,
-			marginBottom: 32,
-			marginTop: 16,
+			height: 80,
+			justifyContent: 'space-between',
+		},
+		button: {
+			padding: 5,
+			paddingHorizontal: '30%',
 		},
 		buttonText: {
 			color: importedColors.white,
@@ -118,9 +116,11 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
 				</View>
 				<Image style={styles.image} source={connectQRHardwareImg} resizeMode={'contain'} />
 			</ScrollView>
-			<TouchableOpacity onPress={onConnect} style={styles.button}>
-				<Text style={styles.buttonText}>{strings('connect_qr_hardware.button_continue')}</Text>
-			</TouchableOpacity>
+			<View style={styles.bottom}>
+				<StyledButton type={'confirm'} onPress={onConnect} style={styles.button}>
+					{strings('connect_qr_hardware.button_continue')}
+				</StyledButton>
+			</View>
 		</View>
 	);
 };

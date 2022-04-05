@@ -89,10 +89,6 @@ const createStyle = (colors: any) =>
 		},
 		button: {
 			width: '80%',
-			borderRadius: 25,
-			height: 50,
-			alignItems: 'center',
-			justifyContent: 'center',
 			padding: 12,
 		},
 	});
