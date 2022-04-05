@@ -3,7 +3,7 @@ import Logger from '../../../../util/Logger';
 
 //* Helpers
 // TODO: replace this with order status types imported from SDK
-const SDK_ORDER_STATUS = {
+export const SDK_ORDER_STATUS = {
 	Pending: 'PENDING',
 	Failed: 'FAILED',
 	Completed: 'COMPLETED',

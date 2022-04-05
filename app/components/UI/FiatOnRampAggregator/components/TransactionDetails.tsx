@@ -15,6 +15,7 @@ const Text = CustomText as any;
 
 const ListItem = BaseListItem as any;
 import Spinner from '../../AnimatedSpinner';
+import { SDK_ORDER_STATUS } from '../orderProcessor/aggregator';
 
 const styles = StyleSheet.create({
 	stage: {
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
 
 const renderStage = (stage: string, paymentType: string) => {
 	switch (stage) {
-		case 'confirmed': {
+		case SDK_ORDER_STATUS.Completed: {
 			return (
 				<>
 					<Feather name="check-circle" size={32} color={colors.green500} />
@@ -74,8 +75,8 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
-		case 'failed':
-		case 'cancelled': {
+		case SDK_ORDER_STATUS.Failed:
+		case SDK_ORDER_STATUS.Cancelled: {
 			return (
 				<>
 					<Image source={failedIcon} />
@@ -88,8 +89,7 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
-		case 'pending':
-		case 'submitted': {
+		case SDK_ORDER_STATUS.Pending: {
 			return (
 				<>
 					<Spinner />
@@ -148,7 +148,7 @@ const values = [
 
 const TransactionDetails: React.FC<Props> = ({ order }: Props) => (
 	<View>
-		<View style={styles.stage}>{renderStage(order.status, order.paymentType)}</View>
+		<View style={styles.stage}>{renderStage(order.state, order.data.paymentMethod.id)}</View>
 		<Text centered primary style={styles.tokenAmount}>
 			{order.tokenAmount}
 		</Text>

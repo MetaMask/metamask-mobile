@@ -29,8 +29,8 @@ const mockOrder = {
 	paymentType: 'bank',
 };
 
-const TransactionDetails = ({ route }) => {
-	const orderById = useSelector(makeOrderIdSelector(route.params.id));
+const TransactionDetails = ({ orderId }) => {
+	const orderById = useSelector(makeOrderIdSelector(orderId));
 	const order = orderById || mockOrder;
 	const navigation = useNavigation();
 
@@ -70,7 +70,7 @@ TransactionDetails.propTypes = {
 	/**
 	 * Object that represents the current route info like params passed to it
 	 */
-	route: PropTypes.object,
+	orderId: PropTypes.string,
 };
 
 export default TransactionDetails;
