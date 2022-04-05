@@ -139,9 +139,9 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 				setAuthCancelled(true);
 			}
 		};
-		appTriggeredAuth();
+		if (animationPlayed) appTriggeredAuth();
 		Authentication.setSelectedAddress(selectedAddress);
-	}, [selectedAddress]);
+	}, [animationPlayed, selectedAddress]);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -263,6 +263,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 	const renderSplash = () => {
 		if (!animationPlayed) {
+			console.log('animationPlayed');
 			return (
 				<MetaMaskAnimation
 					animation={animation}
@@ -279,7 +280,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		// do not render unless a route is defined
 		(route && (
 			<>
-				{renderSplash()}
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
 					theme={{ colors: { background: colors.background.default } }}
@@ -306,6 +306,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						)}
 					</Stack.Navigator>
 				</NavigationContainer>
+				{renderSplash()}
 			</>
 		)) ||
 		null
