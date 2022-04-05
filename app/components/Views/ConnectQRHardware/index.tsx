@@ -16,6 +16,7 @@ import Device from '../../../util/device';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { fontStyles } from '../../../styles/common';
+import Logger from '../../../util/Logger';
 
 interface IConnectQRHardwareProps {
 	navigation: any;
@@ -226,8 +227,12 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 	const onUnlock = useCallback(async () => {
 		resetError();
 		setBlockingModalVisible(true);
-		for (const account of checkedAccounts) {
-			await KeyringController.unlockQRHardwareWalletAccount(account);
+		try {
+			for (const account of checkedAccounts) {
+				await KeyringController.unlockQRHardwareWalletAccount(account);
+			}
+		} catch (err) {
+			Logger.log('Error: Connecting QR hardware wallet', err);
 		}
 		setBlockingModalVisible(false);
 		navigation.goBack();
