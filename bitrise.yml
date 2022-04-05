@@ -68,7 +68,7 @@ workflows:
             - script@1:
                   inputs:
                       - content: |-
-                            #!/usr/bin/env bash 
+                            #!/usr/bin/env bash
                             echo 'weew - everything passed!'
                   title: All Tests Passed
                   is_always_run: false
@@ -326,7 +326,7 @@ app:
           VERSION_NAME: 4.4.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 865
+          VERSION_NUMBER: 869
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
