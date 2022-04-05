@@ -17,6 +17,7 @@ import SettingsView from '../pages/Drawer/Settings/SettingsView';
 import ApprovalModal from '../pages/modals/ApprovalModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
 import TestHelpers from '../helpers';
 
@@ -70,6 +71,13 @@ describe('Adding Contract Nickname', () => {
 		await NetworkListModal.changeNetwork(RINKEBY);
 
 		await WalletView.isNetworkNameVisible(RINKEBY);
+		await TestHelpers.delay(1500);
+	});
+
+	it('should dismiss network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
 	});
 
 	it('should deep link to the approval modal', async () => {

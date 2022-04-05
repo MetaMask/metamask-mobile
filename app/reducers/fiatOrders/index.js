@@ -54,6 +54,9 @@ export const getProviderName = (provider) => {
 		case FIAT_ORDER_PROVIDERS.TRANSAK: {
 			return 'Transak';
 		}
+		case FIAT_ORDER_PROVIDERS.MOONPAY: {
+			return 'MoonPay';
+		}
 		default: {
 			return provider;
 		}

@@ -1277,8 +1277,7 @@
 	"webview_error": {
 		"title": "申し訳ありません。問題が発生しました...",
 		"message": "そのページを読み込めませんでした。",
-		"reason": "理由",
-		"try_again": "再試行"
+		"reason": "理由"
 	},
 	"offline_mode": {
 		"title": "オフラインです",

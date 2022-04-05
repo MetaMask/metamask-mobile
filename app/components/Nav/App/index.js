@@ -35,7 +35,7 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { ThemeContext, useAppTheme } from '../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 const Stack = createStackNavigator();
 /**
@@ -105,10 +105,11 @@ const App = ({ userLoggedIn }) => {
 	const animation = useRef(null);
 	const animationName = useRef(null);
 	const opacity = useRef(new Animated.Value(1)).current;
-	const navigator = useRef();
-
+	const [navigator, setNavigator] = useState(undefined);
+	const prevNavigator = useRef(navigator);
 	const [route, setRoute] = useState();
 	const [animationPlayed, setAnimationPlayed] = useState();
+	const { colors } = useAppThemeFromContext() || mockTheme;
 
 	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
 	const dispatch = useDispatch();
@@ -136,33 +137,37 @@ const App = ({ userLoggedIn }) => {
 		}
 	}, []);
 
-	useEffect(
-		() =>
-			branch.subscribe({
-				onOpenStart: (opts) => {
-					// Called reliably on iOS deeplink instances
-					Device.isIos() && handleDeeplink(opts);
-				},
-				onOpenComplete: (opts) => {
-					// Called reliably on Android deeplink instances
-					Device.isAndroid() && handleDeeplink(opts);
-				},
-			}),
-		[handleDeeplink]
-	);
-
 	useEffect(() => {
-		SharedDeeplinkManager.init({
-			navigation: {
-				navigate: (routeName, opts) => {
-					const params = { name: routeName, params: opts };
-					navigator.current?.dispatch?.(CommonActions.navigate(params));
+		if (navigator) {
+			// Initialize deep link manager
+			SharedDeeplinkManager.init({
+				navigation: {
+					navigate: (routeName, opts) => {
+						const params = { name: routeName, params: opts };
+						navigator.dispatch?.(CommonActions.navigate(params));
+					},
 				},
-			},
-			frequentRpcList,
-			dispatch,
-		});
-	}, [dispatch, frequentRpcList]);
+				frequentRpcList,
+				dispatch,
+			});
+			if (!prevNavigator.current) {
+				// Setup navigator with Sentry instrumentation
+				routingInstrumentation.registerNavigationContainer(navigator);
+				// Subscribe to incoming deeplinks
+				branch.subscribe({
+					onOpenStart: (opts) => {
+						// Called reliably on iOS deeplink instances
+						Device.isIos() && handleDeeplink(opts);
+					},
+					onOpenComplete: (opts) => {
+						// Called reliably on Android deeplink instances
+						Device.isAndroid() && handleDeeplink(opts);
+					},
+				});
+			}
+			prevNavigator.current = navigator;
+		}
+	}, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
 	useEffect(() => {
 		const initAnalytics = async () => {
@@ -226,6 +231,12 @@ const App = ({ userLoggedIn }) => {
 		startAnimation();
 	}, [isAuthChecked]);
 
+	const setNavigatorRef = (ref) => {
+		if (!prevNavigator.current) {
+			setNavigator(ref);
+		}
+	};
+
 	const onAnimationFinished = useCallback(() => {
 		Animated.timing(opacity, {
 			toValue: 0,
@@ -251,19 +262,14 @@ const App = ({ userLoggedIn }) => {
 		return null;
 	};
 
-	const theme = useAppTheme();
-
 	return (
 		// do not render unless a route is defined
 		(route && (
-			<ThemeContext.Provider value={theme}>
+			<>
 				<NavigationContainer
 					// Prevents artifacts when navigating between screens
-					theme={{ colors: { background: theme.colors.background.default } }}
-					ref={navigator}
-					onReady={() => {
-						routingInstrumentation.registerNavigationContainer(navigator);
-					}}
+					theme={{ colors: { background: colors.background.default } }}
+					ref={setNavigatorRef}
 					onStateChange={(state) => {
 						// Updates redux with latest route. Used by DrawerView component.
 						const currentRoute = findRouteNameFromNavigatorState(state.routes);
@@ -283,7 +289,7 @@ const App = ({ userLoggedIn }) => {
 					</Stack.Navigator>
 				</NavigationContainer>
 				{renderSplash()}
-			</ThemeContext.Provider>
+			</>
 		)) ||
 		null
 	);
