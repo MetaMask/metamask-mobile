@@ -273,7 +273,7 @@ class TransactionElement extends PureComponent {
 							</ListItem.Amounts>
 						)}
 					</ListItem.Content>
-					{!!renderNormalActions && (
+					{renderNormalActions && (
 						<ListItem.Actions>
 							{this.renderSpeedUpButton()}
 							{this.renderCancelButton()}
