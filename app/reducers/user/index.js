@@ -12,6 +12,7 @@ const initialState = {
 	userLoggedIn: false,
 	isAuthChecked: false,
 	initialScreen: '',
+	locked: false,
 	appTheme: AppThemeKey.os,
 };
 

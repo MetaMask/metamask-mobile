@@ -20,7 +20,7 @@ import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
@@ -193,6 +193,7 @@ const AccountBackupStep1 = (props) => {
 			props.setOnboardingWizardStep(1);
 			props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
 		}
+		await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
 	};
 
 	const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);

@@ -17,7 +17,6 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
-import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -261,6 +260,8 @@ class Login extends PureComponent {
 	}
 
 	componentDidUpdate() {
+		console.log('LOGIN');
+
 		// If the user logs in nav to Home View
 		if (this.props.userLoggedIn) {
 			this.props.navigation.replace('HomeNav');
@@ -283,7 +284,7 @@ class Login extends PureComponent {
 		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
 		if (this.state.loading || locked) return;
-
+		this.setState({ loading: true });
 		const authType = await Authentication.componentAuthenticationType(
 			this.state.biometryChoice,
 			this.state.rememberMe
@@ -291,6 +292,7 @@ class Login extends PureComponent {
 
 		try {
 			await Authentication.userEntryAuth(password, authType, this.props.selectedAddress);
+			console.log('userEntryAuth');
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
 				this.props.navigation.replace('HomeNav');
@@ -332,8 +334,9 @@ class Login extends PureComponent {
 	tryBiometric = async (e) => {
 		if (e) e.preventDefault();
 		const { current: field } = this.fieldRef;
-		field.blur();
+		field?.blur();
 		try {
+			this.setState({ loading: true });
 			await Authentication.appTriggeredAuth(this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
 			if (onboardingWizard) {
@@ -349,7 +352,7 @@ class Login extends PureComponent {
 			this.setState({ hasBiometricCredentials: true });
 			Logger.log(error);
 		}
-		field.blur();
+		field?.blur();
 	};
 
 	triggerLogIn = () => {
@@ -357,11 +360,10 @@ class Login extends PureComponent {
 	};
 
 	delete = async () => {
-		const { KeyringController } = Engine.context;
 		try {
 			await Authentication.newWalletAndKeyChain(`${Date.now()}`);
-			await KeyringController.setLocked();
 			this.deleteExistingUser();
+			await Authentication.logout();
 		} catch (error) {
 			Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);
 		}
@@ -370,19 +372,20 @@ class Login extends PureComponent {
 	deleteExistingUser = async () => {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
+			await DefaultPreference.clear(ONBOARDING_WIZARD);
 			// We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
-			this.props.navigation?.reset({
-				routes: [
-					{
-						name: 'OnboardingRootNav',
-						state: {
-							routes: [
-								{ name: 'OnboardingNav', params: { screen: 'Onboarding', params: { delete: true } } },
-							],
-						},
-					},
-				],
-			});
+			// this.props.navigation?.reset({
+			// 	routes: [
+			// 		{
+			// 			name: 'OnboardingRootNav',
+			// 			state: {
+			// 				routes: [
+			// 					{ name: 'OnboardingNav', params: { screen: 'Onboarding', params: { delete: true } } },
+			// 				],
+			// 			},
+			// 		},
+			// 	],
+			// });
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}

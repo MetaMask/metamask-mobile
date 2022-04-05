@@ -59,9 +59,8 @@ export default class LockManager {
 	login = async () => {
 		this.unlockAttempts++;
 		try {
-			await Authentication.appTriggeredAuth(this.selectedAddress);
-			this.unlockAttempts = 0;
 			this.locked = false;
+			await Authentication.appTriggeredAuth(this.selectedAddress);
 		} catch (error) {
 			if (this.unlockAttempts <= 3) {
 				this.login();
@@ -72,8 +71,6 @@ export default class LockManager {
 					`Unlock attempts: ${this.unlockAttempts}`
 				);
 				await Authentication.logout(false);
-				this.unlockAttempts = 0;
-				this.locked = false;
 			}
 		}
 	};
@@ -87,6 +84,7 @@ export default class LockManager {
 			try {
 				await Authentication.logout(false);
 				this.locked = true;
+				this.unlockAttempts = 0;
 			} catch (e) {
 				this.setLockedError(e);
 			}

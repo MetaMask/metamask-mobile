@@ -30,12 +30,13 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
-import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
+import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION, ONBOARDING_WIZARD } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import DefaultPreference from 'react-native-default-preference';
 
 const Stack = createStackNavigator();
 /**
@@ -109,6 +110,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 	const [navigator, setNavigator] = useState(undefined);
 	const prevNavigator = useRef(navigator);
 	const [route, setRoute] = useState();
+	const [onboarded, setOnboarded] = useState(undefined);
 	const [authCancelled, setAuthCancelled] = useState(false);
 	const [animationPlayed, setAnimationPlayed] = useState();
 	const { colors } = useAppThemeFromContext() || mockTheme;
@@ -124,12 +126,15 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			try {
 				if (existingUser && !locked.current && selectedAddress) {
 					await Authentication.appTriggeredAuth(selectedAddress);
+					console.log('appTriggeredAuth');
 					locked.current = true;
+					setAuthCancelled(true);
 				}
 
 				//Cancel auth if the existing user has not been set
 				if (existingUser == null) setAuthCancelled(true);
 			} catch (error) {
+				await Authentication.logout(false);
 				trackErrorAsAnalytics('App: Max Attempts Reached', error?.message, `Unlock attempts: 1`);
 				setAuthCancelled(true);
 			}
@@ -198,8 +203,10 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 	useEffect(() => {
 		async function checkExsiting() {
+			const onboarded = await DefaultPreference.get(ONBOARDING_WIZARD);
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
+			setOnboarded(onboarded);
 			setRoute(route);
 		}
 		if (userLoggedIn || authCancelled) checkExsiting();
@@ -209,7 +216,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		async function startApp() {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				const currentVersion = await getVersion();
+				const currentVersion = getVersion();
 				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
 				if (currentVersion !== savedVersion) {
 					if (savedVersion) await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
@@ -283,13 +290,17 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						triggerSetCurrentRoute(currentRoute);
 					}}
 				>
+					{console.log('ROUTE', route, userLoggedIn, onboarded)}
 					<Stack.Navigator route={route} initialRouteName={route}>
-						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-						<Stack.Screen
-							name="OnboardingRootNav"
-							component={OnboardingRootNav}
-							options={{ headerShown: false }}
-						/>
+						{onboarded === 'explored' ? (
+							<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+						) : (
+							<Stack.Screen
+								name="OnboardingRootNav"
+								component={OnboardingRootNav}
+								options={{ headerShown: false }}
+							/>
+						)}
 						{userLoggedIn && (
 							<Stack.Screen name="HomeNav" component={Main} options={{ headerShown: false }} />
 						)}

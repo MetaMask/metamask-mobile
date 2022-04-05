@@ -41,6 +41,7 @@ class AuthenticationService {
 	init(store: Store) {
 		if (AuthenticationService.isInitialized === false) {
 			AuthenticationService.isInitialized = true;
+			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			this.store = store;
 		} else {
 			Logger.log('Attempted to call init on AuthenticationService but an instance has already been initialized');
@@ -191,8 +192,8 @@ class AuthenticationService {
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
 	newWalletAndKeyChain = async (password: string, authData: AuthData): Promise<void> => {
+		console.log('newWalletAndKeyChain', password, authData);
 		try {
-			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			await this.createWalletVaultAndKeychain(password);
 			await this.storePassword(password, authData?.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
@@ -218,8 +219,8 @@ class AuthenticationService {
 		parsedSeed: string,
 		clearEngine: boolean
 	): Promise<void> => {
+		console.log('newWalletAndRestore', password, authData);
 		try {
-			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 			await this.storePassword(password, authData.type);
 			await AsyncStorage.setItem(EXISTING_USER, TRUE);
@@ -239,8 +240,9 @@ class AuthenticationService {
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
 	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string): Promise<void> => {
+		console.log('userEntryAuth', password, authData);
+
 		try {
-			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			await this.loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
 			this.dispatchLogin();
@@ -257,11 +259,12 @@ class AuthenticationService {
 	 */
 	appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
+		console.log('appTriggeredAuth');
 		try {
-			this.lockManagerInstance = new LockManager(AuthenticationService.LOCK_IMMEDIATE);
 			const password = credentials?.password;
 			await this.loginVaultCreation(password, selectedAddress);
 			if (!credentials) await this.storePassword(password, this.authData.type);
+			console.log('appTriggeredAuth', credentials);
 			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout();
