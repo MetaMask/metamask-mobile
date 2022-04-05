@@ -20,7 +20,6 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
@@ -294,22 +293,6 @@ class TransactionReview extends PureComponent {
 		const colors = this.context.colors || mockTheme.colors;
 		return createStyles(colors);
 	};
-
-	renderTabBar() {
-		const colors = this.context.colors || mockTheme.colors;
-		const styles = this.getStyles();
-
-		return (
-			<DefaultTabBar
-				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.primary.default}
-				inactiveTextColor={colors.text.muted}
-				backgroundColor={colors.background.default}
-				tabStyle={styles.tabStyle}
-				textStyle={styles.textStyle}
-			/>
-		);
-	}
 
 	toggleDataView = () => {
 		const { animate } = this.props;
