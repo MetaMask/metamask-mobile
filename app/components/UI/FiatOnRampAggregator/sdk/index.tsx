@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk, Environment, Context } from '@chingiz-mardanov/on-ramp-sdk';
+import { IOnRampSdk, Environment, Context } from '@chingiz-mardanov/on-ramp-sdk';
+import SDK from './SDK';
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
@@ -43,16 +44,11 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	useEffect(() => {
 		(async () => {
 			setSdkModule(
-				await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, {
+				await SDK.getSDK(Environment.Staging, Context.Mobile, {
 					verbose: VERBOSE_SDK,
-					maxInstanceCount: 2,
 				})
 			);
 		})();
-
-		return () => {
-			OnRampSdk.destructInstance();
-		};
 	}, []);
 
 	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
