@@ -13,7 +13,7 @@ import {
 	SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import Logger from '../../util/Logger';
-import { logIn, logOut } from '../../actions/user';
+import { logIn, logOut, loadingSet, loadingUnset } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
@@ -58,6 +58,18 @@ class AuthenticationService {
 		if (this.store) {
 			this.store.dispatch(logOut());
 		} else Logger.log('Attempted to dispatch logOut action but dispatch was not initialized');
+	}
+
+	private dispatchLoadingSet(): void {
+		if (this.store) {
+			this.store.dispatch(loadingSet());
+		} else Logger.log('Attempted to dispatch loadingSet action but dispatch was not initialized');
+	}
+
+	private dispatchLoadingUnset(): void {
+		if (this.store) {
+			this.store.dispatch(loadingUnset());
+		} else Logger.log('Attempted to dispatch loadingUnset action but dispatch was not initialized');
 	}
 
 	/**
@@ -146,7 +158,7 @@ class AuthenticationService {
 	 * @param credentials - credentials provided by the user
 	 * @returns @AuthData
 	 */
-	checkAuthenticationMethod = async (credentials: any): Promise<AuthData> => {
+	checkAuthenticationMethod = async (): Promise<AuthData> => {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
@@ -155,7 +167,7 @@ class AuthenticationService {
 			return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
 		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
 			return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
-		} else if (credentials) {
+		} else if (await SecureKeychain.getGenericPassword()) {
 			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
 		}
 		return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType };
@@ -240,8 +252,7 @@ class AuthenticationService {
 	 * @param authData - type of authentication required to fetch password from keychain
 	 */
 	userEntryAuth = async (password: string, authData: AuthData, selectedAddress: string): Promise<void> => {
-		console.log('userEntryAuth', password, authData);
-
+		this.dispatchLoadingSet();
 		try {
 			await this.loginVaultCreation(password, selectedAddress);
 			await this.storePassword(password, authData.type);
@@ -250,6 +261,8 @@ class AuthenticationService {
 		} catch (e: any) {
 			this.logout();
 			throw new AuthenticationError(e, 'Failed to login', this.authData);
+		} finally {
+			this.dispatchLoadingUnset();
 		}
 	};
 
@@ -259,16 +272,17 @@ class AuthenticationService {
 	 */
 	appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
-		console.log('appTriggeredAuth');
+		this.dispatchLoadingSet();
 		try {
 			const password = credentials?.password;
 			await this.loginVaultCreation(password, selectedAddress);
 			if (!credentials) await this.storePassword(password, this.authData.type);
-			console.log('appTriggeredAuth', credentials);
 			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout();
 			throw new AuthenticationError(e, 'appTriggeredAuth failed to login', this.authData);
+		} finally {
+			this.dispatchLoadingUnset();
 		}
 	};
 
@@ -298,7 +312,7 @@ class AuthenticationService {
 	 * Gets the type of auth data
 	 * @returns Currently configured AuthData
 	 */
-	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod(undefined);
+	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod();
 
 	/**
 	 * Sets the selected address in the lock manager instance

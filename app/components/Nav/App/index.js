@@ -139,7 +139,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 				setAuthCancelled(true);
 			}
 		};
-		if (animationPlayed) appTriggeredAuth();
+		if (animationPlayed && selectedAddress) appTriggeredAuth();
 		Authentication.setSelectedAddress(selectedAddress);
 	}, [animationPlayed, selectedAddress]);
 
@@ -216,6 +216,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 		async function startApp() {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
+				await Authentication.logout();
 				const currentVersion = getVersion();
 				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
 				if (currentVersion !== savedVersion) {
@@ -290,7 +291,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 						triggerSetCurrentRoute(currentRoute);
 					}}
 				>
-					{console.log('ROUTE', route, userLoggedIn, onboarded)}
 					<Stack.Navigator route={route} initialRouteName={route}>
 						{onboarded === 'explored' ? (
 							<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />

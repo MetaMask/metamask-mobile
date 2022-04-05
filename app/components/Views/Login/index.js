@@ -214,7 +214,17 @@ class Login extends PureComponent {
 		 * Route passed in props from navigation
 		 */
 		route: PropTypes.object,
+		/**
+		 * User login staus
+		 */
 		userLoggedIn: PropTypes.bool,
+		/**
+		 * Loading status triggered by Authentication
+		 */
+		loading: PropTypes.bool,
+		/**
+		 * Users current address
+		 */
 		selectedAddress: PropTypes.string,
 	};
 
@@ -223,7 +233,6 @@ class Login extends PureComponent {
 		biometryType: null,
 		rememberMe: false,
 		biometryChoice: false,
-		loading: false,
 		error: null,
 		biometryPreviouslyDisabled: false,
 		warningModalVisible: false,
@@ -257,6 +266,11 @@ class Login extends PureComponent {
 				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
 				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
 			});
+		else if (type === AUTHENTICATION_TYPE.REMEMBER_ME)
+			this.setState({
+				hasBiometricCredentials: false,
+				rememberMe: true,
+			});
 	}
 
 	componentDidUpdate() {
@@ -283,8 +297,7 @@ class Login extends PureComponent {
 		const { current: field } = this.fieldRef;
 		const locked = !passwordRequirementsMet(password);
 		if (locked) this.setState({ error: strings('login.invalid_password') });
-		if (this.state.loading || locked) return;
-		this.setState({ loading: true });
+		if (this.props.loading || locked) return;
 		const authType = await Authentication.componentAuthenticationType(
 			this.state.biometryChoice,
 			this.state.rememberMe
@@ -301,7 +314,7 @@ class Login extends PureComponent {
 				this.props.navigation.replace('HomeNav');
 			}
 			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
+			this.setState({ password: '', hasBiometricCredentials: false });
 			field.setValue('');
 		} catch (e) {
 			const error = e.toString();
@@ -309,24 +322,18 @@ class Login extends PureComponent {
 				toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
 				toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
 			) {
-				this.setState({ loading: false, error: strings('login.invalid_password') });
-
+				this.setState({ error: strings('login.invalid_password') });
 				trackErrorAsAnalytics('Login: Invalid Password', error);
-
 				return;
 			} else if (error === PASSCODE_NOT_SET_ERROR) {
 				Alert.alert(
 					'Security Alert',
 					'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)'
 				);
-				this.setState({ loading: false });
 			} else if (toLowerCaseEquals(error, VAULT_ERROR)) {
-				this.setState({
-					loading: false,
-					error: strings('login.clean_vault_error'),
-				});
+				this.setState({ error: strings('login.clean_vault_error') });
 			} else {
-				this.setState({ loading: false, error });
+				this.setState({ error });
 			}
 		}
 	};
@@ -591,7 +598,7 @@ class Login extends PureComponent {
 							)}
 							<View style={styles.ctaWrapper} testID={'log-in-button'}>
 								<StyledButton type={'confirm'} onPress={this.triggerLogIn}>
-									{this.state.loading ? (
+									{this.props.loading ? (
 										<ActivityIndicator size="small" color={colors.primary.inverse} />
 									) : (
 										strings('login.unlock_button')
@@ -623,6 +630,7 @@ Login.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
 	selectedAddress: state.engine.backgroundState?.PreferencesController?.selectedAddress,
 	userLoggedIn: state.user.userLoggedIn,
+	loading: state.user.loadingSet,
 });
 
 const mapDispatchToProps = (dispatch) => ({
