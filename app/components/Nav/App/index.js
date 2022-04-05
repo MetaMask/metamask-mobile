@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated } from 'react-native';
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -35,6 +35,7 @@ import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import Device from '../../../util/device';
 
 const Stack = createStackNavigator();
 /**
@@ -135,6 +136,16 @@ const App = ({ userLoggedIn }) => {
 			Logger.error(e, `Deeplink: Error parsing deeplink`);
 		}
 	}, []);
+
+	useEffect(() => {
+		if (Device.isAndroid())
+			Linking.addEventListener('url', (params) => {
+				const { url } = params;
+				if (url) {
+					handleDeeplink({ uri: url });
+				}
+			});
+	}, [handleDeeplink]);
 
 	useEffect(() => {
 		if (navigator) {
