@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { fontStyles, colors as importedColors } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
 import { IAccount } from '../types';
 import { renderFromWei } from '../../../../util/number';
@@ -12,6 +12,7 @@ import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { getNetworkTypeByChainId } from '../../../../util/networks';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import EthereumAddress from '../../../UI/EthereumAddress';
+import StyledButton from '../../../UI/StyledButton';
 
 interface ISelectQRAccountsProps {
 	canUnlock: boolean;
@@ -82,8 +83,8 @@ const createStyle = (colors: any) =>
 		},
 		bottom: {
 			alignItems: 'center',
-			marginTop: 120,
-			height: 108,
+			marginTop: 150,
+			height: 100,
 			justifyContent: 'space-between',
 		},
 		button: {
@@ -93,22 +94,6 @@ const createStyle = (colors: any) =>
 			alignItems: 'center',
 			justifyContent: 'center',
 			padding: 12,
-		},
-		backgroundBlue: {
-			backgroundColor: colors.primary.default,
-		},
-		backgroundGrey: {
-			backgroundColor: colors.primary.disabled,
-		},
-		textBlue: {
-			fontSize: 14,
-			color: colors.primary.default,
-			...fontStyles.normal,
-		},
-		textWhite: {
-			fontSize: 14,
-			color: importedColors.white,
-			...fontStyles.normal,
 		},
 	});
 
@@ -170,16 +155,17 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 			</View>
 
 			<View style={styles.bottom}>
-				<TouchableOpacity
+				<StyledButton
+					type={'confirm'}
 					onPress={onUnlock}
-					style={[styles.button, canUnlock ? styles.backgroundBlue : styles.backgroundGrey]}
+					containerStyle={[styles.button]}
 					disabled={!canUnlock}
 				>
-					<Text style={styles.textWhite}>{strings('connect_qr_hardware.unlock')}</Text>
-				</TouchableOpacity>
-				<TouchableOpacity onPress={onForget} style={styles.button}>
-					<Text style={styles.textBlue}>{strings('connect_qr_hardware.forget')}</Text>
-				</TouchableOpacity>
+					{strings('connect_qr_hardware.unlock')}
+				</StyledButton>
+				<StyledButton type={'transparent-blue'} onPress={onForget} containerStyle={[styles.button]}>
+					{strings('connect_qr_hardware.forget')}
+				</StyledButton>
 			</View>
 		</View>
 	);
