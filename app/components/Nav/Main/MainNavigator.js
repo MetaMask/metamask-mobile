@@ -60,6 +60,7 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
+import TransactionDetails from '../../UI/FiatOnRampAggregator/Views/TransactionDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -101,6 +102,11 @@ const BrowserTabHome = () => (
 const TransactionsHome = () => (
 	<Stack.Navigator>
 		<Stack.Screen name="TransactionsView" component={ActivityView} />
+		<Stack.Screen
+			name="TransactionDetails"
+			component={TransactionDetails}
+			options={TransactionDetails.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 

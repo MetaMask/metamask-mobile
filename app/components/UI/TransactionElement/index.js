@@ -5,7 +5,6 @@ import { fontStyles } from '../../../styles/common';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import TransactionDetails from './TransactionDetails';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
@@ -18,6 +17,8 @@ import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice, util } from '@metamask/controllers/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import TransactionDetails from '../FiatOnRampAggregator/components/TransactionDetails';
+
 const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const createStyles = (colors) =>
@@ -119,6 +120,11 @@ class TransactionElement extends PureComponent {
 		 * Chain Id
 		 */
 		chainId: PropTypes.string,
+		/**
+		 * Navigation object required to push
+		 * the Transaction details view
+		 */
+		navigation: PropTypes.object,
 	};
 
 	state = {
@@ -350,6 +356,15 @@ class TransactionElement extends PureComponent {
 		);
 	};
 
+	handleTransactionDetailsNavigation = (id) => {
+		this.props.navigation.navigate('TransactionsHome', {
+			screen: 'TransactionDetails',
+			params: {
+				id,
+			},
+		});
+	};
+
 	render() {
 		const { tx } = this.props;
 		const { detailsModalVisible, importModalVisible, transactionElement, transactionDetails } = this.state;
@@ -361,8 +376,8 @@ class TransactionElement extends PureComponent {
 			<>
 				<TouchableHighlight
 					style={styles.row}
-					onPress={this.onPressItem}
 					underlayColor={colors.background.alternative}
+					onPress={() => this.handleTransactionDetailsNavigation('1234')}
 					activeOpacity={1}
 				>
 					{this.renderTxElement(transactionElement)}
