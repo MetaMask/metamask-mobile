@@ -137,6 +137,9 @@ const App = ({ userLoggedIn }) => {
 		}
 	}, []);
 
+	// on Android devices, this creates a listener
+	// to deeplinks used to open the app
+	// when it is in background (so not closed)
 	useEffect(() => {
 		if (Device.isAndroid())
 			Linking.addEventListener('url', (params) => {
