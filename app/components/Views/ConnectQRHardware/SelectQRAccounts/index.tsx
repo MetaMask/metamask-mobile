@@ -10,8 +10,8 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { getNetworkTypeByChainId } from '../../../../util/networks';
-import { formatAddress } from '../../../../util/address';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import EthereumAddress from '../../../UI/EthereumAddress';
 
 interface ISelectQRAccountsProps {
 	canUnlock: boolean;
@@ -147,7 +147,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							testID={'skip-backup-check'}
 						/>
 						<Text style={styles.number}>{item.index}</Text>
-						<Text style={styles.address}>{formatAddress(item.address, 'short')}</Text>
+						<EthereumAddress address={item.address} style={styles.address} type={'short'} />
 						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
 						<Icon
 							size={18}
