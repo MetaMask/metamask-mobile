@@ -4,13 +4,13 @@ import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
-import util from './util';
 import { IAccount } from '../types';
 import { renderFromWei } from '../../../../util/number';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { getNetworkTypeByChainId } from '../../../../util/networks';
+import { formatAddress } from '../../../../util/address';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 
 interface ISelectQRAccountsProps {
@@ -147,7 +147,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							testID={'skip-backup-check'}
 						/>
 						<Text style={styles.number}>{item.index}</Text>
-						<Text style={styles.address}>{util.clipAddress(item.address, 4, 4)}</Text>
+						<Text style={styles.address}>{formatAddress(item.address, 'short')}</Text>
 						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
 						<Icon
 							size={18}
