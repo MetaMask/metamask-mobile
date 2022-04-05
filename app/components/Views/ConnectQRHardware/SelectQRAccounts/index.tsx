@@ -9,7 +9,6 @@ import { renderFromWei } from '../../../../util/number';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
-import { getNetworkTypeByChainId } from '../../../../util/networks';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import StyledButton from '../../../UI/StyledButton';
@@ -97,10 +96,10 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyle(colors);
 	const navigation = useNavigation();
-	const chainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
+	const provider = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider);
 
 	const toEtherscan = (address: string) => {
-		const accountLink = getEtherscanAddressUrl(getNetworkTypeByChainId(chainId), address);
+		const accountLink = getEtherscanAddressUrl(provider.type, address);
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
