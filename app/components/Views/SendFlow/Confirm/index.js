@@ -461,6 +461,7 @@ class Confirm extends PureComponent {
 			contractBalances,
 			selectedAsset,
 		} = this.props;
+
 		this.updateNavBar();
 
 		const { errorMessage, fromSelectedAddress } = this.state;
@@ -854,11 +855,10 @@ class Confirm extends PureComponent {
 				throw transactionMeta.error;
 			}
 			if (assetType === 'ERC721') {
-				await CollectiblesController.updateCollectibleTransactionStatus(
+				await CollectiblesController.updateCollectibleByAddressAndTokenId(
 					selectedAsset.address,
 					selectedAsset.tokenId,
-					true,
-					transactionMeta.id
+					{ ...selectedAsset, transactionId: transactionMeta.id }
 				);
 			}
 
@@ -883,10 +883,10 @@ class Confirm extends PureComponent {
 			]);
 			Logger.error(error, 'error while trying to send transaction (Confirm)');
 			if (assetType === 'ERC721') {
-				CollectiblesController.updateCollectibleTransactionStatus(
+				CollectiblesController.updateCollectibleByAddressAndTokenId(
 					selectedAsset.address,
 					selectedAsset.tokenId,
-					false
+					{ ...selectedAsset, transactionId: undefined }
 				);
 			}
 		}

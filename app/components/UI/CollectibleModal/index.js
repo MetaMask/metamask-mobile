@@ -42,7 +42,7 @@ const CollectibleModal = (props) => {
 	const [mediaZIndex, setMediaZIndex] = useState(20);
 	const [overviewZIndex, setOverviewZIndex] = useState(10);
 
-	const collectibleUpdated = CollectiblesController.getCollectibleTransactionStatus(
+	const collectibleUpdated = CollectiblesController.findCollectibleByAddressAndTokenId(
 		collectible.address,
 		collectible.tokenId
 	);
@@ -115,7 +115,7 @@ const CollectibleModal = (props) => {
 						onViewTransactionDetails={onViewTransactionDetails}
 						openLink={openLink}
 						onTranslation={onCollectibleOverviewTranslation}
-						isTransacting={collectibleUpdated ? collectibleUpdated.isTransacting : false}
+						isTransacting={collectibleUpdated ? !!collectibleUpdated.transactionId : false}
 					/>
 				</View>
 			</>
