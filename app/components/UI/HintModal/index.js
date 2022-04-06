@@ -28,13 +28,13 @@ const createStyles = (colors) =>
 		},
 		leaveHint: {
 			fontSize: 14,
-			...fontStyles.regular,
+			...fontStyles.normal,
 			color: colors.text.default,
 			marginBottom: 16,
 		},
 		noSeedphrase: {
 			fontSize: 14,
-			...fontStyles.regular,
+			...fontStyles.normal,
 			color: colors.error.default,
 			marginBottom: 16,
 		},
