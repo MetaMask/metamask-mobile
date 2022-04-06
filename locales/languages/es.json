@@ -1378,15 +1378,15 @@
 		"total_amount": "Importe total",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Antes de comprar ETH, asegúrese de comprender las cuotas de Gas",
+				"title": "Antes de comprar {{ticker}}, asegúrese de comprender las cuotas de Gas",
 				"average_gas_fee": "Cuota de Gas promedio actual:",
-				"subtitle_1": "Si planea canjear o transferir sus ETH, compre de más para cubrir las cuotas de Gas.",
-				"subtitle_2": "Las cuotas de Gas para las transacciones son independientes del costo de compra de ETH.",
+				"subtitle_1": "Si planea canjear o transferir sus {{ticker}}, compre de más para cubrir las cuotas de Gas.",
+				"subtitle_2": "Las cuotas de Gas para las transacciones son independientes del costo de compra de {{ticker}}.",
 				"subtitle_3": "MetaMask no se beneficia de las cuotas de Gas."
 			},
 			"step_2": {
 				"title": "¿Qué son las cuotas de Gas?",
-				"subtitle_1": "El Gas alimenta las transacciones a través de la red de Ethereum. Es una cuota que se paga en ETH a los mineros de criptomonedas que procesan sus transacciones.",
+				"subtitle_1": "El Gas alimenta las transacciones a través de la red de Ethereum. Es una cuota que se paga en {{ticker}} a los mineros de criptomonedas que procesan sus transacciones.",
 				"subtitle_2": "MetaMask no se beneficia de las cuotas de Gas.",
 				"learn_more": "Obtenga más información sobre las cuotas de Gas"
 			},
@@ -1397,7 +1397,7 @@
 				"subtitle_3": "La mejor manera de calcular las cuotas de Gas es",
 				"subtitle_4": "intentar realizar la transacción primero",
 				"subtitle_5": "y ver cuánto cuesta el Gas.",
-				"cta": "Continuar comprando ETH"
+				"cta": "Continuar comprando {{ticker}}"
 			}
 		}
 	},
