@@ -7,8 +7,8 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import io.branch.rnbranch.*;
-
 import android.content.Intent;
+
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -34,6 +34,7 @@ public class MainActivity extends ReactActivity {
 	protected void onStart() {
 		super.onStart();
 		RNBranchModule.initSession(getIntent().getData(), this);
+
 		try{
 			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
 			String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
@@ -41,18 +42,22 @@ public class MainActivity extends ReactActivity {
 		}catch (PackageManager.NameNotFoundException e){
 			Log.d("RCTAnalytics","init:token missing");
 		}
-
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		SplashScreen.show(this);
-		super.onCreate(null);
+		super.onCreate(savedInstanceState);
 	}
+
 	@Override
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
-		RNBranchModule.onNewIntent(intent);
+		if (intent != null &&
+			intent.hasExtra("branch_force_new_session") && 
+			intent.getBooleanExtra("branch_force_new_session",false)) {
+				RNBranchModule.onNewIntent(intent);
+		}
 	}
 
 	@Override
