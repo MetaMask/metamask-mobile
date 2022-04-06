@@ -137,8 +137,7 @@ const createStyles = (colors) =>
 			flexDirection: 'row',
 		},
 		inputCurrencyText: {
-			...fontStyles.normal,
-			fontWeight: fontStyles.light.fontWeight,
+			...fontStyles.light,
 			color: colors.text.default,
 			fontSize: 44,
 			marginRight: 8,
@@ -148,8 +147,7 @@ const createStyles = (colors) =>
 			textTransform: 'uppercase',
 		},
 		textInput: {
-			...fontStyles.normal,
-			fontWeight: fontStyles.light.fontWeight,
+			...fontStyles.light,
 			fontSize: 44,
 			textAlign: 'center',
 			color: colors.text.default,

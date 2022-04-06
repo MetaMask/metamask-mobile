@@ -262,6 +262,7 @@
 		"send_to": "Send to",
 		"amount": "Amount",
 		"confirm": "Confirm",
+		"sign": "Sign",
 		"network_not_found_title": "Network not found",
 		"network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
 		"network_missing_id": "Missing chain id."
@@ -404,11 +405,31 @@
 	"accounts": {
 		"create_new_account": "Create New Account",
 		"import_account": "Import an Account",
+		"connect_hardware": "Connect Hardware Wallet",
 		"imported": "IMPORTED",
 		"remove_account_title": "Account removal",
 		"remove_account_message": "Do you really want to remove this account?",
 		"no": "No",
 		"yes_remove_it": "Yes, remove it"
+	},
+	"connect_qr_hardware": {
+		"title": "Connect a QR-based hardware wallet",
+		"description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",
+		"description2": "How it works?",
+		"description3": "Officially supported airgapped hardware wallets include:",
+		"description4": "Keystone (tutorial)",
+		"description5": "1. Unlock your Keystone",
+		"description6": "2. Tap the ··· Menu, then go to Sync >",
+		"button_continue": "Continue",
+		"hint_text": "Scan your Keystone wallet to ",
+		"purpose_connect": "connect",
+		"purpose_sign": "confirm the transaction",
+		"select_accounts": "Select an Account",
+		"prev": "PREV",
+		"next": "NEXT",
+		"unlock": "Unlock",
+		"forget": "Forget this device",
+		"please_wait": "Please wait"
 	},
 	"app_settings": {
 		"title": "Settings",
@@ -611,6 +632,7 @@
 		"private_key_copied_time": "(stored for 1 minute)",
 		"warning_incorrect_password": "Incorrect password",
 		"unknown_error": "Couldn't unlock your account. Please try again.",
+		"hardware_error": "This is a hardware wallet account, you cannot export your private key.",
 		"seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
 		"text": "TEXT",
 		"qr_code": "QR CODE",
@@ -663,6 +685,7 @@
 		"confirm": "Confirm"
 	},
 	"transaction": {
+		"hardware": "Hardware",
 		"alert": "ALERT",
 		"amount": "Amount",
 		"next": "Next",
@@ -673,6 +696,7 @@
 		"cancel": "Cancel",
 		"save": "Save",
 		"speedup": "Speed up",
+		"sign_with_keystone": "Sign with Keystone",
 		"from": "From",
 		"gas_fee": "Gas fee",
 		"gas_fee_fast": "FAST",
@@ -741,6 +765,7 @@
 		"token_id": "Token ID",
 		"not_enough_for_gas": "You have 0 {{ticker}} in your account to pay for transaction fees. Buy some {{ticker}} or deposit from another account.",
 		"send": "Send",
+		"confirm_with_qr_hardware": "Confirm with Keystone",
 		"confirmed": "Confirmed",
 		"pending": "Pending",
 		"submitted": "Submitted",
@@ -764,7 +789,13 @@
 		"similar_to": "is similar to",
 		"contains_zero_width": "contains zero width character",
 		"dapp_suggested_gas": "This gas fee has been suggested by %{origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
-		"dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions."
+		"dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
+		"unknown_qr_code": "Invalid QR code. Please retry.",
+		"invalid_qr_code_sync": "Invalid QR code. Please scan the sync QR code of the hardware wallet.",
+		"no_camera_permission": "Camera not authorized. Please give permission and retry",
+		"invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
+		"no_camera_permission_android": "You need to grant MetaMask access to your camera to proceed. You may also need to change your system settings.",
+		"mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'."
 	},
 	"custom_gas": {
 		"total": "Total",
@@ -922,7 +953,12 @@
 		"from_device_label": "from this device",
 		"import_wallet_row": "Account added to this device",
 		"import_wallet_label": "Account Added",
-		"import_wallet_tip": "All future transactions made from this device will include a label \"from this device\" next to the timestamp. For transactions dated before adding the account, this history will not indicate which outgoing transactions originated from this device."
+		"import_wallet_tip": "All future transactions made from this device will include a label \"from this device\" next to the timestamp. For transactions dated before adding the account, this history will not indicate which outgoing transactions originated from this device.",
+		"sign_title_scan": "Scan ",
+		"sign_title_device": "with your Keystone",
+		"sign_description_1": "After you have signed with Keystone,",
+		"sign_description_2": "tap on Get Signature",
+		"sign_get_signature": "Get Signature"
 	},
 	"address_book": {
 		"recents": "Recents",

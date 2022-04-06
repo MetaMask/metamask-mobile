@@ -11,6 +11,7 @@ import Device from '../../../util/device';
 import NotificationManager from '../../../core/NotificationManager';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
+import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ACCOUNT_APROVAL_MODAL_CONTAINER_ID, CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
@@ -79,6 +80,10 @@ class AccountApproval extends PureComponent {
 		 */
 		onCancel: PropTypes.func,
 		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
+		/**
 		 * Number of tokens
 		 */
 		tokensLength: PropTypes.number,
@@ -106,9 +111,10 @@ class AccountApproval extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { currentPageInformation, chainId, networkType } = this.props;
+			const { currentPageInformation, chainId, networkType, selectedAddress } = this.props;
 			const url = new URL(currentPageInformation?.url);
 			return {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: url?.host,
 				dapp_url: currentPageInformation?.url,
 				network_name: networkType,
@@ -219,6 +225,7 @@ class AccountApproval extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	tokensLength: state.engine.backgroundState.TokensController.tokens.length,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
