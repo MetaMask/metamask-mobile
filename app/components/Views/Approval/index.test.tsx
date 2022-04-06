@@ -33,6 +33,9 @@ const initialState = {
 					type: ROPSTEN,
 				},
 			},
+			PreferencesController: {
+				selectedAddress: '0x0',
+			},
 		},
 	},
 };

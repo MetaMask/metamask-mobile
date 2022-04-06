@@ -128,7 +128,7 @@ export default class AppInformation extends PureComponent {
 	};
 
 	onAttributions = () => {
-		const url = 'https://raw.githubusercontent.com/MetaMask/metamask-mobile/blob/main/attribution.txt';
+		const url = 'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/attribution.txt';
 		this.goTo(url, strings('app_information.attributions'));
 	};
 

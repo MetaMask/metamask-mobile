@@ -46,7 +46,7 @@
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
-			<!-- Branch URI Scheme -->
+			<!-- Branch App Links -->
 			<intent-filter android:autoVerify="true">
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -57,11 +57,14 @@
 				<data android:scheme="https" />
 				<data android:scheme="https" />
 				<data android:scheme="https" />
+				<data android:scheme="https" />
 				<data android:host="metamask.app.link" />
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
+				<data android:host="metamask.io" />
 			</intent-filter>
+			<!-- Branch URI Scheme -->
 			<intent-filter>
 				<data android:scheme="metamask" />
 				<action android:name="android.intent.action.VIEW" />
@@ -98,21 +101,12 @@
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
 			</intent-filter>
-
-			<!-- Branch App Links (optional) -->
-			<intent-filter android:autoVerify="true">
-				<action android:name="android.intent.action.VIEW" />
-				<category android:name="android.intent.category.DEFAULT" />
-				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="https" android:host="metamask.io" />
-			</intent-filter>
 		</activity>
 		<!-- Explicitly opt-in to safe browsing -->
 		<meta-data android:name="android.webkit.WebView.EnableSafeBrowsing" android:value="true" />
-		<!-- Branch init -->
+		<!-- Branch keys -->
 		<meta-data android:name="io.branch.sdk.BranchKey" android:value="${MM_BRANCH_KEY_LIVE}" />
 		<meta-data android:name="io.branch.sdk.BranchKey.test" android:value="${MM_BRANCH_KEY_TEST}" />
-		<meta-data android:name="io.branch.sdk.TestMode" android:value="false" />
 		<!-- PUSH NOTIFICATIONS -->
 		<meta-data	android:name="com.dieam.reactnativepushnotification.notification_channel_name"
 		android:value="io.metamask"/>
