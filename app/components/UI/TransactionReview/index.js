@@ -31,6 +31,8 @@ import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -52,6 +54,9 @@ const createStyles = (colors) =>
 		},
 		actionViewChildren: {
 			height: 330,
+		},
+		actionViewQRObject: {
+			height: 624,
 		},
 		accountInfoCardWrapper: {
 			paddingHorizontal: 24,
@@ -192,6 +197,8 @@ class TransactionReview extends PureComponent {
 		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 		 */
 		dappSuggestedGasWarning: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	state = {
@@ -319,7 +326,7 @@ class TransactionReview extends PureComponent {
 		return url;
 	}
 
-	render = () => {
+	renderTransactionReview = () => {
 		const {
 			transactionConfirmed,
 			primaryCurrency,
@@ -408,6 +415,29 @@ class TransactionReview extends PureComponent {
 			</>
 		);
 	};
+
+	renderQRDetails() {
+		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		const { QRState } = this.props;
+		const styles = this.getStyles();
+		return (
+			<View style={styles.actionViewQRObject}>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<QRSigningDetails
+					QRState={QRState}
+					tighten
+					showCancelButton
+					showHint={false}
+					bypassAndroidCameraAccessCheck={false}
+				/>
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderTransactionReview();
+	}
 }
 
 const mapStateToProps = (state) => ({
@@ -427,4 +457,4 @@ const mapStateToProps = (state) => ({
 
 TransactionReview.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(TransactionReview);
+export default connect(mapStateToProps)(withQRHardwareAwareness(TransactionReview));
