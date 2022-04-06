@@ -126,7 +126,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			try {
 				if (existingUser && !locked.current && selectedAddress) {
 					await Authentication.appTriggeredAuth(selectedAddress);
-					console.log('appTriggeredAuth');
 					locked.current = true;
 					setAuthCancelled(true);
 				}
@@ -139,9 +138,9 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 				setAuthCancelled(true);
 			}
 		};
-		if (animationPlayed && selectedAddress) appTriggeredAuth();
+		if (selectedAddress) appTriggeredAuth();
 		Authentication.setSelectedAddress(selectedAddress);
-	}, [animationPlayed, selectedAddress]);
+	}, [selectedAddress]);
 
 	const handleDeeplink = useCallback(({ error, params, uri }) => {
 		if (error) {
@@ -209,14 +208,14 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			setOnboarded(onboarded);
 			setRoute(route);
 		}
-		if (userLoggedIn || authCancelled) checkExsiting();
+		checkExsiting();
 	}, [userLoggedIn, authCancelled]);
 
 	useEffect(() => {
 		async function startApp() {
 			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 			try {
-				await Authentication.logout();
+				await Authentication.logout(false);
 				const currentVersion = getVersion();
 				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
 				if (currentVersion !== savedVersion) {
@@ -237,7 +236,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 			} catch (error) {
 				Logger.error(error);
 			}
-
 			animation?.current?.play();
 			animationName?.current?.play();
 		}
@@ -264,7 +262,6 @@ const App = ({ selectedAddress, userLoggedIn }) => {
 
 	const renderSplash = () => {
 		if (!animationPlayed) {
-			console.log('animationPlayed');
 			return (
 				<MetaMaskAnimation
 					animation={animation}

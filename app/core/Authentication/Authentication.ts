@@ -259,7 +259,7 @@ class AuthenticationService {
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
-			this.logout();
+			this.logout(false);
 			throw new AuthenticationError(e, 'Failed to login', this.authData);
 		} finally {
 			this.dispatchLoadingUnset();
@@ -272,6 +272,9 @@ class AuthenticationService {
 	 */
 	appTriggeredAuth = async (selectedAddress: string): Promise<void> => {
 		const credentials: any = await SecureKeychain.getGenericPassword();
+
+		console.log('credentials', credentials);
+
 		this.dispatchLoadingSet();
 		try {
 			const password = credentials?.password;
@@ -279,7 +282,7 @@ class AuthenticationService {
 			if (!credentials) await this.storePassword(password, this.authData.type);
 			this.dispatchLogin();
 		} catch (e: any) {
-			this.logout();
+			this.logout(false);
 			throw new AuthenticationError(e, 'appTriggeredAuth failed to login', this.authData);
 		} finally {
 			this.dispatchLoadingUnset();
@@ -292,11 +295,15 @@ class AuthenticationService {
 	 */
 	logout = async (reset = true): Promise<void> => {
 		const { KeyringController }: any = Engine.context;
-		if (reset) await SecureKeychain.resetGenericPassword();
+		if (reset) {
+			console.log('est');
+			await SecureKeychain.resetGenericPassword();
+			this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
+		}
+
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
-		this.authData = { type: AUTHENTICATION_TYPE.UNKNOWN };
 		this.dispatchLogout();
 		this.lockManagerInstance?.stopListening();
 	};

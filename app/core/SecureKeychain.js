@@ -74,6 +74,7 @@ export default {
 	},
 
 	async resetGenericPassword() {
+		console.log('reset pass');
 		const options = { service: defaultOptions.service };
 		await AsyncStorage.removeItem(BIOMETRY_CHOICE);
 		await AsyncStorage.removeItem(PASSCODE_CHOICE);

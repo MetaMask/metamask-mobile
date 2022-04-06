@@ -380,19 +380,6 @@ class Login extends PureComponent {
 		try {
 			await AsyncStorage.removeItem(EXISTING_USER);
 			await DefaultPreference.clear(ONBOARDING_WIZARD);
-			// We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
-			// this.props.navigation?.reset({
-			// 	routes: [
-			// 		{
-			// 			name: 'OnboardingRootNav',
-			// 			state: {
-			// 				routes: [
-			// 					{ name: 'OnboardingNav', params: { screen: 'Onboarding', params: { delete: true } } },
-			// 				],
-			// 			},
-			// 		},
-			// 	],
-			// });
 		} catch (error) {
 			Logger.log(error, `Failed to remove key: ${EXISTING_USER} from AsyncStorage`);
 		}
