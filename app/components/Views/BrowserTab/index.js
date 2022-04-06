@@ -2,13 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Text,
   StyleSheet,
-  TextInput,
   View,
   TouchableWithoutFeedback,
   Alert,
-  TouchableOpacity,
   Linking,
-  Keyboard,
   BackHandler,
   InteractionManager,
 } from 'react-native';
@@ -41,7 +38,6 @@ import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
-import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
@@ -57,7 +53,6 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import { isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
@@ -67,8 +62,6 @@ import downloadFile from '../../../util/browser/downloadFile';
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
-
-const ANIMATION_TIMING = 300;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -226,16 +219,13 @@ export const BrowserTab = (props) => {
 	const [progress, setProgress] = useState(0);
 	const [initialUrl, setInitialUrl] = useState('');
 	const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-	const [autocompleteValue, setAutocompleteValue] = useState('');
 	const [error, setError] = useState(null);
-	const [showUrlModal, setShowUrlModal] = useState(false);
 	const [showOptions, setShowOptions] = useState(false);
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
 
 	const webviewRef = useRef(null);
-	const inputRef = useRef(null);
 
 	const url = useRef('');
 	const title = useRef('');
@@ -245,7 +235,7 @@ export const BrowserTab = (props) => {
 	const fromHomepage = useRef(false);
 	const wizardScrollAdjusted = useRef(false);
 
-	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	/**
@@ -276,22 +266,6 @@ export const BrowserTab = (props) => {
 		}
 		return url;
 	};
-
-	/**
-	 * Shows or hides the url input modal.
-	 * When opened it sets the current website url on the input.
-	 */
-	const toggleUrlModal = useCallback(
-		({ urlInput = null } = {}) => {
-			const goingToShow = !showUrlModal;
-			const urlToShow = getMaskedUrl(urlInput || url.current);
-
-			if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
-
-			setShowUrlModal(goingToShow);
-		},
-		[showUrlModal]
-	);
 
 	/**
 	 * Checks if it is a ENS website
@@ -361,7 +335,6 @@ export const BrowserTab = (props) => {
 				params: [selectedAddress],
 			});
 		}
-
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
@@ -385,8 +358,6 @@ export const BrowserTab = (props) => {
 					isHomepage,
 					// Show autocomplete
 					fromHomepage,
-					setAutocompleteValue,
-					setShowUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
 					tabId: props.id,
@@ -395,13 +366,6 @@ export const BrowserTab = (props) => {
 		});
 		backgroundBridges.current.push(newBridge);
 	};
-
-	/**
-	 * Disabling iframes for now
-	const onFrameLoadStarted = url => {
-		url && initializeBackgroundBridge(url, false);
-	};
-	*/
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -605,41 +569,6 @@ export const BrowserTab = (props) => {
 	);
 
 	/**
-	 * Hide url input modal
-	 */
-	const hideUrlModal = useCallback(() => {
-		setShowUrlModal(false);
-
-		if (isHomepage()) {
-			const { current } = webviewRef;
-			const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-			current && current.injectJavaScript(blur);
-		}
-	}, [isHomepage]);
-
-	/**
-	 * Handle keyboard hide
-	 */
-	const keyboardDidHide = useCallback(() => {
-		if (!isTabActive() || isEmulatorSync()) return false;
-		if (!fromHomepage.current) {
-			if (showUrlModal) {
-				hideUrlModal();
-			}
-		}
-	}, [hideUrlModal, isTabActive, showUrlModal]);
-
-	/**
-	 * Set keyboard listeners
-	 */
-	useEffect(() => {
-		const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', keyboardDidHide);
-		return function cleanup() {
-			keyboardDidHideListener.remove();
-		};
-	}, [keyboardDidHide]);
-
-	/**
 	 * Reload current page
 	 */
 	const reload = useCallback(() => {
@@ -676,25 +605,8 @@ export const BrowserTab = (props) => {
 			// Remove all Engine listeners
 			Engine.context.TokensController.hub.removeAllListeners();
 		};
-
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-
-	/**
-	 * Enable the header to toggle the url modal and update other header data
-	 */
-	useEffect(() => {
-		if (props.activeTab === props.id) {
-			props.navigation.setParams({
-				showUrlModal: toggleUrlModal,
-				url: getMaskedUrl(url.current),
-				icon: icon.current,
-				error,
-			});
-		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [error, props.activeTab, props.id, toggleUrlModal]);
 
 	useEffect(() => {
 		if (Device.isAndroid()) {
@@ -733,7 +645,6 @@ export const BrowserTab = (props) => {
 		return function cleanup() {
 			BackHandler.removeEventListener('hardwareBackPress', handleAndroidBackPress);
 		};
-
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [goBack, isTabActive]);
 
@@ -854,7 +765,6 @@ export const BrowserTab = (props) => {
 	 * Stops normal loading when it's ens, instead call go to be properly set up
 	 */
 	const onShouldStartLoadWithRequest = ({ url }) => {
-		console.log('onShouldStartLoadWithRequest');
 		if (isENSUrl(url)) {
 			go(url.replace(/^http:\/\//, 'https://'));
 			return false;
@@ -984,6 +894,45 @@ export const BrowserTab = (props) => {
 	};
 
 	/**
+	 * Handle url input submit
+	 */
+	const onUrlInputSubmit = useCallback(async (inputValue = undefined) => {
+		trackEventSearchUsed();
+		if (!inputValue) {
+			return;
+		}
+		const { defaultProtocol, searchEngine } = props;
+		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
+		await go(sanitizedInput);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	/**
+	 * Shows or hides the url input modal.
+	 * When opened it sets the current website url on the input.
+	 */
+	const toggleUrlModal = useCallback(() => {
+		const urlToShow = getMaskedUrl(url.current);
+		props.navigation.navigate('BrowserUrlModal', { url: urlToShow, onUrlInputSubmit });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [onUrlInputSubmit]);
+
+	/**
+	 * Enable the header to toggle the url modal and update other header data
+	 */
+	useEffect(() => {
+		if (props.activeTab === props.id) {
+			props.navigation.setParams({
+				showUrlModal: toggleUrlModal,
+				url: getMaskedUrl(url.current),
+				icon: icon.current,
+				error,
+			});
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [error, props.activeTab, props.id, toggleUrlModal]);
+
+	/**
 	 * Render the progress bar
 	 */
 	const renderProgressBar = () => (
@@ -991,100 +940,6 @@ export const BrowserTab = (props) => {
 			<WebviewProgressBar progress={progress} />
 		</View>
 	);
-
-	/**
-	 * When url input changes
-	 */
-	const onURLChange = (inputValue) => {
-		setAutocompleteValue(inputValue);
-	};
-
-	/**
-	 * Handle url input submit
-	 */
-	const onUrlInputSubmit = async (input = null) => {
-		const inputValue = (typeof input === 'string' && input) || autocompleteValue;
-		trackEventSearchUsed();
-		if (!inputValue) {
-			toggleUrlModal();
-			return;
-		}
-		const { defaultProtocol, searchEngine } = props;
-		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
-		await go(sanitizedInput);
-		toggleUrlModal();
-	};
-
-	/** Clear search input and focus */
-	const clearSearchInput = () => {
-		setAutocompleteValue('');
-		inputRef.current?.focus?.();
-	};
-
-	/**
-	 * Render url input modal
-	 */
-	const renderUrlModal = () => {
-		if (showUrlModal && inputRef) {
-			setTimeout(() => {
-				const { current } = inputRef;
-				if (current && !current.isFocused()) {
-					current.focus();
-				}
-			}, ANIMATION_TIMING);
-		}
-
-		return (
-			<Modal
-				isVisible={showUrlModal}
-				style={styles.urlModal}
-				onBackdropPress={toggleUrlModal}
-				onBackButtonPress={toggleUrlModal}
-				animationIn="slideInDown"
-				animationOut="slideOutUp"
-				backdropColor={colors.overlay.default}
-				backdropOpacity={1}
-				animationInTiming={ANIMATION_TIMING}
-				animationOutTiming={ANIMATION_TIMING}
-				useNativeDriver
-			>
-				<View style={styles.urlModalContent} testID={'url-modal'}>
-					<View style={styles.searchWrapper}>
-						<TextInput
-							keyboardType="web-search"
-							ref={inputRef}
-							autoCapitalize="none"
-							autoCorrect={false}
-							testID={'url-input'}
-							onChangeText={onURLChange}
-							onSubmitEditing={onUrlInputSubmit}
-							placeholder={strings('autocomplete.placeholder')}
-							placeholderTextColor={colors.text.muted}
-							returnKeyType="go"
-							style={styles.urlInput}
-							value={autocompleteValue}
-							selectTextOnFocus
-							keyboardAppearance={themeAppearance}
-						/>
-						{autocompleteValue ? (
-							<TouchableOpacity onPress={clearSearchInput} style={styles.clearButton}>
-								<Icon
-									name="times-circle"
-									size={18}
-									color={colors.icon.default}
-									style={styles.clearIcon}
-								/>
-							</TouchableOpacity>
-						) : null}
-					</View>
-					<TouchableOpacity style={styles.cancelButton} testID={'cancel-url-button'} onPress={toggleUrlModal}>
-						<Text style={styles.cancelButtonText}>{strings('browser.cancel')}</Text>
-					</TouchableOpacity>
-				</View>
-				<UrlAutocomplete onSubmit={onUrlInputSubmit} input={autocompleteValue} onDismiss={toggleUrlModal} />
-			</Modal>
-		);
-	};
 
 	/**
 	 * Handle error, for example, ssl certificate error
@@ -1358,10 +1213,25 @@ export const BrowserTab = (props) => {
 		go(HOMEPAGE_HOST);
 	};
 
+	const handleOnFileDownload = async (downloadUrl) => {
+		const onDownloadFinished = () => {
+			const { current } = webviewRef;
+			current && current.stopLoading();
+			changeUrl('');
+			setProgress(1);
+		};
+		const downloadResponse = await downloadFile(downloadUrl);
+		if (downloadResponse) {
+			onDownloadFinished();
+		} else {
+			Alert.alert(strings('download_files.error'));
+			onDownloadFinished();
+		}
+	};
+
 	/**
 	 * Main render
 	 */
-	 {console.log('Browser tab rendered')}
 	return (
 		<ErrorBoundary view="BrowserTab">
 			<View
@@ -1390,13 +1260,12 @@ export const BrowserTab = (props) => {
 							allowsInlineMediaPlayback
 							useWebkit
 							testID={'browser-webview'}
-							onFileDownload={({ nativeEvent: { downloadUrl } }) => downloadFile(downloadUrl)}
+							onFileDownload={({ nativeEvent: { downloadUrl } }) => handleOnFileDownload(downloadUrl)}
 						/>
 					)}
 				</View>
 				{renderProgressBar()}
 				{isTabActive() && renderPhishingModal()}
-				{isTabActive() && renderUrlModal()}
 				{isTabActive() && renderOptions()}
 				{isTabActive() && renderBottomBar()}
 				{isTabActive() && renderOnboardingWizard()}

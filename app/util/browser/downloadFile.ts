@@ -1,34 +1,51 @@
 import Share, { ShareOptions } from 'react-native-share';
-import RNFetchBlob from 'rn-fetch-blob';
+import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
+import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
+import { strings } from '../../../locales/i18n';
 
-const downloadFile = async (downloadUrl: string) => {
-	console.log('downloadFiles called');
-	const { config, fs } = RNFetchBlob;
-	// const dir = fs.dirs.DocumentDir;
-	// const fileName = downloadUrl.split('/').pop();
-	// const downloadPath = `${dir}/${fileName}`;
-	config({ fileCache: true })
-		.fetch('GET', downloadUrl)
-		.then((res) => {
-			//Showing alert after successful downloading
-			console.log('downloadFiles res -> ', JSON.stringify(res));
-			const filePath = res.path();
-			const options: ShareOptions = {
-				title: 'Save file',
-				message: 'Where do you want this file to be saved?:',
-				url: filePath,
-				saveToFiles: true,
+interface DownloadResult {
+	success: boolean;
+	message: string;
+}
+
+const shareFile = async (filePath: string) => {
+	const options: ShareOptions = {
+		title: strings('download_files.title'),
+		message: strings('download_files.message'),
+		url: filePath,
+		saveToFiles: true,
+		failOnCancel: false,
+	};
+	return await Share.open(options);
+};
+
+const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
+	const { config } = RNFetchBlob;
+	const response: FetchBlobResponse = await config({ fileCache: true }).fetch('GET', downloadUrl);
+	if (response.path()) {
+		try {
+			const shareResponse: ShareOpenResult = await shareFile(response.path());
+			return {
+				success: shareResponse.success,
+				message: shareResponse.message,
 			};
-
-			Share.open(options)
-				.then((shareResponse) => {
-					console.log('share result', shareResponse);
-				})
-				.catch((shareError) => {
-					console.log('share err', shareError);
-				});
-		})
-		.catch((err) => console.log('downloadFiles error', err));
+		} catch (err) {
+			if (err instanceof Error) {
+				return {
+					success: false,
+					message: err.message.toString(),
+				};
+			}
+			return {
+				success: false,
+				message: 'unknown error occurred',
+			};
+		}
+	}
+	return {
+		success: false,
+		message: response.text().toString(),
+	};
 };
 
 export default downloadFile;
