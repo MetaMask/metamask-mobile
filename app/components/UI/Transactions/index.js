@@ -34,7 +34,9 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -162,6 +164,7 @@ class Transactions extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
 	};
 
 	static defaultProps = {
@@ -181,6 +184,7 @@ class Transactions extends PureComponent {
 		speedUpConfirmDisabled: false,
 		rpcBlockExplorer: undefined,
 		errorMsg: undefined,
+		isQRHardwareAccount: false,
 	};
 
 	existingGas = null;
@@ -210,6 +214,7 @@ class Transactions extends PureComponent {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
+		this.setState({ isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress) });
 	};
 
 	componentWillUnmount() {
@@ -422,15 +427,15 @@ class Transactions extends PureComponent {
 		this.setState({ errorMsg: e.message, cancel1559IsOpen: false, cancelIsOpen: false });
 	};
 
-	speedUpTransaction = (EIP1559TransactionData) => {
+	speedUpTransaction = async (EIP1559TransactionData) => {
 		try {
 			if (EIP1559TransactionData) {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
+				await Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
 					maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 					maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 				});
 			} else {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
+				await Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
 			}
 			this.onSpeedUpCompleted();
 		} catch (e) {
@@ -438,15 +443,25 @@ class Transactions extends PureComponent {
 		}
 	};
 
-	cancelTransaction = (EIP1559TransactionData) => {
+	signQRTransaction = async (tx) => {
+		const { KeyringController, TransactionController } = Engine.context;
+		await KeyringController.resetQRKeyringState();
+		await TransactionController.approveTransaction(tx.id);
+	};
+
+	cancelUnsignedQRTransaction = async (tx) => {
+		await Engine.context.TransactionController.cancelTransaction(tx.id);
+	};
+
+	cancelTransaction = async (EIP1559TransactionData) => {
 		try {
 			if (EIP1559TransactionData) {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId, {
+				await Engine.context.TransactionController.stopTransaction(this.cancelTxId, {
 					maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 					maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 				});
 			} else {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId);
+				await Engine.context.TransactionController.stopTransaction(this.cancelTxId);
 			}
 			this.onCancelCompleted();
 		} catch (e) {
@@ -460,6 +475,9 @@ class Transactions extends PureComponent {
 			i={index}
 			assetSymbol={this.props.assetSymbol}
 			onSpeedUpAction={this.onSpeedUpAction}
+			isQRHardwareAccount={this.state.isQRHardwareAccount}
+			signQRTransaction={this.signQRTransaction}
+			cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
 			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
 			onPressItem={this.toggleDetailsView}
@@ -495,11 +513,12 @@ class Transactions extends PureComponent {
 	};
 
 	renderUpdateTxEIP1559Gas = (isCancel) => {
+		const { isSigningQRObject } = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		if (!this.existingGas) return null;
-		if (this.existingGas.isEIP1559Transaction) {
+		if (this.existingGas.isEIP1559Transaction && !isSigningQRObject) {
 			return (
 				<Modal
 					isVisible
@@ -531,7 +550,7 @@ class Transactions extends PureComponent {
 	};
 
 	renderList = () => {
-		const { submittedTransactions, confirmedTransactions, header } = this.props;
+		const { submittedTransactions, confirmedTransactions, header, isSigningQRObject } = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -579,32 +598,36 @@ class Transactions extends PureComponent {
 					scrollIndicatorInsets={{ right: 1 }}
 				/>
 
-				<TransactionActionModal
-					isVisible={this.state.cancelIsOpen}
-					confirmDisabled={cancelConfirmDisabled}
-					onCancelPress={this.onCancelCompleted}
-					onConfirmPress={this.cancelTransaction}
-					confirmText={strings('transaction.lets_try')}
-					confirmButtonMode={'confirm'}
-					cancelText={strings('transaction.nevermind')}
-					feeText={renderCancelGas()}
-					titleText={strings('transaction.cancel_tx_title')}
-					gasTitleText={strings('transaction.gas_cancel_fee')}
-					descriptionText={strings('transaction.cancel_tx_message')}
-				/>
-				<TransactionActionModal
-					isVisible={this.state.speedUpIsOpen}
-					confirmDisabled={speedUpConfirmDisabled}
-					onCancelPress={this.onSpeedUpCompleted}
-					onConfirmPress={this.speedUpTransaction}
-					confirmText={strings('transaction.lets_try')}
-					confirmButtonMode={'confirm'}
-					cancelText={strings('transaction.nevermind')}
-					feeText={renderSpeedUpGas()}
-					titleText={strings('transaction.speedup_tx_title')}
-					gasTitleText={strings('transaction.gas_speedup_fee')}
-					descriptionText={strings('transaction.speedup_tx_message')}
-				/>
+				{!isSigningQRObject && this.state.cancelIsOpen && (
+					<TransactionActionModal
+						isVisible={this.state.cancelIsOpen}
+						confirmDisabled={cancelConfirmDisabled}
+						onCancelPress={this.onCancelCompleted}
+						onConfirmPress={this.cancelTransaction}
+						confirmText={strings('transaction.lets_try')}
+						confirmButtonMode={'confirm'}
+						cancelText={strings('transaction.nevermind')}
+						feeText={renderCancelGas()}
+						titleText={strings('transaction.cancel_tx_title')}
+						gasTitleText={strings('transaction.gas_cancel_fee')}
+						descriptionText={strings('transaction.cancel_tx_message')}
+					/>
+				)}
+				{!isSigningQRObject && this.state.speedUpIsOpen && (
+					<TransactionActionModal
+						isVisible={this.state.speedUpIsOpen && !isSigningQRObject}
+						confirmDisabled={speedUpConfirmDisabled}
+						onCancelPress={this.onSpeedUpCompleted}
+						onConfirmPress={this.speedUpTransaction}
+						confirmText={strings('transaction.lets_try')}
+						confirmButtonMode={'confirm'}
+						cancelText={strings('transaction.nevermind')}
+						feeText={renderSpeedUpGas()}
+						titleText={strings('transaction.speedup_tx_title')}
+						gasTitleText={strings('transaction.gas_speedup_fee')}
+						descriptionText={strings('transaction.speedup_tx_message')}
+					/>
+				)}
 
 				<RetryModal
 					onCancelPress={this.toggleRetry}
@@ -661,4 +684,4 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Transactions);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(Transactions));

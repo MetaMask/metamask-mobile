@@ -1277,8 +1277,7 @@
 	"webview_error": {
 		"title": "Ups! ada yang salah...",
 		"message": "Kami tidak dapat memuat halaman tersebut.",
-		"reason": "Alasan",
-		"try_again": "Coba lagi"
+		"reason": "Alasan"
 	},
 	"offline_mode": {
 		"title": "Anda sedang offline",

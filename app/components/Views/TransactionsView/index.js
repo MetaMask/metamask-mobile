@@ -46,8 +46,9 @@ const TransactionsView = ({
 		const confirmedTxs = [];
 		const submittedNonces = [];
 
-		const allTransactionsSorted = sortTransactions(transactions);
-
+		const allTransactionsSorted = sortTransactions(transactions).filter(
+			(tx, index, self) => self.findIndex((_tx) => _tx.id === tx.id) === index
+		);
 		const allTransactions = allTransactionsSorted.filter((tx) => {
 			const filter = filterByAddressAndNetwork(tx, tokens, selectedAddress, chainId, network);
 			if (!filter) return false;
