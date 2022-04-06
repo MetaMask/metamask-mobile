@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, FlatList } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { Token as TokenType } from '@metamask/controllers';
 import Token from './components/Token';
@@ -12,42 +12,44 @@ import { useNavigation } from '@react-navigation/native';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	fill: {
-		flex: 1,
-	},
-	screen: { justifyContent: 'flex-end' },
-	sheet: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		height: '75%',
-	},
-	notch: {
-		width: 48,
-		height: 5,
-		borderRadius: 4,
-		backgroundColor: colors.grey,
-		marginTop: 16,
-		alignSelf: 'center',
-	},
-	headerLabel: {
-		textAlign: 'center',
-		...(fontStyles.normal as any),
-		fontSize: 18,
-		paddingVertical: 16,
-		color: colors.black,
-	},
-	tokenList: { flex: 1, paddingHorizontal: 16 },
-	buttonsContainer: {
-		padding: 16,
-		flexDirection: 'row',
-	},
-	buttonDivider: {
-		width: 8,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		fill: {
+			flex: 1,
+		},
+		screen: { justifyContent: 'flex-end' },
+		sheet: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+			height: '75%',
+		},
+		notch: {
+			width: 48,
+			height: 5,
+			borderRadius: 4,
+			backgroundColor: colors.border.default,
+			marginTop: 16,
+			alignSelf: 'center',
+		},
+		headerLabel: {
+			textAlign: 'center',
+			...(fontStyles.normal as any),
+			fontSize: 18,
+			paddingVertical: 16,
+			color: colors.text.default,
+		},
+		tokenList: { flex: 1, paddingHorizontal: 16 },
+		buttonsContainer: {
+			padding: 16,
+			flexDirection: 'row',
+		},
+		buttonDivider: {
+			width: 8,
+		},
+	});
 
 interface IgnoredTokensByAddress {
 	[address: string]: true;
@@ -61,6 +63,8 @@ const DetectedTokens = () => {
 		(state) => state.engine.backgroundState.TokensController.detectedTokens as TokenType[]
 	);
 	const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>({});
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const dismissModalAndTriggerAction = () => {
 		const { TokensController } = Engine.context as any;

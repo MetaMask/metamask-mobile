@@ -18,7 +18,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
-import { renderAccountName } from '../../../util/address';
+import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { doENSReverseLookup, isDefaultAccountName } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -26,78 +26,102 @@ import { isSwapsAllowed } from '../Swaps/utils';
 import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import EthereumAddress from '../EthereumAddress';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	scrollView: {
-		backgroundColor: colors.white,
-	},
-	wrapper: {
-		paddingTop: 20,
-		paddingHorizontal: 20,
-		paddingBottom: 0,
-		alignItems: 'center',
-	},
-	info: {
-		justifyContent: 'center',
-		alignItems: 'center',
-		textAlign: 'center',
-	},
-	data: {
-		textAlign: 'center',
-		paddingTop: 7,
-	},
-	label: {
-		fontSize: 24,
-		textAlign: 'center',
-		...fontStyles.normal,
-	},
-	labelInput: {
-		marginBottom: Device.isAndroid() ? -10 : 0,
-	},
-	addressWrapper: {
-		backgroundColor: colors.blue000,
-		borderRadius: 40,
-		marginTop: 20,
-		marginBottom: 20,
-		paddingVertical: 7,
-		paddingHorizontal: 15,
-	},
-	address: {
-		fontSize: 12,
-		color: colors.grey400,
-		...fontStyles.normal,
-		letterSpacing: 0.8,
-	},
-	amountFiat: {
-		fontSize: 12,
-		paddingTop: 5,
-		color: colors.fontSecondary,
-		...fontStyles.normal,
-	},
-	identiconBorder: {
-		borderRadius: 80,
-		borderWidth: 2,
-		padding: 2,
-		borderColor: colors.blue,
-	},
-	onboardingWizardLabel: {
-		borderWidth: 2,
-		borderRadius: 4,
-		paddingVertical: Device.isIos() ? 2 : -4,
-		paddingHorizontal: Device.isIos() ? 5 : 5,
-		top: Device.isIos() ? 0 : -2,
-	},
-	actions: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		flexDirection: 'row',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		scrollView: {
+			backgroundColor: colors.background.default,
+		},
+		wrapper: {
+			paddingTop: 20,
+			paddingHorizontal: 20,
+			paddingBottom: 0,
+			alignItems: 'center',
+		},
+		info: {
+			justifyContent: 'center',
+			alignItems: 'center',
+			textAlign: 'center',
+		},
+		data: {
+			textAlign: 'center',
+			paddingTop: 7,
+		},
+		label: {
+			fontSize: 24,
+			textAlign: 'center',
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		labelInput: {
+			marginBottom: Device.isAndroid() ? -10 : 0,
+		},
+		labelWrapper: {
+			flexDirection: 'row',
+		},
+		tag: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginTop: 2,
+			padding: 4,
+			paddingHorizontal: 8,
+			borderWidth: 1,
+			borderColor: colors.text.default,
+			height: 28,
+			borderRadius: 14,
+		},
+		tagText: {
+			fontSize: 12,
+			...fontStyles.bold,
+			minWidth: 32,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+		addressWrapper: {
+			backgroundColor: colors.primary.muted,
+			borderRadius: 40,
+			marginTop: 20,
+			marginBottom: 20,
+			paddingVertical: 7,
+			paddingHorizontal: 15,
+		},
+		address: {
+			fontSize: 12,
+			color: colors.text.default,
+			...fontStyles.normal,
+			letterSpacing: 0.8,
+		},
+		amountFiat: {
+			fontSize: 12,
+			paddingTop: 5,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		identiconBorder: {
+			borderRadius: 80,
+			borderWidth: 2,
+			padding: 2,
+			borderColor: colors.primary.default,
+		},
+		onboardingWizardLabel: {
+			borderWidth: 2,
+			borderRadius: 4,
+			paddingVertical: Device.isIos() ? 2 : -4,
+			paddingHorizontal: Device.isIos() ? 5 : 5,
+			top: Device.isIos() ? 0 : -2,
+		},
+		actions: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'flex-start',
+			flexDirection: 'row',
+		},
+	});
 
 /**
  * View that's part of the <Wallet /> component
@@ -302,11 +326,16 @@ class AccountOverview extends PureComponent {
 			chainId,
 			swapsIsLive,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
 
 		const fiatBalance = `${renderFiat(Engine.getTotalFiatAccountBalance(), currentCurrency)}`;
 
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel, ens } = this.state;
+
+		const isQRHardwareWalletAccount = isQRHardwareAccount(address);
 
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
@@ -333,7 +362,9 @@ class AccountOverview extends PureComponent {
 										styles.label,
 										styles.labelInput,
 										styles.onboardingWizardLabel,
-										onboardingWizard ? { borderColor: colors.blue } : { borderColor: colors.white },
+										onboardingWizard
+											? { borderColor: colors.primary.default }
+											: { borderColor: colors.background.default },
 									]}
 									editable={accountLabelEditable}
 									onChangeText={this.onAccountLabelChange}
@@ -347,23 +378,34 @@ class AccountOverview extends PureComponent {
 									autoCapitalize={'none'}
 									autoCorrect={false}
 									numberOfLines={1}
+									placeholderTextColor={colors.text.muted}
+									keyboardAppearance={themeAppearance}
 								/>
 							) : (
-								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-									<Text
-										style={[
-											styles.label,
-											styles.onboardingWizardLabel,
-											onboardingWizard
-												? { borderColor: colors.blue }
-												: { borderColor: colors.white },
-										]}
-										numberOfLines={1}
-										testID={'edit-account-label'}
-									>
-										{isDefaultAccountName(name) && ens ? ens : name}
-									</Text>
-								</TouchableOpacity>
+								<View style={styles.labelWrapper}>
+									<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+										<Text
+											style={[
+												styles.label,
+												styles.onboardingWizardLabel,
+												{
+													borderColor: onboardingWizard
+														? colors.primary.default
+														: colors.background.default,
+												},
+											]}
+											numberOfLines={1}
+											testID={'edit-account-label'}
+										>
+											{isDefaultAccountName(name) && ens ? ens : name}
+										</Text>
+									</TouchableOpacity>
+									{isQRHardwareWalletAccount && (
+										<View style={styles.tag}>
+											<Text style={styles.tagText}>{strings('transaction.hardware')}</Text>
+										</View>
+									)}
+								</View>
 							)}
 						</View>
 						<Text style={styles.amountFiat}>{fiatBalance}</Text>
@@ -423,5 +465,7 @@ const mapDispatchToProps = (dispatch) => ({
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 	toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
 });
+
+AccountOverview.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(AccountOverview);

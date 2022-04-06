@@ -2,45 +2,47 @@ import React, { useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RPC } from '../../../constants/network';
 import { findBlockExplorerForRpc } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	screen: { justifyContent: 'flex-end' },
-	sheet: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-	},
-	notch: {
-		width: 48,
-		height: 5,
-		borderRadius: 4,
-		backgroundColor: colors.grey,
-		marginTop: 16,
-		alignSelf: 'center',
-		marginBottom: 24,
-	},
-	divider: {
-		height: 1,
-		backgroundColor: colors.grey,
-	},
-	optionButton: {
-		height: 60,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	optionLabel: {
-		...(fontStyles.normal as any),
-		color: colors.blue,
-		fontSize: 16,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		screen: { justifyContent: 'flex-end' },
+		sheet: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+		},
+		notch: {
+			width: 48,
+			height: 5,
+			borderRadius: 4,
+			backgroundColor: colors.border.default,
+			marginTop: 16,
+			alignSelf: 'center',
+			marginBottom: 24,
+		},
+		divider: {
+			height: 1,
+			backgroundColor: colors.border.muted,
+		},
+		optionButton: {
+			height: 60,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		optionLabel: {
+			...(fontStyles.normal as any),
+			color: colors.primary.default,
+			fontSize: 16,
+		},
+	});
 
 interface Option {
 	label: string;
@@ -57,6 +59,8 @@ interface Props {
 
 const AssetOptions = (props: Props) => {
 	const { address } = props.route.params;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 	const safeAreaInsets = useSafeAreaInsets();
 	const navigation = useNavigation();
 	const modalRef = useRef<ReusableModalRef>(null);

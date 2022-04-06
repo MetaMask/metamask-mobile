@@ -1,39 +1,41 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, ScrollView, View } from 'react-native';
 import StyledButton from '../../../UI/StyledButton';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		padding: 24,
-		paddingBottom: 48,
-	},
-	title: {
-		...(fontStyles.normal as any),
-		color: colors.fontPrimary,
-		fontSize: 20,
-		lineHeight: 20,
-		paddingTop: 4,
-		marginTop: -4,
-	},
-	desc: {
-		...(fontStyles.normal as any),
-		color: colors.grey500,
-		fontSize: 14,
-		lineHeight: 20,
-		marginTop: 12,
-	},
-	setting: {
-		marginVertical: 18,
-	},
-	clearHistoryConfirm: {
-		marginTop: 18,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			padding: 24,
+			paddingBottom: 48,
+		},
+		title: {
+			...(fontStyles.normal as any),
+			color: colors.text.default,
+			fontSize: 20,
+			lineHeight: 20,
+			paddingTop: 4,
+			marginTop: -4,
+		},
+		desc: {
+			...(fontStyles.normal as any),
+			color: colors.text.alternative,
+			fontSize: 14,
+			lineHeight: 20,
+			marginTop: 12,
+		},
+		setting: {
+			marginVertical: 18,
+		},
+		clearHistoryConfirm: {
+			marginTop: 18,
+		},
+	});
 
 interface Props {
 	/**
@@ -52,14 +54,22 @@ interface Props {
 const ExperimentalSettings = ({ navigation, route }: Props) => {
 	const isFullScreenModal = route?.params?.isFullScreenModal;
 
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	useEffect(
 		() => {
 			navigation.setOptions(
-				getNavigationOptionsTitle(strings('app_settings.experimental_title'), navigation, isFullScreenModal)
+				getNavigationOptionsTitle(
+					strings('app_settings.experimental_title'),
+					navigation,
+					isFullScreenModal,
+					colors
+				)
 			);
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]
+		[colors]
 	);
 
 	const goToWalletConnectSessions = useCallback(() => {

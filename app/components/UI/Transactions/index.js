@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { getNetworkTypeById, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
@@ -34,46 +34,50 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
+import { isQRHardwareAccount } from '../../../util/address';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	emptyContainer: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-		backgroundColor: colors.white,
-		minHeight: Dimensions.get('window').height / 2,
-	},
-	keyboardAwareWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-	},
-	loader: {
-		alignSelf: 'center',
-	},
-	text: {
-		fontSize: 20,
-		color: colors.fontTertiary,
-		...fontStyles.normal,
-	},
-	viewMoreBody: {
-		marginBottom: 36,
-		marginTop: 24,
-	},
-	viewOnEtherscan: {
-		fontSize: 16,
-		color: colors.blue,
-		...fontStyles.normal,
-		textAlign: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		emptyContainer: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+			backgroundColor: colors.background.default,
+			minHeight: Dimensions.get('window').height / 2,
+		},
+		keyboardAwareWrapper: {
+			flex: 1,
+			justifyContent: 'flex-end',
+		},
+		loader: {
+			alignSelf: 'center',
+		},
+		text: {
+			fontSize: 20,
+			color: colors.text.muted,
+			...fontStyles.normal,
+		},
+		viewMoreBody: {
+			marginBottom: 36,
+			marginTop: 24,
+		},
+		viewOnEtherscan: {
+			fontSize: 16,
+			color: colors.primary.default,
+			...fontStyles.normal,
+			textAlign: 'center',
+		},
+	});
 
 const ROW_HEIGHT = (Device.isIos() ? 95 : 100) + StyleSheet.hairlineWidth;
 
@@ -160,6 +164,7 @@ class Transactions extends PureComponent {
 		 * Indicates whether third party API mode is enabled
 		 */
 		thirdPartyApiMode: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
 	};
 
 	static defaultProps = {
@@ -179,6 +184,7 @@ class Transactions extends PureComponent {
 		speedUpConfirmDisabled: false,
 		rpcBlockExplorer: undefined,
 		errorMsg: undefined,
+		isQRHardwareAccount: false,
 	};
 
 	existingGas = null;
@@ -208,6 +214,7 @@ class Transactions extends PureComponent {
 			blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER;
 		}
 		this.setState({ rpcBlockExplorer: blockExplorer });
+		this.setState({ isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress) });
 	};
 
 	componentWillUnmount() {
@@ -270,23 +277,40 @@ class Transactions extends PureComponent {
 		this.setState({ refreshing: false });
 	};
 
-	renderLoader = () => (
-		<View style={styles.emptyContainer}>
-			<ActivityIndicator style={styles.loader} size="small" />
-		</View>
-	);
+	renderLoader = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
-	renderEmpty = () => (
-		<ScrollView
-			contentContainerStyle={styles.emptyContainer}
-			refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-		>
-			{this.props.header ? this.props.header : null}
+		return (
 			<View style={styles.emptyContainer}>
-				<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+				<ActivityIndicator style={styles.loader} size="small" />
 			</View>
-		</ScrollView>
-	);
+		);
+	};
+
+	renderEmpty = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<ScrollView
+				contentContainerStyle={styles.emptyContainer}
+				refreshControl={
+					<RefreshControl
+						colors={[colors.primary.default]}
+						tintColor={colors.icon.default}
+						refreshing={this.state.refreshing}
+						onRefresh={this.onRefresh}
+					/>
+				}
+			>
+				{this.props.header ? this.props.header : null}
+				<View style={styles.emptyContainer}>
+					<Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
+				</View>
+			</ScrollView>
+		);
+	};
 
 	viewOnBlockExplore = () => {
 		const {
@@ -323,19 +347,24 @@ class Transactions extends PureComponent {
 		}
 	};
 
-	renderViewMore = () => (
-		<View style={styles.viewMoreBody}>
-			<TouchableOpacity onPress={this.viewOnBlockExplore} style={styles.touchableViewOnEtherscan}>
-				<Text reset style={styles.viewOnEtherscan}>
-					{(this.state.rpcBlockExplorer &&
-						`${strings('transactions.view_full_history_on')} ${getBlockExplorerName(
-							this.state.rpcBlockExplorer
-						)}`) ||
-						strings('transactions.view_full_history_on_etherscan')}
-				</Text>
-			</TouchableOpacity>
-		</View>
-	);
+	renderViewMore = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.viewMoreBody}>
+				<TouchableOpacity onPress={this.viewOnBlockExplore} style={styles.touchableViewOnEtherscan}>
+					<Text reset style={styles.viewOnEtherscan}>
+						{(this.state.rpcBlockExplorer &&
+							`${strings('transactions.view_full_history_on')} ${getBlockExplorerName(
+								this.state.rpcBlockExplorer
+							)}`) ||
+							strings('transactions.view_full_history_on_etherscan')}
+					</Text>
+				</TouchableOpacity>
+			</View>
+		);
+	};
 
 	getItemLayout = (data, index) => ({
 		length: ROW_HEIGHT,
@@ -398,15 +427,15 @@ class Transactions extends PureComponent {
 		this.setState({ errorMsg: e.message, cancel1559IsOpen: false, cancelIsOpen: false });
 	};
 
-	speedUpTransaction = (EIP1559TransactionData) => {
+	speedUpTransaction = async (EIP1559TransactionData) => {
 		try {
 			if (EIP1559TransactionData) {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
+				await Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId, {
 					maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 					maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 				});
 			} else {
-				Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
+				await Engine.context.TransactionController.speedUpTransaction(this.speedUpTxId);
 			}
 			this.onSpeedUpCompleted();
 		} catch (e) {
@@ -414,15 +443,25 @@ class Transactions extends PureComponent {
 		}
 	};
 
-	cancelTransaction = (EIP1559TransactionData) => {
+	signQRTransaction = async (tx) => {
+		const { KeyringController, TransactionController } = Engine.context;
+		await KeyringController.resetQRKeyringState();
+		await TransactionController.approveTransaction(tx.id);
+	};
+
+	cancelUnsignedQRTransaction = async (tx) => {
+		await Engine.context.TransactionController.cancelTransaction(tx.id);
+	};
+
+	cancelTransaction = async (EIP1559TransactionData) => {
 		try {
 			if (EIP1559TransactionData) {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId, {
+				await Engine.context.TransactionController.stopTransaction(this.cancelTxId, {
 					maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
 					maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
 				});
 			} else {
-				Engine.context.TransactionController.stopTransaction(this.cancelTxId);
+				await Engine.context.TransactionController.stopTransaction(this.cancelTxId);
 			}
 			this.onCancelCompleted();
 		} catch (e) {
@@ -436,6 +475,9 @@ class Transactions extends PureComponent {
 			i={index}
 			assetSymbol={this.props.assetSymbol}
 			onSpeedUpAction={this.onSpeedUpAction}
+			isQRHardwareAccount={this.state.isQRHardwareAccount}
+			signQRTransaction={this.signQRTransaction}
+			cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
 			onCancelAction={this.onCancelAction}
 			testID={'txn-item'}
 			onPressItem={this.toggleDetailsView}
@@ -471,15 +513,20 @@ class Transactions extends PureComponent {
 	};
 
 	renderUpdateTxEIP1559Gas = (isCancel) => {
+		const { isSigningQRObject } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		if (!this.existingGas) return null;
-		if (this.existingGas.isEIP1559Transaction) {
+		if (this.existingGas.isEIP1559Transaction && !isSigningQRObject) {
 			return (
 				<Modal
 					isVisible
 					animationIn="slideInUp"
 					animationOut="slideOutDown"
 					style={styles.bottomModal}
-					backdropOpacity={0.7}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 					animationInTiming={600}
 					animationOutTiming={600}
 					onBackdropPress={isCancel ? this.onCancelCompleted : this.onSpeedUpCompleted}
@@ -503,8 +550,11 @@ class Transactions extends PureComponent {
 	};
 
 	renderList = () => {
-		const { submittedTransactions, confirmedTransactions, header } = this.props;
+		const { submittedTransactions, confirmedTransactions, header, isSigningQRObject } = this.props;
 		const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		const transactions =
 			submittedTransactions && submittedTransactions.length
 				? submittedTransactions.concat(confirmedTransactions)
@@ -530,7 +580,14 @@ class Transactions extends PureComponent {
 					data={transactions}
 					extraData={this.state}
 					keyExtractor={this.keyExtractor}
-					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					refreshControl={
+						<RefreshControl
+							colors={[colors.primary.default]}
+							tintColor={colors.icon.default}
+							refreshing={this.state.refreshing}
+							onRefresh={this.onRefresh}
+						/>
+					}
 					renderItem={this.renderItem}
 					initialNumToRender={10}
 					maxToRenderPerBatch={2}
@@ -541,32 +598,36 @@ class Transactions extends PureComponent {
 					scrollIndicatorInsets={{ right: 1 }}
 				/>
 
-				<TransactionActionModal
-					isVisible={this.state.cancelIsOpen}
-					confirmDisabled={cancelConfirmDisabled}
-					onCancelPress={this.onCancelCompleted}
-					onConfirmPress={this.cancelTransaction}
-					confirmText={strings('transaction.lets_try')}
-					confirmButtonMode={'confirm'}
-					cancelText={strings('transaction.nevermind')}
-					feeText={renderCancelGas()}
-					titleText={strings('transaction.cancel_tx_title')}
-					gasTitleText={strings('transaction.gas_cancel_fee')}
-					descriptionText={strings('transaction.cancel_tx_message')}
-				/>
-				<TransactionActionModal
-					isVisible={this.state.speedUpIsOpen}
-					confirmDisabled={speedUpConfirmDisabled}
-					onCancelPress={this.onSpeedUpCompleted}
-					onConfirmPress={this.speedUpTransaction}
-					confirmText={strings('transaction.lets_try')}
-					confirmButtonMode={'confirm'}
-					cancelText={strings('transaction.nevermind')}
-					feeText={renderSpeedUpGas()}
-					titleText={strings('transaction.speedup_tx_title')}
-					gasTitleText={strings('transaction.gas_speedup_fee')}
-					descriptionText={strings('transaction.speedup_tx_message')}
-				/>
+				{!isSigningQRObject && this.state.cancelIsOpen && (
+					<TransactionActionModal
+						isVisible={this.state.cancelIsOpen}
+						confirmDisabled={cancelConfirmDisabled}
+						onCancelPress={this.onCancelCompleted}
+						onConfirmPress={this.cancelTransaction}
+						confirmText={strings('transaction.lets_try')}
+						confirmButtonMode={'confirm'}
+						cancelText={strings('transaction.nevermind')}
+						feeText={renderCancelGas()}
+						titleText={strings('transaction.cancel_tx_title')}
+						gasTitleText={strings('transaction.gas_cancel_fee')}
+						descriptionText={strings('transaction.cancel_tx_message')}
+					/>
+				)}
+				{!isSigningQRObject && this.state.speedUpIsOpen && (
+					<TransactionActionModal
+						isVisible={this.state.speedUpIsOpen && !isSigningQRObject}
+						confirmDisabled={speedUpConfirmDisabled}
+						onCancelPress={this.onSpeedUpCompleted}
+						onConfirmPress={this.speedUpTransaction}
+						confirmText={strings('transaction.lets_try')}
+						confirmButtonMode={'confirm'}
+						cancelText={strings('transaction.nevermind')}
+						feeText={renderSpeedUpGas()}
+						titleText={strings('transaction.speedup_tx_title')}
+						gasTitleText={strings('transaction.gas_speedup_fee')}
+						descriptionText={strings('transaction.speedup_tx_message')}
+					/>
+				)}
 
 				<RetryModal
 					onCancelPress={this.toggleRetry}
@@ -577,17 +638,22 @@ class Transactions extends PureComponent {
 		);
 	};
 
-	render = () => (
-		<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-screen'}>
-			{!this.state.ready || this.props.loading
-				? this.renderLoader()
-				: !this.props.transactions.length
-				? this.renderEmpty()
-				: this.renderList()}
-			{(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
-				this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
-		</SafeAreaView>
-	);
+	render = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<SafeAreaView edges={['bottom']} style={styles.wrapper} testID={'txn-screen'}>
+				{!this.state.ready || this.props.loading
+					? this.renderLoader()
+					: !this.props.transactions.length
+					? this.renderEmpty()
+					: this.renderList()}
+				{(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
+					this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
+			</SafeAreaView>
+		);
+	};
 }
 
 const mapStateToProps = (state) => ({
@@ -612,8 +678,10 @@ const mapStateToProps = (state) => ({
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
+Transactions.contextType = ThemeContext;
+
 const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Transactions);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(Transactions));

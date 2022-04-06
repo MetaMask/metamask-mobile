@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { Text, TextInput, View, StyleSheet, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
@@ -13,30 +13,42 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import NotificationManager from '../../../core/NotificationManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	rowWrapper: {
-		padding: 20,
-	},
-	textInput: {
-		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: colors.grey100,
-		padding: 16,
-		...fontStyles.normal,
-	},
-	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20 },
-	tokenDetectionDescription: { color: colors.black },
-	tokenDetectionLink: { color: colors.blue },
-	tokenDetectionIcon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		rowWrapper: {
+			padding: 20,
+		},
+		textInput: {
+			borderWidth: 1,
+			borderRadius: 4,
+			borderColor: colors.border.default,
+			padding: 16,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		inputLabel: {
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		warningText: {
+			...fontStyles.normal,
+			marginTop: 15,
+			color: colors.error.default,
+		},
+		tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20 },
+		tokenDetectionDescription: { color: colors.text.default },
+		tokenDetectionLink: { color: colors.primary.default },
+		tokenDetectionIcon: {
+			paddingTop: 4,
+			paddingRight: 8,
+		},
+	});
 
 /**
  * Copmonent that provides ability to add custom tokens.
@@ -206,6 +218,9 @@ export default class AddCustomToken extends PureComponent {
 
 	renderInfoBanner = () => {
 		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<Alert
 				type={AlertType.Info}
@@ -214,7 +229,7 @@ export default class AddCustomToken extends PureComponent {
 					<FontAwesome
 						style={styles.tokenDetectionIcon}
 						name={'exclamation-circle'}
-						color={colors.blue}
+						color={colors.primary.default}
 						size={18}
 					/>
 				)}
@@ -245,6 +260,9 @@ export default class AddCustomToken extends PureComponent {
 
 	renderWarningBanner = () => {
 		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<WarningMessage
 				style={styles.tokenDetectionBanner}
@@ -279,6 +297,10 @@ export default class AddCustomToken extends PureComponent {
 
 	render = () => {
 		const { address, symbol, decimals } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance || 'light';
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.wrapper} testID={'add-custom-token-screen'}>
 				<ActionView
@@ -294,28 +316,29 @@ export default class AddCustomToken extends PureComponent {
 					<View>
 						{this.renderBanner()}
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_address')}</Text>
+							<Text style={styles.inputLabel}>{strings('token.token_address')}</Text>
 							<TextInput
 								style={styles.textInput}
 								placeholder={'0x...'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								value={this.state.address}
 								onChangeText={this.onAddressChange}
 								onBlur={this.onAddressBlur}
 								testID={'input-token-address'}
 								onSubmitEditing={this.jumpToAssetSymbol}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText} testID={'token-address-warning'}>
 								{this.state.warningAddress}
 							</Text>
 						</View>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_symbol')}</Text>
+							<Text style={styles.inputLabel}>{strings('token.token_symbol')}</Text>
 							<TextInput
 								style={styles.textInput}
 								placeholder={'GNO'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								value={this.state.symbol}
 								onChangeText={this.onSymbolChange}
 								onBlur={this.validateCustomTokenSymbol}
@@ -323,24 +346,26 @@ export default class AddCustomToken extends PureComponent {
 								ref={this.assetSymbolInput}
 								onSubmitEditing={this.jumpToAssetPrecision}
 								returnKeyType={'next'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText}>{this.state.warningSymbol}</Text>
 						</View>
 						<View style={styles.rowWrapper}>
-							<Text style={fontStyles.normal}>{strings('token.token_decimal')}</Text>
+							<Text style={styles.inputLabel}>{strings('token.token_decimal')}</Text>
 							<TextInput
 								style={styles.textInput}
 								value={this.state.decimals}
 								keyboardType="numeric"
 								maxLength={2}
 								placeholder={'18'}
-								placeholderTextColor={colors.grey100}
+								placeholderTextColor={colors.text.muted}
 								onChangeText={this.onDecimalsChange}
 								onBlur={this.validateCustomTokenDecimals}
 								testID={'input-token-decimals'}
 								ref={this.assetPrecisionInput}
 								onSubmitEditing={this.addToken}
 								returnKeyType={'done'}
+								keyboardAppearance={themeAppearance}
 							/>
 							<Text style={styles.warningText} testID={'token-decimals-warning'}>
 								{this.state.warningDecimals}
@@ -352,3 +377,5 @@ export default class AddCustomToken extends PureComponent {
 		);
 	};
 }
+
+AddCustomToken.contextType = ThemeContext;

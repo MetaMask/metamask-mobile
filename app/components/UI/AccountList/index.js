@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { KeyringTypes } from '@metamask/controllers';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import {
@@ -12,7 +13,7 @@ import {
 	View,
 	SafeAreaView,
 } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { toChecksumAddress } from 'ethereumjs-util';
@@ -23,53 +24,55 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { connect } from 'react-redux';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
-		minHeight: 450,
-	},
-	titleWrapper: {
-		width: '100%',
-		height: 33,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-	},
-	dragger: {
-		width: 48,
-		height: 5,
-		borderRadius: 4,
-		backgroundColor: colors.grey400,
-		opacity: Device.isAndroid() ? 0.6 : 0.5,
-	},
-	accountsWrapper: {
-		flex: 1,
-	},
-	footer: {
-		height: Device.isIphoneX() ? 140 : 110,
-		paddingBottom: Device.isIphoneX() ? 30 : 0,
-		justifyContent: 'center',
-		flexDirection: 'column',
-		alignItems: 'center',
-	},
-	btnText: {
-		fontSize: 14,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	footerButton: {
-		width: '100%',
-		height: 55,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: colors.grey100,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			borderTopLeftRadius: 10,
+			borderTopRightRadius: 10,
+			minHeight: 450,
+		},
+		titleWrapper: {
+			width: '100%',
+			height: 33,
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+		dragger: {
+			width: 48,
+			height: 5,
+			borderRadius: 4,
+			backgroundColor: colors.border.default,
+			opacity: Device.isAndroid() ? 0.6 : 0.5,
+		},
+		accountsWrapper: {
+			flex: 1,
+		},
+		footer: {
+			height: Device.isIphoneX() ? 200 : 170,
+			paddingBottom: Device.isIphoneX() ? 30 : 0,
+			justifyContent: 'center',
+			flexDirection: 'column',
+			alignItems: 'center',
+		},
+		btnText: {
+			fontSize: 14,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		footerButton: {
+			width: '100%',
+			height: 55,
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderTopWidth: StyleSheet.hairlineWidth,
+			borderColor: colors.border.muted,
+		},
+	});
 
 /**
  * View that contains the list of all the available accounts
@@ -100,6 +103,10 @@ class AccountList extends PureComponent {
 		 * function to be called when importing an account
 		 */
 		onImportAccount: PropTypes.func,
+		/**
+		 * function to be called when connect to a QR hardware
+		 */
+		onConnectHardware: PropTypes.func,
 		/**
 		 * Current provider ticker
 		 */
@@ -220,6 +227,11 @@ class AccountList extends PureComponent {
 		});
 	};
 
+	connectHardware = () => {
+		this.props.onConnectHardware();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET);
+	};
+
 	addAccount = async () => {
 		if (this.state.loading) return;
 		this.mounted && this.setState({ loading: true });
@@ -252,7 +264,19 @@ class AccountList extends PureComponent {
 		let ret = false;
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(address)) {
-				ret = keyring.type !== 'HD Key Tree';
+				ret = keyring.type === KeyringTypes.simple;
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	isQRHardware(allKeyrings, address) {
+		let ret = false;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(address)) {
+				ret = keyring.type === KeyringTypes.qr;
 				break;
 			}
 		}
@@ -313,6 +337,7 @@ class AccountList extends PureComponent {
 				const identityAddressChecksummed = toChecksumAddress(address);
 				const isSelected = identityAddressChecksummed === selectedAddress;
 				const isImported = this.isImported(allKeyrings, identityAddressChecksummed);
+				const isQRHardware = this.isQRHardware(allKeyrings, identityAddressChecksummed);
 				let balance = 0x0;
 				if (accounts[identityAddressChecksummed]) {
 					balance = accounts[identityAddressChecksummed].balance;
@@ -326,6 +351,7 @@ class AccountList extends PureComponent {
 					balance,
 					isSelected,
 					isImported,
+					isQRHardware,
 					balanceError,
 				};
 			});
@@ -353,6 +379,9 @@ class AccountList extends PureComponent {
 	render() {
 		const { orderedAccounts } = this.state;
 		const { enableAccountsAddition } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'account-list'}>
 				<View style={styles.titleWrapper}>
@@ -375,7 +404,7 @@ class AccountList extends PureComponent {
 							onPress={this.addAccount}
 						>
 							{this.state.loading ? (
-								<ActivityIndicator size="small" color={colors.blue} />
+								<ActivityIndicator size="small" color={colors.primary.default} />
 							) : (
 								<Text style={styles.btnText}>{strings('accounts.create_new_account')}</Text>
 							)}
@@ -387,12 +416,21 @@ class AccountList extends PureComponent {
 						>
 							<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
 						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={this.connectHardware}
+							style={styles.footerButton}
+							testID={'connect-hardware'}
+						>
+							<Text style={styles.btnText}>{strings('accounts.connect_hardware')}</Text>
+						</TouchableOpacity>
 					</View>
 				)}
 			</SafeAreaView>
 		);
 	}
 }
+
+AccountList.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

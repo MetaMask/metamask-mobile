@@ -17,6 +17,8 @@ export const ANALYTICS_EVENTS_V2 = {
 	DAPP_TRANSACTION_STARTED: generateOpt('Dapp Transaction Started'),
 	DAPP_TRANSACTION_COMPLETED: generateOpt('Dapp Transaction Completed'),
 	DAPP_TRANSACTION_CANCELLED: generateOpt('Dapp Transaction Cancelled'),
+	CONTRACT_ADDRESS_COPIED: generateOpt('Contract Address Copied'),
+	CONTRACT_ADDRESS_NICKNAME: generateOpt('Contract Address Nickname'),
 	// Sign request
 	SIGN_REQUEST_STARTED: generateOpt('Sign Request Started'),
 	SIGN_REQUEST_COMPLETED: generateOpt('Sign Request Completed'),
@@ -105,6 +107,12 @@ export const ANALYTICS_EVENTS_V2 = {
 	REVEAL_SRP_COMPLETED: generateOpt(`Reveal SRP Completed`),
 	// KEY MANAGMENT INVESTIGATION
 	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
+	// QR HARDWARE WALLET
+	CONNECT_HARDWARE_WALLET: generateOpt('Clicked Connect Hardware Wallet'),
+	CONTINUE_QR_HARDWARE_WALLET: generateOpt('Clicked Continue QR Hardware Wallet'),
+	CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt('Connected Account with hardware wallet'),
+	QR_HARDWARE_TRANSACTION_CANCELED: generateOpt('User canceled QR hardware transaction'),
+	HARDWARE_WALLET_ERROR: generateOpt('Hardware wallet error'),
 };
 
 /**

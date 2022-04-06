@@ -1,80 +1,85 @@
 import React, { Component } from 'react';
 
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
 
-const styles = StyleSheet.create({
-	uppercase: {
-		textTransform: 'capitalize',
-	},
-	viewData: {
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-		marginTop: 20,
-	},
-	viewDataRow: {
-		display: 'flex',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-	},
-	viewDataTitle: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-	},
-	viewDataText: {
-		marginTop: 20,
-	},
-	viewDataArrow: {
-		marginLeft: 'auto',
-	},
-	transactionDetails: {
-		borderWidth: 1,
-		borderColor: colors.grey200,
-		borderRadius: 10,
-		padding: 16,
-	},
-	transactionDetailsRow: {
-		display: 'flex',
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		paddingVertical: 4,
-	},
-	transactionDetailsTextLeft: {
-		...fontStyles.thin,
-		color: colors.black,
-		fontSize: 14,
-	},
-	transactionDetailsTextRight: {
-		...fontStyles.bold,
-		color: colors.black,
-		fontSize: 14,
-		textAlign: 'right',
-		flexDirection: 'row',
-		marginLeft: 'auto',
-	},
-	section: {
-		minWidth: '100%',
-		width: '100%',
-		paddingHorizontal: 16,
-		paddingBottom: 16,
-	},
-	copyIcon: {
-		marginLeft: 1,
-		marginTop: 2,
-	},
-	address: {
-		...fontStyles.bold,
-		color: colors.blue,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		uppercase: {
+			textTransform: 'capitalize',
+		},
+		viewData: {
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: 16,
+			marginTop: 20,
+		},
+		viewDataRow: {
+			display: 'flex',
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+		},
+		viewDataTitle: {
+			...fontStyles.bold,
+			color: colors.text.default,
+			fontSize: 14,
+		},
+		viewDataText: {
+			marginTop: 20,
+			color: colors.text.default,
+		},
+		viewDataArrow: {
+			marginLeft: 'auto',
+		},
+		transactionDetails: {
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			borderRadius: 10,
+			padding: 16,
+		},
+		transactionDetailsRow: {
+			display: 'flex',
+			flexDirection: 'row',
+			flexWrap: 'wrap',
+			paddingVertical: 4,
+		},
+		transactionDetailsTextLeft: {
+			...fontStyles.thin,
+			color: colors.text.default,
+			fontSize: 14,
+		},
+		transactionDetailsTextRight: {
+			...fontStyles.bold,
+			color: colors.text.default,
+			fontSize: 14,
+			textAlign: 'right',
+			flexDirection: 'row',
+			marginLeft: 'auto',
+		},
+		section: {
+			minWidth: '100%',
+			width: '100%',
+			paddingHorizontal: 16,
+			paddingBottom: 16,
+		},
+		copyIcon: {
+			marginLeft: 1,
+			marginTop: 2,
+		},
+		address: {
+			...fontStyles.bold,
+			color: colors.primary.default,
+			marginHorizontal: 8,
+			maxWidth: 120,
+		},
+	});
 
 export default class TransactionReviewDetailsCard extends Component {
 	static propTypes = {
@@ -88,6 +93,8 @@ export default class TransactionReviewDetailsCard extends Component {
 		data: PropTypes.string,
 		displayViewData: PropTypes.bool,
 		method: PropTypes.string,
+		nickname: PropTypes.string,
+		nicknameExists: PropTypes.bool,
 	};
 
 	render() {
@@ -102,7 +109,11 @@ export default class TransactionReviewDetailsCard extends Component {
 			data,
 			method,
 			displayViewData,
+			nickname,
+			nicknameExists,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<View style={styles.section}>
@@ -117,11 +128,17 @@ export default class TransactionReviewDetailsCard extends Component {
 							{strings('spend_limit_edition.contract_address')}
 						</Text>
 						<View style={styles.transactionDetailsTextRight}>
-							<Text style={styles.address}>{address}</Text>
+							{nicknameExists ? (
+								<Text numberOfLines={1} style={styles.address}>
+									{nickname}
+								</Text>
+							) : (
+								<Text style={styles.address}>{address}</Text>
+							)}
 							<Feather
 								name="copy"
 								size={16}
-								color={colors.blue}
+								color={colors.primary.default}
 								style={styles.copyIcon}
 								onPress={copyContractAddress}
 							/>
@@ -143,7 +160,7 @@ export default class TransactionReviewDetailsCard extends Component {
 							<IonicIcon
 								name={`ios-arrow-${displayViewData ? 'up' : 'down'}`}
 								size={16}
-								color={colors.grey500}
+								color={colors.icon.default}
 							/>
 						</View>
 					</TouchableOpacity>
@@ -160,3 +177,5 @@ export default class TransactionReviewDetailsCard extends Component {
 		);
 	}
 }
+
+TransactionReviewDetailsCard.contextType = ThemeContext;

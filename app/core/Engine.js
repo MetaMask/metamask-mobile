@@ -27,6 +27,7 @@ import {
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-community/async-storage';
+import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isMainnetByChainId } from '../util/networks';
@@ -162,6 +163,8 @@ class Engine {
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
 
+			const additionalKeyrings = [QRHardwareKeyring];
+
 			const controllers = [
 				new KeyringController(
 					{
@@ -169,8 +172,9 @@ class Engine {
 						syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
 						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
 						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
+						setAccountLabel: preferencesController.setAccountLabel.bind(preferencesController),
 					},
-					{ encryptor },
+					{ encryptor, keyringTypes: additionalKeyrings },
 					initialState.KeyringController
 				),
 				new AccountTrackerController({

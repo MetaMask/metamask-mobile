@@ -14,6 +14,7 @@ exports[`Approval should render correctly 1`] = `
   }
   networkType="ropsten"
   resetTransaction={[Function]}
+  selectedAddress="0x0"
   showCustomNonce={false}
   transaction={
     Object {

@@ -1276,8 +1276,7 @@
 	"webview_error": {
 		"title": "Lo lamentamos, se produjo un error…",
 		"message": "No pudimos cargar esa página.",
-		"reason": "Motivo",
-		"try_again": "Vuelva a intentarlo"
+		"reason": "Motivo"
 	},
 	"offline_mode": {
 		"title": "Está desconectado",
@@ -1333,7 +1332,6 @@
 		"no_countries_result": "Los países bi admitidos coinciden con “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Rápido y menores cuotas",
-		"debit_card_required": "Menores cuotas, se requiere tarjeta de débito",
 		"select_card_country": "Seleccione el país donde esté registrada su tarjeta (no donde usted se encuentre).",
 		"search_country": "Buscar un país",
 		"wyre_countries": " EE. UU. Más de 33 países, las cuotas y los límites varían",

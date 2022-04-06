@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
@@ -22,6 +22,7 @@ import compareVersions from 'compare-versions';
 import PropTypes from 'prop-types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import StyledButton from '../StyledButton';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 const modalMargin = 24;
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
@@ -32,85 +33,86 @@ const slideImageWidth = slideItemWidth - modalPadding * 2;
 const imageAspectRatio = 128 / 264;
 const slideImageHeight = slideImageWidth * imageAspectRatio;
 
-const styles = StyleSheet.create({
-	wrapper: {
-		marginTop: 24,
-		flex: 1,
-		overflow: 'hidden',
-	},
-	slideContent: {
-		maxHeight: maxSlideItemHeight,
-	},
-	slideItemContainer: {
-		flex: 1,
-		width: slideItemWidth,
-		paddingHorizontal: modalPadding,
-		paddingBottom: 16,
-	},
-	progessContainer: {
-		flexDirection: 'row',
-		alignSelf: 'center',
-		marginTop: 16,
-		marginBottom: 8,
-	},
-	slideCircle: {
-		width: 8,
-		height: 8,
-		borderRadius: 8 / 2,
-		backgroundColor: colors.grey500,
-		opacity: 0.4,
-		marginHorizontal: 8,
-	},
-	slideSolidCircle: {
-		opacity: 1,
-	},
-	button: {
-		marginTop: 8,
-	},
-	header: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		marginBottom: 20,
-		paddingHorizontal: modalPadding,
-	},
-	headerCenterAux: {
-		flex: 1,
-	},
-	headerClose: {
-		flex: 1,
-		alignItems: 'flex-end',
-	},
-	headerText: {
-		...fontStyles.bold,
-		fontSize: 18,
-		color: colors.black,
-	},
-	slideImageContainer: {
-		flexDirection: 'row',
-		borderRadius: 10,
-		marginBottom: 24,
-	},
-	slideImage: {
-		flex: 1,
-		borderRadius: 10,
-		width: slideImageWidth,
-		height: slideImageHeight,
-	},
-	slideTitle: {
-		...fontStyles.bold,
-		fontSize: 16,
-		marginBottom: 12,
-		color: colors.black,
-	},
-	slideDescription: {
-		...fontStyles.normal,
-		fontSize: 14,
-		lineHeight: 20,
-		color: colors.black,
-		marginBottom: 24,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			marginTop: 24,
+			flex: 1,
+			overflow: 'hidden',
+		},
+		slideContent: {
+			maxHeight: maxSlideItemHeight,
+		},
+		slideItemContainer: {
+			flex: 1,
+			width: slideItemWidth,
+			paddingHorizontal: modalPadding,
+			paddingBottom: 16,
+		},
+		progessContainer: {
+			flexDirection: 'row',
+			alignSelf: 'center',
+			marginTop: 16,
+			marginBottom: 8,
+		},
+		slideCircle: {
+			width: 8,
+			height: 8,
+			borderRadius: 8 / 2,
+			backgroundColor: colors.icon.default,
+			opacity: 0.4,
+			marginHorizontal: 8,
+		},
+		slideSolidCircle: {
+			opacity: 1,
+		},
+		button: {
+			marginTop: 8,
+		},
+		header: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			marginBottom: 20,
+			paddingHorizontal: modalPadding,
+		},
+		headerCenterAux: {
+			flex: 1,
+		},
+		headerClose: {
+			flex: 1,
+			alignItems: 'flex-end',
+		},
+		headerText: {
+			...fontStyles.bold,
+			fontSize: 18,
+			color: colors.text.default,
+		},
+		slideImageContainer: {
+			flexDirection: 'row',
+			borderRadius: 10,
+			marginBottom: 24,
+		},
+		slideImage: {
+			flex: 1,
+			borderRadius: 10,
+			width: slideImageWidth,
+			height: slideImageHeight,
+		},
+		slideTitle: {
+			...fontStyles.bold,
+			fontSize: 16,
+			marginBottom: 12,
+			color: colors.text.default,
+		},
+		slideDescription: {
+			...fontStyles.normal,
+			fontSize: 14,
+			lineHeight: 20,
+			color: colors.text.default,
+			marginBottom: 24,
+		},
+	});
 
 const WhatsNewModal = (props) => {
 	const [featuresToShow, setFeaturesToShow] = useState(null);
@@ -118,6 +120,8 @@ const WhatsNewModal = (props) => {
 	const routes = useNavigationState((state) => state.routes);
 	const slideIds = [0, 1];
 	const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	useEffect(() => {
 		const shouldShow = async () => {

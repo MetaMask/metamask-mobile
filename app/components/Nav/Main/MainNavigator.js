@@ -27,8 +27,8 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
-import ChoosePasswordSimple from '../../Views/ChoosePasswordSimple';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -47,6 +47,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
 import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
 import TransakWebView from '../../UI/FiatOrders/TransakWebView';
+import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
@@ -56,6 +57,8 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import DetectedTokens from '../../Views/DetectedTokens';
 import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
+import ThemeSettings from '../../Views/ThemeSettings';
+import { colors as importedColors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -200,8 +203,8 @@ const Webview = () => (
 	</Stack.Navigator>
 );
 
-const SettingsView = () => (
-	<Stack.Navigator>
+const SettingsFlow = () => (
+	<Stack.Navigator initialRouteName={'Settings'}>
 		<Stack.Screen name="Settings" component={Settings} options={Settings.navigationOptions} />
 		<Stack.Screen name="GeneralSettings" component={GeneralSettings} options={GeneralSettings.navigationOptions} />
 		<Stack.Screen
@@ -238,11 +241,6 @@ const SettingsView = () => (
 			component={WalletConnectSessions}
 			options={WalletConnectSessions.navigationOptions}
 		/>
-		<Stack.Screen
-			name="ChoosePasswordSimple"
-			component={ChoosePasswordSimple}
-			options={ChoosePasswordSimple.navigationOptions}
-		/>
 		<Stack.Screen name="ResetPassword" component={ResetPassword} options={ResetPassword.navigationOptions} />
 		<Stack.Screen
 			name="AccountBackupStep1B"
@@ -269,6 +267,17 @@ const SettingsView = () => (
 			component={EnterPasswordSimple}
 			options={EnterPasswordSimple.navigationOptions}
 		/>
+	</Stack.Navigator>
+);
+
+const SettingsModalStack = () => (
+	<Stack.Navigator
+		initialRouteName={'SettingsFlow'}
+		mode={'modal'}
+		screenOptions={{ headerShown: false, cardStyle: { backgroundColor: importedColors.transparent } }}
+	>
+		<Stack.Screen name={'SettingsFlow'} component={SettingsFlow} />
+		<Stack.Screen name={'ThemeSettings'} component={ThemeSettings} options={{ animationEnabled: false }} />
 	</Stack.Navigator>
 );
 
@@ -333,6 +342,7 @@ const FiatOnRamp = () => (
 			options={PaymentMethodApplePay.navigationOptions}
 		/>
 		<Stack.Screen name="TransakFlow" component={TransakWebView} options={TransakWebView.navigationOptions} />
+		<Stack.Screen name="MoonPayFlow" component={MoonPayWebView} options={MoonPayWebView.navigationOptions} />
 		<Stack.Screen
 			name="GasEducationCarousel"
 			component={GasEducationCarousel}
@@ -380,6 +390,16 @@ const SetPasswordFlow = () => (
 	</Stack.Navigator>
 );
 
+const ConnectQRHardwareFlow = () => (
+	<Stack.Navigator
+		screenOptions={{
+			headerShown: false,
+		}}
+	>
+		<Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+	</Stack.Navigator>
+);
+
 const MainNavigator = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -393,7 +413,7 @@ const MainNavigator = () => (
 			component={CollectiblesDetails}
 			options={{
 				//Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-				cardStyle: { backgroundColor: 'transparent' },
+				cardStyle: { backgroundColor: importedColors.transparent },
 				cardStyleInterpolator: () => ({
 					overlayStyle: {
 						opacity: 0,
@@ -403,8 +423,9 @@ const MainNavigator = () => (
 		/>
 		<Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
 		<Stack.Screen name="Webview" component={Webview} />
-		<Stack.Screen name="SettingsView" component={SettingsView} />
+		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
+		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

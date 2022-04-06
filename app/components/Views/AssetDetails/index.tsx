@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { strings } from '../../../../locales/i18n';
@@ -18,50 +18,52 @@ import AppConstants from '../../../core/AppConstants';
 import { Token as TokenType } from '@metamask/controllers';
 import { balanceToFiat, renderFromTokenMinimalUnit } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	container: {
-		padding: 16,
-		backgroundColor: colors.white,
-		alignItems: 'flex-start',
-	},
-	descriptionContainer: { marginTop: 4, flexDirection: 'row', alignItems: 'center' },
-	tokenImage: { height: 36, width: 36, marginRight: 8 },
-	sectionTitleLabel: {
-		...(fontStyles.bold as any),
-		fontSize: 16,
-		color: colors.black,
-		marginTop: 32,
-	},
-	firstSectionTitle: {
-		marginTop: 8,
-	},
-	descriptionLabel: {
-		...(fontStyles.normal as any),
-		fontSize: 16,
-		color: colors.black,
-	},
-	hideButton: {
-		marginTop: 48,
-	},
-	hideButtonLabel: {
-		...(fontStyles.normal as any),
-		fontSize: 16,
-		color: colors.red,
-	},
-	addressLinkLabel: {
-		...(fontStyles.normal as any),
-		fontSize: 16,
-		color: colors.blue,
-	},
-	copyIcon: {
-		marginLeft: 4,
-		color: colors.blue,
-	},
-	warningBanner: { marginTop: 8 },
-	warningBannerDesc: { color: colors.black },
-	warningBannerLink: { color: colors.blue },
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		container: {
+			padding: 16,
+			backgroundColor: colors.background.default,
+			alignItems: 'flex-start',
+		},
+		descriptionContainer: { marginTop: 4, flexDirection: 'row', alignItems: 'center' },
+		tokenImage: { height: 36, width: 36, marginRight: 8 },
+		sectionTitleLabel: {
+			...(fontStyles.bold as any),
+			fontSize: 16,
+			color: colors.text.default,
+			marginTop: 32,
+		},
+		firstSectionTitle: {
+			marginTop: 8,
+		},
+		descriptionLabel: {
+			...(fontStyles.normal as any),
+			fontSize: 16,
+			color: colors.text.default,
+		},
+		hideButton: {
+			marginTop: 48,
+		},
+		hideButtonLabel: {
+			...(fontStyles.normal as any),
+			fontSize: 16,
+			color: colors.error.default,
+		},
+		addressLinkLabel: {
+			...(fontStyles.normal as any),
+			fontSize: 16,
+			color: colors.primary.default,
+		},
+		copyIcon: {
+			marginLeft: 4,
+			color: colors.primary.default,
+		},
+		warningBanner: { marginTop: 8 },
+		warningBannerDesc: { color: colors.text.default },
+		warningBannerLink: { color: colors.primary.default },
+	});
 
 interface Props {
 	route: {
@@ -73,6 +75,8 @@ interface Props {
 
 const AssetDetails = (props: Props) => {
 	const { address } = props.route.params;
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
 	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
@@ -104,8 +108,8 @@ const AssetDetails = (props: Props) => {
 	};
 
 	useEffect(() => {
-		navigation.setOptions(getNetworkNavbarOptions('Token Details', false, navigation, undefined, true));
-	}, [navigation]);
+		navigation.setOptions(getNetworkNavbarOptions('Token Details', false, navigation, colors, undefined, true));
+	}, [navigation, colors]);
 
 	const copyAddressToClipboard = async () => {
 		await ClipboardManager.setString(address);

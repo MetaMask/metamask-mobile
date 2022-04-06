@@ -47,6 +47,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     style={
       Array [
         Object {
+          "color": "#24272A",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
@@ -146,11 +147,13 @@ exports[`TokenIcon component should Render correctly 7`] = `
     style={
       Array [
         Object {
+          "color": "#24272A",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
         },
         Object {
+          "color": "#24272A",
           "fontSize": 22,
         },
         undefined,

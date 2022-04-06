@@ -1276,8 +1276,7 @@
 	"webview_error": {
 		"title": "이런! 문제가 발생했습니다...",
 		"message": "이 페이지를 로드하지 못했습니다.",
-		"reason": "이유",
-		"try_again": "다시 시도"
+		"reason": "이유"
 	},
 	"offline_mode": {
 		"title": "오프라인 상태입니다.",
@@ -1333,7 +1332,6 @@
 		"no_countries_result": "지원 국가 가운데 “{{searchString}}” 없음",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "빠른 속도 + 낮은 수수료",
-		"debit_card_required": "낮은 수수료, 체크카드 필요",
 		"select_card_country": "카드가 등록된 국가를 선택하십시오(거주 국가가 아님).",
 		"search_country": "국가 검색",
 		"wyre_countries": " U.S. + 33개가 넘는 국가, 수수료와 한도 상이",

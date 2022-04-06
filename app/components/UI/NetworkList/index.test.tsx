@@ -17,6 +17,9 @@ const initialState = {
 			PreferencesController: { frequentRpcList: ['http://10.0.2.2:8545'] },
 		},
 	},
+	networkOnboarded: {
+		networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
+	},
 };
 const store = mockStore(initialState);
 
