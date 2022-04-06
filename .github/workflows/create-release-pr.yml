@@ -8,10 +8,10 @@ on:
         default: 'main'
         required: true
       semver-version:
-        description: 'A SemVer version.'
+        description: 'A semantic version. eg: x.x.x'
         required: true
       version-number:
-        description: 'A specific version.'
+        description: 'A natural version number. eg: 862'
         required: true
 
 jobs:
