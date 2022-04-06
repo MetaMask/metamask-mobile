@@ -1,6 +1,7 @@
 # Changelog
 
 ## Current Main Branch
+- [#4034](https://github.com/MetaMask/metamask-mobile/pull/4034): Improve create release
 
 ## v4.3.1 - March 23, 2022
 - [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
