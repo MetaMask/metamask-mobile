@@ -855,11 +855,10 @@ class Confirm extends PureComponent {
 				throw transactionMeta.error;
 			}
 			if (assetType === 'ERC721') {
-				await CollectiblesController.updateCollectibleByAddressAndTokenId(
-					selectedAsset.address,
-					selectedAsset.tokenId,
-					{ ...selectedAsset, transactionId: transactionMeta.id }
-				);
+				await CollectiblesController.updateCollectibleByAddressAndTokenId({
+					...selectedAsset,
+					transactionId: transactionMeta.id,
+				});
 			}
 
 			InteractionManager.runAfterInteractions(() => {
@@ -883,11 +882,10 @@ class Confirm extends PureComponent {
 			]);
 			Logger.error(error, 'error while trying to send transaction (Confirm)');
 			if (assetType === 'ERC721') {
-				CollectiblesController.updateCollectibleByAddressAndTokenId(
-					selectedAsset.address,
-					selectedAsset.tokenId,
-					{ ...selectedAsset, transactionId: undefined }
-				);
+				CollectiblesController.updateCollectibleByAddressAndTokenId({
+					...selectedAsset,
+					transactionId: undefined,
+				});
 			}
 		}
 		this.setState({ transactionConfirmed: false });

@@ -45,7 +45,7 @@ const CollectibleModal = (props) => {
 	const collectibleUpdated = CollectiblesController.findCollectibleByAddressAndTokenId(
 		collectible.address,
 		collectible.tokenId
-	);
+	)?.collectible;
 
 	const onSend = useCallback(async () => {
 		newAssetTransaction({ contractName, ...collectible });
@@ -115,7 +115,7 @@ const CollectibleModal = (props) => {
 						onViewTransactionDetails={onViewTransactionDetails}
 						openLink={openLink}
 						onTranslation={onCollectibleOverviewTranslation}
-						isTransacting={collectibleUpdated ? !!collectibleUpdated.transactionId : false}
+						isTransacting={!!collectibleUpdated?.transactionId}
 					/>
 				</View>
 			</>
