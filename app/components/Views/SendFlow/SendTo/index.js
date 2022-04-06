@@ -326,7 +326,7 @@ class SendFlow extends PureComponent {
 		this.toggleFromAccountModal();
 	};
 
-	onToSelectedAddressChange = async (toSelectedAddress) => {
+	validateAddress = async (toSelectedAddress) => {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
@@ -406,7 +406,6 @@ class SendFlow extends PureComponent {
 		}
 		this.setState({
 			addressError,
-			toSelectedAddress,
 			addToAddressToAddressBook,
 			toSelectedAddressReady,
 			toSelectedAddressName: toAddressName,
@@ -414,6 +413,13 @@ class SendFlow extends PureComponent {
 			errorContinue,
 			isOnlyWarning,
 			confusableCollection,
+		});
+	};
+
+	onToSelectedAddressChange = (toSelectedAddress) => {
+		this.validateAddress(toSelectedAddress);
+		this.setState({
+			toSelectedAddress,
 		});
 	};
 
