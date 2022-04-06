@@ -1,24 +1,24 @@
 # Changelog
 
 ## Current Main Branch
-- 4.5.0
-- [#4034](https://github.com/MetaMask/metamask-mobile/pull/4034): Improve create release
-- [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fixes issues releated to deep/universal links
-- [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): Allow ApplePay in Transak webview.
-- [#4047](https://github.com/MetaMask/metamask-mobile/pull/4047): fix attribution url
-- [#3972](https://github.com/MetaMask/metamask-mobile/pull/3972): fix(GasEducation): use current provider ticker
+## v4.5.0 - April 6, 2022
+- [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
+- [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
+- [#4047](https://github.com/MetaMask/metamask-mobile/pull/4047): [FIX] Fix attribution url
+- [#3972](https://github.com/MetaMask/metamask-mobile/pull/3972): [FIX] Fix GasEducation ticker
 - [#3915](https://github.com/MetaMask/metamask-mobile/pull/3915): [FEAT] Keystone integration
-- [#4033](https://github.com/MetaMask/metamask-mobile/pull/4033): Remove hardcoded fill
-- [#3979](https://github.com/MetaMask/metamask-mobile/pull/3979): fix(TransactionDetails): Tx actions
-- [#4030](https://github.com/MetaMask/metamask-mobile/pull/4030): Update bug template
-- [#3986](https://github.com/MetaMask/metamask-mobile/pull/3986): Updating design-tokens library to v1.5.1
+- [#4033](https://github.com/MetaMask/metamask-mobile/pull/4033): [FIX] Remove hardcoded fill
+- [#3979](https://github.com/MetaMask/metamask-mobile/pull/3979): [FIX] TransactionDetails speed up and cancel CTA
 - [#3948](https://github.com/MetaMask/metamask-mobile/pull/3948): [FIX] Update button on WebviewError
-- [#3975](https://github.com/MetaMask/metamask-mobile/pull/3975): Split CI into multiple jobs
-- [#3987](https://github.com/MetaMask/metamask-mobile/pull/3987): add new resolutions for plist, minimist and remove minimist exclude
-- [#3909](https://github.com/MetaMask/metamask-mobile/pull/3909): Upgrade controller to v27.0.0
-- [#3969](https://github.com/MetaMask/metamask-mobile/pull/3969): updated typo in network modal
-- [#3968](https://github.com/MetaMask/metamask-mobile/pull/3968): remove test:attribution-check
-- [#4034](https://github.com/MetaMask/metamask-mobile/pull/4034): Improve create release
+- [#3969](https://github.com/MetaMask/metamask-mobile/pull/3969): [FIX] updated typo in network modal
+
+## v4.4.0 - March 28, 2022
+- [#3910](https://github.com/MetaMask/metamask-mobile/pull/3910): [IMPROVEMENT] Network Specific Asset Education
+- [#3877](https://github.com/MetaMask/metamask-mobile/pull/3877): [IMPROVEMENT] Add OSS attribution
+- [#3731](https://github.com/MetaMask/metamask-mobile/pull/3731): [FIX] Fix formatting of gas price for all conversion currencies
+- [#3846](https://github.com/MetaMask/metamask-mobile/pull/3846): [FEATURE] Add MoonPay on-ramp support. Add CUSD and CEUR support for Transak
+- [#3792](https://github.com/MetaMask/metamask-mobile/pull/3792): [FIX] Self sent token transactions copy
+- [#3902](https://github.com/MetaMask/metamask-mobile/pull/3902): [IMPROVEMENT] Add better messaging around ENS validation
 
 ## v4.3.1 - March 23, 2022
 - [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
