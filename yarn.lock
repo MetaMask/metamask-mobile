@@ -14048,10 +14048,10 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
-react-native-branch@5.2.1:
-  version "5.2.1"
-  resolved "https://registry.yarnpkg.com/react-native-branch/-/react-native-branch-5.2.1.tgz#72329419365822708533ae93b31de0547e301b59"
-  integrity sha512-SDGbIh+axaHscoZ+vXAQQ+POcwf8tF2jQDtdxRE7JHJ/B9pqvChqTicllxwgyrXhZ0cj4TtpvLaD9jQ2ktnNyw==
+react-native-branch@5.4.0:
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/react-native-branch/-/react-native-branch-5.4.0.tgz#ba71422e38047b744ae5d88a834e7a7cb5185d68"
+  integrity sha512-KuYpFPm6cKzUSTMOpI216w4BYP/5E4g8MH5a/4/xaWPqVqZmeoQS89/GqDxg7YwOG70YMtwdSobulh/wrv2tMw==
 
 react-native-browser-polyfill@0.1.2:
   version "0.1.2"
