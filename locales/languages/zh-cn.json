@@ -352,11 +352,29 @@
 	"accounts": {
 		"create_new_account": "创建新账户",
 		"import_account": "导入账户",
+		"connect_hardware": "连接硬件钱包",
 		"imported": "已导入",
 		"remove_account_title": "删除账户",
 		"remove_account_message": "是否确实想要删除此账户？",
 		"no": "否",
 		"yes_remove_it": "是，删除它"
+	},
+	"connect_qr_hardware": {
+		"title": "Connect a QR-based hardware wallet",
+		"description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",
+		"description2": "How it works?",
+		"description3": "Officially supported airgapped hardware wallets include:",
+		"description4": "Keystone (tutorial)",
+		"button_continue": "Continue",
+		"hint_text": "Scan your Keystone wallet to ",
+		"purpose_connect": "connect",
+		"purpose_sign": "confirm the transaction",
+		"select_accounts": "Select an Account",
+		"prev": "PREV",
+		"next": "NEXT",
+		"unlock": "Unlock",
+		"forget": "Forget this device",
+		"please_wait": "Please wait"
 	},
 	"app_settings": {
 		"title": "设置",
@@ -553,6 +571,7 @@
 		"confirm": "确认"
 	},
 	"transaction": {
+		"hardware": "硬件",
 		"alert": "警报",
 		"amount": "数额",
 		"next": "下一步",
@@ -627,7 +646,12 @@
 		"tokenContractAddressWarning_2": "代币合约地址",
 		"tokenContractAddressWarning_3": ".如果将代币发送到此地址，您将失去代币。",
 		"smartContractAddressWarning": "此地址是智能合约地址。请确保您了解此地址的用途，否则您将面临资金损失风险。",
-		"continueError": "我了解风险，继续"
+		"continueError": "我了解风险，继续",
+		"unknown_qr_code": "非法二维码，请重试",
+		"invalid_qr_code_sync": "非法二维码，请扫描硬件钱包的同步二维码。",
+		"no_camera_permission": "您未开启摄像头权限，请在设置中给予权限后重试",
+		"invalid_qr_code_sign": "非法二维码. 请检查您的硬件钱包并重试",
+		"mismatched_qr_request_id": "扫描的签名二维码不属于当前交易，请检查交易详情后重试。"
 	},
 	"custom_gas": {
 		"total": "总计",

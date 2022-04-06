@@ -8,11 +8,13 @@ import { RNCamera } from 'react-native-camera';
 import { colors as importedColors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { parse } from 'eth-url-parser';
+import { isValidAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
 import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
 
 // TODO: This file needs typings
 const styles = StyleSheet.create({
@@ -71,6 +73,8 @@ const QRScanner = ({ navigation, route }: Props) => {
 	const mountedRef = useRef(true);
 	const shouldReadBarCodeRef = useRef(true);
 
+	const currentChainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
+
 	const goBack = useCallback(() => {
 		navigation.goBack();
 		onScanError?.('USER_CANCELLED');
@@ -128,14 +132,18 @@ const QRScanner = ({ navigation, route }: Props) => {
 					mountedRef.current = false;
 					return;
 				}
-				// Let ethereum:address go forward
-				if (content.split('ethereum:').length > 1 && !parse(content).function_name) {
+				// Let ethereum:address and address go forward
+				if (
+					(content.split('ethereum:').length > 1 && !parse(content).function_name) ||
+					(content.startsWith('0x') && isValidAddress(content))
+				) {
+					const handledContent = content.startsWith('0x') ? `ethereum:${content}@${currentChainId}` : content;
 					shouldReadBarCodeRef.current = false;
-					data = parse(content);
+					data = parse(handledContent);
 					const action = 'send-eth';
 					data = { ...data, action };
 					end();
-					onScanSuccess(data, content);
+					onScanSuccess(data, handledContent);
 					return;
 				}
 
@@ -172,7 +180,7 @@ const QRScanner = ({ navigation, route }: Props) => {
 
 			end();
 		},
-		[onStartScan, end, mountedRef, navigation, onScanSuccess]
+		[end, onStartScan, onScanSuccess, navigation, currentChainId]
 	);
 
 	const onError = useCallback(
