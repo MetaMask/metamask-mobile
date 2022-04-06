@@ -350,11 +350,7 @@ const AmountToBuy = () => {
 						onPress={handlePaymentMethodSelectorPress}
 					/>
 					<View style={[styles.row, styles.cta]}>
-						<StyledButton
-							type="confirm"
-							onPress={handleGetQuotePress}
-							disabled={amountNumber <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
-						>
+						<StyledButton type="confirm" onPress={handleGetQuotePress} disabled={amountNumber <= 0}>
 							Get Quotes
 						</StyledButton>
 					</View>

@@ -6,6 +6,8 @@ import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
+import ApplePayButton from '../containers/ApplePayButton';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
@@ -159,9 +161,13 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Pro
 
 			{highlighted && (
 				<View style={styles.buyButton}>
-					<StyledButton type={'blue'} onPress={onPressBuy}>
-						Buy with {providerName}
-					</StyledButton>
+					{quote.paymentMethod?.isApplePay ? (
+						<ApplePayButton quote={quote} label={strings('fiat_on_ramp.buy_with')} />
+					) : (
+						<StyledButton type={'blue'} onPress={onPressBuy}>
+							Buy with {providerName}
+						</StyledButton>
+					)}
 				</View>
 			)}
 		</Box>
