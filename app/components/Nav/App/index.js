@@ -140,6 +140,7 @@ const App = ({ userLoggedIn }) => {
 	// on Android devices, this creates a listener
 	// to deeplinks used to open the app
 	// when it is in background (so not closed)
+	// Documentation: https://reactnative.dev/docs/linking#handling-deep-links
 	useEffect(() => {
 		if (Device.isAndroid())
 			Linking.addEventListener('url', (params) => {
@@ -167,6 +168,7 @@ const App = ({ userLoggedIn }) => {
 				// Setup navigator with Sentry instrumentation
 				routingInstrumentation.registerNavigationContainer(navigator);
 				// Subscribe to incoming deeplinks
+				// Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
 				branch.subscribe((opts) => {
 					const { error } = opts;
 
