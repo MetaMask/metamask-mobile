@@ -12,6 +12,7 @@ exports[`AccountApproval should render correctly 1`] = `
   }
   dispatch={[Function]}
   networkType="ropsten"
+  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
   tokensLength={0}
 />
 `;

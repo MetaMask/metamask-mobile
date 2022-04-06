@@ -13,6 +13,7 @@ import {
 	NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
 	NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
+import { fontStyles } from '../../../styles/common';
 
 const createStyles = (colors: {
 	background: { default: string };
@@ -29,7 +30,7 @@ const createStyles = (colors: {
 		},
 		title: {
 			fontSize: 16,
-			fontWeight: 'bold',
+			...fontStyles.bold,
 			marginVertical: 10,
 			textAlign: 'center',
 			color: colors.text.default,
@@ -63,7 +64,7 @@ const createStyles = (colors: {
 		},
 		messageTitle: {
 			fontSize: 14,
-			fontWeight: 'bold',
+			...fontStyles.bold,
 			marginBottom: 15,
 			textAlign: 'center',
 			color: colors.text.default,
@@ -76,6 +77,7 @@ const createStyles = (colors: {
 			borderColor: colors.border.muted,
 		},
 		rpcUrl: {
+			...fontStyles.normal,
 			fontSize: 10,
 			color: colors.border.muted,
 			textAlign: 'center',
@@ -91,6 +93,7 @@ const createStyles = (colors: {
 			justifyContent: 'center',
 		},
 		unknownText: {
+			...fontStyles.normal,
 			color: colors.text.default,
 			fontSize: 13,
 		},

@@ -62,6 +62,8 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
 import AppConstants from '../../../../core/AppConstants';
+import { getAddressAccountType, isQRHardwareAccount } from '../../../../util/address';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const EDIT = 'edit';
@@ -103,8 +105,7 @@ const createStyles = (colors) =>
 			marginVertical: 3,
 		},
 		textAmount: {
-			...fontStyles.normal,
-			fontWeight: fontStyles.light.fontWeight,
+			...fontStyles.light,
 			color: colors.text.default,
 			fontSize: 44,
 			textAlign: 'center',
@@ -384,10 +385,11 @@ class Confirm extends PureComponent {
 	getAnalyticsParams = () => {
 		try {
 			const { selectedAsset, gasEstimateType, chainId, networkType } = this.props;
-			const { gasSelected } = this.state;
+			const { gasSelected, fromSelectedAddress } = this.state;
 
 			return {
 				active_currency: { value: selectedAsset?.symbol, anonymous: true },
+				account_type: getAddressAccountType(fromSelectedAddress),
 				network_name: networkType,
 				chain_id: chainId,
 				gas_estimate_type: gasEstimateType,
@@ -821,7 +823,7 @@ class Confirm extends PureComponent {
 	};
 
 	onNext = async () => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, KeyringController } = Engine.context;
 		const {
 			transactionState: { assetType },
 			navigation,
@@ -850,6 +852,7 @@ class Confirm extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transactionMeta.id);
 			await new Promise((resolve) => resolve(result));
 
@@ -871,10 +874,12 @@ class Confirm extends PureComponent {
 				navigation && navigation.dangerouslyGetParent()?.pop();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') },
-			]);
-			Logger.error(error, 'error while trying to send transaction (Confirm)');
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+				Logger.error(error, 'error while trying to send transaction (Confirm)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+			}
 		}
 		this.setState({ transactionConfirmed: false });
 	};
@@ -1216,6 +1221,7 @@ class Confirm extends PureComponent {
 		const checksummedAddress = transactionTo && toChecksumAddress(transactionTo);
 		const existingContact = checksummedAddress && addressBook[network] && addressBook[network][checksummedAddress];
 		const displayExclamation = !existingContact && !!confusableCollection.length;
+		const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
 
 		const AdressToComponent = () => (
 			<AddressTo
@@ -1371,6 +1377,8 @@ class Confirm extends PureComponent {
 					>
 						{transactionConfirmed ? (
 							<ActivityIndicator size="small" color={colors.primary.inverse} />
+						) : isQRHardwareWalletDevice ? (
+							strings('transaction.confirm_with_qr_hardware')
 						) : (
 							strings('transaction.send')
 						)}
