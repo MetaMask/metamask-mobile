@@ -52,7 +52,6 @@ import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
-import { isMainNet } from '../../../../util/networks';
 import { renderShortText } from '../../../../util/general';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
@@ -341,10 +340,6 @@ class Amount extends PureComponent {
 		 * An array that represents the user tokens
 		 */
 		tokens: PropTypes.array,
-		/**
-		 * Chain Id
-		 */
-		chainId: PropTypes.string,
 		/**
 		 * Current provider ticker
 		 */
@@ -644,19 +639,20 @@ class Amount extends PureComponent {
 	validateAmount = (inputValue, internalPrimaryCurrencyIsCrypto) => {
 		const { accounts, selectedAddress, selectedAsset, contractBalances } = this.props;
 		const { estimatedTotalGas, inputValueConversion } = this.state;
+		let value = inputValue;
 
 		if (!internalPrimaryCurrencyIsCrypto) {
-			inputValue = inputValueConversion;
+			value = inputValueConversion;
 		}
 
 		let weiBalance, weiInput, amountError;
-		if (isDecimal(inputValue)) {
+		if (isDecimal(value)) {
 			if (selectedAsset.isETH) {
 				weiBalance = hexToBN(accounts[selectedAddress].balance);
-				weiInput = toWei(inputValue).add(estimatedTotalGas);
+				weiInput = toWei(value).add(estimatedTotalGas);
 			} else {
 				weiBalance = contractBalances[selectedAsset.address];
-				weiInput = toTokenMinimalUnit(inputValue, selectedAsset.decimals);
+				weiInput = toTokenMinimalUnit(value, selectedAsset.decimals);
 			}
 			// TODO: weiBalance is not always guaranteed to be type BN. Need to consolidate type.
 			amountError = gte(weiBalance, weiInput) ? undefined : strings('transaction.insufficient');
@@ -723,7 +719,7 @@ class Amount extends PureComponent {
 	};
 
 	onInputChange = (inputValue, selectedAsset, useMax) => {
-		const { contractExchangeRates, conversionRate, currentCurrency, chainId, ticker } = this.props;
+		const { contractExchangeRates, conversionRate, currentCurrency, ticker } = this.props;
 		const { internalPrimaryCurrencyIsCrypto } = this.state;
 		let inputValueConversion, renderableInputValueConversion, hasExchangeRate, comma;
 		// Remove spaces from input
@@ -737,7 +733,7 @@ class Amount extends PureComponent {
 		const processedInputValue = isDecimal(inputValue) ? handleWeiNumber(inputValue) : '0';
 		selectedAsset = selectedAsset || this.props.selectedAsset;
 		if (selectedAsset.isETH) {
-			hasExchangeRate = isMainNet(chainId) ? !!conversionRate : false;
+			hasExchangeRate = !!conversionRate;
 			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${weiToFiatNumber(toWei(processedInputValue), conversionRate)}`;
 				renderableInputValueConversion = `${weiToFiat(
@@ -751,9 +747,8 @@ class Amount extends PureComponent {
 			}
 		} else {
 			const exchangeRate = contractExchangeRates[selectedAsset.address];
-			hasExchangeRate = isMainNet(chainId) ? !!exchangeRate : false;
-			// If !hasExchangeRate we have to handle crypto amount
-			if (internalPrimaryCurrencyIsCrypto || !hasExchangeRate) {
+			hasExchangeRate = !!exchangeRate;
+			if (internalPrimaryCurrencyIsCrypto) {
 				inputValueConversion = `${balanceToFiatNumber(processedInputValue, conversionRate, exchangeRate)}`;
 				renderableInputValueConversion = `${balanceToFiat(
 					processedInputValue,
@@ -995,7 +990,11 @@ class Amount extends PureComponent {
 					<View style={styles.actionsWrapper}>
 						<View style={styles.action}>
 							<TouchableOpacity style={styles.actionSwitch} onPress={this.switchCurrency}>
-								<Text style={styles.textSwitch} numberOfLines={1}>
+								<Text
+									testID={'txn-amount-conversion-value'}
+									style={styles.textSwitch}
+									numberOfLines={1}
+								>
 									{renderableInputValueConversion}
 								</Text>
 								<View styles={styles.switchWrapper}>
@@ -1127,25 +1126,46 @@ class Amount extends PureComponent {
 
 Amount.contextType = ThemeContext;
 
-const mapStateToProps = (state, ownProps) => ({
-	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-	collectibles: collectiblesSelector(state),
-	collectibleContracts: collectibleContractsSelector(state),
-	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-	providerType: state.engine.backgroundState.NetworkController.provider.type,
-	primaryCurrency: state.settings.primaryCurrency,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-	tokens: state.engine.backgroundState.TokensController.tokens,
-	transactionState: ownProps.transaction || state.transaction,
-	selectedAsset: state.transaction.selectedAsset,
-	isPaymentRequest: state.transaction.paymentRequest,
-});
-
+const mapStateToProps = (state, ownProps) =>
+	// console.log('🚀 ~ file: index.js ~ line 1172 ~ mapStateToProps ~ ownProps.transaction', ownProps.transaction);
+	// console.log('🚀 ~ file: index.js ~ line 1172 ~ mapStateToProps ~ state.transaction', state.transaction);
+	// console.log(
+	// 	'🚀 ~ file: index.js ~ line 1167 ~ mapStateToProps ~ state.engine.backgroundState.PreferencesController.selectedAddress',
+	// 	state.engine.backgroundState.PreferencesController.selectedAddress
+	// );
+	// console.log(
+	// 	'🚀 ~ file: index.js ~ line 1164 ~ mapStateToProps ~ state.engine.backgroundState.TokenRatesController.contractExchangeRates',
+	// 	state.engine.backgroundState.TokenRatesController.contractExchangeRates
+	// );
+	// console.log(
+	// 	'🚀 ~ file: index.js ~ line 1169 ~ mapStateToProps ~ state.engine.backgroundState.TokenBalancesController.contractBalances',
+	// 	state.engine.backgroundState.TokenBalancesController.contractBalances
+	// );
+	// console.log(
+	// 	'🚀 ~ file: index.js ~ line 1181 ~ mapStateToProps ~ state.engine.backgroundState.CurrencyRateController',
+	// 	state.engine.backgroundState.CurrencyRateController
+	// );
+	// console.log(
+	// 	'🚀 ~ file: index.js ~ line 1162 ~ mapStateToProps ~ state.engine.backgroundState.NetworkController',
+	// 	state.engine.backgroundState.NetworkController
+	// );
+	({
+		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+		contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+		contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+		collectibles: collectiblesSelector(state),
+		collectibleContracts: collectibleContractsSelector(state),
+		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+		providerType: state.engine.backgroundState.NetworkController.provider.type,
+		primaryCurrency: state.settings.primaryCurrency,
+		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+		tokens: state.engine.backgroundState.TokensController.tokens,
+		transactionState: ownProps.transaction || state.transaction,
+		selectedAsset: state.transaction.selectedAsset,
+		isPaymentRequest: state.transaction.paymentRequest,
+	});
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	prepareTransaction: (transaction) => dispatch(prepareTransaction(transaction)),

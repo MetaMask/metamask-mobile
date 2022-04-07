@@ -368,17 +368,11 @@ export function renderToGwei(value, unit = 'ether') {
 export function weiToFiat(wei, conversionRate, currencyCode, decimalsToShow = 5) {
 	if (!conversionRate) return undefined;
 	if (!wei || !isBN(wei) || !conversionRate) {
-		if (currencySymbols[currencyCode]) {
-			return `${currencySymbols[currencyCode]}${0.0}`;
-		}
-		return `0.00 ${currencyCode}`;
+		return addCurrencySymbol(0, currencyCode);
 	}
 	decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
 	const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
-	if (currencySymbols[currencyCode]) {
-		return `${currencySymbols[currencyCode]}${value}`;
-	}
-	return `${value} ${currencyCode}`;
+	return addCurrencySymbol(value, currencyCode);
 }
 
 /**
@@ -462,7 +456,10 @@ export function fiatNumberToWei(fiat, conversionRate) {
  * @returns {Object} - The converted value as BN instance
  */
 export function safeNumberToBN(value) {
-	const safeValue = fastSplit(value?.toString()) || '0';
+	if (!value || value === 'NaN') {
+		return numberToBN('0');
+	}
+	const safeValue = fastSplit(value?.toString().replace(',', '.'));
 	return numberToBN(safeValue);
 }
 
