@@ -858,8 +858,7 @@ class Confirm extends PureComponent {
 				throw transactionMeta.error;
 			}
 			if (assetType === 'ERC721') {
-				await CollectiblesController.updateCollectibleByAddressAndTokenId({
-					...selectedAsset,
+				await CollectiblesController.updateCollectible(selectedAsset, {
 					transactionId: transactionMeta.id,
 				});
 			}
@@ -885,8 +884,7 @@ class Confirm extends PureComponent {
 			]);
 			Logger.error(error, 'error while trying to send transaction (Confirm)');
 			if (assetType === 'ERC721') {
-				CollectiblesController.updateCollectibleByAddressAndTokenId({
-					...selectedAsset,
+				CollectiblesController.updateCollectible(selectedAsset, {
 					transactionId: undefined,
 				});
 			}
