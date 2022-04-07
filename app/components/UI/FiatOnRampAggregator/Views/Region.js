@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
@@ -14,6 +14,7 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import RegionAlert from '../components/RegionAlert';
 
 const styles = StyleSheet.create({
 	checkbox: {
@@ -36,8 +37,9 @@ const Region = () => {
 	const [rememberRegion, setRememberRegion] = useState(false);
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
-	// eslint-disable-next-line no-unused-vars
+
 	const [showAlert, setShowAlert] = useState(false);
+	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 
 	useEffect(() => {
@@ -56,22 +58,16 @@ const Region = () => {
 		navigation.navigate('PaymentMethod');
 	}, [navigation]);
 
-	const handleCountryPress = useCallback(
-		(country) => {
-			if (country.unsupported) {
-				setShowAlert(true);
-			} else {
-				setSelectedCountry(country);
-				hideRegionModal();
-			}
-		},
-		[hideRegionModal, setSelectedCountry]
-	);
+	const handleCountryPress = (country) => {
+		setSelectedCountry(country);
+		hideRegionModal();
+	};
 
 	const handleRegionPress = useCallback(
 		(region, country) => {
 			if (region.unsupported) {
 				setShowAlert(true);
+				setSelectedUnsupportedLocation(region);
 			} else {
 				setSelectedRegion(region);
 				setSelectedCountry(country);
@@ -110,7 +106,14 @@ const Region = () => {
 				title={strings('fiat_on_ramp_aggregator.region.your_region')}
 				description={strings('fiat_on_ramp_aggregator.region.subtitle_description')}
 			/>
-
+			<RegionAlert
+				isVisible={showAlert}
+				subtitle={`${selectedUnsupportedLocation.emoji}   ${selectedUnsupportedLocation.name}`}
+				dismiss={() => setShowAlert(false)}
+				title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+				body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+			/>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					<TouchableOpacity onPress={handleRegionButton}>
@@ -132,30 +135,27 @@ const Region = () => {
 									)}
 								</ListItem.Body>
 								<ListItem.Amounts>
-									<FontAwesome name="caret-down" size={15} color={colors.primary.inverse} />
+									<FontAwesome name="caret-down" size={15} color={colors.icon.default} />
 								</ListItem.Amounts>
 							</ListItem.Content>
 						</Box>
 					</TouchableOpacity>
-
-					<TouchableOpacity onPress={handleChangeRememberRegion} style={styles.checkboxView}>
+					<Pressable onPress={handleChangeRememberRegion} style={styles.checkboxView}>
 						<CheckBox
 							value={rememberRegion}
-							onValueChange={handleChangeRememberRegion}
 							boxType="square"
 							animationDuration={0.2}
 							onAnimationType="fill"
 							offAnimationType="fill"
-							onFillColor={colors.primary}
+							onFillColor={colors.primary.default}
 							onCheckColor={colors.background.default}
 							style={styles.checkbox}
 						/>
 						<Text black style={styles.checkboxMargin}>
 							{strings('fiat_on_ramp_aggregator.region.remember_region')}
 						</Text>
-					</TouchableOpacity>
+					</Pressable>
 				</ScreenLayout.Content>
-
 				<RegionModal
 					isVisible={isRegionModalVisible}
 					title={strings('fiat_on_ramp_aggregator.region.title')}
@@ -171,7 +171,7 @@ const Region = () => {
 				<ScreenLayout.Content>
 					<View>
 						<StyledButton type="confirm" onPress={handleOnPress} disabled={!selectedCountry?.id}>
-							Continue
+							{strings('swaps.continue')}
 						</StyledButton>
 					</View>
 				</ScreenLayout.Content>
