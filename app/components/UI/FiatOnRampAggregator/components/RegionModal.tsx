@@ -158,14 +158,14 @@ const RegionModal: React.FC<Props> = ({
 
 	const handleOnCountryPressCallback = useCallback(
 		(country) => {
-			if (country.unsupported) {
-				setSelectedCountryInTransit(country);
-				setShowAlert(true);
-			} else if (country.regions) {
+			if (country.regions) {
 				setActiveView(RegionViewType.STATE);
 				setSelectedCountryInTransit(country);
 				dataRef.current = country.regions;
 				setSearchString('');
+			} else if (country.unsupported) {
+				setSelectedCountryInTransit(country);
+				setShowAlert(true);
 			} else {
 				unsetRegion();
 				onCountryPress(country);
