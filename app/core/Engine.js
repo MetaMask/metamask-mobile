@@ -111,6 +111,7 @@ class Engine {
 			});
 			const assetsContractController = new AssetsContractController({
 				onNetworkStateChange: (listener) => networkController.subscribe(listener),
+				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 			});
 			const collectiblesController = new CollectiblesController(
 				{

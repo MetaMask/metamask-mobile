@@ -93,7 +93,6 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
-    "web3": "1.6.1",
     "simple-get": "4.0.1",
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
@@ -408,11 +407,6 @@
       "dtrace-provider": false,
       "core-js": false,
       "sharp": true,
-      "web3": false,
-      "web3-bzz": false,
-      "bufferutil": false,
-      "utf-8-validate": false,
-      "web3-shh": false,
       "highlight.js": false,
       "es5-ext": false
     }

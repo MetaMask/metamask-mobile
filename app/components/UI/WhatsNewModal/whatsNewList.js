@@ -14,7 +14,11 @@ export const whatsNew = {
 				type: 'button',
 				buttonType: 'normal',
 				buttonText: strings('whats_new.feature_token_detection_button_text'),
-				onPress: (props) => props.navigation.navigate('SettingsView', { screen: 'SecuritySettings' }),
+				onPress: (props) =>
+					props.navigation.navigate('SettingsView', {
+						screen: 'SettingsFlow',
+						params: { screen: 'SecuritySettings' },
+					}),
 			},
 		],
 		[
