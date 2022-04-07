@@ -33,12 +33,17 @@ const ACTIONS = {
 	FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY',
 	// aggregator actions
 	FIAT_SET_COUNTRY_AGG: 'FIAT_SET_COUNTRY_AGG',
+	FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
 };
 
 export const addFiatOrder = (order) => ({ type: ACTIONS.FIAT_ADD_ORDER, payload: order });
 export const updateFiatOrder = (order) => ({ type: ACTIONS.FIAT_UPDATE_ORDER, payload: order });
 export const setFiatOrdersCountry = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY, payload: countryCode });
 export const setFiatOrdersCountryAGG = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY_AGG, payload: countryCode });
+export const setFiatOrdersGetStartedAGG = (getStartedFlag) => ({
+	type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
+	payload: getStartedFlag,
+});
 
 /**
  * Selectors
@@ -71,6 +76,7 @@ export const getProviderName = (provider, data = {}) => {
 };
 
 const INITIAL_SELECTED_COUNTRY = '/us';
+const INITIAL_GET_STARTED = false;
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
 export const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
@@ -78,6 +84,7 @@ export const chainIdSelector = (state) => state.engine.backgroundState.NetworkCo
 export const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
 export const fiatOrdersCountrySelectorAgg = (state) => state.fiatOrders.selectedCountryAgg;
+export const fiatOrdersGetStartedAgg = (state) => state.fiatOrders.getStartedAgg;
 
 export const getOrders = createSelector(
 	ordersSelector,
@@ -110,6 +117,7 @@ const initialState = {
 	selectedCountry: 'US',
 	// initial state for fiat on-ramp aggregator
 	selectedCountryAgg: INITIAL_SELECTED_COUNTRY,
+	getStartedAgg: INITIAL_GET_STARTED,
 };
 
 const findOrderIndex = (provider, id, orders) =>
@@ -167,6 +175,12 @@ const fiatOrderReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedCountryAgg: action.payload,
+			};
+		}
+		case ACTIONS.FIAT_SET_GETSTARTED_AGG: {
+			return {
+				...state,
+				getStartedAgg: action.payload,
 			};
 		}
 		default: {

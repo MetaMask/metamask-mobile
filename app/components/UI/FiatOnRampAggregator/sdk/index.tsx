@@ -6,6 +6,8 @@ import {
 	setFiatOrdersCountryAGG,
 	selectedAddressSelector,
 	chainIdSelector,
+	fiatOrdersGetStartedAgg,
+	setFiatOrdersGetStartedAGG,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
@@ -23,6 +25,9 @@ export interface IFiatOnRampSDK {
 
 	selectedFiatCurrencyId: string;
 	setSelectedFiatCurrencyId: (asset: string) => void;
+
+	getStarted: boolean;
+	setGetStarted: (getStartedFlag: boolean) => void;
 
 	selectedAddress: string;
 	selectedChainId: string;
@@ -60,6 +65,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const dispatch = useDispatch();
 
 	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
+	const INITIAL_GET_STARTED: boolean = useSelector(fiatOrdersGetStartedAgg);
 	const selectedAddress: string = useSelector(selectedAddressSelector);
 	const selectedChainId: string = useSelector(chainIdSelector);
 
@@ -72,6 +78,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
 	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState('');
+	const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
 
 	const setSelectedCountryCallback = useCallback(
 		(country) => {
@@ -97,6 +104,14 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		setSelectedFiatCurrencyId(currency);
 	}, []);
 
+	const setGetStartedCallback = useCallback(
+		(getStartedFlag) => {
+			setGetStarted(getStartedFlag);
+			dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
+		},
+		[dispatch]
+	);
+
 	const contextValue: IFiatOnRampSDK = {
 		sdk,
 		selectedCountry,
@@ -113,6 +128,9 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 
 		selectedFiatCurrencyId,
 		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
+
+		getStarted,
+		setGetStarted: setGetStartedCallback,
 
 		selectedAddress,
 		selectedChainId,
