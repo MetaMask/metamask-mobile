@@ -31,6 +31,9 @@ describe('Tokens', () => {
 					NetworkController: {
 						provider: { chainId: '1' },
 					},
+					PreferencesController: {
+						useTokenDetection: true,
+					},
 				},
 			},
 			settings: {
@@ -76,6 +79,9 @@ describe('Tokens', () => {
 					},
 					NetworkController: {
 						provider: { chainId: '1' },
+					},
+					PreferencesController: {
+						useTokenDetection: true,
 					},
 				},
 			},
@@ -124,6 +130,9 @@ describe('Tokens', () => {
 					},
 					NetworkController: {
 						provider: { chainId: '1' },
+					},
+					PreferencesController: {
+						useTokenDetection: true,
 					},
 				},
 			},
