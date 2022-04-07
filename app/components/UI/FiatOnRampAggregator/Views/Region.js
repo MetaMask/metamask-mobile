@@ -34,9 +34,9 @@ const styles = StyleSheet.create({
 const Region = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
-	const [rememberRegion, setRememberRegion] = useState(false);
-	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
+	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
+	const [rememberRegion, setRememberRegion] = useState(!!selectedCountry);
 
 	const [showAlert, setShowAlert] = useState(false);
 	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
@@ -47,7 +47,10 @@ const Region = () => {
 	}, [navigation, colors]);
 
 	const handleChangeRememberRegion = () => {
-		setRememberRegion((currentRememberRegion) => !currentRememberRegion);
+		const remember = !rememberRegion;
+		setRememberRegion(remember);
+		setSelectedRegion(selectedRegion, remember);
+		setSelectedCountry(selectedCountry, remember);
 	};
 
 	const handleRegionButton = () => {
@@ -69,12 +72,12 @@ const Region = () => {
 				setShowAlert(true);
 				setSelectedUnsupportedLocation(region);
 			} else {
-				setSelectedRegion(region);
-				setSelectedCountry(country);
+				setSelectedRegion(region, rememberRegion);
+				setSelectedCountry(country, rememberRegion);
 				hideRegionModal();
 			}
 		},
-		[hideRegionModal, setSelectedCountry, setSelectedRegion]
+		[hideRegionModal, rememberRegion, setSelectedCountry, setSelectedRegion]
 	);
 
 	const handleUnsetRegion = useCallback(() => {

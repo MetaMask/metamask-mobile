@@ -8,14 +8,15 @@ import {
 	chainIdSelector,
 	fiatOrdersGetStartedAgg,
 	setFiatOrdersGetStartedAGG,
+	setFiatOrdersRegionAGG,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
 	selectedCountry: any;
-	setSelectedCountry: (country: any) => void;
+	setSelectedCountry: (country: any, remember: boolean) => void;
 
 	selectedRegion: any;
-	setSelectedRegion: (region: any) => void;
+	setSelectedRegion: (region: any, remember: boolean) => void;
 
 	selectedPaymentMethod: string;
 	setSelectedPaymentMethod: (paymentMethod: string) => void;
@@ -81,16 +82,28 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
 
 	const setSelectedCountryCallback = useCallback(
-		(country) => {
+		(country, remember) => {
 			setSelectedCountry(country);
-			dispatch(setFiatOrdersCountryAGG(country.id));
+			if (remember) {
+				dispatch(setFiatOrdersCountryAGG(country));
+			} else {
+				dispatch(setFiatOrdersCountryAGG(null));
+			}
 		},
 		[dispatch]
 	);
 
-	const setSelectedRegionCallback = useCallback((region) => {
-		setSelectedRegion(region);
-	}, []);
+	const setSelectedRegionCallback = useCallback(
+		(region, remember) => {
+			setSelectedRegion(region);
+			if (remember) {
+				dispatch(setFiatOrdersRegionAGG(region));
+			} else {
+				dispatch(setFiatOrdersRegionAGG(null));
+			}
+		},
+		[dispatch]
+	);
 
 	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
 		setSelectedPaymentMethod(paymentMethod);

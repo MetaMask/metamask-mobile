@@ -52,7 +52,6 @@ const whatToExpectList = [
 const GetStarted: React.FC = () => {
 	const navigation = useNavigation();
 	const { getStarted, setGetStarted } = useFiatOnRampSDK();
-	const rememberMyRegion = false;
 
 	const { colors } = useTheme();
 
@@ -66,19 +65,13 @@ const GetStarted: React.FC = () => {
 	}, [navigation, setGetStarted]);
 
 	useEffect(() => {
-		if (!getStarted) {
-			return;
-		}
-
-		if (rememberMyRegion) {
-			navigation.navigate('AmountToBuy');
-		} else {
+		if (getStarted) {
 			navigation.reset({
 				index: 0,
 				routes: [{ name: 'Region' }],
 			});
 		}
-	}, [getStarted, navigation, rememberMyRegion]);
+	}, [getStarted, navigation]);
 
 	return (
 		<ScreenLayout>

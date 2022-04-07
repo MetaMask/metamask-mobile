@@ -274,6 +274,7 @@ const AmountToBuy = () => {
 		return () => backHandler.remove();
 	}, [amountFocused]);
 
+	// TODO: replace this with loading screen
 	if (
 		isFetchingDataTokens ||
 		isFetchingGetPaymentMethod ||
@@ -283,9 +284,7 @@ const AmountToBuy = () => {
 	) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>Loading...</Text>
-				</ScreenLayout.Body>
+				<ScreenLayout.Body></ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}

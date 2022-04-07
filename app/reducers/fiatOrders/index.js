@@ -33,6 +33,7 @@ const ACTIONS = {
 	FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY',
 	// aggregator actions
 	FIAT_SET_COUNTRY_AGG: 'FIAT_SET_COUNTRY_AGG',
+	FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
 	FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
 };
 
@@ -40,6 +41,7 @@ export const addFiatOrder = (order) => ({ type: ACTIONS.FIAT_ADD_ORDER, payload:
 export const updateFiatOrder = (order) => ({ type: ACTIONS.FIAT_UPDATE_ORDER, payload: order });
 export const setFiatOrdersCountry = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY, payload: countryCode });
 export const setFiatOrdersCountryAGG = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY_AGG, payload: countryCode });
+export const setFiatOrdersRegionAGG = (regionCode) => ({ type: ACTIONS.FIAT_SET_REGION_AGG, payload: regionCode });
 export const setFiatOrdersGetStartedAGG = (getStartedFlag) => ({
 	type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
 	payload: getStartedFlag,
@@ -75,7 +77,8 @@ export const getProviderName = (provider, data = {}) => {
 	}
 };
 
-const INITIAL_SELECTED_COUNTRY = '/us';
+const INITIAL_SELECTED_COUNTRY = null;
+const INITIAL_SELECTED_REGION = null;
 const INITIAL_GET_STARTED = false;
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
@@ -117,6 +120,7 @@ const initialState = {
 	selectedCountry: 'US',
 	// initial state for fiat on-ramp aggregator
 	selectedCountryAgg: INITIAL_SELECTED_COUNTRY,
+	selectedRegionAgg: INITIAL_SELECTED_REGION,
 	getStartedAgg: INITIAL_GET_STARTED,
 };
 
@@ -175,6 +179,12 @@ const fiatOrderReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedCountryAgg: action.payload,
+			};
+		}
+		case ACTIONS.FIAT_SET_REGION_AGG: {
+			return {
+				...state,
+				selectedRegionAgg: action.payload,
 			};
 		}
 		case ACTIONS.FIAT_SET_GETSTARTED_AGG: {
