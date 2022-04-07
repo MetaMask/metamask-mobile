@@ -43,7 +43,7 @@ const Region = () => {
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
 
 	useEffect(() => {
-		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Region' }, colors));
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Region', showBack: false }, colors));
 	}, [navigation, colors]);
 
 	const handleChangeRememberRegion = () => {
@@ -81,12 +81,11 @@ const Region = () => {
 		setSelectedRegion(undefined);
 	}, [setSelectedRegion]);
 
+	// TODO: replace this with loading screen
 	if (isFetching || !data) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>Loading...</Text>
-				</ScreenLayout.Body>
+				<ScreenLayout.Body></ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}

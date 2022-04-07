@@ -73,7 +73,10 @@ const GetStarted: React.FC = () => {
 		if (rememberMyRegion) {
 			navigation.navigate('AmountToBuy');
 		} else {
-			navigation.navigate('Region');
+			navigation.reset({
+				index: 0,
+				routes: [{ name: 'Region' }],
+			});
 		}
 	}, [getStarted, navigation, rememberMyRegion]);
 
