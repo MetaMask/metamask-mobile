@@ -62,8 +62,12 @@ const createStyles = (colors: any) =>
 		},
 	});
 
-const renderStage = (stage: string, paymentType: string) => {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
+interface PropsStage {
+	stage: string;
+	paymentType: string;
+}
+
+const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	switch (stage) {
@@ -76,20 +80,6 @@ const renderStage = (stage: string, paymentType: string) => {
 					</Text>
 					<Text small centered style={styles.stageMessage}>
 						{strings('fiat_on_ramp_aggregator.transaction.successful_description')}
-					</Text>
-				</>
-			);
-		}
-		case SDK_ORDER_STATUS.Failed:
-		case SDK_ORDER_STATUS.Cancelled: {
-			return (
-				<>
-					<Image source={failedIcon} />
-					<Text bold big primary centered style={styles.stageDescription}>
-						{stage === 'failed' ? strings('fiat_on_ramp_aggregator.transaction.failed') : 'cancelled'}
-					</Text>
-					<Text small centered style={styles.stageMessage}>
-						{strings('fiat_on_ramp_aggregator.transaction.failed_description')}
 					</Text>
 				</>
 			);
@@ -113,6 +103,19 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
+		default: {
+			return (
+				<>
+					<Image source={failedIcon} />
+					<Text bold big primary centered style={styles.stageDescription}>
+						{stage === 'failed' ? strings('fiat_on_ramp_aggregator.transaction.failed') : 'cancelled'}
+					</Text>
+					<Text small centered style={styles.stageMessage}>
+						{strings('fiat_on_ramp_aggregator.transaction.failed_description')}
+					</Text>
+				</>
+			);
+		}
 	}
 };
 
@@ -127,7 +130,9 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 
 	return (
 		<View>
-			<View style={styles.stage}>{renderStage(order.state, order.data.paymentMethod.name)}</View>
+			<View style={styles.stage}>
+				<Stage stage={order.state} paymentType={order.data.paymentMethod.name} />
+			</View>
 			<Text centered primary style={styles.tokenAmount}>
 				{order.data.cryptoAmount}
 			</Text>
