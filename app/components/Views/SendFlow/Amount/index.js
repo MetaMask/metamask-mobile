@@ -1126,46 +1126,24 @@ class Amount extends PureComponent {
 
 Amount.contextType = ThemeContext;
 
-const mapStateToProps = (state, ownProps) =>
-	// console.log('🚀 ~ file: index.js ~ line 1172 ~ mapStateToProps ~ ownProps.transaction', ownProps.transaction);
-	// console.log('🚀 ~ file: index.js ~ line 1172 ~ mapStateToProps ~ state.transaction', state.transaction);
-	// console.log(
-	// 	'🚀 ~ file: index.js ~ line 1167 ~ mapStateToProps ~ state.engine.backgroundState.PreferencesController.selectedAddress',
-	// 	state.engine.backgroundState.PreferencesController.selectedAddress
-	// );
-	// console.log(
-	// 	'🚀 ~ file: index.js ~ line 1164 ~ mapStateToProps ~ state.engine.backgroundState.TokenRatesController.contractExchangeRates',
-	// 	state.engine.backgroundState.TokenRatesController.contractExchangeRates
-	// );
-	// console.log(
-	// 	'🚀 ~ file: index.js ~ line 1169 ~ mapStateToProps ~ state.engine.backgroundState.TokenBalancesController.contractBalances',
-	// 	state.engine.backgroundState.TokenBalancesController.contractBalances
-	// );
-	// console.log(
-	// 	'🚀 ~ file: index.js ~ line 1181 ~ mapStateToProps ~ state.engine.backgroundState.CurrencyRateController',
-	// 	state.engine.backgroundState.CurrencyRateController
-	// );
-	// console.log(
-	// 	'🚀 ~ file: index.js ~ line 1162 ~ mapStateToProps ~ state.engine.backgroundState.NetworkController',
-	// 	state.engine.backgroundState.NetworkController
-	// );
-	({
-		accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-		contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-		contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-		collectibles: collectiblesSelector(state),
-		collectibleContracts: collectibleContractsSelector(state),
-		currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
-		conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
-		providerType: state.engine.backgroundState.NetworkController.provider.type,
-		primaryCurrency: state.settings.primaryCurrency,
-		selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-		ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-		tokens: state.engine.backgroundState.TokensController.tokens,
-		transactionState: ownProps.transaction || state.transaction,
-		selectedAsset: state.transaction.selectedAsset,
-		isPaymentRequest: state.transaction.paymentRequest,
-	});
+const mapStateToProps = (state, ownProps) => ({
+	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	contractBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
+	contractExchangeRates: state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+	collectibles: collectiblesSelector(state),
+	collectibleContracts: collectibleContractsSelector(state),
+	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
+	providerType: state.engine.backgroundState.NetworkController.provider.type,
+	primaryCurrency: state.settings.primaryCurrency,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+	tokens: state.engine.backgroundState.TokensController.tokens,
+	transactionState: ownProps.transaction || state.transaction,
+	selectedAsset: state.transaction.selectedAsset,
+	isPaymentRequest: state.transaction.paymentRequest,
+});
+
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	prepareTransaction: (transaction) => dispatch(prepareTransaction(transaction)),
