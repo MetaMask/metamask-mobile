@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk, Environment, Context } from '@chingiz-mardanov/on-ramp-sdk';
+import { OnRampSdk, IOnRampSdk, Environment, Context } from '@consensys/on-ramp-sdk';
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
