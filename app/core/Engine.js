@@ -191,6 +191,8 @@ class Engine {
 					onTokensStateChange: (listener) => tokensController.subscribe(listener),
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					onTokenListStateChange: (listener) =>
+						this.controllerMessenger.subscribe(`${tokenListController.name}:stateChange`, listener),
 					addDetectedTokens: tokensController.addDetectedTokens.bind(tokensController),
 					getTokensState: () => tokensController.state,
 					getTokenListState: () => tokenListController.state,
