@@ -9,14 +9,15 @@ import {
 	fiatOrdersGetStartedAgg,
 	setFiatOrdersGetStartedAGG,
 	setFiatOrdersRegionAGG,
+	fiatOrdersRegionSelectorAgg,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
 	selectedCountry: any;
-	setSelectedCountry: (country: any, remember: boolean) => void;
+	setSelectedCountry: (country: any) => void;
 
 	selectedRegion: any;
-	setSelectedRegion: (region: any, remember: boolean) => void;
+	setSelectedRegion: (region: any) => void;
 
 	selectedPaymentMethod: string;
 	setSelectedPaymentMethod: (paymentMethod: string) => void;
@@ -65,12 +66,12 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 
 	const dispatch = useDispatch();
 
-	const INITIAL_SELECTED_COUNTRY: string = useSelector(fiatOrdersCountrySelectorAgg);
+	const INITIAL_SELECTED_COUNTRY: any = useSelector(fiatOrdersCountrySelectorAgg);
+	const INITIAL_SELECTED_REGION: any = useSelector(fiatOrdersRegionSelectorAgg);
 	const INITIAL_GET_STARTED: boolean = useSelector(fiatOrdersGetStartedAgg);
 	const selectedAddress: string = useSelector(selectedAddressSelector);
 	const selectedChainId: string = useSelector(chainIdSelector);
 
-	const INITIAL_SELECTED_REGION = INITIAL_SELECTED_COUNTRY;
 	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
 	const INITIAL_SELECTED_ASSET = 'ETH';
 
@@ -82,25 +83,17 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
 
 	const setSelectedCountryCallback = useCallback(
-		(country, remember) => {
+		(country) => {
 			setSelectedCountry(country);
-			if (remember) {
-				dispatch(setFiatOrdersCountryAGG(country));
-			} else {
-				dispatch(setFiatOrdersCountryAGG(null));
-			}
+			dispatch(setFiatOrdersCountryAGG(country));
 		},
 		[dispatch]
 	);
 
 	const setSelectedRegionCallback = useCallback(
-		(region, remember) => {
+		(region) => {
 			setSelectedRegion(region);
-			if (remember) {
-				dispatch(setFiatOrdersRegionAGG(region));
-			} else {
-				dispatch(setFiatOrdersRegionAGG(null));
-			}
+			dispatch(setFiatOrdersRegionAGG(region));
 		},
 		[dispatch]
 	);

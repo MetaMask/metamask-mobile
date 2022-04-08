@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import CheckBox from '@react-native-community/checkbox';
 import Text from '../../../Base/Text';
 import ListItem from '../../../Base/ListItem';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
@@ -16,27 +15,11 @@ import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
 
-const styles = StyleSheet.create({
-	checkbox: {
-		width: 15,
-		height: 15,
-		marginTop: 3,
-	},
-	checkboxView: {
-		marginVertical: 16,
-		flexDirection: 'row',
-	},
-	checkboxMargin: {
-		marginLeft: 7,
-	},
-});
-
 const Region = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
 	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
-	const [rememberRegion, setRememberRegion] = useState(!!selectedCountry);
 
 	const [showAlert, setShowAlert] = useState(false);
 	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
@@ -45,13 +28,6 @@ const Region = () => {
 	useEffect(() => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Region', showBack: false }, colors));
 	}, [navigation, colors]);
-
-	const handleChangeRememberRegion = () => {
-		const remember = !rememberRegion;
-		setRememberRegion(remember);
-		setSelectedRegion(selectedRegion, remember);
-		setSelectedCountry(selectedCountry, remember);
-	};
 
 	const handleRegionButton = () => {
 		toggleRegionModal();
@@ -72,12 +48,12 @@ const Region = () => {
 				setShowAlert(true);
 				setSelectedUnsupportedLocation(region);
 			} else {
-				setSelectedRegion(region, rememberRegion);
-				setSelectedCountry(country, rememberRegion);
+				setSelectedRegion(region);
+				setSelectedCountry(country);
 				hideRegionModal();
 			}
 		},
-		[hideRegionModal, rememberRegion, setSelectedCountry, setSelectedRegion]
+		[hideRegionModal, setSelectedCountry, setSelectedRegion]
 	);
 
 	const handleUnsetRegion = useCallback(() => {
@@ -142,21 +118,6 @@ const Region = () => {
 							</ListItem.Content>
 						</Box>
 					</TouchableOpacity>
-					<Pressable onPress={handleChangeRememberRegion} style={styles.checkboxView}>
-						<CheckBox
-							value={rememberRegion}
-							boxType="square"
-							animationDuration={0.2}
-							onAnimationType="fill"
-							offAnimationType="fill"
-							onFillColor={colors.primary.default}
-							onCheckColor={colors.background.default}
-							style={styles.checkbox}
-						/>
-						<Text black style={styles.checkboxMargin}>
-							{strings('fiat_on_ramp_aggregator.region.remember_region')}
-						</Text>
-					</Pressable>
 				</ScreenLayout.Content>
 				<RegionModal
 					isVisible={isRegionModalVisible}

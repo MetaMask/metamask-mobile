@@ -87,6 +87,7 @@ export const chainIdSelector = (state) => state.engine.backgroundState.NetworkCo
 export const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
 export const fiatOrdersCountrySelectorAgg = (state) => state.fiatOrders.selectedCountryAgg;
+export const fiatOrdersRegionSelectorAgg = (state) => state.fiatOrders.selectedRegionAgg;
 export const fiatOrdersGetStartedAgg = (state) => state.fiatOrders.getStartedAgg;
 
 export const getOrders = createSelector(
