@@ -72,7 +72,9 @@ exports[`HintModal should render correctly 1`] = `
         style={
           Object {
             "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
+            "fontWeight": "400",
             "marginBottom": 16,
           }
         }
@@ -83,7 +85,9 @@ exports[`HintModal should render correctly 1`] = `
         style={
           Object {
             "color": "#D73A49",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
+            "fontWeight": "400",
             "marginBottom": 16,
           }
         }

@@ -16,4 +16,4 @@ _Write a short description of the changes included in this pull request._
 
 **Issue**
 
-Resolves #???
+Progresses #???

@@ -4,8 +4,7 @@ set -u
 set -o pipefail
 
 # use `improved-yarn-audit` since that allows for exclude
-# exclude `ws` until we can come up with a better solution
-yarn run improved-yarn-audit --ignore-dev-deps --min-severity moderate --exclude GHSA-xvch-5gv4-984h
+yarn run improved-yarn-audit --ignore-dev-deps --min-severity moderate
 audit_status="$?"
 
 # Use a bitmask to ignore INFO and LOW severity audit results
