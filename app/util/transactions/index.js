@@ -20,7 +20,7 @@ import {
 } from '../number';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
-import { MAX_UNSIGNED_256_INT } from '../../constants/transaction';
+import { UNSIGNED_256_INT_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../conversion';
 import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../conversions';
@@ -1186,7 +1186,7 @@ export const generateTxWithNewTokenAllowance = (tokenValue, tokenDecimals, spend
 	const uint = toTokenMinimalUnit(tokenValue, tokenDecimals);
 	const approvalData = generateApproveData({
 		spender: spenderAddress,
-		value: uint.gt(MAX_UNSIGNED_256_INT) ? MAX_UNSIGNED_256_INT.toString(16) : uint.toString(16),
+		value: uint.gt(UNSIGNED_256_INT_MAX_VALUE) ? UNSIGNED_256_INT_MAX_VALUE.toString(16) : uint.toString(16),
 	});
 	const newApprovalTransaction = {
 		...transaction,

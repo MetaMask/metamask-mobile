@@ -1,7 +1,7 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
 import { BNToHex } from '../number';
-import { MAX_UNSIGNED_256_INT } from '../../constants/transaction';
+import { UNSIGNED_256_INT_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 
 import {
@@ -250,7 +250,7 @@ describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
 	});
 
 	it('should encode the maximun amount uint256 can store correctly and return a new transaction', () => {
-		const newTx = generateTxWithNewTokenAllowance(MAX_UNSIGNED_256_INT, 0, MOCK_ADDRESS3, mockTx);
+		const newTx = generateTxWithNewTokenAllowance(UNSIGNED_256_INT_MAX_VALUE, 0, MOCK_ADDRESS3, mockTx);
 		expect(newTx.data).toBeTruthy();
 
 		const expectedHexValue = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
