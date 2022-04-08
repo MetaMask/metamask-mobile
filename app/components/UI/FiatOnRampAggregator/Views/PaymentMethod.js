@@ -22,9 +22,8 @@ const PaymentMethod = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
 
-	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(null);
-
 	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
+	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(selectedPaymentMethod);
 
 	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
 		countryId: selectedCountry?.id,
@@ -60,9 +59,7 @@ const PaymentMethod = () => {
 					{paymentMethods?.map(({ id, name, delay, amountTier }) => (
 						<View key={id} style={styles.row}>
 							<PaymentOption
-								highlighted={
-									!currentPaymentMethod ? id === selectedPaymentMethod : id === currentPaymentMethod
-								}
+								highlighted={id === currentPaymentMethod}
 								title={name}
 								time={delay}
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
