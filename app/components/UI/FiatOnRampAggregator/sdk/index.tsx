@@ -10,6 +10,8 @@ import {
 	setFiatOrdersGetStartedAGG,
 	setFiatOrdersRegionAGG,
 	fiatOrdersRegionSelectorAgg,
+	fiatOrdersPaymentMethodSelectorAgg,
+	setFiatOrdersPaymentMethodAGG,
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
@@ -72,7 +74,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const selectedAddress: string = useSelector(selectedAddressSelector);
 	const selectedChainId: string = useSelector(chainIdSelector);
 
-	const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
+	const INITIAL_PAYMENT_METHOD: string = useSelector(fiatOrdersPaymentMethodSelectorAgg);
 	const INITIAL_SELECTED_ASSET = 'ETH';
 
 	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
@@ -98,9 +100,13 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		[dispatch]
 	);
 
-	const setSelectedPaymentMethodCallback = useCallback((paymentMethod) => {
-		setSelectedPaymentMethod(paymentMethod);
-	}, []);
+	const setSelectedPaymentMethodCallback = useCallback(
+		(paymentMethodId) => {
+			setSelectedPaymentMethod(paymentMethodId);
+			dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
+		},
+		[dispatch]
+	);
 
 	const setSelectedAssetCallback = useCallback((asset) => {
 		setSelectedAsset(asset);

@@ -34,6 +34,7 @@ const ACTIONS = {
 	// aggregator actions
 	FIAT_SET_COUNTRY_AGG: 'FIAT_SET_COUNTRY_AGG',
 	FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
+	FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
 	FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
 };
 
@@ -42,6 +43,10 @@ export const updateFiatOrder = (order) => ({ type: ACTIONS.FIAT_UPDATE_ORDER, pa
 export const setFiatOrdersCountry = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY, payload: countryCode });
 export const setFiatOrdersCountryAGG = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY_AGG, payload: countryCode });
 export const setFiatOrdersRegionAGG = (regionCode) => ({ type: ACTIONS.FIAT_SET_REGION_AGG, payload: regionCode });
+export const setFiatOrdersPaymentMethodAGG = (paymentMethodId) => ({
+	type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
+	payload: paymentMethodId,
+});
 export const setFiatOrdersGetStartedAGG = (getStartedFlag) => ({
 	type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
 	payload: getStartedFlag,
@@ -80,6 +85,7 @@ export const getProviderName = (provider, data = {}) => {
 const INITIAL_SELECTED_COUNTRY = null;
 const INITIAL_SELECTED_REGION = null;
 const INITIAL_GET_STARTED = false;
+const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
 export const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
@@ -88,6 +94,7 @@ export const selectedAddressSelector = (state) => state.engine.backgroundState.P
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
 export const fiatOrdersCountrySelectorAgg = (state) => state.fiatOrders.selectedCountryAgg;
 export const fiatOrdersRegionSelectorAgg = (state) => state.fiatOrders.selectedRegionAgg;
+export const fiatOrdersPaymentMethodSelectorAgg = (state) => state.fiatOrders.selectedPaymentMethodAgg;
 export const fiatOrdersGetStartedAgg = (state) => state.fiatOrders.getStartedAgg;
 
 export const getOrders = createSelector(
@@ -122,6 +129,7 @@ const initialState = {
 	// initial state for fiat on-ramp aggregator
 	selectedCountryAgg: INITIAL_SELECTED_COUNTRY,
 	selectedRegionAgg: INITIAL_SELECTED_REGION,
+	selectedPaymentMethodAgg: INITIAL_PAYMENT_METHOD,
 	getStartedAgg: INITIAL_GET_STARTED,
 };
 
@@ -170,6 +178,12 @@ const fiatOrderReducer = (state = initialState, action) => {
 		case ACTIONS.FIAT_RESET: {
 			return initialState;
 		}
+		case ACTIONS.FIAT_SET_GETSTARTED_AGG: {
+			return {
+				...state,
+				getStartedAgg: action.payload,
+			};
+		}
 		case ACTIONS.FIAT_SET_COUNTRY: {
 			return {
 				...state,
@@ -188,10 +202,10 @@ const fiatOrderReducer = (state = initialState, action) => {
 				selectedRegionAgg: action.payload,
 			};
 		}
-		case ACTIONS.FIAT_SET_GETSTARTED_AGG: {
+		case ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG: {
 			return {
 				...state,
-				getStartedAgg: action.payload,
+				selectedPaymentMethodAgg: action.payload,
 			};
 		}
 		default: {
