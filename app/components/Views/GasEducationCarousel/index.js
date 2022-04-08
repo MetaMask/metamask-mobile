@@ -305,7 +305,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 															testID={'gas-education-fiat-on-ramp-start'}
 														>
 															{strings('fiat_on_ramp.gas_education_carousel.step_3.cta', {
-																ticker,
+																ticker: getTicker(ticker),
 															})}
 														</StyledButton>
 													</View>
