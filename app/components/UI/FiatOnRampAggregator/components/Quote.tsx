@@ -69,8 +69,8 @@ interface Props {
 	showInfo: () => any;
 }
 
-const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Props) => {
-	const { networkFee, providerFee, amountIn, amountOut, fiat, providerName, crypto, showInfo } = quote;
+const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highlighted }: Props) => {
+	const { networkFee, providerFee, amountIn, amountOut, fiat, providerName, crypto } = quote;
 	const totalFees = networkFee + providerFee;
 	const price = amountIn - totalFees;
 
