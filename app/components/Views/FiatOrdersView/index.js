@@ -49,17 +49,25 @@ function FiatOrdersView({ orders, ...props }) {
 
 	/* eslint-disable-next-line */
 	const renderItem = ({ item }) => {
+		if (item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+			return (
+				<TouchableHighlight
+					style={styles.row}
+					onPress={() => handleNavigateToTxDetails(item.id)}
+					underlayColor={colors.background.alternative}
+					activeOpacity={1}
+				>
+					<OrderListItem order={item} />
+				</TouchableHighlight>
+			);
+		}
 		return (
 			<ModalHandler>
 				{({ isVisible, toggleModal }) => (
 					<>
 						<TouchableHighlight
 							style={styles.row}
-							onPress={() => {
-								item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
-									? handleNavigateToTxDetails(item.id)
-									: toggleModal();
-							}}
+							onPress={toggleModal}
 							underlayColor={colors.background.alternative}
 							activeOpacity={1}
 						>
