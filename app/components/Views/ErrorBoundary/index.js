@@ -69,7 +69,6 @@ const createStyles = (colors) =>
 			color: colors.primary.default,
 			textAlign: 'center',
 			...fontStyles.normal,
-			fontWeight: '500',
 		},
 		textContainer: {
 			marginTop: 24,
