@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet, View, TouchableOpacity, Image, Linking } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
@@ -7,7 +7,7 @@ import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-
+import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/transactionFailed.png');
 // TODO: Convert into typescript and correctly type optionals
@@ -127,18 +127,29 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	const date = toDateFormat(order.data.createdAt);
-
+	const amountOut = order.data.fiatAmount - order.data.totalFeesFiat;
+	const exchangeRate = amountOut / order.data.cryptoAmount;
+	const handleLinkPress = useCallback(async (url: string) => {
+		const supported = await Linking.canOpenURL(url);
+		if (supported) {
+			await Linking.openURL(url);
+		}
+	}, []);
 	return (
 		<View>
 			<View style={styles.stage}>
 				<Stage stage={order.state} paymentType={order.data.paymentMethod.name} />
 			</View>
 			<Text centered primary style={styles.tokenAmount}>
-				{order.data.cryptoAmount}
+				{renderFromTokenMinimalUnit(
+					toTokenMinimalUnit(order.data.cryptoAmount, order.data.cryptoCurrency.decimals).toString(),
+					order.data.cryptoCurrency.decimals
+				)}{' '}
+				{order.data.cryptoCurrency.symbol}
 			</Text>
 			<Text centered small style={styles.fiatColor}>
 				{order.data.fiatCurrency.denomSymbol}
-				{order.data.fiatAmount} {order.data.fiatCurrency.symbol}
+				{renderFiat(amountOut, order.data.fiatCurrency.symbol, order.data.fiatCurrency.decimals)}
 			</Text>
 			<Box>
 				<Text bold primary style={styles.transactionTitle}>
@@ -148,7 +159,7 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body style={styles.transactionIdFlex}>
 							<Text black small>
-								Transaction ID
+								{strings('fiat_on_ramp_aggregator.transaction.id')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount style={styles.transactionIdFlex}>
@@ -160,7 +171,7 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Date and Time
+								{strings('fiat_on_ramp_aggregator.transaction.date_and_time')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
@@ -172,7 +183,7 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Payment Method
+								{strings('fiat_on_ramp_aggregator.transaction.payment_method')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
@@ -187,52 +198,69 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Token Amount
+								{strings('fiat_on_ramp_aggregator.transaction.token_amount')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.cryptoAmount} {order.cryptocurrency}
+								{renderFromTokenMinimalUnit(
+									toTokenMinimalUnit(
+										order.data.cryptoAmount,
+										order.data.cryptoCurrency.decimals
+									).toString(),
+									order.data.cryptoCurrency.decimals
+								)}{' '}
+								{order.data.cryptoCurrency.symbol}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								{order.currency} Amount
+								{order.currency} {strings('send.amount')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
 								{order.data.fiatCurrency.denomSymbol}
-								{order.data.fiatAmount}
+								{renderFiat(
+									amountOut,
+									order.data.fiatCurrency.symbol,
+									order.data.fiatCurrency.decimals
+								)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Exchange Rate
+								{strings('fiat_on_ramp_aggregator.transaction.exchange_rate')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
 								1 {order.cryptocurrency} @{' '}
-								{(Number(order.data.fiatAmount) - Number(order.data.totalFeesFiat)) /
-									Number(order.data.cryptoAmount)}
+								{renderFromTokenMinimalUnit(
+									toTokenMinimalUnit(exchangeRate, order.data.cryptoCurrency.decimals).toString(),
+									order.data.cryptoCurrency.decimals
+								)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Total Fees
+								{strings('fiat_on_ramp_aggregator.transaction.total_fees')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
 								{order.data.fiatCurrency.denomSymbol}
-								{order.data.totalFeesFiat}
+								{renderFiat(
+									order.data.totalFeesFiat,
+									order.data.fiatCurrency.symbol,
+									order.data.fiatCurrency.decimals
+								)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -249,12 +277,12 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Amount>
 						<Text small bold primary>
 							{order.data.fiatCurrency.denomSymbol}
-							{order.amount} {order.data.fiatCurrency.symbol}
+							{renderFiat(order.amount, order.data.fiatCurrency.symbol, order.data.fiatCurrency.decimals)}
 						</Text>
 					</ListItem.Amount>
 				</ListItem.Content>
 				{order.state === SDK_ORDER_STATUS.Completed && (
-					<TouchableOpacity>
+					<TouchableOpacity onPress={() => handleLinkPress('https://etherscan.io/tx/' + order.data.txHash)}>
 						<Text blue small centered style={styles.link}>
 							{strings('fiat_on_ramp_aggregator.transaction.etherscan')}
 						</Text>
@@ -265,7 +293,7 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 				<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
 				<TouchableOpacity>
 					<Text small underline>
-						{strings('fiat_on_ramp_aggregator.transaction.contact')} {order.providerName}{' '}
+						{strings('fiat_on_ramp_aggregator.transaction.contact')} {order.data.provider.name}{' '}
 						{strings('fiat_on_ramp_aggregator.transaction.support')}
 					</Text>
 				</TouchableOpacity>
