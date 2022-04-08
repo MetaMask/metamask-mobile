@@ -1149,7 +1149,7 @@ export const BrowserTab = (props) => {
 							contentDescription: `Launch ${name || url} on MetaMask`,
 							keywords: [name.split(' '), url, 'dapp'],
 							thumbnail: {
-								uri: icon.current || `https://api.faviconkit.com/${getHost(url)}/256`,
+								uri: icon.current || `https://metamask.faviconkit.com/${getHost(url)}/256`,
 							},
 						};
 						try {
