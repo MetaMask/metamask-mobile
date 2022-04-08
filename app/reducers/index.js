@@ -15,6 +15,7 @@ import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import recentsReducer from './recents';
 import navigationReducer from './navigation';
+import networkOnboardReducer from './networkSelector';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
 	fiatOrders,
 	infuraAvailability: infuraAvailabilityReducer,
 	navigation: navigationReducer,
+	networkOnboarded: networkOnboardReducer,
 });
 
 export default rootReducer;
