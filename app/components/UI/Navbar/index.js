@@ -902,7 +902,7 @@ export function getNetworkNavbarOptions(
 		headerRight: onRightPress
 			? () => (
 					<TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-						<MaterialCommunityIcon name={'dots-horizontal'} size={28} style={styles.backIcon} />
+						<MaterialCommunityIcon name={'dots-horizontal'} size={28} style={innerStyles.headerIcon} />
 					</TouchableOpacity>
 					// eslint-disable-next-line no-mixed-spaces-and-tabs
 			  )
