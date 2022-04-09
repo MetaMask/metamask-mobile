@@ -14,6 +14,8 @@ import DrawerView from '../pages/Drawer/DrawerView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import NetworkListModal from '../pages/modals/NetworkListModal';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
@@ -111,15 +113,33 @@ describe('Custom RPC Tests', () => {
 		await WalletView.isVisible();
 		await WalletView.isNetworkNameVisible('xDai');
 	});
+	it('should dismiss network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.isNetworkNameCorrect('Xdai');
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
+	});
 
-	it('should validate that xDai is added to network list then switch networks', async () => {
+	it('should validate that xDai is added to network list', async () => {
 		// Tap to prompt network list
 		await WalletView.tapNetworksButtonOnNavBar();
 
 		await NetworkListModal.isVisible();
 		await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
+	});
+	it('should switch to Rinkeby then dismiss the network education modal', async () => {
 		await NetworkListModal.changeNetwork(RINKEBY);
 
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.isNetworkNameCorrect('Rinkeby Testnet');
+
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
+
+		await WalletView.isVisible();
+	});
+
+	it('should switch back to xDAI', async () => {
 		await WalletView.isNetworkNameVisible(RINKEBY);
 		await WalletView.tapNetworksButtonOnNavBar();
 
@@ -131,6 +151,7 @@ describe('Custom RPC Tests', () => {
 
 		await WalletView.isVisible();
 		await WalletView.isNetworkNameVisible('xDai');
+		await NetworkEducationModal.isNotVisible();
 	});
 
 	it('should go to settings networks and remove xDai network', async () => {
