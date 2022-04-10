@@ -76,3 +76,23 @@ export const renderShortText = (text, chars = 4) => {
 		return text;
 	}
 };
+
+/**
+ * Compares two software version
+ *
+ * @param {String} vOne - Version one to compare
+ * @param {String} vTwo - Version two to compare
+ * @returns Boolean indicating if vOne is greater or equal to vTwo
+ */
+export const versionGreaterOrEqualThan = (vOne, vTwo) => {
+	const versionOne = vOne.split('.');
+	const versionTwo = vTwo.split('.');
+	const k = Math.min(versionOne.length, versionTwo.length);
+	for (let i = 0; i < k; ++i) {
+		versionOne[i] = parseInt(versionOne[i], 10);
+		versionTwo[i] = parseInt(versionTwo[i], 10);
+		if (versionOne[i] > versionTwo[i]) return true;
+		if (versionOne[i] < versionTwo[i]) return false;
+	}
+	return versionOne.length === versionTwo.length ? true : !(versionOne.length < versionTwo.length);
+};
