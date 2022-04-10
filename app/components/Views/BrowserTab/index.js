@@ -11,6 +11,7 @@ import {
 	Keyboard,
 	BackHandler,
 	InteractionManager,
+	NativeModules,
 } from 'react-native';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
@@ -44,6 +45,7 @@ import SearchApi from 'react-native-search-api';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { versionGreaterOrEqualThan } from '../../../util/general';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -60,6 +62,8 @@ const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const ANIMATION_TIMING = 300;
+
+const MIN_ANDROID_SYSTEM_WEBVIEW_VERSION = '83.0.4103.106';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -224,6 +228,7 @@ export const BrowserTab = (props) => {
 	const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
 	const [showPhishingModal, setShowPhishingModal] = useState(false);
 	const [blockedUrl, setBlockedUrl] = useState(undefined);
+	const [safeAndroidWebviewVersion, setSafeAndroidWebviewVersion] = useState(true);
 
 	const webviewRef = useRef(null);
 	const inputRef = useRef(null);
@@ -324,6 +329,19 @@ export const BrowserTab = (props) => {
 		},
 		[props.privacyMode]
 	);
+
+	useEffect(() => {
+		const getSystemWebviewVersion = async () => {
+			if (Device.isAndroid()) {
+				const systemUtils = NativeModules.SystemUtils;
+				const webviewVersion = await systemUtils.getCurrentWebViewPackageVersionName();
+				setSafeAndroidWebviewVersion(
+					versionGreaterOrEqualThan(webviewVersion, MIN_ANDROID_SYSTEM_WEBVIEW_VERSION)
+				);
+			}
+		};
+		getSystemWebviewVersion();
+	}, []);
 
 	/**
 	 * Manage hosts that were approved to connect with the user accounts
@@ -1357,6 +1375,7 @@ export const BrowserTab = (props) => {
 				style={[styles.wrapper, !isTabActive() && styles.hide]}
 				{...(Device.isAndroid() ? { collapsable: false } : {})}
 			>
+				{!safeAndroidWebviewVersion && <Text>Not a safe version</Text>}
 				<View style={styles.webview}>
 					{!!entryScriptWeb3 && firstUrlLoaded && (
 						<WebView
