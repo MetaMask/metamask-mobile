@@ -1,4 +1,4 @@
-import { capitalize, tlc, toLowerCaseEquals, renderShortText } from '.';
+import { capitalize, tlc, toLowerCaseEquals, renderShortText, versionGreaterOrEqualThan } from '.';
 
 describe('capitalize', () => {
 	const my_string = 'string';
@@ -48,5 +48,21 @@ describe('renderShortText', () => {
 	it('should return the same text if the shorter version has the same length or bigger', () => {
 		const input = '123456789';
 		expect(renderShortText(input, 2)).toStrictEqual(input);
+	});
+});
+
+describe('versionGreaterOrEqualThan', () => {
+	const mockVersionOne = '99.0.4844.88';
+	const mockVersionTwo = '100.0.4896.79';
+	const mockVersionThree = '83.0.4103.106';
+
+	it('should be false if vOne is lower than vTwo', () => {
+		expect(versionGreaterOrEqualThan(mockVersionOne, mockVersionTwo)).toBe(false);
+	});
+	it('should be true if vOne is greater than vTwo', () => {
+		expect(versionGreaterOrEqualThan(mockVersionOne, mockVersionThree)).toBe(true);
+	});
+	it('should be true if vOne is equal than vTwo', () => {
+		expect(versionGreaterOrEqualThan(mockVersionOne, mockVersionOne)).toBe(true);
 	});
 });
