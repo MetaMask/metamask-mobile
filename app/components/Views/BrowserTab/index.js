@@ -1384,7 +1384,7 @@ export const BrowserTab = (props) => {
 							renderError={() => <WebviewError error={error} returnHome={returnHome} />}
 							source={{ uri: initialUrl }}
 							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-							setSupportMultipleWindows={false}
+							setSupportMultipleWindows
 							style={styles.webview}
 							onLoadStart={onLoadStart}
 							onLoad={onLoad}
