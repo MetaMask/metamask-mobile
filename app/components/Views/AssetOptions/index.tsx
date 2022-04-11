@@ -16,15 +16,15 @@ const createStyles = (colors: any) =>
 		screen: { justifyContent: 'flex-end' },
 		sheet: {
 			backgroundColor: colors.background.default,
-			borderTopLeftRadius: 10,
-			borderTopRightRadius: 10,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
 		},
 		notch: {
 			width: 48,
 			height: 5,
 			borderRadius: 4,
 			backgroundColor: colors.border.default,
-			marginTop: 16,
+			marginTop: 12,
 			alignSelf: 'center',
 			marginBottom: 24,
 		},
@@ -53,12 +53,13 @@ interface Props {
 	route: {
 		params: {
 			address: string;
+			showTokenDetails: boolean;
 		};
 	};
 }
 
 const AssetOptions = (props: Props) => {
-	const { address } = props.route.params;
+	const { address, showTokenDetails } = props.route.params;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const safeAreaInsets = useSafeAreaInsets();
@@ -102,10 +103,9 @@ const AssetOptions = (props: Props) => {
 	};
 
 	const renderOptions = () => {
-		const options: Option[] = [
-			{ label: strings('asset_details.options.view_on_block'), onPress: openOnEtherscan },
-			{ label: strings('asset_details.options.token_details'), onPress: openTokenDetails },
-		];
+		const options: Option[] = [{ label: strings('asset_details.options.view_on_block'), onPress: openOnEtherscan }];
+		showTokenDetails &&
+			options.push({ label: strings('asset_details.options.token_details'), onPress: openTokenDetails });
 		return (
 			<>
 				{options.map((option) => {

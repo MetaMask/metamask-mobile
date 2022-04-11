@@ -101,8 +101,8 @@ class Asset extends PureComponent {
 
 	updateNavBar = () => {
 		const { navigation, route } = this.props;
-		const { isETH } = route.params;
 		const colors = this.context.colors || mockTheme.colors;
+		const { isETH } = route.params;
 
 		navigation.setOptions(
 			getNetworkNavbarOptions(
@@ -110,7 +110,7 @@ class Asset extends PureComponent {
 				false,
 				navigation,
 				colors,
-				isETH ? null : () => navigation.navigate('AssetOptions'),
+				() => navigation.navigate('AssetOptions', { showTokenDetails: !isETH }),
 				true
 			)
 		);
