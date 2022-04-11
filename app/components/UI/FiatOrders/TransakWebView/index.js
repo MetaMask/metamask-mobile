@@ -123,6 +123,7 @@ class TransakWebView extends PureComponent {
 						source={{ uri }}
 						onNavigationStateChange={this.handleNavigationStateChange}
 						allowInlineMediaPlayback
+						enableApplePay
 						mediaPlaybackRequiresUserAction={false}
 					/>
 				</View>
