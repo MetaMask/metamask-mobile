@@ -33,7 +33,7 @@ const withQRHardwareAwareness = (
 					keyringState.unsubscribe(subscribeKeyringState);
 				}
 			};
-		});
+		}, []);
 
 		return (
 			<Children
