@@ -1,16 +1,14 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { fontStyles } from '../../../../styles/common';
 import CheckBox from '@react-native-community/checkbox';
-import { IAccount } from '../types';
-import { renderFromWei } from '../../../../util/number';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { getEtherscanAddressUrl } from '../../../../util/etherscan';
+import { fontStyles } from '../../../../styles/common';
+import { strings } from '../../../../../locales/i18n';
+import { IAccount } from '../types';
+import Device from '../../../../util/device';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
-import EthereumAddress from '../../../UI/EthereumAddress';
+import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
 
 interface ISelectQRAccountsProps {
@@ -26,6 +24,7 @@ interface ISelectQRAccountsProps {
 const createStyle = (colors: any) =>
 	StyleSheet.create({
 		container: {
+			flex: 1,
 			width: '100%',
 			paddingHorizontal: 32,
 		},
@@ -38,19 +37,11 @@ const createStyle = (colors: any) =>
 		},
 		account: {
 			flexDirection: 'row',
-			alignItems: 'center',
-			height: 36,
-			width: '100%',
-			paddingVertical: 4,
+			paddingHorizontal: 12,
+			paddingVertical: 5,
 		},
 		checkBox: {
-			marginRight: 8,
-		},
-		accountUnchecked: {
-			backgroundColor: colors.primary.muted,
-		},
-		accountChecked: {
-			backgroundColor: colors.primary.disabled,
+			backgroundColor: colors.background.default,
 		},
 		number: {
 			...fontStyles.normal,
@@ -64,7 +55,6 @@ const createStyle = (colors: any) =>
 			color: colors.text.default,
 		},
 		pagination: {
-			marginTop: 16,
 			alignSelf: 'flex-end',
 			flexDirection: 'row',
 			alignItems: 'center',
@@ -81,13 +71,13 @@ const createStyle = (colors: any) =>
 		},
 		bottom: {
 			alignItems: 'center',
-			marginTop: 150,
-			height: 100,
 			justifyContent: 'space-between',
+			paddingTop: 75,
+			paddingBottom: Device.isIphoneX() ? 20 : 10,
 		},
 		button: {
 			width: '100%',
-			padding: 12,
+			justifyContent: 'flex-end',
 		},
 	});
 
@@ -95,18 +85,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 	const { accounts, prevPage, nextPage, toggleAccount, onForget, onUnlock, canUnlock } = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyle(colors);
-	const navigation = useNavigation();
 	const provider = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider);
-
-	const toEtherscan = (address: string) => {
-		const accountLink = getEtherscanAddressUrl(provider.type, address);
-		navigation.navigate('Webview', {
-			screen: 'SimpleWebview',
-			params: {
-				url: accountLink,
-			},
-		});
-	};
 
 	return (
 		<View style={styles.container}>
@@ -123,17 +102,12 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 							onValueChange={() => toggleAccount(item.index)}
 							boxType={'square'}
 							tintColors={{ true: colors.primary.default, false: colors.border.default }}
+							onCheckColor={colors.background.default}
+							onFillColor={colors.primary.default}
+							onTintColor={colors.primary.default}
 							testID={'skip-backup-check'}
 						/>
-						<Text style={styles.number}>{item.index}</Text>
-						<EthereumAddress address={item.address} style={styles.address} type={'short'} />
-						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
-						<Icon
-							size={18}
-							name={'external-link'}
-							onPress={() => toEtherscan(item.address)}
-							color={colors.text.default}
-						/>
+						<AccountDetails item={item} network={provider.type} />
 					</View>
 				)}
 			/>
@@ -147,7 +121,6 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 					<Icon name={'chevron-right'} color={colors.primary.default} />
 				</TouchableOpacity>
 			</View>
-
 			<View style={styles.bottom}>
 				<StyledButton
 					type={'confirm'}
