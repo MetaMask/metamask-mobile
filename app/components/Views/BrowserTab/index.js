@@ -528,7 +528,11 @@ export const BrowserTab = (props) => {
 			} catch (err) {
 				// This is a TLD that might be a normal website
 				// For example .XYZ and might be more in the future
-				if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
+				if (
+					hostname.substr(-4) !== '.eth' &&
+					(err.toString().indexOf('is not standard') !== -1 ||
+						err.toString().indexOf('no contenthash found') !== -1)
+				) {
 					ensIgnoreList.push(hostname);
 					return { url: fullUrl, reload: true };
 				}
