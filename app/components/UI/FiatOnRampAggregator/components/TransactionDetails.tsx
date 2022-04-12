@@ -8,6 +8,8 @@ import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
+import { getProviderName } from '../../../../reducers/fiatOrders';
+import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/transactionFailed.png');
 // TODO: Convert into typescript and correctly type optionals
@@ -120,15 +122,40 @@ const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
 };
 
 interface Props {
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
 	order: any;
+	/**
+	 * Current Network provider
+	 */
+	provider: any;
+	/**
+	 * Frequent RPC list from PreferencesController
+	 */
+	frequentRpcList: any;
 }
 
-const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
+const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList }: Props) => {
+	const { data, state } = order;
+	const {
+		cryptoCurrency,
+		paymentMethod,
+		fiatCurrency,
+		cryptoAmount,
+		providerOrderId,
+		fiatAmount,
+		totalFeesFiat,
+		txHash,
+		createdAt,
+	} = data;
 	const { colors } = useTheme();
+	const explorer = useBlockExplorer(provider, frequentRpcList);
+
 	const styles = createStyles(colors);
-	const date = toDateFormat(order.data.createdAt);
-	const amountOut = order.data.fiatAmount - order.data.totalFeesFiat;
-	const exchangeRate = amountOut / order.data.cryptoAmount;
+	const date = toDateFormat(createdAt);
+	const amountOut = Number(fiatAmount) - Number(totalFeesFiat);
+	const exchangeRate = Number(amountOut) / Number(cryptoAmount);
 	const handleLinkPress = useCallback(async (url: string) => {
 		const supported = await Linking.canOpenURL(url);
 		if (supported) {
@@ -138,18 +165,18 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 	return (
 		<View>
 			<View style={styles.stage}>
-				<Stage stage={order.state} paymentType={order.data.paymentMethod.name} />
+				<Stage stage={state} paymentType={paymentMethod.name} />
 			</View>
 			<Text centered primary style={styles.tokenAmount}>
 				{renderFromTokenMinimalUnit(
-					toTokenMinimalUnit(order.data.cryptoAmount, order.data.cryptoCurrency.decimals).toString(),
-					order.data.cryptoCurrency.decimals
+					toTokenMinimalUnit(cryptoAmount, cryptoCurrency.decimals).toString(),
+					cryptoCurrency.decimals
 				)}{' '}
-				{order.data.cryptoCurrency.symbol}
+				{cryptoCurrency.symbol}
 			</Text>
 			<Text centered small style={styles.fiatColor}>
-				{order.data.fiatCurrency.denomSymbol}
-				{renderFiat(amountOut, order.data.fiatCurrency.symbol, order.data.fiatCurrency.decimals)}
+				{fiatCurrency.denomSymbol}
+				{renderFiat(amountOut, fiatCurrency.symbol, fiatCurrency.decimals)}
 			</Text>
 			<Box>
 				<Text bold primary style={styles.transactionTitle}>
@@ -164,7 +191,7 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 						</ListItem.Body>
 						<ListItem.Amount style={styles.transactionIdFlex}>
 							<Text small bold primary right>
-								{order.data.providerOrderId}
+								{providerOrderId}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -188,12 +215,12 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.paymentMethod.name}
+								{paymentMethod.name}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<Text small style={styles.provider}>
-						{strings('fiat_on_ramp_aggregator.transaction.via')} {order.data.provider.name}
+						{strings('fiat_on_ramp_aggregator.transaction.via')} {data.provider?.name}
 					</Text>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
@@ -204,30 +231,23 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 						<ListItem.Amount>
 							<Text small bold primary>
 								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(
-										order.data.cryptoAmount,
-										order.data.cryptoCurrency.decimals
-									).toString(),
-									order.data.cryptoCurrency.decimals
+									toTokenMinimalUnit(cryptoAmount, cryptoCurrency.decimals).toString(),
+									cryptoCurrency.decimals
 								)}{' '}
-								{order.data.cryptoCurrency.symbol}
+								{cryptoCurrency.symbol}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								{order.currency} {strings('send.amount')}
+								{fiatCurrency.symbol} {strings('send.amount')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.fiatCurrency.denomSymbol}
-								{renderFiat(
-									amountOut,
-									order.data.fiatCurrency.symbol,
-									order.data.fiatCurrency.decimals
-								)}
+								{fiatCurrency.denomSymbol}
+								{renderFiat(amountOut, fiatCurrency.symbol, fiatCurrency.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -241,8 +261,8 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 							<Text small bold primary>
 								1 {order.cryptocurrency} @{' '}
 								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(exchangeRate, order.data.cryptoCurrency.decimals).toString(),
-									order.data.cryptoCurrency.decimals
+									toTokenMinimalUnit(exchangeRate, cryptoCurrency.decimals).toString(),
+									cryptoCurrency.decimals
 								)}
 							</Text>
 						</ListItem.Amount>
@@ -255,12 +275,8 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.fiatCurrency.denomSymbol}
-								{renderFiat(
-									order.data.totalFeesFiat,
-									order.data.fiatCurrency.symbol,
-									order.data.fiatCurrency.decimals
-								)}
+								{fiatCurrency.denomSymbol}
+								{renderFiat(totalFeesFiat, fiatCurrency.symbol, fiatCurrency.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -276,13 +292,13 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					</ListItem.Body>
 					<ListItem.Amount>
 						<Text small bold primary>
-							{order.data.fiatCurrency.denomSymbol}
-							{renderFiat(order.amount, order.data.fiatCurrency.symbol, order.data.fiatCurrency.decimals)}
+							{fiatCurrency.denomSymbol}
+							{renderFiat(order.amount, fiatCurrency.symbol, fiatCurrency.decimals)}
 						</Text>
 					</ListItem.Amount>
 				</ListItem.Content>
 				{order.state === SDK_ORDER_STATUS.Completed && (
-					<TouchableOpacity onPress={() => handleLinkPress('https://etherscan.io/tx/' + order.data.txHash)}>
+					<TouchableOpacity onPress={() => handleLinkPress(explorer.tx(txHash))}>
 						<Text blue small centered style={styles.link}>
 							{strings('fiat_on_ramp_aggregator.transaction.etherscan')}
 						</Text>
@@ -293,7 +309,8 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 				<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
 				<TouchableOpacity>
 					<Text small underline>
-						{strings('fiat_on_ramp_aggregator.transaction.contact')} {order.data.provider.name}{' '}
+						{strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
+						{getProviderName(data.provider?.name, data)}{' '}
 						{strings('fiat_on_ramp_aggregator.transaction.support')}
 					</Text>
 				</TouchableOpacity>
