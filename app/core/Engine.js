@@ -179,7 +179,8 @@ class Engine {
 						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
 					},
 					{ encryptor },
-					initialState.KeyringController
+					initialState.KeyringController,
+					additionalKeyrings
 				),
 				new AccountTrackerController({
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
