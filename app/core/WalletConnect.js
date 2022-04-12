@@ -71,290 +71,278 @@ const waitForKeychainUnlocked = async () => {
 };
 
 class WalletConnect {
-  redirectUrl = null;
-  autosign = false;
-  backgroundBridge = null;
-  url = { current: null };
-  title = { current: null };
-  icon = { current: null };
-  dappScheme = { current: null };
-  requestsToRedirect = {};
-  hostname = null;
-  requestOriginatedFrom = null;
+	redirectUrl = null;
+	autosign = false;
+	backgroundBridge = null;
+	url = { current: null };
+	title = { current: null };
+	icon = { current: null };
+	dappScheme = { current: null };
+	requestsToRedirect = {};
+	hostname = null;
+	requestOriginatedFrom = null;
 
-  constructor(options, existing) {
-    if (options.session.redirectUrl) {
-      this.redirectUrl = options.session.redirectUrl;
-    }
+	constructor(options, existing) {
+		if (options.session.redirectUrl) {
+			this.redirectUrl = options.session.redirectUrl;
+		}
 
-    if (options.session.autosign) {
-      this.autosign = options.session.autosign;
-    }
+		if (options.session.autosign) {
+			this.autosign = options.session.autosign;
+		}
 
-    if (options.session.requestOriginatedFrom) {
-      this.requestOriginatedFrom = options.session.requestOriginatedFrom;
-    }
+		if (options.session.requestOriginatedFrom) {
+			this.requestOriginatedFrom = options.session.requestOriginatedFrom;
+		}
 
-    this.walletConnector = new RNWalletConnect({
-      ...options,
-      ...CLIENT_OPTIONS,
-    });
-    /**
-     *  Subscribe to session requests
-     */
-    this.walletConnector.on('session_request', async (error, payload) => {
-      Logger.log('WC session_request:', payload);
-      if (error) {
-        throw error;
-      }
+		this.walletConnector = new RNWalletConnect({ ...options, ...CLIENT_OPTIONS });
+		/**
+		 *  Subscribe to session requests
+		 */
+		this.walletConnector.on('session_request', async (error, payload) => {
+			Logger.log('WC session_request:', payload);
+			if (error) {
+				throw error;
+			}
 
-      await waitForKeychainUnlocked();
+			await waitForKeychainUnlocked();
 
-      try {
-        const sessionData = {
-          ...payload.params[0],
-          autosign: this.autosign,
-          redirectUrl: this.redirectUrl,
-          requestOriginatedFrom: this.requestOriginatedFrom,
-        };
+			try {
+				const sessionData = {
+					...payload.params[0],
+					autosign: this.autosign,
+					redirectUrl: this.redirectUrl,
+					requestOriginatedFrom: this.requestOriginatedFrom,
+				};
 
-        Logger.log('WC:', sessionData);
+				Logger.log('WC:', sessionData);
 
-        await waitForInitialization();
-        await this.sessionRequest(sessionData);
+				await waitForInitialization();
+				await this.sessionRequest(sessionData);
 
-        this.startSession(sessionData, existing);
+				this.startSession(sessionData, existing);
 
-        this.redirect();
-      } catch (e) {
-        this.walletConnector.rejectSession();
-        this.redirect();
-      }
-    });
+				this.redirect();
+			} catch (e) {
+				this.walletConnector.rejectSession();
+				this.redirect();
+			}
+		});
 
-    /**
-     *  Subscribe to call requests
-     */
-    this.walletConnector.on('call_request', async (error, payload) => {
-      if (tempCallIds.includes(payload.id)) return;
-      tempCallIds.push(payload.id);
+		/**
+		 *  Subscribe to call requests
+		 */
+		this.walletConnector.on('call_request', async (error, payload) => {
+			if (tempCallIds.includes(payload.id)) return;
+			tempCallIds.push(payload.id);
 
-      await waitForKeychainUnlocked();
+			await waitForKeychainUnlocked();
 
-      Logger.log('CALL_REQUEST', error, payload);
-      if (error) {
-        throw error;
-      }
+			Logger.log('CALL_REQUEST', error, payload);
+			if (error) {
+				throw error;
+			}
 
-      if (payload.method) {
-        const payloadUrl = this.walletConnector.session.peerMeta.url;
+			if (payload.method) {
+				const payloadUrl = this.walletConnector.session.peerMeta.url;
 
-        if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
-          if (METHODS_TO_REDIRECT[payload.method]) {
-            this.requestsToRedirect[payload.id] = true;
-          }
+				if (new URL(payloadUrl).hostname === this.backgroundBridge.url) {
+					if (METHODS_TO_REDIRECT[payload.method]) {
+						this.requestsToRedirect[payload.id] = true;
+					}
 
-          if (payload.method === 'eth_signTypedData') {
-            payload.method = 'eth_signTypedData_v3';
-          }
+					if (payload.method === 'eth_signTypedData') {
+						payload.method = 'eth_signTypedData_v3';
+					}
 
-          // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
-          if (payload.method === 'eth_sendTransaction') {
-            const { TransactionController } = Engine.context;
-            try {
-              const selectedAddress =
-                Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+					// We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
+					if (payload.method === 'eth_sendTransaction') {
+						const { TransactionController } = Engine.context;
+						try {
+							const selectedAddress =
+								Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 
-              checkActiveAccountAndChainId({
-                address: payload.params[0].from,
-                chainId: payload.params[0].chainId,
-                activeAccounts: [selectedAddress],
-              });
+							checkActiveAccountAndChainId({
+								address: payload.params[0].from,
+								chainId: payload.params[0].chainId,
+								activeAccounts: [selectedAddress],
+							});
 
-              const hash = await (
-                await TransactionController.addTransaction(
-                  payload.params[0],
-                  this.url.current
-                    ? WALLET_CONNECT_ORIGIN + this.url.current
-                    : undefined,
-                  WalletDevice.MM_MOBILE,
-                )
-              ).result;
-              this.approveRequest({
-                id: payload.id,
-                result: hash,
-              });
-            } catch (error) {
-              this.rejectRequest({
-                id: payload.id,
-                error,
-              });
-            }
-            return;
-          }
+							const hash = await (
+								await TransactionController.addTransaction(
+									payload.params[0],
+									this.url.current ? WALLET_CONNECT_ORIGIN + this.url.current : undefined,
+									WalletDevice.MM_MOBILE
+								)
+							).result;
+							this.approveRequest({
+								id: payload.id,
+								result: hash,
+							});
+						} catch (error) {
+							this.rejectRequest({
+								id: payload.id,
+								error,
+							});
+						}
+						return;
+					}
 
-          this.backgroundBridge.onMessage({
-            name: 'walletconnect-provider',
-            data: payload,
-            origin: this.hostname,
-          });
-        }
-      }
+					this.backgroundBridge.onMessage({
+						name: 'walletconnect-provider',
+						data: payload,
+						origin: this.hostname,
+					});
+				}
+			}
 
-      // Clean call ids
-      tempCallIds.length = 0;
-    });
+			// Clean call ids
+			tempCallIds.length = 0;
+		});
 
-    /**
-     *  Subscribe to disconnect
-     */
-    this.walletConnector.on('disconnect', (error) => {
-      if (error) {
-        throw error;
-      }
-      this.killSession();
-      persistSessions();
-    });
+		/**
+		 *	Subscribe to disconnect
+		 */
+		this.walletConnector.on('disconnect', (error) => {
+			if (error) {
+				throw error;
+			}
+			this.killSession();
+			persistSessions();
+		});
 
-    this.walletConnector.on('session_update', (error, payload) => {
-      Logger.log('WC: Session update', payload);
-      if (error) {
-        throw error;
-      }
-    });
+		this.walletConnector.on('session_update', (error, payload) => {
+			Logger.log('WC: Session update', payload);
+			if (error) {
+				throw error;
+			}
+		});
 
-    if (existing) {
-      this.startSession(options.session, existing);
-    }
-  }
+		if (existing) {
+			this.startSession(options.session, existing);
+		}
+	}
 
-  redirect = () => {
-    if (this.requestOriginatedFrom === AppConstants.DEEPLINKS.ORIGIN_QR_CODE)
-      return;
+	redirect = () => {
+		if (this.requestOriginatedFrom === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
-    setTimeout(() => {
-      if (this.dappScheme.current || this.redirectUrl) {
-        Linking.openURL(
-          this.dappScheme.current
-            ? `${this.dappScheme.current}://`
-            : this.redirectUrl,
-        );
-      } else {
-        Minimizer.goBack();
-      }
-    }, 300);
-  };
+		setTimeout(() => {
+			if (this.dappScheme.current || this.redirectUrl) {
+				Linking.openURL(this.dappScheme.current ? `${this.dappScheme.current}://` : this.redirectUrl);
+			} else {
+				Minimizer.goBack();
+			}
+		}, 300);
+	};
 
-  needsRedirect = (id) => {
-    if (this.requestsToRedirect[id]) {
-      delete this.requestsToRedirect[id];
-      this.redirect();
-    }
-  };
+	needsRedirect = (id) => {
+		if (this.requestsToRedirect[id]) {
+			delete this.requestsToRedirect[id];
+			this.redirect();
+		}
+	};
 
-  approveRequest = ({ id, result }) => {
-    this.walletConnector.approveRequest({
-      id,
-      result,
-    });
-    this.needsRedirect(id);
-  };
+	approveRequest = ({ id, result }) => {
+		this.walletConnector.approveRequest({
+			id,
+			result,
+		});
+		this.needsRedirect(id);
+	};
 
-  rejectRequest = ({ id, error }) => {
-    this.walletConnector.rejectRequest({
-      id,
-      error,
-    });
-    this.needsRedirect(id);
-  };
+	rejectRequest = ({ id, error }) => {
+		this.walletConnector.rejectRequest({
+			id,
+			error,
+		});
+		this.needsRedirect(id);
+	};
 
-  updateSession = ({ chainId, accounts }) => {
-    this.walletConnector.updateSession({
-      chainId,
-      accounts,
-    });
-  };
+	updateSession = ({ chainId, accounts }) => {
+		this.walletConnector.updateSession({
+			chainId,
+			accounts,
+		});
+	};
 
-  startSession = async (sessionData, existing) => {
-    const chainId = Engine.context.NetworkController.state.provider.chainId;
-    const selectedAddress =
-      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-    const approveData = {
-      chainId: parseInt(chainId, 10),
-      accounts: [selectedAddress],
-    };
-    if (existing) {
-      this.walletConnector.updateSession(approveData);
-    } else {
-      await this.walletConnector.approveSession(approveData);
-      persistSessions();
-    }
+	startSession = async (sessionData, existing) => {
+		const chainId = Engine.context.NetworkController.state.provider.chainId;
+		const selectedAddress = Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
+		const approveData = {
+			chainId: parseInt(chainId, 10),
+			accounts: [selectedAddress],
+		};
+		if (existing) {
+			this.walletConnector.updateSession(approveData);
+		} else {
+			await this.walletConnector.approveSession(approveData);
+			persistSessions();
+		}
 
-    this.url.current = sessionData.peerMeta.url;
-    this.title.current = sessionData.peerMeta?.name;
-    this.icon.current = sessionData.peerMeta?.icons?.[0];
-    this.dappScheme.current = sessionData.peerMeta?.dappScheme;
+		this.url.current = sessionData.peerMeta.url;
+		this.title.current = sessionData.peerMeta?.name;
+		this.icon.current = sessionData.peerMeta?.icons?.[0];
+		this.dappScheme.current = sessionData.peerMeta?.dappScheme;
 
-    this.hostname = new URL(this.url.current).hostname;
+		this.hostname = new URL(this.url.current).hostname;
 
-    this.backgroundBridge = new BackgroundBridge({
-      webview: null,
-      url: this.hostname,
-      isWalletConnect: true,
-      wcWalletConnector: this.walletConnector,
-      wcRequestActions: {
-        approveRequest: this.approveRequest,
-        rejectRequest: this.rejectRequest,
-        updateSession: this.updateSession,
-      },
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
-        getRpcMethodMiddleware({
-          hostname: WALLET_CONNECT_ORIGIN + this.hostname,
-          getProviderState,
-          navigation: null, //props.navigation,
-          getApprovedHosts: () => null,
-          setApprovedHosts: () => null,
-          approveHost: () => null, //props.approveHost,
-          // Website info
-          url: this.url,
-          title: this.title,
-          icon: this.icon,
-          // Bookmarks
-          isHomepage: false,
-          // Show autocomplete
-          fromHomepage: false,
-          setAutocompleteValue: () => null,
-          setShowUrlModal: () => null,
-          // Wizard
-          wizardScrollAdjusted: () => null,
-          tabId: false,
-          isWalletConnect: true,
-        }),
-      isMainFrame: true,
-    });
-  };
+		this.backgroundBridge = new BackgroundBridge({
+			webview: null,
+			url: this.hostname,
+			isWalletConnect: true,
+			wcWalletConnector: this.walletConnector,
+			wcRequestActions: {
+				approveRequest: this.approveRequest,
+				rejectRequest: this.rejectRequest,
+				updateSession: this.updateSession,
+			},
+			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+				getRpcMethodMiddleware({
+					hostname: WALLET_CONNECT_ORIGIN + this.hostname,
+					getProviderState,
+					navigation: null, //props.navigation,
+					getApprovedHosts: () => null,
+					setApprovedHosts: () => null,
+					approveHost: () => null, //props.approveHost,
+					// Website info
+					url: this.url,
+					title: this.title,
+					icon: this.icon,
+					// Bookmarks
+					isHomepage: false,
+					// Show autocomplete
+					fromHomepage: false,
+					toggleUrlModal: () => null,
+					// Wizard
+					wizardScrollAdjusted: () => null,
+					tabId: false,
+					isWalletConnect: true,
+				}),
+			isMainFrame: true,
+		});
+	};
 
-  killSession = () => {
-    this.backgroundBridge?.onDisconnect();
-    this.walletConnector && this.walletConnector.killSession();
-    this.walletConnector = null;
-  };
+	killSession = () => {
+		this.backgroundBridge?.onDisconnect();
+		this.walletConnector && this.walletConnector.killSession();
+		this.walletConnector = null;
+	};
 
-  sessionRequest = (peerInfo) =>
-    new Promise((resolve, reject) => {
-      hub.emit('walletconnectSessionRequest', peerInfo);
+	sessionRequest = (peerInfo) =>
+		new Promise((resolve, reject) => {
+			hub.emit('walletconnectSessionRequest', peerInfo);
 
-      hub.on('walletconnectSessionRequest::approved', (peerId) => {
-        if (peerInfo.peerId === peerId) {
-          resolve(true);
-        }
-      });
-      hub.on('walletconnectSessionRequest::rejected', (peerId) => {
-        if (peerInfo.peerId === peerId) {
-          reject(new Error('walletconnectSessionRequest::rejected'));
-        }
-      });
-    });
+			hub.on('walletconnectSessionRequest::approved', (peerId) => {
+				if (peerInfo.peerId === peerId) {
+					resolve(true);
+				}
+			});
+			hub.on('walletconnectSessionRequest::rejected', (peerId) => {
+				if (peerInfo.peerId === peerId) {
+					reject(new Error('walletconnectSessionRequest::rejected'));
+				}
+			});
+		});
 }
 
 const instance = {

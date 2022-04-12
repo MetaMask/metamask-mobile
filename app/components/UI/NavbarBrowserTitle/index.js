@@ -64,40 +64,36 @@ const createStyles = (colors) =>
  * showing the view title and the selected network
  */
 class NavbarBrowserTitle extends PureComponent {
-  static propTypes = {
-    /**
-     * String representing the current url
-     */
-    url: PropTypes.string,
-    /**
-     * Object representing the selected the selected network
-     */
-    network: PropTypes.object.isRequired,
-    /**
-     * hostname of the current webview
-     */
-    hostname: PropTypes.string.isRequired,
-    /**
-     * Boolean that specifies if it is a secure website
-     */
-    https: PropTypes.bool,
-    /**
-     * Boolean that specifies if there is an error
-     */
-    error: PropTypes.bool,
-    /**
-     * Website icon
-     */
-    icon: PropTypes.string,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-  };
+	static propTypes = {
+		/**
+		 * Object representing the selected the selected network
+		 */
+		network: PropTypes.object.isRequired,
+		/**
+		 * hostname of the current webview
+		 */
+		hostname: PropTypes.string.isRequired,
+		/**
+		 * Boolean that specifies if it is a secure website
+		 */
+		https: PropTypes.bool,
+		/**
+		 * Boolean that specifies if there is an error
+		 */
+		error: PropTypes.bool,
+		/**
+		 * Website icon
+		 */
+		icon: PropTypes.string,
+		/**
+		 * Object that represents the current route info like params passed to it
+		 */
+		route: PropTypes.object,
+	};
 
-  onTitlePress = () => {
-    this.props.route.params?.showUrlModal?.({ urlInput: this.props.url });
-  };
+	onTitlePress = () => {
+		this.props.route.params?.showUrlModal?.();
+	};
 
   getNetworkName(network) {
     let name = { ...Networks.rpc, color: null }.name;

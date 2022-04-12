@@ -28,7 +28,7 @@ const BrowserUrlModal = (props: Props) => {
 	}, []);
 
 	const triggerClose = () => dismissModal();
-	const triggerOnSubmit = () => dismissModal(() => onUrlInputSubmit(autocompleteValue));
+	const triggerOnSubmit = (val: string) => dismissModal(() => onUrlInputSubmit(val));
 
 	const renderContent = () => (
 		<>
@@ -41,7 +41,7 @@ const BrowserUrlModal = (props: Props) => {
 						autoCorrect={false}
 						testID={'url-input'}
 						onChangeText={setAutocompleteValue}
-						onSubmitEditing={triggerOnSubmit}
+						onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
 						placeholder={strings('autocomplete.placeholder')}
 						placeholderTextColor={colors.text.muted}
 						returnKeyType="go"

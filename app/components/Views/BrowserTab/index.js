@@ -60,7 +60,7 @@ import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
-const HOMEPAGE_HOST = 'home.metamask.io';
+const HOMEPAGE_HOST = 'localhost:3000';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const createStyles = (colors) =>
@@ -337,35 +337,6 @@ export const BrowserTab = (props) => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
-
-	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
-		const newBridge = new BackgroundBridge({
-			webview: webviewRef,
-			url: urlBridge,
-			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
-				getRpcMethodMiddleware({
-					hostname,
-					getProviderState,
-					navigation: props.navigation,
-					getApprovedHosts,
-					setApprovedHosts,
-					approveHost: props.approveHost,
-					// Website info
-					url,
-					title,
-					icon,
-					// Bookmarks
-					isHomepage,
-					// Show autocomplete
-					fromHomepage,
-					// Wizard
-					wizardScrollAdjusted,
-					tabId: props.id,
-				}),
-			isMainFrame,
-		});
-		backgroundBridges.current.push(newBridge);
-	};
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -773,36 +744,6 @@ export const BrowserTab = (props) => {
 	};
 
 	/**
-	 * Website started to load
-	 */
-	const onLoadStart = async ({ nativeEvent }) => {
-		const { hostname } = new URL(nativeEvent.url);
-		if (!isAllowedUrl(hostname)) {
-			return handleNotAllowedUrl(nativeEvent.url);
-		}
-		webviewUrlPostMessagePromiseResolve.current = null;
-		setError(false);
-
-		changeUrl(nativeEvent, 'start');
-
-		//For Android url on the navigation bar should only update upon load.
-		if (Device.isAndroid()) {
-			changeAddressBar(nativeEvent, 'start');
-		}
-
-		icon.current = null;
-		if (isHomepage(nativeEvent.url)) {
-			injectHomePageScripts();
-		}
-
-		// Reset the previous bridges
-		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-		backgroundBridges.current = [];
-		const origin = new URL(nativeEvent.url).origin;
-		initializeBackgroundBridge(origin, true);
-	};
-
-	/**
 	 * Sets loading bar progress
 	 */
 	const onLoadProgress = ({ nativeEvent: { progress } }) => {
@@ -911,11 +852,73 @@ export const BrowserTab = (props) => {
 	 * Shows or hides the url input modal.
 	 * When opened it sets the current website url on the input.
 	 */
-	const toggleUrlModal = useCallback(() => {
-		const urlToShow = getMaskedUrl(url.current);
-		props.navigation.navigate('BrowserUrlModal', { url: urlToShow, onUrlInputSubmit });
+	const toggleUrlModal = useCallback(
+		(shouldClearInput = false) => {
+			const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
+			props.navigation.navigate('BrowserUrlModal', { url: urlToShow, onUrlInputSubmit });
+		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [onUrlInputSubmit]);
+		[onUrlInputSubmit]
+	);
+
+	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
+		const newBridge = new BackgroundBridge({
+			webview: webviewRef,
+			url: urlBridge,
+			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+				getRpcMethodMiddleware({
+					hostname,
+					getProviderState,
+					navigation: props.navigation,
+					getApprovedHosts,
+					setApprovedHosts,
+					approveHost: props.approveHost,
+					// Website info
+					url,
+					title,
+					icon,
+					// Bookmarks
+					toggleUrlModal,
+					isHomepage,
+					fromHomepage,
+					// Wizard
+					wizardScrollAdjusted,
+					tabId: props.id,
+				}),
+			isMainFrame,
+		});
+		backgroundBridges.current.push(newBridge);
+	};
+
+	/**
+	 * Website started to load
+	 */
+	const onLoadStart = async ({ nativeEvent }) => {
+		const { hostname } = new URL(nativeEvent.url);
+		if (!isAllowedUrl(hostname)) {
+			return handleNotAllowedUrl(nativeEvent.url);
+		}
+		webviewUrlPostMessagePromiseResolve.current = null;
+		setError(false);
+
+		changeUrl(nativeEvent, 'start');
+
+		//For Android url on the navigation bar should only update upon load.
+		if (Device.isAndroid()) {
+			changeAddressBar(nativeEvent, 'start');
+		}
+
+		icon.current = null;
+		if (isHomepage(nativeEvent.url)) {
+			injectHomePageScripts();
+		}
+
+		// Reset the previous bridges
+		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
+		backgroundBridges.current = [];
+		const origin = new URL(nativeEvent.url).origin;
+		initializeBackgroundBridge(origin, true);
+	};
 
 	/**
 	 * Enable the header to toggle the url modal and update other header data
@@ -1217,7 +1220,7 @@ export const BrowserTab = (props) => {
 		const onDownloadFinished = () => {
 			const { current } = webviewRef;
 			current && current.stopLoading();
-			changeUrl('');
+			changeUrl('', 'end-promise');
 			setProgress(1);
 		};
 		const downloadResponse = await downloadFile(downloadUrl);
