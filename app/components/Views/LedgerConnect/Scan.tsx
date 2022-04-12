@@ -144,7 +144,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 						onDeviceSelected(e.descriptor);
 					}
 				},
-				error: (_error: any) => {
+				error: (_error) => {
 					Alert.alert(
 						strings('ledger.bluetooth_scanning_error'),
 						strings('ledger.bluetooth_scanning_error_message')
