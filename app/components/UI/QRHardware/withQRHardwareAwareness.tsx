@@ -29,8 +29,8 @@ const withQRHardwareAwareness = (
 				keyringState.current.subscribe(subscribeKeyringState);
 			});
 			return () => {
-				if (keyringState) {
-					keyringState.unsubscribe(subscribeKeyringState);
+				if (keyringState.current) {
+					keyringState.current.unsubscribe(subscribeKeyringState);
 				}
 			};
 		}, []);
