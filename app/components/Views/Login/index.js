@@ -17,7 +17,6 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
-import Engine from '../../../core/Engine';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -215,7 +214,13 @@ class Login extends PureComponent {
 		 * Route passed in props from navigation
 		 */
 		route: PropTypes.object,
+		/**
+		 * User login staus
+		 */
 		userLoggedIn: PropTypes.bool,
+		/**
+		 * Users current address
+		 */
 		selectedAddress: PropTypes.string,
 	};
 
@@ -262,6 +267,11 @@ class Login extends PureComponent {
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
 				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
+			});
+		else if (type === AUTHENTICATION_TYPE.REMEMBER_ME)
+			this.setState({
+				hasBiometricCredentials: false,
+				rememberMe: true,
 			});
 	}
 
@@ -329,7 +339,7 @@ class Login extends PureComponent {
 	tryBiometric = async (e) => {
 		if (e) e.preventDefault();
 		const { current: field } = this.fieldRef;
-		field.blur();
+		field?.blur();
 		try {
 			await Authentication.appTriggeredAuth(this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -346,7 +356,7 @@ class Login extends PureComponent {
 			this.setState({ hasBiometricCredentials: true });
 			Logger.log(error);
 		}
-		field.blur();
+		field?.blur();
 	};
 
 	triggerLogIn = () => {
@@ -354,11 +364,10 @@ class Login extends PureComponent {
 	};
 
 	delete = async () => {
-		const { KeyringController } = Engine.context;
 		try {
 			await Authentication.newWalletAndKeyChain(`${Date.now()}`);
-			await KeyringController.setLocked();
 			this.deleteExistingUser();
+			await Authentication.logout();
 		} catch (error) {
 			Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);
 		}

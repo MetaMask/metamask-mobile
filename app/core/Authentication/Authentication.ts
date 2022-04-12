@@ -140,10 +140,9 @@ class AuthenticationService {
 
 	/**
 	 * Checks the authetincation type configured in the previous login
-	 * @param credentials - credentials provided by the user
 	 * @returns @AuthData
 	 */
-	checkAuthenticationMethod = async (credentials: any): Promise<AuthData> => {
+	checkAuthenticationMethod = async (): Promise<AuthData> => {
 		const biometryType: any = await SecureKeychain.getSupportedBiometryType();
 		const biometryPreviouslyDisabled = await AsyncStorage.getItem(BIOMETRY_CHOICE_DISABLED);
 		const passcodePreviouslyDisabled = await AsyncStorage.getItem(PASSCODE_DISABLED);
@@ -152,7 +151,7 @@ class AuthenticationService {
 			return { type: AUTHENTICATION_TYPE.BIOMETRIC, biometryType };
 		} else if (biometryType && !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE)) {
 			return { type: AUTHENTICATION_TYPE.PASSCODE, biometryType };
-		} else if (credentials) {
+		} else if (await SecureKeychain.getGenericPassword()) {
 			return { type: AUTHENTICATION_TYPE.REMEMBER_ME, biometryType };
 		}
 		return { type: AUTHENTICATION_TYPE.PASSWORD, biometryType };
@@ -223,7 +222,7 @@ class AuthenticationService {
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
-			this.logout();
+			this.logout(false);
 			throw new AuthenticationError(e, 'Failed wallet creation', this.authData);
 		}
 	};
@@ -241,7 +240,7 @@ class AuthenticationService {
 			this.dispatchLogin();
 			this.authData = authData;
 		} catch (e: any) {
-			this.logout();
+			this.logout(false);
 			throw new AuthenticationError(e, 'Failed to login', this.authData);
 		}
 	};
@@ -258,7 +257,7 @@ class AuthenticationService {
 			if (!credentials) await this.storePassword(password, this.authData.type);
 			this.dispatchLogin();
 		} catch (e: any) {
-			this.logout();
+			this.logout(false);
 			throw new AuthenticationError(e, 'appTriggeredAuth failed to login', this.authData);
 		}
 	};
@@ -266,9 +265,9 @@ class AuthenticationService {
 	/**
 	 * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
 	 */
-	logout = async (): Promise<void> => {
+	logout = async (reset = true): Promise<void> => {
 		const { KeyringController }: any = Engine.context;
-		await SecureKeychain.resetGenericPassword();
+		if (reset) await SecureKeychain.resetGenericPassword();
 		if (KeyringController.isUnlocked()) {
 			await KeyringController.setLocked();
 		}
@@ -276,7 +275,7 @@ class AuthenticationService {
 		this.dispatchLogout();
 	};
 
-	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod(undefined);
+	getType = async (): Promise<AuthData> => await this.checkAuthenticationMethod();
 }
 // eslint-disable-next-line import/prefer-default-export
 export const Authentication = new AuthenticationService();
