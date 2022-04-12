@@ -68,7 +68,7 @@ workflows:
             - script@1:
                   inputs:
                       - content: |-
-                            #!/usr/bin/env bash 
+                            #!/usr/bin/env bash
                             echo 'weew - everything passed!'
                   title: All Tests Passed
                   is_always_run: false
@@ -323,10 +323,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-          VERSION_NAME: 4.3.1
+          VERSION_NAME: 4.4.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 859
+          VERSION_NUMBER: 869
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
@@ -337,6 +337,5 @@ app:
               is_expand: false
           IOS_APP_LINK: ''
 meta:
-  bitrise.io:
-    stack: osx-xcode-13.3.x
-
+    bitrise.io:
+        stack: osx-xcode-13.3.x
