@@ -5,11 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { RPC } from '../../../constants/network';
-import { findBlockExplorerForRpc } from '../../../util/networks';
-import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import { strings } from '../../../../locales/i18n';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -53,22 +51,23 @@ interface Props {
 	route: {
 		params: {
 			address: string;
-			showTokenDetails: boolean;
+			isNativeCurrency: boolean;
 		};
 	};
 }
 
 const AssetOptions = (props: Props) => {
-	const { address, showTokenDetails } = props.route.params;
+	const { address, isNativeCurrency } = props.route.params;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const safeAreaInsets = useSafeAreaInsets();
 	const navigation = useNavigation();
 	const modalRef = useRef<ReusableModalRef>(null);
-	const network = useSelector((state: any) => state.engine.backgroundState.NetworkController);
+	const provider = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider);
 	const frequentRpcList = useSelector(
 		(state: any) => state.engine.backgroundState.PreferencesController.frequentRpcList
 	);
+	const explorer = useBlockExplorer(provider, frequentRpcList);
 
 	const goToBrowserUrl = (url: string, title: string) => {
 		modalRef.current?.dismissModal(() => {
@@ -83,17 +82,16 @@ const AssetOptions = (props: Props) => {
 	};
 
 	const openOnEtherscan = () => {
-		const { rpcTarget, type } = network.provider;
-		if (network.provider.type === RPC) {
-			const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
-			const url = `${blockExplorer}/token/${address}`;
-			const title = new URL(blockExplorer).hostname;
-			goToBrowserUrl(url, title);
+		let url = '';
+		const title = new URL(explorer.baseUrl).hostname;
+		if (isNativeCurrency) {
+			// Go to block explorer
+			url = explorer.baseUrl;
 		} else {
-			const url = getEtherscanAddressUrl(type, address);
-			const etherscanUrl = getEtherscanBaseUrl(type).replace('https://', '');
-			goToBrowserUrl(url, etherscanUrl);
+			// Go to token on block explorer
+			url = explorer.token(address);
 		}
+		goToBrowserUrl(url, title);
 	};
 
 	const openTokenDetails = () => {
@@ -104,7 +102,7 @@ const AssetOptions = (props: Props) => {
 
 	const renderOptions = () => {
 		const options: Option[] = [{ label: strings('asset_details.options.view_on_block'), onPress: openOnEtherscan }];
-		showTokenDetails &&
+		!isNativeCurrency &&
 			options.push({ label: strings('asset_details.options.token_details'), onPress: openTokenDetails });
 		return (
 			<>

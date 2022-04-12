@@ -110,7 +110,7 @@ class Asset extends PureComponent {
 				false,
 				navigation,
 				colors,
-				() => navigation.navigate('AssetOptions', { showTokenDetails: !isETH }),
+				() => navigation.navigate('AssetOptions', { isNativeCurrency: isETH }),
 				true
 			)
 		);

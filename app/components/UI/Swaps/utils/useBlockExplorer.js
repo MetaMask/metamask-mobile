@@ -3,9 +3,10 @@ import etherscanLink from '@metamask/etherscan-link';
 import { RPC } from '../../../../constants/network';
 import { findBlockExplorerForRpc, getBlockExplorerName } from '../../../../util/networks';
 import { strings } from '../../../../../locales/i18n';
+import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 
 function useBlockExplorer(provider, frequentRpcList) {
-	const [explorer, setExplorer] = useState({ name: '', value: null, isValid: false, isRPC: false });
+	const [explorer, setExplorer] = useState({ name: '', value: null, isValid: false, isRPC: false, baseUrl: '' });
 
 	useEffect(() => {
 		if (provider.type === RPC) {
@@ -20,12 +21,18 @@ function useBlockExplorer(provider, frequentRpcList) {
 				}
 
 				const name = getBlockExplorerName(blockExplorer) || strings('swaps.block_explorer');
-				setExplorer({ name, value: blockExplorer, isValid: true, isRPC: true });
+				setExplorer({ name, value: blockExplorer, isValid: true, isRPC: true, baseUrl: url.href });
 			} catch {
-				setExplorer({ name: '', value: null, isValid: false, isRPC: false });
+				setExplorer({ name: '', value: null, isValid: false, isRPC: false, baseUrl: '' });
 			}
 		} else {
-			setExplorer({ name: 'Etherscan', value: provider.chainId, isValid: true, isRPC: false });
+			setExplorer({
+				name: 'Etherscan',
+				value: provider.chainId,
+				isValid: true,
+				isRPC: false,
+				baseUrl: getEtherscanBaseUrl(provider.type),
+			});
 		}
 	}, [frequentRpcList, provider]);
 

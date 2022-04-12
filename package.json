@@ -105,7 +105,7 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.3.0",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "27.1.1",
+    "@metamask/controllers": "https://github.com/MetaMask/controllers.git#qa/feature/3157-token-detection-v2-controllers",
     "@metamask/design-tokens": "^1.5.1",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.6.0",
