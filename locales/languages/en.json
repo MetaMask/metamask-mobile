@@ -1077,7 +1077,9 @@
 		"network_name": "{{networkName}} Network",
 		"network_added": " is now available in the network selector.",
     "provider": "A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully",
-    "no_match": "No matching results found."
+    "no_match": "No matching results found.",
+    "empty_popular_networks": "You’ve added all the popular networks. You can discover more networks here. Or you can",
+		"add_network": "add more networks manually."
   },
   "select": {
     "cancel": "Cancel",
