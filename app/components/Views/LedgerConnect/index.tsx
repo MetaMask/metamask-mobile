@@ -3,6 +3,7 @@ import { View, StyleSheet, Image, SafeAreaView, TextStyle, Alert, ActivityIndica
 import { useNavigation } from '@react-navigation/native';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
+import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
@@ -85,8 +86,8 @@ const LedgerConnect = () => {
 			setIsConnecting(false);
 
 			Alert.alert(
-				'Bluetooth connection failed',
-				'Please make sure your Ledger is unlocked and your Bluetooth is enabled'
+				strings('ledger.bluetooth_connection_failed'),
+				strings('ledger.bluetooth_connection_failed_message')
 			);
 
 			return;
@@ -97,7 +98,7 @@ const LedgerConnect = () => {
 			// Initialise the keyring and check for pre-conditions (is the correct app running?)
 			const appName = await KeyringController.connectLedgerHardware(transportRef.current, selectedDevice.id);
 			if (appName !== 'Ethereum') {
-				Alert.alert('Ethereum app is not running', 'Please open the Ethereum app on your device.');
+				Alert.alert(strings('ledger.ethereum_app_off'), strings('ledger.ethereum_app_off_message'));
 				setIsRetry(true);
 				setIsConnecting(false);
 				return;
@@ -113,10 +114,10 @@ const LedgerConnect = () => {
 			let errorMessage = e.message;
 
 			if (e.name === 'TransportStatusError' && e.message.includes('0x6b0c')) {
-				errorMessage = 'Please unlock your Ledger device';
+				errorMessage = strings('ledger.unlock_ledger_message');
 			}
 
-			Alert.alert('Cannot get account', errorMessage);
+			Alert.alert(strings('ledger.cannot_get_account'), errorMessage);
 			setIsRetry(true);
 		} finally {
 			setIsConnecting(false);
@@ -129,17 +130,15 @@ const LedgerConnect = () => {
 				{/* eslint-disable-next-line @typescript-eslint/no-require-imports */}
 				<Image source={require('../../../images/ledger.png')} style={styles.ledgerImage} />
 				<Text bold style={styles.connectLedgerText}>
-					Connect Ledger
+					{strings('ledger.connect_ledger')}
 				</Text>
 				<View style={styles.imageContainer}>
 					{/* eslint-disable-next-line @typescript-eslint/no-require-imports */}
 					<Image source={require('../../../images/ledger-connect.png')} />
 				</View>
 				<View style={styles.textContainer}>
-					<Text bold>Looking for device</Text>
-					<Text style={styles.instructionsText}>
-						Please make sure your Ledger Nano X is unlocked and bluetooth is enabled.
-					</Text>
+					<Text bold>{strings('ledger.looking_for_device')}</Text>
+					<Text style={styles.instructionsText}>{strings('ledger.ledger_reminder_message')}</Text>
 				</View>
 				<View style={styles.bodyContainer}>
 					<Scan onDeviceSelected={(ledgerDevice) => setSelectedDevice(ledgerDevice)} />
@@ -151,7 +150,13 @@ const LedgerConnect = () => {
 								testID={'add-network-button'}
 								disabled={isConnecting}
 							>
-								{isConnecting ? <ActivityIndicator color="#FFFFFF" /> : isRetry ? 'Retry' : 'Continue'}
+								{isConnecting ? (
+									<ActivityIndicator color="#FFFFFF" />
+								) : isRetry ? (
+									strings('ledger.retry')
+								) : (
+									strings('ledger.continue')
+								)}
 							</StyledButton>
 						</View>
 					)}

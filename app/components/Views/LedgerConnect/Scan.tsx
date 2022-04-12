@@ -6,6 +6,7 @@ import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { check, checkMultiple, PERMISSIONS, openSettings } from 'react-native-permissions';
 import { State } from 'react-native-ble-plx';
+import { strings } from '../../../../locales/i18n';
 
 import SelectComponent from '../../UI/SelectComponent';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
@@ -55,9 +56,9 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 
 				if (!e.available && e.type === State.PoweredOff) {
 					setBluetoothOn(false);
-					Alert.alert('Bluetooth is off', 'Please turn on bluetooth for your device', [
+					Alert.alert(strings('ledger.bluetooth_off'), strings('ledger.bluetooth_off_message'), [
 						{
-							text: 'Open Settings',
+							text: strings('ledger.open_settings'),
 							onPress: async () => {
 								Platform.OS === 'ios'
 									? Linking.openURL('App-Prefs:Bluetooth')
@@ -82,14 +83,18 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 				if (bluetoothAllowed) {
 					setHasBluetoothPermissions(true);
 				} else {
-					Alert.alert('Access blocked', 'Please enable bluetooth for you app', [
-						{
-							text: 'Open Settings',
-							onPress: async () => {
-								await openSettings();
+					Alert.alert(
+						strings('ledger.bluetooth_access_blocked'),
+						strings('ledger.bluetooth_access_blocked_message'),
+						[
+							{
+								text: strings('ledger.open_settings'),
+								onPress: async () => {
+									await openSettings();
+								},
 							},
-						},
-					]);
+						]
+					);
 				}
 			}
 
@@ -107,11 +112,11 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 					setHasBluetoothPermissions(true);
 				} else {
 					Alert.alert(
-						'Missing permissions',
-						'Make sure you enable Bluetooth and Location access in your device settings',
+						strings('ledger.bluetooth_missing_permissions'),
+						strings('ledger.bluetooth_missing_permissions_message'),
 						[
 							{
-								text: 'Open Settings',
+								text: strings('ledger.open_settings'),
 								onPress: async () => {
 									await openSettings();
 								},
@@ -139,10 +144,10 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 						onDeviceSelected(e.descriptor);
 					}
 				},
-				error: (_error) => {
+				error: (_error: any) => {
 					Alert.alert(
-						'Error while scanning the device',
-						'Please make sure your device is unlocked and the Ethereum app is running'
+						strings('ledger.bluetooth_scanning_error'),
+						strings('ledger.bluetooth_scanning_error_message')
 					);
 				},
 			});
@@ -162,7 +167,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 				<View style={styles.picker}>
 					<SelectComponent
 						options={options}
-						label="Available devices"
+						label={strings('ledger.available_devices')}
 						defaultValue={options[0]?.label}
 						onValueChange={(ledger: NanoDevice) => onDeviceSelected(ledger)}
 					/>
