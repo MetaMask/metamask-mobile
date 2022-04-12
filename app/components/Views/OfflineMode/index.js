@@ -3,7 +3,7 @@ import React from 'react';
 import { SafeAreaView, Image, View, StyleSheet } from 'react-native';
 import Text from '../../Base/Text';
 import NetInfo from '@react-native-community/netinfo';
-import { baseStyles, colors, fontStyles } from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../../UI/StyledButton';
@@ -13,42 +13,48 @@ import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { connect } from 'react-redux';
 import { getInfuraBlockedSelector } from '../../../reducers/infuraAvailability';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
-	frame: {
-		width: 200,
-		height: 200,
-		alignSelf: 'center',
-		marginTop: 60,
-	},
-	content: {
-		flex: 1,
-		marginHorizontal: 18,
-		justifyContent: 'center',
-		marginVertical: 30,
-	},
-	title: {
-		fontSize: 18,
-		color: colors.fontPrimary,
-		marginBottom: 10,
-		...fontStyles.bold,
-	},
-	text: {
-		fontSize: 12,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	buttonContainer: {
-		marginHorizontal: 18,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		container: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		frame: {
+			width: 200,
+			height: 200,
+			alignSelf: 'center',
+			marginTop: 60,
+		},
+		content: {
+			flex: 1,
+			marginHorizontal: 18,
+			justifyContent: 'center',
+			marginVertical: 30,
+		},
+		title: {
+			fontSize: 18,
+			color: colors.text.default,
+			marginBottom: 10,
+			...fontStyles.bold,
+		},
+		text: {
+			fontSize: 12,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		buttonContainer: {
+			marginHorizontal: 18,
+		},
+	});
 
 const astronautImage = require('../../../images/astronaut.png'); // eslint-disable-line import/no-commonjs
 
 const OfflineMode = ({ navigation, infuraBlocked }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
 	const netinfo = NetInfo.useNetInfo();
 
 	const tryAgain = () => {

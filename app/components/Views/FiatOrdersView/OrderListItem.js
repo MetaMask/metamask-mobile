@@ -37,7 +37,7 @@ function OrderListItem({ order }) {
 
 				<ListItem.Body>
 					<ListItem.Title>
-						{getProviderName(order.provider)}:{' '}
+						{getProviderName(order.provider, order.data)}:{' '}
 						{strings('fiat_on_ramp.purchased_currency', { currency: order.cryptocurrency })}
 					</ListItem.Title>
 					<StatusText status={order.state} context={'fiat_on_ramp'} />

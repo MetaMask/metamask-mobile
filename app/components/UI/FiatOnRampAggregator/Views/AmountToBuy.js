@@ -1,64 +1,73 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, Pressable, View, BackHandler } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import StyledButton from '../../StyledButton';
-import { strings } from '../../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
+// import sdk hooks
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
-import ScreenLayout from '../components/ScreenLayout';
 import Text from '../../../Base/Text';
+import SelectorButton from '../../../Base/SelectorButton';
+import StyledButton from '../../StyledButton';
+
+import ScreenLayout from '../components/ScreenLayout';
 import AssetSelectorButton from '../components/AssetSelectorButton';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import AmountInput from '../components/AmountInput';
 import Keypad from '../components/Keypad';
 import QuickAmounts from '../components/QuickAmounts';
-import SelectorButton from '../../../Base/SelectorButton';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
-// import sdk hooks
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 // import modals
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
-import { PAYMENT_METHOD_ICON } from '../constants';
-import WebviewError from '../../WebviewError';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
-import { currencyToKeypadCurrency, formatId } from '../utils';
+import WebviewError from '../../WebviewError';
+import { PAYMENT_METHOD_ICON } from '../constants';
 
-const styles = StyleSheet.create({
-	viewContainer: {
-		flex: 1,
-	},
-	selectors: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
-	},
-	spacer: {
-		minWidth: 8,
-	},
-	row: {
-		marginVertical: 5,
-	},
-	// eslint-disable-next-line react-native/no-color-literals
-	keypadContainer: {
-		position: 'absolute',
-		bottom: 0,
-		left: 0,
-		right: 0,
-		paddingBottom: 25,
-		backgroundColor: '#EDEFF2',
-	},
-	cta: {
-		paddingTop: 12,
-	},
-});
+import { getFiatOnRampAggNavbar } from '../../Navbar';
+import { useTheme } from '../../../../util/theme';
+import { formatId } from '../utils';
+import { strings } from '../../../../../locales/i18n';
+import Device from '../../../../util/device';
 
-const AmountToBuy = ({ navigation }) => {
+const createStyles = (colors) =>
+	StyleSheet.create({
+		viewContainer: {
+			flex: 1,
+		},
+		selectors: {
+			flexDirection: 'row',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+		},
+		spacer: {
+			minWidth: 8,
+		},
+		row: {
+			marginVertical: 5,
+		},
+		keypadContainer: {
+			position: 'absolute',
+			bottom: 0,
+			left: 0,
+			right: 0,
+			paddingBottom: 25,
+			backgroundColor: colors.background.alternative,
+		},
+		cta: {
+			paddingTop: 12,
+		},
+	});
+
+const AmountToBuy = () => {
+	const navigation = useNavigation();
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
+	const [amountNumber, setAmountNumber] = useState(0);
 	const [tokens, setTokens] = useState([]);
 	const [, setShowAlert] = useState(false);
 	const keyboardHeight = useRef(1000);
@@ -67,6 +76,10 @@ const AmountToBuy = ({ navigation }) => {
 	const [isFiatSelectorModalVisible, toggleFiatSelectorModal, , hideFiatSelectorModal] = useModalHandler(false);
 	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
+
+	useEffect(() => {
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Amount to Buy' }, colors));
+	}, [navigation, colors]);
 
 	const {
 		selectedPaymentMethod,
@@ -89,7 +102,8 @@ const AmountToBuy = ({ navigation }) => {
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
 		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
-		selectedPaymentMethod
+		selectedPaymentMethod,
+		selectedFiatCurrencyId
 	);
 
 	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
@@ -105,6 +119,7 @@ const AmountToBuy = ({ navigation }) => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
 		if (currencies && selectedFiatCurrencyId && selectedFiatCurrencyId !== formatId(selectedCountry?.currency)) {
 			setAmount('0');
+			setAmountNumber(0);
 			return currencies.find((currency) => currency.id === selectedFiatCurrencyId);
 		}
 
@@ -134,8 +149,13 @@ const AmountToBuy = ({ navigation }) => {
 		setAmountFocused(true);
 	}, []);
 
-	const handleKeypadChange = useCallback((newAmount) => {
-		setAmount(`${newAmount}`);
+	const handleKeypadChange = useCallback(({ value, valueAsNumber }) => {
+		setAmount(`${value}`);
+		setAmountNumber(valueAsNumber);
+	}, []);
+	const handleQuickAmountPress = useCallback((value) => {
+		setAmount(`${value}`);
+		setAmountNumber(value);
 	}, []);
 
 	const onKeypadLayout = useCallback((event) => {
@@ -212,17 +232,19 @@ const AmountToBuy = ({ navigation }) => {
 	}, [togglePaymentMethodModal]);
 
 	const handleGetQuotePress = useCallback(() => {
-		navigation.navigate('GetQuotes', { amount });
-	}, [amount, navigation]);
+		navigation.navigate('GetQuotes', { amount: amountNumber });
+	}, [amountNumber, navigation]);
 
 	useEffect(() => {
 		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
 	}, [amountFocused, keyboardHeight, keypadOffset]);
 
-	const displayAmount = useMemo(
-		() => (amountFocused ? amount : new Intl.NumberFormat().format(amount)),
-		[amount, amountFocused]
-	);
+	const displayAmount = useMemo(() => {
+		if (Device.isIos() && Intl && Intl?.NumberFormat) {
+			return amountFocused ? amount : new Intl.NumberFormat().format(amountNumber);
+		}
+		return amount;
+	}, [amount, amountFocused, amountNumber]);
 
 	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
 	useEffect(() => {
@@ -294,7 +316,7 @@ const AmountToBuy = ({ navigation }) => {
 								label={'You want to buy'}
 								icon={<TokenIcon medium icon={selectedAsset?.logo} symbol={selectedAsset?.symbol} />}
 								assetSymbol={selectedAsset?.symbol}
-								assetName={selectedAsset?.symbol}
+								assetName={selectedAsset?.name}
 								onPress={handleAssetSelectorPress}
 							/>
 						</View>
@@ -317,7 +339,13 @@ const AmountToBuy = ({ navigation }) => {
 					<PaymentMethodSelector
 						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
 						id={'/payments/debit-credit-card'}
-						icon={<PaymentIcon iconType={PAYMENT_METHOD_ICON[selectedPaymentMethod]} size={20} />}
+						icon={
+							<PaymentIcon
+								iconType={PAYMENT_METHOD_ICON[selectedPaymentMethod]}
+								size={20}
+								color={colors.icon.default}
+							/>
+						}
 						name={currentPaymentMethod?.name}
 						onPress={handlePaymentMethodSelectorPress}
 					/>
@@ -325,7 +353,7 @@ const AmountToBuy = ({ navigation }) => {
 						<StyledButton
 							type="confirm"
 							onPress={handleGetQuotePress}
-							disabled={Number(amount) <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
+							disabled={amountNumber <= 0 || currentPaymentMethod?.id !== '/payments/debit-credit-card'}
 						>
 							Get Quotes
 						</StyledButton>
@@ -335,7 +363,7 @@ const AmountToBuy = ({ navigation }) => {
 
 			<Animated.View style={[styles.keypadContainer, keypadContainerStyle]} onLayout={onKeypadLayout}>
 				<QuickAmounts
-					onAmountPress={handleKeypadChange}
+					onAmountPress={handleQuickAmountPress}
 					amounts={
 						currentCurrency?.id === '/currencies/fiat/usd'
 							? [
@@ -348,11 +376,7 @@ const AmountToBuy = ({ navigation }) => {
 							: []
 					}
 				/>
-				<Keypad
-					value={amount}
-					onChange={handleKeypadChange}
-					currency={currencyToKeypadCurrency(currentCurrency)}
-				/>
+				<Keypad value={amount} onChange={handleKeypadChange} currency={currentCurrency?.symbol} />
 				<ScreenLayout.Content>
 					<StyledButton type="confirm" onPress={handleKeypadDone}>
 						Done
@@ -391,14 +415,6 @@ const AmountToBuy = ({ navigation }) => {
 			/>
 		</ScreenLayout>
 	);
-};
-
-AmountToBuy.navigationOptions = () => ({
-	title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
-});
-
-AmountToBuy.propTypes = {
-	navigation: PropTypes.object,
 };
 
 export default AmountToBuy;

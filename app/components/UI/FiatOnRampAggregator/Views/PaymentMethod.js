@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../Base/Text';
@@ -9,6 +9,8 @@ import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import WebviewError from '../../../UI/WebviewError';
 import { PAYMENT_METHOD_ICON } from '../constants';
+import { useTheme } from '../../../../util/theme';
+import { getFiatOnRampAggNavbar } from '../../Navbar';
 
 const styles = StyleSheet.create({
 	row: {
@@ -18,6 +20,8 @@ const styles = StyleSheet.create({
 
 const PaymentMethod = () => {
 	const navigation = useNavigation();
+	const { colors } = useTheme();
+
 	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(null);
 
 	const { selectedCountry, selectedRegion, setSelectedPaymentMethod } = useFiatOnRampSDK();
@@ -26,6 +30,10 @@ const PaymentMethod = () => {
 		countryId: selectedCountry?.id,
 		regionId: selectedRegion?.id,
 	});
+
+	useEffect(() => {
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Payment Method' }, colors));
+	}, [navigation, colors]);
 
 	const handleContinueToAmount = useCallback(() => {
 		setSelectedPaymentMethod(currentPaymentMethod);
@@ -88,9 +96,5 @@ const PaymentMethod = () => {
 		</ScreenLayout>
 	);
 };
-
-PaymentMethod.navigationOptions = ({ navigation, route }) => ({
-	title: strings('fiat_on_ramp_aggregator.paymentMethod.payment_method'),
-});
 
 export default PaymentMethod;

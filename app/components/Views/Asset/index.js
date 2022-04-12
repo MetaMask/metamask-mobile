@@ -3,9 +3,7 @@ import { ActivityIndicator, InteractionManager, View, StyleSheet } from 'react-n
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { swapsUtils } from '@metamask/swaps-controller/';
-
 import { TX_UNAPPROVED, TX_SUBMITTED, TX_SIGNED, TX_PENDING, TX_CONFIRMED } from '../../../constants/transaction';
-import { colors } from '../../../styles/common';
 import AssetOverview from '../../UI/AssetOverview';
 import Transactions from '../../UI/Transactions';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
@@ -14,22 +12,24 @@ import { sortTransactions } from '../../../util/activity';
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	assetOverviewWrapper: {
-		height: 280,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		assetOverviewWrapper: {
+			height: 280,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+	});
 
 /**
  * View that displays a specific asset (Token or ETH)
@@ -99,10 +99,14 @@ class Asset extends PureComponent {
 	navSymbol = undefined;
 	navAddress = undefined;
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(getNetworkNavbarOptions(route.params?.symbol ?? '', false, navigation, colors));
+	};
 
 	componentDidMount() {
+		this.updateNavBar();
 		InteractionManager.runAfterInteractions(() => {
 			this.normalizeTransactions();
 			this.mounted = true;
@@ -117,6 +121,7 @@ class Asset extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
+		this.updateNavBar();
 		if (prevProps.chainId !== this.props.chainId || prevProps.selectedAddress !== this.props.selectedAddress) {
 			this.showLoaderAndNormalize();
 		} else {
@@ -200,7 +205,9 @@ class Asset extends PureComponent {
 
 		const { chainId, transactions } = this.props;
 		if (transactions.length) {
-			const sortedTransactions = sortTransactions(transactions);
+			const sortedTransactions = sortTransactions(transactions).filter(
+				(tx, index, self) => self.findIndex((_tx) => _tx.id === tx.id) === index
+			);
 			const filteredTransactions = sortedTransactions.filter((tx) => {
 				const filterResult = this.filter(tx);
 				if (filterResult) {
@@ -275,11 +282,16 @@ class Asset extends PureComponent {
 		this.chainId = chainId;
 	}
 
-	renderLoader = () => (
-		<View style={styles.loader}>
-			<ActivityIndicator style={styles.loader} size="small" />
-		</View>
-	);
+	renderLoader = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.loader}>
+				<ActivityIndicator style={styles.loader} size="small" />
+			</View>
+		);
+	};
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
@@ -297,6 +309,8 @@ class Asset extends PureComponent {
 			selectedAddress,
 			chainId,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<View style={styles.wrapper}>
@@ -326,6 +340,8 @@ class Asset extends PureComponent {
 		);
 	};
 }
+
+Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	swapsTransactions: state.engine.backgroundState.TransactionController.swapsTransactions || {},

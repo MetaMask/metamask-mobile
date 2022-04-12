@@ -1,28 +1,27 @@
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { useTheme } from '../../../../util/theme';
 
 import CustomText from '../../../Base/Text';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 
 const INSET = 25;
-const styles = StyleSheet.create({
-	// TODO: change background color to theme color
-	// eslint-disable-next-line react-native/no-color-literals
-	content: {
-		backgroundColor: '#EDEFF2',
-		paddingVertical: 12,
-	},
-	amount: {
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: colors.grey100,
-		marginRight: 5,
-		minWidth: 78,
-		padding: 7,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		content: {
+			backgroundColor: colors.background.alternative,
+			paddingVertical: 12,
+		},
+		amount: {
+			borderRadius: 999,
+			borderWidth: 1,
+			borderColor: colors.border.muted,
+			marginRight: 5,
+			minWidth: 78,
+			padding: 7,
+		},
+	});
 
 interface AmountProps {
 	label: string;
@@ -32,9 +31,12 @@ interface AmountProps {
 }
 
 const Amount: React.FC<AmountProps> = ({ label, value, onPress, ...props }: AmountProps) => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
 	const handlePress = useCallback(() => {
 		onPress(value);
 	}, [onPress, value]);
+
 	return (
 		<TouchableOpacity style={styles.amount} onPress={handlePress} {...props}>
 			<Text grey small centered noMargin>
@@ -53,25 +55,29 @@ interface Props {
 	onAmountPress: (value: number) => any;
 }
 
-const QuickAmounts: React.FC<Props> = ({ amounts, onAmountPress, disabled, ...props }) => (
-	<View style={styles.content}>
-		<ScrollView
-			horizontal
-			contentContainerStyle={{ paddingLeft: INSET, paddingRight: INSET }}
-			showsHorizontalScrollIndicator={false}
-		>
-			{amounts.map(({ label, value }: Props['amounts'][number], index: number) => (
-				<Amount
-					label={label}
-					value={value}
-					onPress={onAmountPress}
-					key={index}
-					disabled={disabled}
-					{...props}
-				/>
-			))}
-		</ScrollView>
-	</View>
-);
+const QuickAmounts: React.FC<Props> = ({ amounts, onAmountPress, disabled, ...props }) => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+	return (
+		<View style={styles.content}>
+			<ScrollView
+				horizontal
+				contentContainerStyle={{ paddingLeft: INSET, paddingRight: INSET }}
+				showsHorizontalScrollIndicator={false}
+			>
+				{amounts.map(({ label, value }: Props['amounts'][number], index: number) => (
+					<Amount
+						label={label}
+						value={value}
+						onPress={onAmountPress}
+						key={index}
+						disabled={disabled}
+						{...props}
+					/>
+				))}
+			</ScrollView>
+		</View>
+	);
+};
 
 export default QuickAmounts;

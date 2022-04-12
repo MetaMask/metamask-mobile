@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, SafeAreaView, ScrollView, ViewStyle, TextStyle } from 'react-native';
-import { colors } from '../../../../styles/common';
+import { useTheme } from '../../../../util/theme';
 import TextJS from '../../../Base/Text';
 
 const Text = TextJS as any;
@@ -14,28 +14,29 @@ interface Style {
 	grow: ViewStyle;
 }
 
-const styles = StyleSheet.create<Style>({
-	wrapper: {
-		flex: 1,
-	},
-	container: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	content: {
-		padding: 15,
-	},
-	grow: {
-		flex: 1,
-	},
-	header: {
-		marginVertical: 16,
-		alignItems: 'center',
-	},
-	body: {
-		flex: 1,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create<Style>({
+		wrapper: {
+			flex: 1,
+		},
+		container: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		content: {
+			padding: 15,
+		},
+		grow: {
+			flex: 1,
+		},
+		header: {
+			marginVertical: 16,
+			alignItems: 'center',
+		},
+		body: {
+			flex: 1,
+		},
+	});
 
 interface IPropsScreenLayout {
 	scrollable?: boolean;
@@ -78,6 +79,8 @@ const ScreenLayout: React.FC<IPropsScreenLayout> & IStaticComponents = ({
 	...props
 }: IPropsScreenLayout) => {
 	const Component = scrollable ? ScrollView : View;
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
 	return (
 		<SafeAreaView style={styles.wrapper}>
 			<Component style={[styles.container, style]} {...props} />
@@ -94,32 +97,38 @@ const Header: React.FC<IPropsHeader> = ({
 	titleStyle,
 	descriptionStyle,
 	...props
-}: IPropsHeader) => (
-	<View style={[styles.header, style]} {...props}>
-		{typeof title === 'string' ? (
-			<Text style={titleStyle} big black centered bold={bold}>
-				{title}
-			</Text>
-		) : (
-			title?.()
-		)}
-		{description && (
-			<Text style={descriptionStyle} centered>
-				{description}
-			</Text>
-		)}
-		{children}
-	</View>
-);
+}: IPropsHeader) => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+	return (
+		<View style={[styles.header, style]} {...props}>
+			{title && (
+				<Text style={titleStyle} big black centered bold={bold}>
+					{title}
+				</Text>
+			)}
+			{description && (
+				<Text style={descriptionStyle} centered>
+					{description}
+				</Text>
+			)}
+			{children}
+		</View>
+	);
+};
 
-const Body: React.FC<IPropsBody> = ({ style, ...props }: IPropsBody) => (
-	<View style={[styles.body, style]} {...props} />
-);
+const Body: React.FC<IPropsBody> = ({ style, ...props }: IPropsBody) => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+	return <View style={[styles.body, style]} {...props} />;
+};
 
 const Footer: React.FC<IPropsFooter> = ({ style, ...props }: IPropsFooter) => <View style={style} {...props} />;
-const Content: React.FC<IPropsContent> = ({ style, grow, ...props }: IPropsContent) => (
-	<View style={grow ? [styles.content, styles.grow, style] : [styles.content, style]} {...props} />
-);
+const Content: React.FC<IPropsContent> = ({ style, grow, ...props }: IPropsContent) => {
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+	return <View style={grow ? [styles.content, styles.grow, style] : [styles.content, style]} {...props} />;
+};
 
 ScreenLayout.Header = Header;
 ScreenLayout.Body = Body;

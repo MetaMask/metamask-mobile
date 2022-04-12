@@ -30,8 +30,10 @@ import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import checkIfAddressIsSaved from '../../../../util/checkAddress';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const { BNToHex, hexToBN } = util;
 
@@ -432,7 +434,7 @@ class Approve extends PureComponent {
 	};
 
 	onConfirm = async () => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, KeyringController } = Engine.context;
 		const { transactions, gasEstimateType } = this.props;
 		const { EIP1559GasData, LegacyGasData, transactionConfirmed } = this.state;
 
@@ -459,11 +461,16 @@ class Approve extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transaction.id);
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED, this.getAnalyticsParams());
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
-			Logger.error(error, 'error while trying to send transaction (Approve)');
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [{ text: 'OK' }]);
+				Logger.error(error, 'error while trying to send transaction (Approve)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+			}
 			this.setState({ transactionHandled: false });
 		}
 		this.setState({ transactionConfirmed: true });
@@ -554,6 +561,7 @@ class Approve extends PureComponent {
 		} = this.state;
 		const { transaction, addressBook, network, gasEstimateType, gasFeeEstimates, primaryCurrency, chainId } =
 			this.props;
+		const colors = this.context.colors || mockTheme.colors;
 
 		const addressData = checkIfAddressIsSaved(addressBook, network, transaction);
 
@@ -564,7 +572,8 @@ class Approve extends PureComponent {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={this.state.addNickname ? styles.updateNickView : styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={600}
 				animationOutTiming={600}
 				onBackdropPress={this.onCancel}
@@ -695,5 +704,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 });
+
+Approve.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Approve);

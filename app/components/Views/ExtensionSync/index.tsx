@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, Text, Image, InteractionManager, ActivityIndicator, Alert } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,58 +37,60 @@ import {
 import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: colors.white,
-		paddingHorizontal: 16,
-		justifyContent: 'space-between',
-		paddingBottom: 16,
-	},
-	fill: {
-		flex: 1,
-	},
-	syncImage: {
-		height: 44,
-		marginTop: 48,
-		width: 112,
-		alignSelf: 'center',
-	},
-	titleLabel: {
-		textAlign: 'center',
-		color: colors.black,
-		fontSize: 24,
-		fontFamily: fontStyles.bold.fontFamily,
-		marginTop: 32,
-	},
-	stepsContainer: {
-		marginTop: 32,
-	},
-	stepLabel: {
-		color: colors.black,
-		fontSize: scaling.scale(16),
-		fontFamily: fontStyles.normal.fontFamily,
-		marginBottom: 8,
-	},
-	wrapper: {
-		flex: 1,
-		alignItems: 'center',
-		paddingVertical: 30,
-	},
-	loader: {
-		marginTop: 180,
-		justifyContent: 'center',
-		textAlign: 'center',
-	},
-	loadingText: {
-		marginTop: 30,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.fontPrimary,
-		fontFamily: fontStyles.normal.fontFamily,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		container: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+			paddingHorizontal: 16,
+			justifyContent: 'space-between',
+			paddingBottom: 16,
+		},
+		fill: {
+			flex: 1,
+		},
+		syncImage: {
+			height: 44,
+			marginTop: 48,
+			width: 112,
+			alignSelf: 'center',
+		},
+		titleLabel: {
+			textAlign: 'center',
+			color: colors.text.default,
+			fontSize: 24,
+			fontFamily: fontStyles.bold.fontFamily,
+			marginTop: 32,
+		},
+		stepsContainer: {
+			marginTop: 32,
+		},
+		stepLabel: {
+			color: colors.text.default,
+			fontSize: scaling.scale(16),
+			fontFamily: fontStyles.normal.fontFamily,
+			marginBottom: 8,
+		},
+		wrapper: {
+			flex: 1,
+			alignItems: 'center',
+			paddingVertical: 30,
+		},
+		loader: {
+			marginTop: 180,
+			justifyContent: 'center',
+			textAlign: 'center',
+		},
+		loadingText: {
+			marginTop: 30,
+			fontSize: 14,
+			textAlign: 'center',
+			color: colors.text.default,
+			fontFamily: fontStyles.normal.fontFamily,
+		},
+	});
 
 // TODO: This file needs typings
 const ExtensionSync = ({ navigation, route }: any) => {
@@ -97,6 +99,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	const seedWordsRef = useRef(null);
 	const importedAccountsRef = useRef(null);
 	const dataToSyncRef = useRef<any>(null);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const passwordSet = useSelector((state: any) => state.user.passwordSet);
 	const selectedAddress = useSelector(
@@ -115,9 +119,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
 	const setLogIn = useCallback(() => dispatch(logIn()), [dispatch]);
 
 	useEffect(
+		/* eslint-disable-next-line */
 		() => {
-			// Set navigation options
-			navigation.setOptions(getOnboardingNavbarOptions(navigation, route));
 			// Unmount
 			return () => {
 				pubnubWrapperRef.current?.disconnectWebsockets?.();
@@ -128,6 +131,11 @@ const ExtensionSync = ({ navigation, route }: any) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]
 	);
+
+	useEffect(() => {
+		// Set navigation options
+		navigation.setOptions(getOnboardingNavbarOptions(navigation, route, colors));
+	}, [navigation, route, colors]);
 
 	// TODO: Don't spread this, break it out and type it
 	const track = useCallback(
@@ -353,12 +361,12 @@ const ExtensionSync = ({ navigation, route }: any) => {
 			/>
 		),
 
-		[]
+		[styles]
 	);
 
 	const renderTitle = useCallback(
 		() => <Text style={styles.titleLabel}>{strings('onboarding.scan_title')}</Text>,
-		[]
+		[styles]
 	);
 
 	const renderSteps = useCallback(() => {
@@ -375,7 +383,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				})}
 			</View>
 		);
-	}, []);
+	}, [styles]);
 
 	const renderScanButton = useCallback(
 		() => (
@@ -395,7 +403,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				</View>
 			</View>
 		),
-		[loadingMsg]
+		[loadingMsg, styles]
 	);
 
 	const renderContent = useCallback(
@@ -409,7 +417,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 				{renderScanButton()}
 			</React.Fragment>
 		),
-		[renderSyncImage, renderTitle, renderSteps, renderScanButton]
+		[renderSyncImage, renderTitle, renderSteps, renderScanButton, styles]
 	);
 
 	return (

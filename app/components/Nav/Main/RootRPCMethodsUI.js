@@ -45,6 +45,12 @@ import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
+import { networkSwitched } from '../../../actions/onboardNetwork';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -55,6 +61,7 @@ const styles = StyleSheet.create({
 	},
 });
 const RootRPCMethodsUI = (props) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const [showPendingApproval, setShowPendingApproval] = useState(false);
 	const [signMessageParams, setSignMessageParams] = useState({ data: '' });
 	const [signType, setSignType] = useState(false);
@@ -86,10 +93,11 @@ const RootRPCMethodsUI = (props) => {
 
 	const onUnapprovedMessage = (messageParams, type, origin) => {
 		setCurrentPageMeta(messageParams.meta);
-		delete messageParams.meta;
-		setSignMessageParams(messageParams);
+		const signMessageParams = { ...messageParams };
+		delete signMessageParams.meta;
+		setSignMessageParams(signMessageParams);
 		setSignType(type);
-		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: messageParams.origin });
+		showPendingApprovalModal({ type: ApprovalTypes.SIGN_MESSAGE, origin: signMessageParams.origin });
 	};
 
 	const initializeWalletConnect = () => {
@@ -189,7 +197,7 @@ const RootRPCMethodsUI = (props) => {
 
 	const autoSign = useCallback(
 		async (transactionMeta) => {
-			const { TransactionController } = Engine.context;
+			const { TransactionController, KeyringController } = Engine.context;
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
@@ -209,12 +217,17 @@ const RootRPCMethodsUI = (props) => {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
+				await KeyringController.resetQRKeyringState();
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
-				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-					{ text: strings('navigation.ok') },
-				]);
-				Logger.error(error, 'error while trying to send transaction (Main)');
+				if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+					Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+						{ text: strings('navigation.ok') },
+					]);
+					Logger.error(error, 'error while trying to send transaction (Main)');
+				} else {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+				}
 			}
 		},
 		[props.swapsTransactions, trackSwaps]
@@ -245,7 +258,8 @@ const RootRPCMethodsUI = (props) => {
 				} = transactionMeta;
 				const { AssetsContractController } = Engine.context;
 				transactionMeta.transaction.gas = hexToBN(gas);
-				transactionMeta.transaction.gasPrice = hexToBN(gasPrice);
+				transactionMeta.transaction.gasPrice = gasPrice && hexToBN(gasPrice);
+
 				if (
 					(value === '0x0' || !value) &&
 					data &&
@@ -329,7 +343,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={onSignAction}
@@ -374,6 +389,13 @@ const RootRPCMethodsUI = (props) => {
 		</Modal>
 	);
 
+	const renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState, approveModalVisible, dappTransactionModalVisible } = props;
+		const shouldRenderThisModal =
+			!showPendingApproval && !approveModalVisible && !dappTransactionModalVisible && isSigningQRObject;
+		return shouldRenderThisModal && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
+
 	const onWalletConnectSessionApproval = () => {
 		const { peerId } = walletConnectRequestInfo;
 		setWalletConnectRequest(false);
@@ -396,7 +418,8 @@ const RootRPCMethodsUI = (props) => {
 				animationIn="slideInUp"
 				animationOut="slideOutDown"
 				style={styles.bottomModal}
-				backdropOpacity={0.7}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
 				animationInTiming={300}
 				animationOutTiming={300}
 				onSwipeComplete={onWalletConnectSessionRejected}
@@ -457,7 +480,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onAddCustomNetworkReject}
@@ -480,6 +504,7 @@ const RootRPCMethodsUI = (props) => {
 	const onSwitchCustomNetworkConfirm = () => {
 		setShowPendingApproval(false);
 		acceptPendingApproval(customNetworkToSwitch.id, customNetworkToSwitch.data);
+		props.networkSwitched({ networkUrl: customNetworkToSwitch.data.rpcUrl, networkStatus: true });
 	};
 
 	/**
@@ -491,7 +516,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onSwitchCustomNetworkReject}
@@ -533,7 +559,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={300}
 			animationOutTiming={300}
 			onSwipeComplete={onAccountsReject}
@@ -564,7 +591,8 @@ const RootRPCMethodsUI = (props) => {
 			animationIn="slideInUp"
 			animationOut="slideOutDown"
 			style={styles.bottomModal}
-			backdropOpacity={0.7}
+			backdropColor={colors.overlay.default}
+			backdropOpacity={1}
 			animationInTiming={600}
 			animationOutTiming={600}
 			onBackdropPress={onCancelWatchAsset}
@@ -662,6 +690,7 @@ const RootRPCMethodsUI = (props) => {
 			{renderSwitchCustomNetworkModal()}
 			{renderAccountsApprovalModal()}
 			{renderWatchAssetModal()}
+			{renderQRSigningModal()}
 		</React.Fragment>
 	);
 };
@@ -708,6 +737,12 @@ RootRPCMethodsUI.propTypes = {
 	 * Chain id
 	 */
 	chainId: PropTypes.string,
+	isSigningQRObject: PropTypes.bool,
+	QRState: PropTypes.object,
+	/**
+	 * updates redux when network is switched
+	 */
+	networkSwitched: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -725,6 +760,7 @@ const mapDispatchToProps = (dispatch) => ({
 	setTransactionObject: (transaction) => dispatch(setTransactionObject(transaction)),
 	toggleDappTransactionModal: (show = null) => dispatch(toggleDappTransactionModal(show)),
 	toggleApproveModal: (show) => dispatch(toggleApproveModal(show)),
+	networkSwitched: ({ networkUrl, networkStatus }) => dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(RootRPCMethodsUI));

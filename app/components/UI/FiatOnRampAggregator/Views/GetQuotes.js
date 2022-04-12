@@ -5,7 +5,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import LoadingAnimation from '../components/LoadingAnimation';
-import Quotes from '../components/Quotes';
+import Quote from '../components/Quote';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
@@ -14,6 +14,9 @@ import useInterval from '../../../hooks/useInterval';
 import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
 import Device from '../../../../util/device';
+import { getFiatOnRampAggNavbar } from '../../Navbar';
+import { useTheme } from '../../../../util/theme';
+import { callbackBaseUrl } from '../orderProcessor/aggregator';
 
 const POLLING_INTERVAL = 15000;
 const POLLING_INTERVAL_HIGHLIGHT = 10000;
@@ -80,6 +83,7 @@ const styles = StyleSheet.create({
 const GetQuotes = () => {
 	const { params } = useRoute();
 	const navigation = useNavigation();
+	const { colors } = useTheme();
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
@@ -104,7 +108,8 @@ const GetQuotes = () => {
 		selectedAsset?.id,
 		selectedFiatCurrencyId,
 		params.amount,
-		selectedAddress
+		selectedAddress,
+		callbackBaseUrl
 	);
 
 	// we only activate this interval polling once the first fetch of quotes is successfull
@@ -146,6 +151,10 @@ const GetQuotes = () => {
 			setIsInPolling(false);
 		}
 	}, [ErrorFetchingQuotes, pollingCyclesLeft]);
+
+	useEffect(() => {
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Get Quotes' }, colors));
+	}, [navigation, colors]);
 
 	useEffect(() => {
 		if (isFetchingQuotes) return;
@@ -255,7 +264,7 @@ const GetQuotes = () => {
 								)
 								.map((quote, index) => (
 									<View key={quote.providerId} style={index === 0 ? styles.firstRow : styles.row}>
-										<Quotes
+										<Quote
 											providerName={quote.providerName}
 											amountOut={quote.amountOut}
 											crypto={quote.crypto}

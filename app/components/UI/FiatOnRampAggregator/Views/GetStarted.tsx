@@ -1,14 +1,15 @@
-import React, { useCallback } from 'react';
-import PropTypes from 'prop-types';
+import React, { useCallback, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+
 import TextJS from '../../../Base/Text';
 import ListItemJS from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import ScreenLayout from '../components/ScreenLayout';
+import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
-import { colors } from '../../../../styles/common';
-import { getFiatOnRampNavbar } from '../../Navbar';
+import { useTheme } from '../../../../util/theme';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
@@ -22,7 +23,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 	},
 	description: {
-		fontSize: 12,
 		marginVertical: 5,
 	},
 	icon: {
@@ -48,16 +48,14 @@ const whatToExpectList = [
 	},
 ];
 
-interface IProps {
-	navigation: any;
-}
+const GetStarted: React.FC = () => {
+	const navigation = useNavigation();
+	const { colors } = useTheme();
 
-interface IStaticComponents {
-	navigationOptions: () => void;
-	screenOptions: (navigation: any) => void;
-}
+	useEffect(() => {
+		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Get Started', showBack: false }, colors));
+	}, [navigation, colors]);
 
-const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps) => {
 	const handleOnPress = useCallback(() => {
 		navigation.navigate('Region');
 	}, [navigation]);
@@ -71,7 +69,7 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 					{whatToExpectList.map(({ id, title, description }) => (
 						<ListItem.Content key={id} style={styles.listItem}>
 							<ListItem.Icon style={styles.icon}>
-								<FontAwesome name="circle" size={32} color={colors.grey100} />
+								<FontAwesome name="circle" size={32} color={colors.icon.default} />
 							</ListItem.Icon>
 							<ListItem.Body>
 								<ListItem.Title bold style={styles.title}>
@@ -93,17 +91,6 @@ const GetStarted: React.FC<IProps> & IStaticComponents = ({ navigation }: IProps
 			</ScreenLayout.Footer>
 		</ScreenLayout>
 	);
-};
-
-GetStarted.screenOptions = ({ navigation }) => getFiatOnRampNavbar(navigation);
-
-GetStarted.navigationOptions = () => ({
-	headerLeft: () => null,
-	title: strings('fiat_on_ramp_aggregator.onboarding.buy_crypto_token'),
-});
-
-GetStarted.propTypes = {
-	navigation: PropTypes.object,
 };
 
 export default GetStarted;

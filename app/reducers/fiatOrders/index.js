@@ -48,7 +48,7 @@ export const setFiatOrdersCountryAGG = (countryCode) => ({ type: ACTIONS.FIAT_SE
  * Get the provider display name
  * @param {FIAT_ORDER_PROVIDERS} provider
  */
-export const getProviderName = (provider) => {
+export const getProviderName = (provider, data = {}) => {
 	switch (provider) {
 		case FIAT_ORDER_PROVIDERS.WYRE:
 		case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
@@ -56,6 +56,13 @@ export const getProviderName = (provider) => {
 		}
 		case FIAT_ORDER_PROVIDERS.TRANSAK: {
 			return 'Transak';
+		}
+		case FIAT_ORDER_PROVIDERS.MOONPAY: {
+			return 'MoonPay';
+		}
+		case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
+			const providerName = data.provider?.name;
+			return `On-Ramp ${providerName ? '(' + providerName + ')' : ''}`;
 		}
 		default: {
 			return provider;
@@ -66,7 +73,7 @@ export const getProviderName = (provider) => {
 const INITIAL_SELECTED_COUNTRY = '/us';
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
-const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
+export const chainIdSelector = (state) => state.engine.backgroundState.NetworkController.provider.chainId;
 
 export const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
@@ -77,7 +84,7 @@ export const getOrders = createSelector(
 	selectedAddressSelector,
 	chainIdSelector,
 	(orders, selectedAddress, chainId) =>
-		orders.filter((order) => order.account === selectedAddress && order.network === chainId)
+		orders.filter((order) => order.account === selectedAddress && Number(order.network) === Number(chainId))
 );
 
 export const getPendingOrders = createSelector(
@@ -88,7 +95,7 @@ export const getPendingOrders = createSelector(
 		orders.filter(
 			(order) =>
 				order.account === selectedAddress &&
-				order.network === chainId &&
+				Number(order.network) === Number(chainId) &&
 				order.state === FIAT_ORDER_STATES.PENDING
 		)
 );

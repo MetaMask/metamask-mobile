@@ -1,18 +1,19 @@
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { InteractionManager } from 'react-native';
-import { connect } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
-
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import { getPendingOrders, updateFiatOrder } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
-import processOrder from './orderProcessor';
 import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
+import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
+import processOrder from '../FiatOnRampAggregator/orderProcessor';
+import { useFiatOnRampSDK, withFiatOnRampSDK } from '../FiatOnRampAggregator/sdk';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -21,7 +22,8 @@ import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 const NOTIFICATION_DURATION = 5000;
 
-export const allowedToBuy = (chainId) => isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId);
+export const allowedToBuy = (chainId) =>
+	isWyreAllowedToBuy(chainId) || isTransakAllowedToBuy(chainId) || isMoonpayAllowedToBuy(chainId);
 
 const baseNotificationDetails = {
 	duration: NOTIFICATION_DURATION,
@@ -110,11 +112,12 @@ export const getNotificationDetails = (fiatOrder) => {
 };
 
 function FiatOrders({ pendingOrders, updateFiatOrder }) {
+	const { sdk } = useFiatOnRampSDK();
 	useInterval(
 		async () => {
 			await Promise.all(
 				pendingOrders.map(async (order) => {
-					const updatedOrder = await processOrder(order);
+					const updatedOrder = await processOrder(order, sdk);
 					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
 						InteractionManager.runAfterInteractions(() => {
@@ -149,4 +152,4 @@ const mapDispatchToProps = (dispatch) => ({
 	updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(FiatOrders);
+export default connect(mapStateToProps, mapDispatchToProps)(withFiatOnRampSDK(FiatOrders));

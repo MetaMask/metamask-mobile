@@ -2,50 +2,54 @@ import React, { useCallback } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import StyledButton from '../../StyledButton';
 import AssetIcon from '../../AssetIcon';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import Identicon from '../../Identicon';
 import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { useSelector } from 'react-redux';
 import { getTokenList } from '../../../../reducers/tokens';
 import { toChecksumAddress } from 'ethereumjs-util';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	item: {
-		borderWidth: 1,
-		borderColor: colors.grey100,
-		padding: 8,
-		marginBottom: 8,
-		borderRadius: 8,
-	},
-	assetListElement: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-	},
-	text: {
-		...(fontStyles.normal as any),
-	},
-	textSymbol: {
-		...fontStyles.normal,
-		paddingBottom: 4,
-		fontSize: 16,
-	} as any,
-	assetInfo: {
-		flex: 1,
-		flexDirection: 'column',
-		alignSelf: 'center',
-		padding: 4,
-	},
-	assetIcon: {
-		flexDirection: 'column',
-		alignSelf: 'center',
-		marginRight: 12,
-	},
-	ethLogo: {
-		width: 50,
-		height: 50,
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		item: {
+			borderWidth: 1,
+			borderColor: colors.border.default,
+			padding: 8,
+			marginBottom: 8,
+			borderRadius: 8,
+		},
+		assetListElement: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'flex-start',
+		},
+		text: {
+			...(fontStyles.normal as any),
+			color: colors.text.default,
+		},
+		textSymbol: {
+			...fontStyles.normal,
+			paddingBottom: 4,
+			fontSize: 16,
+			color: colors.text.default,
+		} as any,
+		assetInfo: {
+			flex: 1,
+			flexDirection: 'column',
+			alignSelf: 'center',
+			padding: 4,
+		},
+		assetIcon: {
+			flexDirection: 'column',
+			alignSelf: 'center',
+			marginRight: 12,
+		},
+		ethLogo: {
+			width: 50,
+			height: 50,
+		},
+	});
 
 interface Props {
 	/**
@@ -64,6 +68,8 @@ interface Props {
 
 const AssetList = ({ searchResults, handleSelectAsset, emptyMessage }: Props) => {
 	const tokenList = useSelector(getTokenList);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	/**
 	 * Render logo according to asset. Could be ETH, Identicon or contractMap logo
@@ -83,7 +89,7 @@ const AssetList = ({ searchResults, handleSelectAsset, emptyMessage }: Props) =>
 			}
 			return <AssetIcon logo={iconUrl} />;
 		},
-		[tokenList]
+		[tokenList, styles]
 	);
 
 	return (

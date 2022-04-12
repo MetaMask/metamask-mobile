@@ -2,12 +2,12 @@ import React, { useCallback, useRef, useState } from 'react';
 import { View, Image, Text, TouchableOpacity, LayoutAnimation } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
-import { colors } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
-import styles from './styles';
+import { createStyles } from './styles';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 interface HelpOption {
 	label: string;
@@ -36,6 +36,8 @@ const ReviewModal = () => {
 	const navigation = useNavigation();
 	const modalRef = useRef<ReusableModalRef>(null);
 	const [showHelpOptions, setShowHelpOptions] = useState(false);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	const dismissModal = (cb?: () => void) => modalRef?.current?.dismissModal(cb);
 
@@ -103,7 +105,7 @@ const ReviewModal = () => {
 				})}
 			</View>
 		),
-		[openUrl]
+		[openUrl, styles]
 	);
 
 	const renderContent = () => {
@@ -122,7 +124,7 @@ const ReviewModal = () => {
 					hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
 					onPress={triggerClose}
 				>
-					<Icon color={colors.black} size={20} name={'x'} />
+					<Icon color={colors.text.default} size={20} name={'x'} />
 				</TouchableOpacity>
 			</View>
 		</ReusableModal>

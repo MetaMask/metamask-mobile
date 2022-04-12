@@ -1,5 +1,4 @@
-/* eslint-disable react-native/no-color-literals */
-import Quotes from './Quotes';
+import Quote from './Quote';
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
@@ -8,7 +7,7 @@ storiesOf('FiatOnRamp / Quotes', module)
 	.addDecorator((getStory) => getStory())
 	.add('Default', () => (
 		<SafeAreaView>
-			<Quotes
+			<Quote
 				providerName="Transak"
 				amountOut={0.06878071}
 				crypto="ETH"
@@ -18,7 +17,7 @@ storiesOf('FiatOnRamp / Quotes', module)
 				amountIn={300.0}
 			/>
 
-			<Quotes
+			<Quote
 				providerName="Wyre"
 				amountOut={0.06878071}
 				crypto="ETH"
