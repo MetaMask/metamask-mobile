@@ -52,6 +52,7 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
+import LedgerConnect from '../../Views/LedgerConnect';
 import { colors as importedColors } from '../../../styles/common';
 
 const Stack = createStackNavigator();
@@ -82,6 +83,7 @@ const WalletTabHome = () => (
 			component={RevealPrivateCredential}
 			options={RevealPrivateCredential.navigationOptions}
 		/>
+		<Stack.Screen name="LedgerConnect" component={LedgerConnect} options={{ headerLeft: null, title: null }} />
 	</Stack.Navigator>
 );
 
