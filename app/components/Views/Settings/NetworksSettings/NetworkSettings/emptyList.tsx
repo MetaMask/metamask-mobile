@@ -16,29 +16,22 @@ const createStyles = (colors: any) =>
 	});
 
 interface Props {
-    goToCustomNetwork: () => void;
+	goToCustomNetwork: () => void;
 }
 
-const EmptyPopularList = ({goToCustomNetwork}: Props) => {
-    const { colors } = useAppThemeFromContext() || mockTheme;
+const EmptyPopularList = ({ goToCustomNetwork }: Props) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
-    return (
-        <Alert
-            type={AlertType.Info}
-            style={styles.container}
-        >
-            <>
-                <Text style={styles.emptyDescriptionText}>{`${strings('networks.empty_popular_networks')} `}</Text>
-                <Text
-                    suppressHighlighting
-                    onPress={goToCustomNetwork}
-                    style={styles.link}
-                >
-                    {strings('networks.add_network')}
-                </Text>
-            </>
-        </Alert>
-    );
+	return (
+		<Alert type={AlertType.Info} style={styles.container}>
+			<>
+				<Text style={styles.emptyDescriptionText}>{`${strings('networks.empty_popular_networks')} `}</Text>
+				<Text suppressHighlighting onPress={goToCustomNetwork} style={styles.link}>
+					{strings('networks.add_network')}
+				</Text>
+			</>
+		</Alert>
+	);
 };
 
 export default EmptyPopularList;

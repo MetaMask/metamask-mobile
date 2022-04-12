@@ -41,7 +41,7 @@ import {
 	RPC_VIEW_CONTAINER_ID,
 	ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
 } from '../../../../../constants/test-ids';
-import EmptyPopularList from './emptyList'
+import EmptyPopularList from './emptyList';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -768,7 +768,7 @@ class NetworkSettings extends PureComponent {
 			(val) => !this.props.frequentRpcList.some((key) => sanitizeUrl(val.rpcUrl) === sanitizeUrl(key.rpcUrl))
 		);
 
-		if(filteredPopularList.length === 0) {
+		if (filteredPopularList.length === 0) {
 			return <EmptyPopularList goToCustomNetwork={() => this.tabView.goToPage(1)} />;
 		}
 
@@ -830,7 +830,12 @@ class NetworkSettings extends PureComponent {
 					{network ? (
 						this.customNetwork(network)
 					) : (
-						<ScrollableTabView renderTabBar={this.renderTabBar} ref={(tabView) => { this.tabView = tabView}}>
+						<ScrollableTabView
+							renderTabBar={this.renderTabBar}
+							ref={(tabView) => {
+								this.tabView = tabView;
+							}}
+						>
 							<View tabLabel={strings('app_settings.popular')} key={'popular'}>
 								{this.popularNetworks()}
 								{this.state.showPopularNetworkModal && (
