@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated } from 'react-native';
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -25,7 +25,6 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/setupSentry';
 import Analytics from '../../../core/Analytics';
@@ -36,6 +35,7 @@ import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import Device from '../../../util/device';
 
 const Stack = createStackNavigator();
 /**
@@ -137,6 +137,20 @@ const App = ({ userLoggedIn }) => {
 		}
 	}, []);
 
+	// on Android devices, this creates a listener
+	// to deeplinks used to open the app
+	// when it is in background (so not closed)
+	// Documentation: https://reactnative.dev/docs/linking#handling-deep-links
+	useEffect(() => {
+		if (Device.isAndroid())
+			Linking.addEventListener('url', (params) => {
+				const { url } = params;
+				if (url) {
+					handleDeeplink({ uri: url });
+				}
+			});
+	}, [handleDeeplink]);
+
 	useEffect(() => {
 		if (navigator) {
 			// Initialize deep link manager
@@ -154,15 +168,16 @@ const App = ({ userLoggedIn }) => {
 				// Setup navigator with Sentry instrumentation
 				routingInstrumentation.registerNavigationContainer(navigator);
 				// Subscribe to incoming deeplinks
-				branch.subscribe({
-					onOpenStart: (opts) => {
-						// Called reliably on iOS deeplink instances
-						Device.isIos() && handleDeeplink(opts);
-					},
-					onOpenComplete: (opts) => {
-						// Called reliably on Android deeplink instances
-						Device.isAndroid() && handleDeeplink(opts);
-					},
+				// Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+				branch.subscribe((opts) => {
+					const { error } = opts;
+
+					if (error) {
+						Logger.error('Error from Branch: ' + error);
+						return;
+					}
+
+					handleDeeplink(opts);
 				});
 			}
 			prevNavigator.current = navigator;

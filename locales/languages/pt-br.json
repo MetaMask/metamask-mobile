@@ -1378,15 +1378,15 @@
 		"total_amount": "Valor total",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Antes de comprar ETH, entenda as taxas de gas",
+				"title": "Antes de comprar {{ticker}}, entenda as taxas de gas",
 				"average_gas_fee": "Taxa de gas média atual:",
-				"subtitle_1": "Se você pretende fazer swap ou transferir o seu ETH, adquira um valor adicional para cobrir as taxas de gas.",
-				"subtitle_2": "As taxas de gas para transações são separadas do custo de aquisição de ETH.",
+				"subtitle_1": "Se você pretende fazer swap ou transferir o seu {{ticker}}, adquira um valor adicional para cobrir as taxas de gas.",
+				"subtitle_2": "As taxas de gas para transações são separadas do custo de aquisição de {{ticker}}.",
 				"subtitle_3": "O MetaMask não lucra com taxas de gas."
 			},
 			"step_2": {
 				"title": "O que são as taxas de gas?",
-				"subtitle_1": "Gas movimenta as transações na rede do Ethereum. É uma taxa paga em ETH aos mineradores de criptomoedas que processam as suas transações.",
+				"subtitle_1": "Gas movimenta as transações na rede do Ethereum. É uma taxa paga em {{ticker}} aos mineradores de criptomoedas que processam as suas transações.",
 				"subtitle_2": "O MetaMask não lucra com taxas de gas.",
 				"learn_more": "Saiba mais sobre as taxas de gas"
 			},
@@ -1397,7 +1397,7 @@
 				"subtitle_3": "A melhor forma de estimar as taxas de gas é",
 				"subtitle_4": "tentar efetuar a transação em primeiro lugar",
 				"subtitle_5": "e ver quanto gas ela custa.",
-				"cta": "Prossiga para comprar ETH"
+				"cta": "Prossiga para comprar {{ticker}}"
 			}
 		}
 	},
