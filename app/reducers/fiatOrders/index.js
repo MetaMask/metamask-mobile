@@ -5,7 +5,6 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../constants/on-ramp
  * @typedef FiatOrder
  * @type {object}
  * @property {string} id - Original id given by Provider. Orders are identified by (provider, id)
- * @property {string} providerId - Order id given by provider
  * @property {FIAT_ORDER_PROVIDERS}	provider Fiat Provider
  * @property {number} createdAt Fiat amount
  * @property {string} amount Fiat amount

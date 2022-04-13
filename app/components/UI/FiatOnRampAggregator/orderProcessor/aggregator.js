@@ -31,8 +31,7 @@ const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
 };
 
 const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
-	id: aggregatorOrder.id,
-	providerId: aggregatorOrder.providerOrderId,
+	id: aggregatorOrder.providerOrderId,
 	provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
 	createdAt: aggregatorOrder.createdAt,
 	amount: aggregatorOrder.fiatAmount,
