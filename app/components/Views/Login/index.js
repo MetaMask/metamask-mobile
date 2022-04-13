@@ -215,10 +215,6 @@ class Login extends PureComponent {
 		 */
 		route: PropTypes.object,
 		/**
-		 * User login staus
-		 */
-		userLoggedIn: PropTypes.bool,
-		/**
 		 * Users current address
 		 */
 		selectedAddress: PropTypes.string,
@@ -270,13 +266,6 @@ class Login extends PureComponent {
 			});
 	}
 
-	componentDidUpdate() {
-		if (this.props.userLoggedIn) {
-			this.props.navigation.replace('HomeNav');
-			return;
-		}
-	}
-
 	componentWillUnmount() {
 		BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
 	}
@@ -301,12 +290,7 @@ class Login extends PureComponent {
 		try {
 			await Authentication.userEntryAuth(password, authType, this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			if (onboardingWizard) {
-				this.props.navigation.replace('HomeNav');
-			} else {
-				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.replace('HomeNav');
-			}
+			if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
 			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
 			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
 			field.setValue('');
@@ -345,12 +329,7 @@ class Login extends PureComponent {
 		try {
 			await Authentication.appTriggeredAuth(this.props.selectedAddress);
 			const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-			if (onboardingWizard) {
-				this.props.navigation.replace('HomeNav');
-			} else {
-				this.props.setOnboardingWizardStep(1);
-				this.props.navigation.replace('HomeNav');
-			}
+			if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
 			// Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
 			this.setState({ loading: false, password: '', hasBiometricCredentials: false });
 			field.setValue('');
