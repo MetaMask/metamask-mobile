@@ -97,7 +97,7 @@ const Transactions = ({
 	const [existingTx, setExistingTx] = useState<any>();
 	const [cancelTxId, setCancelTxId] = useState(undefined);
 	const [speedUpTxId, setSpeedUpTxId] = useState(undefined);
-	const [isQRHardware, setIsQRHardware] = useState<boolean>(false);
+	const [isQRHardwareAddress, setIsQRHardwareAddress] = useState<boolean>(false);
 	const flatListRef = React.createRef<FlatList<any>>();
 
 	const { colors } = useAppThemeFromContext() || mockTheme;
@@ -117,7 +117,7 @@ const Transactions = ({
 		const blockExplorer =
 			type === RPC ? findBlockExplorerForRpc(rpcTarget, frequentRpcList) || NO_RPC_BLOCK_EXPLORER : undefined;
 		setRpcBlockExplorer(blockExplorer);
-		setIsQRHardware(isQRHardwareAccount(selectedAddress));
+		setIsQRHardwareAddress(isQRHardwareAccount(selectedAddress));
 
 		return () => {
 			setMounted(false);
@@ -326,7 +326,7 @@ const Transactions = ({
 			assetSymbol={assetSymbol}
 			onSpeedUpAction={onSpeedUpAction}
 			onCancelAction={onCancelAction}
-			isQRHardwareAccount={isQRHardware}
+			isQRHardwareAccount={isQRHardwareAddress}
 			signQRTransaction={signQRTransaction}
 			cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
 		/>
