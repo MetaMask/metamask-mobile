@@ -2,12 +2,19 @@
 
 exports[`AdvancedSettings should render correctly 1`] = `
 <AdvancedSettings
+  chainId={1}
   fullState={
     Object {
       "engine": Object {
         "backgroundState": Object {
+          "NetworkController": Object {
+            "provider": Object {
+              "chainId": 1,
+            },
+          },
           "PreferencesController": Object {
             "ipfsGateway": "https://ipfs.io/ipfs/",
+            "useTokenDetection": false,
           },
         },
       },
@@ -17,6 +24,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
     }
   }
   ipfsGateway="https://ipfs.io/ipfs/"
+  isTokenDetectionEnabled={false}
   setShowCustomNonce={[Function]}
   setShowHexData={[Function]}
   showHexData={true}

@@ -48,7 +48,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import { util as controllerUtils } from '@metamask/controllers';
 import { useAppThemeFromContext, mockTheme, ThemeContext } from '../../../../util/theme';
 
 const isIos = Device.isIos();
@@ -278,14 +277,6 @@ class Settings extends PureComponent {
 		 * Type of network
 		 */
 		type: PropTypes.string,
-		/**
-		 * ChainID of network
-		 */
-		chainId: PropTypes.string,
-		/**
-		 * Boolean that checks if token detection is enabled
-		 */
-		isTokenDetectionEnabled: PropTypes.bool,
 	};
 
 	state = {
@@ -412,19 +403,6 @@ class Settings extends PureComponent {
 	};
 
 	isMainnet = () => this.props.type === MAINNET;
-
-	toggleTokenDetection = (detectionStatus) => {
-		const { chainId } = this.props;
-		const { PreferencesController } = Engine.context;
-		const eventOn = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_ON;
-		const eventOff = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_OFF;
-		PreferencesController.setUseTokenDetection(detectionStatus);
-		InteractionManager.runAfterInteractions(() => {
-			AnalyticsV2.trackEvent(detectionStatus ? eventOn : eventOff, {
-				chain_id: chainId,
-			});
-		});
-	};
 
 	onSignInWithPasscode = async (enabled) => {
 		this.setState({ loading: true }, async () => {
@@ -1018,29 +996,6 @@ class Settings extends PureComponent {
 		);
 	};
 
-	renderTokenDetectionSection = () => {
-		const { isTokenDetectionEnabled, chainId } = this.props;
-		const { styles, colors } = this.getStyles();
-		if (!controllerUtils.isTokenDetectionEnabledForNetwork(chainId)) {
-			return null;
-		}
-		return (
-			<View style={styles.setting} testID={'token-detection-section'}>
-				<Text style={styles.title}>{strings('app_settings.token_detection_title')}</Text>
-				<Text style={styles.desc}>{strings('app_settings.token_detection_description')}</Text>
-				<View style={styles.switchElement}>
-					<Switch
-						value={isTokenDetectionEnabled}
-						onValueChange={this.toggleTokenDetection}
-						trackColor={{ true: colors.primary.default, false: colors.border.muted }}
-						thumbColor={importedColors.white}
-						ios_backgroundColor={colors.border.muted}
-					/>
-				</View>
-			</View>
-		);
-	};
-
 	render = () => {
 		const { biometryType, biometryChoice, loading } = this.state;
 		const { styles } = this.getStyles();
@@ -1078,7 +1033,6 @@ class Settings extends PureComponent {
 					{this.renderApprovalModal()}
 					{this.renderHistoryModal()}
 					{this.renderCookiesModal()}
-					{this.renderTokenDetectionSection()}
 					{this.isMainnet() && this.renderOpenSeaSettings()}
 					{this.renderHint()}
 				</View>
@@ -1104,8 +1058,6 @@ const mapStateToProps = (state) => ({
 	passwordHasBeenSet: state.user.passwordSet,
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
 	type: state.engine.backgroundState.NetworkController.provider.type,
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	isTokenDetectionEnabled: state.engine.backgroundState.PreferencesController.useTokenDetection,
 });
 
 const mapDispatchToProps = (dispatch) => ({

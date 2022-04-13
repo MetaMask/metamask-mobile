@@ -17,7 +17,7 @@ export const whatsNew = {
 				onPress: (props) =>
 					props.navigation.navigate('SettingsView', {
 						screen: 'SettingsFlow',
-						params: { screen: 'SecuritySettings' },
+						params: { screen: 'AdvancedSettings' },
 					}),
 			},
 		],

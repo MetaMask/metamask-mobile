@@ -143,7 +143,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 							navigation.navigate('SettingsView', {
 								screen: 'SettingsFlow',
 								params: {
-									screen: 'SecuritySettings',
+									screen: 'AdvancedSettings',
 								},
 							});
 						}}

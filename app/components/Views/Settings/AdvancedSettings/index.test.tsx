@@ -11,6 +11,12 @@ const initialState = {
 		backgroundState: {
 			PreferencesController: {
 				ipfsGateway: 'https://ipfs.io/ipfs/',
+				useTokenDetection: false,
+			},
+			NetworkController: {
+				provider: {
+					chainId: 1,
+				},
 			},
 		},
 	},
