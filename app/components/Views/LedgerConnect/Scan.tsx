@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, View, StyleSheet, ActivityIndicator, Linking, Platform } from 'react-native';
+import { Alert, View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { Observable, Subscription } from 'rxjs';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
@@ -60,7 +59,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 						{
 							text: strings('ledger.open_settings'),
 							onPress: async () => {
-								Platform.OS === 'ios'
+								Device.isIos()
 									? Linking.openURL('App-Prefs:Bluetooth')
 									: Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
 							},
@@ -76,7 +75,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 	useEffect(() => {
 		// Checking if app has required permissions
 		const run = async () => {
-			if (Platform.OS === 'ios') {
+			if (Device.isIos()) {
 				const bluetoothPermissionStatus = await check(PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL);
 				const bluetoothAllowed = handleIOSBluetoothPermission(bluetoothPermissionStatus);
 
@@ -98,7 +97,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 				}
 			}
 
-			if (Platform.OS === 'android') {
+			if (Device.isAndroid()) {
 				const requiredPermissions = await checkMultiple([
 					PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
 					PERMISSIONS.ANDROID.BLUETOOTH_SCAN,

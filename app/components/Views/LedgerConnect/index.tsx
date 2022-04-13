@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Image, SafeAreaView, TextStyle, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +13,9 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
+
+const ledgerImage = require('../../../images/ledger.png');
+const ledgerConnectImage = require('../../../images/ledger-connect.png');
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -127,14 +131,12 @@ const LedgerConnect = () => {
 	return (
 		<SafeAreaView style={styles.container}>
 			<View style={styles.connectLedgerWrapper}>
-				{/* eslint-disable-next-line @typescript-eslint/no-require-imports */}
-				<Image source={require('../../../images/ledger.png')} style={styles.ledgerImage} />
+				<Image source={ledgerImage} style={styles.ledgerImage} />
 				<Text bold style={styles.connectLedgerText}>
 					{strings('ledger.connect_ledger')}
 				</Text>
 				<View style={styles.imageContainer}>
-					{/* eslint-disable-next-line @typescript-eslint/no-require-imports */}
-					<Image source={require('../../../images/ledger-connect.png')} />
+					<Image source={ledgerConnectImage} />
 				</View>
 				<View style={styles.textContainer}>
 					<Text bold>{strings('ledger.looking_for_device')}</Text>
