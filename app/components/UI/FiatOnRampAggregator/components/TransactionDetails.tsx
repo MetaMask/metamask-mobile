@@ -150,7 +150,6 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 		currency,
 		txHash,
 		cryptocurrency,
-		id,
 	} = order;
 	const { colors } = useTheme();
 	const explorer = useBlockExplorer(provider, frequentRpcList);
@@ -193,7 +192,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</ListItem.Body>
 						<ListItem.Amount style={styles.transactionIdFlex}>
 							<Text small bold primary right>
-								{id}
+								{data?.providerOrderId}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
