@@ -61,6 +61,7 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
+import TransactionDetails from '../../UI/FiatOnRampAggregator/Views/TransactionDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -299,6 +300,7 @@ const FiatOnRampAggregator = () => (
 			<Stack.Screen name="GetQuotes" component={GetQuotes} options={GetQuotes.navigationOptions} />
 			<Stack.Screen name="Checkout" component={CheckoutWebView} options={CheckoutWebView.navigationOptions} />
 			<Stack.Screen name="Region" component={Region} options={Region.navigationOptions} />
+			<Stack.Screen name="TransactionDetails" component={TransactionDetails} />
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
 );

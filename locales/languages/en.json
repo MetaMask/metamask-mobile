@@ -1560,7 +1560,36 @@
 			"remember_region": "Remember my Region",
 			"your_region": "Your Region",
 			"subtitle_description": "Text here about how a certain payment method will be available depending on your region",
-			"select_region": "Select your region"
+			"select_region": "Select your region",
+			"unsupported": "Region Not Supported",
+			"unsupported_description": "We are working hard to expand coverage to your region. In the meantime, enjoy consectetur adipiscing elit consectetur adipiscing elit",
+			"unsupported_link": "link to support article with information",
+			"explore_app": "Explore App",
+			"support": "support"
+		},
+		"transaction": {
+			"details_main": "Transaction Details",
+			"successful": "Transaction Successful!",
+			"successful_description": "Your ETH is now available in your account",
+			"failed": "Transaction Failed",
+			"failed_description": "Something went wrong and we are unable to process your payment. Please try again.",
+			"processing": "Processing Transaction",
+			"processing_card_description": "Credit/Debit purchases typically take a few minutes",
+			"processing_bank_description": "Bank transfers typically take a few business days",
+			"details": "Transaction details",
+			"via": "via",
+			"purchase_amount": "Purchase Amount Total",
+			"etherscan": "View full details on Etherscan",
+			"another_purchase": "Make another purchase",
+			"questions": "Questions?",
+			"contact": "Contact",
+			"support": "Support",
+			"id": "Transaction ID",
+			"date_and_time": "Date and Time",
+			"payment_method": "Payment Method",
+			"token_amount": "Token Amount",
+			"exchange_rate": "Exchange Rate",
+			"total_fees": "Total Fees"
 		}
 	},
 	"swaps": {

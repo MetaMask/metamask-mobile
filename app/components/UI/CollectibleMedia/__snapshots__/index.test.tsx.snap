@@ -28,6 +28,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
     }
   >
     <Text
+      bigger={false}
       black={false}
       blue={false}
       bold={false}
