@@ -20,6 +20,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { TX_SUBMITTED } from 'app/constants/transaction';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -130,7 +131,7 @@ class Approval extends PureComponent {
 
 				transaction &&
 					transaction.id &&
-					currentTransaction.status !== 'submitted' &&
+					currentTransaction.status !== TX_SUBMITTED &&
 					Engine.context.TransactionController.cancelTransaction(transaction.id);
 				this.props.toggleDappTransactionModal(false);
 			}
