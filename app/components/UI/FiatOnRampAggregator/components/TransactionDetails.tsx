@@ -299,7 +299,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</Text>
 					</ListItem.Amount>
 				</ListItem.Content>
-				{order.state === SDK_ORDER_STATUS.Completed && (
+				{order.state === SDK_ORDER_STATUS.Completed && txHash && (
 					<TouchableOpacity onPress={() => handleLinkPress(explorer.tx(txHash))}>
 						<Text blue small centered style={styles.link}>
 							{strings('fiat_on_ramp_aggregator.transaction.etherscan')}
