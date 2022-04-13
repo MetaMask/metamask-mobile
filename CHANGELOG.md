@@ -1,7 +1,7 @@
 # Changelog
 
 ## Current Main Branch
-## v4.5.0 - April 6, 2022
+## 5.0.0 - April 13, 2022
 - [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
 - [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
 - [#4047](https://github.com/MetaMask/metamask-mobile/pull/4047): [FIX] Fix attribution url
@@ -10,7 +10,6 @@
 - [#4033](https://github.com/MetaMask/metamask-mobile/pull/4033): [FIX] Remove hardcoded fill
 - [#3979](https://github.com/MetaMask/metamask-mobile/pull/3979): [FIX] TransactionDetails speed up and cancel CTA
 - [#3948](https://github.com/MetaMask/metamask-mobile/pull/3948): [FIX] Update button on WebviewError
-- [#3969](https://github.com/MetaMask/metamask-mobile/pull/3969): [FIX] updated typo in network modal
 
 ## v4.4.0 - March 28, 2022
 - [#3910](https://github.com/MetaMask/metamask-mobile/pull/3910): [IMPROVEMENT] Network Specific Asset Education
