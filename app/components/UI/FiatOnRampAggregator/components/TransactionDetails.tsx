@@ -139,7 +139,19 @@ interface Props {
 }
 
 const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList }: Props) => {
-	const { data, state, createdAt, amount, cryptoFee, cryptoAmount, currencySymbol, currency, txHash } = order;
+	const {
+		data,
+		state,
+		createdAt,
+		amount,
+		cryptoFee,
+		cryptoAmount,
+		currencySymbol,
+		currency,
+		txHash,
+		cryptocurrency,
+		providerId,
+	} = order;
 	const { colors } = useTheme();
 	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const styles = createStyles(colors);
@@ -159,17 +171,14 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 			</View>
 			<Text centered primary style={styles.tokenAmount}>
 				{renderFromTokenMinimalUnit(
-					toTokenMinimalUnit(
-						cryptoAmount,
-						order.cryptoCurrency?.decimals || data.cryptoCurrency?.decimals
-					).toString(),
+					toTokenMinimalUnit(cryptoAmount, data.cryptoCurrency?.decimals).toString(),
 					data.cryptoCurrency?.decimals
 				)}{' '}
-				{data.cryptoCurrency?.symbol}
+				{cryptocurrency}
 			</Text>
 			<Text centered small style={styles.fiatColor}>
 				{currencySymbol}
-				{renderFiat(amountOut, currency, order.fiatCurrency?.decimals || data.fiatCurrency?.decimals)}
+				{renderFiat(amountOut, currency, data.fiatCurrency?.decimals)}
 			</Text>
 			<Box>
 				<Text bold primary style={styles.transactionTitle}>
@@ -184,7 +193,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</ListItem.Body>
 						<ListItem.Amount style={styles.transactionIdFlex}>
 							<Text small bold primary right>
-								{order.providerOrderId || data.providerOrderId}
+								{providerId}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -208,13 +217,12 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.paymentMethod?.name || data.paymentMethod?.name}
+								{data.paymentMethod?.name}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<Text small style={styles.provider}>
-						{strings('fiat_on_ramp_aggregator.transaction.via')}{' '}
-						{order.provider?.name || data.provider?.name}
+						{strings('fiat_on_ramp_aggregator.transaction.via')} {getProviderName(order.provider, data)}
 					</Text>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
@@ -225,13 +233,10 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						<ListItem.Amount>
 							<Text small bold primary>
 								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(
-										cryptoAmount,
-										order.cryptoCurrency?.decimals || data.cryptoCurrency?.decimals
-									).toString(),
+									toTokenMinimalUnit(cryptoAmount, data.cryptoCurrency?.decimals).toString(),
 									data.cryptoCurrency?.decimals
 								)}{' '}
-								{data.cryptoCurrency?.symbol}
+								{cryptocurrency}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -244,11 +249,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						<ListItem.Amount>
 							<Text small bold primary>
 								{currencySymbol}
-								{renderFiat(
-									amountOut,
-									currency,
-									order.fiatCurrency?.decimals || data.fiatCurrency?.decimals
-								)}
+								{renderFiat(amountOut, currency, data.fiatCurrency?.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -262,11 +263,8 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 							<Text small bold primary>
 								1 {order.cryptocurrency} @{' '}
 								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(
-										exchangeRate,
-										order.fiatCurrency?.decimals || data.cryptoCurrency?.decimals
-									).toString(),
-									order.fiatCurrency?.decimals || data.cryptoCurrency?.decimals
+									toTokenMinimalUnit(exchangeRate, data.cryptoCurrency?.decimals).toString(),
+									data.cryptoCurrency?.decimals
 								)}
 							</Text>
 						</ListItem.Amount>
@@ -280,11 +278,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						<ListItem.Amount>
 							<Text small bold primary>
 								{currencySymbol}
-								{renderFiat(
-									cryptoFee,
-									currency,
-									order.fiatCurrency?.decimals || data.fiatCurrency?.decimals
-								)}
+								{renderFiat(cryptoFee, currency, data.fiatCurrency?.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -301,7 +295,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 					<ListItem.Amount>
 						<Text small bold primary>
 							{currencySymbol}
-							{renderFiat(amount, currency, order.fiatCurrency?.decimals || data.fiatCurrency?.decimals)}
+							{renderFiat(amount, currency, data.fiatCurrency?.decimals)}
 						</Text>
 					</ListItem.Amount>
 				</ListItem.Content>
