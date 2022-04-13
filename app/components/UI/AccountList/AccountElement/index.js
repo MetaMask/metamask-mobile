@@ -52,7 +52,7 @@ const createStyles = (colors) =>
 			color: colors.error.default,
 			marginLeft: 4,
 		},
-		importedView: {
+		keyringTypeLabelView: {
 			flex: 0.5,
 			alignItems: 'center',
 			marginTop: 2,
@@ -65,18 +65,21 @@ const createStyles = (colors) =>
 			flex: 0.2,
 			alignItems: 'flex-end',
 		},
-		importedText: {
+		keyringTypeLabelText: {
 			color: colors.text.alternative,
 			fontSize: 10,
 			...fontStyles.bold,
 		},
-		importedWrapper: {
+		keyringTypeLabelWrapper: {
 			width: 73,
 			paddingHorizontal: 10,
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
 			borderColor: colors.icon.default,
+		},
+		hardwareKeyringLabelWrapper: {
+			width: 80,
 		},
 	});
 
@@ -116,24 +119,32 @@ class AccountElement extends PureComponent {
 
 	onLongPress = () => {
 		const { onLongPress } = this.props;
-		const { address, isImported, index } = this.props.item;
-		onLongPress && onLongPress(address, isImported, index);
+		const { address, keyringType, index } = this.props.item;
+		onLongPress && onLongPress(address, keyringType !== 'HD Key Tree', index);
 	};
 
 	render() {
 		const { disabled, updatedBalanceFromStore, ticker } = this.props;
-		const { address, name, ens, isSelected, isImported, balanceError } = this.props.item;
+		const { address, name, ens, isSelected, keyringType, balanceError } = this.props.item;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary.default} /> : null;
-		const imported = isImported ? (
-			<View style={styles.importedWrapper}>
-				<Text numberOfLines={1} style={styles.importedText}>
-					{strings('accounts.imported')}
-				</Text>
-			</View>
-		) : null;
+
+		const keyRingLabel =
+			keyringType !== 'HD Key Tree' ? (
+				<View
+					style={[
+						styles.keyringTypeLabelWrapper,
+						keyringType === 'Ledger' && styles.hardwareKeyringLabelWrapper,
+					]}
+				>
+					<Text numberOfLines={1} style={styles.keyringTypeLabelText}>
+						{keyringType === 'Imported' && strings('accounts.imported')}
+						{keyringType === 'Ledger' && strings('accounts.hardware')}
+					</Text>
+				</View>
+			) : null;
 
 		return (
 			<View onStartShouldSetResponder={() => true}>
@@ -161,7 +172,7 @@ class AccountElement extends PureComponent {
 								)}
 							</View>
 						</View>
-						{!!imported && <View style={styles.importedView}>{imported}</View>}
+						{!!keyRingLabel && <View style={styles.keyringTypeLabelView}>{keyRingLabel}</View>}
 						<View style={styles.selectedWrapper}>{selected}</View>
 					</View>
 				</TouchableOpacity>

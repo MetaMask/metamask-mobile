@@ -426,6 +426,7 @@
 	},
 	"accounts": {
 		"create_new_account": "Create New Account",
+		"hardware": "HARDWARE",
 		"import_account": "Import an Account",
 		"imported": "IMPORTED",
 		"remove_account_title": "Account removal",
