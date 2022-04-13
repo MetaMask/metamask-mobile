@@ -44,6 +44,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               />
             </TouchableOpacity>
             <Text
+              bigger={false}
               black={true}
               blue={false}
               bold={true}
@@ -90,6 +91,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           >
             <Text
               adjustsFontSizeToFit={true}
+              bigger={false}
               black={true}
               blue={false}
               bold={false}
@@ -122,6 +124,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           </View>
           <Text
             big={true}
+            bigger={false}
             black={true}
             blue={false}
             bold={false}
@@ -147,6 +150,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             upper={false}
           >
             <Text
+              bigger={false}
               black={true}
               blue={false}
               bold={true}
@@ -182,6 +186,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
             }
           >
             <Text
+              bigger={false}
               black={false}
               blue={false}
               bold={true}
@@ -249,6 +254,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 }
               >
                 <Text
+                  bigger={false}
                   black={false}
                   blue={false}
                   bold={true}
@@ -271,6 +277,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                   Advanced options
                 </Text>
                 <Text
+                  bigger={false}
                   black={false}
                   blue={false}
                   bold={true}
@@ -329,6 +336,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
+                          bigger={false}
                           black={true}
                           blue={false}
                           bold={true}
@@ -400,6 +408,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
+                          bigger={false}
                           black={true}
                           blue={false}
                           bold={true}
@@ -451,6 +460,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
+                        bigger={false}
                         black={false}
                         blue={false}
                         bold={false}
@@ -472,6 +482,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         upper={false}
                       >
                         <Text
+                          bigger={false}
                           black={false}
                           blue={false}
                           bold={true}
@@ -521,6 +532,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       >
                         <Text
+                          bigger={false}
                           black={true}
                           blue={false}
                           bold={true}
@@ -572,6 +584,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                     onChangeValue={[Function]}
                     rightLabelComponent={
                       <Text
+                        bigger={false}
                         black={false}
                         blue={false}
                         bold={false}
@@ -593,6 +606,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         upper={false}
                       >
                         <Text
+                          bigger={false}
                           black={false}
                           blue={false}
                           bold={true}
@@ -635,6 +649,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
               }
             >
               <Text
+                bigger={false}
                 black={false}
                 blue={false}
                 bold={false}
@@ -678,6 +693,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
           body={
             <View>
               <Text
+                bigger={false}
                 black={false}
                 blue={false}
                 bold={false}
@@ -719,6 +735,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                 <TouchableWithoutFeedback>
                   <View>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={false}
@@ -743,6 +760,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       Selecting the right gas fee depends on the type of transaction and how important it is to you.
                     </Text>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={true}
@@ -771,6 +789,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       High
                     </Text>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={false}
@@ -795,6 +814,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
                     </Text>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={true}
@@ -823,6 +843,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       Medium
                     </Text>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={false}
@@ -847,6 +868,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
                     </Text>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={true}
@@ -875,6 +897,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       Low
                     </Text>
                     <Text
+                      bigger={false}
                       black={false}
                       blue={false}
                       bold={false}

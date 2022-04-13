@@ -5,7 +5,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../../../UI/Identicon';
-import { renderShortAddress } from '../../../../util/address';
+import { isQRHardwareAccount, renderShortAddress } from '../../../../util/address';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { hasZeroWidthPoints } from '../../../../util/confusables';
@@ -70,6 +70,21 @@ const createStyles = (colors) =>
 			...fontStyles.normal,
 			color: colors.text.default,
 			fontSize: 14,
+		},
+		accountNameLabel: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		accountNameLabelText: {
+			marginLeft: 4,
+			paddingHorizontal: 8,
+			...fontStyles.bold,
+			color: colors.primary.alternative,
+			borderWidth: 1,
+			borderRadius: 8,
+			borderColor: colors.primary.alternative,
+			fontSize: 10,
 		},
 		textBalance: {
 			...fontStyles.normal,
@@ -337,6 +352,7 @@ AddressTo.propTypes = {
 
 export const AddressFrom = (props) => {
 	const { highlighted, onPressIcon, fromAccountName, fromAccountBalance, fromAccountAddress } = props;
+	const isHardwareAccount = isQRHardwareAccount(fromAccountAddress);
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
@@ -350,7 +366,12 @@ export const AddressFrom = (props) => {
 					<Identicon address={fromAccountAddress} diameter={30} />
 				</View>
 				<View style={[baseStyles.flexGrow, styles.address]}>
-					<Text style={styles.textAddress}>{fromAccountName}</Text>
+					<View style={styles.accountNameLabel}>
+						<Text style={styles.textAddress}>{fromAccountName}</Text>
+						{isHardwareAccount && (
+							<Text style={styles.accountNameLabelText}>{strings('transaction.hardware')}</Text>
+						)}
+					</View>
 					<Text style={styles.textBalance}>{`${strings(
 						'transactions.address_from_balance'
 					)} ${fromAccountBalance}`}</Text>

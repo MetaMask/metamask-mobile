@@ -91,6 +91,7 @@ const AmountToBuy = () => {
 		setSelectedAsset,
 		selectedFiatCurrencyId,
 		setSelectedFiatCurrencyId,
+		selectedChainId: chainId,
 	} = useFiatOnRampSDK();
 
 	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }, queryGetCountries] =
@@ -274,6 +275,7 @@ const AmountToBuy = () => {
 		return () => backHandler.remove();
 	}, [amountFocused]);
 
+	// TODO: replace this with loading screen
 	if (
 		isFetchingDataTokens ||
 		isFetchingGetPaymentMethod ||
@@ -283,9 +285,7 @@ const AmountToBuy = () => {
 	) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>Loading...</Text>
-				</ScreenLayout.Body>
+				<ScreenLayout.Body></ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}
@@ -385,6 +385,7 @@ const AmountToBuy = () => {
 				title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
 				description={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency_description')}
 				tokens={tokens}
+				chainId={chainId}
 				onItemPress={handleAssetPress}
 			/>
 			<FiatSelectModal

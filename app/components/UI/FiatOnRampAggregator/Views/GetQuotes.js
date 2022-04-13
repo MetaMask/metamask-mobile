@@ -10,6 +10,7 @@ import Text from '../../../Base/Text';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
+import InfoAlert from '../components/InfoAlert';
 
 const styles = StyleSheet.create({
 	row: {
@@ -24,6 +25,8 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [providerId, setProviderId] = useState(null);
+	const [showInfo, setShowInfo] = useState(false);
+	const [selectedProviderInfo] = useState({});
 	const {
 		selectedPaymentMethod,
 		selectedCountry,
@@ -81,6 +84,16 @@ const GetQuotes = () => {
 	return (
 		<ScreenLayout>
 			<ScreenLayout.Header description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app." />
+			<InfoAlert
+				isVisible={showInfo}
+				subtitle={selectedProviderInfo.subtitle}
+				dismiss={() => setShowInfo(false)}
+				providerName={selectedProviderInfo.name}
+				body={selectedProviderInfo.body}
+				providerWebsite={selectedProviderInfo.website}
+				providerPrivacyPolicy={selectedProviderInfo.privacyPolicy}
+				providerSupport={selectedProviderInfo.support}
+			/>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
 					{quotes.length <= 0 ? (
@@ -97,6 +110,7 @@ const GetQuotes = () => {
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
 										highlighted={quote.providerId === providerId}
+										showInfo={() => setShowInfo(true)}
 									/>
 								</View>
 							))

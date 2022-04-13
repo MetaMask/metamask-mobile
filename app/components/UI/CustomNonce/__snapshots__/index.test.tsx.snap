@@ -17,6 +17,7 @@ exports[`CustomNonce should render correctly 1`] = `
   }
 >
   <Text
+    bigger={false}
     black={true}
     blue={false}
     bold={true}
@@ -38,6 +39,7 @@ exports[`CustomNonce should render correctly 1`] = `
     Nonce
   </Text>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={true}
@@ -60,6 +62,7 @@ exports[`CustomNonce should render correctly 1`] = `
     Edit
   </Text>
   <Text
+    bigger={false}
     black={true}
     blue={false}
     bold={true}

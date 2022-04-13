@@ -24,6 +24,7 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -60,6 +61,7 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
+import TransactionDetails from '../../UI/FiatOnRampAggregator/Views/TransactionDetails';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -298,6 +300,7 @@ const FiatOnRampAggregator = () => (
 			<Stack.Screen name="GetQuotes" component={GetQuotes} options={GetQuotes.navigationOptions} />
 			<Stack.Screen name="Checkout" component={CheckoutWebView} options={CheckoutWebView.navigationOptions} />
 			<Stack.Screen name="Region" component={Region} options={Region.navigationOptions} />
+			<Stack.Screen name="TransactionDetails" component={TransactionDetails} />
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
 );
@@ -341,6 +344,16 @@ const SetPasswordFlow = () => (
 	</Stack.Navigator>
 );
 
+const ConnectQRHardwareFlow = () => (
+	<Stack.Navigator
+		screenOptions={{
+			headerShown: false,
+		}}
+	>
+		<Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+	</Stack.Navigator>
+);
+
 const MainNavigator = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -366,6 +379,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
+		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

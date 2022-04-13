@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
@@ -63,13 +63,15 @@ interface Props {
 		receiver?: string;
 		getApplePayRequestInfo?: () => any;
 		purchaseWithApplePay?: () => Promise<any>;
+		showInfo: () => any;
 	};
 	onPress?: () => any;
 	onPressBuy?: () => any;
 	highlighted?: boolean;
+	showInfo: () => any;
 }
 
-const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Props) => {
+const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highlighted }: Props) => {
 	const { networkFee, providerFee, amountIn, amountOut, fiat, providerName, crypto } = quote;
 	const totalFees = networkFee + providerFee;
 	const price = amountIn - totalFees;
@@ -79,9 +81,11 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, highlighted }: Pro
 			<ListItem.Content>
 				<ListItem.Body>
 					<ListItem.Title>
-						<Text big primary bold>
-							{providerName} <Feather name="info" size={12} />
-						</Text>
+						<TouchableOpacity onPress={showInfo}>
+							<Text big primary bold>
+								{providerName} <Feather name="info" size={12} />
+							</Text>
+						</TouchableOpacity>
 					</ListItem.Title>
 				</ListItem.Body>
 				<ListItem.Amounts>

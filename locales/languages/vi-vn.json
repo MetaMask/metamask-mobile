@@ -1378,15 +1378,15 @@
 		"total_amount": "Tổng số tiền",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Trước khi bạn mua ETH, vui lòng tìm hiểu về phí ga",
+				"title": "Trước khi bạn mua {{ticker}}, vui lòng tìm hiểu về phí ga",
 				"average_gas_fee": "Phí gas trung bình hiện tại:",
-				"subtitle_1": "Nếu bạn định hoán đổi hoặc chuyển nhượng ETH, vui lòng mua thêm để chi trả cho cả phí ga.",
-				"subtitle_2": "Phí gas cho giao dịch tách biệt với chi phí mua ETH.",
+				"subtitle_1": "Nếu bạn định hoán đổi hoặc chuyển nhượng {{ticker}}, vui lòng mua thêm để chi trả cho cả phí ga.",
+				"subtitle_2": "Phí gas cho giao dịch tách biệt với chi phí mua {{ticker}}.",
 				"subtitle_3": "MetaMask không thu lợi từ phí gas."
 			},
 			"step_2": {
 				"title": "Phí gas là gì?",
-				"subtitle_1": "Ga dùng để thực hiện các giao dịch trên mạng Ethereum. Trong ETH, đó là một phí được trả cho thợ đào tiền mã hóa xử lý giao dịch của bạn.",
+				"subtitle_1": "Ga dùng để thực hiện các giao dịch trên mạng Ethereum. Trong {{ticker}}, đó là một phí được trả cho thợ đào tiền mã hóa xử lý giao dịch của bạn.",
 				"subtitle_2": "MetaMask không thu lợi từ phí gas.",
 				"learn_more": "Tìm hiểu thêm về phí gas"
 			},
@@ -1397,7 +1397,7 @@
 				"subtitle_3": "Cách tốt nhất để ước tính phí gas là",
 				"subtitle_4": "thử giao dịch trước",
 				"subtitle_5": "để xem phí gas là bao nhiêu.",
-				"cta": "Tiếp tục mua ETH"
+				"cta": "Tiếp tục mua {{ticker}}"
 			}
 		}
 	},
