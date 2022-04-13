@@ -1374,15 +1374,15 @@
 		"total_amount": "Kabuuang halaga",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Bago ka bumili ng ETH, unawain ang mga bayarin sa gas",
+				"title": "Bago ka bumili ng {{ticker}}, unawain ang mga bayarin sa gas",
 				"average_gas_fee": "Kasalukuyang average na bayarin sa gas:",
-				"subtitle_1": "Kung plano mong i-swap o i-transfer ang iyong ETH, bumili ng dagdag para mabayaran ang mga bayarin sa gas.",
-				"subtitle_2": "Ang mga bayarin sa gas para sa mga transaksyon ay hiwalay sa gastusin sa pagbili ng ETH.",
+				"subtitle_1": "Kung plano mong i-swap o i-transfer ang iyong {{ticker}}, bumili ng dagdag para mabayaran ang mga bayarin sa gas.",
+				"subtitle_2": "Ang mga bayarin sa gas para sa mga transaksyon ay hiwalay sa gastusin sa pagbili ng {{ticker}}.",
 				"subtitle_3": "Hindi kumikita ang MetaMask mula sa mga bayarin sa gas."
 			},
 			"step_2": {
 				"title": "Ano ang mga bayarin sa gas?",
-				"subtitle_1": "Pinapatakbo ng gas ang mga transaksyon sa Ethereum network. Isa itong bayarin na binabayaran sa ETH sa mga crypto miner na nagpoproseso sa iyong mga transaksyon.",
+				"subtitle_1": "Pinapatakbo ng gas ang mga transaksyon sa Ethereum network. Isa itong bayarin na binabayaran sa {{ticker}} sa mga crypto miner na nagpoproseso sa iyong mga transaksyon.",
 				"subtitle_2": "Hindi kumikita ang MetaMask mula sa mga bayarin sa gas.",
 				"learn_more": "Matuto pa tungkol sa mga bayarin sa gas"
 			},
@@ -1393,7 +1393,7 @@
 				"subtitle_3": "Ang pinakamainam na paraan para matantya ang mga bayarin sa gas ay",
 				"subtitle_4": "subukan muna ang transaksyon",
 				"subtitle_5": "at tingnan kung magkano ang halaga ng gas.",
-				"cta": "Magpatuloy sa pagbili ng ETH"
+				"cta": "Magpatuloy sa pagbili ng {{ticker}}"
 			}
 		}
 	},
