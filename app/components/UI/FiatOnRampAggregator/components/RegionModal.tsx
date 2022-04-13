@@ -13,6 +13,7 @@ import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import { useTheme } from '../../../../util/theme';
+import RegionAlert from './RegionAlert';
 
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -133,7 +134,7 @@ const RegionModal: React.FC<Props> = ({
 	const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
 	// local state variable to save the country object in transite
 	const [selectedCountryInTransit, setSelectedCountryInTransit] = useState<any>({});
-
+	const [showAlert, setShowAlert] = useState(false);
 	const dataRef = useRef(data);
 	const dataFuse = useMemo(
 		() =>
@@ -157,15 +158,17 @@ const RegionModal: React.FC<Props> = ({
 
 	const handleOnCountryPressCallback = useCallback(
 		(country) => {
-			if (!country.regions) {
-				unsetRegion();
-				onCountryPress(country);
-			} else {
-				// the country has regions so we switch the active view and place selected country in transit
+			if (country.regions) {
 				setActiveView(RegionViewType.STATE);
 				setSelectedCountryInTransit(country);
 				dataRef.current = country.regions;
 				setSearchString('');
+			} else if (country.unsupported) {
+				setSelectedCountryInTransit(country);
+				setShowAlert(true);
+			} else {
+				unsetRegion();
+				onCountryPress(country);
 			}
 		},
 		[onCountryPress, unsetRegion]
@@ -274,6 +277,7 @@ const RegionModal: React.FC<Props> = ({
 			isVisible={isVisible}
 			onBackdropPress={dismiss}
 			swipeDirection="down"
+			onSwipeComplete={dismiss}
 			propagateSwipe
 			avoidKeyboard
 			onModalHide={onModalHide}
@@ -284,6 +288,14 @@ const RegionModal: React.FC<Props> = ({
 				<ModalDragger />
 				{activeView === RegionViewType.COUNTRY ? (
 					<ScreenLayout>
+						<RegionAlert
+							isVisible={showAlert}
+							subtitle={`${selectedCountryInTransit.emoji}   ${selectedCountryInTransit.name}`}
+							dismiss={() => setShowAlert(false)}
+							title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+							body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+							link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+						/>
 						<ScreenLayout.Header
 							bold
 							title={title}

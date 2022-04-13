@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, FlatList, TouchableHighlight } from 'react-native';
@@ -11,9 +10,7 @@ import OrderDetails from './OrderDetails';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
-/**
- * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
- */
+
 const createStyles = (colors) =>
 	StyleSheet.create({
 		modal: {
@@ -47,19 +44,26 @@ function FiatOrdersView({ orders, ...props }) {
 		[navigation]
 	);
 
-	/* eslint-disable-next-line */
 	const renderItem = ({ item }) => {
+		if (item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+			return (
+				<TouchableHighlight
+					style={styles.row}
+					onPress={() => handleNavigateToTxDetails(item.id)}
+					underlayColor={colors.background.alternative}
+					activeOpacity={1}
+				>
+					<OrderListItem order={item} />
+				</TouchableHighlight>
+			);
+		}
 		return (
 			<ModalHandler>
 				{({ isVisible, toggleModal }) => (
 					<>
 						<TouchableHighlight
 							style={styles.row}
-							onPress={() => {
-								item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
-									? handleNavigateToTxDetails(item.id)
-									: toggleModal();
-							}}
+							onPress={toggleModal}
 							underlayColor={colors.background.alternative}
 							activeOpacity={1}
 						>
@@ -92,6 +96,7 @@ function FiatOrdersView({ orders, ...props }) {
 
 FiatOrdersView.propTypes = {
 	orders: PropTypes.array,
+	item: PropTypes.any,
 };
 
 const mapStateToProps = (state) => ({

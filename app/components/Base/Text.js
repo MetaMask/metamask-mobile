@@ -49,6 +49,9 @@ const createStyles = (colors) =>
 		big: {
 			fontSize: 16,
 		},
+		bigger: {
+			fontSize: 18,
+		},
 		upper: {
 			textTransform: 'uppercase',
 		},
@@ -94,6 +97,7 @@ const Text = ({
 	muted,
 	small,
 	big,
+	bigger,
 	upper,
 	modal,
 	infoModal,
@@ -127,6 +131,7 @@ const Text = ({
 				disclaimer && [style.small, style.disclaimer],
 				small && style.small,
 				big && style.big,
+				bigger && style.bigger,
 				upper && style.upper,
 				modal && style.modal,
 				infoModal && style.infoModal,
@@ -156,6 +161,7 @@ Text.defaultProps = {
 	modal: false,
 	small: false,
 	big: undefined,
+	bigger: false,
 	upper: false,
 	link: false,
 	strikethrough: false,
@@ -235,6 +241,10 @@ Text.propTypes = {
 	 * Makes text big
 	 */
 	big: PropTypes.bool,
+	/**
+	 * Makes text even bigger
+	 */
+	bigger: PropTypes.bool,
 	/**
 	 * Makes text uppercase
 	 */
