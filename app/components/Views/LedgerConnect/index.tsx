@@ -151,7 +151,7 @@ const LedgerConnect = () => {
 								disabled={isConnecting}
 							>
 								{isConnecting ? (
-									<ActivityIndicator color="#FFFFFF" />
+									<ActivityIndicator color={colors.white} />
 								) : isRetry ? (
 									strings('ledger.retry')
 								) : (
