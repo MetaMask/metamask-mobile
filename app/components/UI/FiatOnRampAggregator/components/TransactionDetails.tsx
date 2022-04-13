@@ -91,7 +91,9 @@ const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
 				<>
 					<Spinner />
 					<Text bold big primary centered style={styles.stageDescription}>
-						{stage === 'pending' ? strings('fiat_on_ramp_aggregator.transaction.processing') : 'submitted'}
+						{stage === 'PENDING'
+							? strings('fiat_on_ramp_aggregator.transaction.processing')
+							: strings('transaction.submitted')}
 					</Text>
 					{!paymentType.includes('Credit') ? (
 						<Text small centered style={styles.stageMessage}>
@@ -137,24 +139,12 @@ interface Props {
 }
 
 const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList }: Props) => {
-	const { data, state } = order;
-	const {
-		cryptoCurrency,
-		paymentMethod,
-		fiatCurrency,
-		cryptoAmount,
-		providerOrderId,
-		fiatAmount,
-		totalFeesFiat,
-		txHash,
-		createdAt,
-	} = data;
+	const { data, state, createdAt, amount, cryptoFee, cryptoAmount, currencySymbol, currency, txHash } = order;
 	const { colors } = useTheme();
 	const explorer = useBlockExplorer(provider, frequentRpcList);
-
 	const styles = createStyles(colors);
 	const date = toDateFormat(createdAt);
-	const amountOut = Number(fiatAmount) - Number(totalFeesFiat);
+	const amountOut = Number(amount) - Number(cryptoFee);
 	const exchangeRate = Number(amountOut) / Number(cryptoAmount);
 	const handleLinkPress = useCallback(async (url: string) => {
 		const supported = await Linking.canOpenURL(url);
@@ -165,18 +155,21 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 	return (
 		<View>
 			<View style={styles.stage}>
-				<Stage stage={state} paymentType={paymentMethod.name} />
+				<Stage stage={state} paymentType={data.paymentMethod?.name} />
 			</View>
 			<Text centered primary style={styles.tokenAmount}>
 				{renderFromTokenMinimalUnit(
-					toTokenMinimalUnit(cryptoAmount, cryptoCurrency.decimals).toString(),
-					cryptoCurrency.decimals
+					toTokenMinimalUnit(
+						cryptoAmount,
+						order.cryptoCurrency?.decimals || data.cryptoCurrency?.decimals
+					).toString(),
+					data.cryptoCurrency?.decimals
 				)}{' '}
-				{cryptoCurrency.symbol}
+				{data.cryptoCurrency?.symbol}
 			</Text>
 			<Text centered small style={styles.fiatColor}>
-				{fiatCurrency.denomSymbol}
-				{renderFiat(amountOut, fiatCurrency.symbol, fiatCurrency.decimals)}
+				{currencySymbol}
+				{renderFiat(amountOut, currency, order.fiatCurrency?.decimals || data.fiatCurrency?.decimals)}
 			</Text>
 			<Box>
 				<Text bold primary style={styles.transactionTitle}>
@@ -191,7 +184,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</ListItem.Body>
 						<ListItem.Amount style={styles.transactionIdFlex}>
 							<Text small bold primary right>
-								{providerOrderId}
+								{order.providerOrderId || data.providerOrderId}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -215,12 +208,13 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{paymentMethod.name}
+								{order.paymentMethod?.name || data.paymentMethod?.name}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<Text small style={styles.provider}>
-						{strings('fiat_on_ramp_aggregator.transaction.via')} {data.provider?.name}
+						{strings('fiat_on_ramp_aggregator.transaction.via')}{' '}
+						{order.provider?.name || data.provider?.name}
 					</Text>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
@@ -231,23 +225,30 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						<ListItem.Amount>
 							<Text small bold primary>
 								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(cryptoAmount, cryptoCurrency.decimals).toString(),
-									cryptoCurrency.decimals
+									toTokenMinimalUnit(
+										cryptoAmount,
+										order.cryptoCurrency?.decimals || data.cryptoCurrency?.decimals
+									).toString(),
+									data.cryptoCurrency?.decimals
 								)}{' '}
-								{cryptoCurrency.symbol}
+								{data.cryptoCurrency?.symbol}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								{fiatCurrency.symbol} {strings('send.amount')}
+								{currency} {strings('send.amount')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{fiatCurrency.denomSymbol}
-								{renderFiat(amountOut, fiatCurrency.symbol, fiatCurrency.decimals)}
+								{currencySymbol}
+								{renderFiat(
+									amountOut,
+									currency,
+									order.fiatCurrency?.decimals || data.fiatCurrency?.decimals
+								)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -261,8 +262,11 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 							<Text small bold primary>
 								1 {order.cryptocurrency} @{' '}
 								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(exchangeRate, cryptoCurrency.decimals).toString(),
-									cryptoCurrency.decimals
+									toTokenMinimalUnit(
+										exchangeRate,
+										order.fiatCurrency?.decimals || data.cryptoCurrency?.decimals
+									).toString(),
+									order.fiatCurrency?.decimals || data.cryptoCurrency?.decimals
 								)}
 							</Text>
 						</ListItem.Amount>
@@ -275,8 +279,12 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{fiatCurrency.denomSymbol}
-								{renderFiat(totalFeesFiat, fiatCurrency.symbol, fiatCurrency.decimals)}
+								{currencySymbol}
+								{renderFiat(
+									cryptoFee,
+									currency,
+									order.fiatCurrency?.decimals || data.fiatCurrency?.decimals
+								)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -292,8 +300,8 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 					</ListItem.Body>
 					<ListItem.Amount>
 						<Text small bold primary>
-							{fiatCurrency.denomSymbol}
-							{renderFiat(order.amount, fiatCurrency.symbol, fiatCurrency.decimals)}
+							{currencySymbol}
+							{renderFiat(amount, currency, order.fiatCurrency?.decimals || data.fiatCurrency?.decimals)}
 						</Text>
 					</ListItem.Amount>
 				</ListItem.Content>
@@ -307,10 +315,11 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 			</Box>
 			<View style={styles.contactDesc}>
 				<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
-				<TouchableOpacity>
+				<TouchableOpacity
+					onPress={() => handleLinkPress(order.providerLink || 'https://dummy.url.metamask.io')}
+				>
 					<Text small underline>
-						{strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
-						{getProviderName(data.provider?.name, data)}{' '}
+						{strings('fiat_on_ramp_aggregator.transaction.contact')} {getProviderName(order.provider, data)}{' '}
 						{strings('fiat_on_ramp_aggregator.transaction.support')}
 					</Text>
 				</TouchableOpacity>
