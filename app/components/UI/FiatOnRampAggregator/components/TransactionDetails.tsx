@@ -309,9 +309,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 			</Box>
 			<View style={styles.contactDesc}>
 				<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
-				<TouchableOpacity
-					onPress={() => handleLinkPress(order.providerLink || 'https://dummy.url.metamask.io')}
-				>
+				<TouchableOpacity onPress={() => handleLinkPress(data.providerLink || 'https://dummy.url.metamask.io')}>
 					<Text small underline>
 						{strings('fiat_on_ramp_aggregator.transaction.contact')} {getProviderName(order.provider, data)}{' '}
 						{strings('fiat_on_ramp_aggregator.transaction.support')}
