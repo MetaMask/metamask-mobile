@@ -178,7 +178,7 @@ class Engine {
 						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
 						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
 					},
-					{ encryptor },
+					{ encryptor, keyringTypes: additionalKeyrings },
 					initialState.KeyringController,
 					additionalKeyrings
 				),
