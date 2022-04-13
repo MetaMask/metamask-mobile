@@ -450,7 +450,7 @@ class DrawerView extends PureComponent {
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(selectedAddress)) {
-				ret = keyring.type !== 'HD Key Tree';
+				ret = !['HD Key Tree', 'Ledger'].includes(keyring.type);
 				break;
 			}
 		}

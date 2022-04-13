@@ -253,7 +253,7 @@ class AccountList extends PureComponent {
 		let ret = false;
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(address)) {
-				ret = keyring.type !== 'HD Key Tree';
+				ret = !['HD Key Tree', 'Ledger'].includes(keyring.type);
 				break;
 			}
 		}
