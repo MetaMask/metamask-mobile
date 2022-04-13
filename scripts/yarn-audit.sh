@@ -4,7 +4,7 @@ set -u
 set -o pipefail
 
 # use `improved-yarn-audit` since that allows for exclude
-yarn run improved-yarn-audit --ignore-dev-deps --min-severity moderate
+yarn run improved-yarn-audit --ignore-dev-deps --min-severity moderate --exclude GHSA-gff7-g5r8-mg8m,GHSA-fwr7-v2mv-hh25 #do not merge this
 audit_status="$?"
 
 # Use a bitmask to ignore INFO and LOW severity audit results
