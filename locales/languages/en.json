@@ -1583,7 +1583,13 @@
 			"another_purchase": "Make another purchase",
 			"questions": "Questions?",
 			"contact": "Contact",
-			"support": "Support"
+			"support": "Support",
+			"id": "Transaction ID",
+			"date_and_time": "Date and Time",
+			"payment_method": "Payment Method",
+			"token_amount": "Token Amount",
+			"exchange_rate": "Exchange Rate",
+			"total_fees": "Total Fees"
 		}
 	},
 	"swaps": {

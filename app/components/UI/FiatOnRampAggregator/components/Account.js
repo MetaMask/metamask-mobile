@@ -18,7 +18,7 @@ const createStyles = (colors) =>
 			marginHorizontal: 5,
 		},
 		container: {
-			backgroundColor: colors.border.muted,
+			backgroundColor: colors.background.alternative,
 			paddingVertical: 8,
 			paddingHorizontal: 10,
 			borderRadius: 100,

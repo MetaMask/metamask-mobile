@@ -31,14 +31,15 @@ const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
 };
 
 const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
-	id: aggregatorOrder.id,
+	id: aggregatorOrder.providerOrderId,
 	provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
 	createdAt: aggregatorOrder.createdAt,
 	amount: aggregatorOrder.fiatAmount,
 	fee: aggregatorOrder.totalFeesFiat,
-	cryptoAmount: '',
-	cryptoFee: '',
+	cryptoAmount: aggregatorOrder.cryptoAmount || 0,
+	cryptoFee: aggregatorOrder.totalFeesFiat || 0,
 	currency: aggregatorOrder.fiatCurrency?.symbol || '',
+	currencySymbol: aggregatorOrder.fiatCurrency?.denomSymbol || '',
 	cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
 	network: aggregatorOrder.cryptoCurrency?.network?.chainId || '',
 	state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),

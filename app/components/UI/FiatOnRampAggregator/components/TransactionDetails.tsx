@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
+import React, { useCallback } from 'react';
+import { StyleSheet, View, TouchableOpacity, Image, Linking } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
@@ -7,7 +7,9 @@ import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-
+import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
+import { getProviderName } from '../../../../reducers/fiatOrders';
+import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/transactionFailed.png');
 // TODO: Convert into typescript and correctly type optionals
@@ -62,8 +64,12 @@ const createStyles = (colors: any) =>
 		},
 	});
 
-const renderStage = (stage: string, paymentType: string) => {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
+interface PropsStage {
+	stage: string;
+	paymentType: string;
+}
+
+const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	switch (stage) {
@@ -80,26 +86,14 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
-		case SDK_ORDER_STATUS.Failed:
-		case SDK_ORDER_STATUS.Cancelled: {
-			return (
-				<>
-					<Image source={failedIcon} />
-					<Text bold big primary centered style={styles.stageDescription}>
-						{stage === 'failed' ? strings('fiat_on_ramp_aggregator.transaction.failed') : 'cancelled'}
-					</Text>
-					<Text small centered style={styles.stageMessage}>
-						{strings('fiat_on_ramp_aggregator.transaction.failed_description')}
-					</Text>
-				</>
-			);
-		}
 		case SDK_ORDER_STATUS.Pending: {
 			return (
 				<>
 					<Spinner />
 					<Text bold big primary centered style={styles.stageDescription}>
-						{stage === 'pending' ? strings('fiat_on_ramp_aggregator.transaction.processing') : 'submitted'}
+						{stage === 'PENDING'
+							? strings('fiat_on_ramp_aggregator.transaction.processing')
+							: strings('transaction.submitted')}
 					</Text>
 					{!paymentType.includes('Credit') ? (
 						<Text small centered style={styles.stageMessage}>
@@ -113,27 +107,78 @@ const renderStage = (stage: string, paymentType: string) => {
 				</>
 			);
 		}
+		default: {
+			return (
+				<>
+					<Image source={failedIcon} />
+					<Text bold big primary centered style={styles.stageDescription}>
+						{stage === 'failed' ? strings('fiat_on_ramp_aggregator.transaction.failed') : 'cancelled'}
+					</Text>
+					<Text small centered style={styles.stageMessage}>
+						{strings('fiat_on_ramp_aggregator.transaction.failed_description')}
+					</Text>
+				</>
+			);
+		}
 	}
 };
 
 interface Props {
+	/**
+	 * Object that represents the current route info like params passed to it
+	 */
 	order: any;
+	/**
+	 * Current Network provider
+	 */
+	provider: any;
+	/**
+	 * Frequent RPC list from PreferencesController
+	 */
+	frequentRpcList: any;
 }
 
-const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
+const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList }: Props) => {
+	const {
+		data,
+		state,
+		createdAt,
+		amount,
+		cryptoFee,
+		cryptoAmount,
+		currencySymbol,
+		currency,
+		txHash,
+		cryptocurrency,
+		id,
+	} = order;
 	const { colors } = useTheme();
+	const explorer = useBlockExplorer(provider, frequentRpcList);
 	const styles = createStyles(colors);
-	const date = toDateFormat(order.data.createdAt);
-
+	const date = toDateFormat(createdAt);
+	const amountOut = Number(amount) - Number(cryptoFee);
+	const exchangeRate = Number(amountOut) / Number(cryptoAmount);
+	const handleLinkPress = useCallback(async (url: string) => {
+		const supported = await Linking.canOpenURL(url);
+		if (supported) {
+			await Linking.openURL(url);
+		}
+	}, []);
 	return (
 		<View>
-			<View style={styles.stage}>{renderStage(order.state, order.data.paymentMethod.name)}</View>
+			<View style={styles.stage}>
+				<Stage stage={state} paymentType={data.paymentMethod?.name} />
+			</View>
 			<Text centered primary style={styles.tokenAmount}>
-				{order.data.cryptoAmount}
+				{renderFromTokenMinimalUnit(
+					toTokenMinimalUnit(cryptoAmount, data.cryptoCurrency?.decimals).toString(),
+					data.cryptoCurrency?.decimals
+				)}{' '}
+				{cryptocurrency}
 			</Text>
 			<Text centered small style={styles.fiatColor}>
-				{order.data.fiatCurrency.denomSymbol}
-				{order.data.fiatAmount} {order.data.fiatCurrency.symbol}
+				{currencySymbol}
+				{renderFiat(amountOut, currency, data.fiatCurrency?.decimals)}
 			</Text>
 			<Box>
 				<Text bold primary style={styles.transactionTitle}>
@@ -143,19 +188,19 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body style={styles.transactionIdFlex}>
 							<Text black small>
-								Transaction ID
+								{strings('fiat_on_ramp_aggregator.transaction.id')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount style={styles.transactionIdFlex}>
 							<Text small bold primary right>
-								{order.data.providerOrderId}
+								{id}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Date and Time
+								{strings('fiat_on_ramp_aggregator.transaction.date_and_time')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
@@ -167,67 +212,73 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Payment Method
+								{strings('fiat_on_ramp_aggregator.transaction.payment_method')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.paymentMethod.name}
+								{data.paymentMethod?.name}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<Text small style={styles.provider}>
-						{strings('fiat_on_ramp_aggregator.transaction.via')} {order.data.provider.name}
+						{strings('fiat_on_ramp_aggregator.transaction.via')} {getProviderName(order.provider, data)}
 					</Text>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Token Amount
+								{strings('fiat_on_ramp_aggregator.transaction.token_amount')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.cryptoAmount} {order.cryptocurrency}
+								{renderFromTokenMinimalUnit(
+									toTokenMinimalUnit(cryptoAmount, data.cryptoCurrency?.decimals).toString(),
+									data.cryptoCurrency?.decimals
+								)}{' '}
+								{cryptocurrency}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								{order.currency} Amount
+								{currency} {strings('send.amount')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.fiatCurrency.denomSymbol}
-								{order.data.fiatAmount}
+								{currencySymbol}
+								{renderFiat(amountOut, currency, data.fiatCurrency?.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Exchange Rate
+								{strings('fiat_on_ramp_aggregator.transaction.exchange_rate')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
 								1 {order.cryptocurrency} @{' '}
-								{(Number(order.data.fiatAmount) - Number(order.data.totalFeesFiat)) /
-									Number(order.data.cryptoAmount)}
+								{renderFromTokenMinimalUnit(
+									toTokenMinimalUnit(exchangeRate, data.cryptoCurrency?.decimals).toString(),
+									data.cryptoCurrency?.decimals
+								)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
 					<ListItem.Content style={styles.listItems}>
 						<ListItem.Body>
 							<Text black small>
-								Total Fees
+								{strings('fiat_on_ramp_aggregator.transaction.total_fees')}
 							</Text>
 						</ListItem.Body>
 						<ListItem.Amount>
 							<Text small bold primary>
-								{order.data.fiatCurrency.denomSymbol}
-								{order.data.totalFeesFiat}
+								{currencySymbol}
+								{renderFiat(cryptoFee, currency, data.fiatCurrency?.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>
@@ -243,28 +294,31 @@ const TransactionDetails: React.FC<Props> = ({ order }: Props) => {
 					</ListItem.Body>
 					<ListItem.Amount>
 						<Text small bold primary>
-							{order.data.fiatCurrency.denomSymbol}
-							{order.amount} {order.data.fiatCurrency.symbol}
+							{currencySymbol}
+							{renderFiat(amount, currency, data.fiatCurrency?.decimals)}
 						</Text>
 					</ListItem.Amount>
 				</ListItem.Content>
-				{order.state === SDK_ORDER_STATUS.Completed && (
-					<TouchableOpacity>
+				{order.state === SDK_ORDER_STATUS.Completed && txHash && (
+					<TouchableOpacity onPress={() => handleLinkPress(explorer.tx(txHash))}>
 						<Text blue small centered style={styles.link}>
 							{strings('fiat_on_ramp_aggregator.transaction.etherscan')}
 						</Text>
 					</TouchableOpacity>
 				)}
 			</Box>
-			<View style={styles.contactDesc}>
-				<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
-				<TouchableOpacity>
-					<Text small underline>
-						{strings('fiat_on_ramp_aggregator.transaction.contact')} {order.providerName}{' '}
-						{strings('fiat_on_ramp_aggregator.transaction.support')}
-					</Text>
-				</TouchableOpacity>
-			</View>
+			{data.providerLink && (
+				<View style={styles.contactDesc}>
+					<Text small>{strings('fiat_on_ramp_aggregator.transaction.questions')} </Text>
+					<TouchableOpacity onPress={() => handleLinkPress(data.providerLink)}>
+						<Text small underline>
+							{strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
+							{getProviderName(order.provider, data)}{' '}
+							{strings('fiat_on_ramp_aggregator.transaction.support')}
+						</Text>
+					</TouchableOpacity>
+				</View>
+			)}
 		</View>
 	);
 };

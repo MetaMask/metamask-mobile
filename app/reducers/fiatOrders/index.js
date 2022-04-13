@@ -13,6 +13,7 @@ import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../constants/on-ramp
  * @property {string?} cryptoFee Crypto currency fee
  * @property {string} currency "USD"
  * @property {string} cryptocurrency "ETH"
+ * @property {string|undefined} currencySymbol "$"
  * @property {string?} amountInUSD Fiat amount in USD
  * @property {FIAT_ORDER_STATES} state Order state
  * @property {string} account <account wallet address>

@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
 import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
-import { useSelector } from 'react-redux';
+import { useSelector, connect } from 'react-redux';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
 	},
 });
 
-const TransactionDetails = ({ route }) => {
+const TransactionDetails = ({ route, provider, frequentRpcList }) => {
 	const orderById = useSelector(makeOrderIdSelector(route.params.orderId));
 	const order = orderById;
 
@@ -46,7 +46,7 @@ const TransactionDetails = ({ route }) => {
 			</ScreenLayout.Header>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content style={styles.screenLayout}>
-					<TransactionDetail order={order} />
+					<TransactionDetail order={order} provider={provider} frequentRpcList={frequentRpcList} />
 				</ScreenLayout.Content>
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
@@ -67,6 +67,18 @@ TransactionDetails.propTypes = {
 	 * Object that represents the current route info like params passed to it
 	 */
 	route: PropTypes.object,
+	/**
+	 * Current Network provider
+	 */
+	provider: PropTypes.object,
+	/**
+	 * Frequent RPC list from PreferencesController
+	 */
+	frequentRpcList: PropTypes.array,
 };
 
-export default TransactionDetails;
+const mapStateToProps = (state) => ({
+	provider: state.engine.backgroundState.NetworkController.provider,
+	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
+});
+export default connect(mapStateToProps)(TransactionDetails);
