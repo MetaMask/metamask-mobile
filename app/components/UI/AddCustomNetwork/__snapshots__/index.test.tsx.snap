@@ -16,6 +16,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
   <ScrollView>
     <Connect(TransactionHeader) />
     <Text
+      bigger={false}
       black={false}
       blue={false}
       bold={true}
@@ -47,6 +48,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       Allow this site to add a network?
     </Text>
     <Text
+      bigger={false}
       black={false}
       blue={false}
       bold={false}
@@ -77,6 +79,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       This allows this network to be used within MetaMask.
     </Text>
     <Text
+      bigger={false}
       black={false}
       blue={false}
       bold={false}
@@ -105,6 +108,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
       upper={false}
     >
       <Text
+        bigger={false}
         black={false}
         blue={false}
         bold={true}
@@ -129,6 +133,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
        
       Learn about
       <Text
+        bigger={false}
         black={false}
         blue={false}
         bold={false}
@@ -174,6 +179,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={false}
@@ -201,6 +207,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Display name
         </Text>
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={true}
@@ -236,6 +243,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={false}
@@ -263,6 +271,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Chain ID
         </Text>
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={true}
@@ -297,6 +306,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
         }
       >
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={false}
@@ -324,6 +334,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
           Network URL
         </Text>
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={true}
@@ -362,6 +373,7 @@ exports[`AddCustomNetwork should render correctly 1`] = `
     >
       <View>
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={true}

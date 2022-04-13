@@ -82,6 +82,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         }
       >
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={true}
@@ -147,6 +148,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           />
         </View>
         <Text
+          bigger={false}
           black={false}
           blue={false}
           bold={false}
@@ -175,6 +177,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           Current suggested nonce:
            
           <Text
+            bigger={false}
             black={false}
             blue={false}
             bold={true}
@@ -281,6 +284,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               }
             />
             <Text
+              bigger={false}
               black={false}
               blue={false}
               bold={false}
@@ -312,6 +316,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             </Text>
           </View>
           <Text
+            bigger={false}
             black={false}
             blue={false}
             bold={true}
@@ -341,6 +346,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             This is an advanced feature used to cancel or speed up any pending transactions.
           </Text>
           <Text
+            bigger={false}
             black={false}
             blue={false}
             bold={false}
