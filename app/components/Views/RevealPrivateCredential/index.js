@@ -33,6 +33,7 @@ import { fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
+import { isQRHardwareAccount } from '../../../util/address';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -151,6 +152,9 @@ const createStyles = (colors) =>
 		revealModalText: {
 			marginBottom: 20,
 		},
+		tabBar: {
+			borderColor: colors.border.muted,
+		},
 	});
 
 const WRONG_PASSWORD_ERROR = 'error: Invalid password';
@@ -205,12 +209,18 @@ class RevealPrivateCredential extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		/**
+		 * Boolean that indicates if navbar should be disabled
+		 */
+		navBarDisabled: PropTypes.bool,
 	};
 
 	updateNavBar = () => {
-		const { navigation, route } = this.props;
+		const { navigation, route, navBarDisabled } = this.props;
+		if (navBarDisabled) {
+			return;
+		}
 		const colors = this.context.colors || mockTheme.colors;
-
 		navigation.setOptions(
 			getNavigationOptionsTitle(
 				strings(`reveal_credential.${route.params?.privateCredentialName ?? ''}_title`),
@@ -284,7 +294,9 @@ class RevealPrivateCredential extends PureComponent {
 			}
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
-			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
+			if (isQRHardwareAccount(selectedAddress)) {
+				msg = strings('reveal_credential.hardware_error');
+			} else if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
 				msg = strings('reveal_credential.unknown_error');
 			}
 
@@ -364,6 +376,7 @@ class RevealPrivateCredential extends PureComponent {
 				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
+				style={styles.tabBar}
 			/>
 		);
 	}

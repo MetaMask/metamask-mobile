@@ -24,6 +24,7 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
+import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -43,6 +44,7 @@ import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import PaymentMethodSelector from '../../UI/FiatOrders/PaymentMethodSelector';
 import PaymentMethodApplePay from '../../UI/FiatOrders/PaymentMethodApplePay';
 import TransakWebView from '../../UI/FiatOrders/TransakWebView';
+import MoonPayWebView from '../../UI/FiatOrders/MoonPayWebView';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
@@ -272,6 +274,7 @@ const FiatOnRamp = () => (
 			options={PaymentMethodApplePay.navigationOptions}
 		/>
 		<Stack.Screen name="TransakFlow" component={TransakWebView} options={TransakWebView.navigationOptions} />
+		<Stack.Screen name="MoonPayFlow" component={MoonPayWebView} options={MoonPayWebView.navigationOptions} />
 		<Stack.Screen
 			name="GasEducationCarousel"
 			component={GasEducationCarousel}
@@ -319,6 +322,16 @@ const SetPasswordFlow = () => (
 	</Stack.Navigator>
 );
 
+const ConnectQRHardwareFlow = () => (
+	<Stack.Navigator
+		screenOptions={{
+			headerShown: false,
+		}}
+	>
+		<Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+	</Stack.Navigator>
+);
+
 const MainNavigator = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -344,6 +357,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
+		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />
 		<Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />

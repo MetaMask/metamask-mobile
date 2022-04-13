@@ -1,16 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Transactions should render correctly 1`] = `
-<ContextProvider
-  value={
+<QRHardwareAwareness
+  accounts={Object {}}
+  chainId="1"
+  collectibleContracts={Array []}
+  contractExchangeRates={Object {}}
+  conversionRate={1}
+  currentCurrency="USD"
+  gasFeeEstimates={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
+      "high": Object {},
+      "low": Object {},
+      "medium": Object {},
+    }
+  }
+  loading={false}
+  network={
+    Object {
+      "provider": Object {
+        "chainId": "1",
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
