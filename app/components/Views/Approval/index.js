@@ -20,7 +20,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { TX_SUBMITTED } from 'app/constants/transaction';
+import { TX_CANCELLED, TX_CONFIRMED, TX_FAILED, TX_SUBMITTED } from '../../../constants/transaction';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -123,6 +123,18 @@ class Approval extends PureComponent {
 		}
 	};
 
+	isTxStatusCancellable = (transaction) => {
+		if (
+			transaction.status !== TX_SUBMITTED ||
+			transaction.status !== TX_CONFIRMED ||
+			transaction.status !== TX_CANCELLED ||
+			transaction.status !== TX_FAILED
+		) {
+			return true;
+		}
+		return false;
+	};
+
 	handleAppStateChange = (appState) => {
 		try {
 			if (appState !== 'active') {
@@ -131,7 +143,7 @@ class Approval extends PureComponent {
 
 				transaction &&
 					transaction.id &&
-					currentTransaction.status !== TX_SUBMITTED &&
+					this.isTxStatusCancellable(currentTransaction) &&
 					Engine.context.TransactionController.cancelTransaction(transaction.id);
 				this.props.toggleDappTransactionModal(false);
 			}
