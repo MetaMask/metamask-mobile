@@ -15,7 +15,6 @@ fi
 RELEASE_BRANCH_NAME="${RELEASE_BRANCH_PREFIX}${NEW_VERSION}"
 RELEASE_BODY="This is the release candidate for version ${NEW_VERSION}."
 
-# maybe use metamaskbot for this?
 git config user.name metamaskbot
 git config user.email metamaskbot@users.noreply.github.com
 
