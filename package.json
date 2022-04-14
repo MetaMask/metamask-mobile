@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "4.4.0",
+  "version": "5.0.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -283,7 +283,7 @@
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.3",
     "concat-cli": "4.0.0",
-    "detox": "19.4.0",
+    "detox": "19.6.5",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
