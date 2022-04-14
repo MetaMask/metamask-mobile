@@ -18,10 +18,10 @@ export async function jsonRpcRequest(rpcUrl, rpcMethod, rpcParams = []) {
 	};
 
 	// Convert basic auth URL component to Authorization header
-	const { origin, pathname, username, password, query } = new URL(rpcUrl);
+	const { origin, pathname, auth, query } = new URL(rpcUrl);
 	// URLs containing username and password needs special processing
-	if (username && password) {
-		const encodedAuth = Buffer.from(`${username}:${password}`).toString('base64');
+	if (auth) {
+		const encodedAuth = Buffer.from(`${auth}`).toString('base64');
 		headers.Authorization = `Basic ${encodedAuth}`;
 		fetchUrl = `${origin}${pathname}${query}`;
 	}
