@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import qs from 'query-string';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View } from 'react-native';
@@ -72,7 +73,12 @@ const CheckoutWebView = () => {
 				// close the checkout webview
 				navigation.dangerouslyGetParent()?.pop();
 			} catch (error) {
-				setError(error?.message);
+				const parsedUrl = qs.parseUrl(navState?.url);
+				if (Object.keys(parsedUrl.query).length === 0) {
+					navigation.dangerouslyGetParent()?.pop();
+				} else {
+					setError(error?.message);
+				}
 			}
 		}
 	};
