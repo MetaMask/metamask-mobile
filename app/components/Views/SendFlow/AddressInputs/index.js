@@ -236,7 +236,7 @@ export const AddressTo = (props) => {
 						)}
 						<View style={styles.toInputWrapper}>
 							<View style={[styles.address, styles.checkAddress]}>
-								{toAddressName && (
+								{isENS(toAddressName) && (
 									<AddressName
 										toAddressName={toAddressName}
 										confusableCollection={confusableCollection}
@@ -244,12 +244,14 @@ export const AddressTo = (props) => {
 								)}
 								<View style={styles.addressWrapper}>
 									<Text
-										style={toAddressName ? styles.textBalance : styles.textAddress}
+										style={isENS(toAddressName) ? styles.textBalance : styles.textAddress}
 										numberOfLines={1}
 									>
 										{renderShortAddress(toSelectedAddress)}
 									</Text>
-									<View style={(styles.checkIconWrapper, toAddressName ? {} : { paddingTop: 2 })}>
+									<View
+										style={(styles.checkIconWrapper, isENS(toAddressName) ? {} : { paddingTop: 2 })}
+									>
 										<AntIcon name="check" color={colors.success.default} size={15} />
 									</View>
 								</View>
