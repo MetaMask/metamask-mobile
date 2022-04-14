@@ -240,6 +240,7 @@ class SendFlow extends PureComponent {
 		toSelectedAddressName: undefined,
 		toSelectedAddressReady: false,
 		toEnsName: undefined,
+		toEnsAddressResolved: undefined,
 		addToAddressToAddressBook: false,
 		alias: undefined,
 		confusableCollection: [],
@@ -330,7 +331,13 @@ class SendFlow extends PureComponent {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning, confusableCollection;
+		let addressError,
+			toAddressName,
+			toEnsName,
+			errorContinue,
+			isOnlyWarning,
+			confusableCollection,
+			toEnsAddressResolved;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -347,9 +354,7 @@ class SendFlow extends PureComponent {
 						networkAddressBook[checksummedToSelectedAddress].name) ||
 					(identities[checksummedToSelectedAddress] && identities[checksummedToSelectedAddress].name);
 			} else {
-				toAddressName = await doENSReverseLookup(toSelectedAddress, network);
-
-				toAddressName = toAddressName || toSelectedAddress;
+				toAddressName = ens || toSelectedAddress;
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
@@ -393,7 +398,7 @@ class SendFlow extends PureComponent {
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
 				toAddressName = toSelectedAddress;
-				toSelectedAddress = resolvedAddress;
+				toEnsAddressResolved = resolvedAddress;
 				toSelectedAddressReady = true;
 				if (!networkAddressBook[checksummedResolvedAddress] && !identities[checksummedResolvedAddress]) {
 					addToAddressToAddressBook = true;
@@ -413,6 +418,7 @@ class SendFlow extends PureComponent {
 			errorContinue,
 			isOnlyWarning,
 			confusableCollection,
+			toEnsAddressResolved,
 		});
 	};
 
@@ -468,12 +474,19 @@ class SendFlow extends PureComponent {
 
 	onTransactionDirectionSet = async () => {
 		const { setRecipient, navigation, providerType, addRecent } = this.props;
-		const { fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName } =
-			this.state;
+		const {
+			fromSelectedAddress,
+			toSelectedAddress,
+			toEnsName,
+			toSelectedAddressName,
+			fromAccountName,
+			toEnsAddressResolved,
+		} = this.state;
 		const addressError = await this.validateToAddress();
 		if (addressError) return;
-		addRecent(toSelectedAddress);
-		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
+		const toAddress = toEnsAddressResolved || toSelectedAddress;
+		addRecent(toAddress);
+		setRecipient(fromSelectedAddress, toAddress, toEnsName, toSelectedAddressName, fromAccountName);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT, {
 				network: providerType,
