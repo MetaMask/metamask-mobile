@@ -53,7 +53,7 @@ export function renderShortAddress(address, chars = 4) {
 export function renderSlightlyLongAddress(address, chars = 4, initialChars = 20) {
 	if (!address) return address;
 	const checksummedAddress = toChecksumAddress(address);
-	return `${checksummedAddress.substr(0, chars + initialChars)}...${checksummedAddress.substr(-chars)}`;
+	return `${checksummedAddress.slice(0, chars + initialChars)}...${checksummedAddress.slice(-chars)}`;
 }
 
 /**

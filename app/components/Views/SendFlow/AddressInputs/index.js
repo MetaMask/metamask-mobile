@@ -213,14 +213,14 @@ export const AddressTo = (props) => {
 		inputWidth,
 		confusableCollection,
 		displayExclamation,
-		confirmScreen = false,
+		isConfirmScreen = false,
 	} = props;
 	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	const isInputFilled = toSelectedAddress?.length;
 
-	if (confirmScreen) {
+	if (isConfirmScreen) {
 		return (
 			<View style={styles.wrapper}>
 				<View style={styles.label}>
@@ -432,7 +432,7 @@ AddressTo.propTypes = {
 	/**
 	 * Confirm screen confirmation
 	 */
-	confirmScreen: PropTypes.bool,
+	isConfirmScreen: PropTypes.bool,
 };
 
 export const AddressFrom = (props) => {
