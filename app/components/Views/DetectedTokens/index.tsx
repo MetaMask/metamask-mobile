@@ -66,14 +66,14 @@ const DetectedTokens = () => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
-	const dismissModalAndTriggerAction = () => {
+	const dismissModalAndTriggerAction = (ignoreAllTokens?: boolean) => {
 		const { TokensController } = Engine.context as any;
 		let title = '';
 		let description = '';
 		let errorMsg = '';
 		const tokensToIgnore: TokenType[] = [];
 		const tokensToImport = detectedTokens.filter((token) => {
-			const isIgnored = ignoredTokens[token.address];
+			const isIgnored = ignoreAllTokens || ignoredTokens[token.address];
 			if (isIgnored) {
 				tokensToIgnore.push(token);
 			}
@@ -113,9 +113,9 @@ const DetectedTokens = () => {
 		});
 	};
 
-	const triggerOpenConfirmModal = () => {
+	const triggerIgnoreAllTokens = () => {
 		navigation.navigate('DetectedTokensConfirmation', {
-			onConfirm: dismissModalAndTriggerAction,
+			onConfirm: () => dismissModalAndTriggerAction(true),
 		});
 	};
 
@@ -125,7 +125,9 @@ const DetectedTokens = () => {
 			dismissModalAndTriggerAction();
 		} else {
 			// Handle ignoring all or mix of imports and ignored tokens
-			triggerOpenConfirmModal();
+			navigation.navigate('DetectedTokensConfirmation', {
+				onConfirm: () => dismissModalAndTriggerAction(),
+			});
 		}
 	};
 
@@ -172,7 +174,7 @@ const DetectedTokens = () => {
 
 	const renderButtons = () => (
 		<View style={styles.buttonsContainer}>
-			<StyledButton onPress={triggerOpenConfirmModal} containerStyle={styles.fill} type={'normal'}>
+			<StyledButton onPress={triggerIgnoreAllTokens} containerStyle={styles.fill} type={'normal'}>
 				{strings('detected_tokens.hide_cta')}
 			</StyledButton>
 			<View style={styles.buttonDivider} />
