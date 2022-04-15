@@ -54,7 +54,7 @@ exports[`Collectibles should render correctly 1`] = `
     options={
       Array [
         "Refresh Metadata",
-        "Remove",
+        "Hide",
         "Cancel",
       ]
     }
