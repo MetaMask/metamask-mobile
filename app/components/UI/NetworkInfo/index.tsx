@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +14,7 @@ import {
 	NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
+import { util as controllerUtils } from '@metamask/controllers';
 
 const createStyles = (colors: {
 	background: { default: string };
@@ -110,19 +111,28 @@ interface NetworkInfoProps {
 			networkTicker: string;
 		};
 		rpcTarget: string;
+		chainId: string;
 	};
-	navigation: any;
+	isTokenDetectionEnabled: boolean;
 }
 
 const NetworkInfo = (props: NetworkInfoProps) => {
 	const {
 		onClose,
 		ticker,
-		networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
-		navigation,
+		isTokenDetectionEnabled,
+		networkProvider: { nickname, type, ticker: networkTicker, rpcTarget, chainId },
 	} = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+	const isTokenDetectionSupported = controllerUtils.isTokenDetectionEnabledForNetwork(chainId);
+
+	const isTokenDetectionEnabledForNetwork = useMemo(() => {
+		if (isTokenDetectionSupported && isTokenDetectionEnabled) {
+			return true;
+		}
+		return false;
+	}, [isTokenDetectionEnabled, isTokenDetectionSupported]);
 
 	return (
 		<View style={styles.wrapper}>
@@ -179,11 +189,20 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						number={2}
 					/>
 					<Description
-						description={strings('network_information.third_description')}
-						clickableText={strings('network_information.add_token')}
+						description={
+							isTokenDetectionEnabledForNetwork
+								? strings('network_information.token_detection_mainnet_title')
+								: strings('network_information.third_description')
+						}
+						clickableText={
+							isTokenDetectionEnabledForNetwork
+								? strings('network_information.token_detection_mainnet_link')
+								: strings('network_information.add_token_manually')
+						}
 						number={3}
-						navigation={navigation}
+						isTokenDetectionLinkEnabled={isTokenDetectionSupported && !isTokenDetectionEnabled}
 						onClose={onClose}
+						network={type}
 					/>
 				</View>
 				<StyledButton
@@ -200,6 +219,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
+	isTokenDetectionEnabled: state.engine.backgroundState.PreferencesController.useTokenDetection,
 	networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 
