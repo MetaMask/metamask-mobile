@@ -167,6 +167,7 @@ const AmountToBuy = () => {
 	/****************** COUNTRY/REGION HANDLERS ****************************/
 	const handleChangeCountry = useCallback(() => {
 		queryGetCountries();
+		setAmountFocused(false);
 		toggleRegionModal();
 	}, [queryGetCountries, toggleRegionModal]);
 
@@ -203,6 +204,7 @@ const AmountToBuy = () => {
 
 	/****************** TOKENS HANDLERS *********************************/
 	const handleAssetSelectorPress = useCallback(() => {
+		setAmountFocused(false);
 		toggleTokenSelectorModal();
 	}, [toggleTokenSelectorModal]);
 
@@ -216,6 +218,7 @@ const AmountToBuy = () => {
 
 	/****************** FIAT CURRENCIES HANDLERS *********************************/
 	const handleFiatSelectorPress = useCallback(() => {
+		setAmountFocused(false);
 		toggleFiatSelectorModal();
 	}, [toggleFiatSelectorModal]);
 
