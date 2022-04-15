@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, FlatList } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
@@ -66,52 +66,56 @@ const DetectedTokens = () => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
-	const dismissModalAndTriggerAction = (ignoreAllTokens?: boolean) => {
-		const { TokensController } = Engine.context as any;
-		let title = '';
-		let description = '';
-		let errorMsg = '';
-		const tokensToIgnore: TokenType[] = [];
-		const tokensToImport = detectedTokens.filter((token) => {
-			const isIgnored = ignoreAllTokens || ignoredTokens[token.address];
-			if (isIgnored) {
-				tokensToIgnore.push(token);
-			}
-			return !isIgnored;
-		});
-
-		if (tokensToImport.length === 0 && tokensToIgnore.length > 0) {
-			// Ignoring all tokens
-			title = strings('wallet.token_toast.tokens_hidden_title');
-			description = strings('wallet.token_toast.tokens_hidden_desc');
-			errorMsg = 'DetectedTokens: Failed to hide all detected tokens!';
-		} else if (
-			(tokensToImport.length > 0 && tokensToIgnore.length > 0) ||
-			(tokensToImport.length > 0 && tokensToIgnore.length === 0)
-		) {
-			// At least some tokens are imported
-			title = strings('wallet.token_toast.tokens_imported_title');
-			description = strings('wallet.token_toast.tokens_imported_desc', {
-				tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
+	const dismissModalAndTriggerAction = useCallback(
+		(ignoreAllTokens?: boolean) => {
+			const { TokensController } = Engine.context as any;
+			let title = '';
+			let description = '';
+			let errorMsg = '';
+			const tokensToIgnore: TokenType[] = [];
+			const tokensToImport = detectedTokens.filter((token) => {
+				const isIgnored = ignoreAllTokens || ignoredTokens[token.address];
+				if (isIgnored) {
+					tokensToIgnore.push(token);
+				}
+				return !isIgnored;
 			});
-			errorMsg = 'DetectedTokens: Failed to import detected tokens!';
-		}
 
-		modalRef.current?.dismissModal(async () => {
-			try {
-				tokensToIgnore && (await TokensController.ignoreTokens(tokensToIgnore));
-				tokensToImport && (await TokensController.importTokens(tokensToImport));
-				NotificationManager.showSimpleNotification({
-					status: `simple_notification`,
-					duration: 5000,
-					title,
-					description,
+			// Update toast description accordingly
+			if (tokensToImport.length === 0 && tokensToIgnore.length > 0) {
+				// Ignoring all tokens
+				title = strings('wallet.token_toast.tokens_hidden_title');
+				description = strings('wallet.token_toast.tokens_hidden_desc');
+				errorMsg = 'DetectedTokens: Failed to hide all detected tokens!';
+			} else if (
+				(tokensToImport.length > 0 && tokensToIgnore.length > 0) ||
+				(tokensToImport.length > 0 && tokensToIgnore.length === 0)
+			) {
+				// At least some tokens are imported
+				title = strings('wallet.token_toast.tokens_imported_title');
+				description = strings('wallet.token_toast.tokens_imported_desc', {
+					tokenSymbols: tokensToImport.map((token) => token.symbol.toUpperCase()).join(', '),
 				});
-			} catch (err) {
-				Logger.log(err, errorMsg);
+				errorMsg = 'DetectedTokens: Failed to import detected tokens!';
 			}
-		});
-	};
+
+			modalRef.current?.dismissModal(async () => {
+				try {
+					tokensToIgnore && (await TokensController.ignoreTokens(tokensToIgnore));
+					tokensToImport && (await TokensController.importTokens(tokensToImport));
+					NotificationManager.showSimpleNotification({
+						status: `simple_notification`,
+						duration: 5000,
+						title,
+						description,
+					});
+				} catch (err) {
+					Logger.log(err, errorMsg);
+				}
+			});
+		},
+		[detectedTokens, ignoredTokens]
+	);
 
 	const triggerIgnoreAllTokens = () => {
 		navigation.navigate('DetectedTokensConfirmation', {

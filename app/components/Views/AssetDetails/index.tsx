@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
@@ -94,7 +94,7 @@ const AssetDetails = (props: Props) => {
 	const tokenExchangeRates = useSelector(
 		(state: any) => state.engine.backgroundState.TokenRatesController.contractExchangeRates
 	);
-	const token = tokens.find((rawToken) => rawToken.address === address);
+	const token = useMemo(() => tokens.find((rawToken) => rawToken.address === address), [tokens, address]);
 	const { symbol, decimals, aggregators = [] } = token as TokenType;
 
 	const getNetworkName = () => {
@@ -123,7 +123,7 @@ const AssetDetails = (props: Props) => {
 		);
 	};
 
-	const triggerIgnoreToken = () => {
+	const triggerHideToken = () => {
 		const { TokensController } = Engine.context as any;
 		navigation.navigate('AssetHideConfirmation', {
 			onConfirm: () => {
@@ -216,7 +216,7 @@ const AssetDetails = (props: Props) => {
 
 	const renderHideButton = () => (
 		<TouchableOpacity
-			onPress={triggerIgnoreToken}
+			onPress={triggerHideToken}
 			hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
 			style={styles.hideButton}
 		>
