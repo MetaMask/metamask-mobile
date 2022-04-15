@@ -202,7 +202,6 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						number={3}
 						isTokenDetectionLinkEnabled={isTokenDetectionSupported && !isTokenDetectionEnabled}
 						onClose={onClose}
-						network={type}
 					/>
 				</View>
 				<StyledButton
