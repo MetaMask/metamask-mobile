@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import CheckBox from '@react-native-community/checkbox';
 import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../../styles/common';
-import CheckBox from '@react-native-community/checkbox';
 import { IAccount } from '../types';
 import { renderFromWei } from '../../../../util/number';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import EthereumAddress from '../../../UI/EthereumAddress';
@@ -97,6 +97,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 	const styles = createStyle(colors);
 	const navigation = useNavigation();
 	const provider = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider);
+	const ticker = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.ticker);
 
 	const toEtherscan = (address: string) => {
 		const accountLink = getEtherscanAddressUrl(provider.type, address);
@@ -127,7 +128,9 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 						/>
 						<Text style={styles.number}>{item.index}</Text>
 						<EthereumAddress address={item.address} style={styles.address} type={'short'} />
-						<Text style={styles.address}>{renderFromWei(item.balance)} ETH</Text>
+						<Text style={styles.address}>
+							{renderFromWei(item.balance)} {ticker}
+						</Text>
 						<Icon
 							size={18}
 							name={'external-link'}
