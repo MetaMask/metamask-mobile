@@ -9,7 +9,6 @@ exports[`Amount should render correctly 1`] = `
       },
     }
   }
-  chainId="1"
   collectibleContracts={Array []}
   collectibles={Array []}
   contractExchangeRates={Object {}}
