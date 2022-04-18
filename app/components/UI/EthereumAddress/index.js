@@ -1,8 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Text } from 'react-native';
-import { renderShortAddress, renderFullAddress, renderSlightlyLongAddress } from '../../../util/address';
-import { isValidAddress } from 'ethereumjs-util';
+import { formatAddress } from '../../../util/address';
 
 /**
  * View that renders an ethereum address
@@ -32,23 +31,8 @@ class EthereumAddress extends PureComponent {
 
 		this.state = {
 			ensName: null,
-			address: this.formatAddress(address, type),
+			address: formatAddress(address, type),
 		};
-	}
-
-	formatAddress(rawAddress, type) {
-		let formattedAddress = rawAddress;
-
-		if (isValidAddress(rawAddress)) {
-			if (type && type === 'short') {
-				formattedAddress = renderShortAddress(rawAddress);
-			} else if (type && type === 'mid') {
-				formattedAddress = renderSlightlyLongAddress(rawAddress);
-			} else {
-				formattedAddress = renderFullAddress(rawAddress);
-			}
-		}
-		return formattedAddress;
 	}
 
 	componentDidUpdate(prevProps) {
@@ -61,7 +45,7 @@ class EthereumAddress extends PureComponent {
 
 	formatAndResolveIfNeeded() {
 		const { address, type } = this.props;
-		const formattedAddress = this.formatAddress(address, type);
+		const formattedAddress = formatAddress(address, type);
 		this.setState({ address: formattedAddress, ensName: null });
 	}
 
