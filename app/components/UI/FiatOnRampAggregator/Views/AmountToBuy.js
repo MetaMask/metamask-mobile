@@ -172,13 +172,11 @@ const AmountToBuy = () => {
 
 	const handleCountryPress = useCallback(
 		(country) => {
-			if (country.unsupported) {
-				setShowAlert(true);
-			} else {
-				setSelectedCountry(country);
-				setSelectedFiatCurrencyId('');
-				hideRegionModal();
-			}
+			setSelectedCountry(country);
+			hideRegionModal();
+			setSelectedFiatCurrencyId('');
+			setAmount('0');
+			setAmountNumber(0);
 		},
 		[hideRegionModal, setSelectedCountry, setSelectedFiatCurrencyId]
 	);
@@ -192,6 +190,8 @@ const AmountToBuy = () => {
 				setSelectedCountry(country);
 				setSelectedFiatCurrencyId('');
 				hideRegionModal();
+				setAmount('0');
+				setAmountNumber(0);
 			}
 		},
 		[hideRegionModal, setSelectedCountry, setSelectedRegion, setSelectedFiatCurrencyId]
@@ -231,6 +231,11 @@ const AmountToBuy = () => {
 	const handlePaymentMethodSelectorPress = useCallback(() => {
 		togglePaymentMethodModal();
 	}, [togglePaymentMethodModal]);
+
+	const handleChangePaymentMethod = useCallback(() => {
+		setAmount('0');
+		setAmountNumber(0);
+	}, []);
 
 	const handleGetQuotePress = useCallback(() => {
 		navigation.navigate('GetQuotes', { amount: amountNumber });
@@ -403,6 +408,7 @@ const AmountToBuy = () => {
 				isVisible={isPaymentMethodModalVisible}
 				dismiss={togglePaymentMethodModal}
 				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
+				onItemPress={handleChangePaymentMethod}
 			/>
 			<RegionModal
 				isVisible={isRegionModalVisible}
