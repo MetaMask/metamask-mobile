@@ -46,7 +46,7 @@ export default class TestHelpers {
 		if (device.getPlatform() === 'android') {
 			await TestHelpers.clearField(elementId);
 		}
-		await TestHelpers.typeText(elementId, text);
+		await TestHelpers.typeText(elementId, text + '\n');
 	}
 
 	static async clearField(elementId) {
