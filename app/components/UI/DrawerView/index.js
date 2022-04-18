@@ -45,6 +45,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { KeyringTypes } from '@metamask/controllers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import sanitizeUrl from '../../../util/sanitizeUrl';
@@ -233,7 +234,7 @@ const createStyles = (colors) =>
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
-			color: colors.icon.default,
+			borderColor: colors.icon.default,
 		},
 		importedText: {
 			color: colors.icon.default,
@@ -456,6 +457,31 @@ class DrawerView extends PureComponent {
 		}
 
 		return ret;
+	}
+
+	renderTag() {
+		let tag = null;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+		const { keyrings, selectedAddress } = this.props;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(selectedAddress)) {
+				if (keyring.type === KeyringTypes.simple) {
+					tag = strings('accounts.imported');
+				} else if (keyring.type === KeyringTypes.qr) {
+					tag = strings('transaction.hardware');
+				}
+				break;
+			}
+		}
+		return tag ? (
+			<View style={styles.importedWrapper}>
+				<Text numberOfLines={1} style={styles.importedText}>
+					{tag}
+				</Text>
+			</View>
+		) : null;
 	}
 
 	async componentDidUpdate() {
@@ -752,6 +778,12 @@ class DrawerView extends PureComponent {
 		this.hideDrawer();
 	};
 
+	onConnectHardware = () => {
+		this.toggleAccountsModal();
+		this.props.navigation.navigate('ConnectQRHardwareFlow');
+		this.hideDrawer();
+	};
+
 	hasBlockExplorer = (providerType) => {
 		const { frequentRpcList } = this.props;
 		if (providerType === RPC) {
@@ -1008,7 +1040,6 @@ class DrawerView extends PureComponent {
 			networkOnboardedState,
 			switchedNetwork,
 			networkModalVisible,
-			navigation,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -1078,13 +1109,7 @@ class DrawerView extends PureComponent {
 									style={styles.accountAddress}
 									type={'short'}
 								/>
-								{this.isCurrentAccountImported() && (
-									<View style={styles.importedWrapper}>
-										<Text numberOfLines={1} style={styles.importedText}>
-											{strings('accounts.imported')}
-										</Text>
-									</View>
-								)}
+								{this.renderTag()}
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -1205,7 +1230,6 @@ class DrawerView extends PureComponent {
 							onClose={this.onInfoNetworksModalClose}
 							type={networkType || networkOnboarding.networkType}
 							ticker={ticker}
-							navigation={navigation}
 						/>
 					) : (
 						<NetworkList
@@ -1242,6 +1266,7 @@ class DrawerView extends PureComponent {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						onConnectHardware={this.onConnectHardware}
 						ticker={ticker}
 					/>
 				</Modal>
