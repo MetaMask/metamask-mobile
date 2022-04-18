@@ -36,7 +36,7 @@ class EthereumAddress extends PureComponent {
 	}
 
 	componentDidUpdate(prevProps) {
-		if (prevProps.address !== this.props.address) {
+		if (this.props.address && prevProps.address !== this.props.address) {
 			requestAnimationFrame(() => {
 				this.formatAndResolveIfNeeded();
 			});
