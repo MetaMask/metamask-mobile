@@ -23,7 +23,9 @@ import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
+import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
+import { SRP_URL, NON_CUSTODIAL_WALLET_URL, KEEP_SRP_SAFE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
@@ -157,15 +159,8 @@ const createStyles = (colors) =>
 		},
 	});
 
-const WRONG_PASSWORD_ERROR = 'error: Invalid password';
 const PRIVATE_KEY = 'private_key';
 // const SEED_PHRASE = 'seed_phrase';
-const SRP_URL =
-	'https://metamask.zendesk.com/hc/en-us/articles/4404722782107-User-guide-Secret-Recovery-Phrase-password-and-private-keys';
-const NON_CUSTODIAL_WALLET_URL =
-	'https://metamask.zendesk.com/hc/en-us/articles/360059952212-MetaMask-is-a-non-custodial-wallet';
-const KEEP_SRP_SAFE_URL =
-	'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
 
 /**
  * View that displays private account information as private key or seed phrase
