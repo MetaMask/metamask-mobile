@@ -45,7 +45,11 @@ import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
+import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -193,7 +197,7 @@ const RootRPCMethodsUI = (props) => {
 
 	const autoSign = useCallback(
 		async (transactionMeta) => {
-			const { TransactionController } = Engine.context;
+			const { TransactionController, KeyringController } = Engine.context;
 			try {
 				TransactionController.hub.once(`${transactionMeta.id}:finished`, (transactionMeta) => {
 					if (transactionMeta.status === 'submitted') {
@@ -213,12 +217,17 @@ const RootRPCMethodsUI = (props) => {
 						trackSwaps(ANALYTICS_EVENT_OPTS.SWAP_COMPLETED, transactionMeta);
 					}
 				});
+				await KeyringController.resetQRKeyringState();
 				await TransactionController.approveTransaction(transactionMeta.id);
 			} catch (error) {
-				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-					{ text: strings('navigation.ok') },
-				]);
-				Logger.error(error, 'error while trying to send transaction (Main)');
+				if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+					Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+						{ text: strings('navigation.ok') },
+					]);
+					Logger.error(error, 'error while trying to send transaction (Main)');
+				} else {
+					AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+				}
 			}
 		},
 		[props.swapsTransactions, trackSwaps]
@@ -379,6 +388,13 @@ const RootRPCMethodsUI = (props) => {
 			)}
 		</Modal>
 	);
+
+	const renderQRSigningModal = () => {
+		const { isSigningQRObject, QRState, approveModalVisible, dappTransactionModalVisible } = props;
+		const shouldRenderThisModal =
+			!showPendingApproval && !approveModalVisible && !dappTransactionModalVisible && isSigningQRObject;
+		return shouldRenderThisModal && <QRSigningModal isVisible={isSigningQRObject} QRState={QRState} />;
+	};
 
 	const onWalletConnectSessionApproval = () => {
 		const { peerId } = walletConnectRequestInfo;
@@ -674,6 +690,7 @@ const RootRPCMethodsUI = (props) => {
 			{renderSwitchCustomNetworkModal()}
 			{renderAccountsApprovalModal()}
 			{renderWatchAssetModal()}
+			{renderQRSigningModal()}
 		</React.Fragment>
 	);
 };
@@ -720,6 +737,8 @@ RootRPCMethodsUI.propTypes = {
 	 * Chain id
 	 */
 	chainId: PropTypes.string,
+	isSigningQRObject: PropTypes.bool,
+	QRState: PropTypes.object,
 	/**
 	 * updates redux when network is switched
 	 */
@@ -744,4 +763,4 @@ const mapDispatchToProps = (dispatch) => ({
 	networkSwitched: ({ networkUrl, networkStatus }) => dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootRPCMethodsUI);
+export default connect(mapStateToProps, mapDispatchToProps)(withQRHardwareAwareness(RootRPCMethodsUI));

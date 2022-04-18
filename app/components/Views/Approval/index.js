@@ -13,11 +13,12 @@ import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTransactionReviewActionKey, getNormalizedTxState, getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
-import { safeToChecksumAddress } from '../../../util/address';
+import { getAddressAccountType, isQRHardwareAccount, safeToChecksumAddress } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const REVIEW = 'review';
@@ -36,6 +37,10 @@ const styles = StyleSheet.create({
  */
 class Approval extends PureComponent {
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -91,35 +96,49 @@ class Approval extends PureComponent {
 		navigation.setOptions(getTransactionOptionsTitle('approval.title', navigation, {}, colors));
 	};
 
-	componentDidMount = () => {
-		this.updateNavBar();
-	};
-
 	componentDidUpdate = () => {
 		this.updateNavBar();
 	};
 
 	componentWillUnmount = () => {
-		const { transactionHandled } = this.state;
-		const { transaction } = this.props;
-		if (!transactionHandled) {
-			Engine.context.TransactionController.cancelTransaction(transaction.id);
+		try {
+			const { transactionHandled } = this.state;
+			const { transaction, selectedAddress } = this.props;
+			const { KeyringController } = Engine.context;
+			if (!transactionHandled) {
+				if (isQRHardwareAccount(selectedAddress)) {
+					KeyringController.cancelQRSignRequest();
+				} else {
+					Engine.context.TransactionController.cancelTransaction(transaction.id);
+				}
+				Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
+				AppState.removeEventListener('change', this.handleAppStateChange);
+				this.clear();
+			}
+		} catch (e) {
+			if (e) {
+				throw e;
+			}
 		}
-		Engine.context.TransactionController.hub.removeAllListeners(`${transaction.id}:finished`);
-		AppState.removeEventListener('change', this.handleAppStateChange);
-		this.clear();
 	};
 
 	handleAppStateChange = (appState) => {
-		if (appState !== 'active') {
-			const { transaction } = this.props;
-			transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
-			this.props.toggleDappTransactionModal(false);
+		try {
+			if (appState !== 'active') {
+				const { transaction } = this.props;
+				transaction && transaction.id && Engine.context.TransactionController.cancelTransaction(transaction.id);
+				this.props.toggleDappTransactionModal(false);
+			}
+		} catch (e) {
+			if (e) {
+				throw e;
+			}
 		}
 	};
 
 	componentDidMount = () => {
 		const { navigation } = this.props;
+		this.updateNavBar();
 		AppState.addEventListener('change', this.handleAppStateChange);
 		navigation && navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
@@ -175,9 +194,10 @@ class Approval extends PureComponent {
 
 	getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
 		try {
-			const { activeTabUrl, chainId, transaction, networkType } = this.props;
+			const { activeTabUrl, chainId, transaction, networkType, selectedAddress } = this.props;
 			const { selectedAsset } = transaction;
 			return {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: transaction?.origin,
 				dapp_url: activeTabUrl,
 				network_name: networkType,
@@ -227,7 +247,7 @@ class Approval extends PureComponent {
 	 * Callback on confirm transaction
 	 */
 	onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-		const { TransactionController } = Engine.context;
+		const { TransactionController, KeyringController } = Engine.context;
 		const {
 			transactions,
 			transaction: { assetType, selectedAsset },
@@ -267,13 +287,18 @@ class Approval extends PureComponent {
 			const fullTx = transactions.find(({ id }) => id === transaction.id);
 			const updatedTx = { ...fullTx, transaction };
 			await TransactionController.updateTransaction(updatedTx);
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transaction.id);
 			this.showWalletConnectNotification(true);
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') },
-			]);
-			Logger.error(error, 'error while trying to send transaction (Approval)');
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+					{ text: strings('navigation.ok') },
+				]);
+				Logger.error(error, 'error while trying to send transaction (Approval)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+			}
 			this.setState({ transactionHandled: false });
 		}
 		AnalyticsV2.trackEvent(
@@ -390,6 +415,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
 	transaction: getNormalizedTxState(state),
 	transactions: state.engine.backgroundState.TransactionController.transactions,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
 	networkType: state.engine.backgroundState.NetworkController.provider.type,
 	showCustomNonce: state.settings.showCustomNonce,
 	chainId: state.engine.backgroundState.NetworkController.provider.chainId,

@@ -1,22 +1,25 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
 		expandedMessage: {
 			textAlign: 'center',
-			...fontStyles.regular,
+			...fontStyles.normal,
 			fontSize: 14,
 			color: colors.text.default,
 		},
@@ -31,8 +34,12 @@ const createStyles = (colors) =>
 /**
  * Component that supports eth_sign
  */
-export default class MessageSign extends PureComponent {
+class MessageSign extends PureComponent {
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -69,11 +76,12 @@ export default class MessageSign extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { currentPageInformation } = this.props;
+			const { currentPageInformation, selectedAddress } = this.props;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const url = new URL(currentPageInformation?.url);
 			return {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: url?.host,
 				dapp_url: currentPageInformation?.url,
 				network_name: type,
@@ -128,10 +136,20 @@ export default class MessageSign extends PureComponent {
 		this.props.onCancel();
 	};
 
-	confirmSignature = () => {
-		this.signMessage();
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
-		this.props.onConfirm();
+	confirmSignature = async () => {
+		try {
+			await this.signMessage();
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
+			this.props.onConfirm();
+		} catch (e) {
+			if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+					this.getAnalyticsParams()
+				);
+				this.props.onCancel();
+			}
+		}
 	};
 
 	getStyles = () => {
@@ -199,3 +217,9 @@ export default class MessageSign extends PureComponent {
 }
 
 MessageSign.contextType = ThemeContext;
+
+const mapStateToProps = (state) => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+});
+
+export default connect(mapStateToProps)(MessageSign);

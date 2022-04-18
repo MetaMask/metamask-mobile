@@ -6,7 +6,7 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
+import { safeToChecksumAddress, renderShortAddress, getAddressAccountType } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
@@ -32,6 +32,7 @@ import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
+import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
@@ -45,6 +46,8 @@ import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -60,7 +63,7 @@ const createStyles = (colors) =>
 			textAlign: 'center',
 			color: colors.text.default,
 			lineHeight: 34,
-			marginVertical: 16,
+			marginVertical: 8,
 			paddingHorizontal: 16,
 		},
 		explanation: {
@@ -136,6 +139,12 @@ const createStyles = (colors) =>
 		actionViewWrapper: {
 			height: Device.isMediumDevice() ? 200 : 280,
 		},
+		actionViewChildren: {
+			height: 300,
+		},
+		actionViewQRObject: {
+			height: 648,
+		},
 		paddingHorizontal: {
 			paddingHorizontal: 16,
 		},
@@ -165,6 +174,10 @@ class ApproveTransactionReview extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -289,6 +302,8 @@ class ApproveTransactionReview extends PureComponent {
 		 * Check if nickname is saved
 		 */
 		nicknameExists: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	state = {
@@ -353,13 +368,14 @@ class ApproveTransactionReview extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+			const { activeTabUrl, transaction, onSetAnalyticsParams, selectedAddress } = this.props;
 			const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
-			const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+			const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
 			const params = {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: transaction?.origin,
 				dapp_url: isDapp ? activeTabUrl : undefined,
 				network_name: type,
@@ -781,8 +797,33 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
+	renderQRDetails() {
+		const { host, spenderAddress } = this.state;
+		const {
+			activeTabUrl,
+			transaction: { origin },
+			QRState,
+		} = this.props;
+		const styles = this.getStyles();
+		return (
+			<View style={styles.actionViewQRObject} testID={'qr-details'}>
+				<TransactionHeader
+					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+				/>
+				<QRSigningDetails
+					QRState={QRState}
+					tighten
+					showHint={false}
+					showCancelButton
+					bypassAndroidCameraAccessCheck={false}
+				/>
+			</View>
+		);
+	}
+
 	render = () => {
 		const { viewDetails, editPermissionVisible } = this.state;
+		const { isSigningQRObject } = this.props;
 
 		return (
 			<View>
@@ -790,6 +831,8 @@ class ApproveTransactionReview extends PureComponent {
 					? this.renderTransactionReview()
 					: editPermissionVisible
 					? this.renderEditPermission()
+					: isSigningQRObject
+					? this.renderQRDetails()
 					: this.renderDetails()}
 			</View>
 		);
@@ -798,6 +841,8 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
@@ -817,4 +862,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 ApproveTransactionReview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(withQRHardwareAwareness(ApproveTransactionReview)));

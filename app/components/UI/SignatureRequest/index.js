@@ -15,6 +15,8 @@ import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -147,6 +149,8 @@ class SignatureRequest extends PureComponent {
 		 * Expands the message box on press.
 		 */
 		toggleExpandedMessage: PropTypes.func,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	/**
@@ -248,7 +252,7 @@ class SignatureRequest extends PureComponent {
 		);
 	};
 
-	render() {
+	renderSignatureRequest() {
 		const { showWarning, currentPageInformation, type } = this.props;
 		let expandedHeight;
 		const styles = this.getStyles();
@@ -286,6 +290,27 @@ class SignatureRequest extends PureComponent {
 			</View>
 		);
 	}
+
+	renderQRDetails() {
+		const { QRState } = this.props;
+		const styles = this.getStyles();
+
+		return (
+			<View style={[styles.root]}>
+				<QRSigningDetails
+					QRState={QRState}
+					showCancelButton
+					showHint={false}
+					bypassAndroidCameraAccessCheck={false}
+				/>
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderSignatureRequest();
+	}
 }
 
 const mapStateToProps = (state) => ({
@@ -294,4 +319,4 @@ const mapStateToProps = (state) => ({
 
 SignatureRequest.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(SignatureRequest);
+export default connect(mapStateToProps)(withQRHardwareAwareness(SignatureRequest));
