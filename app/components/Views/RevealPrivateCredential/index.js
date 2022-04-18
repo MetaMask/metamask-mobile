@@ -444,11 +444,8 @@ class RevealPrivateCredential extends PureComponent {
 		});
 	};
 
-	renderModal() {
+	renderModal(isPrivateKeyReveal, privateCredentialName) {
 		const { styles } = this.getStyles();
-		const { privateCredentialName, route } = this.props;
-		const credentialName = privateCredentialName || route.params.privateCredentialName;
-		const isPrivateKeyReveal = credentialName === PRIVATE_KEY;
 		return (
 			<InfoModal
 				isVisible={this.state.isModalVisible}
@@ -487,7 +484,7 @@ class RevealPrivateCredential extends PureComponent {
 									? strings('reveal_credential.private_key_text')
 									: strings('reveal_credential.srp_abbreviation_text'),
 							})}
-							onLongPress={() => this.revealCredential(credentialName)}
+							onLongPress={() => this.revealCredential(privateCredentialName)}
 						/>
 					</>
 				}
@@ -576,7 +573,7 @@ class RevealPrivateCredential extends PureComponent {
 						</View>
 					</>
 				</ActionView>
-				{this.renderModal()}
+				{this.renderModal(isPrivateKeyReveal, privateCredentialName)}
 			</SafeAreaView>
 		);
 	};
