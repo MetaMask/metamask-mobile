@@ -140,12 +140,12 @@ const RegionModal: React.FC<Props> = ({
 		() =>
 			new Fuse(dataRef.current as [JSON], {
 				shouldSort: true,
-				threshold: 0.45,
+				threshold: 0.2,
 				location: 0,
 				distance: 100,
 				maxPatternLength: 32,
 				minMatchCharLength: 1,
-				keys: ['symbol', 'address', 'name'],
+				keys: ['name'],
 			}),
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[dataRef.current]
