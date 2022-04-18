@@ -34,7 +34,7 @@ const createStyles = (colors) =>
 		},
 	});
 
-function PaymentMethodModal({ isVisible, dismiss, title }) {
+function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
@@ -47,8 +47,9 @@ function PaymentMethodModal({ isVisible, dismiss, title }) {
 		(paymentMethodId) => {
 			setSelectedPaymentMethod(paymentMethodId);
 			dismiss();
+			onItemPress();
 		},
-		[dismiss, setSelectedPaymentMethod]
+		[dismiss, onItemPress, setSelectedPaymentMethod]
 	);
 
 	return (
@@ -103,6 +104,7 @@ PaymentMethodModal.propTypes = {
 	isVisible: PropTypes.bool,
 	dismiss: PropTypes.func,
 	title: PropTypes.string,
+	onItemPress: PropTypes.func,
 };
 
 export default PaymentMethodModal;
