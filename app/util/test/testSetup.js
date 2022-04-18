@@ -1,10 +1,10 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
-import Engine from '../core/Engine';
+import Engine from '../../core/Engine';
 
-import NotificationManager from '../core/NotificationManager';
+import NotificationManager from '../../core/NotificationManager';
 import { NativeModules } from 'react-native';
-import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
+import mockAsyncStorage from '../../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -60,14 +60,14 @@ jest.mock('react-native-fs', () => ({
 
 Date.now = jest.fn(() => 123);
 
-jest.mock('../core/NotificationManager', () => ({
+jest.mock('../../core/NotificationManager', () => ({
 	init: () => NotificationManager.init({}),
 	getTransactionToView: () => null,
 	setTransactionToView: (id) => NotificationManager.setTransactionToView(id),
 	gotIncomingTransaction: () => null,
 }));
 
-jest.mock('../core/Engine', () => ({
+jest.mock('../../core/Engine', () => ({
 	init: () => Engine.init({}),
 	context: {
 		KeyringController: {
@@ -140,5 +140,5 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 	setDeadline: jest.fn(),
 }));
 
-jest.mock('../images/static-logos.js', () => ({}));
+jest.mock('../../images/static-logos.js', () => ({}));
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);

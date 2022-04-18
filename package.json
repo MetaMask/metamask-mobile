@@ -265,6 +265,8 @@
     "@storybook/addon-ondevice-actions": "^5.3.23",
     "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/react-native": "^5.3.25",
+    "@testing-library/react": "^13.0.0",
+    "@testing-library/react-native": "^9.1.0",
     "@types/enzyme": "^3.10.9",
     "@types/jest": "^27.0.1",
     "@types/react": "^17.0.11",
