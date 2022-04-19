@@ -46,7 +46,12 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
-import { IOS_I_UNDERSTAND_BUTTON_ID, ANDROID_I_UNDERSTAND_BUTTON_ID } from '../../../constants/test-ids';
+import {
+	CREATE_PASSWORD_INPUT_BOX_ID,
+	CONFIRM_PASSWORD_INPUT_BOX_ID,
+	IOS_I_UNDERSTAND_BUTTON_ID,
+	ANDROID_I_UNDERSTAND_BUTTON_ID,
+} from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -644,7 +649,7 @@ class ChoosePassword extends PureComponent {
 										secureTextEntry={secureTextEntry}
 										placeholder=""
 										placeholderTextColor={colors.text.muted}
-										testID="input-password"
+										testID={CREATE_PASSWORD_INPUT_BOX_ID}
 										onSubmitEditing={this.jumpToConfirmPassword}
 										returnKeyType="next"
 										autoCapitalize="none"
@@ -670,7 +675,7 @@ class ChoosePassword extends PureComponent {
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.text.muted}
-										testID={'input-password-confirm'}
+										testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"

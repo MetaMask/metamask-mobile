@@ -21,17 +21,17 @@ export const NETWORK_EDUCATION_MODAL_CONTAINER_ID = 'network-education-modal';
 export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID = 'network-education-modal-close-button';
 export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID = 'network-education-modal-network-name';
 
-export const CREATE_PASSWORD_INPUT_BOX_ID = 'input-password-field';
-export const CONFIRM_PASSWORD_INPUT_BOX_ID = 'input-password-field-confirm';
+export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
+export const CONFIRM_PASSWORD_INPUT_BOX_ID = 'create-password-second-input-field';
 
 export const CHANGE_PASSWORD_TITLE_ID = 'change-password-section';
 export const CHANGE_PASSWORD_BUTTON_ID = 'change-password-button-id';
-export const CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID = 'private-credential-password-text-input';
+export const CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID = 'private-credential-password-input-field';
 
 export const REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID = 'reveal-seed-button';
 
 export const SUBMIT_BUTTON_ID = 'submit-button';
-export const BACK_ARROW_BUTTON_ID = 'title-back-arrow-button';
+export const BACK_ARROW_BUTTON_ID = 'burger-menu-title-back-arrow-button';
 
 export const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
 export const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
