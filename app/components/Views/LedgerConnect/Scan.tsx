@@ -3,7 +3,7 @@ import { Alert, View, StyleSheet, ActivityIndicator, Linking } from 'react-nativ
 import { Observable, Subscription } from 'rxjs';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
-import { check, PERMISSIONS, openSettings } from 'react-native-permissions';
+import { check, PERMISSIONS, openSettings, request } from 'react-native-permissions';
 import { State } from 'react-native-ble-plx';
 import { strings } from '../../../../locales/i18n';
 
@@ -98,7 +98,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 			}
 
 			if (Device.isAndroid()) {
-				const bluetoothPermissionStatus = await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+				const bluetoothPermissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
 				const bluetoothAllowed = handleBluetoothPermission(bluetoothPermissionStatus);
 
 				if (bluetoothAllowed) {
