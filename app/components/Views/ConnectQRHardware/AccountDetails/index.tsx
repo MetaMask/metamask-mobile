@@ -10,7 +10,10 @@ import EthereumAddress from '../../../UI/EthereumAddress';
 
 interface IAccountDetailsProps {
 	item: any;
-	network: string;
+	provider: {
+		ticker: string;
+		network: string;
+	};
 }
 
 const createStyle = (colors: any) =>
@@ -43,11 +46,10 @@ const AccountDetails = (props: IAccountDetailsProps) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyle(colors);
 	const navigation = useNavigation();
-	const { item } = props;
+	const { item, provider } = props;
 
 	const toEtherscan = (address: string) => {
-		const { network } = props;
-		const accountLink = getEtherscanAddressUrl(network, address);
+		const accountLink = getEtherscanAddressUrl(provider.network, address);
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
@@ -61,7 +63,9 @@ const AccountDetails = (props: IAccountDetailsProps) => {
 			<View style={styles.accountDetails}>
 				<Text style={styles.index}>{item.index}</Text>
 				<EthereumAddress style={styles.information} address={item.address} type={'short'} />
-				<Text style={styles.information}>{renderFromWei(item.balance)} ETH</Text>
+				<Text style={styles.information}>
+					{renderFromWei(item.balance)} {provider.ticker}
+				</Text>
 			</View>
 			<Icon
 				size={18}
