@@ -3,7 +3,7 @@ import { AppState, Alert, View, StyleSheet, ActivityIndicator, Linking, AppState
 import { Observable, Subscription } from 'rxjs';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
-import { check, PERMISSIONS, openSettings, request } from 'react-native-permissions';
+import { check, PERMISSIONS, RESULTS, openSettings, request } from 'react-native-permissions';
 import { State } from 'react-native-ble-plx';
 import { strings } from '../../../../locales/i18n';
 
@@ -11,7 +11,6 @@ import SelectComponent from '../../UI/SelectComponent';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
-import { handleBluetoothPermission } from './ledgerUtils';
 
 const createStyles = (colors: Colors) =>
 	StyleSheet.create({
@@ -66,7 +65,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 		const run = async () => {
 			if (Device.isIos()) {
 				const bluetoothPermissionStatus = await check(PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL);
-				const bluetoothAllowed = handleBluetoothPermission(bluetoothPermissionStatus);
+				const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
 
 				if (bluetoothAllowed) {
 					setHasBluetoothPermissions(true);
@@ -88,7 +87,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 
 			if (Device.isAndroid()) {
 				const bluetoothPermissionStatus = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
-				const bluetoothAllowed = handleBluetoothPermission(bluetoothPermissionStatus);
+				const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
 
 				if (bluetoothAllowed) {
 					setHasBluetoothPermissions(true);
