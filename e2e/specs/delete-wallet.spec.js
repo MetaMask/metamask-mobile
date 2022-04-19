@@ -24,7 +24,7 @@ const SECRET_RECOVERY_PHRASE =
 	'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
 const PASSWORD = `12345678`;
 
-describe('Import wallet with 24 word seedphrase, change password then delete wallet flow', () => {
+describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
 	beforeEach(() => {
 		jest.setTimeout(150000);
 	});
