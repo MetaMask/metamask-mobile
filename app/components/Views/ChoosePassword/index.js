@@ -46,6 +46,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
+import { IOS_I_UNDERSTAND_BUTTON_ID, ANDROID_I_UNDERSTAND_BUTTON_ID } from '../../../constants/test-ids';
+
 const createStyles = (colors) =>
 	StyleSheet.create({
 		mainWrapper: {
@@ -691,9 +693,13 @@ class ChoosePassword extends PureComponent {
 										style={styles.checkbox}
 										tintColors={{ true: colors.primary.default, false: colors.border.default }}
 										boxType="square"
-										testID={'password-understand-box'}
+										testID={IOS_I_UNDERSTAND_BUTTON_ID}
 									/>
-									<Text style={styles.label} onPress={this.setSelection} testID={'i-understand-text'}>
+									<Text
+										style={styles.label}
+										onPress={this.setSelection}
+										testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+									>
 										{strings('choose_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
 											{strings('choose_password.learn_more')}

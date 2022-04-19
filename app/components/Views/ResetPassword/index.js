@@ -39,6 +39,12 @@ import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
+import {
+	CREATE_PASSWORD_INPUT_BOX_ID,
+	CONFIRM_PASSWORD_INPUT_BOX_ID,
+	IOS_I_UNDERSTAND_BUTTON_ID,
+	ANDROID_I_UNDERSTAND_BUTTON_ID,
+} from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -713,7 +719,7 @@ class ResetPassword extends PureComponent {
 										secureTextEntry={secureTextEntry}
 										placeholder=""
 										placeholderTextColor={colors.text.muted}
-										testID="input-password"
+										testID={CREATE_PASSWORD_INPUT_BOX_ID}
 										onSubmitEditing={this.jumpToConfirmPassword}
 										returnKeyType="next"
 										autoCapitalize="none"
@@ -739,7 +745,8 @@ class ResetPassword extends PureComponent {
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.text.muted}
-										testID={'input-password-confirm'}
+										testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+										zasdfasfasf
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"
@@ -762,9 +769,13 @@ class ResetPassword extends PureComponent {
 										style={styles.checkbox}
 										tintColors={{ true: colors.primary.default, false: colors.border.default }}
 										boxType="square"
-										testID={'password-understand-box'}
+										testID={IOS_I_UNDERSTAND_BUTTON_ID}
 									/>
-									<Text style={styles.label} onPress={this.setSelection} testID={'i-understand-text'}>
+									<Text
+										style={styles.label}
+										onPress={this.setSelection}
+										testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+									>
 										{strings('reset_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
 											{strings('reset_password.learn_more')}
