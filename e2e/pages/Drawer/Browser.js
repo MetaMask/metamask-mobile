@@ -14,6 +14,7 @@ const OPTIONS_BUTTON_ID = 'options-button';
 const URL_INPUT_BOX_ID = 'url-input';
 const RETURN_HOME_TEXT = strings('webview_error.return_home');
 const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
+
 export class Browser {
 	static async tapBrowser() {
 		await TestHelpers.tapByText('Browser');
