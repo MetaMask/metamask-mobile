@@ -690,7 +690,7 @@ class Confirm extends PureComponent {
       fromAccountBalance = `${renderFromWei(
         accounts[fromSelectedAddress].balance,
       )} ${parsedTicker}`;
-      transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
+      transactionValue = `${fromWei(value)} ${parsedTicker}`;
       transactionValueFiat = weiToFiat(
         valueBN,
         conversionRate,
@@ -1484,7 +1484,13 @@ class Confirm extends PureComponent {
               <Text style={styles.textAmountLabel}>
                 {strings('transaction.amount')}
               </Text>
-              <Text style={styles.textAmount} testID={'confirm-txn-amount'}>
+              <Text
+                style={styles.textAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                allowFontScaling
+                testID={'confirm-txn-amount'}
+              >
                 {transactionValue}
               </Text>
               {isMainnetByChainId(chainId) && (
