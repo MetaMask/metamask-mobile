@@ -91,7 +91,6 @@
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
     "@metamask/contract-metadata": "^1.30.0",
-    "async": "^3.2.2",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
     "web3": "1.6.1",
