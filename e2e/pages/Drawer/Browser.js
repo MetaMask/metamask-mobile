@@ -47,7 +47,6 @@ export class Browser {
 	static async tapBackToSafetyButton() {
 		await TestHelpers.tapByText(BACK_TO_SAFETY_TEXT);
 	}
-	
 	static async tapReturnHomeButton() {
 		await TestHelpers.tapByText(RETURN_HOME_TEXT);
 	}
