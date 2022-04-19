@@ -133,15 +133,17 @@ const QRSigningDetails = ({
 	const [hasCameraPermission, setCameraPermission] = useState(Device.isIos() || bypassAndroidCameraAccessCheck);
 
 	const checkAndroidCamera = useCallback(() => {
-		PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((_hasPermission) => {
-			setCameraPermission(_hasPermission);
-			if (!_hasPermission) {
-				setCameraError(strings('transaction.no_camera_permission_android'));
-			} else {
-				setCameraError('');
-			}
-		});
-	}, []);
+		if (Device.isAndroid() && !hasCameraPermission) {
+			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA).then((_hasPermission) => {
+				setCameraPermission(_hasPermission);
+				if (!_hasPermission) {
+					setCameraError(strings('transaction.no_camera_permission_android'));
+				} else {
+					setCameraError('');
+				}
+			});
+		}
+	}, [hasCameraPermission]);
 
 	const handleAppState = useCallback(
 		(appState: AppStateStatus) => {
@@ -153,10 +155,8 @@ const QRSigningDetails = ({
 	);
 
 	useEffect(() => {
-		if (Device.isAndroid() && !hasCameraPermission) {
-			checkAndroidCamera();
-		}
-	}, [checkAndroidCamera, hasCameraPermission]);
+		checkAndroidCamera();
+	}, [checkAndroidCamera]);
 
 	useEffect(() => {
 		AppState.addEventListener('change', handleAppState);
