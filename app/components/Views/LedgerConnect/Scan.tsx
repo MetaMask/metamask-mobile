@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, View, StyleSheet, ActivityIndicator, Linking } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AppState, Alert, View, StyleSheet, ActivityIndicator, Linking, AppStateStatus } from 'react-native';
 import { Observable, Subscription } from 'rxjs';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
@@ -37,6 +37,8 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 	const [devices, setDevices] = useState<NanoDevice[]>([]);
 	const [bluetoothOn, setBluetoothOn] = useState(false);
 	const [hasBluetoothPermissions, setHasBluetoothPermissions] = useState<boolean>(false);
+	const appState = useRef(AppState.currentState);
+	const [appStateVisible, setAppStateVisible] = useState(appState.current);
 
 	const options = devices?.map(({ id, name, ...rest }: Partial<NanoDevice>) => ({
 		key: id,
@@ -45,35 +47,22 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 		...rest,
 	}));
 
+	// External permission changes must be picked up by the app by tracking the app state
 	useEffect(() => {
-		// Monitoring for the BLE adapter to be turned on
-		const subscription = BluetoothTransport.observeState({
-			next: (e: { available: boolean; type: State }) => {
-				if (e.available && e.type === State.PoweredOn && !bluetoothOn) {
-					setBluetoothOn(true);
-				}
+		const handleAppStateChange = (nextAppState: AppStateStatus) => {
+			appState.current = nextAppState;
+			setAppStateVisible(appState.current);
+		};
 
-				if (!e.available && e.type === State.PoweredOff) {
-					setBluetoothOn(false);
-					Alert.alert(strings('ledger.bluetooth_off'), strings('ledger.bluetooth_off_message'), [
-						{
-							text: strings('ledger.open_settings'),
-							onPress: async () => {
-								Device.isIos()
-									? Linking.openURL('App-Prefs:Bluetooth')
-									: Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
-							},
-						},
-					]);
-				}
-			},
-		});
+		AppState.addEventListener('change', handleAppStateChange);
 
-		return () => subscription.unsubscribe();
-	}, [bluetoothOn]);
+		return () => {
+			AppState.removeEventListener('change', handleAppStateChange);
+		};
+	}, []);
 
+	// Checking if app has required permissions every time the app becomes active
 	useEffect(() => {
-		// Checking if app has required permissions
 		const run = async () => {
 			if (Device.isIos()) {
 				const bluetoothPermissionStatus = await check(PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL);
@@ -120,11 +109,40 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 			}
 		};
 
-		run();
-	}, []);
+		if (appStateVisible === 'active') {
+			run();
+		}
+	}, [appStateVisible]);
 
+	// Monitoring for the BLE adapter to be turned on
 	useEffect(() => {
-		// Initiate scanning and pairing if bluetooth is enabled
+		const subscription = BluetoothTransport.observeState({
+			next: (e: { available: boolean; type: State }) => {
+				if (e.available && e.type === State.PoweredOn && !bluetoothOn) {
+					setBluetoothOn(true);
+				}
+
+				if (!e.available && e.type === State.PoweredOff) {
+					setBluetoothOn(false);
+					Alert.alert(strings('ledger.bluetooth_off'), strings('ledger.bluetooth_off_message'), [
+						{
+							text: strings('ledger.open_settings'),
+							onPress: async () => {
+								Device.isIos()
+									? Linking.openURL('App-Prefs:Bluetooth')
+									: Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
+							},
+						},
+					]);
+				}
+			},
+		});
+
+		return () => subscription.unsubscribe();
+	}, [bluetoothOn]);
+
+	// Initiate scanning and pairing if bluetooth is enabled
+	useEffect(() => {
 		let subscription: Subscription;
 
 		if (hasBluetoothPermissions && bluetoothOn) {
