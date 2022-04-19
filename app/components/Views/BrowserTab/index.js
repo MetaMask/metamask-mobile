@@ -335,8 +335,7 @@ export const BrowserTab = (props) => {
 				params: [selectedAddress],
 			});
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
+	}, [notifyAllConnections, props, props.approvedHosts, props.selectedAddress]);
 
 	/**
 	 * Dismiss the text selection on the current website
@@ -535,8 +534,7 @@ export const BrowserTab = (props) => {
 			dismissTextSelectionIfNeeded();
 			props.newTab(url);
 		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[dismissTextSelectionIfNeeded, toggleOptionsIfNeeded]
+		[dismissTextSelectionIfNeeded, props, toggleOptionsIfNeeded]
 	);
 
 	/**
@@ -576,8 +574,7 @@ export const BrowserTab = (props) => {
 			// Remove all Engine listeners
 			Engine.context.TokensController.hub.removeAllListeners();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [go, props.approvedHosts, props.initialUrl]);
 
 	useEffect(() => {
 		if (Device.isAndroid()) {
@@ -616,8 +613,7 @@ export const BrowserTab = (props) => {
 		return function cleanup() {
 			BackHandler.removeEventListener('hardwareBackPress', handleAndroidBackPress);
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [goBack, isTabActive]);
+	}, [goBack, isTabActive, props.navigation]);
 
 	/**
 	 * Handles state changes for when the url changes
@@ -725,12 +721,12 @@ export const BrowserTab = (props) => {
 		</Modal>
 	);
 
-	const trackEventSearchUsed = () => {
+	const trackEventSearchUsed = useCallback(() => {
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
 			option_chosen: 'Search on URL',
 			number_of_tabs: undefined,
 		});
-	};
+	}, []);
 
 	/**
 	 * Stops normal loading when it's ens, instead call go to be properly set up
@@ -837,16 +833,22 @@ export const BrowserTab = (props) => {
 	/**
 	 * Handle url input submit
 	 */
-	const onUrlInputSubmit = useCallback(async (inputValue = undefined) => {
-		trackEventSearchUsed();
-		if (!inputValue) {
-			return;
-		}
-		const { defaultProtocol, searchEngine } = props;
-		const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
-		await go(sanitizedInput);
+	const onUrlInputSubmit = useCallback(
+		async (inputValue = undefined) => {
+			trackEventSearchUsed();
+			if (!inputValue) {
+				return;
+			}
+			const { defaultProtocol, searchEngine } = props;
+			const sanitizedInput = onUrlSubmit(inputValue, searchEngine, defaultProtocol);
+			await go(sanitizedInput);
+		},
+		/* we do not want to depend on the props object
+		- since we are changing it here, this would give us a circular dependency and infinite re renders
+		*/
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		[]
+	);
 
 	/**
 	 * Shows or hides the url input modal.
@@ -857,6 +859,9 @@ export const BrowserTab = (props) => {
 			const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
 			props.navigation.navigate('BrowserUrlModal', { url: urlToShow, onUrlInputSubmit });
 		},
+		/* we do not want to depend on the props.navigation object
+		- since we are changing it here, this would give us a circular dependency and infinite re renders
+		*/
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[onUrlInputSubmit]
 	);
@@ -932,6 +937,9 @@ export const BrowserTab = (props) => {
 				error,
 			});
 		}
+		/* we do not want to depend on the entire props object
+		- since we are changing it here, this would give us a circular dependency and infinite re renders
+		*/
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [error, props.activeTab, props.id, toggleUrlModal]);
 
