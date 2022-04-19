@@ -24,6 +24,7 @@ import {
 	safeNumberToBN,
 	fastSplit,
 } from '.';
+import numberToBN from 'number-to-bn';
 
 describe('Number utils :: BNToHex', () => {
 	it('BNToHex', () => {
@@ -260,9 +261,9 @@ describe('Number utils :: isDecimal', () => {
 describe('Number utils :: weiToFiat', () => {
 	it('weiToFiat', () => {
 		const wei = toWei('1');
-		expect(weiToFiat(wei, 1, 'usd')).toEqual('$1');
-		expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.5');
-		expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.1');
+		expect(weiToFiat(wei, 1, 'usd')).toEqual('$1.00');
+		expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.50');
+		expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.10');
 	});
 });
 
@@ -376,5 +377,14 @@ describe('Number utils :: fastSplit', () => {
 		expect(fastSplit('1650000007.7')).toEqual('1650000007');
 		expect(fastSplit('1650000007')).toEqual('1650000007');
 		expect(fastSplit('test string', ' ')).toEqual('test');
+	});
+});
+
+describe('Number utils:: safeNumberToBN', () => {
+	it('safe convert to bn', () => {
+		expect(safeNumberToBN('1.123')).toEqual(numberToBN('1'));
+		expect(safeNumberToBN('NaN')).toEqual(numberToBN('0'));
+		expect(safeNumberToBN(null)).toEqual(numberToBN('0'));
+		expect(safeNumberToBN('304717635658067,7')).toEqual(numberToBN('304717635658067'));
 	});
 });

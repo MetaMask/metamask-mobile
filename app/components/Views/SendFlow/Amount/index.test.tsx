@@ -11,6 +11,8 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
 
+jest.unmock('react-redux');
+
 jest.mock('../../../../core/Engine', () => ({
 	init: () => mockEngine.init({}),
 	context: {
