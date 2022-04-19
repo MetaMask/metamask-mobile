@@ -1216,7 +1216,7 @@ export const BrowserTab = (props) => {
 		go(HOMEPAGE_HOST);
 	};
 
-	const handleOnFileDownload = async (downloadUrl) => {
+	const handleOnFileDownload = useCallback(async ({ nativeEvent: { downloadUrl } }) => {
 		const onDownloadFinished = () => {
 			const { current } = webviewRef;
 			current && current.stopLoading();
@@ -1230,7 +1230,7 @@ export const BrowserTab = (props) => {
 			Alert.alert(strings('download_files.error'));
 			onDownloadFinished();
 		}
-	};
+	}, []);
 
 	/**
 	 * Main render
@@ -1263,7 +1263,7 @@ export const BrowserTab = (props) => {
 							allowsInlineMediaPlayback
 							useWebkit
 							testID={'browser-webview'}
-							onFileDownload={({ nativeEvent: { downloadUrl } }) => handleOnFileDownload(downloadUrl)}
+							onFileDownload={handleOnFileDownload}
 						/>
 					)}
 				</View>
