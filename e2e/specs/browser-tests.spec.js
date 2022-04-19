@@ -117,7 +117,7 @@ describe('Browser Tests', () => {
 			// Check that the dapp title is correct
 			await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
 		}
-		await TestHelpers.delay(3000);
+		await TestHelpers.delay(5000);
 		await ConnectModal.tapCancelButton();
 
 		// Android has weird behavior where the URL modal stays open, so this closes it
