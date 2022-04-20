@@ -300,6 +300,7 @@ export const migrations = {
 			...state.engine.backgroundState.CollectiblesController,
 			allCollectibles: migratedColletibles,
 		};
+		return state;
 	},
 };
 
