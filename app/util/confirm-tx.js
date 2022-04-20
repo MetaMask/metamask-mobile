@@ -82,15 +82,41 @@ export function getTransactionFee({ value, fromCurrency = 'ETH', toCurrency, con
 	});
 }
 
+function isCryptoCodeInISO4217(code) {
+	if (
+		code === '1ST' ||
+		code === 'DASH' ||
+		code === 'MYST' ||
+		code === 'PTOY' ||
+		code === 'QTUM' ||
+		code === 'SC' ||
+		code === 'SNGLS' ||
+		code === 'STORJ' ||
+		code === 'STEEM' ||
+		code === 'TIME' ||
+		code === 'TRST' ||
+		code === 'USDC' ||
+		code === 'USDT' ||
+		code === 'WINGS' ||
+		code === 'ZEC'
+	) {
+		return false;
+	}
+	return true;
+}
+
 export function formatCurrency(value, currencyCode) {
 	const upperCaseCurrencyCode = currencyCode.toUpperCase();
-
-	const formatedCurrency = new Intl.NumberFormat(I18n.locale, {
-		currency: upperCaseCurrencyCode,
-		style: 'currency',
-		// eslint-disable-next-line no-mixed-spaces-and-tabs
-	}).format(Number(value));
-
+	let formatedCurrency;
+	if (!isCryptoCodeInISO4217(upperCaseCurrencyCode)) {
+		formatedCurrency = `${Number(value)} ${upperCaseCurrencyCode}`;
+	} else {
+		formatedCurrency = new Intl.NumberFormat(I18n.locale, {
+			currency: upperCaseCurrencyCode,
+			style: 'currency',
+			// eslint-disable-next-line no-mixed-spaces-and-tabs
+		}).format(Number(value));
+	}
 	return formatedCurrency;
 }
 
