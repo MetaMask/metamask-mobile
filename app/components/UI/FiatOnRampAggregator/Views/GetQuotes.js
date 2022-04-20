@@ -94,7 +94,7 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
-	const [isInPolling, setIsInPolling] = useState(true);
+	const [isInPolling, setIsInPolling] = useState(false);
 	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(appConfig.POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(appConfig.POLLING_INTERVAL);
 	const [showInfo, setShowInfo] = useState(false);
