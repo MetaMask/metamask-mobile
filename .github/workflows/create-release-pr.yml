@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       base-branch:
-        description: 'The base branch for git operations and the pull request.'
+        description: 'The base branch, tag, or SHA for git operations and the pull request.'
         default: 'main'
         required: true
       semver-version:
