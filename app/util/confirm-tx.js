@@ -4,6 +4,24 @@ import { addHexPrefix } from './number';
 import { conversionUtil, addCurrencies, multiplyCurrencies, conversionGreaterThan } from './conversion';
 import I18n from '../../locales/i18n';
 
+const NON_ISO4217_CRYPTO_CODES = [
+	'1ST',
+	'DASH',
+	'MYST',
+	'PTOY',
+	'QTUM',
+	'SC',
+	'SNGLS',
+	'STORJ',
+	'STEEM',
+	'TIME',
+	'TRST',
+	'USDC',
+	'USDT',
+	'WINGS',
+	'ZEC',
+];
+
 export function increaseLastGasPrice(lastGasPrice) {
 	return addHexPrefix(
 		multiplyCurrencies(lastGasPrice || '0x0', 1.1, {
@@ -82,41 +100,18 @@ export function getTransactionFee({ value, fromCurrency = 'ETH', toCurrency, con
 	});
 }
 
-function isCryptoCodeInISO4217(code) {
-	if (
-		code === '1ST' ||
-		code === 'DASH' ||
-		code === 'MYST' ||
-		code === 'PTOY' ||
-		code === 'QTUM' ||
-		code === 'SC' ||
-		code === 'SNGLS' ||
-		code === 'STORJ' ||
-		code === 'STEEM' ||
-		code === 'TIME' ||
-		code === 'TRST' ||
-		code === 'USDC' ||
-		code === 'USDT' ||
-		code === 'WINGS' ||
-		code === 'ZEC'
-	) {
-		return false;
-	}
-	return true;
-}
-
 export function formatCurrency(value, currencyCode) {
 	const upperCaseCurrencyCode = currencyCode.toUpperCase();
 	let formatedCurrency;
-	if (!isCryptoCodeInISO4217(upperCaseCurrencyCode)) {
-		formatedCurrency = `${Number(value)} ${upperCaseCurrencyCode}`;
-	} else {
-		formatedCurrency = new Intl.NumberFormat(I18n.locale, {
-			currency: upperCaseCurrencyCode,
-			style: 'currency',
-			// eslint-disable-next-line no-mixed-spaces-and-tabs
-		}).format(Number(value));
-	}
+
+	NON_ISO4217_CRYPTO_CODES.includes(upperCaseCurrencyCode)
+		? `${Number(value)} ${upperCaseCurrencyCode}`
+		: (formatedCurrency = new Intl.NumberFormat(I18n.locale, {
+				currency: upperCaseCurrencyCode,
+				style: 'currency',
+				// eslint-disable-next-line no-mixed-spaces-and-tabs
+		  }).format(Number(value)));
+
 	return formatedCurrency;
 }
 
