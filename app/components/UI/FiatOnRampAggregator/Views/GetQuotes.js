@@ -67,6 +67,8 @@ const GetQuotes = () => {
 		[navigation]
 	);
 
+	const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
+
 	if (isLoading) {
 		return (
 			<ScreenLayout>
@@ -103,6 +105,7 @@ const GetQuotes = () => {
 					) : (
 						quotes
 							.filter(({ error }) => !error)
+							.sort(sortByAmountOut)
 							.map((quote) => (
 								<View key={quote.providerId} style={styles.row}>
 									<Quote
