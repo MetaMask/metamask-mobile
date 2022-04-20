@@ -6,10 +6,23 @@ import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
+import { BROWSER_URL_MODAL_ID } from '../../../constants/test-ids';
+import { RouteProp } from '@react-navigation/native';
 
-interface Props {
+interface BrowserUrlParams {
 	onUrlInputSubmit: (inputValue: string | undefined) => void;
 	url: string | undefined;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type BrowserUrlParamList = {
+	BrowserUrlModal: BrowserUrlParams;
+};
+
+type BrowserUrlModalRouteProp = RouteProp<BrowserUrlParamList, 'BrowserUrlModal'>;
+
+interface Props {
+	route: BrowserUrlModalRouteProp;
 }
 
 const BrowserUrlModal = (props: Props) => {
@@ -32,7 +45,7 @@ const BrowserUrlModal = (props: Props) => {
 
 	const renderContent = () => (
 		<>
-			<View style={styles.urlModalContent} testID={'url-modal'}>
+			<View style={styles.urlModalContent} testID={BROWSER_URL_MODAL_ID}>
 				<View style={styles.searchWrapper}>
 					<TextInput
 						keyboardType="web-search"

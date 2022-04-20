@@ -58,6 +58,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
+import { BROWSER_URL_MODAL } from '../../Nav/navigationKeys';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'localhost:3000';
@@ -857,7 +858,7 @@ export const BrowserTab = (props) => {
 	const toggleUrlModal = useCallback(
 		(shouldClearInput = false) => {
 			const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
-			props.navigation.navigate('BrowserUrlModal', { url: urlToShow, onUrlInputSubmit });
+			props.navigation.navigate(BROWSER_URL_MODAL, { url: urlToShow, onUrlInputSubmit });
 		},
 		/* we do not want to depend on the props.navigation object
 		- since we are changing it here, this would give us a circular dependency and infinite re renders

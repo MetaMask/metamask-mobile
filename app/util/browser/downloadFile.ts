@@ -38,7 +38,7 @@ const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
 			}
 			return {
 				success: false,
-				message: 'unknown error occurred',
+				message: strings('download_files.message'),
 			};
 		}
 	}
