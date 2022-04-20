@@ -223,6 +223,9 @@ class SendFlow extends PureComponent {
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
 		isPaymentRequest: PropTypes.bool,
+		/**
+		 * Returns the recent address in a json with the type ADD_RECENT
+		 */
 		addRecent: PropTypes.func,
 	};
 
