@@ -765,7 +765,7 @@ class NetworkSettings extends PureComponent {
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 		const filteredPopularList = PopularList.filter(
-			(val) => !this.props.frequentRpcList.some((key) => sanitizeUrl(val.rpcUrl) === sanitizeUrl(key.rpcUrl))
+			(val) => !this.props.frequentRpcList.some((key) => val.chainId === key.chainId)
 		);
 
 		if (filteredPopularList.length === 0) {
