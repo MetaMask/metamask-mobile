@@ -104,7 +104,7 @@ const Header: React.FC<IPropsHeader> = ({
 		<View style={[styles.header, style]} {...props}>
 			{title && (
 				<Text style={titleStyle} big black centered bold={bold}>
-					{title}
+					{typeof title === 'function' ? title() : title}
 				</Text>
 			)}
 			{description && (

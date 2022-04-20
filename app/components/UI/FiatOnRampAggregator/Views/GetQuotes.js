@@ -94,7 +94,7 @@ const GetQuotes = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
-	const [isInPolling, setIsInPolling] = useState(false);
+	const [isInPolling, setIsInPolling] = useState(true);
 	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(appConfig.POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(appConfig.POLLING_INTERVAL);
 	const [showInfo, setShowInfo] = useState(false);
@@ -267,6 +267,8 @@ const GetQuotes = () => {
 							<Text black center>
 								No providers available!
 							</Text>
+						) : isFetchingQuotes && isInPolling ? (
+							<Text>...</Text> //todo: to be replaced with the skelton screen
 						) : (
 							quotes
 								.filter(({ error, errorCode }) => !error && !errorCode)
