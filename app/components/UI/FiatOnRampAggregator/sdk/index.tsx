@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { OnRampSdk, IOnRampSdk, Environment, Context } from '@consensys/on-ramp-sdk';
+import Logger from '../../../../util/Logger';
+
 import {
 	fiatOrdersCountrySelectorAgg,
 	setFiatOrdersCountryAGG,
@@ -183,7 +185,7 @@ export function useSDKMethod<T extends keyof IOnRampSdk>(
 				setData(response);
 			}
 		} catch (responseError) {
-			// logging maybe
+			Logger.error(responseError as Error, `useSDKMethod::${method} failed`);
 			setError((responseError as Error).message);
 		} finally {
 			setIsFetching(false);
