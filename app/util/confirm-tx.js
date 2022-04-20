@@ -102,15 +102,14 @@ export function getTransactionFee({ value, fromCurrency = 'ETH', toCurrency, con
 
 export function formatCurrency(value, currencyCode) {
 	const upperCaseCurrencyCode = currencyCode.toUpperCase();
-	let formatedCurrency;
 
-	NON_ISO4217_CRYPTO_CODES.includes(upperCaseCurrencyCode)
+	const formatedCurrency = NON_ISO4217_CRYPTO_CODES.includes(upperCaseCurrencyCode)
 		? `${Number(value)} ${upperCaseCurrencyCode}`
-		: (formatedCurrency = new Intl.NumberFormat(I18n.locale, {
+		: new Intl.NumberFormat(I18n.locale, {
 				currency: upperCaseCurrencyCode,
 				style: 'currency',
 				// eslint-disable-next-line no-mixed-spaces-and-tabs
-		  }).format(Number(value)));
+		  }).format(Number(value));
 
 	return formatedCurrency;
 }
