@@ -15,6 +15,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
+	sdkError?: Error;
 	selectedCountry: any;
 	setSelectedCountry: (country: any) => void;
 
@@ -49,14 +50,19 @@ const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatOnRampSDK>) => {
 	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
+	const [sdkError, setSdkError] = useState<Error>();
+
 	useEffect(() => {
 		(async () => {
-			setSdkModule(
-				await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, {
+			try {
+				const sdk = await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, {
 					verbose: VERBOSE_SDK,
 					maxInstanceCount: 2,
-				})
-			);
+				});
+				setSdkModule(sdk);
+			} catch (error) {
+				setSdkError(error as Error);
+			}
 		})();
 
 		return () => {
@@ -126,6 +132,8 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 
 	const contextValue: IFiatOnRampSDK = {
 		sdk,
+		sdkError,
+
 		selectedCountry,
 		setSelectedCountry: setSelectedCountryCallback,
 
