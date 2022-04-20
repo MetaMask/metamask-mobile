@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, InteractionManager, Animated } from 'react-native';
+import { StyleSheet, View, InteractionManager, Animated, ScrollView } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -54,6 +54,9 @@ const createStyles = (colors) =>
 		},
 		actionViewChildren: {
 			height: 330,
+		},
+		accountTransactionWrapper: {
+			flex: 1,
 		},
 		actionViewQRObject: {
 			height: 624,
@@ -372,28 +375,35 @@ class TransactionReview extends PureComponent {
 							confirmDisabled={transactionConfirmed || Boolean(error) || isAnimating}
 						>
 							<View style={styles.actionViewChildren}>
-								<View style={styles.accountInfoCardWrapper}>
-									<AccountInfoCard />
-								</View>
-								<TransactionReviewInformation
-									navigation={navigation}
-									error={error}
-									edit={this.edit}
-									ready={ready}
-									assetAmount={assetAmount}
-									fiatValue={fiatValue}
-									toggleDataView={this.toggleDataView}
-									over={over}
-									onCancelPress={this.props.onCancel}
-									gasEstimateType={gasEstimateType}
-									EIP1559GasData={EIP1559GasData}
-									origin={dappSuggestedGas ? currentPageInformation?.url : null}
-									originWarning={dappSuggestedGasWarning}
-									onUpdatingValuesStart={onUpdatingValuesStart}
-									onUpdatingValuesEnd={onUpdatingValuesEnd}
-									animateOnChange={animateOnChange}
-									isAnimating={isAnimating}
-								/>
+								<ScrollView>
+									<View
+										style={styles.accountTransactionWrapper}
+										onStartShouldSetResponder={() => true}
+									>
+										<View style={styles.accountInfoCardWrapper}>
+											<AccountInfoCard />
+										</View>
+										<TransactionReviewInformation
+											navigation={navigation}
+											error={error}
+											edit={this.edit}
+											ready={ready}
+											assetAmount={assetAmount}
+											fiatValue={fiatValue}
+											toggleDataView={this.toggleDataView}
+											over={over}
+											onCancelPress={this.props.onCancel}
+											gasEstimateType={gasEstimateType}
+											EIP1559GasData={EIP1559GasData}
+											origin={dappSuggestedGas ? currentPageInformation?.url : null}
+											originWarning={dappSuggestedGasWarning}
+											onUpdatingValuesStart={onUpdatingValuesStart}
+											onUpdatingValuesEnd={onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+										/>
+									</View>
+								</ScrollView>
 							</View>
 						</ActionView>
 					</View>

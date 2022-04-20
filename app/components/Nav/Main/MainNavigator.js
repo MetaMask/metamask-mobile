@@ -83,6 +83,11 @@ const WalletTabHome = () => (
 			component={RevealPrivateCredential}
 			options={RevealPrivateCredential.navigationOptions}
 		/>
+		<Stack.Screen
+			name="ExperimentalSettings"
+			component={ExperimentalSettings}
+			options={ExperimentalSettings.navigationOptions}
+		/>
 	</Stack.Navigator>
 );
 
