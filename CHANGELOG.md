@@ -1,6 +1,8 @@
 # Changelog
 
 ## Current Main Branch
+- dd LinkPresenation library
+- Bump version and build number
 ## 5.0.0 - April 13, 2022
 - [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
 - [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
