@@ -857,6 +857,12 @@ export const BrowserTab = (props) => {
 	 */
 	const onLoadStart = async ({ nativeEvent }) => {
 		const { hostname } = new URL(nativeEvent.url);
+
+		if (nativeEvent.url !== url.current) {
+			changeUrl({ ...nativeEvent }, 'end-promise');
+			changeAddressBar({ ...nativeEvent }, 'end-promise');
+		}
+
 		if (!isAllowedUrl(hostname)) {
 			return handleNotAllowedUrl(nativeEvent.url);
 		}
@@ -1376,6 +1382,7 @@ export const BrowserTab = (props) => {
 							userAgent={USER_AGENT}
 							sendCookies
 							javascriptEnabled
+							javaScriptCanOpenWindowsAutomatically={false}
 							allowsInlineMediaPlayback
 							useWebkit
 							testID={'browser-webview'}
