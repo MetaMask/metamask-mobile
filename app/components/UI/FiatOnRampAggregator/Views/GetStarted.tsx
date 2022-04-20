@@ -10,6 +10,7 @@ import ScreenLayout from '../components/ScreenLayout';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+import { useFiatOnRampSDK } from '../sdk';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
@@ -50,6 +51,8 @@ const whatToExpectList = [
 
 const GetStarted: React.FC = () => {
 	const navigation = useNavigation();
+	const { getStarted, setGetStarted } = useFiatOnRampSDK();
+
 	const { colors } = useTheme();
 
 	useEffect(() => {
@@ -58,7 +61,17 @@ const GetStarted: React.FC = () => {
 
 	const handleOnPress = useCallback(() => {
 		navigation.navigate('Region');
-	}, [navigation]);
+		setGetStarted(true);
+	}, [navigation, setGetStarted]);
+
+	useEffect(() => {
+		if (getStarted) {
+			navigation.reset({
+				index: 0,
+				routes: [{ name: 'Region' }],
+			});
+		}
+	}, [getStarted, navigation]);
 
 	return (
 		<ScreenLayout>

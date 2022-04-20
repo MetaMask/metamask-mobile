@@ -17,6 +17,7 @@ import Device from '../../../../util/device';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
+import InfoAlert from '../components/InfoAlert';
 
 const styles = StyleSheet.create({
 	row: {
@@ -96,7 +97,8 @@ const GetQuotes = () => {
 	const [isInPolling, setIsInPolling] = useState(false);
 	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(appConfig.POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(appConfig.POLLING_INTERVAL);
-
+	const [showInfo, setShowInfo] = useState(false);
+	const [selectedProviderInfo] = useState({});
 	const [providerId, setProviderId] = useState(null);
 
 	const [{ data: quotes, isFetching: isFetchingQuotes, error: ErrorFetchingQuotes }, fetchQuotes] = useSDKMethod(
@@ -248,31 +250,34 @@ const GetQuotes = () => {
 				title={() => (isInPolling ? <QuotesPolling /> : undefined)}
 				description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app."
 			/>
+			<InfoAlert
+				isVisible={showInfo}
+				subtitle={selectedProviderInfo.subtitle}
+				dismiss={() => setShowInfo(false)}
+				providerName={selectedProviderInfo.name}
+				body={selectedProviderInfo.body}
+				providerWebsite={selectedProviderInfo.website}
+				providerPrivacyPolicy={selectedProviderInfo.privacyPolicy}
+				providerSupport={selectedProviderInfo.support}
+			/>
 			<ScreenLayout.Body>
 				<ScrollView>
 					<ScreenLayout.Content>
-						{isFetchingQuotes ? (
-							<Text centered>{strings('fiat_on_ramp_aggregator.loading')}</Text>
-						) : !quotes.length ? (
+						{quotes.length <= 0 ? (
 							<Text black center>
 								No providers available!
 							</Text>
 						) : (
 							quotes
 								.filter(({ error, errorCode }) => !error && !errorCode)
-								.map((quote, index) => (
-									<View key={quote.providerId} style={index === 0 ? styles.firstRow : styles.row}>
+								.map((quote) => (
+									<View key={quote.providerId} style={styles.row}>
 										<Quote
-											providerName={quote.providerName}
-											amountOut={quote.amountOut}
-											crypto={quote.crypto}
-											fiat={quote.fiat}
-											networkFee={quote.netwrokFee}
-											processingFee={quote.providerFee}
-											amountIn={quote.amountIn}
+											quote={quote}
 											onPress={() => handleOnPress(quote)}
 											onPressBuy={() => handleOnPressBuy(quote)}
 											highlighted={quote.providerId === providerId}
+											showInfo={() => setShowInfo(true)}
 										/>
 									</View>
 								))

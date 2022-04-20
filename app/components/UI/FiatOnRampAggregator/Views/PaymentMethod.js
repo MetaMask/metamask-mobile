@@ -22,9 +22,8 @@ const PaymentMethod = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
 
-	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(null);
-
-	const { selectedCountry, selectedRegion, setSelectedPaymentMethod } = useFiatOnRampSDK();
+	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
+	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(selectedPaymentMethod);
 
 	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
 		countryId: selectedCountry?.id,
@@ -40,12 +39,11 @@ const PaymentMethod = () => {
 		navigation.navigate('AmountToBuy');
 	}, [currentPaymentMethod, setSelectedPaymentMethod, navigation]);
 
+	// TODO: replace this with loading screen
 	if (isFetching) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>Loading...</Text>
-				</ScreenLayout.Body>
+				<ScreenLayout.Body></ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}

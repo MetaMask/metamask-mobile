@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, View, InteractionManager } from 'react-native';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -18,6 +18,7 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Text from '../../Base/Text';
 
 const createStyles = (colors) =>
 	StyleSheet.create({

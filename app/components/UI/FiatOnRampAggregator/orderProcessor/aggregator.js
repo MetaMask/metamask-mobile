@@ -3,7 +3,7 @@ import Logger from '../../../../util/Logger';
 
 //* Helpers
 // TODO: replace this with order status types imported from SDK
-const SDK_ORDER_STATUS = {
+export const SDK_ORDER_STATUS = {
 	Pending: 'PENDING',
 	Failed: 'FAILED',
 	Completed: 'COMPLETED',
@@ -36,9 +36,10 @@ const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
 	createdAt: aggregatorOrder.createdAt,
 	amount: aggregatorOrder.fiatAmount,
 	fee: aggregatorOrder.totalFeesFiat,
-	cryptoAmount: '',
-	cryptoFee: '',
+	cryptoAmount: aggregatorOrder.cryptoAmount || 0,
+	cryptoFee: aggregatorOrder.totalFeesFiat || 0,
 	currency: aggregatorOrder.fiatCurrency?.symbol || '',
+	currencySymbol: aggregatorOrder.fiatCurrency?.denomSymbol || '',
 	cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
 	network: aggregatorOrder.cryptoCurrency?.network?.chainId || '',
 	state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
