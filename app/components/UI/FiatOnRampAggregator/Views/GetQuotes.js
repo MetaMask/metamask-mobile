@@ -67,17 +67,7 @@ const GetQuotes = () => {
 		[navigation]
 	);
 
-	const compareByBestRateCallback = useCallback((a, b) => {
-		if (a.amountOut > b.amountOut) {
-			return -1;
-		}
-
-		if (a.amountOut < b.amountOut) {
-			return 1;
-		}
-
-		return 0;
-	}, []);
+	const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
 
 	if (isLoading) {
 		return (
@@ -115,7 +105,7 @@ const GetQuotes = () => {
 					) : (
 						quotes
 							.filter(({ error }) => !error)
-							.sort(compareByBestRateCallback)
+							.sort(sortByAmountOut)
 							.map((quote) => (
 								<View key={quote.providerId} style={styles.row}>
 									<Quote
