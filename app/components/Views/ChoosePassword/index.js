@@ -47,6 +47,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
 import {
+	CREATE_PASSWORD_CONTAINER_ID,
 	CREATE_PASSWORD_INPUT_BOX_ID,
 	CONFIRM_PASSWORD_INPUT_BOX_ID,
 	IOS_I_UNDERSTAND_BUTTON_ID,
@@ -630,7 +631,7 @@ class ChoosePassword extends PureComponent {
 							contentContainerStyle={styles.keyboardScrollableWrapper}
 							resetScrollToCoords={{ x: 0, y: 0 }}
 						>
-							<View testID={'create-password-screen'}>
+							<View testID={CREATE_PASSWORD_CONTAINER_ID}>
 								<View style={styles.content}>
 									<Text style={styles.title}>{strings('choose_password.title')}</Text>
 									<View style={styles.text}>

@@ -52,7 +52,12 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { CREATE_PASSWORD_INPUT_BOX_ID, CONFIRM_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
+import {
+	CREATE_PASSWORD_INPUT_BOX_ID,
+	CONFIRM_PASSWORD_INPUT_BOX_ID,
+	IMPORT_PASSWORD_CONTAINER_ID,
+	SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
+} from '../../../constants/test-ids';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -513,7 +518,7 @@ class ImportFromSeed extends PureComponent {
 		return (
 			<SafeAreaView style={styles.mainWrapper}>
 				<KeyboardAwareScrollView style={styles.wrapper} resetScrollToCoords={{ x: 0, y: 0 }}>
-					<View testID={'import-from-seed-screen'}>
+					<View testID={IMPORT_PASSWORD_CONTAINER_ID}>
 						<Text style={styles.title}>{strings('import_from_seed.title')}</Text>
 						<View style={styles.fieldRow}>
 							<View style={styles.fieldCol}>
@@ -534,7 +539,7 @@ class ImportFromSeed extends PureComponent {
 								inputContainerStyle={styles.padding}
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 								placeholderTextColor={colors.text.muted}
-								testID="input-seed-phrase"
+								testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
 								returnKeyType="next"
 								autoCapitalize="none"
 								secureTextEntry={hideSeedPhraseInput}
@@ -555,7 +560,7 @@ class ImportFromSeed extends PureComponent {
 								placeholder={strings('import_from_seed.seed_phrase_placeholder')}
 								placeholderTextColor={colors.text.muted}
 								onChangeText={this.onSeedWordsChange}
-								testID="input-seed-phrase"
+								testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
 								blurOnSubmit
 								onSubmitEditing={this.jumpToPassword}
 								returnKeyType="next"
