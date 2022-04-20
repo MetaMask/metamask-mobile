@@ -18,10 +18,6 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
 
-const POLLING_INTERVAL = 15000;
-const POLLING_INTERVAL_HIGHLIGHT = 10000;
-const POLLING_CYCLES = 2;
-
 const styles = StyleSheet.create({
 	row: {
 		marginVertical: 8,
@@ -81,17 +77,6 @@ const styles = StyleSheet.create({
 });
 
 const GetQuotes = () => {
-	const { params } = useRoute();
-	const navigation = useNavigation();
-	const { colors } = useTheme();
-	const [isLoading, setIsLoading] = useState(true);
-	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
-	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
-	const [isInPolling, setIsInPolling] = useState(false);
-	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(POLLING_CYCLES - 1);
-	const [remainingTime, setRemainingTime] = useState(POLLING_INTERVAL);
-
-	const [providerId, setProviderId] = useState(null);
 	const {
 		selectedPaymentMethod,
 		selectedCountry,
@@ -99,7 +84,20 @@ const GetQuotes = () => {
 		selectedAsset,
 		selectedAddress,
 		selectedFiatCurrencyId,
+		appConfig,
 	} = useFiatOnRampSDK();
+
+	const { params } = useRoute();
+	const navigation = useNavigation();
+	const { colors } = useTheme();
+	const [isLoading, setIsLoading] = useState(true);
+	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
+	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
+	const [isInPolling, setIsInPolling] = useState(false);
+	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(appConfig.POLLING_CYCLES - 1);
+	const [remainingTime, setRemainingTime] = useState(appConfig.POLLING_INTERVAL);
+
+	const [providerId, setProviderId] = useState(null);
 
 	const [{ data: quotes, isFetching: isFetchingQuotes, error: ErrorFetchingQuotes }, fetchQuotes] = useSDKMethod(
 		'getQuotes',
@@ -124,7 +122,7 @@ const GetQuotes = () => {
 					pollingCyclesLeft > 0 && fetchQuotes();
 				}
 
-				return newRemainingTime > 0 ? newRemainingTime : POLLING_INTERVAL;
+				return newRemainingTime > 0 ? newRemainingTime : appConfig.POLLING_INTERVAL;
 			});
 		},
 		isInPolling ? 1000 : null
@@ -187,7 +185,10 @@ const GetQuotes = () => {
 					<Text
 						bold
 						primary
-						style={[styles.timer, remainingTime < POLLING_INTERVAL_HIGHLIGHT && styles.timerHiglight]}
+						style={[
+							styles.timer,
+							remainingTime < appConfig.POLLING_INTERVAL_HIGHLIGHT && styles.timerHiglight,
+						]}
 					>
 						{new Date(remainingTime).toISOString().substr(15, 4)}
 					</Text>
@@ -215,8 +216,8 @@ const GetQuotes = () => {
 						onPress={() => {
 							setIsLoading(true);
 							setFirstFetchCompleted(false);
-							setPollingCyclesLeft(POLLING_CYCLES - 1);
-							setRemainingTime(POLLING_INTERVAL);
+							setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
+							setRemainingTime(appConfig.POLLING_INTERVAL);
 							fetchQuotes();
 						}}
 					>
@@ -258,10 +259,7 @@ const GetQuotes = () => {
 							</Text>
 						) : (
 							quotes
-								.filter(
-									({ error, errorCode, amountIn, amountOut }) =>
-										!error && !errorCode && amountIn && amountOut
-								)
+								.filter(({ error, errorCode }) => !error && !errorCode)
 								.map((quote, index) => (
 									<View key={quote.providerId} style={index === 0 ? styles.firstRow : styles.row}>
 										<Quote
