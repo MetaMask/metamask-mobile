@@ -218,6 +218,7 @@ const GetQuotes = () => {
 						onPress={() => {
 							setIsLoading(true);
 							setFirstFetchCompleted(false);
+							setIsInPolling(true);
 							setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
 							setRemainingTime(appConfig.POLLING_INTERVAL);
 							fetchQuotes();
