@@ -37,11 +37,8 @@ const createStyles = (colors) =>
 function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
-	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
-	const [{ data: paymentMethods }] = useSDKMethod('getPaymentMethods', {
-		countryId: selectedCountry?.id,
-		regionId: selectedRegion?.id,
-	});
+	const { selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
+	const [{ data: paymentMethods }] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
 	const handleOnPressItemCallback = useCallback(
 		(paymentMethodId) => {

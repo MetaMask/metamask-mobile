@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ScreenLayout from '../components/ScreenLayout';
@@ -80,16 +80,11 @@ const createStyles = (colors) =>
 		},
 	});
 
+const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
+
 const GetQuotes = () => {
-	const {
-		selectedPaymentMethod,
-		selectedCountry,
-		selectedRegion,
-		selectedAsset,
-		selectedAddress,
-		selectedFiatCurrencyId,
-		appConfig,
-	} = useFiatOnRampSDK();
+	const { selectedPaymentMethod, selectedRegion, selectedAsset, selectedAddress, selectedFiatCurrencyId, appConfig } =
+		useFiatOnRampSDK();
 
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
@@ -108,7 +103,7 @@ const GetQuotes = () => {
 
 	const [{ data: quotes, isFetching: isFetchingQuotes, error: ErrorFetchingQuotes }, fetchQuotes] = useSDKMethod(
 		'getQuotes',
-		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
+		selectedRegion?.id,
 		selectedPaymentMethod,
 		selectedAsset?.id,
 		selectedFiatCurrencyId,
@@ -116,6 +111,8 @@ const GetQuotes = () => {
 		selectedAddress,
 		callbackBaseUrl
 	);
+
+	const filteredQuotes = useMemo(() => (quotes || []).filter(({ error }) => !error), [quotes]);
 
 	// we only activate this interval polling once the first fetch of quotes is successfull
 	useInterval(
@@ -142,13 +139,13 @@ const GetQuotes = () => {
 			!isInPolling &&
 			!ErrorFetchingQuotes &&
 			!isFetchingQuotes &&
-			quotes &&
-			quotes.length
+			filteredQuotes &&
+			filteredQuotes.length
 		) {
 			setFirstFetchCompleted(true);
 			setIsInPolling(true);
 		}
-	}, [ErrorFetchingQuotes, firstFetchCompleted, isFetchingQuotes, isInPolling, quotes]);
+	}, [ErrorFetchingQuotes, filteredQuotes, firstFetchCompleted, isFetchingQuotes, isInPolling]);
 
 	// The moment we have consumed all of our polling cycles, we need to stop fetching new quotes and clear the interval
 	useEffect(() => {
@@ -167,12 +164,12 @@ const GetQuotes = () => {
 	}, [isFetchingQuotes]);
 
 	const handleOnPress = useCallback((quote) => {
-		setProviderId(quote.providerId);
+		setProviderId(quote.provider.id);
 	}, []);
 
 	const handleOnPressBuy = useCallback(
 		(quote) => {
-			quote?.providerId && navigation.navigate('Checkout', { ...quote });
+			quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
 		},
 		[navigation]
 	);
@@ -235,7 +232,6 @@ const GetQuotes = () => {
 			</ScreenView>
 		);
 	}
-	const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
 
 	if (isLoading) {
 		return (
@@ -273,27 +269,24 @@ const GetQuotes = () => {
 			<ScreenLayout.Body>
 				<ScrollView>
 					<ScreenLayout.Content>
-						{quotes.length <= 0 ? (
+						{filteredQuotes.length <= 0 ? (
 							<Text black center>
 								No providers available!
 							</Text>
 						) : isFetchingQuotes && isInPolling ? (
 							<Text>...</Text> //todo: to be replaced with the skelton screen
 						) : (
-							quotes
-								.filter(({ error, errorCode }) => !error && !errorCode)
-								.sort(sortByAmountOut)
-								.map((quote) => (
-									<View key={quote.providerId} style={styles.row}>
-										<Quote
-											quote={quote}
-											onPress={() => handleOnPress(quote)}
-											onPressBuy={() => handleOnPressBuy(quote)}
-											highlighted={quote.providerId === providerId}
-											showInfo={() => setShowInfo(true)}
-										/>
-									</View>
-								))
+							filteredQuotes.sort(sortByAmountOut).map((quote) => (
+								<View key={quote.provider.id} style={styles.row}>
+									<Quote
+										quote={quote}
+										onPress={() => handleOnPress(quote)}
+										onPressBuy={() => handleOnPressBuy(quote)}
+										highlighted={quote.provider.id === providerId}
+										showInfo={() => setShowInfo(true)}
+									/>
+								</View>
+							))
 						)}
 					</ScreenLayout.Content>
 				</ScrollView>

@@ -110,21 +110,11 @@ interface Props {
 	description?: string;
 	dismiss?: () => any;
 	data?: [JSON];
-	onCountryPress: (country: JSON) => any;
-	onRegionPress: (region: JSON, country: JSON) => any;
+	onRegionPress: (region: JSON) => any;
 	unsetRegion: () => void;
 }
 
-const RegionModal: React.FC<Props> = ({
-	isVisible,
-	title,
-	description,
-	data,
-	onCountryPress,
-	onRegionPress,
-	unsetRegion,
-	dismiss,
-}: Props) => {
+const RegionModal: React.FC<Props> = ({ isVisible, title, description, data, onRegionPress, dismiss }: Props) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	const searchInput = useRef<TextInput>(null);
@@ -133,7 +123,8 @@ const RegionModal: React.FC<Props> = ({
 	// local state variable to set the active view (countries vs. regions)
 	const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
 	// local state variable to save the country object in transite
-	const [selectedCountryInTransit, setSelectedCountryInTransit] = useState<any>({});
+	const [regionInTransit, setRegionInTransit] = useState<any>({});
+	const [unsupportedRegion, setUnsupportedRegion] = useState<any>({});
 	const [showAlert, setShowAlert] = useState(false);
 	const dataRef = useRef(data);
 	const dataFuse = useMemo(
@@ -156,60 +147,21 @@ const RegionModal: React.FC<Props> = ({
 		[searchString, dataFuse]
 	);
 
-	const handleOnCountryPressCallback = useCallback(
-		(country) => {
-			if (country.regions) {
-				setActiveView(RegionViewType.STATE);
-				setSelectedCountryInTransit(country);
-				dataRef.current = country.regions;
-				setSearchString('');
-			} else if (country.unsupported) {
-				setSelectedCountryInTransit(country);
-				setShowAlert(true);
-			} else {
-				unsetRegion();
-				onCountryPress(country);
-			}
-		},
-		[onCountryPress, unsetRegion]
-	);
-
 	const handleOnRegionPressCallback = useCallback(
 		(region) => {
-			if (selectedCountryInTransit) {
-				onRegionPress(region, selectedCountryInTransit);
+			if (region.states) {
+				setActiveView(RegionViewType.STATE);
+				setRegionInTransit(region);
+				dataRef.current = region.states;
+				setSearchString('');
+			} else if (region.unsupported) {
+				setUnsupportedRegion(region);
+				setShowAlert(true);
+			} else {
+				onRegionPress({ ...region, currency: region.currency || regionInTransit.currency });
 			}
 		},
-		[onRegionPress, selectedCountryInTransit]
-	);
-
-	const renderCountryItem = useCallback(
-		({ item: country }) => (
-			<TouchableOpacity onPress={() => handleOnCountryPressCallback(country)}>
-				<ListItem style={styles.listItem}>
-					<ListItem.Content>
-						<ListItem.Body>
-							<View style={styles.region}>
-								<View style={styles.emoji}>
-									<Text>{country.emoji}</Text>
-								</View>
-								<View>
-									<Text black>{country.name}</Text>
-								</View>
-							</View>
-						</ListItem.Body>
-						{country.regions && (
-							<ListItem.Amounts>
-								<Text primary big>
-									{'>'}
-								</Text>
-							</ListItem.Amounts>
-						)}
-					</ListItem.Content>
-				</ListItem>
-			</TouchableOpacity>
-		),
-		[handleOnCountryPressCallback, styles.emoji, styles.listItem, styles.region]
+		[onRegionPress, regionInTransit.currency]
 	);
 
 	const renderRegionItem = useCallback(
@@ -227,13 +179,19 @@ const RegionModal: React.FC<Props> = ({
 								</View>
 							</View>
 						</ListItem.Body>
+						{region.states && (
+							<ListItem.Amounts>
+								<Text primary big>
+									{'>'}
+								</Text>
+							</ListItem.Amounts>
+						)}
 					</ListItem.Content>
 				</ListItem>
 			</TouchableOpacity>
 		),
 		[handleOnRegionPressCallback, styles.emoji, styles.listItem, styles.region]
 	);
-
 	const handleSearchPress = () => searchInput?.current?.focus();
 
 	const renderEmptyList = useMemo(
@@ -267,7 +225,7 @@ const RegionModal: React.FC<Props> = ({
 
 	const onModalHide = useCallback(() => {
 		setActiveView(RegionViewType.COUNTRY);
-		setSelectedCountryInTransit({});
+		setRegionInTransit({});
 		dataRef.current = data;
 		setSearchString('');
 	}, [data]);
@@ -288,14 +246,6 @@ const RegionModal: React.FC<Props> = ({
 				<ModalDragger />
 				{activeView === RegionViewType.COUNTRY ? (
 					<ScreenLayout>
-						<RegionAlert
-							isVisible={showAlert}
-							subtitle={`${selectedCountryInTransit.emoji}   ${selectedCountryInTransit.name}`}
-							dismiss={() => setShowAlert(false)}
-							title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-							body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
-							link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
-						/>
 						<ScreenLayout.Header
 							bold
 							title={title}
@@ -335,7 +285,7 @@ const RegionModal: React.FC<Props> = ({
 									keyboardDismissMode="none"
 									keyboardShouldPersistTaps="always"
 									data={dataSearchResults}
-									renderItem={renderCountryItem}
+									renderItem={renderRegionItem}
 									keyExtractor={(item) => item.id}
 									ListEmptyComponent={renderEmptyList}
 									ItemSeparatorComponent={Separator}
@@ -353,7 +303,7 @@ const RegionModal: React.FC<Props> = ({
 									<Feather name="chevron-left" size={22} color={colors.icon.default} />
 								</TouchableOpacity>
 								<Text bold black>
-									{selectedCountryInTransit?.name}
+									{regionInTransit?.name}
 								</Text>
 								<View style={styles.ghostSpacer} />
 							</ScreenLayout.Content>
@@ -400,6 +350,15 @@ const RegionModal: React.FC<Props> = ({
 						</ScreenLayout.Body>
 					</ScreenLayout>
 				)}
+
+				<RegionAlert
+					isVisible={showAlert}
+					subtitle={`${unsupportedRegion.emoji}  ${unsupportedRegion.name}`}
+					dismiss={() => setShowAlert(false)}
+					title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+					body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+					link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+				/>
 			</SafeAreaView>
 		</Modal>
 	);

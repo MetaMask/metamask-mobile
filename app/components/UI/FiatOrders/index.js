@@ -13,7 +13,6 @@ import { isTransakAllowedToBuy } from './orderProcessor/transak';
 import { isWyreAllowedToBuy } from './orderProcessor/wyreApplePay';
 import { isMoonpayAllowedToBuy } from './orderProcessor/moonpay';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
-import { useFiatOnRampSDK, withFiatOnRampSDK } from '../FiatOnRampAggregator/sdk';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -112,12 +111,11 @@ export const getNotificationDetails = (fiatOrder) => {
 };
 
 function FiatOrders({ pendingOrders, updateFiatOrder }) {
-	const { sdk } = useFiatOnRampSDK();
 	useInterval(
 		async () => {
 			await Promise.all(
 				pendingOrders.map(async (order) => {
-					const updatedOrder = await processOrder(order, sdk);
+					const updatedOrder = await processOrder(order);
 					updateFiatOrder(updatedOrder);
 					if (updatedOrder.state !== order.state) {
 						InteractionManager.runAfterInteractions(() => {
@@ -152,4 +150,4 @@ const mapDispatchToProps = (dispatch) => ({
 	updateFiatOrder: (order) => dispatch(updateFiatOrder(order)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withFiatOnRampSDK(FiatOrders));
+export default connect(mapStateToProps, mapDispatchToProps)(FiatOrders);
