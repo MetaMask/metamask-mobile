@@ -33,6 +33,7 @@ import { fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
+import { isQRHardwareAccount } from '../../../util/address';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -150,6 +151,9 @@ const createStyles = (colors) =>
 		},
 		revealModalText: {
 			marginBottom: 20,
+		},
+		tabBar: {
+			borderColor: colors.border.muted,
 		},
 	});
 
@@ -290,7 +294,9 @@ class RevealPrivateCredential extends PureComponent {
 			}
 		} catch (e) {
 			let msg = strings('reveal_credential.warning_incorrect_password');
-			if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
+			if (isQRHardwareAccount(selectedAddress)) {
+				msg = strings('reveal_credential.hardware_error');
+			} else if (e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()) {
 				msg = strings('reveal_credential.unknown_error');
 			}
 
@@ -370,6 +376,7 @@ class RevealPrivateCredential extends PureComponent {
 				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
+				style={styles.tabBar}
 			/>
 		);
 	}

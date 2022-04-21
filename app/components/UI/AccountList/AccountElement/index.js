@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import Identicon from '../../Identicon';
+import { KeyringTypes } from '@metamask/controllers';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
@@ -54,7 +55,7 @@ const createStyles = (colors) =>
 		},
 		keyringTypeLabelView: {
 			flex: 0.5,
-			alignItems: 'center',
+			alignItems: 'flex-start',
 			marginTop: 2,
 		},
 		accountMain: {
@@ -128,22 +129,24 @@ class AccountElement extends PureComponent {
 		const { address, name, ens, isSelected, keyringType, balanceError } = this.props.item;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
-
+    
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary.default} /> : null;
 
 		const keyRingLabel =
 			keyringType !== 'HD Key Tree' ? (
-				<View
-					style={[
-						styles.keyringTypeLabelWrapper,
-						keyringType === 'Ledger' && styles.hardwareKeyringLabelWrapper,
-					]}
-				>
-					<Text numberOfLines={1} style={styles.keyringTypeLabelText}>
-						{keyringType === 'Imported' && strings('accounts.imported')}
-						{keyringType === 'Ledger' && strings('accounts.hardware')}
-					</Text>
-				</View>
+        <View style={styles.keyringTypeLabelView}>
+          <View
+            style={[
+              styles.keyringTypeLabelWrapper,
+              keyringType === 'Ledger' && styles.hardwareKeyringLabelWrapper,
+            ]}
+          >
+            <Text numberOfLines={1} style={styles.keyringTypeLabelText}>
+              {keyringType === 'Imported' && strings('accounts.imported')}
+              { [KeyringTypes.ledger,KeyringTypes.qr].includes(keyringType) && strings('accounts.hardware')}
+            </Text>
+          </View>
+        </View>
 			) : null;
 
 		return (
@@ -172,7 +175,7 @@ class AccountElement extends PureComponent {
 								)}
 							</View>
 						</View>
-						{!!keyRingLabel && <View style={styles.keyringTypeLabelView}>{keyRingLabel}</View>}
+						{!!keyRingLabel && keyRingLabel}
 						<View style={styles.selectedWrapper}>{selected}</View>
 					</View>
 				</TouchableOpacity>

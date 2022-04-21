@@ -16,7 +16,7 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { BNToHex, hexToBN } from '../../../util/number';
-import { calculateEIP1559GasFeeHexes } from '../../../util/transactions';
+import { calculateEIP1559GasFeeHexes, getTicker } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { formatCurrency, getTransactionFee } from '../../../util/confirm-tx';
@@ -122,7 +122,7 @@ const carousel_images = [gas_education_carousel_1, gas_education_carousel_2, gas
 /**
  * View that is displayed to first time (new) users
  */
-const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency, nativeCurrency }) => {
+const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurrency, nativeCurrency, ticker }) => {
 	const [currentTab, setCurrentTab] = useState(1);
 	const [gasFiat, setGasFiat] = useState(null);
 	const { colors } = useAppThemeFromContext() || mockTheme;
@@ -206,7 +206,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 			return (
 				<View style={styles.tab}>
 					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_1.title')}
+						{strings('fiat_on_ramp.gas_education_carousel.step_1.title', { ticker: getTicker(ticker) })}
 					</Text>
 					{!isLoading && gasFiat && (
 						<Text grey noMargin bold style={styles.subheader}>
@@ -214,10 +214,14 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 						</Text>
 					)}
 					<Text grey noMargin style={styles.subtitle}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_1')}
+						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_1', {
+							ticker: getTicker(ticker),
+						})}
 					</Text>
 					<Text grey noMargin style={styles.subtitle}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_2')}{' '}
+						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_2', {
+							ticker: getTicker(ticker),
+						})}{' '}
 						<Text bold>{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_3')}</Text>
 					</Text>
 				</View>
@@ -230,7 +234,9 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
 					</Text>
 					<Text grey noMargin style={styles.subtitle}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_1')}
+						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_1', {
+							ticker: getTicker(ticker),
+						})}
 					</Text>
 					<Text grey noMargin bold style={styles.subtitle}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_2')}
@@ -298,7 +304,9 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 															onPress={onPresGetStarted}
 															testID={'gas-education-fiat-on-ramp-start'}
 														>
-															{strings('fiat_on_ramp.gas_education_carousel.step_3.cta')}
+															{strings('fiat_on_ramp.gas_education_carousel.step_3.cta', {
+																ticker: getTicker(ticker),
+															})}
 														</StyledButton>
 													</View>
 												</View>
@@ -343,12 +351,17 @@ GasEducationCarousel.propTypes = {
 	 * Network native currency
 	 */
 	nativeCurrency: PropTypes.string,
+	/**
+	 * Current provider ticker
+	 */
+	ticker: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
 	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	currentCurrency: state.engine.backgroundState.CurrencyRateController.currentCurrency,
 	nativeCurrency: state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 });
 
 export default connect(mapStateToProps)(GasEducationCarousel);

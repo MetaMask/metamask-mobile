@@ -160,6 +160,22 @@ class TransactionDetails extends PureComponent {
 		return createStyles(colors);
 	};
 
+	showSpeedUpModal = () => {
+		const { showSpeedUpModal, close } = this.props;
+		if (close) {
+			close();
+			showSpeedUpModal();
+		}
+	};
+
+	showCancelModal = () => {
+		const { showCancelModal, close } = this.props;
+		if (close) {
+			close();
+			showCancelModal();
+		}
+	};
+
 	renderSpeedUpButton = () => {
 		const styles = this.getStyles();
 
@@ -168,7 +184,7 @@ class TransactionDetails extends PureComponent {
 				type={'normal'}
 				containerStyle={[styles.actionContainerStyle, styles.speedupActionContainerStyle]}
 				style={styles.actionStyle}
-				onPress={this.props.showSpeedUpModal}
+				onPress={this.showSpeedUpModal}
 			>
 				{strings('transaction.speedup')}
 			</StyledButton>
@@ -183,7 +199,7 @@ class TransactionDetails extends PureComponent {
 				type={'cancel'}
 				containerStyle={styles.actionContainerStyle}
 				style={styles.actionStyle}
-				onPress={this.props.showCancelModal}
+				onPress={this.showCancelModal}
 			>
 				{strings('transaction.cancel')}
 			</StyledButton>

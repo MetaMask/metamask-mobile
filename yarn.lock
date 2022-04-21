@@ -1260,6 +1260,14 @@
     "@ethereumjs/common" "^2.0.0"
     ethereumjs-util "^7.0.7"
 
+"@ethereumjs/tx@3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.0.0.tgz#8dfd91ed6e91e63996e37b3ddc340821ebd48c81"
+  integrity sha512-H9tfy6qgYxPXvt1TSObfVmVjlF43OoQqoPQ3PJsG2JiuqaMHj5ettV1pGFEC3FamENDBkl6vD6niQEvIlXv/VQ==
+  dependencies:
+    "@ethereumjs/common" "^2.0.0"
+    ethereumjs-util "^7.0.7"
+
 "@ethereumjs/tx@^3.2.1", "@ethereumjs/tx@^3.3.0":
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.3.0.tgz#14ed1b7fa0f28e1cd61e3ecbdab824205f6a4378"
@@ -2163,6 +2171,18 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+
+"@keystonehq/base-eth-keyring@^0.3.2":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.3.2.tgz#71efe1495d4931fab5fd0016c8722fe5d9657da9"
+  integrity sha512-y/kv8XNRSzqcSl7fvZklBKr4MVir1OJHzqM5vC+3yvzkh3mVtN8vUjAAxHtmVVVyM8rsdqK7aYZ7paexYdpnag==
+  dependencies:
+    "@ethereumjs/tx" "3.0.0"
+    "@keystonehq/bc-ur-registry-eth" "^0.7.7"
+    ethereumjs-util "^7.0.8"
+    hdkey "^2.0.1"
+    uuid "^8.3.2"
+
 "@keystonehq/base-eth-keyring@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.4.0.tgz#7667d2b6e38fc90553ce934c0c60c89329315b92"
@@ -2221,6 +2241,18 @@
     "@ngraveio/bc-ur" "^1.1.5"
     base58check "^2.0.0"
     tslib "^2.3.0"
+
+"@keystonehq/metamask-airgapped-keyring@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@keystonehq/metamask-airgapped-keyring/-/metamask-airgapped-keyring-0.2.2.tgz#8beb3e3fddf814be05e3c3178f973769b3ab40d7"
+  integrity sha512-1tuSNpc98jEoJ/9sptasxG6hm8KzESx0ShbKtPkNNKP+XxcDuMi632n03E748X98leCscI+M1WlRvsTryiEB8Q==
+  dependencies:
+    "@ethereumjs/tx" "^3.3.0"
+    "@keystonehq/base-eth-keyring" "^0.3.2"
+    "@keystonehq/bc-ur-registry-eth" "^0.7.7"
+    "@metamask/obs-store" "^7.0.0"
+    rlp "^2.2.6"
+    uuid "^8.3.2"
 
 "@keystonehq/metamask-airgapped-keyring@^0.3.0":
   version "0.3.0"
@@ -2385,11 +2417,11 @@
 
 "@metamask/controllers@^26.0.0":
   version "26.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-26.0.0.tgz#3df4a3071ffb26d357ba99f288d52fb9d913c35a"
-  integrity sha512-iAWDoP/omxGzPfYyBFRNPJ32zcYvZHnUhIM2LyWoCwQj9ZYC1qh+dDX6I0O5jEeQcBrEb+Nl6AcnwHKVdEUz5Q==
+  resolved "git+https://github.com/MetaMask/controllers.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
+    "@keystonehq/metamask-airgapped-keyring" "^0.2.2"
     "@metamask/contract-metadata" "^1.31.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
@@ -2423,10 +2455,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/design-tokens@1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.4.2.tgz#023030f3eca181b10bf89c5813a9656f4e7e2852"
-  integrity sha512-kS63Tx+WOUloBTz4pDDG3DcisoXwaT+06/a2KTSDI0n1t3IQPLo1FCMsijqtYWFPfAI06tWOjtaslpFTB+dsAg==
+"@metamask/design-tokens@^1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.5.1.tgz#723f10bc5fe03ce14d47b1ad6190a835df62745a"
+  integrity sha512-HLXpuzQGnVPZHOvHpzOVQoe/1mvjNOTNxvAgR1na3BAUiO3NhnUxhYE2RzV0rpbc3UUUGbjVB+dceMZ4FtFfRw==
 
 "@metamask/eslint-config-typescript@^7.0.0":
   version "7.0.1"
@@ -2570,10 +2602,10 @@
   dependencies:
     prop-types "^15.5.10"
 
-"@react-native-community/checkbox@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@react-native-community/checkbox/-/checkbox-0.4.2.tgz#109214058610200fcbb97e8761cf0cba8df5abd5"
-  integrity sha512-vGetj36fOD+o3xCx8AGg56HqopetKQAWCEslD3oj8cs0xaGyRLQh3Febu13wMBOdaAQP85kITpaIET9DF4Apaw==
+"@react-native-community/checkbox@^0.5.12":
+  version "0.5.12"
+  resolved "https://registry.yarnpkg.com/@react-native-community/checkbox/-/checkbox-0.5.12.tgz#1f55a38bbcd5f10ca853db0c6a9f1c4beccc37af"
+  integrity sha512-Dd3eiAW7AkpRgndwKGdgQ6nNgEmZlVD8+KAOBqwjuZQ/M67BThXJ9Ni+ydpPjNm4e28KXmIILfkvhcDt0ZoFTQ==
 
 "@react-native-community/cli-debugger-ui@^6.0.0-rc.0":
   version "6.0.0-rc.0"
@@ -4462,22 +4494,10 @@ async-mutex@^0.3.1:
   dependencies:
     tslib "^2.1.0"
 
-async@0.2.x, async@~0.2.9:
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/async/-/async-0.2.10.tgz#b6bbe0b0674b9d719708ca38de8c237cb526c3d1"
-  integrity sha1-trvgsGdLnXGXCMo43owjfLUmw9E=
-
-async@^1.4.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
-  integrity sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo=
-
-async@^2.0.1, async@^2.1.2, async@^2.4.0, async@^2.5.0:
-  version "2.6.3"
-  resolved "https://registry.yarnpkg.com/async/-/async-2.6.3.tgz#d72625e2344a3656e3a3ad4fa749fa83299d82ff"
-  integrity sha512-zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg==
-  dependencies:
-    lodash "^4.17.14"
+async@0.2.x, async@^1.4.2, async@^2.0.1, async@^2.1.2, async@^2.4.0, async@^2.5.0, async@^3.2.2, async@~0.2.9:
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.2.3.tgz#ac53dafd3f4720ee9e8a160628f18ea91df196c9"
+  integrity sha512-spZRyzKL5l5BZQrr/6m/SqFdBN0q3OCI0f9rjfBzCMBIP4p75P620rR3gTmaksNOhmzgdxcaxdNfMy6anrbM0g==
 
 asynckit@^0.4.0:
   version "0.4.0"
@@ -5236,12 +5256,12 @@ bufferutil@^4.0.1:
   dependencies:
     node-gyp-build "^4.3.0"
 
-bunyan-debug-stream@^1.1.0:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/bunyan-debug-stream/-/bunyan-debug-stream-1.1.1.tgz#4740a00b7d5c2d9d1b714925ab0802516040813e"
-  integrity sha512-jJbQ1gXUL6vMmZVdbaTFK1v1sGa7axLrSQQwkB6HU9HCPTzsw2HsKcPHm1vgXZlEck/4IvEuRwg/9+083YelCg==
+bunyan-debug-stream@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/bunyan-debug-stream/-/bunyan-debug-stream-2.0.1.tgz#9bd7c7e30c7b2cf711317e9d37529b0464c3b164"
+  integrity sha512-MCEoqggU7NMt7f2O+PU8VkqfSkoQoa4lmN/OWhaRfqFRBF1Se2TOXQyLF6NxC+EtfrdthnquQe8jOe83fpEoGA==
   dependencies:
-    colors "^1.0.3"
+    colors "1.4.0"
     exception-formatter "^1.0.4"
 
 bunyan@^1.8.12:
@@ -5780,7 +5800,7 @@ colors@0.6.x:
   resolved "https://registry.yarnpkg.com/colors/-/colors-0.6.2.tgz#2423fe6678ac0c5dae8852e5d0e5be08c997abcc"
   integrity sha1-JCP+ZnisDF2uiFLl0OW+CMmXq8w=
 
-colors@^1.0.3, colors@^1.1.2:
+colors@1.4.0, colors@^1.0.3, colors@^1.1.2:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/colors/-/colors-1.4.0.tgz#c50491479d4c1bdaed2c9ced32cf7c7dc2360f78"
   integrity sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==
@@ -6556,20 +6576,19 @@ detect-node-es@^1.1.0:
   resolved "https://registry.yarnpkg.com/detect-node-es/-/detect-node-es-1.1.0.tgz#163acdf643330caa0b4cd7c21e7ee7755d6fa493"
   integrity sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==
 
-detox@19.4.0:
-  version "19.4.0"
-  resolved "https://registry.yarnpkg.com/detox/-/detox-19.4.0.tgz#ea7bd50083a53da79344abcdc5118a619470e739"
-  integrity sha512-RNv5ntqogLEqBIPr0Zm9Wy+XP3E4mgpbnc9BWy/WXGk8DxZGBHeFFGR5ConFmCpPnRsotQexU5pPlBmdnFCoUg==
+detox@19.6.5:
+  version "19.6.5"
+  resolved "https://registry.yarnpkg.com/detox/-/detox-19.6.5.tgz#a4b0a5f574589762dc58eb75a8dd0df1005171bd"
+  integrity sha512-4r0fU65cvUzLcvrfZUbVNO8UrG0iqRI3m+v/QN8nLOw/jRVViI222az+LcWhDRE2bUwsyQ690k+W4F3wc21wjA==
   dependencies:
     ajv "^8.6.3"
     bunyan "^1.8.12"
-    bunyan-debug-stream "^1.1.0"
+    bunyan-debug-stream "^2.0.1"
     chalk "^2.4.2"
     child-process-promise "^2.2.0"
     find-up "^4.1.0"
     fs-extra "^4.0.2"
     funpermaproxy "^1.0.1"
-    get-port "^2.1.0"
     ini "^1.3.4"
     lodash "^4.17.5"
     minimist "^1.2.0"
@@ -9107,13 +9126,6 @@ get-package-type@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/get-package-type/-/get-package-type-0.1.0.tgz#8de2d803cff44df3bc6c456e6668b36c3926e11a"
   integrity sha512-pjzuKtY64GYfWizNAJ0fr9VqttZkNiK2iS430LtIHzjBEr6bX8Am2zm4sW4Ro5wjWW5cAlRL1qAMTcXbjNAO2Q==
-
-get-port@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/get-port/-/get-port-2.1.0.tgz#8783f9dcebd1eea495a334e1a6a251e78887ab1a"
-  integrity sha1-h4P53OvR7qSVozThpqJR54iHqxo=
-  dependencies:
-    pinkie-promise "^2.0.0"
 
 get-stdin@^6.0.0:
   version "6.0.0"

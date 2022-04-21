@@ -45,6 +45,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { KeyringTypes } from '@metamask/controllers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import sanitizeUrl from '../../../util/sanitizeUrl';
@@ -233,7 +234,7 @@ const createStyles = (colors) =>
 			paddingVertical: 3,
 			borderRadius: 10,
 			borderWidth: 1,
-			color: colors.icon.default,
+			borderColor: colors.icon.default,
 		},
 		hardwareKeyringTypeWrapper: {
 			width: 80,
@@ -463,6 +464,29 @@ class DrawerView extends PureComponent {
 		return ret;
 	}
 
+	renderTag() {
+		let tag = null;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+		
+    const keyringType = this.getKeyringType();
+		const isHardwareKeyring = [KeyringTypes.ledger, KeyringTypes.qr].includes(keyringType);
+    
+		return keyringType !== KeyringTypes.hd ? (
+			<View
+        style={[
+          styles.keyringTypeWrapper,
+          isHardwareKeyring && styles.hardwareKeyringTypeWrapper,
+        ]}
+      >
+        <Text numberOfLines={1} style={styles.keyringTypeText}>
+          {keyringType === 'Imported' && strings('accounts.imported')}
+          {isHardwareKeyring && strings('accounts.hardware')}
+        </Text>
+      </View>
+		) : null;
+	}
+
 	async componentDidUpdate() {
 		const route = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
 		if (!this.props.passwordSet || !this.props.seedphraseBackedUp) {
@@ -524,7 +548,7 @@ class DrawerView extends PureComponent {
 	updateAccountInfo = async () => {
 		const { identities, network, selectedAddress } = this.props;
 		const { currentNetwork, address, name } = this.state.account;
-		const accountName = identities[selectedAddress].name;
+		const accountName = identities[selectedAddress]?.name;
 		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
 			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
 			this.setState((state) => ({
@@ -754,6 +778,12 @@ class DrawerView extends PureComponent {
 	onImportAccount = () => {
 		this.toggleAccountsModal();
 		this.props.navigation.navigate('ImportPrivateKeyView');
+		this.hideDrawer();
+	};
+
+	onConnectHardware = () => {
+		this.toggleAccountsModal();
+		this.props.navigation.navigate('ConnectQRHardwareFlow');
 		this.hideDrawer();
 	};
 
@@ -1013,7 +1043,6 @@ class DrawerView extends PureComponent {
 			networkOnboardedState,
 			switchedNetwork,
 			networkModalVisible,
-			navigation,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -1045,8 +1074,6 @@ class DrawerView extends PureComponent {
 		const checkIfCustomNetworkExists = networkOnboardedState.filter(
 			(item) => item.network === sanitizeUrl(switchedNetwork.networkUrl)
 		);
-		const keyringType = this.getKeyringType();
-		const isHardwareKeyring = keyringType === 'Ledger';
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1085,19 +1112,7 @@ class DrawerView extends PureComponent {
 									style={styles.accountAddress}
 									type={'short'}
 								/>
-								{keyringType !== 'HD Key Tree' && (
-									<View
-										style={[
-											styles.keyringTypeWrapper,
-											isHardwareKeyring && styles.hardwareKeyringTypeWrapper,
-										]}
-									>
-										<Text numberOfLines={1} style={styles.keyringTypeText}>
-											{keyringType === 'Imported' && strings('accounts.imported')}
-											{isHardwareKeyring && strings('accounts.hardware')}
-										</Text>
-									</View>
-								)}
+								{this.renderTag()}
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -1218,7 +1233,6 @@ class DrawerView extends PureComponent {
 							onClose={this.onInfoNetworksModalClose}
 							type={networkType || networkOnboarding.networkType}
 							ticker={ticker}
-							navigation={navigation}
 						/>
 					) : (
 						<NetworkList
@@ -1255,6 +1269,7 @@ class DrawerView extends PureComponent {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						onConnectHardware={this.onConnectHardware}
 						ticker={ticker}
 					/>
 				</Modal>

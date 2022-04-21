@@ -32,6 +32,9 @@ const createStyles = (colors: any) =>
 		tabStyle: {
 			paddingBottom: 0,
 		},
+		tabBar: {
+			borderColor: colors.border.muted,
+		},
 		textStyle: {
 			fontSize: 12,
 			letterSpacing: 0.5,
@@ -145,6 +148,7 @@ const Wallet = ({ navigation }: any) => {
 				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
+				style={styles.tabBar}
 			/>
 		),
 		[styles, colors]

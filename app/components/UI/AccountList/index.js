@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { KeyringTypes } from '@metamask/controllers';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import {
@@ -46,12 +47,13 @@ const createStyles = (colors) =>
 			height: 5,
 			borderRadius: 4,
 			backgroundColor: colors.border.default,
+			opacity: Device.isAndroid() ? 0.6 : 0.5,
 		},
 		accountsWrapper: {
 			flex: 1,
 		},
 		footer: {
-			height: Device.isIphoneX() ? 140 : 110,
+			height: Device.isIphoneX() ? 200 : 170,
 			paddingBottom: Device.isIphoneX() ? 30 : 0,
 			justifyContent: 'center',
 			flexDirection: 'column',
@@ -101,6 +103,10 @@ class AccountList extends PureComponent {
 		 * function to be called when importing an account
 		 */
 		onImportAccount: PropTypes.func,
+		/**
+		 * function to be called when connect to a QR hardware
+		 */
+		onConnectHardware: PropTypes.func,
 		/**
 		 * Current provider ticker
 		 */
@@ -221,6 +227,11 @@ class AccountList extends PureComponent {
 		});
 	};
 
+	connectHardware = () => {
+		this.props.onConnectHardware();
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET);
+	};
+
 	addAccount = async () => {
 		if (this.state.loading) return;
 		this.mounted && this.setState({ loading: true });
@@ -253,7 +264,7 @@ class AccountList extends PureComponent {
 		const ret = 'Imported';
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(address)) {
-				if (['HD Key Tree', 'Ledger'].includes(keyring.type)) {
+				if ([KeyringTypes.hd, KeyringTypes.ledger, KeyringTypes.qr].includes(keyring.type)) {
 					return keyring.type;
 				}
 				break;
@@ -316,6 +327,7 @@ class AccountList extends PureComponent {
 				const identityAddressChecksummed = toChecksumAddress(address);
 				const isSelected = identityAddressChecksummed === selectedAddress;
 				const keyringType = this.getKeyringType(allKeyrings, identityAddressChecksummed);
+
 				let balance = 0x0;
 				if (accounts[identityAddressChecksummed]) {
 					balance = accounts[identityAddressChecksummed].balance;
@@ -391,6 +403,13 @@ class AccountList extends PureComponent {
 							testID={'import-account-button'}
 						>
 							<Text style={styles.btnText}>{strings('accounts.import_account')}</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={this.connectHardware}
+							style={styles.footerButton}
+							testID={'connect-hardware'}
+						>
+							<Text style={styles.btnText}>{strings('accounts.connect_hardware')}</Text>
 						</TouchableOpacity>
 					</View>
 				)}

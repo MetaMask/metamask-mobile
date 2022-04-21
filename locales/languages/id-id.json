@@ -1378,15 +1378,15 @@
 		"total_amount": "Total jumlah",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Sebelum membeli ETH, pahami biaya jaringan",
+				"title": "Sebelum membeli {{ticker}}, pahami biaya jaringan",
 				"average_gas_fee": "Biaya jaringan rata-rata saat ini:",
-				"subtitle_1": "Jika Anda berencana untuk menukar atau mentransfer ETH Anda, beli ekstra untuk menutupi biaya jaringan.",
-				"subtitle_2": "Biaya jaringan untuk transaksi terpisah dari biaya pembelian ETH.",
+				"subtitle_1": "Jika Anda berencana untuk menukar atau mentransfer {{ticker}} Anda, beli ekstra untuk menutupi biaya jaringan.",
+				"subtitle_2": "Biaya jaringan untuk transaksi terpisah dari biaya pembelian {{ticker}}.",
 				"subtitle_3": "MetaMask tidak mendapatkan keuntungan dari biaya jaringan."
 			},
 			"step_2": {
 				"title": "Apa itu biaya jaringan?",
-				"subtitle_1": "Biaya jaringan mendukung transaksi di jaringan Ethereum. Ini adalah biaya yang dibayarkan dalam ETH kepada penambang kripto yang memproses transaksi Anda.",
+				"subtitle_1": "Biaya jaringan mendukung transaksi di jaringan Ethereum. Ini adalah biaya yang dibayarkan dalam {{ticker}} kepada penambang kripto yang memproses transaksi Anda.",
 				"subtitle_2": "MetaMask tidak mendapatkan keuntungan dari biaya jaringan.",
 				"learn_more": "Pelajari selengkapnya tentang biaya jaringan"
 			},
@@ -1397,7 +1397,7 @@
 				"subtitle_3": "Cara terbaik untuk memperkirakan biaya jaringan adalah dengan",
 				"subtitle_4": "mencoba dulu transaksi tersebut",
 				"subtitle_5": "dan lihat berapa biayanya.",
-				"cta": "Lanjutkan membeli ETH"
+				"cta": "Lanjutkan membeli {{ticker}}"
 			}
 		}
 	},

@@ -177,6 +177,7 @@ class Engine {
 						syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
 						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
 						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
+						setAccountLabel: preferencesController.setAccountLabel.bind(preferencesController),
 					},
 					{ encryptor, keyringTypes: additionalKeyrings },
 					initialState.KeyringController

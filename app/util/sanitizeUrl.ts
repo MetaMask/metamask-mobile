@@ -1,3 +1,3 @@
-const sanitizeUrl = (url: string) => url.replace(/\/$/, '');
+const sanitizeUrl = (url: string | undefined) => url?.replace(/\/$/, '');
 
 export default sanitizeUrl;
