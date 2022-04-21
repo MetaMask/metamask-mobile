@@ -117,6 +117,7 @@ const LedgerConnect = () => {
 		} catch (e: any) {
 			let errorMessage = e.message;
 
+			// 0x6b0c - Stands for ledger device locked
 			if (e.name === 'TransportStatusError' && e.message.includes('0x6b0c')) {
 				errorMessage = strings('ledger.unlock_ledger_message');
 			}

@@ -128,9 +128,9 @@
 	"ledger": {
 		"open_settings": "Open settings",
 		"bluetooth_off": "Bluetooth is off",
-		"bluetooth_off_message": "Please turn on bluetooth for your device",
+		"bluetooth_off_message": "Please turn on Bluetooth for your device",
 		"bluetooth_access_blocked": "Access blocked",
-		"bluetooth_access_blocked_message": "Please enable bluetooth for the MetaMask app",
+		"bluetooth_access_blocked_message": "Please enable Bluetooth for the MetaMask app",
 		"bluetooth_missing_permissions": "Missing permissions",
 		"bluetooth_missing_permissions_message": "Make sure you enable Bluetooth and Location access in your device settings",
 		"bluetooth_scanning_error": "Error while scanning the device",
@@ -143,7 +143,7 @@
 		"cannot_get_account": "Cannot get account",
 		"connect_ledger": "Connect Ledger",
 		"looking_for_device": "Looking for device",
-		"ledger_reminder_message": "Please make sure your Ledger Nano X is unlocked and bluetooth is enabled",
+		"ledger_reminder_message": "Please make sure your Ledger Nano X is unlocked and Bluetooth is enabled",
 		"available_devices": "Available devices",
 		"retry": "Retry",
 		"continue": "Continue"
