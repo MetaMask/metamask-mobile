@@ -49,8 +49,10 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 	// External permission changes must be picked up by the app by tracking the app state
 	useEffect(() => {
 		const handleAppStateChange = (nextAppState: AppStateStatus) => {
-			appState.current = nextAppState;
-			setAppStateVisible(appState.current);
+			if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+				appState.current = nextAppState;
+				setAppStateVisible(appState.current);
+			}
 		};
 
 		AppState.addEventListener('change', handleAppStateChange);

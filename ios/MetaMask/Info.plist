@@ -55,6 +55,10 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MetaMask needs camera access to scan QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
@@ -124,9 +128,5 @@
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-  <string>Metamask needs Bluetooth access to connect to external devices.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-  <string>Metamask needs Bluetooth access to connect to external devices.</string>
 </dict>
 </plist>
