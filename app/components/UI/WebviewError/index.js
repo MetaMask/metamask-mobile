@@ -1,11 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Image, StyleSheet, View, Text, Device } from 'react-native';
+import { Image, StyleSheet, View, Text } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import AnimatedFox from 'react-native-animated-fox';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Device from '../../../util/device';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -52,7 +53,7 @@ const createStyles = (colors) =>
 			fontSize: 12,
 		},
 		buttonWrapper: {
-			width: 120,
+			width: 200,
 			marginTop: 30,
 		},
 	});
@@ -69,15 +70,15 @@ export default class WebviewError extends PureComponent {
 		/**
 		 * Function that reloads the page
 		 */
-		onReload: PropTypes.func,
+		returnHome: PropTypes.func,
 	};
 
 	static defaultProps = {
 		error: false,
 	};
 
-	onReload = () => {
-		this.props.onReload();
+	returnHome = () => {
+		this.props.returnHome();
 	};
 
 	render() {
@@ -104,8 +105,8 @@ export default class WebviewError extends PureComponent {
 					) : null}
 				</View>
 				<View style={styles.buttonWrapper}>
-					<StyledButton type={'confirm'} onPress={this.onReload}>
-						{strings('webview_error.try_again')}
+					<StyledButton type={'confirm'} onPress={this.returnHome}>
+						{strings('webview_error.return_home')}
 					</StyledButton>
 				</View>
 			</View>

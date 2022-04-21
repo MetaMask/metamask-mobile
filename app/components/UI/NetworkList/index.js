@@ -8,9 +8,11 @@ import { strings } from '../../../../locales/i18n';
 import Networks, { getAllNetworks, isSafeChainId } from '../../../util/networks';
 import { connect } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { MAINNET, RPC } from '../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NETWORK_LIST_MODAL_CONTAINER_ID, OTHER_NETWORK_LIST_ID, NETWORK_SCROLL_ID } from '../../../constants/test-ids';
+import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
+import { ETH } from '../../../util/custom-gas';
+import sanitizeUrl from '../../../util/sanitizeUrl';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -139,12 +141,35 @@ export class NetworkList extends PureComponent {
 		 * Show invalid custom network alert for networks without a chain ID
 		 */
 		showInvalidCustomNetworkAlert: PropTypes.func,
+		/**
+		 * A function that handles the network selection
+		 */
+		onNetworkSelected: PropTypes.func,
+		/**
+		 * 	A function that handles switching to info modal
+		 */
+		switchModalContent: PropTypes.func,
+		/**
+		 * 	returns the network onboarding state
+		 */
+		networkOnboardedState: PropTypes.array,
 	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
+	handleNetworkSelected = (type, ticker, url) => {
+		const { networkOnboardedState, switchModalContent, onClose, onNetworkSelected } = this.props;
+		const networkOnboarded = networkOnboardedState.filter((item) => item.network === sanitizeUrl(url));
+		if (networkOnboarded.length === 0) {
+			switchModalContent();
+		} else {
+			onClose(false);
+		}
+		return onNetworkSelected(type, ticker, url, networkOnboardedState);
+	};
+
 	onNetworkChange = (type) => {
-		this.props.onClose(false);
+		this.handleNetworkSelected(type, ETH, type);
 		const { NetworkController, CurrencyRateController } = Engine.context;
 		CurrencyRateController.setNativeCurrency('ETH');
 		NetworkController.setProviderType(type);
@@ -175,6 +200,9 @@ export class NetworkList extends PureComponent {
 			nickname,
 			rpcPrefs: { blockExplorerUrl },
 		} = rpc;
+		const useRpcName = nickname || sanitizeUrl(rpcUrl);
+		const useTicker = ticker || PRIVATENETWORK;
+		this.handleNetworkSelected(useRpcName, useTicker, sanitizeUrl(rpcUrl));
 
 		// If the network does not have chainId then show invalid custom network alert
 		const chainIdNumber = parseInt(chainId, 10);
@@ -195,8 +223,6 @@ export class NetworkList extends PureComponent {
 			block_explorer_url: blockExplorerUrl,
 			network_name: 'rpc',
 		});
-
-		this.props.onClose(false);
 	};
 
 	getStyles = () => {
@@ -312,6 +338,7 @@ const mapStateToProps = (state) => ({
 	provider: state.engine.backgroundState.NetworkController.provider,
 	frequentRpcList: state.engine.backgroundState.PreferencesController.frequentRpcList,
 	thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+	networkOnboardedState: state.networkOnboarded.networkOnboardedState,
 });
 
 NetworkList.contextType = ThemeContext;
