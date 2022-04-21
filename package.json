@@ -109,7 +109,7 @@
     "@ledgerhq/metamask-keyring": "0.2.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.25.1",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#feat/ledger-integration",
+    "@metamask/controllers": "27.1.1",
     "@metamask/design-tokens": "1.4.2",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.6.0",
