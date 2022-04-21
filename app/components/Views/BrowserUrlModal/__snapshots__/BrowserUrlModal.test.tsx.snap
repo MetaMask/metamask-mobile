@@ -55,24 +55,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
           }
         }
         testID="url-input"
-        value="test"
       />
-      <TouchableOpacity
-        onPress={[Function]}
-        style={
-          Object {
-            "justifyContent": "center",
-            "paddingHorizontal": 12,
-          }
-        }
-      >
-        <Icon
-          allowFontScaling={false}
-          color="#6A737D"
-          name="times-circle"
-          size={18}
-        />
-      </TouchableOpacity>
     </View>
     <TouchableOpacity
       onPress={[Function]}
@@ -100,7 +83,6 @@ exports[`BrowserUrlModal should render correctly 1`] = `
     </TouchableOpacity>
   </View>
   <Connect(UrlAutocomplete)
-    input="test"
     onDismiss={[Function]}
     onSubmit={[Function]}
   />

@@ -58,10 +58,13 @@ import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
-import { BROWSER_URL_MODAL } from '../../Nav/navigationKeys';
+import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
+/* Change this value to be localhost:3000 to test local version of https://home.metamask.io/
 const HOMEPAGE_HOST = 'localhost:3000';
+*/
+const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const createStyles = (colors) =>
@@ -858,7 +861,7 @@ export const BrowserTab = (props) => {
 	const toggleUrlModal = useCallback(
 		(shouldClearInput = false) => {
 			const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
-			props.navigation.navigate(BROWSER_URL_MODAL, { url: urlToShow, onUrlInputSubmit });
+			props.navigation.navigate(...createBrowserUrlModalNavDetails({ url: urlToShow, onUrlInputSubmit }));
 		},
 		/* we do not want to depend on the props.navigation object
 		- since we are changing it here, this would give us a circular dependency and infinite re renders

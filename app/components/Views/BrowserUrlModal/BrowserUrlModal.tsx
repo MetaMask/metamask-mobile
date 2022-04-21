@@ -7,25 +7,18 @@ import { createStyles } from './styles';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import { BROWSER_URL_MODAL_ID } from '../../../constants/test-ids';
-import { RouteProp } from '@react-navigation/native';
+import { createNavigationDetails, useParams } from '../../../util/navigation/navUtils';
+import { BROWSER_URL_MODAL } from '../../Nav/navigationKeys';
 
-interface BrowserUrlParams {
+export interface BrowserUrlParams {
 	onUrlInputSubmit: (inputValue: string | undefined) => void;
 	url: string | undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type BrowserUrlParamList = {
-	BrowserUrlModal: BrowserUrlParams;
-};
+export const createBrowserUrlModalNavDetails = createNavigationDetails<BrowserUrlParams>(BROWSER_URL_MODAL);
 
-type BrowserUrlModalRouteProp = RouteProp<BrowserUrlParamList, 'BrowserUrlModal'>;
-interface Props {
-	route: BrowserUrlModalRouteProp;
-}
-
-const BrowserUrlModal = (props: Props) => {
-	const { onUrlInputSubmit, url } = props.route.params;
+const BrowserUrlModal = () => {
+	const { onUrlInputSubmit, url } = useParams<BrowserUrlParams>();
 	const modalRef = useRef<ReusableModalRef | null>(null);
 	const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
