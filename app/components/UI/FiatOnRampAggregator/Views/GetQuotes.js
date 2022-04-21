@@ -40,7 +40,7 @@ const createStyles = (colors) =>
 			fontVariant: ['tabular-nums'],
 		},
 		timerHiglight: {
-			color: colors.red,
+			color: colors.error.default,
 		},
 		errorContent: {
 			paddingHorizontal: 20,
@@ -61,10 +61,10 @@ const createStyles = (colors) =>
 		errorIcon: {
 			fontSize: 46,
 			marginVertical: 4,
-			color: colors.red,
+			color: colors.error.default,
 		},
 		expiredIcon: {
-			color: colors.blue,
+			color: colors.primary.primary,
 		},
 		screen: {
 			flexGrow: 1,
@@ -74,6 +74,9 @@ const createStyles = (colors) =>
 			marginBottom: 6,
 			alignItems: 'stretch',
 			paddingHorizontal: 20,
+		},
+		ctaButton: {
+			marginBottom: 30,
 		},
 	});
 
