@@ -28,7 +28,6 @@ exports[`RemoteImage should render svg correctly 1`] = `
     style={Object {}}
   >
     <SvgUri
-      fill="#24292E"
       height="100%"
       source={
         Object {
