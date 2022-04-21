@@ -13,6 +13,11 @@ import {
 	fiatOrdersPaymentMethodSelectorAgg,
 	setFiatOrdersPaymentMethodAGG,
 } from '../../../../reducers/fiatOrders';
+interface IFiatOnRampSDKConfig {
+	POLLING_INTERVAL: number;
+	POLLING_INTERVAL_HIGHLIGHT: number;
+	POLLING_CYCLES: number;
+}
 export interface IFiatOnRampSDK {
 	sdk: IOnRampSdk | undefined;
 	selectedCountry: any;
@@ -35,6 +40,8 @@ export interface IFiatOnRampSDK {
 
 	selectedAddress: string;
 	selectedChainId: string;
+
+	appConfig: IFiatOnRampSDKConfig;
 }
 
 interface IProviderProps<T> {
@@ -44,6 +51,11 @@ interface IProviderProps<T> {
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
+const appConfig = {
+	POLLING_INTERVAL: 15000,
+	POLLING_INTERVAL_HIGHLIGHT: 10000,
+	POLLING_CYCLES: 2,
+};
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
@@ -146,6 +158,8 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 
 		selectedAddress,
 		selectedChainId,
+
+		appConfig,
 	};
 
 	return <SDKContext.Provider value={value || contextValue} {...props} />;

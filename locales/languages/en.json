@@ -1542,6 +1542,13 @@
 			"no_id_required": "No ID required",
 			"continue_to_amount": "Continue to amount"
 		},
+		"loading": "Loading...",
+		"new_quotes_in": "New quotes in",
+		"fetching_new_quotes": "Fetching new quotes...",
+		"quotes_expire_in": "Quotes expire in",
+		"get_new_quotes": "Get new quotes",
+		"quotes_timeout": "Quotes timeout",
+		"request_new_quotes": "Please request new quotes to get the latest best rate.",
 		"amount_to_buy": "Amount to Buy",
 		"get_quotes": "Get quotes",
 		"select_a_quote": "Select a Quote",
