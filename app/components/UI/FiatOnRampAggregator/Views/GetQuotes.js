@@ -9,7 +9,6 @@ import Quote from '../components/Quote';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
-import { colors } from '../../../../styles/common';
 import useInterval from '../../../hooks/useInterval';
 import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
@@ -19,63 +18,64 @@ import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import InfoAlert from '../components/InfoAlert';
 
-const styles = StyleSheet.create({
-	row: {
-		marginVertical: 8,
-	},
-	firstRow: {
-		marginTop: 0,
-		marginBottom: 8,
-	},
-	timerWrapper: {
-		backgroundColor: colors.grey000,
-		borderRadius: 20,
-		marginVertical: 12,
-		paddingVertical: 4,
-		paddingHorizontal: 15,
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	timer: {
-		fontVariant: ['tabular-nums'],
-	},
-	timerHiglight: {
-		color: colors.red,
-	},
-	errorContent: {
-		paddingHorizontal: 20,
-		alignItems: 'center',
-	},
-	errorViewContent: {
-		flex: 1,
-		marginHorizontal: Device.isSmallDevice() ? 20 : 55,
-		justifyContent: 'center',
-	},
-	errorTitle: {
-		fontSize: 24,
-		marginVertical: 10,
-	},
-	errorText: {
-		fontSize: 14,
-	},
-	errorIcon: {
-		fontSize: 46,
-		marginVertical: 4,
-		color: colors.red,
-	},
-	expiredIcon: {
-		color: colors.blue,
-	},
-	screen: {
-		flexGrow: 1,
-		justifyContent: 'space-between',
-	},
-	bottomSection: {
-		marginBottom: 6,
-		alignItems: 'stretch',
-		paddingHorizontal: 20,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		row: {
+			marginVertical: 8,
+		},
+		firstRow: {
+			marginTop: 0,
+			marginBottom: 8,
+		},
+		timerWrapper: {
+			backgroundColor: colors.primary.muted,
+			borderRadius: 20,
+			marginVertical: 12,
+			paddingVertical: 4,
+			paddingHorizontal: 15,
+			flexDirection: 'row',
+			alignItems: 'center',
+		},
+		timer: {
+			fontVariant: ['tabular-nums'],
+		},
+		timerHiglight: {
+			color: colors.red,
+		},
+		errorContent: {
+			paddingHorizontal: 20,
+			alignItems: 'center',
+		},
+		errorViewContent: {
+			flex: 1,
+			marginHorizontal: Device.isSmallDevice() ? 20 : 55,
+			justifyContent: 'center',
+		},
+		errorTitle: {
+			fontSize: 24,
+			marginVertical: 10,
+		},
+		errorText: {
+			fontSize: 14,
+		},
+		errorIcon: {
+			fontSize: 46,
+			marginVertical: 4,
+			color: colors.red,
+		},
+		expiredIcon: {
+			color: colors.blue,
+		},
+		screen: {
+			flexGrow: 1,
+			justifyContent: 'space-between',
+		},
+		bottomSection: {
+			marginBottom: 6,
+			alignItems: 'stretch',
+			paddingHorizontal: 20,
+		},
+	});
 
 const GetQuotes = () => {
 	const {
@@ -88,9 +88,11 @@ const GetQuotes = () => {
 		appConfig,
 	} = useFiatOnRampSDK();
 
+	const { colors } = useTheme();
+	const styles = createStyles(colors);
+
 	const { params } = useRoute();
 	const navigation = useNavigation();
-	const { colors } = useTheme();
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
 	const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
