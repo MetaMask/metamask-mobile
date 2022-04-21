@@ -1236,14 +1236,6 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@ethereumjs/common@2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.3.1.tgz#d692e3aff5adb35dd587dd1e6caab69e0ed2fa0b"
-  integrity sha512-V8hrULExoq0H4HFs3cCmdRGbgmipmlNzak6Xg34nHYfQyqkSdrCuflvYjyWmsNpI8GtrcZhzifAbgX/1C1Cjwg==
-  dependencies:
-    crc-32 "^1.2.0"
-    ethereumjs-util "^7.0.10"
-
 "@ethereumjs/common@^2.0.0", "@ethereumjs/common@^2.5.0", "@ethereumjs/common@^2.6.3":
   version "2.6.3"
   resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.6.3.tgz#39ddece7300b336276bad6c02f6a9f1a082caa05"
@@ -2319,11 +2311,11 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.10.0.tgz#c012c1ecc1a0e53d50e6af381618dca5268461c1"
   integrity sha512-lLseUPEhSFUXYTKj6q7s2O3s2vW2ebgA11vMAlKodXGf5AFw4zUoEbTz9CoFOC9jS6xY4Qr8BmRnxP/odT4Uuw==
 
-"@ledgerhq/metamask-keyring@git+https://github.com/LedgerHQ/metamask-keyring.git#chore/dist":
-  version "0.1.0"
-  resolved "git+https://github.com/LedgerHQ/metamask-keyring.git#455bb4a73499646c55db9ffb20bdfb3f890ee17e"
+"@ledgerhq/metamask-keyring@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.2.0.tgz#1476925c9517821e857f89ab667f68836a4adbef"
+  integrity sha512-Av3hxxWm9lOKWxwiegyGzWJ62TkfAnl50XZok3TrV9Q/SW423U0mQw5lGwwqO1RRL4UhXz56ckz7YHxRYjpPnw==
   dependencies:
-    "@ethereumjs/common" "2.3.1"
     "@ethereumjs/tx" "^3.5.0"
     "@ledgerhq/hw-app-eth" "^6.26.1"
     "@ledgerhq/hw-transport" "^6.24.1"
@@ -2391,11 +2383,12 @@
     web3-provider-engine "^16.0.3"
 
 "@metamask/controllers@git+https://github.com/MetaMask/controllers.git#feat/ledger-integration":
-  version "27.1.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#dc151ad8f4643613c4234c5b620754746a21339e"
+  version "28.0.0"
+  resolved "git+https://github.com/MetaMask/controllers.git#7256c7ec3942265df7dee1a5b9cef32189b8d02c"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
+    "@keystonehq/metamask-airgapped-keyring" "^0.3.0"
     "@metamask/contract-metadata" "^1.33.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
