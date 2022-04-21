@@ -79,7 +79,7 @@ const LedgerConnect = () => {
 	const onConnectToLedgerDevice = async () => {
 		setIsConnecting(true);
 
-		// Estabilish bluetooth connection to ledger
+		// Establish bluetooth connection to ledger
 		try {
 			if (!transportRef.current && selectedDevice) {
 				transportRef.current = await BluetoothTransport.open(selectedDevice);

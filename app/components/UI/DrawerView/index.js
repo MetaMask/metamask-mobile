@@ -226,7 +226,7 @@ const createStyles = (colors) =>
 			justifyContent: 'flex-end',
 			margin: 0,
 		},
-		importedWrapper: {
+		keyringTypeWrapper: {
 			marginTop: 10,
 			width: 73,
 			paddingHorizontal: 10,
@@ -235,7 +235,10 @@ const createStyles = (colors) =>
 			borderWidth: 1,
 			color: colors.icon.default,
 		},
-		importedText: {
+		hardwareKeyringTypeWrapper: {
+			width: 80,
+		},
+		keyringTypeText: {
 			color: colors.icon.default,
 			fontSize: 10,
 			...fontStyles.bold,
@@ -444,13 +447,15 @@ class DrawerView extends PureComponent {
 	animatingNetworksModal = false;
 	animatingAccountsModal = false;
 
-	isCurrentAccountImported() {
-		let ret = false;
+	getKeyringType() {
+		const ret = 'Imported';
 		const { keyrings, selectedAddress } = this.props;
 		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
 		for (const keyring of allKeyrings) {
 			if (keyring.accounts.includes(selectedAddress)) {
-				ret = keyring.type !== 'HD Key Tree';
+				if (['HD Key Tree', 'Ledger'].includes(keyring.type)) {
+					return keyring.type;
+				}
 				break;
 			}
 		}
@@ -1040,6 +1045,8 @@ class DrawerView extends PureComponent {
 		const checkIfCustomNetworkExists = networkOnboardedState.filter(
 			(item) => item.network === sanitizeUrl(switchedNetwork.networkUrl)
 		);
+		const keyringType = this.getKeyringType();
+		const isHardwareKeyring = keyringType === 'Ledger';
 
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1078,10 +1085,16 @@ class DrawerView extends PureComponent {
 									style={styles.accountAddress}
 									type={'short'}
 								/>
-								{this.isCurrentAccountImported() && (
-									<View style={styles.importedWrapper}>
-										<Text numberOfLines={1} style={styles.importedText}>
-											{strings('accounts.imported')}
+								{keyringType !== 'HD Key Tree' && (
+									<View
+										style={[
+											styles.keyringTypeWrapper,
+											isHardwareKeyring && styles.hardwareKeyringTypeWrapper,
+										]}
+									>
+										<Text numberOfLines={1} style={styles.keyringTypeText}>
+											{keyringType === 'Imported' && strings('accounts.imported')}
+											{isHardwareKeyring && strings('accounts.hardware')}
 										</Text>
 									</View>
 								)}
