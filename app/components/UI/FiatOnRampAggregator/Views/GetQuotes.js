@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -11,19 +11,43 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import InfoAlert from '../components/InfoAlert';
+import Animated, {
+	Extrapolate,
+	interpolate,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
+} from 'react-native-reanimated';
 
-const styles = StyleSheet.create({
-	row: {
-		marginVertical: 8,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		row: {
+			marginVertical: 8,
+		},
+		topBorder: {
+			height: 1,
+			width: '100%',
+			backgroundColor: colors.border.default,
+		},
+	});
 
 const GetQuotes = () => {
 	const { params } = useRoute();
 	const navigation = useNavigation();
 	const { colors } = useTheme();
+	const styles = createStyles(colors);
 	const [isLoading, setIsLoading] = useState(true);
 	const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
+
+	const scrollOffsetY = useSharedValue(0);
+	const scrollHandler = useAnimatedScrollHandler((event) => {
+		scrollOffsetY.value = event.contentOffset.y;
+	});
+	const animatedStyles = useAnimatedStyle(() => {
+		const value = interpolate(scrollOffsetY.value, [0, 50], [0, 1], Extrapolate.EXTEND);
+		return { opacity: value };
+	});
+
 	const [providerId, setProviderId] = useState(null);
 	const [showInfo, setShowInfo] = useState(false);
 	const [selectedProviderInfo] = useState({});
@@ -67,6 +91,8 @@ const GetQuotes = () => {
 		[navigation]
 	);
 
+	const filteredQuotes = useMemo(() => (quotes || []).filter(({ error }) => !error), [quotes]);
+
 	if (isLoading) {
 		return (
 			<ScreenLayout>
@@ -95,15 +121,15 @@ const GetQuotes = () => {
 				providerSupport={selectedProviderInfo.support}
 			/>
 			<ScreenLayout.Body>
-				<ScreenLayout.Content>
-					{quotes.length <= 0 ? (
-						<Text black center>
-							No providers available!
-						</Text>
-					) : (
-						quotes
-							.filter(({ error }) => !error)
-							.map((quote) => (
+				<Animated.View style={[styles.topBorder, animatedStyles]} />
+				<Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
+					<ScreenLayout.Content>
+						{filteredQuotes.length <= 0 ? (
+							<Text black center>
+								No providers available!
+							</Text>
+						) : (
+							filteredQuotes.map((quote) => (
 								<View key={quote.providerId} style={styles.row}>
 									<Quote
 										quote={quote}
@@ -114,8 +140,9 @@ const GetQuotes = () => {
 									/>
 								</View>
 							))
-					)}
-				</ScreenLayout.Content>
+						)}
+					</ScreenLayout.Content>
+				</Animated.ScrollView>
 			</ScreenLayout.Body>
 		</ScreenLayout>
 	);

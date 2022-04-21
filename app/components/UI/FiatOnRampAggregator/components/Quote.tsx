@@ -8,6 +8,10 @@ import StyledButton from '../../StyledButton';
 import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
+import { CryptoCurrency, FiatCurrency, QuoteResponse } from '@consensys/on-ramp-sdk';
+import { useAssetFromTheme } from '../../../../util/theme';
+import RemoteImage from '../../../Base/RemoteImage';
+import { Logos } from '@consensys/on-ramp-sdk/dist/API';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
@@ -23,48 +27,7 @@ const styles = StyleSheet.create({
 });
 
 interface Props {
-	quote: {
-		providerId: string;
-		providerName: string;
-		providerLogos: {
-			light: string;
-			dark: string;
-		};
-		providerLinks: string[];
-		providerHQ: string;
-		description: string;
-		crypto: {
-			id: string;
-			network: string;
-			symbol: string;
-			logo: string;
-			decimals: number;
-			address: string;
-			name: string;
-		};
-		cryptoId: string;
-		fiat: {
-			id: string;
-			symbol: string;
-			name: string;
-			decimals: number;
-			denomSymbol: string;
-		};
-		fiatId: string;
-		networkFee: number;
-		providerFee: number;
-		amountIn: number;
-		amountOut: number;
-		buyURL?: string;
-		status?: number;
-		message?: string;
-		error?: boolean;
-		paymentMethod?: any;
-		receiver?: string;
-		getApplePayRequestInfo?: () => any;
-		purchaseWithApplePay?: () => Promise<any>;
-		showInfo: () => any;
-	};
+	quote: QuoteResponse;
 	onPress?: () => any;
 	onPressBuy?: () => any;
 	highlighted?: boolean;
@@ -72,9 +35,13 @@ interface Props {
 }
 
 const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highlighted }: Props) => {
-	const { networkFee, providerFee, amountIn, amountOut, fiat, providerName, crypto } = quote;
+	const logoKey: keyof Logos = useAssetFromTheme('light', 'dark');
+	const { networkFee = 0, providerFee = 0, amountIn = 0, amountOut = 0, providerName } = quote;
 	const totalFees = networkFee + providerFee;
 	const price = amountIn - totalFees;
+
+	const crypto = quote.crypto as CryptoCurrency;
+	const fiat = quote.fiat as FiatCurrency;
 
 	return (
 		<Box onPress={onPress} highlighted={highlighted}>
@@ -82,6 +49,16 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				<ListItem.Body>
 					<ListItem.Title>
 						<TouchableOpacity onPress={showInfo}>
+							{quote.providerLogos?.[logoKey] && (
+								<RemoteImage
+									// eslint-disable-next-line react-native/no-inline-styles
+									style={{
+										width: 100,
+										height: 100,
+									}}
+									source={{ uri: quote.providerLogos[logoKey] }}
+								/>
+							)}
 							<Text big primary bold>
 								{providerName} <Feather name="info" size={12} />
 							</Text>
