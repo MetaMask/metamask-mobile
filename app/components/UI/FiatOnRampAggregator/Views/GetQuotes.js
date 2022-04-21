@@ -8,7 +8,7 @@ import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native-gesture-handler';
 import useInterval from '../../../hooks/useInterval';
 import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
@@ -28,7 +28,7 @@ const createStyles = (colors) =>
 			marginBottom: 8,
 		},
 		timerWrapper: {
-			backgroundColor: colors.primary.muted,
+			backgroundColor: colors.background.alternative,
 			borderRadius: 20,
 			marginVertical: 12,
 			paddingVertical: 4,
@@ -64,7 +64,7 @@ const createStyles = (colors) =>
 			color: colors.error.default,
 		},
 		expiredIcon: {
-			color: colors.primary.primary,
+			color: colors.primary.default,
 		},
 		screen: {
 			flexGrow: 1,
@@ -178,14 +178,14 @@ const GetQuotes = () => {
 	);
 
 	const QuotesPolling = () => (
-		<TouchableOpacity style={[styles.timerWrapper]}>
+		<View style={styles.timerWrapper}>
 			{isFetchingQuotes ? (
 				<>
 					<ActivityIndicator size="small" />
 					<Text> {strings('fiat_on_ramp_aggregator.fetching_new_quotes')}</Text>
 				</>
 			) : (
-				<Text primary>
+				<Text primary centered>
 					{pollingCyclesLeft > 0
 						? strings('fiat_on_ramp_aggregator.new_quotes_in')
 						: strings('fiat_on_ramp_aggregator.quotes_expire_in')}{' '}
@@ -201,7 +201,7 @@ const GetQuotes = () => {
 					</Text>
 				</Text>
 			)}
-		</TouchableOpacity>
+		</View>
 	);
 
 	if (pollingCyclesLeft < 0) {
@@ -253,10 +253,13 @@ const GetQuotes = () => {
 
 	return (
 		<ScreenLayout>
-			<ScreenLayout.Header
-				title={() => (isInPolling ? <QuotesPolling /> : undefined)}
-				description="Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving the MetaMask app."
-			/>
+			<ScreenLayout.Header>
+				{isInPolling && <QuotesPolling />}
+				<Text centered>
+					Buy ETH from one of our trusted providers. You’ll be securely taken to their portal without leaving
+					the MetaMask app.
+				</Text>
+			</ScreenLayout.Header>
 			<InfoAlert
 				isVisible={showInfo}
 				subtitle={selectedProviderInfo.subtitle}
