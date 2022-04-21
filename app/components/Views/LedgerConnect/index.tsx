@@ -16,6 +16,7 @@ import Scan from './Scan';
 
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
+import { listen } from '@ledgerhq/logs';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -76,16 +77,24 @@ const LedgerConnect = () => {
 		[]
 	);
 
+	useEffect(() => {
+		listen((data) => {
+			console.log('whatever', data);
+		});
+	}, []);
+
 	const onConnectToLedgerDevice = async () => {
 		setIsConnecting(true);
 
 		// Establish bluetooth connection to ledger
 		try {
 			if (!transportRef.current && selectedDevice) {
+				console.log('selDev', selectedDevice);
 				transportRef.current = await BluetoothTransport.open(selectedDevice);
 				transportRef.current?.on('disconnect', () => (transportRef.current = undefined));
 			}
-		} catch {
+		} catch (e) {
+			console.log('err,', e);
 			setIsRetry(true);
 			setIsConnecting(false);
 

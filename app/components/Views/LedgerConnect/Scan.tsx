@@ -3,7 +3,7 @@ import { AppState, Alert, View, StyleSheet, ActivityIndicator, Linking, AppState
 import { Observable, Subscription } from 'rxjs';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
-import { check, PERMISSIONS, RESULTS, openSettings, request } from 'react-native-permissions';
+import { request, PERMISSIONS, openSettings, RESULTS } from 'react-native-permissions';
 import { State } from 'react-native-ble-plx';
 import { strings } from '../../../../locales/i18n';
 
@@ -66,7 +66,7 @@ const Scan = ({ onDeviceSelected }: { onDeviceSelected: (device: NanoDevice) => 
 	useEffect(() => {
 		const run = async () => {
 			if (Device.isIos()) {
-				const bluetoothPermissionStatus = await check(PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL);
+				const bluetoothPermissionStatus = await request(PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL);
 				const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
 
 				if (bluetoothAllowed) {

@@ -251,10 +251,10 @@ class Tokens extends PureComponent {
 		const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
 		const tokensToDisplay = hideZeroBalanceTokens
 			? tokens.filter((token) => {
-					const { address, isETH } = token;
-					return !isZero(tokenBalances[address]) || isETH;
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  })
+				const { address, isETH } = token;
+				return !isZero(tokenBalances[address]) || isETH;
+				// eslint-disable-next-line no-mixed-spaces-and-tabs
+			})
 			: tokens;
 
 		return (

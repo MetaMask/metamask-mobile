@@ -861,6 +861,10 @@ SPEC CHECKSUMS:
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
+<<<<<<< Updated upstream
 PODFILE CHECKSUM: 23d1642c43ec058027aa83e0912405bc162e86b1
+=======
+PODFILE CHECKSUM: 2ff240ad848d18169e63bda9c8a670cbaa77aa3f
+>>>>>>> Stashed changes
 
 COCOAPODS: 1.11.2
