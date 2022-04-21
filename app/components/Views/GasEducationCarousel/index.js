@@ -16,7 +16,7 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { BNToHex, hexToBN } from '../../../util/number';
-import { calculateEIP1559GasFeeHexes } from '../../../util/transactions';
+import { calculateEIP1559GasFeeHexes, getTicker } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { formatCurrency, getTransactionFee } from '../../../util/confirm-tx';
@@ -206,7 +206,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 			return (
 				<View style={styles.tab}>
 					<Text noMargin bold black style={styles.title} testID={`carousel-screen-${key}`}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_1.title', { ticker })}
+						{strings('fiat_on_ramp.gas_education_carousel.step_1.title', { ticker: getTicker(ticker) })}
 					</Text>
 					{!isLoading && gasFiat && (
 						<Text grey noMargin bold style={styles.subheader}>
@@ -214,10 +214,14 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 						</Text>
 					)}
 					<Text grey noMargin style={styles.subtitle}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_1', { ticker })}
+						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_1', {
+							ticker: getTicker(ticker),
+						})}
 					</Text>
 					<Text grey noMargin style={styles.subtitle}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_2', { ticker })}{' '}
+						{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_2', {
+							ticker: getTicker(ticker),
+						})}{' '}
 						<Text bold>{strings('fiat_on_ramp.gas_education_carousel.step_1.subtitle_3')}</Text>
 					</Text>
 				</View>
@@ -230,7 +234,9 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
 					</Text>
 					<Text grey noMargin style={styles.subtitle}>
-						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_1', { ticker })}
+						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_1', {
+							ticker: getTicker(ticker),
+						})}
 					</Text>
 					<Text grey noMargin bold style={styles.subtitle}>
 						{strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_2')}
@@ -299,7 +305,7 @@ const GasEducationCarousel = ({ navigation, route, conversionRate, currentCurren
 															testID={'gas-education-fiat-on-ramp-start'}
 														>
 															{strings('fiat_on_ramp.gas_education_carousel.step_3.cta', {
-																ticker,
+																ticker: getTicker(ticker),
 															})}
 														</StyledButton>
 													</View>
