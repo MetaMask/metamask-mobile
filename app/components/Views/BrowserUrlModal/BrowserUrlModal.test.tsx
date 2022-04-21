@@ -1,23 +1,23 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import BrowserUrlModal from './';
-
+import { createNavigationProps } from '../../../util/testUtils';
 describe('BrowserUrlModal', () => {
-	function mockOnUrlInputSubmit(inputValue: string | undefined) {
+	const mockRoute = {
+		key: 'test',
+		name: 'BrowserUrlModal',
+		params: {
+			onUrlInputSubmit: mockOnUrlInputSubmit,
+			url: 'test',
+		},
+	};
+	function mockOnUrlInputSubmit(_inputValue: string | undefined) {
 		// noop
-		console.log(inputValue);
 	}
+
+	const mockNavigation = createNavigationProps(mockRoute);
 	it('should render correctly', () => {
-		const wrapper = shallow(
-			<BrowserUrlModal
-				route={{
-					params: {
-						onUrlInputSubmit: mockOnUrlInputSubmit,
-						url: 'test',
-					},
-				}}
-			/>
-		);
-		expect(wrapper.dive()).toMatchSnapshot();
+		const wrapper = shallow(<BrowserUrlModal {...mockNavigation} route={mockRoute} />);
+		expect(wrapper).toMatchSnapshot();
 	});
 });

@@ -20,13 +20,8 @@ type BrowserUrlParamList = {
 };
 
 type BrowserUrlModalRouteProp = RouteProp<BrowserUrlParamList, 'BrowserUrlModal'>;
-
-interface BrowserUrlModalRoutePropTestingPurpose {
-	params: { onUrlInputSubmit: (inputValue: string | undefined) => void; url: string };
-}
-
 interface Props {
-	route: BrowserUrlModalRouteProp | BrowserUrlModalRoutePropTestingPurpose;
+	route: BrowserUrlModalRouteProp;
 }
 
 const BrowserUrlModal = (props: Props) => {
