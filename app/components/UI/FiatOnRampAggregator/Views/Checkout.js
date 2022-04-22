@@ -61,7 +61,7 @@ const CheckoutWebView = () => {
 		if (navState?.url.startsWith(callbackBaseUrl)) {
 			try {
 				const orders = await SDK.orders();
-				const orderId = orders.getOrderIdFromCallback(params?.provider.id, navState?.url);
+				const orderId = await orders.getOrderIdFromCallback(params?.provider.id, navState?.url);
 				const transformedOrder = await processAggregatorOrder({ id: orderId, account: selectedAddress });
 				// add the order to the redux global store
 				handleAddFiatOrder(transformedOrder);
