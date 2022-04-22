@@ -20,17 +20,3 @@ export const collectiblesSelector = createSelector(
 	allCollectiblesSelector,
 	(address, chainId, allCollectibles) => allCollectibles[address]?.[chainId] || []
 );
-
-const initialState = {
-	favorites: {},
-};
-
-const collectiblesFavoritesReducer = (state = initialState, action) => {
-	switch (action.type) {
-		default: {
-			return state;
-		}
-	}
-};
-
-export default collectiblesFavoritesReducer;
