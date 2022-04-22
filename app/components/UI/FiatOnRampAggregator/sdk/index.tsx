@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, Environment, Context } from '@consensys/on-ramp-sdk';
-import RegionsService from '@consensys/on-ramp-sdk/dist/regions/RegionsService';
+import { OnRampSdk, Environment, Context, RegionsService } from '@consensys/on-ramp-sdk';
 
 import Logger from '../../../../util/Logger';
 
