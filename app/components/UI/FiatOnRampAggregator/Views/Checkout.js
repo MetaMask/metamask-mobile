@@ -15,6 +15,8 @@ import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { callbackBaseUrl, processAggregatorOrder } from '../orderProcessor/aggregator';
+import NotificationManager from '../../../../core/NotificationManager';
+import { getNotificationDetails } from '../../FiatOrders';
 
 const CheckoutWebView = () => {
 	const { selectedAddress, selectedChainId } = useFiatOnRampSDK();
@@ -33,9 +35,9 @@ const CheckoutWebView = () => {
 		if (!token) return;
 
 		const { address, symbol, decimals, network } = token;
-		const chainId = network || selectedChainId;
+		const chainId = network?.chainId;
 
-		if (Number(network) !== Number(selectedChainId) || NETWORK_NATIVE_SYMBOL[chainId.toString()] === symbol) {
+		if (Number(chainId) !== Number(selectedChainId) || NETWORK_NATIVE_SYMBOL[chainId] === symbol) {
 			return;
 		}
 
@@ -71,6 +73,7 @@ const CheckoutWebView = () => {
 				handleDispatchUserWalletProtection();
 				// close the checkout webview
 				navigation.dangerouslyGetParent()?.pop();
+				NotificationManager.showSimpleNotification(getNotificationDetails(transformedOrder));
 			} catch (error) {
 				const parsedUrl = qs.parseUrl(navState?.url);
 				if (Object.keys(parsedUrl.query).length === 0) {
