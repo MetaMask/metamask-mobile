@@ -7,6 +7,7 @@ const initialState = {
 	dappTransactionModalVisible: false,
 	approveModalVisible: false,
 	ledgerTransactionModalVisible: false,
+	ledgerTransactionModalFailVisible: false,
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -60,6 +61,12 @@ const modalsReducer = (state = initialState, action) => {
 				...state,
 				ledgerTransactionModalVisible: !state.ledgerTransactionModalVisible,
 			};
+		case 'TOGGLE_LEDGER_TRANSACTION_FAIL':
+			return {
+				...state,
+				ledgerTransactionModalFailVisible: !state.ledgerTransactionModalFailVisible,
+			};
+
 		default:
 			return state;
 	}

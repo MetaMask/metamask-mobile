@@ -21,6 +21,7 @@ import {
 	toggleAccountsModal,
 	toggleReceiveModal,
 	toggleLedgerTransactionModal,
+	toggleLedgerTransactionFailModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
@@ -54,7 +55,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import { onboardNetworkAction, networkSwitched } from '../../../actions/onboardNetwork';
-import LedgerTransactionModal from '../LedgerModal/LedgerTransactionModal';
+import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
+import LedgerTransactionFailModal from '../LedgerModals/LedgerTransactionFailModal';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -347,6 +349,10 @@ class DrawerView extends PureComponent {
 		 */
 		toggleLedgerTransactionModal: PropTypes.func,
 		/**
+		 * Action that toggles the Ledger's failed transaction modal
+		 */
+		toggleLedgerTransactionFailModal: PropTypes.func,
+		/**
 		 * Action that shows the global alert
 		 */
 		showAlert: PropTypes.func.isRequired,
@@ -433,9 +439,13 @@ class DrawerView extends PureComponent {
 		 */
 		networkOnboardedState: PropTypes.array,
 		/**
-		 * Decides if ledger's transaction modal is visible
+		 * Decides if Ledger's transaction modal is visible
 		 */
 		ledgerTransactionModalVisible: PropTypes.bool,
+		/**
+		 * Decides if Ledger's failed transaction modal is visible
+		 */
+		ledgerTransactionModalFailVisible: PropTypes.bool,
 	};
 
 	constructor(props) {
@@ -466,10 +476,15 @@ class DrawerView extends PureComponent {
 	animatingNetworksModal = false;
 	animatingAccountsModal = false;
 	animatingLedgerTransactionModal = false;
+	animatingLedgerTransactionFailModal = false;
 
 	componentWillUnmount() {
 		if (this.ledgerModalTimer) {
 			clearTimeout(this.ledgerModalTimer);
+		}
+
+		if (this.ledgerModalFailTimer) {
+			clearTimeout(this.ledgerModalFailTimer);
 		}
 	}
 
@@ -581,6 +596,16 @@ class DrawerView extends PureComponent {
 			this.props.toggleLedgerTransactionModal();
 			this.ledgerModalTimer = setTimeout(() => {
 				this.animatingLedgerTransactionModal = false;
+			}, 500);
+		}
+	};
+
+	toggleLedgerTransactionFailModal = async () => {
+		if (!this.animatingLedgerTransactionFailModal) {
+			this.animatingLedgerTransactionFailModal = true;
+			this.props.toggleLedgerTransactionFailModal();
+			this.ledgerModalFailTimer = setTimeout(() => {
+				this.animatingLedgerTransactionFailModal = false;
 			}, 500);
 		}
 	};
@@ -1307,6 +1332,19 @@ class DrawerView extends PureComponent {
 				>
 					<LedgerTransactionModal />
 				</Modal>
+				<Modal
+					isVisible={this.props.ledgerTransactionModalFailVisible}
+					style={styles.bottomModal}
+					onBackdropPress={this.toggleLedgerTransactionFailModal}
+					onBackButtonPress={this.toggleLedgerTransactionFailModal}
+					onSwipeComplete={this.toggleLedgerTransactionFailModal}
+					swipeDirection={'down'}
+					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
+				>
+					<LedgerTransactionFailModal />
+				</Modal>
 				{this.renderOnboardingWizard()}
 				<Modal
 					isVisible={this.props.receiveModalVisible}
@@ -1345,6 +1383,7 @@ const mapStateToProps = (state) => ({
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
 	ledgerTransactionModalVisible: state.modals.ledgerTransactionModalVisible,
+	ledgerTransactionModalFailVisible: state.modals.ledgerTransactionModalFailVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -1363,6 +1402,7 @@ const mapDispatchToProps = (dispatch) => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
 	toggleLedgerTransactionModal: () => dispatch(toggleLedgerTransactionModal()),
+	toggleLedgerTransactionFailModal: () => dispatch(toggleLedgerTransactionFailModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: (config) => dispatch(showAlert(config)),
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),

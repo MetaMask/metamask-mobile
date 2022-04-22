@@ -23,7 +23,7 @@ import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
 import { useDispatch } from 'react-redux';
-import { toggleLedgerTransactionModal } from '../../../actions/modals/index';
+import { toggleLedgerTransactionFailModal, toggleLedgerTransactionModal } from '../../../actions/modals/index';
 
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
@@ -161,6 +161,13 @@ const LedgerConnect = () => {
 						}}
 					>
 						<Text> open modal </Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => {
+							dispatch(toggleLedgerTransactionFailModal());
+						}}
+					>
+						<Text> open fail t. modal </Text>
 					</TouchableOpacity>
 				</View>
 				<View style={styles.bodyContainer}>
