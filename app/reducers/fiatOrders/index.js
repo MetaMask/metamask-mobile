@@ -33,7 +33,6 @@ const ACTIONS = {
 	FIAT_RESET: 'FIAT_RESET',
 	FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY',
 	// aggregator actions
-	FIAT_SET_COUNTRY_AGG: 'FIAT_SET_COUNTRY_AGG',
 	FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
 	FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
 	FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
@@ -42,7 +41,6 @@ const ACTIONS = {
 export const addFiatOrder = (order) => ({ type: ACTIONS.FIAT_ADD_ORDER, payload: order });
 export const updateFiatOrder = (order) => ({ type: ACTIONS.FIAT_UPDATE_ORDER, payload: order });
 export const setFiatOrdersCountry = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY, payload: countryCode });
-export const setFiatOrdersCountryAGG = (countryCode) => ({ type: ACTIONS.FIAT_SET_COUNTRY_AGG, payload: countryCode });
 export const setFiatOrdersRegionAGG = (regionCode) => ({ type: ACTIONS.FIAT_SET_REGION_AGG, payload: regionCode });
 export const setFiatOrdersPaymentMethodAGG = (paymentMethodId) => ({
 	type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
@@ -83,7 +81,6 @@ export const getProviderName = (provider, data = {}) => {
 	}
 };
 
-const INITIAL_SELECTED_COUNTRY = null;
 const INITIAL_SELECTED_REGION = null;
 const INITIAL_GET_STARTED = false;
 const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
@@ -93,7 +90,6 @@ export const chainIdSelector = (state) => state.engine.backgroundState.NetworkCo
 
 export const selectedAddressSelector = (state) => state.engine.backgroundState.PreferencesController.selectedAddress;
 export const fiatOrdersCountrySelector = (state) => state.fiatOrders.selectedCountry;
-export const fiatOrdersCountrySelectorAgg = (state) => state.fiatOrders.selectedCountryAgg;
 export const fiatOrdersRegionSelectorAgg = (state) => state.fiatOrders.selectedRegionAgg;
 export const fiatOrdersPaymentMethodSelectorAgg = (state) => state.fiatOrders.selectedPaymentMethodAgg;
 export const fiatOrdersGetStartedAgg = (state) => state.fiatOrders.getStartedAgg;
@@ -128,7 +124,6 @@ const initialState = {
 	orders: [],
 	selectedCountry: 'US',
 	// initial state for fiat on-ramp aggregator
-	selectedCountryAgg: INITIAL_SELECTED_COUNTRY,
 	selectedRegionAgg: INITIAL_SELECTED_REGION,
 	selectedPaymentMethodAgg: INITIAL_PAYMENT_METHOD,
 	getStartedAgg: INITIAL_GET_STARTED,
@@ -189,12 +184,6 @@ const fiatOrderReducer = (state = initialState, action) => {
 			return {
 				...state,
 				selectedCountry: action.payload,
-			};
-		}
-		case ACTIONS.FIAT_SET_COUNTRY_AGG: {
-			return {
-				...state,
-				selectedCountryAgg: action.payload,
 			};
 		}
 		case ACTIONS.FIAT_SET_REGION_AGG: {

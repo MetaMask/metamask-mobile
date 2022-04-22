@@ -8,7 +8,7 @@ import StyledButton from '../../StyledButton';
 import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
-import { CryptoCurrency, FiatCurrency, QuoteResponse } from '@consensys/on-ramp-sdk';
+import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import { useAssetFromTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 import { Logos } from '@consensys/on-ramp-sdk/dist/API';
@@ -36,12 +36,12 @@ interface Props {
 
 const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highlighted }: Props) => {
 	const logoKey: keyof Logos = useAssetFromTheme('light', 'dark');
-	const { networkFee = 0, providerFee = 0, amountIn = 0, amountOut = 0, providerName } = quote;
+	const { networkFee = 0, providerFee = 0, amountIn = 0, amountOut = 0, fiat, provider, crypto } = quote;
 	const totalFees = networkFee + providerFee;
 	const price = amountIn - totalFees;
 
-	const crypto = quote.crypto as CryptoCurrency;
-	const fiat = quote.fiat as FiatCurrency;
+	const fiatCode = fiat?.symbol || '';
+	const fiatSymbol = fiat?.denomSymbol || '';
 
 	return (
 		<Box onPress={onPress} highlighted={highlighted}>
@@ -49,40 +49,38 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				<ListItem.Body>
 					<ListItem.Title>
 						<TouchableOpacity onPress={showInfo}>
-							{quote.providerLogos?.[logoKey] && (
+							{quote.provider?.logos?.[logoKey] && (
 								<RemoteImage
-									// eslint-disable-next-line react-native/no-inline-styles
 									style={{
-										width: 100,
-										height: 100,
+										width: quote.provider.logos.width,
+										height: quote.provider.logos.height,
 									}}
-									source={{ uri: quote.providerLogos[logoKey] }}
+									source={{ uri: quote.provider?.logos?.[logoKey] }}
 								/>
 							)}
-							<Text big primary bold>
-								{providerName} <Feather name="info" size={12} />
-							</Text>
+
+							<Feather name="info" size={12} />
 						</TouchableOpacity>
 					</ListItem.Title>
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text big primary bold right>
 						{renderFromTokenMinimalUnit(
-							toTokenMinimalUnit(amountOut, crypto.decimals).toString(),
-							crypto.decimals
+							toTokenMinimalUnit(amountOut, crypto?.decimals || 0).toString(),
+							crypto?.decimals || 0
 						)}{' '}
-						{crypto.symbol}
+						{crypto?.symbol}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
 
 			<ListItem.Content>
 				<ListItem.Body>
-					<Text small>Price {fiat?.symbol}</Text>
+					<Text small>Price {fiatCode}</Text>
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text small right>
-						≈ {fiat.denomSymbol} {renderFiat(price, fiat.symbol, fiat.decimals)}
+						≈ {fiatSymbol} {renderFiat(price, fiatCode, fiat?.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -95,7 +93,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text black small right>
-						{fiat.denomSymbol} {renderFiat(totalFees, fiat.symbol, fiat.decimals)}
+						{fiatSymbol} {renderFiat(totalFees, fiatCode, fiat?.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -108,7 +106,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text grey small right>
-						{fiat.denomSymbol} {renderFiat(providerFee, fiat.symbol, fiat.decimals)}
+						{fiatSymbol} {renderFiat(providerFee, fiatCode, fiat?.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -121,8 +119,8 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text grey small right>
-						{fiat.denomSymbol}
-						{renderFiat(networkFee, fiat.symbol, fiat.decimals)}
+						{fiatSymbol}
+						{renderFiat(networkFee, fiatCode, fiat?.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -135,7 +133,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				</ListItem.Body>
 				<ListItem.Amounts>
 					<Text black small right>
-						{fiat.denomSymbol} {renderFiat(amountIn, fiat.symbol, fiat.decimals)}
+						{fiatSymbol} {renderFiat(amountIn, fiatCode, fiat?.decimals)}
 					</Text>
 				</ListItem.Amounts>
 			</ListItem.Content>
@@ -146,7 +144,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 						<ApplePayButton quote={quote} label={strings('fiat_on_ramp.buy_with')} />
 					) : (
 						<StyledButton type={'blue'} onPress={onPressBuy}>
-							Buy with {providerName}
+							Buy with {provider.name}
 						</StyledButton>
 					)}
 				</View>

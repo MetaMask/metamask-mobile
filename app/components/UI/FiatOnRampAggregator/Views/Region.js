@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -18,47 +18,41 @@ import RegionAlert from '../components/RegionAlert';
 const Region = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
-	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
-	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
+	const { selectedRegion, setSelectedRegion } = useFiatOnRampSDK();
+	const [isRegionModalVisible, , showRegionModal, hideRegionModal] = useModalHandler(false);
 
 	const [showAlert, setShowAlert] = useState(false);
 	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
 	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
-
 	useEffect(() => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Region', showBack: false }, colors));
 	}, [navigation, colors]);
-
-	const handleRegionButton = () => {
-		toggleRegionModal();
-	};
 
 	const handleOnPress = useCallback(() => {
 		navigation.navigate('PaymentMethod');
 	}, [navigation]);
 
-	const handleCountryPress = (country) => {
-		setSelectedCountry(country);
-		hideRegionModal();
-	};
-
 	const handleRegionPress = useCallback(
-		(region, country) => {
-			if (region.unsupported) {
-				setShowAlert(true);
-				setSelectedUnsupportedLocation(region);
-			} else {
-				setSelectedRegion(region);
-				setSelectedCountry(country);
-				hideRegionModal();
-			}
+		(region) => {
+			setSelectedRegion(region);
+			hideRegionModal();
 		},
-		[hideRegionModal, setSelectedCountry, setSelectedRegion]
+		[hideRegionModal, setSelectedRegion]
 	);
 
-	const handleUnsetRegion = useCallback(() => {
-		setSelectedRegion(undefined);
-	}, [setSelectedRegion]);
+	const updatedRegion = useMemo(() => {
+		if (!selectedRegion || !data) return null;
+		const allRegions = data.reduce((acc, region) => [...acc, region, ...(region.states || [])], []);
+		return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
+	}, [data, selectedRegion]);
+
+	useEffect(() => {
+		if (updatedRegion && updatedRegion.unsupported) {
+			setShowAlert(true);
+			setSelectedUnsupportedLocation(updatedRegion);
+			setSelectedRegion(null);
+		}
+	}, [updatedRegion, setSelectedRegion]);
 
 	// TODO: replace this with loading screen
 	if (isFetching || !data) {
@@ -94,19 +88,14 @@ const Region = () => {
 			/>
 			<ScreenLayout.Body>
 				<ScreenLayout.Content>
-					<TouchableOpacity onPress={handleRegionButton}>
+					<TouchableOpacity onPress={showRegionModal}>
 						<Box>
 							<ListItem.Content>
 								<ListItem.Body>
-									{selectedRegion?.id ? (
+									{updatedRegion ? (
 										<Text>
-											{selectedRegion.emoji} {'   '}
-											{selectedRegion.name}
-										</Text>
-									) : selectedCountry?.id ? (
-										<Text>
-											{selectedCountry.emoji} {'   '}
-											{selectedCountry.name}
+											{updatedRegion.emoji} {'   '}
+											{updatedRegion.name}
 										</Text>
 									) : (
 										<Text>{strings('fiat_on_ramp_aggregator.region.select_region')}</Text>
@@ -124,16 +113,14 @@ const Region = () => {
 					title={strings('fiat_on_ramp_aggregator.region.title')}
 					description={strings('fiat_on_ramp_aggregator.region.description')}
 					data={data}
-					dismiss={toggleRegionModal}
-					onCountryPress={handleCountryPress}
+					dismiss={hideRegionModal}
 					onRegionPress={handleRegionPress}
-					unsetRegion={handleUnsetRegion}
 				/>
 			</ScreenLayout.Body>
 			<ScreenLayout.Footer>
 				<ScreenLayout.Content>
 					<View>
-						<StyledButton type="confirm" onPress={handleOnPress} disabled={!selectedCountry?.id}>
+						<StyledButton type="confirm" onPress={handleOnPress} disabled={!updatedRegion}>
 							{strings('swaps.continue')}
 						</StyledButton>
 					</View>

@@ -5,7 +5,7 @@ import { processMoonPayOrder } from '../../FiatOrders/orderProcessor/moonpay';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
 
-function processOrder(order, sdk) {
+function processOrder(order) {
 	switch (order.provider) {
 		case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
 			return processWyreApplePayOrder(order);
@@ -17,7 +17,7 @@ function processOrder(order, sdk) {
 			return processMoonPayOrder(order);
 		}
 		case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
-			return processAggregatorOrder(order, sdk);
+			return processAggregatorOrder(order);
 		}
 		default: {
 			Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);

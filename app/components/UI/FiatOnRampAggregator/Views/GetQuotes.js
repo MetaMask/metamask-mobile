@@ -92,16 +92,11 @@ const createStyles = (colors) =>
 		},
 	});
 
+const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
+
 const GetQuotes = () => {
-	const {
-		selectedPaymentMethod,
-		selectedCountry,
-		selectedRegion,
-		selectedAsset,
-		selectedAddress,
-		selectedFiatCurrencyId,
-		appConfig,
-	} = useFiatOnRampSDK();
+	const { selectedPaymentMethod, selectedRegion, selectedAsset, selectedAddress, selectedFiatCurrencyId, appConfig } =
+		useFiatOnRampSDK();
 
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
@@ -129,7 +124,7 @@ const GetQuotes = () => {
 
 	const [{ data: quotes, isFetching: isFetchingQuotes, error: ErrorFetchingQuotes }, fetchQuotes] = useSDKMethod(
 		'getQuotes',
-		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
+		selectedRegion?.id,
 		selectedPaymentMethod,
 		selectedAsset?.id,
 		selectedFiatCurrencyId,
@@ -190,12 +185,12 @@ const GetQuotes = () => {
 	}, [isFetchingQuotes]);
 
 	const handleOnPress = useCallback((quote) => {
-		setProviderId(quote.providerId);
+		setProviderId(quote.provider.id);
 	}, []);
 
 	const handleOnPressBuy = useCallback(
 		(quote) => {
-			quote?.providerId && navigation.navigate('Checkout', { ...quote });
+			quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
 		},
 		[navigation]
 	);
@@ -258,7 +253,6 @@ const GetQuotes = () => {
 			</ScreenView>
 		);
 	}
-	const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
 
 	if (isLoading) {
 		return (
@@ -305,12 +299,12 @@ const GetQuotes = () => {
 							<Text>...</Text> //todo: to be replaced with the skelton screen
 						) : (
 							filteredQuotes.sort(sortByAmountOut).map((quote) => (
-								<View key={quote.providerId} style={styles.row}>
+								<View key={quote.provider.id} style={styles.row}>
 									<Quote
 										quote={quote}
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
-										highlighted={quote.providerId === providerId}
+										highlighted={quote.provider.id === providerId}
 										showInfo={() => setShowInfo(true)}
 									/>
 								</View>

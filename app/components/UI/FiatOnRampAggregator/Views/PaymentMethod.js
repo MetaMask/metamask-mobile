@@ -22,13 +22,10 @@ const PaymentMethod = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
 
-	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
+	const { selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
 	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(selectedPaymentMethod);
 
-	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', {
-		countryId: selectedCountry?.id,
-		regionId: selectedRegion?.id,
-	});
+	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
 	useEffect(() => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Payment Method' }, colors));

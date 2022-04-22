@@ -28,7 +28,6 @@ import { PAYMENT_METHOD_ICON } from '../constants';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
-import { formatId } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 
@@ -69,7 +68,6 @@ const AmountToBuy = () => {
 	const [amount, setAmount] = useState('0');
 	const [amountNumber, setAmountNumber] = useState(0);
 	const [tokens, setTokens] = useState([]);
-	const [, setShowAlert] = useState(false);
 	const keyboardHeight = useRef(1000);
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
@@ -83,8 +81,6 @@ const AmountToBuy = () => {
 
 	const {
 		selectedPaymentMethod,
-		selectedCountry,
-		setSelectedCountry,
 		selectedRegion,
 		setSelectedRegion,
 		selectedAsset,
@@ -94,6 +90,8 @@ const AmountToBuy = () => {
 		selectedChainId: chainId,
 	} = useFiatOnRampSDK();
 
+	const selectedFiatCurrency = selectedFiatCurrencyId || selectedRegion?.currency;
+
 	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }, queryGetCountries] =
 		useSDKMethod({
 			method: 'getCountries',
@@ -102,37 +100,36 @@ const AmountToBuy = () => {
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
-		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
+		selectedRegion?.id,
 		selectedPaymentMethod,
-		selectedFiatCurrencyId
+		selectedFiatCurrency
 	);
 
-	const [{ data: defaultCurrnecy, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
-		useSDKMethod('getDefaultFiatCurrency', { countryId: selectedCountry?.id, regionId: selectedRegion?.id });
+	const [{ data: defaultCurrency, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
+		useSDKMethod('getDefaultFiatCurrency', selectedRegion?.id);
 
 	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
 		'getFiatCurrencies',
-		{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
+		selectedRegion?.id,
 		selectedPaymentMethod
 	);
 
 	const currentCurrency = useMemo(() => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
-		if (currencies && selectedFiatCurrencyId && selectedFiatCurrencyId !== formatId(selectedCountry?.currency)) {
-			setAmount('0');
-			setAmountNumber(0);
-			return currencies.find((currency) => currency.id === selectedFiatCurrencyId);
+		if (currencies && selectedFiatCurrencyId) {
+			const currency =
+				currencies.find((currency) => currency.id === selectedFiatCurrencyId) ||
+				currencies?.[0] ||
+				defaultCurrency;
+			setSelectedFiatCurrencyId(currency.id);
+			return currency;
 		}
 
-		return defaultCurrnecy;
-	}, [currencies, defaultCurrnecy, selectedFiatCurrencyId, selectedCountry?.currency]);
+		return defaultCurrency;
+	}, [currencies, defaultCurrency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
-		useSDKMethod(
-			'getPaymentMethod',
-			{ countryId: selectedCountry?.id, regionId: selectedRegion?.id },
-			selectedPaymentMethod
-		);
+		useSDKMethod('getPaymentMethod', selectedRegion?.id, selectedPaymentMethod);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -171,36 +168,16 @@ const AmountToBuy = () => {
 		toggleRegionModal();
 	}, [queryGetCountries, toggleRegionModal]);
 
-	const handleCountryPress = useCallback(
-		(country) => {
-			setSelectedCountry(country);
+	const handleRegionPress = useCallback(
+		(region) => {
+			setSelectedRegion(region);
 			hideRegionModal();
 			setSelectedFiatCurrencyId('');
 			setAmount('0');
 			setAmountNumber(0);
 		},
-		[hideRegionModal, setSelectedCountry, setSelectedFiatCurrencyId]
+		[hideRegionModal, setSelectedFiatCurrencyId, setSelectedRegion]
 	);
-
-	const handleRegionPress = useCallback(
-		(region, country) => {
-			if (region.unsupported) {
-				setShowAlert(true);
-			} else {
-				setSelectedRegion(region);
-				setSelectedCountry(country);
-				setSelectedFiatCurrencyId('');
-				hideRegionModal();
-				setAmount('0');
-				setAmountNumber(0);
-			}
-		},
-		[hideRegionModal, setSelectedCountry, setSelectedRegion, setSelectedFiatCurrencyId]
-	);
-
-	const handleUnsetRegion = useCallback(() => {
-		setSelectedRegion(undefined);
-	}, [setSelectedRegion]);
 
 	/****************** TOKENS HANDLERS *********************************/
 	const handleAssetSelectorPress = useCallback(() => {
@@ -225,6 +202,8 @@ const AmountToBuy = () => {
 	const handleCurrencyPress = useCallback(
 		(newCurrency) => {
 			setSelectedFiatCurrencyId(newCurrency?.id);
+			setAmount('0');
+			setAmountNumber(0);
 			hideFiatSelectorModal();
 		},
 		[hideFiatSelectorModal, setSelectedFiatCurrencyId]
@@ -268,9 +247,9 @@ const AmountToBuy = () => {
 	// side effect to set selected fiat currenct to default
 	useEffect(() => {
 		if (!selectedFiatCurrencyId) {
-			setSelectedFiatCurrencyId(formatId(selectedCountry?.currency));
+			setSelectedFiatCurrencyId(selectedRegion?.currency);
 		}
-	}, [selectedCountry?.currency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
+	}, [selectedFiatCurrencyId, selectedRegion?.currency, setSelectedFiatCurrencyId]);
 
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -316,7 +295,7 @@ const AmountToBuy = () => {
 							<AccountSelector />
 							<View style={styles.spacer} />
 							<SelectorButton onPress={handleChangeCountry}>
-								<Text reset>{selectedCountry?.emoji}</Text>
+								<Text reset>{selectedRegion?.emoji}</Text>
 							</SelectorButton>
 						</View>
 						<View style={styles.row}>
@@ -415,9 +394,7 @@ const AmountToBuy = () => {
 				description={strings('fiat_on_ramp_aggregator.region.description')}
 				data={countries}
 				dismiss={hideRegionModal}
-				onCountryPress={handleCountryPress}
 				onRegionPress={handleRegionPress}
-				unsetRegion={handleUnsetRegion}
 			/>
 		</ScreenLayout>
 	);

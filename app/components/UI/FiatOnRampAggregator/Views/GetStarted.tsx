@@ -68,7 +68,7 @@ const GetStarted: React.FC = () => {
 		if (getStarted) {
 			navigation.reset({
 				index: 0,
-				routes: [{ name: 'Region' }],
+				routes: [{ name: 'Region_hasStarted' }],
 			});
 		}
 	}, [getStarted, navigation]);

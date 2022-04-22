@@ -7,7 +7,7 @@ import { WebView } from 'react-native-webview';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useFiatOnRampSDK } from '../sdk';
+import { useFiatOnRampSDK, SDK } from '../sdk';
 import WebviewError from '../../WebviewError';
 import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
@@ -15,9 +15,11 @@ import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { callbackBaseUrl, processAggregatorOrder } from '../orderProcessor/aggregator';
+import NotificationManager from '../../../../core/NotificationManager';
+import { getNotificationDetails } from '../../FiatOrders';
 
 const CheckoutWebView = () => {
-	const { sdk, selectedAddress, selectedChainId } = useFiatOnRampSDK();
+	const { selectedAddress, selectedChainId } = useFiatOnRampSDK();
 	const dispatch = useDispatch();
 	const [error, setError] = useState('');
 	const [key, setKey] = useState(0);
@@ -30,14 +32,12 @@ const CheckoutWebView = () => {
 	}, [navigation, colors]);
 
 	const addTokenToTokensController = async (token) => {
-		const { address, symbol, decimals, network } = token;
-		const chainId = network || selectedChainId;
+		if (!token) return;
 
-		if (
-			!token ||
-			Number(network) !== Number(selectedChainId) ||
-			NETWORK_NATIVE_SYMBOL[chainId.toString()] === symbol
-		) {
+		const { address, symbol, decimals, network } = token;
+		const chainId = network?.chainId;
+
+		if (Number(chainId) !== Number(selectedChainId) || NETWORK_NATIVE_SYMBOL[chainId] === symbol) {
 			return;
 		}
 
@@ -62,8 +62,9 @@ const CheckoutWebView = () => {
 	const handleNavigationStateChange = async (navState) => {
 		if (navState?.url.startsWith(callbackBaseUrl)) {
 			try {
-				const orderId = await sdk.getOrderIdFromCallback(params?.providerId, navState?.url);
-				const transformedOrder = await processAggregatorOrder({ id: orderId, account: selectedAddress }, sdk);
+				const orders = await SDK.orders();
+				const orderId = await orders.getOrderIdFromCallback(params?.provider.id, navState?.url);
+				const transformedOrder = await processAggregatorOrder({ id: orderId, account: selectedAddress });
 				// add the order to the redux global store
 				handleAddFiatOrder(transformedOrder);
 				// register the token automatically
@@ -72,6 +73,7 @@ const CheckoutWebView = () => {
 				handleDispatchUserWalletProtection();
 				// close the checkout webview
 				navigation.dangerouslyGetParent()?.pop();
+				NotificationManager.showSimpleNotification(getNotificationDetails(transformedOrder));
 			} catch (error) {
 				const parsedUrl = qs.parseUrl(navState?.url);
 				if (Object.keys(parsedUrl.query).length === 0) {

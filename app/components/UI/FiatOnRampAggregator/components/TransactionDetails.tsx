@@ -261,10 +261,7 @@ const TransactionDetails: React.FC<Props> = ({ order, provider, frequentRpcList 
 						<ListItem.Amount>
 							<Text small bold primary>
 								1 {order.cryptocurrency} @{' '}
-								{renderFromTokenMinimalUnit(
-									toTokenMinimalUnit(exchangeRate, data.cryptoCurrency?.decimals).toString(),
-									data.cryptoCurrency?.decimals
-								)}
+								{renderFiat(exchangeRate, currency, data.fiatCurrency?.decimals)}
 							</Text>
 						</ListItem.Amount>
 					</ListItem.Content>

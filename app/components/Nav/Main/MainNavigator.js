@@ -305,6 +305,11 @@ const FiatOnRampAggregator = () => (
 			<Stack.Screen name="GetQuotes" component={GetQuotes} options={GetQuotes.navigationOptions} />
 			<Stack.Screen name="Checkout" component={CheckoutWebView} options={CheckoutWebView.navigationOptions} />
 			<Stack.Screen name="Region" component={Region} options={Region.navigationOptions} />
+			<Stack.Screen
+				name="Region_hasStarted"
+				component={Region}
+				options={{ ...Region.navigationOptions, animationEnabled: false }}
+			/>
 			<Stack.Screen name="TransactionDetails" component={TransactionDetails} />
 		</Stack.Navigator>
 	</FiatOnRampSDKProvider>
