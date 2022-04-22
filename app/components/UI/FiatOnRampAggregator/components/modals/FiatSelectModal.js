@@ -127,7 +127,8 @@ function FiatSelectModal({
 				<ListItem style={styles.listItem}>
 					<ListItem.Content>
 						<ListItem.Body>
-							<ListItem.Title>{item.symbol}</ListItem.Title>
+							<ListItem.Title>{item.name}</ListItem.Title>
+							<Text grey>{item.symbol}</Text>
 						</ListItem.Body>
 					</ListItem.Content>
 				</ListItem>

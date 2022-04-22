@@ -117,11 +117,16 @@ const AmountToBuy = () => {
 	const currentCurrency = useMemo(() => {
 		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
 		if (currencies && selectedFiatCurrencyId) {
-			return currencies.find((currency) => currency.id === selectedFiatCurrencyId) || defaultCurrency;
+			const currency =
+				currencies.find((currency) => currency.id === selectedFiatCurrencyId) ||
+				currencies?.[0] ||
+				defaultCurrency;
+			setSelectedFiatCurrencyId(currency.id);
+			return currency;
 		}
 
 		return defaultCurrency;
-	}, [currencies, defaultCurrency, selectedFiatCurrencyId]);
+	}, [currencies, defaultCurrency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod('getPaymentMethod', selectedRegion?.id, selectedPaymentMethod);
