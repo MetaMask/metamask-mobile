@@ -465,25 +465,19 @@ class DrawerView extends PureComponent {
 	}
 
 	renderTag() {
-		let tag = null;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
-		
-    const keyringType = this.getKeyringType();
+
+		const keyringType = this.getKeyringType();
 		const isHardwareKeyring = [KeyringTypes.ledger, KeyringTypes.qr].includes(keyringType);
-    
+
 		return keyringType !== KeyringTypes.hd ? (
-			<View
-        style={[
-          styles.keyringTypeWrapper,
-          isHardwareKeyring && styles.hardwareKeyringTypeWrapper,
-        ]}
-      >
-        <Text numberOfLines={1} style={styles.keyringTypeText}>
-          {keyringType === 'Imported' && strings('accounts.imported')}
-          {isHardwareKeyring && strings('accounts.hardware')}
-        </Text>
-      </View>
+			<View style={[styles.keyringTypeWrapper, isHardwareKeyring && styles.hardwareKeyringTypeWrapper]}>
+				<Text numberOfLines={1} style={styles.keyringTypeText}>
+					{keyringType === 'Imported' && strings('accounts.imported')}
+					{isHardwareKeyring && strings('accounts.hardware')}
+				</Text>
+			</View>
 		) : null;
 	}
 

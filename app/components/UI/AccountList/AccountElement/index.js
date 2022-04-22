@@ -129,24 +129,25 @@ class AccountElement extends PureComponent {
 		const { address, name, ens, isSelected, keyringType, balanceError } = this.props.item;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
-    
+
 		const selected = isSelected ? <Icon name="check-circle" size={30} color={colors.primary.default} /> : null;
 
 		const keyRingLabel =
 			keyringType !== 'HD Key Tree' ? (
-        <View style={styles.keyringTypeLabelView}>
-          <View
-            style={[
-              styles.keyringTypeLabelWrapper,
-              keyringType === 'Ledger' && styles.hardwareKeyringLabelWrapper,
-            ]}
-          >
-            <Text numberOfLines={1} style={styles.keyringTypeLabelText}>
-              {keyringType === 'Imported' && strings('accounts.imported')}
-              { [KeyringTypes.ledger,KeyringTypes.qr].includes(keyringType) && strings('accounts.hardware')}
-            </Text>
-          </View>
-        </View>
+				<View style={styles.keyringTypeLabelView}>
+					<View
+						style={[
+							styles.keyringTypeLabelWrapper,
+							keyringType === 'Ledger' && styles.hardwareKeyringLabelWrapper,
+						]}
+					>
+						<Text numberOfLines={1} style={styles.keyringTypeLabelText}>
+							{keyringType === 'Imported' && strings('accounts.imported')}
+							{[KeyringTypes.ledger, KeyringTypes.qr].includes(keyringType) &&
+								strings('accounts.hardware')}
+						</Text>
+					</View>
+				</View>
 			) : null;
 
 		return (
