@@ -128,8 +128,6 @@
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
-<<<<<<< Updated upstream
-=======
 	<key>NSBluetoothPeripheralUsageDescription</key>
   <string>Metamask needs Bluetooth access to connect to external devices.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
@@ -138,6 +136,5 @@
 	<array>
 		<string>twitter</string>
 	</array>
->>>>>>> Stashed changes
 </dict>
 </plist>

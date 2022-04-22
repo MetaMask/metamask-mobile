@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Image, SafeAreaView, TextStyle, Alert, ActivityIndicator } from 'react-native';
+import {
+	View,
+	StyleSheet,
+	Image,
+	SafeAreaView,
+	TextStyle,
+	Alert,
+	ActivityIndicator,
+	TouchableOpacity,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
@@ -13,10 +22,11 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
+import { useDispatch } from 'react-redux';
+import { toggleLedgerTransactionModal } from '../../../actions/modals/index';
 
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
-import { listen } from '@ledgerhq/logs';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -67,6 +77,7 @@ const LedgerConnect = () => {
 	const [isRetry, setIsRetry] = useState(false);
 	const [isConnecting, setIsConnecting] = useState(false);
 	const transportRef = useRef<BluetoothTransport>();
+	const dispatch = useDispatch();
 
 	useEffect(
 		() => () => {
@@ -76,12 +87,6 @@ const LedgerConnect = () => {
 		},
 		[]
 	);
-
-	useEffect(() => {
-		listen((data) => {
-			console.log('whatever', data);
-		});
-	}, []);
 
 	const onConnectToLedgerDevice = async () => {
 		setIsConnecting(true);
@@ -150,6 +155,13 @@ const LedgerConnect = () => {
 				<View style={styles.textContainer}>
 					<Text bold>{strings('ledger.looking_for_device')}</Text>
 					<Text style={styles.instructionsText}>{strings('ledger.ledger_reminder_message')}</Text>
+					<TouchableOpacity
+						onPress={() => {
+							dispatch(toggleLedgerTransactionModal());
+						}}
+					>
+						<Text> open modal </Text>
+					</TouchableOpacity>
 				</View>
 				<View style={styles.bodyContainer}>
 					<Scan onDeviceSelected={(ledgerDevice) => setSelectedDevice(ledgerDevice)} />

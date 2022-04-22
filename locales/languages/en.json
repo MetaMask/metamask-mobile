@@ -146,7 +146,11 @@
 		"ledger_reminder_message": "Please make sure your Ledger Nano X is unlocked and bluetooth is enabled",
 		"available_devices": "Available devices",
 		"retry": "Retry",
-		"continue": "Continue"
+		"continue": "Continue",
+		"confirm_transaction_on_ledger": "Confirm transaction on your Ledger",
+		"bluetooth_enabled_message": "Make sure Bluetooth is enabled",
+		"device_unlocked_message": "Device is unlocked",
+		"blind_signing_message": "Blind signing is enabled"
 	},
 	"login": {
 		"title": "Welcome Back!",

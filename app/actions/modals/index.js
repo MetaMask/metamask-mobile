@@ -37,3 +37,7 @@ export function toggleApproveModal(show) {
 		show,
 	};
 }
+
+export const toggleLedgerTransactionModal = () => ({
+	type: 'TOGGLE_LEDGER_TRANSACTION',
+});

@@ -16,7 +16,12 @@ import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
+import {
+	toggleNetworkModal,
+	toggleAccountsModal,
+	toggleReceiveModal,
+	toggleLedgerTransactionModal,
+} from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import { getEtherscanAddressUrl, getEtherscanBaseUrl } from '../../../util/etherscan';
 import Engine from '../../../core/Engine';
@@ -49,6 +54,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import { onboardNetworkAction, networkSwitched } from '../../../actions/onboardNetwork';
+import LedgerTransactionModal from '../LedgerModal/LedgerTransactionModal';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -337,6 +343,10 @@ class DrawerView extends PureComponent {
 		 */
 		toggleReceiveModal: PropTypes.func,
 		/**
+		 * Action that toggles the Ledger's transaction modal
+		 */
+		toggleLedgerTransactionModal: PropTypes.func,
+		/**
 		 * Action that shows the global alert
 		 */
 		showAlert: PropTypes.func.isRequired,
@@ -422,7 +432,16 @@ class DrawerView extends PureComponent {
 		 *
 		 */
 		networkOnboardedState: PropTypes.array,
+		/**
+		 * Decides if ledger's transaction modal is visible
+		 */
+		ledgerTransactionModalVisible: PropTypes.bool,
 	};
+
+	constructor(props) {
+		super(props);
+		this.ledgerModalTimer = null;
+	}
 
 	state = {
 		showProtectWalletModal: undefined,
@@ -446,6 +465,13 @@ class DrawerView extends PureComponent {
 	processedNewBalance = false;
 	animatingNetworksModal = false;
 	animatingAccountsModal = false;
+	animatingLedgerTransactionModal = false;
+
+	componentWillUnmount() {
+		if (this.ledgerModalTimer) {
+			clearTimeout(this.ledgerModalTimer);
+		}
+	}
 
 	getKeyringType() {
 		const ret = 'Imported';
@@ -547,6 +573,16 @@ class DrawerView extends PureComponent {
 			}, 500);
 		}
 		!this.props.accountsModalVisible && this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
+	};
+
+	toggleLedgerTransactionModal = async () => {
+		if (!this.animatingLedgerTransactionModal) {
+			this.animatingLedgerTransactionModal = true;
+			this.props.toggleLedgerTransactionModal();
+			this.ledgerModalTimer = setTimeout(() => {
+				this.animatingLedgerTransactionModal = false;
+			}, 500);
+		}
 	};
 
 	toggleReceiveModal = () => {
@@ -1210,10 +1246,10 @@ class DrawerView extends PureComponent {
 					backdropOpacity={1}
 				>
 					{showModal ||
-					networkOnboarding.showNetworkOnboarding ||
-					(currentRoute === 'WalletView' &&
-						switchedNetwork.networkStatus &&
-						checkIfCustomNetworkExists.length === 0) ? (
+						networkOnboarding.showNetworkOnboarding ||
+						(currentRoute === 'WalletView' &&
+							switchedNetwork.networkStatus &&
+							checkIfCustomNetworkExists.length === 0) ? (
 						<NetworkInfo
 							onClose={this.onInfoNetworksModalClose}
 							type={networkType || networkOnboarding.networkType}
@@ -1258,6 +1294,19 @@ class DrawerView extends PureComponent {
 						ticker={ticker}
 					/>
 				</Modal>
+				<Modal
+					isVisible={this.props.ledgerTransactionModalVisible}
+					style={styles.bottomModal}
+					onBackdropPress={this.toggleLedgerTransactionModal}
+					onBackButtonPress={this.toggleLedgerTransactionModal}
+					onSwipeComplete={this.toggleLedgerTransactionModal}
+					swipeDirection={'down'}
+					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
+				>
+					<LedgerTransactionModal />
+				</Modal>
 				{this.renderOnboardingWizard()}
 				<Modal
 					isVisible={this.props.receiveModalVisible}
@@ -1295,6 +1344,7 @@ const mapStateToProps = (state) => ({
 	networkModalVisible: state.modals.networkModalVisible,
 	accountsModalVisible: state.modals.accountsModalVisible,
 	receiveModalVisible: state.modals.receiveModalVisible,
+	ledgerTransactionModalVisible: state.modals.ledgerTransactionModalVisible,
 	passwordSet: state.user.passwordSet,
 	wizard: state.wizard,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -1312,6 +1362,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
 	toggleNetworkModal: () => dispatch(toggleNetworkModal()),
 	toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+	toggleLedgerTransactionModal: () => dispatch(toggleLedgerTransactionModal()),
 	toggleReceiveModal: () => dispatch(toggleReceiveModal()),
 	showAlert: (config) => dispatch(showAlert(config)),
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),

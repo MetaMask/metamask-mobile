@@ -37,12 +37,8 @@ target 'MetaMask' do
   config = use_native_modules!
   # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
-<<<<<<< Updated upstream
-	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
-=======
 	permissions_path = '../node_modules/react-native-permissions/ios'
 	pod 'Permission-BluetoothPeripheral', :path => "#{permissions_path}/BluetoothPeripheral"
->>>>>>> Stashed changes
 
   use_react_native!(
     :path => config[:reactNativePath],
