@@ -12,7 +12,7 @@ interface IAccountDetailsProps {
 	item: any;
 	provider: {
 		ticker: string;
-		network: string;
+		type: string;
 	};
 }
 
@@ -34,7 +34,7 @@ const createStyle = (colors: any) =>
 			textAlignVertical: 'center',
 		},
 		index: {
-			fontSize: 22,
+			fontSize: 20,
 			color: colors.text.default,
 		},
 		information: {
@@ -49,7 +49,7 @@ const AccountDetails = (props: IAccountDetailsProps) => {
 	const { item, provider } = props;
 
 	const toEtherscan = (address: string) => {
-		const accountLink = getEtherscanAddressUrl(provider.network, address);
+		const accountLink = getEtherscanAddressUrl(provider.type, address);
 		navigation.navigate('Webview', {
 			screen: 'SimpleWebview',
 			params: {
@@ -64,7 +64,7 @@ const AccountDetails = (props: IAccountDetailsProps) => {
 				<Text style={styles.index}>{item.index}</Text>
 				<EthereumAddress style={styles.information} address={item.address} type={'short'} />
 				<Text style={styles.information}>
-					{renderFromWei(item.balance)} {provider.ticker}
+					{renderFromWei(item.balance)} {provider.ticker || 'ETH'}
 				</Text>
 			</View>
 			<Icon
