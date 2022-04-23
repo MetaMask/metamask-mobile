@@ -1,6 +1,10 @@
 # Changelog
 
 ## Current Main Branch
+
+## 5.0.1 - April 20, 2022
+- [FIX] iOS Hotfix - Add LinkPresentation library
+
 ## 5.0.0 - April 13, 2022
 - [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
 - [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
