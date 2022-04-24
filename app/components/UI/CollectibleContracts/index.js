@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, View, InteractionManager, Image } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import CollectibleContractElement from '../CollectibleContractElement';
@@ -73,18 +73,20 @@ const createStyles = (colors) =>
  * View that renders a list of CollectibleContract
  * ERC-721 and ERC-1155
  */
-const CollectibleContracts = ({
-	chainId,
-	navigation,
-	collectibleContracts,
-	collectibles,
-	useCollectibleDetection,
-	setNftDetectionDismissed,
-	nftDetectionDismissed,
-}) => {
+const CollectibleContracts = ({ navigation }) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 	const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+
+	const dispatch = useDispatch();
+
+	const chainId = useSelector((state) => state.engine.backgroundState.NetworkController.provider.chainId);
+	const useCollectibleDetection = useSelector(
+		(state) => state.engine.backgroundState.PreferencesController.useCollectibleDetection
+	);
+	const nftDetectionDismissed = useSelector((state) => state.user.nftDetectionDismissed);
+	const collectibleContracts = useSelector((state) => collectibleContractsSelector(state));
+	const collectibles = useSelector((state) => collectiblesSelector(state));
 
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
@@ -163,7 +165,7 @@ const CollectibleContracts = ({
 		navigation.navigate('Webview', { screen: 'SimpleWebview', params: { url: AppConstants.URLS.NFT } });
 
 	const dismissNftInfo = async () => {
-		setNftDetectionDismissed(true);
+		dispatch(setNftDetectionDismissed(true));
 	};
 
 	const renderEmpty = () => (
@@ -199,47 +201,14 @@ const CollectibleContracts = ({
 
 CollectibleContracts.propTypes = {
 	/**
-	 * Chain id
-	 */
-	chainId: PropTypes.string,
-	/**
 	 * Navigation object required to push
 	 * the Asset detail view
 	 */
 	navigation: PropTypes.object,
-	/**
-	 * Array of collectibleContract objects
-	 */
-	collectibleContracts: PropTypes.array,
-	/**
-	 * Array of collectibles objects
-	 */
-	collectibles: PropTypes.array,
-	/**
-	 * Boolean to show if NFT detection is enabled
-	 */
-	useCollectibleDetection: PropTypes.bool,
-	/**
-	 * Setter for NFT detection state
-	 */
-	setNftDetectionDismissed: PropTypes.func,
-	/**
-	 * State to manage display of modal
-	 */
-	nftDetectionDismissed: PropTypes.bool,
 };
-
-const mapStateToProps = (state) => ({
-	chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
-	useCollectibleDetection: state.engine.backgroundState.PreferencesController.useCollectibleDetection,
-	nftDetectionDismissed: state.user.nftDetectionDismissed,
-	collectibleContracts: collectibleContractsSelector(state),
-	collectibles: collectiblesSelector(state),
-});
 
 const mapDispatchToProps = (dispatch) => ({
 	setNftDetectionDismissed: () => dispatch(setNftDetectionDismissed()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(CollectibleContracts);
+export default connect(mapDispatchToProps)(CollectibleContracts);
