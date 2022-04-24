@@ -2,31 +2,7 @@
 
 exports[`CollectibleContracts should render correctly 1`] = `
 <CollectibleContracts
-  chainId={1}
-  collectibleContracts={
-    Array [
-      Object {
-        "address": "0x0",
-        "description": "description",
-        "logo": "logo",
-        "name": "name",
-        "symbol": "NM",
-        "totalSupply": 10,
-      },
-    ]
-  }
-  collectibles={
-    Array [
-      Object {
-        "address": "0x0",
-        "image": "image",
-        "name": "name",
-        "tokenId": 10,
-      },
-    ]
-  }
-  nftDetectionDismissed={true}
-  selectedAddress="0x1"
+  dispatch={[Function]}
   setNftDetectionDismissed={[Function]}
 />
 `;
