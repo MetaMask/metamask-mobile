@@ -25,13 +25,14 @@ import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
 import WebviewError from '../../WebviewError';
 import { PAYMENT_METHOD_ICON } from '../constants';
-
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { formatId } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-
+import SkeletonText from '../components/SkeletonText';
+import ListItem from '../../../Base/ListItem';
+import Box from '../components/Box';
 const createStyles = (colors) =>
 	StyleSheet.create({
 		viewContainer: {
@@ -59,6 +60,43 @@ const createStyles = (colors) =>
 		cta: {
 			paddingTop: 12,
 		},
+		rowTop: {
+			width: '75%',
+		},
+		rowTopSmall: {
+			width: '20%',
+			marginHorizontal: 15,
+		},
+		topView: {
+			flexDirection: 'row',
+			marginTop: 15,
+		},
+		lineOne: {
+			marginTop: 25,
+			marginBottom: 10,
+			padding: 8,
+			width: '25%',
+		},
+		lineTwo: {
+			marginTop: 12,
+			marginBottom: 10,
+			padding: 8,
+			width: '50%',
+		},
+		lineThree: {
+			marginTop: 5,
+			marginBottom: 10,
+			padding: 8,
+			width: '20%',
+		},
+		listItemText: {
+			width: '40%',
+		},
+		listItemAmounts: {
+			marginLeft: 50,
+			padding: 8,
+			width: '20%',
+		},
 	});
 
 const AmountToBuy = () => {
@@ -68,6 +106,7 @@ const AmountToBuy = () => {
 	const [amountFocused, setAmountFocused] = useState(false);
 	const [amount, setAmount] = useState('0');
 	const [amountNumber, setAmountNumber] = useState(0);
+
 	const [tokens, setTokens] = useState([]);
 	const [, setShowAlert] = useState(false);
 	const keyboardHeight = useRef(1000);
@@ -271,7 +310,6 @@ const AmountToBuy = () => {
 			setSelectedFiatCurrencyId(formatId(selectedCountry?.currency));
 		}
 	}, [selectedCountry?.currency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
-
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
 			if (amountFocused) {
@@ -293,7 +331,36 @@ const AmountToBuy = () => {
 	) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body></ScreenLayout.Body>
+				<ScreenLayout.Body>
+					<ScreenLayout.Content>
+						<View style={styles.topView}>
+							<SkeletonText style={styles.rowTop} />
+							<SkeletonText style={styles.rowTopSmall} />
+						</View>
+						<SkeletonText style={styles.lineOne} />
+						<Box>
+							<ListItem.Content>
+								<ListItem.Body>
+									<ListItem.Icon>
+										<SkeletonText />
+									</ListItem.Icon>
+								</ListItem.Body>
+								<SkeletonText style={styles.listItemAmounts} />
+							</ListItem.Content>
+						</Box>
+						<SkeletonText style={styles.lineTwo} />
+						<SkeletonText style={styles.lineThree} />
+						<Box>
+							<ListItem.Content>
+								<ListItem.Body>
+									<SkeletonText style={styles.listItemText} />
+								</ListItem.Body>
+								<SkeletonText style={styles.listItemAmounts} />
+							</ListItem.Content>
+						</Box>
+						<SkeletonText style={styles.lineTwo} />
+					</ScreenLayout.Content>
+				</ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Text from '../../../Base/Text';
@@ -14,6 +14,29 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
+import SkeletonText from '../components/SkeletonText';
+
+const styles = StyleSheet.create({
+	rowTop: {
+		marginVertical: 10,
+		marginHorizontal: 110,
+	},
+	lineOne: {
+		padding: 8,
+		marginVertical: 10,
+		//	marginHorizontal: 50,
+	},
+	lineTwo: {
+		padding: 8,
+		marginHorizontal: 40,
+	},
+	lineThree: {
+		padding: 8,
+	},
+	box: {
+		marginTop: 25,
+	},
+});
 
 const Region = () => {
 	const navigation = useNavigation();
@@ -64,10 +87,20 @@ const Region = () => {
 	if (isFetching || !data) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body></ScreenLayout.Body>
+				<ScreenLayout.Body>
+					<ScreenLayout.Content>
+						<SkeletonText style={styles.rowTop} />
+						<SkeletonText style={styles.lineOne} />
+						<SkeletonText style={styles.lineTwo} />
+						<Box style={styles.box}>
+							<SkeletonText style={styles.lineThree} />
+						</Box>
+					</ScreenLayout.Content>
+				</ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}
+
 	if (error) {
 		return (
 			<ScreenLayout>

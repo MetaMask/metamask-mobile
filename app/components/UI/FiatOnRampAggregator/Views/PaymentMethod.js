@@ -11,12 +11,39 @@ import WebviewError from '../../../UI/WebviewError';
 import { PAYMENT_METHOD_ICON } from '../constants';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-
+import SkeletonBox from '../components/SkeletonBox';
+import SkeletonText from '../components/SkeletonText';
+import ListItem from '../../../Base/ListItem';
+import Box from '../components/Box';
 const styles = StyleSheet.create({
 	row: {
 		marginVertical: 8,
 	},
+	lineTwo: {
+		padding: 8,
+		marginHorizontal: 40,
+	},
+	boxMargin: {
+		marginVertical: 10,
+	},
 });
+
+const SkeletonPaymentOption = () => (
+	<Box style={styles.boxMargin}>
+		<ListItem>
+			<ListItem.Content>
+				<ListItem.Icon>
+					<SkeletonBox />
+				</ListItem.Icon>
+				<ListItem.Body>
+					<ListItem.Title>
+						<SkeletonText style={styles.lineTwo} />
+					</ListItem.Title>
+				</ListItem.Body>
+			</ListItem.Content>
+		</ListItem>
+	</Box>
+);
 
 const PaymentMethod = () => {
 	const navigation = useNavigation();
@@ -43,7 +70,13 @@ const PaymentMethod = () => {
 	if (isFetching) {
 		return (
 			<ScreenLayout>
-				<ScreenLayout.Body></ScreenLayout.Body>
+				<ScreenLayout.Body>
+					<ScreenLayout.Content>
+						<SkeletonPaymentOption />
+						<SkeletonPaymentOption />
+						<SkeletonPaymentOption />
+					</ScreenLayout.Content>
+				</ScreenLayout.Body>
 			</ScreenLayout>
 		);
 	}
