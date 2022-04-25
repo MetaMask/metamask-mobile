@@ -10,8 +10,6 @@ interface DownloadResult {
 
 const shareFile = async (filePath: string) => {
 	const options: ShareOptions = {
-		title: strings('download_files.title'),
-		message: strings('download_files.message'),
 		url: filePath,
 		saveToFiles: true,
 		failOnCancel: false,
