@@ -53,7 +53,7 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 	const fiatSymbol = fiat?.denomSymbol || '';
 
 	return (
-		<Box onPress={onPress} highlighted={highlighted}>
+		<Box onPress={highlighted ? undefined : onPress} highlighted={highlighted}>
 			<ListItem.Content>
 				<ListItem.Body>
 					<ListItem.Title>
