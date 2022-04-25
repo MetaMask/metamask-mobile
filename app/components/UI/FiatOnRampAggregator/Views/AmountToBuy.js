@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, Pressable, View, BackHandler } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
-// import sdk hooks
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import Text from '../../../Base/Text';
 import SelectorButton from '../../../Base/SelectorButton';
@@ -17,14 +17,14 @@ import Keypad from '../components/Keypad';
 import QuickAmounts from '../components/QuickAmounts';
 import AccountSelector from '../components/AccountSelector';
 import TokenIcon from '../../Swaps/components/TokenIcon';
-// import modals
+
 import TokenSelectModal from '../components/TokenSelectModal';
 import PaymentMethodModal from '../components/PaymentMethodModal';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
 import WebviewError from '../../WebviewError';
-import { PAYMENT_METHOD_ICON } from '../constants';
+import { NATIVE_ADDRESS, PAYMENT_METHOD_ICON } from '../constants';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
@@ -72,7 +72,7 @@ const AmountToBuy = () => {
 	const keypadOffset = useSharedValue(1000);
 	const [isTokenSelectorModalVisible, toggleTokenSelectorModal, , hideTokenSelectorModal] = useModalHandler(false);
 	const [isFiatSelectorModalVisible, toggleFiatSelectorModal, , hideFiatSelectorModal] = useModalHandler(false);
-	const [isPaymentMethodModalVisible, togglePaymentMethodModal] = useModalHandler(false);
+	const [isPaymentMethodModalVisible, , showPaymentMethodsModal, hidePaymentMethodModal] = useModalHandler(false);
 	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
 
 	useEffect(() => {
@@ -81,13 +81,14 @@ const AmountToBuy = () => {
 
 	const {
 		selectedPaymentMethod,
+		setSelectedPaymentMethod,
 		selectedRegion,
 		setSelectedRegion,
 		selectedAsset,
 		setSelectedAsset,
 		selectedFiatCurrencyId,
 		setSelectedFiatCurrencyId,
-		selectedChainId: chainId,
+		selectedChainId,
 	} = useFiatOnRampSDK();
 
 	const selectedFiatCurrency = selectedFiatCurrencyId || selectedRegion?.currency;
@@ -130,6 +131,9 @@ const AmountToBuy = () => {
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod('getPaymentMethod', selectedRegion?.id, selectedPaymentMethod);
+
+	const [{ data: paymentMethods, error: errorGetPaymentMethods, isFetching: isFetchingGetPaymentMethods }] =
+		useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
@@ -210,14 +214,17 @@ const AmountToBuy = () => {
 	);
 
 	/****************** PAYMENT METHODS HANDLERS *********************************/
-	const handlePaymentMethodSelectorPress = useCallback(() => {
-		togglePaymentMethodModal();
-	}, [togglePaymentMethodModal]);
-
-	const handleChangePaymentMethod = useCallback(() => {
-		setAmount('0');
-		setAmountNumber(0);
-	}, []);
+	const handleChangePaymentMethod = useCallback(
+		(paymentMethodId) => {
+			if (paymentMethodId) {
+				setAmount('0');
+				setAmountNumber(0);
+				setSelectedPaymentMethod(paymentMethodId);
+			}
+			hidePaymentMethodModal();
+		},
+		[hidePaymentMethodModal, setSelectedPaymentMethod]
+	);
 
 	const handleGetQuotePress = useCallback(() => {
 		navigation.navigate('GetQuotes', { amount: amountNumber });
@@ -237,12 +244,28 @@ const AmountToBuy = () => {
 	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
 	useEffect(() => {
 		if (!isFetchingDataTokens && !errorDataTokens && dataTokens) {
-			setTokens(dataTokens);
-			setSelectedAsset(
-				dataTokens.some((a) => a.symbol === 'ETH') ? dataTokens.find((a) => a.symbol === 'ETH') : dataTokens[0]
+			const filteredTokens = dataTokens.filter(
+				(token) => Number(token.network?.chainId) === Number(selectedChainId)
 			);
+			setTokens(filteredTokens);
+			setSelectedAsset(filteredTokens.find((a) => a.address === NATIVE_ADDRESS) || dataTokens[0]);
 		}
-	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset]);
+	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset, selectedChainId]);
+
+	useEffect(() => {
+		if (!isFetchingGetPaymentMethods && !errorGetPaymentMethods && paymentMethods) {
+			const paymentMethod = paymentMethods.find((pm) => pm.id === selectedPaymentMethod);
+			if (!paymentMethod) {
+				setSelectedPaymentMethod(paymentMethods?.[0]?.id);
+			}
+		}
+	}, [
+		errorGetPaymentMethods,
+		isFetchingGetPaymentMethods,
+		paymentMethods,
+		selectedPaymentMethod,
+		setSelectedPaymentMethod,
+	]);
 
 	// side effect to set selected fiat currenct to default
 	useEffect(() => {
@@ -266,6 +289,7 @@ const AmountToBuy = () => {
 	if (
 		isFetchingDataTokens ||
 		isFetchingGetPaymentMethod ||
+		isFetchingGetPaymentMethods ||
 		isFetchingCurrencies ||
 		isFetchingDefaultCurrency ||
 		isFetchingCountries
@@ -277,7 +301,14 @@ const AmountToBuy = () => {
 		);
 	}
 
-	if (errorDataTokens || errorGetPaymentMethod || errorCurrencies || errorDefaultCurrnecy || errorCountries) {
+	if (
+		errorDataTokens ||
+		errorGetPaymentMethod ||
+		errorGetPaymentMethods ||
+		errorCurrencies ||
+		errorDefaultCurrnecy ||
+		errorCountries
+	) {
 		return (
 			<WebviewError
 				error={{ description: errorDataTokens || errorGetPaymentMethod }}
@@ -334,7 +365,7 @@ const AmountToBuy = () => {
 							/>
 						}
 						name={currentPaymentMethod?.name}
-						onPress={handlePaymentMethodSelectorPress}
+						onPress={showPaymentMethodsModal}
 					/>
 					<View style={[styles.row, styles.cta]}>
 						<StyledButton type="confirm" onPress={handleGetQuotePress} disabled={amountNumber <= 0}>
@@ -372,7 +403,6 @@ const AmountToBuy = () => {
 				title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
 				description={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency_description')}
 				tokens={tokens}
-				chainId={chainId}
 				onItemPress={handleAssetPress}
 			/>
 			<FiatSelectModal
@@ -384,8 +414,10 @@ const AmountToBuy = () => {
 			/>
 			<PaymentMethodModal
 				isVisible={isPaymentMethodModalVisible}
-				dismiss={togglePaymentMethodModal}
+				dismiss={hidePaymentMethodModal}
 				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
+				paymentMethods={paymentMethods}
+				selectedPaymentMethod={selectedPaymentMethod}
 				onItemPress={handleChangePaymentMethod}
 			/>
 			<RegionModal
