@@ -1,16 +1,18 @@
 import { useCallback } from 'react';
+// @ts-expect-error ts(7016) react-native-payments is not typed
 import { PaymentRequest } from '@exodus/react-native-payments';
 
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
+import { CryptoCurrency, QuoteResponse } from '@consensys/on-ramp-sdk';
 
 //* Payment Request */
 
-const ABORTED = 'ABORTED';
+export const ABORTED = 'ABORTED';
 
 //* Setup */
 const applePaySetup = {
-	getPurchaseFiatAmountWithoutFeeLabel(crypto) {
+	getPurchaseFiatAmountWithoutFeeLabel(crypto: CryptoCurrency) {
 		return strings('fiat_on_ramp.wyre_purchase', { currency: crypto.symbol });
 	},
 
@@ -23,8 +25,12 @@ const applePaySetup = {
 	},
 };
 
-function useApplePay(quote) {
+function useApplePay(quote: QuoteResponse) {
 	const showRequest = useCallback(async () => {
+		if (!quote.getApplePayRequestInfo || !quote.purchaseWithApplePay) {
+			throw new Error('Quote does not support Apple Pay');
+		}
+
 		const applePayInfo = quote.getApplePayRequestInfo(applePaySetup);
 		const paymentRequest = new PaymentRequest(
 			applePayInfo.methodData,
@@ -45,13 +51,13 @@ function useApplePay(quote) {
 
 			throw new Error(purchaseResult.error);
 		} catch (error) {
-			if (error.message.includes('AbortError')) {
+			if ((error as Error).message.includes('AbortError')) {
 				return ABORTED;
 			}
 			if (paymentRequest?.abort) {
 				paymentRequest.abort();
 			}
-			Logger.error(error, { message: 'FiatOnRampAgg::ApplePay error while creating order' });
+			Logger.error(error as Error, { message: 'FiatOnRampAgg::ApplePay error while creating order' });
 			throw error;
 		}
 	}, [quote]);

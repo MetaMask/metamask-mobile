@@ -4,16 +4,18 @@ import { useNavigation } from '@react-navigation/native';
 import { protectWalletModalNotVisible } from '../../../../actions/user';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import ApplePayButtonComponent from '../components/ApplePayButton';
-import useApplePay from '../hooks/applePay';
+import useApplePay, { ABORTED } from '../hooks/applePay';
 import Logger from '../../../../util/Logger';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
 import { setLockTime } from '../../../../actions/settings';
+import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
+import { QuoteResponse } from '@consensys/on-ramp-sdk';
 
-const ApplePayButton = ({ quote, label }: { quote: any; label: string }) => {
+const ApplePayButton = ({ quote, label }: { quote: QuoteResponse; label: string }) => {
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
-	const [pay, ABORTED] = useApplePay(quote) as [() => Promise<any>, string];
+	const [pay] = useApplePay(quote) as [() => Promise<FiatOrder | typeof ABORTED>];
 	const lockTime = useSelector((state: any) => state.settings.lockTime);
 
 	// const setLockTime = useCallback((time) => dispatch(setLockTime(time)), [dispatch]);
@@ -31,6 +33,7 @@ const ApplePayButton = ({ quote, label }: { quote: any; label: string }) => {
 					// @ts-expect-error pop is not defined
 					navigation.dangerouslyGetParent()?.pop();
 					protectWalletModalVisible();
+					NotificationManager.showSimpleNotification(getNotificationDetails(order));
 				} else {
 					Logger.error('FiatOnRampAgg::ApplePay empty order response', order);
 				}
@@ -39,7 +42,7 @@ const ApplePayButton = ({ quote, label }: { quote: any; label: string }) => {
 			NotificationManager.showSimpleNotification({
 				duration: 5000,
 				title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-					currency: quote.crypto.symbol,
+					currency: quote.crypto?.symbol,
 				}),
 				description: error.message,
 				status: 'error',
@@ -48,7 +51,7 @@ const ApplePayButton = ({ quote, label }: { quote: any; label: string }) => {
 		} finally {
 			setLockTime(prevLockTime);
 		}
-	}, [ABORTED, addOrder, lockTime, navigation, pay, protectWalletModalVisible, quote.crypto.symbol]);
+	}, [addOrder, lockTime, navigation, pay, protectWalletModalVisible, quote.crypto?.symbol]);
 
 	return <ApplePayButtonComponent label={label} onPress={handlePress} />;
 };
