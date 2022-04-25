@@ -18,7 +18,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
+import { isHardwareAccount, renderAccountName } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { doENSReverseLookup, isDefaultAccountName } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -335,7 +335,7 @@ class AccountOverview extends PureComponent {
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel, ens } = this.state;
 
-		const isQRHardwareWalletAccount = isQRHardwareAccount(address);
+		const isHardwareWalletAccount = isHardwareAccount(address);
 
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
@@ -400,7 +400,7 @@ class AccountOverview extends PureComponent {
 											{isDefaultAccountName(name) && ens ? ens : name}
 										</Text>
 									</TouchableOpacity>
-									{isQRHardwareWalletAccount && (
+									{isHardwareWalletAccount && (
 										<View style={styles.tag}>
 											<Text style={styles.tagText}>{strings('transaction.hardware')}</Text>
 										</View>

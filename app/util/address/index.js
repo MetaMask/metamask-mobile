@@ -107,6 +107,28 @@ export function isQRHardwareAccount(address) {
 }
 
 /**
+ * judge address is hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isHardwareAccount(address) {
+	const addressToCheck = address.toLowerCase();
+	const { KeyringController } = Engine.context;
+	const { keyrings } = KeyringController.state;
+	for (const keyring of keyrings) {
+		if (
+			[KeyringTypes.qr, KeyringTypes.ledger].includes(keyring.type) &&
+			keyring.accounts.findIndex((account) => account.toLowerCase() === addressToCheck) >= 0
+		) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * judge address's account type for tracking
  *
  * @param {String} address - String corresponding to an address
