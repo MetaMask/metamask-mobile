@@ -432,9 +432,11 @@ export const getRpcMethodMiddleware = ({
 				const { TokensController } = Engine.context;
 
 				checkTabActive();
-				const suggestionResult = await TokensController.watchAsset({ address, symbol, decimals, image }, type);
-
-				res.result = suggestionResult.result;
+				const { suggestedAssetMeta } = await TokensController.watchAsset(
+					{ address, symbol, decimals, image },
+					type
+				);
+				res.result = suggestedAssetMeta;
 			},
 
 			metamask_removeFavorite: async () => {
