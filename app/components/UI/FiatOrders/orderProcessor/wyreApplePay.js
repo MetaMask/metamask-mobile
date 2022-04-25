@@ -532,7 +532,7 @@ const paymentOptions = {
 	requestPayerPhone: true,
 	requestPayerEmail: true,
 	requestBilling: true,
-	merchantCapabilities: ['debit', 'credit'],
+	merchantCapabilities: ['debit'],
 };
 
 const createPayload = (network, amount, address, currency, paymentDetails) => {
