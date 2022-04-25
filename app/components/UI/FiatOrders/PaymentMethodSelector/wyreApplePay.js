@@ -50,7 +50,7 @@ const WyreApplePayPaymentMethod = ({ onPress }) => (
 					<ApplePayMark />
 				</PaymentMethod.Title>
 				<Text bold>{strings('fiat_on_ramp.fast_no_registration')}</Text>
-				<Text>{strings('fiat_on_ramp.debit_credit_card_required')}</Text>
+				<Text>{strings('fiat_on_ramp.debit_card_required')}</Text>
 
 				<PaymentMethod.InfoIconLine>
 					<Text>
