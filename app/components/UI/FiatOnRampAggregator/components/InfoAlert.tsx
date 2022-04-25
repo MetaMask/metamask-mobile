@@ -3,12 +3,18 @@ import { StyleSheet, TouchableOpacity, View, Linking } from 'react-native';
 import Modal from 'react-native-modal';
 
 import CustomText from '../../../Base/Text';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
+import CustomTitle from '../../../Base/Title';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Box from '../components/Box';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme } from '../../../../util/theme';
+import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import RemoteImage from '../../../Base/RemoteImage';
+import { Logos } from '@consensys/on-ramp-sdk/dist/API';
 
 const Text = CustomText as any;
+const Title = CustomTitle as any;
+
+const LOGO_SIZE = 1;
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -16,40 +22,41 @@ const createStyles = (colors: any) =>
 			backgroundColor: colors.background.default,
 			paddingHorizontal: 20,
 			paddingBottom: 20,
-		},
-		title: {
-			fontSize: 18,
+			borderWidth: 0,
 		},
 		cancel: {
 			alignSelf: 'flex-end',
+			marginBottom: -15,
+			zIndex: 1,
 		},
 		modal: {
 			padding: 8,
 		},
+		title: {
+			alignItems: 'center',
+		},
 		row: {
 			paddingVertical: 8,
-		},
-		paddingAndFont: {
-			padding: 3,
-			fontSize: 10,
 		},
 	});
 
 interface Props {
 	isVisible?: boolean;
 	providerName?: string;
+	logos?: Logos;
 	subtitle?: string;
 	body?: string;
 	footer?: string;
 	dismissButtonText?: string;
-	providerWebsite: string;
-	providerPrivacyPolicy: string;
-	providerSupport: string;
+	providerWebsite?: string;
+	providerPrivacyPolicy?: string;
+	providerSupport?: string;
 	dismiss?: () => any;
 }
 
 const InfoAlert: React.FC<Props> = ({
 	isVisible,
+	logos,
 	providerName,
 	subtitle,
 	body,
@@ -60,6 +67,8 @@ const InfoAlert: React.FC<Props> = ({
 }: Props) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
+	const logoKey: keyof Logos = useAssetFromTheme('light', 'dark');
+
 	const handleLinkPress = useCallback(async (url: string) => {
 		const supported = await Linking.canOpenURL(url);
 		if (supported) {
@@ -77,32 +86,54 @@ const InfoAlert: React.FC<Props> = ({
 			style={styles.modal}
 		>
 			<Box style={styles.box}>
-				<TouchableOpacity onPress={dismiss} style={styles.cancel}>
-					<EvilIcons name="close" size={17} color={colors.icon.default} />
+				<TouchableOpacity
+					onPress={dismiss}
+					style={styles.cancel}
+					hitSlop={{ top: 10, left: 20, right: 10, bottom: 10 }}
+				>
+					<IonicIcon name="ios-close" size={30} color={colors.icon.default} />
 				</TouchableOpacity>
-				<View style={styles.row}>
-					<Text bold primary big centered style={styles.title}>
-						{providerName}
-					</Text>
-					<Text style={styles.paddingAndFont}>{subtitle}</Text>
-					<View style={styles.row}>
-						<Text small>{body}</Text>
-					</View>
-					<TouchableOpacity onPress={() => handleLinkPress(providerWebsite)}>
-						<Text blue underline small centered style={styles.paddingAndFont}>
-							{providerWebsite}
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity onPress={() => handleLinkPress(providerPrivacyPolicy)}>
-						<Text blue underline small centered style={styles.paddingAndFont}>
-							{strings('app_information.privacy_policy')}
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity onPress={() => handleLinkPress(providerSupport)}>
-						<Text blue underline small centered style={styles.paddingAndFont}>
-							{providerName + ' ' + strings('fiat_on_ramp_aggregator.support')}
-						</Text>
-					</TouchableOpacity>
+				<View style={styles.title}>
+					{logos?.[logoKey] ? (
+						<RemoteImage
+							style={{
+								width: logos.width * LOGO_SIZE,
+								height: logos.height * LOGO_SIZE,
+							}}
+							source={{ uri: logos[logoKey] }}
+						/>
+					) : (
+						<Title centered>{providerName}</Title>
+					)}
+					{Boolean(subtitle) && (
+						<View style={styles.row}>
+							<Text small grey centered>
+								{subtitle}
+							</Text>
+						</View>
+					)}
+					<View style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
+					{Boolean(providerWebsite) && (
+						<TouchableOpacity onPress={() => handleLinkPress(providerWebsite as string)}>
+							<Text small link underline centered>
+								{providerWebsite}
+							</Text>
+						</TouchableOpacity>
+					)}
+					{Boolean(providerPrivacyPolicy) && (
+						<TouchableOpacity onPress={() => handleLinkPress(providerPrivacyPolicy as string)}>
+							<Text small link underline centered>
+								{strings('app_information.privacy_policy')}
+							</Text>
+						</TouchableOpacity>
+					)}
+					{Boolean(providerSupport) && (
+						<TouchableOpacity onPress={() => handleLinkPress(providerSupport as string)}>
+							<Text small link underline centered>
+								{providerName + ' ' + strings('fiat_on_ramp_aggregator.support')}
+							</Text>
+						</TouchableOpacity>
+					)}
 				</View>
 			</Box>
 		</Modal>

@@ -3,6 +3,7 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
+import CustomTitle from '../../../Base/Title';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import { renderFiat, renderFromTokenMinimalUnit, toTokenMinimalUnit } from '../../../../util/number';
@@ -15,6 +16,7 @@ import { Logos } from '@consensys/on-ramp-sdk/dist/API';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
+const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
@@ -23,6 +25,13 @@ const styles = StyleSheet.create({
 	},
 	buyButton: {
 		marginTop: 10,
+	},
+	title: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
+	infoIcon: {
+		marginLeft: 8,
 	},
 });
 
@@ -49,17 +58,21 @@ const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highligh
 				<ListItem.Body>
 					<ListItem.Title>
 						<TouchableOpacity onPress={showInfo}>
-							{quote.provider?.logos?.[logoKey] && (
-								<RemoteImage
-									style={{
-										width: quote.provider.logos.width,
-										height: quote.provider.logos.height,
-									}}
-									source={{ uri: quote.provider?.logos?.[logoKey] }}
-								/>
-							)}
+							<View style={styles.title}>
+								{quote.provider?.logos?.[logoKey] ? (
+									<RemoteImage
+										style={{
+											width: quote.provider.logos.width,
+											height: quote.provider.logos.height,
+										}}
+										source={{ uri: quote.provider?.logos?.[logoKey] }}
+									/>
+								) : (
+									<Title>{quote?.provider?.name}</Title>
+								)}
 
-							<Feather name="info" size={12} />
+								{quote?.provider && <Feather name="info" size={12} style={styles.infoIcon} />}
+							</View>
 						</TouchableOpacity>
 					</ListItem.Title>
 				</ListItem.Body>

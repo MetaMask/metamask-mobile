@@ -92,6 +92,12 @@ const createStyles = (colors) =>
 		},
 	});
 
+const LINK = {
+	HOMEPAGE: 'Homepage',
+	PRIVACY_POLICY: 'Privacy Policy',
+	SUPPORT: 'Support',
+};
+
 const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
 
 const GetQuotes = () => {
@@ -110,7 +116,7 @@ const GetQuotes = () => {
 	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(appConfig.POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(appConfig.POLLING_INTERVAL);
 	const [showInfo, setShowInfo] = useState(false);
-	const [selectedProviderInfo] = useState({});
+	const [selectedProviderInfo, setSelectedProviderInfo] = useState(null);
 	const [providerId, setProviderId] = useState(null);
 
 	const scrollOffsetY = useSharedValue(0);
@@ -144,6 +150,7 @@ const GetQuotes = () => {
 				if (newRemainingTime <= 0) {
 					setPollingCyclesLeft((cycles) => cycles - 1);
 					// we never fetch data if we run out of remaining polling cycles
+					setShowInfo(false);
 					pollingCyclesLeft > 0 && fetchQuotes();
 				}
 
@@ -172,6 +179,7 @@ const GetQuotes = () => {
 	useEffect(() => {
 		if (pollingCyclesLeft < 0 || ErrorFetchingQuotes) {
 			setIsInPolling(false);
+			setShowInfo(false);
 		}
 	}, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
@@ -186,6 +194,13 @@ const GetQuotes = () => {
 
 	const handleOnPress = useCallback((quote) => {
 		setProviderId(quote.provider.id);
+	}, []);
+
+	const handleInfoPress = useCallback((quote) => {
+		if (quote?.provider) {
+			setSelectedProviderInfo(quote?.provider);
+			setShowInfo(true);
+		}
 	}, []);
 
 	const handleOnPressBuy = useCallback(
@@ -212,10 +227,10 @@ const GetQuotes = () => {
 						primary
 						style={[
 							styles.timer,
-							remainingTime < appConfig.POLLING_INTERVAL_HIGHLIGHT && styles.timerHiglight,
+							remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT && styles.timerHiglight,
 						]}
 					>
-						{new Date(remainingTime).toISOString().substr(15, 4)}
+						{new Date(remainingTime).toISOString().substring(15, 19)}
 					</Text>
 				</Text>
 			)}
@@ -279,13 +294,16 @@ const GetQuotes = () => {
 			</ScreenLayout.Header>
 			<InfoAlert
 				isVisible={showInfo}
-				subtitle={selectedProviderInfo.subtitle}
 				dismiss={() => setShowInfo(false)}
-				providerName={selectedProviderInfo.name}
-				body={selectedProviderInfo.body}
-				providerWebsite={selectedProviderInfo.website}
-				providerPrivacyPolicy={selectedProviderInfo.privacyPolicy}
-				providerSupport={selectedProviderInfo.support}
+				providerName={selectedProviderInfo?.name}
+				logos={selectedProviderInfo?.logos}
+				subtitle={selectedProviderInfo?.hqAddress}
+				body={selectedProviderInfo?.description}
+				providerWebsite={selectedProviderInfo?.links?.find((link) => link.name === LINK.HOMEPAGE)?.url}
+				providerPrivacyPolicy={
+					selectedProviderInfo?.links?.find((link) => link.name === LINK.PRIVACY_POLICY)?.url
+				}
+				providerSupport={selectedProviderInfo?.links?.find((link) => link.name === LINK.SUPPORT)?.url}
 			/>
 			<ScreenLayout.Body>
 				<Animated.View style={[styles.topBorder, animatedStyles]} />
@@ -305,7 +323,7 @@ const GetQuotes = () => {
 										onPress={() => handleOnPress(quote)}
 										onPressBuy={() => handleOnPressBuy(quote)}
 										highlighted={quote.provider.id === providerId}
-										showInfo={() => setShowInfo(true)}
+										showInfo={() => handleInfoPress(quote)}
 									/>
 								</View>
 							))
