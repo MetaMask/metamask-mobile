@@ -545,7 +545,7 @@ class DrawerView extends PureComponent {
 	updateAccountInfo = async () => {
 		const { identities, network, selectedAddress } = this.props;
 		const { currentNetwork, address, name } = this.state.account;
-		const accountName = identities[selectedAddress].name;
+		const accountName = identities[selectedAddress]?.name;
 		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
 			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
 			this.setState((state) => ({
@@ -1040,7 +1040,6 @@ class DrawerView extends PureComponent {
 			networkOnboardedState,
 			switchedNetwork,
 			networkModalVisible,
-			navigation,
 		} = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -1231,7 +1230,6 @@ class DrawerView extends PureComponent {
 							onClose={this.onInfoNetworksModalClose}
 							type={networkType || networkOnboarding.networkType}
 							ticker={ticker}
-							navigation={navigation}
 						/>
 					) : (
 						<NetworkList
