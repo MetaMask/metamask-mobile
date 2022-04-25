@@ -16,3 +16,5 @@ export const PAYMENT_METHOD_ICON = {
 	'/payments/bank-account': Icon.Bank,
 	'/payments/apple-pay': Icon.Apple,
 };
+
+export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
