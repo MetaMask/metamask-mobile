@@ -90,7 +90,7 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const selectedChainId: string = useSelector(chainIdSelector);
 
 	const INITIAL_PAYMENT_METHOD: string = useSelector(fiatOrdersPaymentMethodSelectorAgg);
-	const INITIAL_SELECTED_ASSET = 'ETH';
+	const INITIAL_SELECTED_ASSET = null;
 
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);

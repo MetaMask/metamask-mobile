@@ -243,14 +243,14 @@ const AmountToBuy = () => {
 
 	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
 	useEffect(() => {
-		if (!isFetchingDataTokens && !errorDataTokens && dataTokens) {
+		if (!isFetchingDataTokens && !errorDataTokens && dataTokens && !selectedAsset) {
 			const filteredTokens = dataTokens.filter(
 				(token) => Number(token.network?.chainId) === Number(selectedChainId)
 			);
 			setTokens(filteredTokens);
 			setSelectedAsset(filteredTokens.find((a) => a.address === NATIVE_ADDRESS) || dataTokens[0]);
 		}
-	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset, selectedChainId]);
+	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset, selectedChainId, selectedAsset]);
 
 	useEffect(() => {
 		if (!isFetchingGetPaymentMethods && !errorGetPaymentMethods && paymentMethods) {
