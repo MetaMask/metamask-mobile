@@ -2,11 +2,10 @@ import React, { PureComponent } from 'react';
 import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
-import AssetIcon from '../AssetIcon';
-import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import AppConstants from '../../../core/AppConstants';
-import { colors, fontStyles } from '../../../styles/common';
+import TokenImage from '../../UI/TokenImage';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { connect } from 'react-redux';
@@ -25,66 +24,68 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		padding: 20,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: colors.grey100,
-		alignContent: 'center',
-		alignItems: 'center',
-		paddingBottom: 30,
-	},
-	assetLogo: {
-		marginTop: 15,
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 10,
-		marginBottom: 10,
-	},
-	ethLogo: {
-		width: 70,
-		height: 70,
-	},
-	balance: {
-		alignItems: 'center',
-		marginTop: 10,
-		marginBottom: 20,
-	},
-	amount: {
-		fontSize: 30,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-		textTransform: 'uppercase',
-	},
-	amountFiat: {
-		fontSize: 18,
-		color: colors.fontSecondary,
-		...fontStyles.light,
-		textTransform: 'uppercase',
-	},
-	actions: {
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'flex-start',
-		flexDirection: 'row',
-	},
-	warning: {
-		borderRadius: 8,
-		color: colors.black,
-		...fontStyles.normal,
-		fontSize: 14,
-		lineHeight: 20,
-		borderWidth: 1,
-		borderColor: colors.yellow,
-		backgroundColor: colors.yellow100,
-		padding: 20,
-	},
-	warningLinks: {
-		color: colors.blue,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			padding: 20,
+			borderBottomWidth: StyleSheet.hairlineWidth,
+			borderBottomColor: colors.border.muted,
+			alignContent: 'center',
+			alignItems: 'center',
+			paddingBottom: 30,
+		},
+		assetLogo: {
+			marginTop: 15,
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderRadius: 10,
+			marginBottom: 10,
+		},
+		ethLogo: {
+			width: 70,
+			height: 70,
+		},
+		balance: {
+			alignItems: 'center',
+			marginTop: 10,
+			marginBottom: 20,
+		},
+		amount: {
+			fontSize: 30,
+			color: colors.text.default,
+			...fontStyles.normal,
+			textTransform: 'uppercase',
+		},
+		amountFiat: {
+			fontSize: 18,
+			color: colors.text.alternative,
+			...fontStyles.light,
+			textTransform: 'uppercase',
+		},
+		actions: {
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'flex-start',
+			flexDirection: 'row',
+		},
+		warning: {
+			borderRadius: 8,
+			color: colors.text.default,
+			...fontStyles.normal,
+			fontSize: 14,
+			lineHeight: 20,
+			borderWidth: 1,
+			borderColor: colors.warning.default,
+			backgroundColor: colors.warning.muted,
+			padding: 20,
+		},
+		warningLinks: {
+			color: colors.primary.default,
+		},
+	});
 
 /**
  * View that displays the information of a specific asset (Token or ETH)
@@ -200,21 +201,21 @@ class AssetOverview extends PureComponent {
 			screen: 'BrowserView',
 			params: {
 				newTabUrl: url,
+				timestamp: Date.now(),
 			},
 		});
 	}
 
 	renderLogo = () => {
-		const {
-			tokenList,
-			asset: { address, isETH },
-		} = this.props;
-		if (isETH) {
-			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
-		}
-		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
+		const { tokenList, asset } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
-		return iconUrl ? <AssetIcon logo={iconUrl} /> : <Identicon address={address} />;
+		return asset.isETH ? (
+			<NetworkMainAssetLogo biggest style={styles.ethLogo} />
+		) : (
+			<TokenImage asset={asset} tokenList={tokenList} />
+		);
 	};
 
 	componentDidMount = async () => {
@@ -230,6 +231,8 @@ class AssetOverview extends PureComponent {
 		const {
 			asset: { symbol },
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		const supportArticleUrl =
 			'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
@@ -258,6 +261,9 @@ class AssetOverview extends PureComponent {
 			swapsIsLive,
 			swapsTokens,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		let mainBalance, secondaryBalance;
 		const itemAddress = safeToChecksumAddress(address);
 		let balance, balanceFiat;
@@ -348,5 +354,7 @@ const mapDispatchToProps = (dispatch) => ({
 	toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 });
+
+AssetOverview.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(AssetOverview);

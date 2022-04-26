@@ -20,9 +20,10 @@ import ImportTokensView from '../pages/ImportTokensView';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import NetworkListModal from '../pages/modals/NetworkListModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
+import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 
-const CORRECT_SEED_WORDS = 'fold media south add since false relax immense pause cloth just raven';
-const CORRECT_PASSWORD = `12345678`;
+const SECRET_RECOVERY_PHRASE = 'fold media south add since false relax immense pause cloth just raven';
+const PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
 const RINKEBY = 'Rinkeby Test Network';
 const ETHEREUM = 'Ethereum Main Network';
@@ -52,9 +53,9 @@ describe('Wallet Tests', () => {
 
 	it('should import wallet with secret recovery phrase', async () => {
 		await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-		await ImportWalletView.enterSecretRecoveryPhrase(CORRECT_SEED_WORDS);
-		await ImportWalletView.enterPassword(CORRECT_PASSWORD);
-		await ImportWalletView.reEnterPassword(CORRECT_PASSWORD);
+		await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
+		await ImportWalletView.enterPassword(PASSWORD);
+		await ImportWalletView.reEnterPassword(PASSWORD);
 		await WalletView.isVisible();
 	});
 
@@ -138,6 +139,12 @@ describe('Wallet Tests', () => {
 		await WalletView.isNetworkNameVisible(RINKEBY);
 	});
 
+	it('should dismiss network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
+	});
+
 	it('should add a collectible', async () => {
 		await WalletView.isVisible();
 		// Tap on COLLECTIBLES tab
@@ -170,11 +177,10 @@ describe('Wallet Tests', () => {
 		// Tap on Crypto Kitty
 		await WalletView.tapOnNFTInWallet('CryptoKitties');
 
-		await WalletView.isNFTAppearing('1 CryptoKitties');
+		await WalletView.isNFTNameVisible('1 CryptoKitties');
 	});
 
-	it('should add a token', async () => {
-		// Check that we are on the wallet screen
+	it('should switch back to Mainnet network', async () => {
 		await WalletView.isVisible();
 		// Tap on TOKENS tab
 		await WalletView.tapTokensTab();
@@ -184,7 +190,16 @@ describe('Wallet Tests', () => {
 		await NetworkListModal.isVisible();
 		await NetworkListModal.changeNetwork(ETHEREUM);
 		await WalletView.isNetworkNameVisible(ETHEREUM);
+	});
 
+	it('should dismiss mainnet network education modal', async () => {
+		await NetworkEducationModal.isVisible();
+		await NetworkEducationModal.tapGotItButton();
+		await NetworkEducationModal.isNotVisible();
+	});
+
+	it('should add a token', async () => {
+		// Check that we are on the wallet screen
 		// Tap on Add Tokens
 		await WalletView.tapImportTokensButton();
 		// Search for SAI
@@ -205,7 +220,7 @@ describe('Wallet Tests', () => {
 
 		await WalletView.tapOKAlertButton();
 		await TestHelpers.delay(1500);
-		await WalletView.TokenIsNotVisibleInWallet('0 DAI');
+		await WalletView.tokenIsNotVisibleInWallet('0 DAI');
 	});
 
 	it('should add a custom token', async () => {
@@ -222,12 +237,13 @@ describe('Wallet Tests', () => {
 
 		// Type incorrect token symbol
 		await AddCustomTokenView.typeTokenSymbol('ROCK');
+
 		// Tap to focus outside of text input field
 		await TestHelpers.delay(700);
 		await AddCustomTokenView.tapTokenSymbolText();
 		await TestHelpers.delay(700);
 		// Check that token decimals warning is displayed
-		await AddCustomTokenView.isTokenSymbolWarningVisible();
+		await AddCustomTokenView.isTokenPrecisionWarningVisible();
 		// Go back
 		await AddCustomTokenView.tapBackButton();
 
@@ -240,6 +256,7 @@ describe('Wallet Tests', () => {
 		// Type correct token address
 
 		await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
+		await AddCustomTokenView.tapTokenSymbolInputBox();
 		await AddCustomTokenView.tapTokenSymbolText();
 		await AddCustomTokenView.tapCustomTokenImportButton();
 

@@ -13,20 +13,18 @@ import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { FIAT_ORDER_PROVIDERS, PAYMENT_CATEGORY, PAYMENT_RAILS } from '../../../../constants/on-ramp';
+import {
+	FIAT_ORDER_PROVIDERS,
+	NETWORK_ALLOWED_TOKENS,
+	NETWORK_NATIVE_SYMBOL,
+	PAYMENT_CATEGORY,
+	PAYMENT_RAILS,
+} from '../../../../constants/on-ramp';
+import Engine from '../../../../core/Engine';
+import { toLowerCaseEquals } from '../../../../util/general';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 class TransakWebView extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		getTransakWebviewNavbar(navigation, route, () => {
-			InteractionManager.runAfterInteractions(() => {
-				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
-					payment_rails: PAYMENT_RAILS.MULTIPLE,
-					payment_category: PAYMENT_CATEGORY.MULTIPLE,
-					'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
-				});
-			});
-		});
-
 	static propTypes = {
 		navigation: PropTypes.object,
 		/**
@@ -47,9 +45,55 @@ class TransakWebView extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getTransakWebviewNavbar(
+				navigation,
+				route,
+				() => {
+					InteractionManager.runAfterInteractions(() => {
+						AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED, {
+							payment_rails: PAYMENT_RAILS.MULTIPLE,
+							payment_category: PAYMENT_CATEGORY.MULTIPLE,
+							'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
+						});
+					});
+				},
+				colors
+			)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
+
+	addTokenToTokensController = async (symbol, chainId) => {
+		const { TokensController } = Engine.context;
+		if (NETWORK_NATIVE_SYMBOL[chainId] !== symbol) {
+			const newToken = (NETWORK_ALLOWED_TOKENS[chainId] || []).find(
+				({ symbol: tokenSymbol }) => symbol === tokenSymbol
+			);
+			if (
+				newToken &&
+				!TokensController.state.tokens.includes((token) => toLowerCaseEquals(token.address, newToken.address))
+			) {
+				const { address, symbol, decimals } = newToken;
+				await TokensController.addToken(address, symbol, decimals);
+			}
+		}
+	};
+
 	handleNavigationStateChange = async (navState) => {
 		if (navState.url.indexOf(AppConstants.FIAT_ORDERS.TRANSAK_REDIRECT_URL) > -1) {
 			const order = handleTransakRedirect(navState.url, this.props.network);
+			this.addTokenToTokensController(order.cryptocurrency, this.props.network);
 			this.props.addOrder(order);
 			this.props.protectWalletModalVisible();
 			this.props.navigation.dangerouslyGetParent()?.pop();
@@ -79,6 +123,7 @@ class TransakWebView extends PureComponent {
 						source={{ uri }}
 						onNavigationStateChange={this.handleNavigationStateChange}
 						allowInlineMediaPlayback
+						enableApplePay
 						mediaPlaybackRequiresUserAction={false}
 					/>
 				</View>
@@ -86,6 +131,8 @@ class TransakWebView extends PureComponent {
 		}
 	}
 }
+
+TransakWebView.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	network: state.engine.backgroundState.NetworkController.network,

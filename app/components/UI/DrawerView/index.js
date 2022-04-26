@@ -1,12 +1,12 @@
 import React, { PureComponent } from 'react';
-import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, ScrollView, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, View, Image, StyleSheet, Text, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { hasBlockExplorer, findBlockExplorerForRpc, getBlockExplorerName } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
@@ -14,7 +14,6 @@ import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import { DrawerActions } from '@react-navigation/native';
 import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import { toggleNetworkModal, toggleAccountsModal, toggleReceiveModal } from '../../../actions/modals';
@@ -32,7 +31,7 @@ import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { protectWalletModalVisible } from '../../../actions/user';
+import { logOut, protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import WhatsNewModal from '../WhatsNewModal';
@@ -42,220 +41,245 @@ import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import { isDefaultAccountName, doENSReverseLookup } from '../../../util/ENSUtils';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { collectiblesSelector } from '../../../reducers/collectibles';
+import { getCurrentRoute } from '../../../reducers/navigation';
+import { ScrollView } from 'react-native-gesture-handler';
+import { isZero } from '../../../util/lodash';
+import { KeyringTypes } from '@metamask/controllers';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import NetworkInfo from '../NetworkInfo';
+import sanitizeUrl from '../../../util/sanitizeUrl';
+import { onboardNetworkAction, networkSwitched } from '../../../actions/onboardNetwork';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	header: {
-		paddingTop: Device.isIphoneX() ? 60 : 24,
-		backgroundColor: colors.grey000,
-		height: Device.isIphoneX() ? 110 : 74,
-		flexDirection: 'column',
-		paddingBottom: 0,
-	},
-	metamaskLogo: {
-		flexDirection: 'row',
-		flex: 1,
-		marginTop: Device.isAndroid() ? 0 : 12,
-		marginLeft: 15,
-		paddingTop: Device.isAndroid() ? 10 : 0,
-	},
-	metamaskFox: {
-		height: 27,
-		width: 27,
-		marginRight: 15,
-	},
-	metamaskName: {
-		marginTop: 4,
-		width: 90,
-		height: 18,
-	},
-	account: {
-		flex: 1,
-		backgroundColor: colors.grey000,
-	},
-	accountBgOverlay: {
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1,
-		padding: 17,
-	},
-	identiconWrapper: {
-		marginBottom: 12,
-		width: 56,
-		height: 56,
-	},
-	identiconBorder: {
-		borderRadius: 96,
-		borderWidth: 2,
-		padding: 2,
-		borderColor: colors.blue,
-	},
-	accountNameWrapper: {
-		flexDirection: 'row',
-		paddingRight: 17,
-	},
-	accountName: {
-		fontSize: 20,
-		lineHeight: 24,
-		marginBottom: 5,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	caretDown: {
-		textAlign: 'right',
-		marginLeft: 7,
-		marginTop: 3,
-		fontSize: 18,
-		color: colors.fontPrimary,
-	},
-	accountBalance: {
-		fontSize: 14,
-		lineHeight: 17,
-		marginBottom: 5,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	accountAddress: {
-		fontSize: 12,
-		lineHeight: 17,
-		color: colors.fontSecondary,
-		...fontStyles.normal,
-	},
-	buttons: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderBottomColor: colors.grey100,
-		borderBottomWidth: 1,
-		padding: 15,
-	},
-	button: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-		borderRadius: 30,
-		borderWidth: 1.5,
-	},
-	leftButton: {
-		marginRight: 5,
-	},
-	rightButton: {
-		marginLeft: 5,
-	},
-	buttonText: {
-		paddingLeft: 8,
-		fontSize: 15,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	buttonContent: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	buttonIcon: {
-		marginTop: 0,
-	},
-	buttonReceive: {
-		transform: [{ rotate: '90deg' }],
-	},
-	menu: {},
-	noTopBorder: {
-		borderTopWidth: 0,
-	},
-	menuSection: {
-		borderTopWidth: 1,
-		borderColor: colors.grey100,
-		paddingVertical: 10,
-	},
-	menuItem: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingVertical: 9,
-		paddingLeft: 17,
-	},
-	selectedRoute: {
-		backgroundColor: colors.blue000,
-		marginRight: 10,
-		borderTopRightRadius: 20,
-		borderBottomRightRadius: 20,
-	},
-	selectedName: {
-		color: colors.blue,
-	},
-	menuItemName: {
-		flex: 1,
-		paddingHorizontal: 15,
-		paddingTop: 2,
-		fontSize: 16,
-		color: colors.grey400,
-		...fontStyles.normal,
-	},
-	menuItemWarningText: {
-		color: colors.red,
-		fontSize: 12,
-		...fontStyles.normal,
-	},
-	noIcon: {
-		paddingLeft: 0,
-	},
-	menuItemIconImage: {
-		width: 22,
-		height: 22,
-	},
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	importedWrapper: {
-		marginTop: 10,
-		width: 73,
-		paddingHorizontal: 10,
-		paddingVertical: 3,
-		borderRadius: 10,
-		borderWidth: 1,
-		borderColor: colors.grey400,
-	},
-	importedText: {
-		color: colors.grey400,
-		fontSize: 10,
-		...fontStyles.bold,
-	},
-	protectWalletContainer: {
-		backgroundColor: colors.white,
-		paddingTop: 24,
-		borderTopLeftRadius: 20,
-		borderTopRightRadius: 20,
-		paddingVertical: 16,
-		paddingBottom: Device.isIphoneX() ? 20 : 0,
-		paddingHorizontal: 40,
-	},
-	protectWalletIconContainer: {
-		alignSelf: 'center',
-		width: 56,
-		height: 56,
-		borderRadius: 28,
-		backgroundColor: colors.red000,
-		borderColor: colors.red,
-		borderWidth: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	protectWalletIcon: { alignSelf: 'center', color: colors.red },
-	protectWalletTitle: { textAlign: 'center', fontSize: 18, marginVertical: 8, ...fontStyles.bold },
-	protectWalletContent: {
-		textAlign: 'center',
-		fontSize: 14,
-		marginVertical: 8,
-		justifyContent: 'center',
-		...fontStyles.normal,
-	},
-	protectWalletButtonWrapper: { marginVertical: 8 },
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			width: 315,
+			backgroundColor: colors.background.default,
+		},
+		header: {
+			paddingTop: Device.isIphoneX() ? 60 : 24,
+			backgroundColor: colors.background.alternative,
+			height: Device.isIphoneX() ? 110 : 74,
+			flexDirection: 'column',
+			paddingBottom: 0,
+		},
+		metamaskLogo: {
+			flexDirection: 'row',
+			flex: 1,
+			marginTop: Device.isAndroid() ? 0 : 12,
+			marginLeft: 15,
+			paddingTop: Device.isAndroid() ? 10 : 0,
+		},
+		metamaskFox: {
+			height: 27,
+			width: 27,
+			marginRight: 15,
+		},
+		metamaskName: {
+			marginTop: 4,
+			width: 90,
+			height: 18,
+			tintColor: colors.text.default,
+		},
+		account: {
+			flex: 1,
+			backgroundColor: colors.background.alternative,
+		},
+		accountBgOverlay: {
+			borderBottomColor: colors.border.muted,
+			borderBottomWidth: 1,
+			padding: 17,
+		},
+		identiconWrapper: {
+			marginBottom: 12,
+			width: 56,
+			height: 56,
+		},
+		identiconBorder: {
+			borderRadius: 96,
+			borderWidth: 2,
+			padding: 2,
+			borderColor: colors.primary.default,
+		},
+		accountNameWrapper: {
+			flexDirection: 'row',
+			paddingRight: 17,
+		},
+		accountName: {
+			fontSize: 20,
+			lineHeight: 24,
+			marginBottom: 5,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		caretDown: {
+			textAlign: 'right',
+			marginLeft: 7,
+			marginTop: 3,
+			fontSize: 18,
+			color: colors.icon.default,
+		},
+		accountBalance: {
+			fontSize: 14,
+			lineHeight: 17,
+			marginBottom: 5,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		accountAddress: {
+			fontSize: 12,
+			lineHeight: 17,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		buttons: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderBottomColor: colors.border.muted,
+			borderBottomWidth: 1,
+			padding: 15,
+		},
+		button: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+			borderRadius: 30,
+			borderWidth: 1.5,
+		},
+		leftButton: {
+			marginRight: 5,
+		},
+		rightButton: {
+			marginLeft: 5,
+		},
+		buttonText: {
+			paddingLeft: 8,
+			fontSize: 15,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		buttonContent: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		buttonIcon: {
+			marginTop: 0,
+		},
+		buttonReceive: {
+			transform: [{ rotate: '90deg' }],
+		},
+		menu: {},
+		noTopBorder: {
+			borderTopWidth: 0,
+		},
+		menuSection: {
+			borderTopWidth: 1,
+			borderColor: colors.border.muted,
+			paddingVertical: 10,
+		},
+		menuItem: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingVertical: 9,
+			paddingLeft: 17,
+		},
+		selectedRoute: {
+			backgroundColor: colors.primary.muted,
+			marginRight: 10,
+			borderTopRightRadius: 20,
+			borderBottomRightRadius: 20,
+		},
+		selectedName: {
+			color: colors.primary.default,
+		},
+		menuItemName: {
+			flex: 1,
+			paddingHorizontal: 15,
+			paddingTop: 2,
+			fontSize: 16,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		menuItemWarningText: {
+			color: colors.text.default,
+			fontSize: 12,
+			...fontStyles.normal,
+		},
+		noIcon: {
+			paddingLeft: 0,
+		},
+		menuItemIconImage: {
+			width: 22,
+			height: 22,
+			tintColor: colors.icon.default,
+		},
+		selectedMenuItemIconImage: {
+			width: 22,
+			height: 22,
+			tintColor: colors.primary.default,
+		},
+		bottomModal: {
+			justifyContent: 'flex-end',
+			margin: 0,
+		},
+		importedWrapper: {
+			marginTop: 10,
+			width: 73,
+			paddingHorizontal: 10,
+			paddingVertical: 3,
+			borderRadius: 10,
+			borderWidth: 1,
+			borderColor: colors.icon.default,
+		},
+		importedText: {
+			color: colors.icon.default,
+			fontSize: 10,
+			...fontStyles.bold,
+		},
+		protectWalletContainer: {
+			backgroundColor: colors.background.default,
+			paddingTop: 24,
+			borderTopLeftRadius: 20,
+			borderTopRightRadius: 20,
+			paddingVertical: 16,
+			paddingBottom: Device.isIphoneX() ? 20 : 0,
+			paddingHorizontal: 40,
+		},
+		protectWalletIconContainer: {
+			alignSelf: 'center',
+			width: 56,
+			height: 56,
+			borderRadius: 28,
+			backgroundColor: colors.error.muted,
+			borderColor: colors.error.default,
+			borderWidth: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		protectWalletIcon: { alignSelf: 'center', color: colors.error.default },
+		protectWalletTitle: {
+			textAlign: 'center',
+			fontSize: 18,
+			marginVertical: 8,
+			...fontStyles.bold,
+			color: colors.text.default,
+		},
+		protectWalletContent: {
+			textAlign: 'center',
+			fontSize: 14,
+			marginVertical: 8,
+			justifyContent: 'center',
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		protectWalletButtonWrapper: { marginVertical: 8 },
+	});
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
 const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
@@ -367,6 +391,35 @@ class DrawerView extends PureComponent {
 		 * Prompts protect wallet modal
 		 */
 		protectWalletModalVisible: PropTypes.func,
+		logOut: PropTypes.func,
+		/**
+		 * Callback to close drawer
+		 */
+		onCloseDrawer: PropTypes.func,
+		/**
+		 * Latest navigation route
+		 */
+		currentRoute: PropTypes.string,
+		/**
+		 * handles action for onboarding to a network
+		 */
+		onboardNetworkAction: PropTypes.func,
+		/**
+		 * returns network onboarding state
+		 */
+		networkOnboarding: PropTypes.object,
+		/**
+		 * returns switched network state
+		 */
+		switchedNetwork: PropTypes.object,
+		/**
+		 * updates when network is switched
+		 */
+		networkSwitched: PropTypes.func,
+		/**
+		 *
+		 */
+		networkOnboardedState: PropTypes.array,
 	};
 
 	state = {
@@ -377,6 +430,11 @@ class DrawerView extends PureComponent {
 			address: undefined,
 			currentNetwork: undefined,
 		},
+		networkSelected: false,
+		networkType: undefined,
+		networkCurrency: undefined,
+		showModal: false,
+		networkUrl: undefined,
 	};
 
 	browserSectionRef = React.createRef();
@@ -399,6 +457,31 @@ class DrawerView extends PureComponent {
 		}
 
 		return ret;
+	}
+
+	renderTag() {
+		let tag = null;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+		const { keyrings, selectedAddress } = this.props;
+		const allKeyrings = keyrings && keyrings.length ? keyrings : Engine.context.KeyringController.state.keyrings;
+		for (const keyring of allKeyrings) {
+			if (keyring.accounts.includes(selectedAddress)) {
+				if (keyring.type === KeyringTypes.simple) {
+					tag = strings('accounts.imported');
+				} else if (keyring.type === KeyringTypes.qr) {
+					tag = strings('transaction.hardware');
+				}
+				break;
+			}
+		}
+		return tag ? (
+			<View style={styles.importedWrapper}>
+				<Text numberOfLines={1} style={styles.importedText}>
+					{tag}
+				</Text>
+			</View>
+		) : null;
 	}
 
 	async componentDidUpdate() {
@@ -424,7 +507,7 @@ class DrawerView extends PureComponent {
 			let tokenFound = false;
 
 			this.props.tokens.forEach((token) => {
-				if (this.props.tokenBalances[token.address] && !this.props.tokenBalances[token.address]?.isZero()) {
+				if (this.props.tokenBalances[token.address] && !isZero(this.props.tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});
@@ -462,7 +545,7 @@ class DrawerView extends PureComponent {
 	updateAccountInfo = async () => {
 		const { identities, network, selectedAddress } = this.props;
 		const { currentNetwork, address, name } = this.state.account;
-		const accountName = identities[selectedAddress].name;
+		const accountName = identities[selectedAddress]?.name;
 		if (currentNetwork !== network || address !== selectedAddress || name !== accountName) {
 			const ens = await doENSReverseLookup(selectedAddress, network.provider.chainId);
 			this.setState((state) => ({
@@ -498,6 +581,22 @@ class DrawerView extends PureComponent {
 		}
 	};
 
+	onInfoNetworksModalClose = async (manualClose) => {
+		const {
+			networkOnboarding: { showNetworkOnboarding, networkUrl },
+			onboardNetworkAction,
+			switchedNetwork: { networkUrl: switchedNetworkUrl },
+			networkSwitched,
+		} = this.props;
+		this.setState({ networkSelected: !this.state.networkSelected, showModal: false });
+		!showNetworkOnboarding && this.toggleNetworksModal();
+		onboardNetworkAction(sanitizeUrl(networkUrl) || sanitizeUrl(switchedNetworkUrl) || this.state.networkUrl);
+		networkSwitched({ networkUrl: '', networkStatus: false });
+		if (!manualClose) {
+			await this.hideDrawer();
+		}
+	};
+
 	toggleNetworksModal = () => {
 		if (!this.animatingNetworksModal) {
 			this.animatingNetworksModal = true;
@@ -506,6 +605,19 @@ class DrawerView extends PureComponent {
 				this.animatingNetworksModal = false;
 			}, 500);
 		}
+	};
+
+	onNetworkSelected = (type, currency, url) => {
+		this.setState({
+			networkType: type,
+			networkUrl: url || type,
+			networkCurrency: currency,
+			networkSelected: true,
+		});
+	};
+
+	switchModalContent = () => {
+		this.setState({ showModal: true });
 	};
 
 	showReceiveModal = () => {
@@ -563,6 +675,11 @@ class DrawerView extends PureComponent {
 		this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
 	};
 
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
+
 	onPress = async () => {
 		const { passwordSet } = this.props;
 		const { KeyringController } = Engine.context;
@@ -574,22 +691,22 @@ class DrawerView extends PureComponent {
 				params: { screen: 'Onboarding' },
 			});
 		} else {
-			this.props.navigation.navigate('Login');
+			this.logOut();
 		}
 	};
 
 	logout = () => {
 		Alert.alert(
-			strings('drawer.logout_title'),
+			strings('drawer.lock_title'),
 			'',
 			[
 				{
-					text: strings('drawer.logout_cancel'),
+					text: strings('drawer.lock_cancel'),
 					onPress: () => null,
 					style: 'cancel',
 				},
 				{
-					text: strings('drawer.logout_ok'),
+					text: strings('drawer.lock_ok'),
 					onPress: this.onPress,
 				},
 			],
@@ -645,12 +762,7 @@ class DrawerView extends PureComponent {
 	}
 
 	hideDrawer() {
-		return new Promise((resolve) => {
-			this.props.navigation.dispatch(DrawerActions.closeDrawer());
-			setTimeout(() => {
-				resolve();
-			}, 300);
-		});
+		this.props.onCloseDrawer();
 	}
 
 	onAccountChange = () => {
@@ -663,6 +775,12 @@ class DrawerView extends PureComponent {
 	onImportAccount = () => {
 		this.toggleAccountsModal();
 		this.props.navigation.navigate('ImportPrivateKeyView');
+		this.hideDrawer();
+	};
+
+	onConnectHardware = () => {
+		this.toggleAccountsModal();
+		this.props.navigation.navigate('ConnectQRHardwareFlow');
 		this.hideDrawer();
 	};
 
@@ -683,35 +801,53 @@ class DrawerView extends PureComponent {
 	};
 
 	getIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.grey400} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <Icon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.grey400} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <FeatherIcon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.grey400} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <MaterialIcon name={name} size={size || 24} color={colors.icon.default} />;
 	}
 
 	getImageIcon(name) {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return <Image source={ICON_IMAGES[name]} style={styles.menuItemIconImage} />;
 	}
 
 	getSelectedIcon(name, size) {
-		return <Icon name={name} size={size || 24} color={colors.blue} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <Icon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedFeatherIcon(name, size) {
-		return <FeatherIcon name={name} size={size || 24} color={colors.blue} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <FeatherIcon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedMaterialIcon(name, size) {
-		return <MaterialIcon name={name} size={size || 24} color={colors.blue} />;
+		const colors = this.context.colors || mockTheme.colors;
+
+		return <MaterialIcon name={name} size={size || 24} color={colors.primary.default} />;
 	}
 
 	getSelectedImageIcon(name) {
-		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.menuItemIconImage} />;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return <Image source={ICON_IMAGES[`selected-${name}`]} style={styles.selectedMenuItemIconImage} />;
 	}
 
 	getSections = () => {
@@ -743,7 +879,7 @@ class DrawerView extends PureComponent {
 					routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
 				},
 				{
-					name: strings('drawer.transaction_history'),
+					name: strings('drawer.transaction_activity'),
 					icon: this.getFeatherIcon('list'),
 					selectedIcon: this.getSelectedFeatherIcon('list'),
 					action: this.goToTransactionHistory,
@@ -773,7 +909,7 @@ class DrawerView extends PureComponent {
 				},
 				{
 					name: strings('drawer.help'),
-					icon: this.getFeatherIcon('help-circle'),
+					icon: this.getIcon('comments'),
 					action: this.showHelp,
 				},
 				{
@@ -782,7 +918,7 @@ class DrawerView extends PureComponent {
 					action: this.submitFeedback,
 				},
 				{
-					name: strings('drawer.logout'),
+					name: strings('drawer.lock'),
 					icon: this.getFeatherIcon('log-out'),
 					action: this.logout,
 				},
@@ -854,34 +990,40 @@ class DrawerView extends PureComponent {
 		});
 	};
 
-	renderProtectModal = () => (
-		<Modal
-			isVisible={this.state.showProtectWalletModal}
-			animationIn="slideInUp"
-			animationOut="slideOutDown"
-			style={styles.bottomModal}
-			backdropOpacity={0.7}
-			animationInTiming={600}
-			animationOutTiming={600}
-		>
-			<View style={styles.protectWalletContainer}>
-				<View style={styles.protectWalletIconContainer}>
-					<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+	renderProtectModal = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<Modal
+				isVisible={this.state.showProtectWalletModal}
+				animationIn="slideInUp"
+				animationOut="slideOutDown"
+				style={styles.bottomModal}
+				backdropColor={colors.overlay.default}
+				backdropOpacity={1}
+				animationInTiming={600}
+				animationOutTiming={600}
+			>
+				<View style={styles.protectWalletContainer}>
+					<View style={styles.protectWalletIconContainer}>
+						<FeatherIcon style={styles.protectWalletIcon} name="alert-triangle" size={20} />
+					</View>
+					<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
+					<Text style={styles.protectWalletContent}>
+						{!this.props.passwordSet
+							? strings('protect_your_wallet_modal.body_for_password')
+							: strings('protect_your_wallet_modal.body_for_seedphrase')}
+					</Text>
+					<View style={styles.protectWalletButtonWrapper}>
+						<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
+							{strings('protect_your_wallet_modal.button')}
+						</StyledButton>
+					</View>
 				</View>
-				<Text style={styles.protectWalletTitle}>{strings('protect_your_wallet_modal.title')}</Text>
-				<Text style={styles.protectWalletContent}>
-					{!this.props.passwordSet
-						? strings('protect_your_wallet_modal.body_for_password')
-						: strings('protect_your_wallet_modal.body_for_seedphrase')}
-				</Text>
-				<View style={styles.protectWalletButtonWrapper}>
-					<StyledButton type={'confirm'} onPress={this.onSecureWalletModalAction}>
-						{strings('protect_your_wallet_modal.button')}
-					</StyledButton>
-				</View>
-			</View>
-		</Modal>
-	);
+			</Modal>
+		);
+	};
 
 	render() {
 		const {
@@ -893,14 +1035,31 @@ class DrawerView extends PureComponent {
 			currentCurrency,
 			ticker,
 			seedphraseBackedUp,
+			currentRoute,
+			networkOnboarding,
+			networkOnboardedState,
+			switchedNetwork,
+			networkModalVisible,
 		} = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		const {
 			invalidCustomNetwork,
 			showProtectWalletModal,
-			account: { name, ens },
+			account: { name: nameFromState, ens: ensFromState },
+			showModal,
+			networkType,
 		} = this.state;
-		const account = { address: selectedAddress, ...identities[selectedAddress], ...accounts[selectedAddress] };
+
+		const account = {
+			address: selectedAddress,
+			name: nameFromState,
+			ens: ensFromState,
+			...identities[selectedAddress],
+			...accounts[selectedAddress],
+		};
+		const { name, ens } = account;
 		account.balance = (accounts[selectedAddress] && renderFromWei(accounts[selectedAddress].balance)) || 0;
 		const fiatBalance = Engine.getTotalFiatAccountBalance();
 		if (fiatBalance !== this.previousBalance) {
@@ -908,7 +1067,11 @@ class DrawerView extends PureComponent {
 		}
 		this.currentBalance = fiatBalance;
 		const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
-		const currentRoute = findRouteNameFromNavigatorState(this.props.navigation.dangerouslyGetState().routes);
+		const accountName = isDefaultAccountName(name) && ens ? ens : name;
+		const checkIfCustomNetworkExists = networkOnboardedState.filter(
+			(item) => item.network === sanitizeUrl(switchedNetwork.networkUrl)
+		);
+
 		return (
 			<View style={styles.wrapper} testID={'drawer-screen'}>
 				<ScrollView>
@@ -936,7 +1099,7 @@ class DrawerView extends PureComponent {
 							>
 								<View style={styles.accountNameWrapper}>
 									<Text style={styles.accountName} numberOfLines={1}>
-										{isDefaultAccountName(name) && ens ? ens : name}
+										{accountName}
 									</Text>
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
@@ -946,13 +1109,7 @@ class DrawerView extends PureComponent {
 									style={styles.accountAddress}
 									type={'short'}
 								/>
-								{this.isCurrentAccountImported() && (
-									<View style={styles.importedWrapper}>
-										<Text numberOfLines={1} style={styles.importedText}>
-											{strings('accounts.imported')}
-										</Text>
-									</View>
-								)}
+								{this.renderTag()}
 							</TouchableOpacity>
 						</View>
 					</View>
@@ -967,7 +1124,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'arrow-top-right'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary.default}
 									style={styles.buttonIcon}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.send_button')}</Text>
@@ -983,7 +1140,7 @@ class DrawerView extends PureComponent {
 								<MaterialIcon
 									name={'keyboard-tab'}
 									size={22}
-									color={colors.blue}
+									color={colors.primary.default}
 									style={[styles.buttonIcon, styles.buttonReceive]}
 								/>
 								<Text style={styles.buttonText}>{strings('drawer.receive_button')}</Text>
@@ -1055,20 +1212,36 @@ class DrawerView extends PureComponent {
 					</View>
 				</ScrollView>
 				<Modal
-					isVisible={this.props.networkModalVisible}
-					onBackdropPress={this.toggleNetworksModal}
-					onBackButtonPress={this.toggleNetworksModal}
-					onSwipeComplete={this.toggleNetworksModal}
+					isVisible={networkModalVisible || networkOnboarding.showNetworkOnboarding}
+					onBackdropPress={showModal ? null : this.toggleNetworksModal}
+					onBackButtonPress={showModal ? null : this.toggleNetworksModa}
+					onSwipeComplete={showModal ? null : this.toggleNetworksModa}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
-					<NetworkList
-						navigation={this.props.navigation}
-						onClose={this.onNetworksModalClose}
-						showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
-					/>
+					{showModal ||
+					networkOnboarding.showNetworkOnboarding ||
+					(currentRoute === 'WalletView' &&
+						switchedNetwork.networkStatus &&
+						checkIfCustomNetworkExists.length === 0) ? (
+						<NetworkInfo
+							onClose={this.onInfoNetworksModalClose}
+							type={networkType || networkOnboarding.networkType}
+							ticker={ticker}
+						/>
+					) : (
+						<NetworkList
+							navigation={this.props.navigation}
+							onClose={this.onNetworksModalClose}
+							onNetworkSelected={this.onNetworkSelected}
+							showInvalidCustomNetworkAlert={this.showInvalidCustomNetworkAlert}
+							switchModalContent={this.switchModalContent}
+						/>
+					)}
 				</Modal>
-				<Modal isVisible={!!invalidCustomNetwork}>
+				<Modal backdropColor={colors.overlay.default} backdropOpacity={1} isVisible={!!invalidCustomNetwork}>
 					<InvalidCustomNetworkAlert
 						navigation={this.props.navigation}
 						network={invalidCustomNetwork}
@@ -1083,6 +1256,8 @@ class DrawerView extends PureComponent {
 					onSwipeComplete={this.toggleAccountsModal}
 					swipeDirection={'down'}
 					propagateSwipe
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<AccountList
 						enableAccountsAddition
@@ -1091,6 +1266,7 @@ class DrawerView extends PureComponent {
 						keyrings={keyrings}
 						onAccountChange={this.onAccountChange}
 						onImportAccount={this.onImportAccount}
+						onConnectHardware={this.onConnectHardware}
 						ticker={ticker}
 					/>
 				</Modal>
@@ -1103,6 +1279,8 @@ class DrawerView extends PureComponent {
 					swipeDirection={'down'}
 					propagateSwipe
 					style={styles.bottomModal}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<ReceiveRequest
 						navigation={this.props.navigation}
@@ -1134,8 +1312,13 @@ const mapStateToProps = (state) => ({
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	tokens: state.engine.backgroundState.TokensController.tokens,
 	tokenBalances: state.engine.backgroundState.TokenBalancesController.contractBalances,
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibles: collectiblesSelector(state),
 	seedphraseBackedUp: state.user.seedphraseBackedUp,
+	currentRoute: getCurrentRoute(state),
+	networkOnboarding: state.networkOnboarded.networkState,
+	networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+	networkProvider: state.engine.backgroundState.NetworkController.provider,
+	switchedNetwork: state.networkOnboarded.switchedNetwork,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1145,6 +1328,11 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
+	logOut: () => dispatch(logOut()),
+	onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
+	networkSwitched: ({ networkUrl, networkStatus }) => dispatch(networkSwitched({ networkUrl, networkStatus })),
 });
+
+DrawerView.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);

@@ -27,8 +27,7 @@ exports[`RemoteImage should render svg correctly 1`] = `
   <View
     style={Object {}}
   >
-    <SvgCssUri
-      fill="black"
+    <SvgUri
       height="100%"
       source={
         Object {

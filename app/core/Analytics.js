@@ -1,8 +1,23 @@
 'use strict';
 
-import { NativeModules } from 'react-native';
+import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
+import { Appearance, NativeModules } from 'react-native';
+import AUTHENTICATION_TYPE from '../constants/userProperties';
+import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
+import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
+import { store } from '../store';
 const RCTAnalytics = NativeModules.Analytics;
+
+const USER_PROFILE_PROPERTY = {
+	ENABLE_OPENSEA_API: 'Enable OpenSea API',
+	NFT_AUTODETECTION: 'NFT Autodetection',
+	THEME: 'Theme',
+
+	ON: 'ON',
+	OFF: 'OFF',
+	AUTHENTICATION_TYPE: 'Authentication Type',
+};
 
 /**
  * Class to handle analytics through the app
@@ -12,23 +27,21 @@ class Analytics {
 	 * Variables defined in Mixpanel
 	 */
 	remoteVariables = {};
+
 	/**
 	 * Whether the manager has permission to send analytics
 	 */
 	enabled;
 
 	/**
-	 * State change callbacks
+	 * Persist current Metrics OptIn flag in user preferences datastore
 	 */
-	listeners;
-
-	/**
-	 * Notifies subscribers of current enabled
-	 */
-	_notify = () => {
-		this.listeners.forEach((listener) => {
-			listener(this.enabled);
-		});
+	_storeMetricsOptInPreference = async () => {
+		try {
+			await DefaultPreference.set(METRICS_OPT_IN, this.enabled ? AGREED : DENIED);
+		} catch (e) {
+			Logger.error(e, 'Error storing Metrics OptIn flag in user preferences');
+		}
 	};
 
 	/**
@@ -39,10 +52,33 @@ class Analytics {
 	};
 
 	/**
+	 * Set the user profile state for current user to mixpanel
+	 */
+	_setUserProfileProperties = () => {
+		const reduxState = store.getState();
+		const preferencesController = reduxState?.engine?.backgroundState?.PreferencesController;
+		const appTheme = reduxState?.user?.appTheme;
+		// This will return either "light" or "dark"
+		const appThemeStyle = appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
+
+		RCTAnalytics.setUserProfileProperty(
+			USER_PROFILE_PROPERTY.ENABLE_OPENSEA_API,
+			preferencesController?.openSeaEnabled ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+		);
+		RCTAnalytics.setUserProfileProperty(
+			USER_PROFILE_PROPERTY.NFT_AUTODETECTION,
+			preferencesController?.useCollectibleDetection ? USER_PROFILE_PROPERTY.ON : USER_PROFILE_PROPERTY.OFF
+		);
+		RCTAnalytics.setUserProfileProperty(USER_PROFILE_PROPERTY.THEME, appThemeStyle);
+	};
+
+	/**
 	 * Track event if enabled and not DEV mode
 	 */
 	_trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
-		if (!this.enabled) return;
+		const isAnalyticsPreferenceSelectedEvent = ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+		if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
+		this._setUserProfileProperties();
 		if (!__DEV__) {
 			if (!anonymously) {
 				RCTAnalytics.trackEvent({
@@ -67,9 +103,9 @@ class Analytics {
 	/**
 	 * Creates a Analytics instance
 	 */
-	constructor(enabled) {
+	constructor(metricsOptIn) {
 		if (!Analytics.instance) {
-			this.enabled = enabled;
+			this.enabled = metricsOptIn === AGREED;
 			this.listeners = [];
 			Analytics.instance = this;
 			if (!__DEV__) {
@@ -86,7 +122,7 @@ class Analytics {
 	enable = () => {
 		this.enabled = true;
 		RCTAnalytics.optIn(this.enabled);
-		this._notify();
+		this._storeMetricsOptInPreference();
 	};
 
 	/**
@@ -95,7 +131,7 @@ class Analytics {
 	disable = () => {
 		this.enabled = false;
 		RCTAnalytics.optIn(this.enabled);
-		this._notify();
+		this._storeMetricsOptInPreference();
 	};
 
 	/**
@@ -104,16 +140,7 @@ class Analytics {
 	 */
 	disableInstance = () => {
 		this.enabled = false;
-		this._notify();
-	};
-
-	/**
-	 * Subscribe for enabled changes
-	 *
-	 * @param listener - Callback to add to listeners
-	 */
-	subscribe = (listener) => {
-		this.listeners.push(listener);
+		this._storeMetricsOptInPreference();
 	};
 
 	/**
@@ -132,6 +159,45 @@ class Analytics {
 	 */
 	trackEvent = (event, anonymously = false) => {
 		this._trackEvent('trackEvent', { event });
+	};
+
+	/**
+	 * Apply User Property
+	 *
+	 * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
+	 */
+	applyUserProperty = (property) => {
+		switch (property) {
+			case AUTHENTICATION_TYPE.BIOMETRIC:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.BIOMETRIC
+				);
+				break;
+			case AUTHENTICATION_TYPE.PASSCODE:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.PASSCODE
+				);
+				break;
+			case AUTHENTICATION_TYPE.REMEMBER_ME:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.REMEMBER_ME
+				);
+				break;
+			case AUTHENTICATION_TYPE.PASSWORD:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.PASSWORD
+				);
+				break;
+			default:
+				RCTAnalytics.setUserProfileProperty(
+					USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
+					AUTHENTICATION_TYPE.UNKOWN
+				);
+		}
 	};
 
 	/**
@@ -208,8 +274,9 @@ class Analytics {
 let instance;
 
 export default {
-	init: async (enabled) => {
-		instance = new Analytics(enabled);
+	init: async () => {
+		const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
+		instance = new Analytics(metricsOptIn);
 		try {
 			const vars = await RCTAnalytics.getRemoteVariables();
 			instance.remoteVariables = JSON.parse(vars);
@@ -230,14 +297,14 @@ export default {
 	getEnabled() {
 		return instance && instance.enabled;
 	},
-	subscribe(listener) {
-		return instance && instance.subscribe(listener);
-	},
 	getDistinctId() {
 		return instance && instance.getDistinctId();
 	},
 	trackEvent(event, anonymously) {
 		return instance && instance.trackEvent(event, anonymously);
+	},
+	applyUserProperty(property) {
+		return instance && instance.applyUserProperty(property);
 	},
 	trackEventWithParameters(event, parameters, anonymously) {
 		return instance && instance.trackEventWithParameters(event, parameters, anonymously);

@@ -77,11 +77,11 @@ export default class WalletView {
 		await TestHelpers.checkIfElementByTextIsVisible(tokenName);
 	}
 
-	static async TokenIsNotVisibleInWallet(tokenName) {
+	static async tokenIsNotVisibleInWallet(tokenName) {
 		await TestHelpers.checkIfElementWithTextIsNotVisible(tokenName);
 	}
 
-	static async isNFTAppearing(nftName) {
+	static async isNFTNameVisible(nftName) {
 		await TestHelpers.checkIfElementHasString(NFT_CONTAINER_ID, nftName);
 	}
 

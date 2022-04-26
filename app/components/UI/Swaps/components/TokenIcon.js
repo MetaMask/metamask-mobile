@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
-import { colors } from '../../../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const ethLogo = require('../../../../images/eth-logo.png');
@@ -20,58 +20,67 @@ const BIG_RADIUS = 25;
 const BIGGEST_SIZE = 70;
 const BIGGEST_RADIUS = 35;
 
-const styles = StyleSheet.create({
-	icon: {
-		width: REGULAR_SIZE,
-		height: REGULAR_SIZE,
-		borderRadius: REGULAR_RADIUS,
-	},
-	iconMedium: {
-		width: MEDIUM_SIZE,
-		height: MEDIUM_SIZE,
-		borderRadius: MEDIUM_RADIUS,
-	},
-	iconBig: {
-		width: BIG_SIZE,
-		height: BIG_SIZE,
-		borderRadius: BIG_RADIUS,
-	},
-	iconBiggest: {
-		width: BIGGEST_SIZE,
-		height: BIGGEST_SIZE,
-		borderRadius: BIGGEST_RADIUS,
-	},
-	emptyIcon: {
-		backgroundColor: colors.grey200,
-		alignItems: 'center',
-		justifyContent: 'center',
-	},
-	tokenSymbol: {
-		fontSize: 16,
-		textAlign: 'center',
-		textAlignVertical: 'center',
-	},
-	tokenSymbolMedium: {
-		fontSize: 22,
-	},
-	tokenSymbolBig: {
-		fontSize: 26,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		icon: {
+			width: REGULAR_SIZE,
+			height: REGULAR_SIZE,
+			borderRadius: REGULAR_RADIUS,
+		},
+		iconMedium: {
+			width: MEDIUM_SIZE,
+			height: MEDIUM_SIZE,
+			borderRadius: MEDIUM_RADIUS,
+		},
+		iconBig: {
+			width: BIG_SIZE,
+			height: BIG_SIZE,
+			borderRadius: BIG_RADIUS,
+		},
+		iconBiggest: {
+			width: BIGGEST_SIZE,
+			height: BIGGEST_SIZE,
+			borderRadius: BIGGEST_RADIUS,
+		},
+		emptyIcon: {
+			backgroundColor: colors.background.alternative,
+			alignItems: 'center',
+			justifyContent: 'center',
+		},
+		tokenSymbol: {
+			fontSize: 16,
+			textAlign: 'center',
+			textAlignVertical: 'center',
+			color: colors.text.default,
+		},
+		tokenSymbolMedium: {
+			fontSize: 22,
+			color: colors.text.default,
+		},
+		tokenSymbolBig: {
+			fontSize: 26,
+			color: colors.text.default,
+		},
+	});
 
-const EmptyIcon = ({ medium, big, biggest, style, ...props }) => (
-	<View
-		style={[
-			styles.icon,
-			medium && styles.iconMedium,
-			big && styles.iconBig,
-			biggest && styles.iconBiggest,
-			styles.emptyIcon,
-			style,
-		]}
-		{...props}
-	/>
-);
+const EmptyIcon = ({ medium, big, biggest, style, ...props }) => {
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
+	return (
+		<View
+			style={[
+				styles.icon,
+				medium && styles.iconMedium,
+				big && styles.iconBig,
+				biggest && styles.iconBiggest,
+				styles.emptyIcon,
+				style,
+			]}
+			{...props}
+		/>
+	);
+};
 
 EmptyIcon.propTypes = {
 	medium: PropTypes.bool,
@@ -81,11 +90,32 @@ EmptyIcon.propTypes = {
 };
 
 function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
-	if (symbol === 'ETH' || symbol === 'BNB') {
+	const [showFallback, setShowFallback] = useState(false);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
+	const getSource = useCallback(() => {
+		if (symbol === 'ETH') {
+			return ethLogo;
+		}
+		if (symbol === 'BNB') {
+			return bnbLogo;
+		}
+
+		if (icon) {
+			return { uri: icon };
+		}
+
+		return null;
+	}, [symbol, icon]);
+	const source = getSource();
+
+	if (source && !showFallback) {
 		return (
 			<RemoteImage
 				fadeIn
-				source={symbol === 'ETH' ? ethLogo : bnbLogo}
+				source={getSource()}
+				onError={() => setShowFallback(true)}
 				style={[
 					styles.icon,
 					medium && styles.iconMedium,
@@ -95,21 +125,9 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 				]}
 			/>
 		);
-	} else if (icon) {
-		return (
-			<RemoteImage
-				fadeIn
-				source={{ uri: icon }}
-				style={[
-					styles.icon,
-					medium && styles.iconMedium,
-					big && styles.iconBig,
-					biggest && styles.iconBiggest,
-					style,
-				]}
-			/>
-		);
-	} else if (symbol) {
+	}
+
+	if (symbol) {
 		return (
 			<EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
 				<Text

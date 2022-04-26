@@ -1,43 +1,49 @@
+/* eslint-disable */
 import React, { useEffect, ReactNode, forwardRef, useImperativeHandle, useMemo, useCallback, useRef } from 'react';
 import { View, TouchableOpacity, StyleSheet, ViewStyle, Dimensions, StyleProp } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
 	call,
 	eq,
-	Easing,
+	EasingNode,
 	not,
 	block,
 	cond,
 	clockRunning,
 	Value,
-	interpolate,
+	interpolateNode,
 	useCode,
-	set
+	set,
 } from 'react-native-reanimated';
-import { onGestureEvent, withSpring, clamp, timing, spring } from 'react-native-redash';
-import { colors } from '../../../styles/common';
+import { onGestureEvent, withSpring, clamp, timing } from 'react-native-redash/src/v1';
+import createStyles from './styles';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 const screenHeight = Dimensions.get('window').height;
 
 type DismissModal = () => void;
 
-type Actions = {
+export interface ReusableModalRef {
 	dismissModal: (callback?: DismissModal) => void;
-};
+}
 
-type Props = {
-	ref?: React.Ref<Actions>;
+interface Props {
+	ref?: React.Ref<ReusableModalRef>;
 	style?: StyleProp<ViewStyle>;
 	children?: ReactNode;
 	onDismiss?: DismissModal;
-};
+}
 
-const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
+const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
 	const { style, children, onDismiss } = props;
 	const topOffset = 0;
 	const bottomOffset = screenHeight;
+	const navigation = useNavigation();
 	const safeAreaInsets = useSafeAreaInsets();
 	const trigger = useRef<DismissModal>();
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 
 	// Animation config
 	const animationConfig: Omit<Animated.SpringConfig, 'toValue'> = {
@@ -46,12 +52,16 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 		restSpeedThreshold: 5,
 		restDisplacementThreshold: 5,
 		stiffness: 800,
-		mass: 6
+		mass: 6,
 	};
 
 	// Animation is finished, process end state
 	const triggerDismissed = useCallback(() => {
+		// Remove modal from stack
+		navigation.goBack();
+		// Declaratively
 		onDismiss && onDismiss();
+		// Imperatively
 		trigger.current && trigger.current();
 	}, [onDismiss]);
 
@@ -66,7 +76,7 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 		() =>
 			clamp(
 				withSpring({
-					onSnap: val => {
+					onSnap: (val) => {
 						const offset = val[0];
 						if (offset == bottomOffset) {
 							// TODO: Use optional chaining once prettier is fixed
@@ -78,7 +88,7 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 					offset,
 					value: translationY,
 					snapPoints: [topOffset, bottomOffset],
-					config: animationConfig
+					config: animationConfig,
 				}),
 				topOffset,
 				bottomOffset
@@ -99,28 +109,28 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 	const animatedStyles: StyleSheet.NamedStyles<any> = useMemo(() => {
 		return {
 			overlayBackground: {
-				opacity: interpolate(translateY, {
+				opacity: interpolateNode(translateY, {
 					inputRange: [topOffset, bottomOffset],
-					outputRange: [1, 0]
-				}) as any
+					outputRange: [1, 0],
+				}) as any,
 			},
 			overlayBackgroundTouchable: {
 				...StyleSheet.absoluteFillObject,
 				transform: [
 					{
-						translateY: interpolate(translateY, {
+						translateY: interpolateNode(translateY, {
 							inputRange: [0, 1],
-							outputRange: [0, bottomOffset]
-						}) as any
-					}
-				]
+							outputRange: [0, bottomOffset],
+						}) as any,
+					},
+				],
 			},
 			modal: {
 				transform: [{ translateY } as any],
 				// TODO: This could be used to handle universal safe area bottom padding
 				// paddingBottom: safeAreaInsets.bottom
-				flex: 1
-			}
+				flex: 1,
+			},
 		};
 	}, [topOffset, bottomOffset, translateY, safeAreaInsets]);
 
@@ -132,15 +142,16 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 				cond(eq(triggerShowModal, new Value(1)), [
 					set(
 						offset,
-						spring({
-							config: animationConfig,
+						timing({
 							clock,
 							from: offset,
-							to: topOffset
+							easing: EasingNode.inOut(EasingNode.ease) as any,
+							duration: 250,
+							to: topOffset,
 						})
 					),
 					// Reset value that toggles animating in overlay
-					cond(not(clockRunning(clock)), block([set(triggerShowModal, 0)]))
+					cond(not(clockRunning(clock)), block([set(triggerShowModal, 0)])),
 				]),
 				// Animate OUT overlay
 				cond(eq(triggerDismissModal, new Value(1)), [
@@ -149,17 +160,17 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 						timing({
 							clock,
 							from: offset,
-							easing: Easing.ease,
+							easing: EasingNode.inOut(EasingNode.ease) as any,
 							duration: 200,
-							to: bottomOffset
+							to: bottomOffset,
 						})
 					),
 					// Dismiss overlay after animating out
 					cond(
 						not(clockRunning(clock)),
 						block([call([], () => triggerDismissed()), set(triggerDismissModal, 0)])
-					)
-				])
+					),
+				]),
 			]),
 		[]
 	);
@@ -171,15 +182,15 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 
 	// Expose actions for external components
 	useImperativeHandle(ref, () => ({
-		dismissModal: callback => {
+		dismissModal: (callback) => {
 			trigger.current = callback;
 			dismissOverlay();
-		}
+		},
 	}));
 
 	const renderOverlay = useCallback(() => {
 		return <Animated.View style={[styles.overlayBackground, animatedStyles.overlayBackground]} />;
-	}, [animatedStyles]);
+	}, [animatedStyles, styles]);
 
 	const renderContent = useCallback(() => {
 		return (
@@ -200,19 +211,6 @@ const ReusableModal = forwardRef<Actions, Props>((props, ref) => {
 			{renderContent()}
 		</View>
 	);
-});
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1
-	},
-	overlayBackground: {
-		backgroundColor: colors.overlay,
-		...StyleSheet.absoluteFillObject
-	},
-	fill: {
-		flex: 1
-	}
 });
 
 export default ReusableModal;

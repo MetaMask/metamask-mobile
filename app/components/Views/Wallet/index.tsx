@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useContext } from 'react';
 import { RefreshControl, ScrollView, InteractionManager, ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import AccountOverview from '../../UI/AccountOverview';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
@@ -16,38 +16,47 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.blue,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...(fontStyles.bold as any),
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-});
+const createStyles = (colors: any) =>
+	StyleSheet.create({
+		wrapper: {
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary.default,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+		},
+		tabBar: {
+			borderColor: colors.border.muted,
+		},
+		textStyle: {
+			fontSize: 12,
+			letterSpacing: 0.5,
+			...(fontStyles.bold as any),
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+	});
 
 /**
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
+	const { drawerRef } = useContext(DrawerContext);
 	const [refreshing, setRefreshing] = useState(false);
 	const accountOverviewRef = useRef(null);
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
 	/**
 	 * Map of accounts to information objects including balances
 	 */
@@ -87,26 +96,40 @@ const Wallet = ({ navigation }: any) => {
 	 */
 	const wizardStep = useSelector((state: any) => state.wizard.step);
 
+	const { colors: themeColors } = useAppThemeFromContext() || mockTheme;
+
+	useEffect(
+		() => {
+			requestAnimationFrame(async () => {
+				const { TokenDetectionController, CollectibleDetectionController, AccountTrackerController } =
+					Engine.context as any;
+				TokenDetectionController.detectTokens();
+				CollectibleDetectionController.detectCollectibles();
+				AccountTrackerController.refresh();
+			});
+		},
+		/* eslint-disable-next-line */
+		[navigation]
+	);
+
 	useEffect(() => {
-		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation));
-		requestAnimationFrame(async () => {
-			const { AssetsDetectionController, AccountTrackerController } = Engine.context as any;
-			AssetsDetectionController.detectAssets();
-			AccountTrackerController.refresh();
-		});
-	}, [navigation]);
+		navigation.setOptions(getWalletNavbarOptions('wallet.title', navigation, drawerRef, themeColors));
+		/* eslint-disable-next-line */
+	}, [navigation, themeColors]);
 
 	const onRefresh = useCallback(async () => {
 		requestAnimationFrame(async () => {
 			setRefreshing(true);
 			const {
-				AssetsDetectionController,
+				TokenDetectionController,
+				CollectibleDetectionController,
 				AccountTrackerController,
 				CurrencyRateController,
 				TokenRatesController,
 			} = Engine.context as any;
 			const actions = [
-				AssetsDetectionController.detectAssets(),
+				TokenDetectionController.detectTokens(),
+				CollectibleDetectionController.detectCollectibles(),
 				AccountTrackerController.refresh(),
 				CurrencyRateController.start(),
 				TokenRatesController.poll(),
@@ -120,14 +143,15 @@ const Wallet = ({ navigation }: any) => {
 		() => (
 			<DefaultTabBar
 				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
+				activeTextColor={colors.primary.default}
+				inactiveTextColor={colors.text.muted}
+				backgroundColor={colors.background.default}
 				tabStyle={styles.tabStyle}
 				textStyle={styles.textStyle}
+				style={styles.tabBar}
 			/>
 		),
-		[]
+		[styles, colors]
 	);
 
 	const onChangeTab = useCallback((obj) => {
@@ -203,6 +227,7 @@ const Wallet = ({ navigation }: any) => {
 		selectedAddress,
 		ticker,
 		tokens,
+		styles,
 	]);
 
 	const renderLoader = useCallback(
@@ -211,7 +236,7 @@ const Wallet = ({ navigation }: any) => {
 				<ActivityIndicator size="small" />
 			</View>
 		),
-		[]
+		[styles]
 	);
 
 	/**
@@ -230,7 +255,14 @@ const Wallet = ({ navigation }: any) => {
 			<View style={baseStyles.flexGrow} testID={'wallet-screen'}>
 				<ScrollView
 					style={styles.wrapper}
-					refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+					refreshControl={
+						<RefreshControl
+							colors={[colors.primary.default]}
+							tintColor={colors.icon.default}
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
+					}
 				>
 					{selectedAddress ? renderContent() : renderLoader()}
 				</ScrollView>

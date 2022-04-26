@@ -1,10 +1,9 @@
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
 import Engine from '../../core/Engine';
-import AppConstants from '../../core/AppConstants';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-
-const { supportedTLDs } = AppConstants;
+import punycode from 'punycode/punycode';
+import { KeyringTypes } from '@metamask/controllers';
 
 /**
  * Returns full checksummed address
@@ -15,6 +14,27 @@ const { supportedTLDs } = AppConstants;
 export function renderFullAddress(address) {
 	return address ? toChecksumAddress(address) : strings('transactions.tx_details_not_available');
 }
+
+/**
+ * Method to format the address to a shorter version
+ * @param {String} rawAddress - Full public  address
+ * @param {String} type - Format  type
+ * @returns {String} Formatted address
+ */
+export const formatAddress = (rawAddress, type) => {
+	let formattedAddress = rawAddress;
+
+	if (isValidAddress(rawAddress)) {
+		if (type && type === 'short') {
+			formattedAddress = renderShortAddress(rawAddress);
+		} else if (type && type === 'mid') {
+			formattedAddress = renderSlightlyLongAddress(rawAddress);
+		} else {
+			formattedAddress = renderFullAddress(rawAddress);
+		}
+	}
+	return formattedAddress.toLowerCase();
+};
 
 /**
  * Returns short address format
@@ -28,6 +48,12 @@ export function renderShortAddress(address, chars = 4) {
 	if (!address) return address;
 	const checksummedAddress = toChecksumAddress(address);
 	return `${checksummedAddress.substr(0, chars + 2)}...${checksummedAddress.substr(-chars)}`;
+}
+
+export function renderSlightlyLongAddress(address, chars = 4, initialChars = 20) {
+	if (!address) return address;
+	const checksummedAddress = toChecksumAddress(address);
+	return `${checksummedAddress.slice(0, chars + initialChars)}...${checksummedAddress.slice(-chars)}`;
 }
 
 /**
@@ -64,16 +90,68 @@ export async function importAccountFromPrivateKey(private_key) {
 }
 
 /**
+ * judge address is QR hardware account or not
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isQRHardwareAccount(address) {
+	const { KeyringController } = Engine.context;
+	const { keyrings } = KeyringController.state;
+	const qrKeyrings = keyrings.filter((keyring) => keyring.type === KeyringTypes.qr);
+	let qrAccounts = [];
+	for (const qrKeyring of qrKeyrings) {
+		qrAccounts = qrAccounts.concat(qrKeyring.accounts.map((account) => account.toLowerCase()));
+	}
+	return qrAccounts.includes(address.toLowerCase());
+}
+
+/**
+ * judge address's account type for tracking
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's account type
+ */
+export function getAddressAccountType(address) {
+	const { KeyringController } = Engine.context;
+	const { keyrings } = KeyringController.state;
+	const targetKeyring = keyrings.find((keyring) =>
+		keyring.accounts.map((account) => account.toLowerCase()).includes(address.toLowerCase())
+	);
+	if (targetKeyring) {
+		switch (targetKeyring.type) {
+			case KeyringTypes.qr:
+				return 'QR';
+			case KeyringTypes.simple:
+				return 'Imported';
+			default:
+				return 'MetaMask';
+		}
+	}
+	throw new Error(`The address: ${address} is not imported`);
+}
+
+/**
  * Validates an ENS name
  *
  * @param {String} name - String corresponding to an ENS name
  * @returns {boolean} - Returns a boolean indicating if it is valid
  */
 export function isENS(name) {
+	if (!name) return false;
+
+	const match = punycode
+		.toASCII(name)
+		.toLowerCase()
+		// Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
+		// Each piece of domain name has only the characters a-z, 0-9, and a hyphen (but not at the start or end of chunk)
+		// A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
+		.match(/^(?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z0-9][-a-z0-9]*[a-z0-9]$/u);
+
 	const OFFSET = 1;
 	const index = name && name.lastIndexOf('.');
 	const tld = index && index >= OFFSET && tlc(name.substr(index + OFFSET, name.length - OFFSET));
-	if (index && tld && supportedTLDs.includes(tld)) return true;
+	if (index && tld && !!match) return true;
 	return false;
 }
 

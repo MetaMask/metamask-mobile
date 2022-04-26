@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { InteractionManager, ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
-import { colors } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -29,30 +28,32 @@ import { MAINNET } from '../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/controllers/';
 import { getTokenList } from '../../../reducers/tokens';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
 const SEND = 'Send';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	loader: {
-		backgroundColor: colors.white,
-		flex: 1,
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+		loader: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+	});
 
 /**
  * View that wraps the wraps the "Send" screen
  */
 class Send extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getTransactionOptionsTitle('send.confirm', navigation, route);
-
 	static propTypes = {
 		/**
 		 * Object that represents the navigator
@@ -111,10 +112,6 @@ class Send extends PureComponent {
 		*/
 		dappTransactionModalVisible: PropTypes.bool,
 		/**
-		 * A list of custom RPCs to provide the user
-		 */
-		frequentRpcList: PropTypes.array,
-		/**
 		 * List of tokens from TokenListController
 		 */
 		tokenList: PropTypes.object,
@@ -168,6 +165,12 @@ class Send extends PureComponent {
 		}
 	}
 
+	updateNavBar = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const { navigation, route } = this.props;
+		navigation.setOptions(getTransactionOptionsTitle('send.confirm', navigation, route, colors));
+	};
+
 	/**
 	 * Sets state mounted to true, resets transaction and check for deeplinks
 	 */
@@ -179,6 +182,7 @@ class Send extends PureComponent {
 			dappTransactionModalVisible,
 			toggleDappTransactionModal,
 		} = this.props;
+		this.updateNavBar();
 		navigation &&
 			navigation.setParams({
 				mode: REVIEW,
@@ -212,6 +216,7 @@ class Send extends PureComponent {
 			contractBalances,
 			navigation,
 		} = this.props;
+		this.updateNavBar();
 		if (prevRoute && route) {
 			const prevTxMeta = prevRoute.params?.txMeta;
 			const currentTxMeta = route.params?.txMeta;
@@ -260,9 +265,6 @@ class Send extends PureComponent {
 		parameters = null,
 	}) => {
 		const { addressBook, network, identities, selectedAddress } = this.props;
-		if (chain_id) {
-			this.handleNetworkSwitch(chain_id);
-		}
 
 		let newTxMeta = {};
 		switch (action) {
@@ -347,28 +349,6 @@ class Send extends PureComponent {
 	};
 
 	/**
-	 * Method in charge of changing network if is needed
-	 *
-	 * @param switchToChainId - Corresponding chain id for new network
-	 */
-	handleNetworkSwitch = (switchToChainId) => {
-		const { frequentRpcList } = this.props;
-		const rpc = frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
-		if (rpc) {
-			const { rpcUrl, chainId, ticker, nickname } = rpc;
-			const { NetworkController, CurrencyRateController } = Engine.context;
-			CurrencyRateController.setNativeCurrency(ticker);
-			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-			this.props.showAlert({
-				isVisible: true,
-				autodismiss: 5000,
-				content: 'clipboard-alert',
-				data: { msg: strings('send.warn_network_change') + nickname },
-			});
-		}
-	};
-
-	/**
 	 * Retrieves ERC20 asset information (symbol and decimals) to be used with deeplinks
 	 *
 	 * @param address - Corresponding ERC20 asset address
@@ -391,7 +371,7 @@ class Send extends PureComponent {
 		const { AssetsContractController } = Engine.context;
 		const token = { address };
 		try {
-			const decimals = await AssetsContractController.getTokenDecimals(address);
+			const decimals = await AssetsContractController.getERC20TokenDecimals(address);
 			token.decimals = parseInt(String(decimals));
 		} catch (e) {
 			// Drop tx since we don't have any form to get decimals and send the correct tx
@@ -404,7 +384,7 @@ class Send extends PureComponent {
 			this.onCancel();
 		}
 		try {
-			token.symbol = await AssetsContractController.getAssetSymbol(address);
+			token.symbol = await AssetsContractController.getERC721AssetSymbol(address);
 		} catch (e) {
 			token.symbol = 'ERC20';
 		}
@@ -479,7 +459,7 @@ class Send extends PureComponent {
 	 * and returns to edit transaction
 	 */
 	onConfirm = async () => {
-		const { TransactionController, AddressBookController } = Engine.context;
+		const { TransactionController, AddressBookController, KeyringController } = Engine.context;
 		this.setState({ transactionConfirmed: true });
 		const {
 			transaction: { selectedAsset, assetType },
@@ -498,7 +478,7 @@ class Send extends PureComponent {
 				TransactionTypes.MMM,
 				WalletDevice.MM_MOBILE
 			);
-
+			await KeyringController.resetQRKeyringState();
 			await TransactionController.approveTransaction(transactionMeta.id);
 
 			// Add to the AddressBook if it's an unkonwn address
@@ -546,10 +526,14 @@ class Send extends PureComponent {
 				this.removeCollectible();
 			});
 		} catch (error) {
-			Alert.alert(strings('transactions.transaction_error'), error && error.message, [
-				{ text: strings('navigation.ok') },
-			]);
-			Logger.error(error, 'error while trying to send transaction (Send)');
+			if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				Alert.alert(strings('transactions.transaction_error'), error && error.message, [
+					{ text: strings('navigation.ok') },
+				]);
+				Logger.error(error, 'error while trying to send transaction (Send)');
+			} else {
+				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED);
+			}
 			this.setState({ transactionConfirmed: false });
 			await this.reset();
 		}
@@ -633,7 +617,13 @@ class Send extends PureComponent {
 
 	changeToReviewMode = () => this.onModeChange(REVIEW);
 
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
 	renderLoader() {
+		const styles = this.getStyles();
 		return (
 			<View style={styles.loader}>
 				<ActivityIndicator size="small" />
@@ -655,9 +645,12 @@ class Send extends PureComponent {
 		}
 	}
 
-	render = () => (
-		<View style={styles.wrapper}>{this.state.ready ? this.renderModeComponent() : this.renderLoader()}</View>
-	);
+	render = () => {
+		const styles = this.getStyles();
+		return (
+			<View style={styles.wrapper}>{this.state.ready ? this.renderModeComponent() : this.renderLoader()}</View>
+		);
+	};
 }
 
 const mapStateToProps = (state) => ({
@@ -681,5 +674,7 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 	toggleDappTransactionModal: () => dispatch(toggleDappTransactionModal()),
 });
+
+Send.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Send);

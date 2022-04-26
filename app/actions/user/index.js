@@ -64,3 +64,43 @@ export function setGasEducationCarouselSeen() {
 		type: 'SET_GAS_EDUCATION_CAROUSEL_SEEN',
 	};
 }
+
+export function setNftDetectionDismissed() {
+	return {
+		type: 'SET_NFT_DETECTION_DISMISSED',
+	};
+}
+
+export function logIn() {
+	return {
+		type: 'LOGIN',
+	};
+}
+
+export function logOut() {
+	return {
+		type: 'LOGOUT',
+	};
+}
+
+export function setAppTheme(theme) {
+	return {
+		type: 'SET_APP_THEME',
+		payload: { theme },
+	};
+}
+
+/**
+ * Temporary action to control auth flow
+ *
+ * @param {string} initialScreen - "login" or "onboarding"
+ * @returns - void
+ */
+export function checkedAuth(initialScreen) {
+	return {
+		type: 'CHECKED_AUTH',
+		payload: {
+			initialScreen,
+		},
+	};
+}

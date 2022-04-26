@@ -5,51 +5,53 @@ import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		paddingVertical: 15,
-		flex: 1,
-		backgroundColor: colors.white,
-	},
-	bookmarkIco: {
-		width: 26,
-		height: 26,
-		marginRight: 7,
-		borderRadius: 13,
-	},
-	fallbackTextStyle: {
-		fontSize: 12,
-	},
-	name: {
-		fontSize: 14,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	url: {
-		fontSize: 12,
-		color: colors.fontSecondary,
-		...fontStyles.normal,
-	},
-	item: {
-		flex: 1,
-		marginBottom: 20,
-	},
-	itemWrapper: {
-		flexDirection: 'row',
-		marginBottom: 20,
-		paddingHorizontal: 15,
-	},
-	textContent: {
-		flex: 1,
-		marginLeft: 10,
-	},
-	bg: {
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			paddingVertical: 15,
+			flex: 1,
+			backgroundColor: colors.background.default,
+		},
+		bookmarkIco: {
+			width: 26,
+			height: 26,
+			marginRight: 7,
+			borderRadius: 13,
+		},
+		fallbackTextStyle: {
+			fontSize: 12,
+		},
+		name: {
+			fontSize: 14,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		url: {
+			fontSize: 12,
+			color: colors.text.alternative,
+			...fontStyles.normal,
+		},
+		item: {
+			flex: 1,
+			marginBottom: 20,
+		},
+		itemWrapper: {
+			flexDirection: 'row',
+			marginBottom: 20,
+			paddingHorizontal: 15,
+		},
+		textContent: {
+			flex: 1,
+			marginLeft: 10,
+		},
+		bg: {
+			flex: 1,
+		},
+	});
 
 /**
  * PureComponent that renders an autocomplete
@@ -138,6 +140,9 @@ class UrlAutocomplete extends PureComponent {
 	onSubmitInput = () => this.props.onSubmit(this.props.input);
 
 	renderUrlOption = (url, name, onPress) => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		name = typeof name === 'string' ? name : getHost(url);
 		return (
 			<TouchableOpacity containerStyle={styles.item} onPress={onPress} key={url}>
@@ -162,6 +167,9 @@ class UrlAutocomplete extends PureComponent {
 	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		if (!this.props.input || this.props.input.length < 2)
 			return (
 				<View style={styles.wrapper}>
@@ -208,5 +216,7 @@ class UrlAutocomplete extends PureComponent {
 const mapStateToProps = (state) => ({
 	browserHistory: state.browser.history,
 });
+
+UrlAutocomplete.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(UrlAutocomplete);

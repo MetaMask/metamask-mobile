@@ -34,7 +34,7 @@
 		"import_wallet_button": "同步或导入钱包",
 		"new_to_crypto": "新接触加密币？",
 		"start_exploring_now": "创建新钱包",
-		"login": "登录",
+		"unlock": "登录",
 		"new_to_metamask": "MetaMask 的新用户？",
 		"already_have_wallet": "已有钱包？",
 		"optin_back_title": "注意！",
@@ -125,7 +125,7 @@
 	"login": {
 		"title": "欢迎回来！",
 		"password": "密码",
-		"login_button": "登录",
+		"unlock_button": "登录",
 		"go_back": "返回",
 		"invalid_password": "密码无效"
 	},
@@ -227,10 +227,10 @@
 		"settings": "设置",
 		"settings_warning": "钱包未受保护",
 		"help": "获取帮助",
-		"logout": "注销",
-		"logout_title": "是否确实想要注销？",
-		"logout_ok": "是",
-		"logout_cancel": "否",
+		"lock": "注销",
+		"lock_title": "是否确实想要注销？",
+		"lock_ok": "是",
+		"lock_cancel": "否",
 		"feedback": "反馈",
 		"metamask_support": "MetaMask 支持",
 		"public_address": "公共地址"
@@ -352,11 +352,29 @@
 	"accounts": {
 		"create_new_account": "创建新账户",
 		"import_account": "导入账户",
+		"connect_hardware": "连接硬件钱包",
 		"imported": "已导入",
 		"remove_account_title": "删除账户",
 		"remove_account_message": "是否确实想要删除此账户？",
 		"no": "否",
 		"yes_remove_it": "是，删除它"
+	},
+	"connect_qr_hardware": {
+		"title": "Connect a QR-based hardware wallet",
+		"description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",
+		"description2": "How it works?",
+		"description3": "Officially supported airgapped hardware wallets include:",
+		"description4": "Keystone (tutorial)",
+		"button_continue": "Continue",
+		"hint_text": "Scan your Keystone wallet to ",
+		"purpose_connect": "connect",
+		"purpose_sign": "confirm the transaction",
+		"select_accounts": "Select an Account",
+		"prev": "PREV",
+		"next": "NEXT",
+		"unlock": "Unlock",
+		"forget": "Forget this device",
+		"please_wait": "Please wait"
 	},
 	"app_settings": {
 		"title": "设置",
@@ -424,7 +442,7 @@
 		"general_title": "常规",
 		"general_desc": "货币转换、主要货币、语言和搜索引擎",
 		"advanced_title": "高级",
-		"advanced_desc": "访问开发人员功能、重置账户、设置测试网、与扩展程序同步、状态日志、IPFS 网关和自定义 RPC",
+		"advanced_desc": "访问开发人员功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
 		"contacts_title": "联系信息",
 		"contacts_desc": "添加、编辑、删除和管理您的账户",
 		"security_title": "安全和隐私",
@@ -475,7 +493,7 @@
 		"third_party_title": "获取传入交易",
 		"third_party_description": "第三方 API (Etherscan) 用于显示历史记录中的传入交易。如果您不希望我们通过这些服务拉取数据，请关闭。",
 		"metametrics_opt_out": "MetaMetrics 退出",
-		"metrametrics_restart_required": "您需要重启应用才能使更改生效。",
+		"metametrics_restart_required": "您需要重启应用才能使更改生效。",
 		"create_password": "创建密码",
 		"invalid_password": "密码无效",
 		"invalid_password_message": "密码不正确。请重试。",
@@ -499,10 +517,8 @@
 		"private_key_title_for_account": "显示 \"{{accountName}}\" 的私钥",
 		"cancel": "取消",
 		"confirm": "下一步",
-		"seed_phrase_explanation": "如果更改浏览器或移动计算机，您将需要此助记词才能访问账户。将它们保存在安全、秘密的地方。",
 		"private_key_explanation": "将它保存在安全、秘密的地方。",
 		"private_key_warning": "这是当前选定账户的私钥：{{accountName}}。请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转走所有资金。",
-		"seed_phrase_warning_explanation": "请勿将此助记词告诉任何人！这些字词可用于窃取您的所有账户。",
 		"private_key_warning_explanation": "请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转走所有资金。",
 		"seed_phrase": "您的助记词",
 		"private_key": "您的私钥",
@@ -555,6 +571,7 @@
 		"confirm": "确认"
 	},
 	"transaction": {
+		"hardware": "硬件",
 		"alert": "警报",
 		"amount": "数额",
 		"next": "下一步",
@@ -629,7 +646,12 @@
 		"tokenContractAddressWarning_2": "代币合约地址",
 		"tokenContractAddressWarning_3": ".如果将代币发送到此地址，您将失去代币。",
 		"smartContractAddressWarning": "此地址是智能合约地址。请确保您了解此地址的用途，否则您将面临资金损失风险。",
-		"continueError": "我了解风险，继续"
+		"continueError": "我了解风险，继续",
+		"unknown_qr_code": "非法二维码，请重试",
+		"invalid_qr_code_sync": "非法二维码，请扫描硬件钱包的同步二维码。",
+		"no_camera_permission": "您未开启摄像头权限，请在设置中给予权限后重试",
+		"invalid_qr_code_sign": "非法二维码. 请检查您的硬件钱包并重试",
+		"mismatched_qr_request_id": "扫描的签名二维码不属于当前交易，请检查交易详情后重试。"
 	},
 	"custom_gas": {
 		"total": "总计",
@@ -1137,8 +1159,7 @@
 		"wc_sent_tx_title": "已发送交易",
 		"wc_connected_rejected_title": "您已拒绝连接请求",
 		"wc_signed_rejected_title": "您已拒绝签名请求",
-		"wc_sent_tx_rejected_title": "您已拒绝交易请求",
-		"wc_description": "返回浏览器"
+		"wc_sent_tx_rejected_title": "您已拒绝交易请求"
 	},
 	"protect_your_wallet_modal": {
 		"title": "保护您的钱包",
@@ -1283,8 +1304,7 @@
 	"webview_error": {
 		"title": "糟糕！出问题了...",
 		"message": "我们无法加载该页面。",
-		"reason": "原因",
-		"try_again": "重试"
+		"reason": "原因"
 	},
 	"offline_mode": {
 		"title": "您已离线",

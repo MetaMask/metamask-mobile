@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import { RefreshControl, ScrollView, View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors } from '../../../styles/common';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import Collectibles from '../../UI/Collectibles';
@@ -11,13 +10,16 @@ import Modal from 'react-native-modal';
 import CollectibleContractInformation from '../../UI/CollectibleContractInformation';
 import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { toLowerCaseEquals } from '../../../util/general';
+import { collectiblesSelector } from '../../../reducers/collectibles';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+		},
+	});
 
 /**
  * View that displays a specific collectible
@@ -54,13 +56,24 @@ class Collectible extends PureComponent {
 		collectibles: [],
 	};
 
-	static navigationOptions = ({ navigation, route }) =>
-		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation);
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		getNetworkNavbarOptions(route.params?.name ?? '', false, navigation, colors);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	onRefresh = async () => {
 		this.setState({ refreshing: true });
-		const { AssetsDetectionController } = Engine.context;
-		await AssetsDetectionController.detectCollectibles();
+		const { CollectibleDetectionController } = Engine.context;
+		await CollectibleDetectionController.detectCollectibles();
 		this.setState({ refreshing: false });
 	};
 
@@ -77,6 +90,8 @@ class Collectible extends PureComponent {
 		const collectibleContract = params;
 		const address = params.address;
 		const { collectibles } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const filteredCollectibles = collectibles.filter((collectible) =>
 			toLowerCaseEquals(collectible.address, address)
 		);
@@ -91,10 +106,18 @@ class Collectible extends PureComponent {
 		});
 
 		const ownerOf = filteredCollectibles.length;
+
 		return (
 			<View style={styles.wrapper}>
 				<ScrollView
-					refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+					refreshControl={
+						<RefreshControl
+							colors={[colors.primary.default]}
+							tintColor={colors.icon.default}
+							refreshing={this.state.refreshing}
+							onRefresh={this.onRefresh}
+						/>
+					}
 					style={styles.wrapper}
 				>
 					<View testID={'collectible'}>
@@ -120,6 +143,8 @@ class Collectible extends PureComponent {
 					onBackButtonPress={this.hideCollectibleContractModal}
 					onSwipeComplete={this.hideCollectibleContractModal}
 					swipeDirection={'down'}
+					backdropColor={colors.overlay.default}
+					backdropOpacity={1}
 				>
 					<CollectibleContractInformation
 						navigation={navigation}
@@ -133,12 +158,14 @@ class Collectible extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-	collectibles: state.engine.backgroundState.CollectiblesController.collectibles,
+	collectibles: collectiblesSelector(state),
 	collectibleContractModalVisible: state.modals.collectibleContractModalVisible,
 });
 
 const mapDispatchToProps = (dispatch) => ({
 	toggleCollectibleContractModal: () => dispatch(toggleCollectibleContractModal()),
 });
+
+Collectible.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(Collectible);

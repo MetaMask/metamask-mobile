@@ -5,10 +5,11 @@ import ElevatedView from 'react-native-elevated-view';
 import WebsiteIcon from '../../WebsiteIcon';
 import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../../styles/common';
 import Device from '../../../../util/device';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
@@ -22,85 +23,86 @@ if (Device.isAndroid()) {
 	paddingTop -= 10;
 }
 
-const styles = StyleSheet.create({
-	tabFavicon: {
-		alignSelf: 'flex-start',
-		width: 22,
-		height: 22,
-		marginRight: 5,
-		marginLeft: 2,
-		marginTop: 1,
-	},
-	tabSiteName: {
-		color: colors.white,
-		...fontStyles.bold,
-		fontSize: 18,
-		marginRight: 40,
-		marginLeft: 5,
-		marginTop: 0,
-	},
-	tabHeader: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		justifyContent: 'flex-start',
-		backgroundColor: colors.grey500,
-		paddingVertical: 10,
-		paddingHorizontal: 10,
-	},
-	tabWrapper: {
-		marginBottom: 15,
-		borderRadius: 10,
-		elevation: 8,
-		justifyContent: 'space-evenly',
-		overflow: 'hidden',
-		borderColor: colors.grey100,
-		borderWidth: 1,
-		width,
-		height,
-	},
-	checkWrapper: {
-		backgroundColor: colors.transparent,
-		overflow: 'hidden',
-	},
-	tab: {
-		backgroundColor: colors.white,
-		flex: 1,
-		alignItems: 'flex-start',
-		justifyContent: 'flex-start',
-	},
-	tabImage: {
-		...StyleSheet.absoluteFillObject,
-		paddingTop,
-		width: null,
-		height: null,
-		resizeMode: 'cover',
-	},
-	activeTab: {
-		borderWidth: 5,
-		borderColor: colors.blue,
-	},
-	closeTabIcon: {
-		paddingHorizontal: 10,
-		paddingTop: 3,
-		fontSize: 32,
-		color: colors.white,
-		right: 0,
-		marginTop: -7,
-		position: 'absolute',
-	},
-	titleButton: {
-		backgroundColor: colors.transparent,
-		flex: 1,
-		flexDirection: 'row',
-		marginRight: 40,
-	},
-	closeTabButton: {
-		backgroundColor: colors.transparent,
-		width: Device.isIos() ? 30 : 35,
-		height: 24,
-		marginRight: -5,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		tabFavicon: {
+			alignSelf: 'flex-start',
+			width: 22,
+			height: 22,
+			marginRight: 5,
+			marginLeft: 2,
+			marginTop: 1,
+		},
+		tabSiteName: {
+			color: colors.text.default,
+			...fontStyles.bold,
+			fontSize: 18,
+			marginRight: 40,
+			marginLeft: 5,
+			marginTop: 0,
+		},
+		tabHeader: {
+			flexDirection: 'row',
+			alignItems: 'flex-start',
+			justifyContent: 'flex-start',
+			backgroundColor: colors.background.default,
+			paddingVertical: 10,
+			paddingHorizontal: 10,
+		},
+		tabWrapper: {
+			marginBottom: 15,
+			borderRadius: 10,
+			elevation: 8,
+			justifyContent: 'space-evenly',
+			overflow: 'hidden',
+			borderColor: colors.border.default,
+			borderWidth: 1,
+			width,
+			height,
+		},
+		checkWrapper: {
+			backgroundColor: importedColors.transparent,
+			overflow: 'hidden',
+		},
+		tab: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			alignItems: 'flex-start',
+			justifyContent: 'flex-start',
+		},
+		tabImage: {
+			...StyleSheet.absoluteFillObject,
+			paddingTop,
+			width: null,
+			height: null,
+			resizeMode: 'cover',
+		},
+		activeTab: {
+			borderWidth: 5,
+			borderColor: colors.primary.default,
+		},
+		closeTabIcon: {
+			paddingHorizontal: 10,
+			paddingTop: 3,
+			fontSize: 32,
+			color: colors.text.default,
+			right: 0,
+			marginTop: -7,
+			position: 'absolute',
+		},
+		titleButton: {
+			backgroundColor: importedColors.transparent,
+			flex: 1,
+			flexDirection: 'row',
+			marginRight: 40,
+		},
+		closeTabButton: {
+			backgroundColor: importedColors.transparent,
+			width: Device.isIos() ? 30 : 35,
+			height: 24,
+			marginRight: -5,
+		},
+	});
 
 const { HOMEPAGE_URL } = AppConstants;
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
@@ -133,6 +135,8 @@ export default class TabThumbnail extends PureComponent {
 
 	render() {
 		const { isActiveTab, tab, onClose, onSwitch } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 		const Container = this.getContainer();
 		const hostname = getHost(tab.url);
 		const isHomepage = hostname === getHost(HOMEPAGE_URL);
@@ -169,3 +173,5 @@ export default class TabThumbnail extends PureComponent {
 		);
 	}
 }
+
+TabThumbnail.contextType = ThemeContext;

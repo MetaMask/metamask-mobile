@@ -29,7 +29,6 @@ export default {
 	},
 	MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
 	SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-	UNIV3_NFT_CONTRACT_ADDRESS: '0xc36442b4a4522e871399cd717abdd847ab11fe88',
 	HOMEPAGE_URL: 'https://home.metamask.io/',
 	SHORT_HOMEPAGE_URL: 'MetaMask.io',
 	ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
@@ -47,6 +46,12 @@ export default {
 		TRANSAK_API_URL_PRODUCTION: 'https://api.transak.com/',
 		TRANSAK_API_URL_STAGING: 'https://staging-api.transak.com/',
 		TRANSAK_REDIRECT_URL: 'https://metamask.io/',
+		MOONPAY_URL: 'https://buy.moonpay.com/',
+		MOONPAY_URL_STAGING: 'https://buy-sandbox.moonpay.com/',
+		MOONPAY_API_URL_PRODUCTION: 'https://api.moonpay.com/',
+		MOONPAY_REDIRECT_URL: 'about:blank',
+		MOONPAY_SIGN_URL_PRODUCTION: 'https://swap.metaswap.codefi.network/moonpaySign',
+		MOONPAY_SIGN_URL_STAGING: 'https://swap.metaswap-dev.codefi.network/moonpaySign',
 		WYRE_API_ENDPOINT: 'https://api.sendwyre.com/',
 		WYRE_API_ENDPOINT_TEST: 'https://api.testwyre.com/',
 		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
@@ -93,5 +98,16 @@ export default {
 		AT_LEAST: 'at_least',
 		LESS_THAN: 'less_than',
 		RANGE: 'range',
+	},
+	REVIEW_PROMPT: {
+		HIGH_GAS_FEES: 'https://metamask.zendesk.com/hc/en-us/articles/360058751211-Why-my-gas-fees-are-so-high',
+		MISSING_TOKENS:
+			'https://metamask.zendesk.com/hc/en-us/articles/360015489031-How-to-add-unlisted-tokens-custom-tokens-in-MetaMask',
+		SWAP_ISSUES: 'https://metamask.zendesk.com/hc/en-us/articles/360060329612-Error-fetching-quote',
+		SUPPORT: 'https://support.metamask.io',
+	},
+	BUNDLE_IDS: {
+		IOS: 'io.metamask.MetaMask',
+		ANDROID: 'io.metamask',
 	},
 };

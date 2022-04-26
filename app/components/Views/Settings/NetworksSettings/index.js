@@ -3,57 +3,59 @@ import React, { PureComponent } from 'react';
 import { StyleSheet, Text, ScrollView, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
-import { colors, fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
 import { MAINNET, RPC } from '../../../../constants/network';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-		paddingVertical: 12,
-		paddingHorizontal: 24,
-		marginBottom: 24,
-	},
-	networkIcon: {
-		width: 15,
-		height: 15,
-		borderRadius: 100,
-		marginTop: 2,
-		marginRight: 16,
-	},
-	otherNetworkIcon: {
-		width: 15,
-		height: 15,
-		borderRadius: 100,
-		marginTop: 2,
-		backgroundColor: colors.grey100,
-	},
-	network: {
-		flex: 1,
-		flexDirection: 'row',
-		paddingVertical: 12,
-	},
-	networkWrapper: {
-		flex: 0,
-		flexDirection: 'row',
-	},
-	networkLabel: {
-		fontSize: 16,
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	sectionLabel: {
-		fontSize: 14,
-		paddingVertical: 12,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		wrapper: {
+			backgroundColor: colors.background.default,
+			flex: 1,
+			paddingVertical: 12,
+			paddingHorizontal: 24,
+			paddingBottom: 36,
+		},
+		networkIcon: {
+			width: 15,
+			height: 15,
+			borderRadius: 100,
+			marginTop: 2,
+			marginRight: 16,
+		},
+		otherNetworkIcon: {
+			width: 15,
+			height: 15,
+			borderRadius: 100,
+			marginTop: 2,
+			backgroundColor: colors.icon.muted,
+		},
+		network: {
+			flex: 1,
+			flexDirection: 'row',
+			paddingVertical: 12,
+		},
+		networkWrapper: {
+			flex: 0,
+			flexDirection: 'row',
+		},
+		networkLabel: {
+			fontSize: 16,
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		sectionLabel: {
+			fontSize: 14,
+			paddingVertical: 12,
+			color: colors.text.default,
+			...fontStyles.bold,
+		},
+	});
 
 /**
  * Main view for app configurations
@@ -81,10 +83,23 @@ class NetworksSettings extends PureComponent {
 	actionSheet = null;
 	networkToRemove = null;
 
-	static navigationOptions = ({ navigation }) =>
-		getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation);
-
 	state = {};
+
+	updateNavBar = () => {
+		const { navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			getNavigationOptionsTitle(strings('app_settings.networks_title'), navigation, false, colors)
+		);
+	};
+
+	componentDidMount = () => {
+		this.updateNavBar();
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
 
 	getOtherNetworks = () => getAllNetworks().slice(1);
 
@@ -130,6 +145,9 @@ class NetworksSettings extends PureComponent {
 	onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
 	networkElement(name, color, i, network, isCustomRPC) {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<TouchableOpacity
 				key={`network-${i}`}
@@ -165,6 +183,9 @@ class NetworksSettings extends PureComponent {
 
 	renderRpcNetworksView = () => {
 		const { frequentRpcList } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		if (frequentRpcList.length > 0) {
 			return (
 				<View testID={'rpc-networks'}>
@@ -177,6 +198,9 @@ class NetworksSettings extends PureComponent {
 
 	renderMainnet() {
 		const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.mainnetHeader}>
 				<TouchableOpacity
@@ -196,6 +220,10 @@ class NetworksSettings extends PureComponent {
 	}
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const themeAppearance = this.context.themeAppearance;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.wrapper} testID={'networks-screen'}>
 				<ScrollView style={styles.networksWrapper}>
@@ -219,11 +247,14 @@ class NetworksSettings extends PureComponent {
 					cancelButtonIndex={1}
 					destructiveButtonIndex={0}
 					onPress={this.onActionSheetPress}
+					theme={themeAppearance}
 				/>
 			</View>
 		);
 	}
 }
+
+NetworksSettings.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	provider: state.engine.backgroundState.NetworkController.provider,

@@ -5,20 +5,22 @@
 import React, { useRef, useCallback } from 'react';
 import { InteractionManager, SafeAreaView, Image, Text, TouchableOpacity, View, StyleSheet, Alert } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import { colors } from '../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { parse } from 'eth-url-parser';
+import { isValidAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import AppConstants from '../../../core/AppConstants';
 import { failedSeedPhraseRequirements, isValidMnemonic } from '../../../util/validators';
 import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
 
 // TODO: This file needs typings
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: colors.black,
+		backgroundColor: importedColors.black,
 	},
 	preview: {
 		flex: 1,
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
 	text: {
 		flex: 1,
 		fontSize: 17,
-		color: colors.white,
+		color: importedColors.white,
 		textAlign: 'center',
 		justifyContent: 'center',
 		marginTop: 100,
@@ -70,6 +72,8 @@ const QRScanner = ({ navigation, route }: Props) => {
 	const { onScanError, onScanSuccess, onStartScan } = route.params;
 	const mountedRef = useRef(true);
 	const shouldReadBarCodeRef = useRef(true);
+
+	const currentChainId = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider.chainId);
 
 	const goBack = useCallback(() => {
 		navigation.goBack();
@@ -128,14 +132,18 @@ const QRScanner = ({ navigation, route }: Props) => {
 					mountedRef.current = false;
 					return;
 				}
-				// Let ethereum:address go forward
-				if (content.split('ethereum:').length > 1 && !parse(content).function_name) {
+				// Let ethereum:address and address go forward
+				if (
+					(content.split('ethereum:').length > 1 && !parse(content).function_name) ||
+					(content.startsWith('0x') && isValidAddress(content))
+				) {
+					const handledContent = content.startsWith('0x') ? `ethereum:${content}@${currentChainId}` : content;
 					shouldReadBarCodeRef.current = false;
-					data = parse(content);
+					data = parse(handledContent);
 					const action = 'send-eth';
 					data = { ...data, action };
 					end();
-					onScanSuccess(data, content);
+					onScanSuccess(data, handledContent);
 					return;
 				}
 
@@ -172,7 +180,7 @@ const QRScanner = ({ navigation, route }: Props) => {
 
 			end();
 		},
-		[onStartScan, end, mountedRef, navigation, onScanSuccess]
+		[end, onStartScan, onScanSuccess, navigation, currentChainId]
 	);
 
 	const onError = useCallback(
@@ -215,7 +223,7 @@ const QRScanner = ({ navigation, route }: Props) => {
 			>
 				<SafeAreaView style={styles.innerView}>
 					<TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-						<Icon name={'ios-close'} size={50} color={'white'} />
+						<Icon name={'ios-close'} size={50} color={importedColors.white} />
 					</TouchableOpacity>
 					<Image source={frameImage} style={styles.frame} />
 					<Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>

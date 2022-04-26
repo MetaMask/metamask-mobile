@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { connect } from 'react-redux';
+import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
@@ -11,36 +12,44 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
+import { getAddressAccountType } from '../../../util/address';
+import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	messageText: {
-		color: colors.black,
-		...fontStyles.normal,
-		fontFamily: Device.isIos() ? 'Courier' : 'Roboto',
-	},
-	message: {
-		marginLeft: 10,
-	},
-	truncatedMessageWrapper: {
-		marginBottom: 4,
-		overflow: 'hidden',
-	},
-	iosHeight: {
-		height: 70,
-	},
-	androidHeight: {
-		height: 97,
-	},
-	msgKey: {
-		fontWeight: 'bold',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		messageText: {
+			color: colors.text.default,
+			...fontStyles.normal,
+			fontFamily: Device.isIos() ? 'Courier' : 'Roboto',
+		},
+		message: {
+			marginLeft: 10,
+		},
+		truncatedMessageWrapper: {
+			marginBottom: 4,
+			overflow: 'hidden',
+		},
+		iosHeight: {
+			height: 70,
+		},
+		androidHeight: {
+			height: 97,
+		},
+		msgKey: {
+			...fontStyles.bold,
+		},
+	});
 
 /**
  * Component that supports eth_signTypedData and eth_signTypedData_v3
  */
-export default class TypedSign extends PureComponent {
+class TypedSign extends PureComponent {
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * react-navigation object used for switching between screens
 		 */
@@ -77,11 +86,12 @@ export default class TypedSign extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { currentPageInformation, messageParams } = this.props;
+			const { currentPageInformation, messageParams, selectedAddress } = this.props;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const url = new URL(currentPageInformation?.url);
 			return {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: url?.host,
 				dapp_url: currentPageInformation?.url,
 				network_name: type,
@@ -138,10 +148,20 @@ export default class TypedSign extends PureComponent {
 		this.props.onCancel();
 	};
 
-	confirmSignature = () => {
-		this.signMessage();
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
-		this.props.onConfirm();
+	confirmSignature = async () => {
+		try {
+			await this.signMessage();
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED, this.getAnalyticsParams());
+			this.props.onConfirm();
+		} catch (e) {
+			if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+				AnalyticsV2.trackEvent(
+					AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+					this.getAnalyticsParams()
+				);
+				this.props.onCancel();
+			}
+		}
 	};
 
 	shouldTruncateMessage = (e) => {
@@ -155,8 +175,15 @@ export default class TypedSign extends PureComponent {
 		this.setState({ truncateMessage: false });
 	};
 
-	renderTypedMessageV3 = (obj) =>
-		Object.keys(obj).map((key) => (
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
+
+	renderTypedMessageV3 = (obj) => {
+		const styles = this.getStyles();
+
+		return Object.keys(obj).map((key) => (
 			<View style={styles.message} key={key}>
 				{obj[key] && typeof obj[key] === 'object' ? (
 					<View>
@@ -170,9 +197,12 @@ export default class TypedSign extends PureComponent {
 				)}
 			</View>
 		));
+	};
 
 	renderTypedMessage = () => {
 		const { messageParams } = this.props;
+		const styles = this.getStyles();
+
 		if (messageParams.version === 'V1') {
 			return (
 				<View style={styles.message}>
@@ -198,6 +228,8 @@ export default class TypedSign extends PureComponent {
 		const { truncateMessage } = this.state;
 		const messageWrapperStyles = [];
 		let domain;
+		const styles = this.getStyles();
+
 		if (messageParams.version === 'V3') {
 			domain = JSON.parse(messageParams.data).domain;
 		}
@@ -235,3 +267,11 @@ export default class TypedSign extends PureComponent {
 		return rootView;
 	}
 }
+
+TypedSign.contextType = ThemeContext;
+
+const mapStateToProps = (state) => ({
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+});
+
+export default connect(mapStateToProps)(TypedSign);

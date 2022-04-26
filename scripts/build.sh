@@ -131,6 +131,7 @@ prebuild_ios(){
 	fi
 	# Required to install mixpanel dep
 	git submodule update --init --recursive
+	unset PREFIX
 }
 
 prebuild_android(){

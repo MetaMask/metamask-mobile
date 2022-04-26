@@ -1,11 +1,15 @@
-import { colors } from '../../styles/common';
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
 import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/constants/network';
+import {
+	NETWORK_ERROR_MISSING_NETWORK_ID,
+	NETWORK_ERROR_UNKNOWN_NETWORK_ID,
+	NETWORK_ERROR_MISSING_CHAIN_ID,
+} from '../../../app/constants/error';
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
-
+import { fastSplit } from '../../util/number';
 /**
  * List of the supported networks
  * including name, id, and color
@@ -57,12 +61,12 @@ const NetworkList = {
 		chainId: 5,
 		hexChainId: '0x5',
 		color: '#3099f2',
-		networkType: 'goerly',
+		networkType: 'goerli',
 	},
 	[RPC]: {
 		name: 'Private Network',
 		shortName: 'Private',
-		color: colors.grey000,
+		color: '#f2f3f4',
 		networkType: 'rpc',
 	},
 };
@@ -91,19 +95,19 @@ export const getNetworkName = (id) => NetworkListKeys.find((key) => NetworkList[
 
 export function getNetworkTypeById(id) {
 	if (!id) {
-		throw new Error('Missing network Id');
+		throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);
 	}
 	const network = NetworkListKeys.filter((key) => NetworkList[key].networkId === parseInt(id, 10));
 	if (network.length > 0) {
 		return network[0];
 	}
 
-	throw new Error(`Unknown network with id ${id}`);
+	throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
 }
 
 export function getDefaultNetworkByChainId(chainId) {
 	if (!chainId) {
-		throw new Error('Missing chain Id');
+		throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
 	}
 
 	let returnNetwork;
@@ -156,7 +160,7 @@ export function getBlockExplorerName(blockExplorerUrl) {
 	if (!blockExplorerUrl) return undefined;
 	const hostname = new URL(blockExplorerUrl).hostname;
 	if (!hostname) return undefined;
-	const tempBlockExplorerName = hostname.split('.')[0];
+	const tempBlockExplorerName = fastSplit(hostname);
 	if (!tempBlockExplorerName || !tempBlockExplorerName[0]) return undefined;
 	return tempBlockExplorerName[0].toUpperCase() + tempBlockExplorerName.slice(1);
 }

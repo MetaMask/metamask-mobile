@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { View, Animated, PanResponder, StyleSheet, Image, Text } from 'react-native';
 import PropTypes from 'prop-types';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
@@ -14,76 +15,77 @@ const MARGIN = DIAMETER * 0.16;
 const COMPLETE_VERTICAL_THRESHOLD = DIAMETER * 2;
 const COMPLETE_THRESHOLD = 0.85;
 
-const styles = StyleSheet.create({
-	container: {
-		shadowRadius: 8,
-		shadowOpacity: 0.5,
-		shadowColor: colors.blue200,
-		shadowOffset: { width: 0, height: 3 },
-		elevation: 0, // shadow colors not supported on Android. nothing > gray shadow
-	},
-	disabledContainer: {
-		opacity: 0.66,
-	},
-	slider: {
-		position: 'absolute',
-		width: DIAMETER,
-		height: DIAMETER,
-		borderRadius: DIAMETER,
-		borderWidth: MARGIN,
-		borderColor: colors.blue600,
-		backgroundColor: colors.white,
-	},
-	trackBack: {
-		position: 'relative',
-		overflow: 'hidden',
-		width: '100%',
-		height: DIAMETER,
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: DIAMETER,
-		backgroundColor: colors.blue700,
-	},
-	trackBackGradient: {
-		position: 'absolute',
-		width: '100%',
-		height: '100%',
-	},
-	trackBackGradientPressed: {
-		opacity: 0.66,
-	},
-	trackBackShine: {
-		position: 'absolute',
-		height: '200%',
-		left: 0,
-	},
-	trackFront: {
-		position: 'absolute',
-		overflow: 'hidden',
-		height: '100%',
-		borderRadius: DIAMETER,
-	},
+const createStyles = (colors) =>
+	StyleSheet.create({
+		container: {
+			shadowRadius: 8,
+			shadowOpacity: 0.5,
+			shadowColor: colors.primary.default,
+			shadowOffset: { width: 0, height: 3 },
+			elevation: 0, // shadow colors not supported on Android. nothing > gray shadow
+		},
+		disabledContainer: {
+			opacity: 0.66,
+		},
+		slider: {
+			position: 'absolute',
+			width: DIAMETER,
+			height: DIAMETER,
+			borderRadius: DIAMETER,
+			borderWidth: MARGIN,
+			borderColor: colors.primary.alternative,
+			backgroundColor: colors.primary.inverse,
+		},
+		trackBack: {
+			position: 'relative',
+			overflow: 'hidden',
+			width: '100%',
+			height: DIAMETER,
+			justifyContent: 'center',
+			alignItems: 'center',
+			borderRadius: DIAMETER,
+			backgroundColor: colors.primary.alternative,
+		},
+		trackBackGradient: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+		},
+		trackBackGradientPressed: {
+			opacity: 0.66,
+		},
+		trackBackShine: {
+			position: 'absolute',
+			height: '200%',
+			left: 0,
+		},
+		trackFront: {
+			position: 'absolute',
+			overflow: 'hidden',
+			height: '100%',
+			borderRadius: DIAMETER,
+		},
 
-	textFrontContainer: {
-		position: 'absolute',
-		width: '100%',
-		height: '100%',
-		justifyContent: 'center',
-		alignItems: 'center',
-	},
-	textBack: {
-		...fontStyles.normal,
-		color: colors.white,
-		fontSize: 16,
-	},
-	textFront: {
-		...fontStyles.normal,
-		color: colors.white,
-		fontSize: 16,
-	},
-});
+		textFrontContainer: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+			justifyContent: 'center',
+			alignItems: 'center',
+		},
+		textBack: {
+			...fontStyles.normal,
+			color: colors.primary.inverse,
+			fontSize: 16,
+		},
+		textFront: {
+			...fontStyles.normal,
+			color: colors.primary.inverse,
+			fontSize: 16,
+		},
+	});
 
-function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
+function SliderButton({ incompleteText, completeText, onComplete, disabled, onSwipeChange }) {
 	const [componentWidth, setComponentWidth] = useState(0);
 	const [hasCompletedCalled, setHasCompletedCalled] = useState(false);
 	const [hasStartedCompleteAnimation, setHasStartedCompleteAnimation] = useState(false);
@@ -92,6 +94,19 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const shineOffset = useRef(new Animated.Value(0)).current;
 	const pan = useRef(new Animated.ValueXY(0, 0)).current;
 	const completion = useRef(new Animated.Value(0)).current;
+
+	const onCompleteCallback = useRef(onComplete);
+
+	const { colors } = useAppThemeFromContext() || mockTheme;
+	const styles = createStyles(colors);
+
+	const handleIsPressed = useCallback(
+		(isPressed) => {
+			onSwipeChange?.(isPressed);
+			setIsPressed(isPressed);
+		},
+		[onSwipeChange]
+	);
 
 	const sliderPosition = useMemo(
 		() =>
@@ -117,8 +132,12 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 	const sliderCompletedOpacity = completion.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
 	const trackFrontBackgroundColor = completion.interpolate({
 		inputRange: [0, 1],
-		outputRange: [colors.blue600, colors.success],
+		outputRange: [colors.primary.alternative, colors.success.default],
 	});
+
+	useEffect(() => {
+		onCompleteCallback.current = onComplete;
+	}, [onComplete, onCompleteCallback]);
 
 	const startCompleteAnimation = useCallback(() => {
 		if (!hasStartedCompleteAnimation) {
@@ -131,23 +150,27 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					isInteraction: false,
 				}),
 			]).start(() => {
-				if (onComplete && !hasCompletedCalled) {
+				if (onCompleteCallback.current && !hasCompletedCalled) {
 					setHasCompletedCalled(true);
-					onComplete();
+					onCompleteCallback.current?.();
 				}
 			});
 		}
-	}, [completion, componentWidth, hasCompletedCalled, hasStartedCompleteAnimation, onComplete, pan]);
+	}, [completion, componentWidth, hasCompletedCalled, hasStartedCompleteAnimation, onCompleteCallback, pan]);
 
 	const panResponder = useMemo(
 		() =>
 			PanResponder.create({
 				onStartShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
 				onMoveShouldSetPanResponder: () => !disabled && !hasCompletedCalled,
-				onPanResponderGrant: () => setIsPressed(true),
+				onPanResponderGrant: () => handleIsPressed(true),
 				onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
+				onPanResponderTerminate: () => {
+					handleIsPressed(false);
+					Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+				},
 				onPanResponderRelease: (evt, gestureState) => {
-					setIsPressed(false);
+					handleIsPressed(false);
 					if (
 						Math.abs(gestureState.dy) < COMPLETE_VERTICAL_THRESHOLD &&
 						gestureState.dx / (componentWidth - DIAMETER) >= COMPLETE_THRESHOLD
@@ -158,7 +181,7 @@ function SliderButton({ incompleteText, completeText, onComplete, disabled }) {
 					}
 				},
 			}),
-		[componentWidth, disabled, hasCompletedCalled, pan, startCompleteAnimation]
+		[componentWidth, disabled, handleIsPressed, hasCompletedCalled, pan, startCompleteAnimation]
 	);
 
 	useEffect(() => {
@@ -258,6 +281,10 @@ SliderButton.propTypes = {
 	 * Action to execute once button completes sliding
 	 */
 	onComplete: PropTypes.func,
+	/**
+	 * Callback that gets called when the button is being swiped
+	 */
+	onSwipeChange: PropTypes.func,
 	/**
 	 * Value that decides whether or not the slider is disabled
 	 */

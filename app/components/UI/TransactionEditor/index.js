@@ -26,6 +26,7 @@ import EditGasFee1559 from '../EditGasFee1559';
 import EditGasFeeLegacy from '../EditGasFeeLegacy';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import AppConstants from '../../../core/AppConstants';
+import { lt } from '../../../util/lodash';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -258,7 +259,7 @@ class TransactionEditor extends PureComponent {
 		const { transaction } = this.props;
 
 		const zeroGas = new BN('00');
-		const hasGasPrice = Boolean(transaction.gasPrice) && !new BN(transaction.gasPrice).eq(zeroGas);
+		const hasGasPrice = Boolean(transaction.gasPrice);
 		const hasGasLimit = Boolean(transaction.gas) && !new BN(transaction.gas).eq(zeroGas);
 		const hasEIP1559Gas = Boolean(transaction.maxFeePerGas) && Boolean(transaction.maxPriorityFeePerGas);
 		if (!hasGasLimit) this.handleGetGasLimit();
@@ -572,7 +573,7 @@ class TransactionEditor extends PureComponent {
 		} = this.props;
 		const { selectedAddress } = this.props;
 		try {
-			const owner = await AssetsContractController.getOwnerOf(address, tokenId);
+			const owner = await AssetsContractController.getERC721OwnerOf(address, tokenId);
 			const isOwner = toLowerCaseEquals(owner, selectedAddress);
 			if (!isOwner) {
 				return strings('transaction.invalid_collectible_ownership');
@@ -631,7 +632,7 @@ class TransactionEditor extends PureComponent {
 			} else {
 				const { AssetsContractController } = Engine.context;
 				try {
-					contractBalanceForAddress = await AssetsContractController.getBalanceOf(
+					contractBalanceForAddress = await AssetsContractController.getERC20BalanceOf(
 						selectedAsset.address,
 						checksummedFrom
 					);
@@ -640,7 +641,7 @@ class TransactionEditor extends PureComponent {
 				}
 			}
 			if (value && !isBN(value)) return strings('transaction.invalid_amount');
-			const validateAssetAmount = contractBalanceForAddress && contractBalanceForAddress.lt(value);
+			const validateAssetAmount = contractBalanceForAddress && lt(contractBalanceForAddress, value);
 			if (validateAssetAmount) return strings('transaction.insufficient');
 		}
 		return error;

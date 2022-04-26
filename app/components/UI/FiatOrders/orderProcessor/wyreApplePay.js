@@ -3,10 +3,11 @@ import { PaymentRequest } from '@exodus/react-native-payments';
 import axios from 'axios';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
+import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 
 import useCurrency from '../../../Base/Keypad/useCurrency';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES, NETWORKS_CHAIN_ID } from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -108,15 +109,18 @@ export const WYRE_ORDER_STATES = {
  * @property {string?} reversalReason
  */
 
+//* Functions
+export const isWyreAllowedToBuy = (chainId) =>
+	chainId === NETWORKS_CHAIN_ID.MAINNET || (chainId === NETWORKS_CHAIN_ID.KOVAN && Device.isIos());
+
 //* Constants */
 
 const { WYRE_MERCHANT_ID, WYRE_MERCHANT_ID_TEST, WYRE_API_ENDPOINT, WYRE_API_ENDPOINT_TEST } = AppConstants.FIAT_ORDERS;
-export const WYRE_IS_PROMOTION = false;
 export const WYRE_REGULAR_FEE_PERCENT = 2.9;
 export const WYRE_REGULAR_FEE_FLAT = 0.3;
 export const WYRE_MIN_FEE = 5;
-export const WYRE_FEE_PERCENT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_PERCENT;
-export const WYRE_FEE_FLAT = WYRE_IS_PROMOTION ? 0 : WYRE_REGULAR_FEE_FLAT;
+export const WYRE_FEE_PERCENT = WYRE_REGULAR_FEE_PERCENT;
+export const WYRE_FEE_FLAT = WYRE_REGULAR_FEE_FLAT;
 const ETH_CURRENCY_CODE = 'ETH';
 
 export const SUPPORTED_COUNTRIES = {
@@ -528,7 +532,7 @@ const paymentOptions = {
 	requestPayerPhone: true,
 	requestPayerEmail: true,
 	requestBilling: true,
-	merchantCapabilities: ['debit'],
+	merchantCapabilities: ['debit', 'credit'],
 };
 
 const createPayload = (network, amount, address, currency, paymentDetails) => {

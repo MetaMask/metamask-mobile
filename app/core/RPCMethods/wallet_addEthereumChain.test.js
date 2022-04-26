@@ -5,7 +5,7 @@ const correctParams = {
 	chainName: 'xDai',
 	blockExplorerUrls: ['https://blockscout.com/xdai/mainnet'],
 	nativeCurrency: { symbol: 'xDai', decimals: 18 },
-	rpcUrls: ['https://rpc.xdaichain.com/'],
+	rpcUrls: ['https://rpc.xdaichain.com'],
 };
 
 const otherOptions = {
@@ -117,7 +117,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 		try {
 			await wallet_addEthereumChain({
 				req: {
-					params: [{ ...correctParams, chainId: '0x65' }],
+					params: [{ ...correctParams, chainId: '0x63' }],
 				},
 				...otherOptions,
 			});

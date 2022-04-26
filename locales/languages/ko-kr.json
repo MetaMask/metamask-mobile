@@ -34,7 +34,7 @@
 		"import_wallet_button": "지갑 동기화 또는 가져오기",
 		"new_to_crypto": "암호화폐가 처음이세요?",
 		"start_exploring_now": "새 지갑 생성",
-		"login": "로그인",
+		"unlock": "로그인",
 		"new_to_metamask": "MetaMask가 처음이세요?",
 		"already_have_wallet": "이미 지갑이 있나요?",
 		"optin_back_title": "주의하세요!",
@@ -128,7 +128,7 @@
 	"login": {
 		"title": "재방문을 환영합니다!",
 		"password": "암호",
-		"login_button": "로그인",
+		"unlock_button": "로그인",
 		"go_back": "로그인에 실패하셨나요? 기존 지갑을 지우고 새로 설정하실 수 있습니다.",
 		"reset_wallet": "지갑 재설정",
 		"cant_proceed": "계속하려면 'Delete'를 입력하십시오. 입력하면 기존 지갑 지우기를 선택하는 것입니다.",
@@ -242,10 +242,10 @@
 		"settings_warning": "보호되지 않는 지갑",
 		"settings_warning_short": "보호되지 않음",
 		"help": "도움 받기",
-		"logout": "로그아웃",
-		"logout_title": "정말 로그아웃하시겠어요?",
-		"logout_ok": "예",
-		"logout_cancel": "아니요",
+		"lock": "로그아웃",
+		"lock_title": "정말 로그아웃하시겠어요?",
+		"lock_ok": "예",
+		"lock_cancel": "아니요",
 		"feedback": "피드백",
 		"metamask_support": "MetaMask 지원",
 		"public_address": "공개 주소"
@@ -451,7 +451,7 @@
 		"general_title": "일반",
 		"general_desc": "통화 전환, 기본 통화, 언어 및 검색 엔진",
 		"advanced_title": "고급",
-		"advanced_desc": "개발자 기능 액세스, 계정 재설정, 테스트넷 설정, 확장 프로그램과 동기화, 상태 로그, IPFS 게이트웨이 및 맞춤형 RPC",
+		"advanced_desc": "개발자 기능 액세스, 계정 재설정, 테스트넷 설정, 상태 로그, IPFS 게이트웨이 및 맞춤형 RPC",
 		"contacts_title": "문의",
 		"contacts_desc": "계정 추가, 편집, 제거 및 관리",
 		"security_title": "보안 및 개인정보 보호",
@@ -502,7 +502,7 @@
 		"third_party_title": "수신 거래 받기",
 		"third_party_description": "타사 API(Etherscan)는 수신 거래를 기록에 표시하는 데 사용됩니다. 해당 서비스에서 데이터를 가져오지 않으려면 설정을 끄세요.",
 		"metametrics_opt_out": "MetaMetrics 옵트아웃",
-		"metrametrics_restart_required": "변경 사항을 적용하려면 앱을 다시 시작해야 합니다.",
+		"metametrics_restart_required": "변경 사항을 적용하려면 앱을 다시 시작해야 합니다.",
 		"create_password": "암호 생성",
 		"invalid_password": "잘못된 암호",
 		"invalid_password_message": "암호가 올바르지 않습니다. 다시 시도하세요.",
@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "\"{{accountName}}\"의 비공개 키 표시",
 		"cancel": "취소",
 		"confirm": "다음",
-		"seed_phrase_explanation": "브라우저를 변경하거나 컴퓨터를 옮긴 경우, 계정에 액세스하려면 이 시드 구문이 필요합니다. 기밀이 보장된 안전한 곳에 보관하십시오.",
 		"private_key_explanation": "기밀이 보장된 안전한 곳에 보관하세요.",
 		"private_key_warning": "현재 선택한 계정의 비공개 키입니다. {{accountName}}. 이 키를 노출하지 마세요. 비공개 키를 사용하는 사람은 자금을 이체하는 등 본인 계정을 완전히 제어할 수 있습니다.",
-		"seed_phrase_warning_explanation": "이 구문은 누구에게도 공유하지 마세요! 이 단어들이 계정 전체 도용에 사용될 수 있습니다.",
 		"private_key_warning_explanation": "이 키를 노출하지 마세요. 비공개 키를 사용하는 사람은 자금을 이체하는 등 본인 계정을 완전히 제어할 수 있습니다.",
 		"seed_phrase": "계정 시드 구문",
 		"private_key": "비공개 키",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "거래 보냄",
 		"wc_connected_rejected_title": "연결 요청을 거부하셨습니다.",
 		"wc_signed_rejected_title": "서명 요청을 거부하셨습니다.",
-		"wc_sent_tx_rejected_title": "거래 요청을 거부하셨습니다.",
-		"wc_description": "브라우저로 돌아가기"
+		"wc_sent_tx_rejected_title": "거래 요청을 거부하셨습니다."
 	},
 	"protect_your_wallet_modal": {
 		"title": "지갑 보호",
@@ -1280,8 +1277,7 @@
 	"webview_error": {
 		"title": "이런! 문제가 발생했습니다...",
 		"message": "이 페이지를 로드하지 못했습니다.",
-		"reason": "이유",
-		"try_again": "다시 시도"
+		"reason": "이유"
 	},
 	"offline_mode": {
 		"title": "오프라인 상태입니다.",
@@ -1337,7 +1333,6 @@
 		"no_countries_result": "지원 국가 가운데 “{{searchString}}” 없음",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "빠른 속도 + 낮은 수수료",
-		"debit_card_required": "낮은 수수료, 체크카드 필요",
 		"select_card_country": "카드가 등록된 국가를 선택하십시오(거주 국가가 아님).",
 		"search_country": "국가 검색",
 		"wyre_countries": " U.S. + 33개가 넘는 국가, 수수료와 한도 상이",
@@ -1383,15 +1378,15 @@
 		"total_amount": "총액",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "ETH를 구매하기 전에 가스 요금을 파악하십시오",
+				"title": "{{ticker}}를 구매하기 전에 가스 요금을 파악하십시오",
 				"average_gas_fee": "현재 평균 가스 요금:",
-				"subtitle_1": "ETH를 스왑하거나 전송하려는 계획이라면 가스 요금을 충당할 수 있도록 여유분을 구매하십시오.",
-				"subtitle_2": "거래를 위한 가스 요금은 ETH 구매의 비용과 별도입니다.",
+				"subtitle_1": "{{ticker}}를 스왑하거나 전송하려는 계획이라면 가스 요금을 충당할 수 있도록 여유분을 구매하십시오.",
+				"subtitle_2": "거래를 위한 가스 요금은 {{ticker}} 구매의 비용과 별도입니다.",
 				"subtitle_3": "MetaMask는 가스 요금으로 수익을 얻지 않습니다."
 			},
 			"step_2": {
 				"title": "가스 요금이란 무엇입니까?",
-				"subtitle_1": "가스는 이더리움 네트워크에서 이루어지는 거래의 동력이 됩니다. 이는 거래를 진행하는 암호화폐 채굴자에게 ETH에서 지불되는 요금입니다.",
+				"subtitle_1": "가스는 이더리움 네트워크에서 이루어지는 거래의 동력이 됩니다. 이는 거래를 진행하는 암호화폐 채굴자에게 {{ticker}}에서 지불되는 요금입니다.",
 				"subtitle_2": "MetaMask는 가스 요금으로 수익을 얻지 않습니다.",
 				"learn_more": "가스 요금 자세히 알아보기"
 			},
@@ -1402,7 +1397,7 @@
 				"subtitle_3": "가스 요금을 추산하는 최고의 방법은",
 				"subtitle_4": "먼저 거래를 해 보고",
 				"subtitle_5": "가스 비용이 얼마나 드는지 확인하는 것입니다.",
-				"cta": "계속 ETH를 구매하고"
+				"cta": "계속 {{ticker}}를 구매하고"
 			}
 		}
 	},
@@ -1622,6 +1617,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "KO KR CC",
 		"language": "ko-kr",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-ko-kr.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-ko-kr.vtt?raw=true"
 	}
 }

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
-import { colors, fontStyles, baseStyles } from '../../../styles/common';
+import { fontStyles, baseStyles, colors as importedColors } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
@@ -27,115 +27,112 @@ import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { getTransparentBackOnboardingNavbarOptions, getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
-import Animated, { Easing } from 'react-native-reanimated';
+import Animated, { EasingNode } from 'react-native-reanimated';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import AnimatedFox from 'react-native-animated-fox';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import AnimatedFox from 'react-native-animated-fox';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
-const styles = StyleSheet.create({
-	scroll: {
-		flex: 1,
-	},
-	wrapper: {
-		flex: 1,
-		alignItems: 'center',
-		paddingVertical: 30,
-	},
-	foxWrapper: {
-		width: Device.isIos() ? 90 : 45,
-		height: Device.isIos() ? 90 : 45,
-		marginVertical: 20,
-	},
-	image: {
-		alignSelf: 'center',
-		width: Device.isIos() ? 90 : 45,
-		height: Device.isIos() ? 90 : 45,
-	},
-	termsAndConditions: {
-		paddingBottom: 30,
-	},
-	title: {
-		fontSize: 24,
-		color: colors.fontPrimary,
-		...fontStyles.bold,
-		textAlign: 'center',
-	},
-	ctas: {
-		flex: 1,
-		position: 'relative',
-	},
-	footer: {
-		marginTop: -20,
-		marginBottom: 20,
-	},
-	login: {
-		fontSize: 18,
-		color: colors.blue,
-		...fontStyles.normal,
-	},
-	buttonDescription: {
-		...fontStyles.normal,
-		fontSize: 14,
-		textAlign: 'center',
-		marginBottom: 16,
-		color: colors.fontPrimary,
-		lineHeight: 20,
-	},
-	importWrapper: {
-		marginVertical: 24,
-	},
-	createWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-		marginBottom: 24,
-	},
-	buttonWrapper: {
-		marginBottom: 16,
-	},
-	loader: {
-		marginTop: 180,
-		justifyContent: 'center',
-		textAlign: 'center',
-	},
-	loadingText: {
-		marginTop: 30,
-		fontSize: 14,
-		textAlign: 'center',
-		color: colors.fontPrimary,
-		...fontStyles.normal,
-	},
-	modalTypeView: {
-		position: 'absolute',
-		bottom: 0,
-		paddingBottom: Device.isIphoneX() ? 20 : 10,
-		left: 0,
-		right: 0,
-		backgroundColor: colors.transparent,
-	},
-	notificationContainer: {
-		flex: 0.1,
-		flexDirection: 'row',
-		alignItems: 'flex-end',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		scroll: {
+			flex: 1,
+		},
+		wrapper: {
+			flex: 1,
+			alignItems: 'center',
+			paddingVertical: 30,
+		},
+		foxWrapper: {
+			width: Device.isIos() ? 90 : 45,
+			height: Device.isIos() ? 90 : 45,
+			marginVertical: 20,
+		},
+		image: {
+			alignSelf: 'center',
+			width: Device.isIos() ? 90 : 45,
+			height: Device.isIos() ? 90 : 45,
+		},
+		termsAndConditions: {
+			paddingBottom: 30,
+		},
+		title: {
+			fontSize: 24,
+			color: colors.text.default,
+			...fontStyles.bold,
+			textAlign: 'center',
+		},
+		ctas: {
+			flex: 1,
+			position: 'relative',
+		},
+		footer: {
+			marginTop: -20,
+			marginBottom: 20,
+		},
+		login: {
+			fontSize: 18,
+			color: colors.primary.default,
+			...fontStyles.normal,
+		},
+		buttonDescription: {
+			...fontStyles.normal,
+			fontSize: 14,
+			textAlign: 'center',
+			marginBottom: 16,
+			color: colors.text.default,
+			lineHeight: 20,
+		},
+		importWrapper: {
+			marginVertical: 24,
+		},
+		createWrapper: {
+			flex: 1,
+			justifyContent: 'flex-end',
+			marginBottom: 24,
+		},
+		buttonWrapper: {
+			marginBottom: 16,
+		},
+		loader: {
+			marginTop: 180,
+			justifyContent: 'center',
+			textAlign: 'center',
+		},
+		loadingText: {
+			marginTop: 30,
+			fontSize: 14,
+			textAlign: 'center',
+			color: colors.text.default,
+			...fontStyles.normal,
+		},
+		modalTypeView: {
+			position: 'absolute',
+			bottom: 0,
+			paddingBottom: Device.isIphoneX() ? 20 : 10,
+			left: 0,
+			right: 0,
+			backgroundColor: importedColors.transparent,
+		},
+		notificationContainer: {
+			flex: 0.1,
+			flexDirection: 'row',
+			alignItems: 'flex-end',
+		},
+	});
 
 /**
  * View that is displayed to first time (new) users
  */
 class Onboarding extends PureComponent {
-	static navigationOptions = ({ navigation, route }) =>
-		route.params?.delete
-			? getTransparentOnboardingNavbarOptions(navigation)
-			: getTransparentBackOnboardingNavbarOptions(navigation);
-
 	static propTypes = {
 		/**
 		 * The navigator object
@@ -169,6 +166,7 @@ class Onboarding extends PureComponent {
 		 * Object that represents the current route info like params passed to it
 		 */
 		route: PropTypes.object,
+		logOut: PropTypes.func,
 	};
 
 	notificationAnimated = new Animated.Value(100);
@@ -180,7 +178,7 @@ class Onboarding extends PureComponent {
 		Animated.timing(animatedRef, {
 			toValue,
 			duration: 500,
-			easing: Easing.linear,
+			easing: EasingNode.linear,
 			useNativeDriver: true,
 		}).start();
 	};
@@ -216,7 +214,18 @@ class Onboarding extends PureComponent {
 		BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
 	};
 
+	updateNavBar = () => {
+		const { route, navigation } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(
+			route.params?.delete
+				? getTransparentOnboardingNavbarOptions(colors)
+				: getTransparentBackOnboardingNavbarOptions(colors)
+		);
+	};
+
 	componentDidMount() {
+		this.updateNavBar();
 		this.mounted = true;
 		this.checkIfExistingUser();
 		InteractionManager.runAfterInteractions(() => {
@@ -238,12 +247,21 @@ class Onboarding extends PureComponent {
 		InteractionManager.runAfterInteractions(PreventScreenshot.allow);
 	}
 
+	componentDidUpdate = () => {
+		this.updateNavBar();
+	};
+
 	async checkIfExistingUser() {
 		const existingUser = await AsyncStorage.getItem(EXISTING_USER);
 		if (existingUser !== null) {
 			this.setState({ existingUser: true });
 		}
 	}
+
+	logOut = () => {
+		this.props.navigation.navigate('Login');
+		this.props.logOut();
+	};
 
 	onLogin = async () => {
 		const { passwordSet } = this.props;
@@ -254,7 +272,7 @@ class Onboarding extends PureComponent {
 			await SecureKeychain.resetGenericPassword();
 			this.props.navigation.navigate('HomeNav');
 		} else {
-			this.props.navigation.navigate('Login');
+			this.logOut();
 		}
 	};
 
@@ -362,16 +380,24 @@ class Onboarding extends PureComponent {
 		this.setState({ warningModalVisible: !warningModalVisible });
 	};
 
-	renderLoader = () => (
-		<View style={styles.wrapper}>
-			<View style={styles.loader}>
-				<ActivityIndicator size="small" />
-				<Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+	renderLoader = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
+		return (
+			<View style={styles.wrapper}>
+				<View style={styles.loader}>
+					<ActivityIndicator size="small" />
+					<Text style={styles.loadingText}>{this.props.loadingMsg}</Text>
+				</View>
 			</View>
-		</View>
-	);
+		);
+	};
 
 	renderContent() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.ctas}>
 				<Text style={styles.title} testID={'onboarding-screen-title'}>
@@ -390,23 +416,21 @@ class Onboarding extends PureComponent {
 							{strings('import_wallet.import_from_seed_button')}
 						</StyledButton>
 					</View>
+					{/* Temporarily Disable Sync until the new improved version is ready for release */}
+					{__DEV__ && (
+						<View style={styles.buttonWrapper}>
+							<StyledButton
+								style={styles.button}
+								type={'normal'}
+								onPress={this.onPressSync}
+								testID={'onboarding-import-button'}
+							>
+								{strings('import_wallet.sync_from_browser_extension_button')}
+							</StyledButton>
+						</View>
+					)}
 					<View style={styles.buttonWrapper}>
-						<StyledButton
-							style={styles.button}
-							type={'normal'}
-							onPress={this.onPressSync}
-							testID={'onboarding-import-button'}
-						>
-							{strings('import_wallet.sync_from_browser_extension_button')}
-						</StyledButton>
-					</View>
-					<View style={styles.buttonWrapper}>
-						<StyledButton
-							style={styles.button}
-							type={'blue'}
-							onPress={this.onPressCreate}
-							testID={'create-wallet-button'}
-						>
+						<StyledButton type={'blue'} onPress={this.onPressCreate} testID={'create-wallet-button'}>
 							{strings('onboarding.start_exploring_now')}
 						</StyledButton>
 					</View>
@@ -416,6 +440,9 @@ class Onboarding extends PureComponent {
 	}
 
 	handleSimpleNotification = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		if (!this.props.route.params?.delete) return;
 		return (
 			<Animated.View
@@ -435,6 +462,8 @@ class Onboarding extends PureComponent {
 	render() {
 		const { loading } = this.props;
 		const { existingUser } = this.state;
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
 
 		return (
 			<View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
@@ -450,7 +479,7 @@ class Onboarding extends PureComponent {
 											resizeMethod={'auto'}
 										/>
 									) : (
-										<AnimatedFox />
+										<AnimatedFox bgColor={colors.background.default} />
 									)}
 								</View>
 							)}
@@ -459,7 +488,7 @@ class Onboarding extends PureComponent {
 						{existingUser && !loading && (
 							<View style={styles.footer}>
 								<Button style={styles.login} onPress={this.onLogin}>
-									{strings('onboarding.login')}
+									{strings('onboarding.unlock')}
 								</Button>
 							</View>
 						)}
@@ -482,6 +511,8 @@ class Onboarding extends PureComponent {
 		);
 	}
 }
+
+Onboarding.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,

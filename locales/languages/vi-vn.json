@@ -34,7 +34,7 @@
 		"import_wallet_button": "Đồng bộ hóa hoặc nhập ví",
 		"new_to_crypto": "Bạn mới sử dụng tiền mã hóa?",
 		"start_exploring_now": "Tạo một ví mới",
-		"login": "Đăng nhập",
+		"unlock": "Đăng nhập",
 		"new_to_metamask": "Bạn mới sử dụng MetaMask?",
 		"already_have_wallet": "Bạn đã có ví?",
 		"optin_back_title": "Chú ý!",
@@ -128,7 +128,7 @@
 	"login": {
 		"title": "Chào mừng bạn trở lại!",
 		"password": "Mật khẩu",
-		"login_button": "ĐĂNG NHẬP",
+		"unlock_button": "ĐĂNG NHẬP",
 		"go_back": "Bạn không đăng nhập được? Bạn có thể XÓA ví hiện tại và thiết lập một ví mới",
 		"reset_wallet": "Đặt lại ví",
 		"cant_proceed": "Bạn không thể tiếp tục cho đến khi nhập từ “Xóa”. Bằng hành động này, bạn đang chọn xóa ví hiện tại của mình.",
@@ -242,10 +242,10 @@
 		"settings_warning": "Ví không được bảo vệ",
 		"settings_warning_short": "Không được bảo vệ",
 		"help": "Nhận trợ giúp",
-		"logout": "Đăng xuất",
-		"logout_title": "Bạn có thật sự muốn đăng xuất không?",
-		"logout_ok": "CÓ",
-		"logout_cancel": "KHÔNG",
+		"lock": "Đăng xuất",
+		"lock_title": "Bạn có thật sự muốn đăng xuất không?",
+		"lock_ok": "CÓ",
+		"lock_cancel": "KHÔNG",
 		"feedback": "Ý kiến phản hồi",
 		"metamask_support": "Hỗ trợ về MetaMask",
 		"public_address": "Địa chỉ công khai"
@@ -451,7 +451,7 @@
 		"general_title": "Chung",
 		"general_desc": "Quy đổi tiền, đơn vị tiền chính, ngôn ngữ và công cụ tìm kiếm",
 		"advanced_title": "Nâng cao",
-		"advanced_desc": "Truy cập các tính năng dành cho nhà phát triển, đặt lại tài khoản, thiết lập mạng thử nghiệm, đồng bộ hóa với tiện ích, nhật ký trạng thái, cổng kết nối IPFS và RPC tùy chỉnh",
+		"advanced_desc": "Truy cập các tính năng dành cho nhà phát triển, đặt lại tài khoản, thiết lập mạng thử nghiệm, nhật ký trạng thái, cổng kết nối IPFS và RPC tùy chỉnh",
 		"contacts_title": "Danh bạ",
 		"contacts_desc": "Thêm, chỉnh sửa, xóa và quản lý các tài khoản của bạn",
 		"security_title": "Bảo mật và quyền riêng tư",
@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Hiện khóa riêng tư cho \"{{accountName}}\"",
 		"cancel": "Hủy",
 		"confirm": "Tiếp theo",
-		"seed_phrase_explanation": "Nếu thay đổi trình duyệt hoặc chuyển máy tính, bạn sẽ cần Cụm mật khẩu khôi phục bí mật này để truy cập tài khoản của mình. Hãy lưu Cụm mật khẩu khôi phục bí mật này ở nơi an toàn và bí mật.",
 		"private_key_explanation": "Hãy lưu khóa riêng tư này ở nơi an toàn và bí mật.",
 		"private_key_warning": "Đây là khóa riêng tư cho tài khoản đang chọn: {{accountName}}. Tuyệt đối không để lộ mã khóa này. Bất kỳ ai có khóa riêng tư cũng đều có toàn quyền kiểm soát tài khoản của bạn, bao gồm cả việc chuyển đi mọi khoản tiền của bạn.",
-		"seed_phrase_warning_explanation": "KHÔNG chia sẻ cụm mật khẩu này với bất kỳ ai! Kẻ xấu có thể dùng các từ này để đánh cắp tất cả các tài khoản của bạn.",
 		"private_key_warning_explanation": "Tuyệt đối không để lộ mã khóa này. Bất kỳ ai có khóa riêng tư cũng đều có toàn quyền kiểm soát tài khoản của bạn, bao gồm cả việc chuyển đi mọi khoản tiền của bạn.",
 		"seed_phrase": "Cụm mật khẩu khôi phục bí mật của bạn",
 		"private_key": "Khóa riêng tư của bạn",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Đã gửi giao dịch",
 		"wc_connected_rejected_title": "Bạn đã từ chối yêu cầu kết nối",
 		"wc_signed_rejected_title": "Bạn đã từ chối yêu cầu ký tên",
-		"wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch",
-		"wc_description": "Quay lại trình duyệt"
+		"wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Bảo vệ ví của bạn",
@@ -1280,8 +1277,7 @@
 	"webview_error": {
 		"title": "Rất tiếc! Đã xảy ra sự cố...",
 		"message": "Chúng tôi không thể tải trang đó.",
-		"reason": "Lý do",
-		"try_again": "Thử lại"
+		"reason": "Lý do"
 	},
 	"offline_mode": {
 		"title": "Bạn đang không kết nối mạng",
@@ -1337,7 +1333,6 @@
 		"no_countries_result": "Không tìm thấy quốc gia được hỗ trợ nào khớp với “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Nhanh + phí thấp hơn",
-		"debit_card_required": "Phí thấp hơn, cần có thẻ ghi nợ",
 		"select_card_country": "Chọn quốc gia phát hành thẻ của bạn (không phải nơi bạn cư trú).",
 		"search_country": "Tìm kiếm quốc gia",
 		"wyre_countries": " Hoa Kỳ + 33 quốc gia, phí và hạn mức không giống nhau",
@@ -1383,15 +1378,15 @@
 		"total_amount": "Tổng số tiền",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Trước khi bạn mua ETH, vui lòng tìm hiểu về phí ga",
+				"title": "Trước khi bạn mua {{ticker}}, vui lòng tìm hiểu về phí ga",
 				"average_gas_fee": "Phí gas trung bình hiện tại:",
-				"subtitle_1": "Nếu bạn định hoán đổi hoặc chuyển nhượng ETH, vui lòng mua thêm để chi trả cho cả phí ga.",
-				"subtitle_2": "Phí gas cho giao dịch tách biệt với chi phí mua ETH.",
+				"subtitle_1": "Nếu bạn định hoán đổi hoặc chuyển nhượng {{ticker}}, vui lòng mua thêm để chi trả cho cả phí ga.",
+				"subtitle_2": "Phí gas cho giao dịch tách biệt với chi phí mua {{ticker}}.",
 				"subtitle_3": "MetaMask không thu lợi từ phí gas."
 			},
 			"step_2": {
 				"title": "Phí gas là gì?",
-				"subtitle_1": "Ga dùng để thực hiện các giao dịch trên mạng Ethereum. Trong ETH, đó là một phí được trả cho thợ đào tiền mã hóa xử lý giao dịch của bạn.",
+				"subtitle_1": "Ga dùng để thực hiện các giao dịch trên mạng Ethereum. Trong {{ticker}}, đó là một phí được trả cho thợ đào tiền mã hóa xử lý giao dịch của bạn.",
 				"subtitle_2": "MetaMask không thu lợi từ phí gas.",
 				"learn_more": "Tìm hiểu thêm về phí gas"
 			},
@@ -1402,7 +1397,7 @@
 				"subtitle_3": "Cách tốt nhất để ước tính phí gas là",
 				"subtitle_4": "thử giao dịch trước",
 				"subtitle_5": "để xem phí gas là bao nhiêu.",
-				"cta": "Tiếp tục mua ETH"
+				"cta": "Tiếp tục mua {{ticker}}"
 			}
 		}
 	},
@@ -1622,6 +1617,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "VI VN CC",
 		"language": "vi-vn",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-vi-vn.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-vi-vn.vtt?raw=true"
 	}
 }

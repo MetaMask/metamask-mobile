@@ -21,4 +21,14 @@
 # react native keychain https://github.com/oblador/react-native-keychain#proguard-rules
 -keep class com.facebook.crypto.** {
    *;
-} 
+}
+
+# react-native-svg https://github.com/react-native-svg/react-native-svg#problems-with-proguard
+-keep public class com.horcrux.svg.** {*;}
+
+# react-native-reanimated https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
+-keep class com.facebook.react.turbomodule.** { *; }
+
+# Hermes
+# -keep class com.facebook.hermes.unicode.** { *; }
+# -keep class com.facebook.jni.** { *; }#

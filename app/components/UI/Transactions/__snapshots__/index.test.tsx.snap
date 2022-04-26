@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Transactions should render correctly 1`] = `
-<Transactions
+<QRHardwareAwareness
   accounts={Object {}}
   chainId="1"
-  collectibleContracts={Object {}}
+  collectibleContracts={Array []}
   contractExchangeRates={Object {}}
   conversionRate={1}
   currentCurrency="USD"
@@ -15,7 +15,6 @@ exports[`Transactions should render correctly 1`] = `
       "medium": Object {},
     }
   }
-  headerHeight={0}
   loading={false}
   network={
     Object {

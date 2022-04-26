@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, InteractionManager, Animated } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { StyleSheet, View, InteractionManager, Animated, ScrollView } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -20,7 +20,6 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
@@ -31,41 +30,51 @@ import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
+import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
-const styles = StyleSheet.create({
-	tabUnderlineStyle: {
-		height: 2,
-		backgroundColor: colors.blue,
-	},
-	tabStyle: {
-		paddingBottom: 0,
-		backgroundColor: colors.beige,
-	},
-	textStyle: {
-		fontSize: 12,
-		letterSpacing: 0.5,
-		...fontStyles.bold,
-	},
-	actionViewWrapper: {
-		height: Device.isMediumDevice() ? 230 : 415,
-	},
-	actionViewChildren: {
-		height: 330,
-	},
-	accountInfoCardWrapper: {
-		paddingHorizontal: 24,
-		paddingBottom: 12,
-	},
-	transactionData: {
-		position: 'absolute',
-		width: '100%',
-		height: '100%',
-	},
-	hidden: {
-		opacity: 0,
-		height: 0,
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		tabUnderlineStyle: {
+			height: 2,
+			backgroundColor: colors.primary.default,
+		},
+		tabStyle: {
+			paddingBottom: 0,
+			backgroundColor: colors.background.default,
+		},
+		textStyle: {
+			fontSize: 12,
+			letterSpacing: 0.5,
+			...fontStyles.bold,
+		},
+		actionViewWrapper: {
+			height: Device.isMediumDevice() ? 230 : 415,
+		},
+		actionViewChildren: {
+			height: 330,
+		},
+		accountTransactionWrapper: {
+			flex: 1,
+		},
+		actionViewQRObject: {
+			height: 624,
+		},
+		accountInfoCardWrapper: {
+			paddingHorizontal: 24,
+			paddingBottom: 12,
+		},
+		transactionData: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+		},
+		hidden: {
+			opacity: 0,
+			height: 0,
+		},
+	});
 
 /**
  * PureComponent that supports reviewing a transaction
@@ -191,6 +200,8 @@ class TransactionReview extends PureComponent {
 		 * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
 		 */
 		dappSuggestedGasWarning: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	state = {
@@ -288,18 +299,10 @@ class TransactionReview extends PureComponent {
 		onModeChange && onModeChange('edit');
 	};
 
-	renderTabBar() {
-		return (
-			<DefaultTabBar
-				underlineStyle={styles.tabUnderlineStyle}
-				activeTextColor={colors.blue}
-				inactiveTextColor={colors.fontTertiary}
-				backgroundColor={colors.white}
-				tabStyle={styles.tabStyle}
-				textStyle={styles.textStyle}
-			/>
-		);
-	}
+	getStyles = () => {
+		const colors = this.context.colors || mockTheme.colors;
+		return createStyles(colors);
+	};
 
 	toggleDataView = () => {
 		const { animate } = this.props;
@@ -326,7 +329,7 @@ class TransactionReview extends PureComponent {
 		return url;
 	}
 
-	render = () => {
+	renderTransactionReview = () => {
 		const {
 			transactionConfirmed,
 			primaryCurrency,
@@ -348,6 +351,8 @@ class TransactionReview extends PureComponent {
 		} = this.props;
 		const { actionKey, error, assetAmount, conversionRate, fiatValue, approveTransaction } = this.state;
 		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		const styles = this.getStyles();
+
 		return (
 			<>
 				<Animated.View style={generateTransform('reviewToData', [0, -Device.getDeviceWidth()])}>
@@ -367,31 +372,38 @@ class TransactionReview extends PureComponent {
 							onCancelPress={this.props.onCancel}
 							onConfirmPress={this.props.onConfirm}
 							confirmed={transactionConfirmed}
-							confirmDisabled={transactionConfirmed || error !== undefined || isAnimating}
+							confirmDisabled={transactionConfirmed || Boolean(error) || isAnimating}
 						>
 							<View style={styles.actionViewChildren}>
-								<View style={styles.accountInfoCardWrapper}>
-									<AccountInfoCard />
-								</View>
-								<TransactionReviewInformation
-									navigation={navigation}
-									error={error}
-									edit={this.edit}
-									ready={ready}
-									assetAmount={assetAmount}
-									fiatValue={fiatValue}
-									toggleDataView={this.toggleDataView}
-									over={over}
-									onCancelPress={this.props.onCancel}
-									gasEstimateType={gasEstimateType}
-									EIP1559GasData={EIP1559GasData}
-									origin={dappSuggestedGas ? currentPageInformation?.url : null}
-									originWarning={dappSuggestedGasWarning}
-									onUpdatingValuesStart={onUpdatingValuesStart}
-									onUpdatingValuesEnd={onUpdatingValuesEnd}
-									animateOnChange={animateOnChange}
-									isAnimating={isAnimating}
-								/>
+								<ScrollView>
+									<View
+										style={styles.accountTransactionWrapper}
+										onStartShouldSetResponder={() => true}
+									>
+										<View style={styles.accountInfoCardWrapper}>
+											<AccountInfoCard />
+										</View>
+										<TransactionReviewInformation
+											navigation={navigation}
+											error={error}
+											edit={this.edit}
+											ready={ready}
+											assetAmount={assetAmount}
+											fiatValue={fiatValue}
+											toggleDataView={this.toggleDataView}
+											over={over}
+											onCancelPress={this.props.onCancel}
+											gasEstimateType={gasEstimateType}
+											EIP1559GasData={EIP1559GasData}
+											origin={dappSuggestedGas ? currentPageInformation?.url : null}
+											originWarning={dappSuggestedGasWarning}
+											onUpdatingValuesStart={onUpdatingValuesStart}
+											onUpdatingValuesEnd={onUpdatingValuesEnd}
+											animateOnChange={animateOnChange}
+											isAnimating={isAnimating}
+										/>
+									</View>
+								</ScrollView>
 							</View>
 						</ActionView>
 					</View>
@@ -413,6 +425,29 @@ class TransactionReview extends PureComponent {
 			</>
 		);
 	};
+
+	renderQRDetails() {
+		const currentPageInformation = { url: this.getUrlFromBrowser() };
+		const { QRState } = this.props;
+		const styles = this.getStyles();
+		return (
+			<View style={styles.actionViewQRObject}>
+				<TransactionHeader currentPageInformation={currentPageInformation} />
+				<QRSigningDetails
+					QRState={QRState}
+					tighten
+					showCancelButton
+					showHint={false}
+					bypassAndroidCameraAccessCheck={false}
+				/>
+			</View>
+		);
+	}
+
+	render() {
+		const { isSigningQRObject } = this.props;
+		return isSigningQRObject ? this.renderQRDetails() : this.renderTransactionReview();
+	}
 }
 
 const mapStateToProps = (state) => ({
@@ -430,4 +465,6 @@ const mapStateToProps = (state) => ({
 	tokenList: getTokenList(state),
 });
 
-export default connect(mapStateToProps)(TransactionReview);
+TransactionReview.contextType = ThemeContext;
+
+export default connect(mapStateToProps)(withQRHardwareAwareness(TransactionReview));

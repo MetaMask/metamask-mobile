@@ -93,10 +93,13 @@ describe('Addressbook Tests', () => {
 		await SendView.isTransferBetweenMyAccountsButtonVisible();
 	});
 
-	it('should input a valid address to send to', async () => {
+	it('should show invalid address error message', async () => {
 		await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
 		await SendView.incorrectAddressErrorMessageIsVisible();
 		await SendView.removeAddress();
+	});
+
+	it('should input a valid address to send to', async () => {
 		await SendView.inputAddress(MYTH_ADDRESS);
 		await SendView.noEthWarningMessageIsVisible();
 	});
@@ -153,10 +156,15 @@ describe('Addressbook Tests', () => {
 
 		await AddContactView.tapEditButton();
 		await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
-
 		await AddContactView.tapEditContactCTA();
 
-		await ContactsView.isVisible();
+		// because tapping edit contact is slow to load on bitrise
+		try {
+			await ContactsView.isVisible();
+		} catch {
+			await AddContactView.tapEditContactCTA();
+			await ContactsView.isVisible();
+		}
 		await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
 		await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
 	});

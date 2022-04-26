@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sinkronkan atau impor dompet",
 		"new_to_crypto": "Baru menggunakan kripto?",
 		"start_exploring_now": "Buat dompet baru",
-		"login": "Masuk",
+		"unlock": "Masuk",
 		"new_to_metamask": "Baru menggunakan MetaMask?",
 		"already_have_wallet": "Sudah punya dompet?",
 		"optin_back_title": "Perhatian!",
@@ -128,7 +128,7 @@
 	"login": {
 		"title": "Selamat Datang Kembali!",
 		"password": "Kata sandi",
-		"login_button": "MASUK",
+		"unlock_button": "MASUK",
 		"go_back": "Tidak bisa login? Anda dapat MENGHAPUS dompet Anda saat ini dan menyiapkan yang baru",
 		"reset_wallet": "Atur Ulang Dompet",
 		"cant_proceed": "Anda tidak dapat melanjutkan hingga Anda mengetik kata ‘Hapus’. Dengan tindakan ini, Anda memilih untuk menghapus dompet Anda saat ini.",
@@ -242,10 +242,10 @@
 		"settings_warning": "Dompet tidak terlindungi",
 		"settings_warning_short": "Tidak terlindungi",
 		"help": "Dapatkan Bantuan",
-		"logout": "Keluar",
-		"logout_title": "Anda benar-benar ingin keluar?",
-		"logout_ok": "YA",
-		"logout_cancel": "TIDAK",
+		"lock": "Keluar",
+		"lock_title": "Anda benar-benar ingin keluar?",
+		"lock_ok": "YA",
+		"lock_cancel": "TIDAK",
 		"feedback": "Umpan Balik",
 		"metamask_support": "Dukungan MetaMask",
 		"public_address": "Alamat Publik"
@@ -451,7 +451,7 @@
 		"general_title": "Umum",
 		"general_desc": "Konversi mata uang, mata uang utama, bahasa, mesin pencarian",
 		"advanced_title": "Tingkat Lanjut",
-		"advanced_desc": "Akses fitur pengembang, atur ulang akun, siapkan testnet, sinkronkan dengan ekstensi, log status, gateway IPFS, dan sesuaikan RPC",
+		"advanced_desc": "Akses fitur pengembang, atur ulang akun, siapkan testnet, log status, gateway IPFS, dan sesuaikan RPC",
 		"contacts_title": "Kontak",
 		"contacts_desc": "Tambah, edit, hapus, dan kelola akun Anda",
 		"security_title": "Keamanan & Privasi",
@@ -502,7 +502,7 @@
 		"third_party_title": "Dapatkan transaksi yang masuk",
 		"third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi Anda yang masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami menarik data dari layanan tersebut.",
 		"metametrics_opt_out": "Penyisihan dari MetaMetric",
-		"metrametrics_restart_required": "Anda perlu memulai ulang aplikasi agar perubahan dapat diterapkan.",
+		"metametrics_restart_required": "Anda perlu memulai ulang aplikasi agar perubahan dapat diterapkan.",
 		"create_password": "Buat Kata Sandi",
 		"invalid_password": "Kata sandi tidak valid",
 		"invalid_password_message": "Kata sandi salah. Silakan coba lagi.",
@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Menampilkan kunci privat untuk \"{{accountName}}\"",
 		"cancel": "Batal",
 		"confirm": "Berikutnya",
-		"seed_phrase_explanation": "Jika Anda pernah mengubah browser atau mengganti komputer, Anda akan memerlukan Frasa Pemulihan Rahasia ini untuk mengakses akun Anda. Simpan di tempat yang aman dan rahasia.",
 		"private_key_explanation": "Simpan di tempat yang aman dan rahasia.",
 		"private_key_warning": "Ini adalah kunci privat untuk akun yang dipilih saat ini: {{accountName}}. Jangan ungkapkan kunci ini. Siapa pun dengan kunci privat Anda dapat sepenuhnya mengontrol akun Anda, termasuk mentransfer keluar dana Anda.",
-		"seed_phrase_warning_explanation": "JANGAN bagikan frasa ini kepada siapa pun! Kata-kata ini dapat digunakan untuk mencuri semua akun Anda.",
 		"private_key_warning_explanation": "Jangan ungkapkan kunci ini. Siapa pun dengan kunci privat Anda dapat sepenuhnya mengontrol akun Anda, termasuk mentransfer keluar dana Anda.",
 		"seed_phrase": "Frasa Pemulihan Rahasia Anda",
 		"private_key": "Kunci privat Anda",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transaksi terkirim",
 		"wc_connected_rejected_title": "Anda telah menolak permintaan koneksi",
 		"wc_signed_rejected_title": "Anda telah menolak permintaan tanda tangan",
-		"wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi",
-		"wc_description": "Kembali ke browser"
+		"wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Lindungi dompet Anda",
@@ -1280,8 +1277,7 @@
 	"webview_error": {
 		"title": "Ups! ada yang salah...",
 		"message": "Kami tidak dapat memuat halaman tersebut.",
-		"reason": "Alasan",
-		"try_again": "Coba lagi"
+		"reason": "Alasan"
 	},
 	"offline_mode": {
 		"title": "Anda sedang offline",
@@ -1337,7 +1333,6 @@
 		"no_countries_result": "Tidak ada negara yang didukung yang cocok “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Biaya Cepat + lambat",
-		"debit_card_required": "Biaya lebih rendah, diperlukan kartu debit",
 		"select_card_country": "Pilih negara tempat kartu Anda terdaftar (bukan tempat Anda berlokasi).",
 		"search_country": "Cari negara",
 		"wyre_countries": " AS + 33 negara, biaya & batasan berbeda",
@@ -1383,15 +1378,15 @@
 		"total_amount": "Total jumlah",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Sebelum membeli ETH, pahami biaya jaringan",
+				"title": "Sebelum membeli {{ticker}}, pahami biaya jaringan",
 				"average_gas_fee": "Biaya jaringan rata-rata saat ini:",
-				"subtitle_1": "Jika Anda berencana untuk menukar atau mentransfer ETH Anda, beli ekstra untuk menutupi biaya jaringan.",
-				"subtitle_2": "Biaya jaringan untuk transaksi terpisah dari biaya pembelian ETH.",
+				"subtitle_1": "Jika Anda berencana untuk menukar atau mentransfer {{ticker}} Anda, beli ekstra untuk menutupi biaya jaringan.",
+				"subtitle_2": "Biaya jaringan untuk transaksi terpisah dari biaya pembelian {{ticker}}.",
 				"subtitle_3": "MetaMask tidak mendapatkan keuntungan dari biaya jaringan."
 			},
 			"step_2": {
 				"title": "Apa itu biaya jaringan?",
-				"subtitle_1": "Biaya jaringan mendukung transaksi di jaringan Ethereum. Ini adalah biaya yang dibayarkan dalam ETH kepada penambang kripto yang memproses transaksi Anda.",
+				"subtitle_1": "Biaya jaringan mendukung transaksi di jaringan Ethereum. Ini adalah biaya yang dibayarkan dalam {{ticker}} kepada penambang kripto yang memproses transaksi Anda.",
 				"subtitle_2": "MetaMask tidak mendapatkan keuntungan dari biaya jaringan.",
 				"learn_more": "Pelajari selengkapnya tentang biaya jaringan"
 			},
@@ -1402,7 +1397,7 @@
 				"subtitle_3": "Cara terbaik untuk memperkirakan biaya jaringan adalah dengan",
 				"subtitle_4": "mencoba dulu transaksi tersebut",
 				"subtitle_5": "dan lihat berapa biayanya.",
-				"cta": "Lanjutkan membeli ETH"
+				"cta": "Lanjutkan membeli {{ticker}}"
 			}
 		}
 	},
@@ -1622,6 +1617,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "ID ID CC",
 		"language": "id-id",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-id-id.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-id-id.vtt?raw=true"
 	}
 }

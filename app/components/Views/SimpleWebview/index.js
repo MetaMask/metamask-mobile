@@ -6,10 +6,9 @@ import { getWebviewNavbar } from '../../UI/Navbar';
 import Share from 'react-native-share'; // eslint-disable-line  import/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 export default class SimpleWebview extends PureComponent {
-	static navigationOptions = ({ navigation, route }) => getWebviewNavbar(navigation, route);
-
 	static propTypes = {
 		/**
 		 * react-navigation object used to switch between screens
@@ -21,9 +20,20 @@ export default class SimpleWebview extends PureComponent {
 		route: PropTypes.object,
 	};
 
+	updateNavBar = () => {
+		const { navigation, route } = this.props;
+		const colors = this.context.colors || mockTheme.colors;
+		navigation.setOptions(getWebviewNavbar(navigation, route, colors));
+	};
+
 	componentDidMount = () => {
 		const { navigation } = this.props;
+		this.updateNavBar();
 		navigation && navigation.setParams({ dispatch: this.share });
+	};
+
+	componentDidUpdate = () => {
+		this.updateNavBar();
 	};
 
 	share = () => {
@@ -49,3 +59,5 @@ export default class SimpleWebview extends PureComponent {
 		}
 	}
 }
+
+SimpleWebview.contextType = ThemeContext;

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, Dimensions, StyleSheet, View, Text } from 'react-native';
-import { colors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
@@ -11,55 +11,59 @@ import { showAlert } from '../../../actions/alert';
 import GlobalAlert from '../../UI/GlobalAlert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const WIDTH = Dimensions.get('window').width - 88;
 
-const styles = StyleSheet.create({
-	root: {
-		flex: 1,
-		flexDirection: 'row',
-		alignItems: 'center',
-		marginTop: Device.isSmallDevice() ? -30 : -50,
-	},
-	wrapper: {
-		flex: 1,
-		alignItems: 'center',
-	},
-	qrCode: {
-		marginBottom: 16,
-		alignItems: 'center',
-		justifyContent: 'center',
-		padding: 36,
-		backgroundColor: colors.grey000,
-		borderRadius: 8,
-	},
-	addressWrapper: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		width: WIDTH,
-		borderRadius: 8,
-		backgroundColor: colors.grey000,
-		paddingVertical: 12,
-	},
-	closeIcon: {
-		width: WIDTH + 40,
-		paddingBottom: Device.isSmallDevice() ? 30 : 50,
-		flexDirection: 'row-reverse',
-	},
-	addressTitle: {
-		fontSize: 16,
-		paddingHorizontal: 28,
-		paddingVertical: 4,
-		...fontStyles.normal,
-	},
-	address: {
-		...fontStyles.normal,
-		paddingHorizontal: 28,
-		paddingVertical: 4,
-		fontSize: 16,
-		textAlign: 'center',
-	},
-});
+const createStyles = (colors) =>
+	StyleSheet.create({
+		root: {
+			flex: 1,
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginTop: Device.isSmallDevice() ? -30 : -50,
+		},
+		wrapper: {
+			flex: 1,
+			alignItems: 'center',
+		},
+		qrCode: {
+			marginBottom: 16,
+			alignItems: 'center',
+			justifyContent: 'center',
+			padding: 36,
+			backgroundColor: colors.background.default,
+			borderRadius: 8,
+		},
+		addressWrapper: {
+			alignItems: 'center',
+			justifyContent: 'center',
+			width: WIDTH,
+			borderRadius: 8,
+			backgroundColor: colors.background.default,
+			paddingVertical: 12,
+		},
+		closeIcon: {
+			width: WIDTH + 40,
+			paddingBottom: Device.isSmallDevice() ? 30 : 50,
+			flexDirection: 'row-reverse',
+		},
+		addressTitle: {
+			fontSize: 16,
+			paddingHorizontal: 28,
+			paddingVertical: 4,
+			...fontStyles.normal,
+			color: colors.text.default,
+		},
+		address: {
+			...fontStyles.normal,
+			paddingHorizontal: 28,
+			paddingVertical: 4,
+			fontSize: 16,
+			textAlign: 'center',
+			color: colors.text.default,
+		},
+	});
 
 /**
  * PureComponent that renders a public address view
@@ -118,16 +122,21 @@ class AddressQRCode extends PureComponent {
 	};
 
 	render() {
+		const colors = this.context.colors || mockTheme.colors;
+		const styles = createStyles(colors);
+
 		return (
 			<View style={styles.root}>
 				<View style={styles.wrapper}>
 					<TouchableOpacity style={styles.closeIcon} onPress={this.closeQrModal} testID={'close-qr-modal'}>
-						<IonicIcon name={'ios-close'} size={38} color={colors.white} />
+						<IonicIcon name={'ios-close'} size={38} color={colors.overlay.inverse} />
 					</TouchableOpacity>
 					<View style={styles.qrCode}>
 						<QRCode
 							value={`ethereum:${this.props.selectedAddress}`}
 							size={Dimensions.get('window').width - 160}
+							color={colors.text.default}
+							backgroundColor={colors.background.default}
 						/>
 					</View>
 					<View style={styles.addressWrapper}>
@@ -154,5 +163,7 @@ const mapDispatchToProps = (dispatch) => ({
 	showAlert: (config) => dispatch(showAlert(config)),
 	protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
+
+AddressQRCode.contextType = ThemeContext;
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddressQRCode);

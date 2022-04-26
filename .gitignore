@@ -29,6 +29,7 @@ app/bin
 .gradle
 local.properties
 *.iml
+*.hprof
 android/.project
 android/app/.project
 android/app/bin/
@@ -58,7 +59,7 @@ buck-out/
 *.jsbundle
 
 # testing
-coverage
+tests
 
 # app-specific
 /android/app/src/main/assets/InpageBridgeWeb3.js
@@ -81,3 +82,6 @@ coverage
 
 # Language files to add
 /locales/languagesToUpdate/*.json
+
+# attributions
+licenseInfos.json

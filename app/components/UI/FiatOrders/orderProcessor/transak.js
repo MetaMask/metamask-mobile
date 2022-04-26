@@ -3,7 +3,12 @@ import axios from 'axios';
 import qs from 'query-string';
 import AppConstants from '../../../../core/AppConstants';
 import Logger from '../../../../util/Logger';
-import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import {
+	FIAT_ORDER_PROVIDERS,
+	FIAT_ORDER_STATES,
+	NETWORKS_CHAIN_ID,
+	TRANSAK_NETWORK_PARAMETERS,
+} from '../../../../constants/on-ramp';
 
 //* env vars
 
@@ -33,7 +38,7 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} walletLink
  * @property {string} paymentOptionId Paymenth method ID, see: https://integrate.transak.com/Coverage-Payment-Methods-Fees-Limits-30c0954fbdf04beca68622d9734c59f9
  * @property {boolean} addressAdditionalData
- * @property {string} network this is NOT ethernet networks id
+ * @property {string} network name identifier (this is NOT a chain id)
  * @property {string} amountPaid
  * @property {number} referenceCode
  * @property {string} redirectURL Our redirect URL
@@ -68,6 +73,17 @@ const TRANSAK_API_KEY_SECRET_PRODUCTION = process.env.TRANSAK_API_KEY_SECRET_PRO
  * @property {string} partnerOrderId
  */
 
+//* Functions
+const TRANSAK_ALLOWED_NETWORKS = [
+	NETWORKS_CHAIN_ID.MAINNET,
+	NETWORKS_CHAIN_ID.BSC,
+	NETWORKS_CHAIN_ID.POLYGON,
+	NETWORKS_CHAIN_ID.AVAXCCHAIN,
+	NETWORKS_CHAIN_ID.CELO,
+	NETWORKS_CHAIN_ID.FANTOM,
+];
+export const isTransakAllowedToBuy = (chainId) => TRANSAK_ALLOWED_NETWORKS.includes(chainId);
+
 //* Constants
 
 const { TRANSAK_URL, TRANSAK_URL_STAGING, TRANSAK_API_URL_STAGING, TRANSAK_API_URL_PRODUCTION, TRANSAK_REDIRECT_URL } =
@@ -83,7 +99,7 @@ const TRANSAK_API_KEY_SECRET = isDevelopment ? TRANSAK_API_KEY_SECRET_STAGING : 
  * https://integrate.transak.com/69a2474c8d8d40daa04bd5bbe804fb6d?v=48a0c9fd98854078a4eaf5ec9a0a4f65
  * @enum {string}
  */
-export const TRANSAK_ORDER_STATES = {
+const TRANSAK_ORDER_STATES = {
 	AWAITING_PAYMENT_FROM_USER: 'AWAITING_PAYMENT_FROM_USER',
 	PAYMENT_DONE_MARKED_BY_USER: 'PAYMENT_DONE_MARKED_BY_USER',
 	PROCESSING: 'PROCESSING',
@@ -217,18 +233,19 @@ export async function processTransakOrder(order) {
 
 //* Hooks
 
-export const useTransakFlowURL = (address) => {
-	const params = useMemo(
-		() =>
-			qs.stringify({
-				apiKey: TRANSAK_API_KEY,
-				cryptoCurrencyCode: 'ETH',
-				networks: 'ethereum',
-				themeColor: '037dd6',
-				walletAddress: address,
-				redirectURL: TRANSAK_REDIRECT_URL,
-			}),
-		[address]
-	);
+export const useTransakFlowURL = (address, chainId) => {
+	const params = useMemo(() => {
+		const selectedChainId = isTransakAllowedToBuy(chainId) ? chainId : NETWORKS_CHAIN_ID.MAINNET;
+		const [network, defaultCryptoCurrency, cryptoCurrencyList] = TRANSAK_NETWORK_PARAMETERS[selectedChainId];
+		return qs.stringify({
+			apiKey: TRANSAK_API_KEY,
+			defaultCryptoCurrency,
+			cryptoCurrencyList,
+			network,
+			themeColor: '037dd6',
+			walletAddress: address,
+			redirectURL: TRANSAK_REDIRECT_URL,
+		});
+	}, [address, chainId]);
 	return `${isDevelopment ? TRANSAK_URL_STAGING : TRANSAK_URL}?${params}`;
 };

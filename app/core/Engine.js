@@ -2,7 +2,6 @@ import {
 	AccountTrackerController,
 	AddressBookController,
 	AssetsContractController,
-	AssetsDetectionController,
 	TokenListController,
 	ControllerMessenger,
 	ComposableController,
@@ -22,9 +21,13 @@ import {
 	GasFeeController,
 	TokensController,
 	CollectiblesController,
+	TokenDetectionController,
+	CollectibleDetectionController,
+	ApprovalController,
 } from '@metamask/controllers';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import AsyncStorage from '@react-native-community/async-storage';
+import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import Encryptor from './Encryptor';
 import { toChecksumAddress } from 'ethereumjs-util';
 import Networks, { isMainnetByChainId } from '../util/networks';
@@ -34,6 +37,7 @@ import { renderFromTokenMinimalUnit, balanceToFiatNumber, weiToFiatNumber } from
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
+import { isZero } from '../util/lodash';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -68,6 +72,9 @@ class Engine {
 					useStaticTokenList:
 						initialState?.PreferencesController?.useStaticTokenList === undefined ||
 						initialState.PreferencesController.useStaticTokenList,
+					// TODO: Use previous value when preferences UI is available
+					useCollectibleDetection: false,
+					openSeaEnabled: false,
 				}
 			);
 			const networkController = new NetworkController({
@@ -104,18 +111,24 @@ class Engine {
 					},
 				},
 			});
-			const assetsContractController = new AssetsContractController();
-			const collectiblesController = new CollectiblesController({
+			const assetsContractController = new AssetsContractController({
 				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
-				onNetworkStateChange: (listener) => networkController.subscribe(listener),
-				getAssetName: assetsContractController.getAssetName.bind(assetsContractController),
-				getAssetSymbol: assetsContractController.getAssetSymbol.bind(assetsContractController),
-				getCollectibleTokenURI: assetsContractController.getCollectibleTokenURI.bind(assetsContractController),
-				getOwnerOf: assetsContractController.getOwnerOf.bind(assetsContractController),
-				balanceOfERC1155Collectible:
-					assetsContractController.balanceOfERC1155Collectible.bind(assetsContractController),
-				uriERC1155Collectible: assetsContractController.uriERC1155Collectible.bind(assetsContractController),
 			});
+			const collectiblesController = new CollectiblesController(
+				{
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					getERC721AssetName: assetsContractController.getERC721AssetName.bind(assetsContractController),
+					getERC721AssetSymbol: assetsContractController.getERC721AssetSymbol.bind(assetsContractController),
+					getERC721TokenURI: assetsContractController.getERC721TokenURI.bind(assetsContractController),
+					getERC721OwnerOf: assetsContractController.getERC721OwnerOf.bind(assetsContractController),
+					getERC1155BalanceOf: assetsContractController.getERC1155BalanceOf.bind(assetsContractController),
+					getERC1155TokenURI: assetsContractController.getERC1155TokenURI.bind(assetsContractController),
+				},
+				{
+					useIPFSSubdomains: false,
+				}
+			);
 			const tokensController = new TokensController({
 				onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 				onNetworkStateChange: (listener) => networkController.subscribe(listener),
@@ -149,9 +162,12 @@ class Engine {
 						chainId === swapsUtils.POLYGON_CHAIN_ID
 					);
 				},
+				clientId: AppConstants.SWAPS.CLIENT_ID,
 				legacyAPIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/gasPrices',
 				EIP1559APIEndpoint: 'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
 			});
+
+			const additionalKeyrings = [QRHardwareKeyring];
 
 			const controllers = [
 				new KeyringController(
@@ -160,8 +176,9 @@ class Engine {
 						syncIdentities: preferencesController.syncIdentities.bind(preferencesController),
 						updateIdentities: preferencesController.updateIdentities.bind(preferencesController),
 						setSelectedAddress: preferencesController.setSelectedAddress.bind(preferencesController),
+						setAccountLabel: preferencesController.setAccountLabel.bind(preferencesController),
 					},
-					{ encryptor },
+					{ encryptor, keyringTypes: additionalKeyrings },
 					initialState.KeyringController
 				),
 				new AccountTrackerController({
@@ -173,18 +190,22 @@ class Engine {
 				collectiblesController,
 				tokensController,
 				tokenListController,
-				new AssetsDetectionController({
-					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
+				new TokenDetectionController({
 					onTokensStateChange: (listener) => tokensController.subscribe(listener),
 					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
 					onNetworkStateChange: (listener) => networkController.subscribe(listener),
-					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
-					getBalancesInSingleCall:
-						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
 					addTokens: tokensController.addTokens.bind(tokensController),
-					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
 					getTokensState: () => tokensController.state,
 					getTokenListState: () => tokenListController.state,
+					getBalancesInSingleCall:
+						assetsContractController.getBalancesInSingleCall.bind(assetsContractController),
+				}),
+				new CollectibleDetectionController({
+					onCollectiblesStateChange: (listener) => collectiblesController.subscribe(listener),
+					onPreferencesStateChange: (listener) => preferencesController.subscribe(listener),
+					onNetworkStateChange: (listener) => networkController.subscribe(listener),
+					getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
+					addCollectible: collectiblesController.addCollectible.bind(collectiblesController),
 					getCollectiblesState: () => collectiblesController.state,
 				}),
 				currencyRateController,
@@ -197,7 +218,7 @@ class Engine {
 					{
 						onTokensStateChange: (listener) => tokensController.subscribe(listener),
 						getSelectedAddress: () => preferencesController.state.selectedAddress,
-						getBalanceOf: assetsContractController.getBalanceOf.bind(assetsContractController),
+						getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(assetsContractController),
 					},
 					{ interval: 10000 }
 				),
@@ -220,9 +241,22 @@ class Engine {
 						fetchAggregatorMetadataThreshold: AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
 						fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
 						fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+						supportedChainIds: [
+							swapsUtils.ETH_CHAIN_ID,
+							swapsUtils.BSC_CHAIN_ID,
+							swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+							swapsUtils.POLYGON_CHAIN_ID,
+							swapsUtils.AVALANCHE_CHAIN_ID,
+						],
 					}
 				),
 				gasFeeController,
+				new ApprovalController({
+					messenger: this.controllerMessenger.getRestricted({
+						name: 'ApprovalController',
+					}),
+					showApprovalRequest: () => null,
+				}),
 			];
 			// set initial state
 			// TODO: Pass initial state into each controller constructor instead
@@ -247,11 +281,8 @@ class Engine {
 				KeyringController: keyring,
 				NetworkController: network,
 				TransactionController: transaction,
-				TokenListController: tokenList,
 			} = this.context;
 
-			// Start polling tokens
-			tokenList.start();
 			collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
 			network.refreshNetwork();
 			transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
@@ -265,16 +296,25 @@ class Engine {
 				}
 			});
 			this.configureControllersOnNetworkChange();
+			this.startPolling();
 			Engine.instance = this;
 		}
 		return Engine.instance;
+	}
+
+	startPolling() {
+		const { CollectibleDetectionController, TokenDetectionController, TokenListController } = this.context;
+		TokenListController.start();
+		CollectibleDetectionController.start();
+		TokenDetectionController.start();
 	}
 
 	configureControllersOnNetworkChange() {
 		const {
 			AccountTrackerController,
 			AssetsContractController,
-			AssetsDetectionController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 			NetworkController: { provider, state: NetworkControllerState },
 			TransactionController,
 			SwapsController,
@@ -291,7 +331,8 @@ class Engine {
 		});
 		TransactionController.configure({ provider });
 		TransactionController.hub.emit('networkChange');
-		AssetsDetectionController.detectAssets();
+		TokenDetectionController.detectTokens();
+		CollectibleDetectionController.detectCollectibles();
 		AccountTrackerController.refresh();
 	}
 
@@ -408,7 +449,7 @@ class Engine {
 
 			let tokenFound = false;
 			tokens.forEach((token: { address: string | number }) => {
-				if (tokenBalances[token.address] && !tokenBalances[token.address]?.isZero()) {
+				if (tokenBalances[token.address] && !isZero(tokenBalances[token.address])) {
 					tokenFound = true;
 				}
 			});
@@ -568,7 +609,6 @@ export default {
 			AddressBookController,
 			AssetsContractController,
 			CollectiblesController,
-			AssetsDetectionController,
 			TokenListController,
 			CurrencyRateController,
 			KeyringController,
@@ -583,6 +623,8 @@ export default {
 			SwapsController,
 			GasFeeController,
 			TokensController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		} = instance.datamodel.state;
 
 		// normalize `null` currencyRate to `0`
@@ -597,7 +639,6 @@ export default {
 			AddressBookController,
 			AssetsContractController,
 			CollectiblesController,
-			AssetsDetectionController,
 			TokenListController,
 			CurrencyRateController: modifiedCurrencyRateControllerState,
 			KeyringController,
@@ -612,6 +653,8 @@ export default {
 			TypedMessageManager,
 			SwapsController,
 			GasFeeController,
+			TokenDetectionController,
+			CollectibleDetectionController,
 		};
 	},
 	get datamodel() {

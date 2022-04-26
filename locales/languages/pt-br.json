@@ -34,7 +34,7 @@
 		"import_wallet_button": "Sincronizar ou importar carteira",
 		"new_to_crypto": "A criptomoeda é uma novidade para você?",
 		"start_exploring_now": "Criar nova carteira",
-		"login": "Entrar",
+		"unlock": "Desbloquear",
 		"new_to_metamask": "O MetaMask é uma novidade para você?",
 		"already_have_wallet": "Já tem uma carteira?",
 		"optin_back_title": "Fique de olho!",
@@ -128,8 +128,8 @@
 	"login": {
 		"title": "Bem-vindo(a) novamente!",
 		"password": "Senha",
-		"login_button": "ENTRAR",
-		"go_back": "Não consegue fazer o login? Você pode EXCLUIR sua carteira atual e configurar uma nova",
+		"unlock_button": "DESBLOQUEAR",
+		"go_back": "Não consegue desbloquear a carteira? Você pode EXCLUIR sua carteira atual e configurar uma nova",
 		"reset_wallet": "Redefinir Carteira",
 		"cant_proceed": "Você não pode prosseguir antes de digitar a palavra 'Delete'. Desta forma você está optando por excluir sua carteira atual.",
 		"invalid_password": "Senha inválida",
@@ -242,10 +242,10 @@
 		"settings_warning": "Carteira desprotegida",
 		"settings_warning_short": "Desprotegida",
 		"help": "Pedir ajuda",
-		"logout": "Sair",
-		"logout_title": "Quer mesmo sair?",
-		"logout_ok": "SIM",
-		"logout_cancel": "NÃO",
+		"lock": "Bloquear",
+		"lock_title": "Quer mesmo bloquear a sua carteira?",
+		"lock_ok": "SIM",
+		"lock_cancel": "NÃO",
 		"feedback": "Feedback",
 		"metamask_support": "Suporte do MetaMask",
 		"public_address": "Endereço público"
@@ -451,7 +451,7 @@
 		"general_title": "Geral",
 		"general_desc": "Conversão de moeda, moeda principal, idioma e mecanismo de busca",
 		"advanced_title": "Avançadas",
-		"advanced_desc": "Acesso a recursos de desenvolvedores, redefinição da conta, configuração da testnet, sincronização com a extensão, logs de estado, gateway IPFS e RPC personalizada",
+		"advanced_desc": "Acesso a recursos de desenvolvedores, redefinição da conta, configuração da testnet, logs de estado, gateway IPFS e RPC personalizada",
 		"contacts_title": "Contatos",
 		"contacts_desc": "Adicionar, editar, remover e gerenciar suas contas",
 		"security_title": "Segurança e privacidade",
@@ -502,7 +502,7 @@
 		"third_party_title": "Obter transações recebidas",
 		"third_party_description": "São usadas APIs (Etherscan) de terceiros para mostrar as transações recebidas no histórico. Desative a opção se você não quiser que peguemos dados desses serviços.",
 		"metametrics_opt_out": "Opt-out do MetaMetrics",
-		"metrametrics_restart_required": "Você precisa reiniciar o app para as mudanças entrarem em vigor.",
+		"metametrics_restart_required": "Você precisa reiniciar o app para as mudanças entrarem em vigor.",
 		"create_password": "Criar senha",
 		"invalid_password": "Senha inválida",
 		"invalid_password_message": "Senha incorreta. Tente novamente.",
@@ -536,10 +536,8 @@
 		"private_key_title_for_account": "Mostrar chave privada para \"{{accountName}}\"",
 		"cancel": "Cancelar",
 		"confirm": "Próximo",
-		"seed_phrase_explanation": "Se você alguma vez mudou de navegador ou trocou de computador, precisará dessa Frase de recuperação secreta para acessar suas contas. Salve-as em um lugar seguro e secreto.",
 		"private_key_explanation": "Salve-a em um lugar seguro e secreto.",
 		"private_key_warning": "Essa é uma chave privada para a conta selecionada no momento: {{accountName}}. Jamais revele essa chave. Qualquer pessoa com sua chave privada consegue ter controle total da sua conta, inclusive transferir seus fundos.",
-		"seed_phrase_warning_explanation": "NÃO compartilhe essa frase com ninguém! Essas palavras podem ser usadas para roubar todas as suas contas.",
 		"private_key_warning_explanation": "Jamais revele essa chave. Qualquer pessoa com sua chave privada consegue ter controle total da sua conta, inclusive transferir seus fundos.",
 		"seed_phrase": "A sua Frase de Recuperação Secreta",
 		"private_key": "Sua chave privada",
@@ -961,12 +959,12 @@
 		"empty_data": "0x"
 	},
 	"biometrics": {
-		"enable_touchid": "Acessar com Touch ID?",
-		"enable_faceid": "Acessar com Face ID?",
-		"enable_fingerprint": "Acessar com digital?",
-		"enable_biometrics": "Acessar com dados biométricos?",
-		"enable_device_passcode_ios": "Acessar com senha do dispositivo?",
-		"enable_device_passcode_android": "Acessar com PIN do dispositivo?"
+		"enable_touchid": "Desbloquear com Touch ID?",
+		"enable_faceid": "Desbloquear com Face ID?",
+		"enable_fingerprint": "Desbloquear com digital?",
+		"enable_biometrics": "Desbloquear com dados biométricos?",
+		"enable_device_passcode_ios": "Desbloquear com senha do dispositivo?",
+		"enable_device_passcode_android": "Desbloquear com PIN do dispositivo?"
 	},
 	"authentication": {
 		"auth_prompt_title": "Autenticação obrigatória",
@@ -1205,8 +1203,7 @@
 		"wc_sent_tx_title": "Transação enviada",
 		"wc_connected_rejected_title": "Você rejeitou a solicitação de conexão",
 		"wc_signed_rejected_title": "Você rejeitou a solicitação de assinatura",
-		"wc_sent_tx_rejected_title": "Você rejeitou a solicitação de transação",
-		"wc_description": "Voltar para o navegador"
+		"wc_sent_tx_rejected_title": "Você rejeitou a solicitação de transação"
 	},
 	"protect_your_wallet_modal": {
 		"title": "Proteja sua carteira",
@@ -1280,8 +1277,7 @@
 	"webview_error": {
 		"title": "Ops! Algo deu errado...",
 		"message": "Não conseguimos carregar essa página.",
-		"reason": "Motivo",
-		"try_again": "Tente novamente"
+		"reason": "Motivo"
 	},
 	"offline_mode": {
 		"title": "Você está offline",
@@ -1337,7 +1333,6 @@
 		"no_countries_result": "Nenhum país disponível correspondente a “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_plus_lower_fees": "Taxas rápidas e mais baixas",
-		"debit_card_required": "Menores taxas, Cartão de débito necessário",
 		"select_card_country": "Selecione o país onde o seu cartão está registrado (e não aonde você se encontra).",
 		"search_country": "Pesquisar por país",
 		"wyre_countries": " U.S. + 33 países, taxas & limites variam",
@@ -1383,15 +1378,15 @@
 		"total_amount": "Valor total",
 		"gas_education_carousel": {
 			"step_1": {
-				"title": "Antes de comprar ETH, entenda as taxas de gas",
+				"title": "Antes de comprar {{ticker}}, entenda as taxas de gas",
 				"average_gas_fee": "Taxa de gas média atual:",
-				"subtitle_1": "Se você pretende fazer swap ou transferir o seu ETH, adquira um valor adicional para cobrir as taxas de gas.",
-				"subtitle_2": "As taxas de gas para transações são separadas do custo de aquisição de ETH.",
+				"subtitle_1": "Se você pretende fazer swap ou transferir o seu {{ticker}}, adquira um valor adicional para cobrir as taxas de gas.",
+				"subtitle_2": "As taxas de gas para transações são separadas do custo de aquisição de {{ticker}}.",
 				"subtitle_3": "O MetaMask não lucra com taxas de gas."
 			},
 			"step_2": {
 				"title": "O que são as taxas de gas?",
-				"subtitle_1": "Gas movimenta as transações na rede do Ethereum. É uma taxa paga em ETH aos mineradores de criptomoedas que processam as suas transações.",
+				"subtitle_1": "Gas movimenta as transações na rede do Ethereum. É uma taxa paga em {{ticker}} aos mineradores de criptomoedas que processam as suas transações.",
 				"subtitle_2": "O MetaMask não lucra com taxas de gas.",
 				"learn_more": "Saiba mais sobre as taxas de gas"
 			},
@@ -1402,7 +1397,7 @@
 				"subtitle_3": "A melhor forma de estimar as taxas de gas é",
 				"subtitle_4": "tentar efetuar a transação em primeiro lugar",
 				"subtitle_5": "e ver quanto gas ela custa.",
-				"cta": "Prossiga para comprar ETH"
+				"cta": "Prossiga para comprar {{ticker}}"
 			}
 		}
 	},
@@ -1622,6 +1617,6 @@
 	"secret_phrase_video_subtitle": {
 		"title": "PT BR CC",
 		"language": "pt-br",
-		"uri": "https://github.com/MetaMask/metamask-mobile/blob/develop/app/videos/subtitles/secretPhrase/subtitles-pt-br.vtt?raw=true"
+		"uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-pt-br.vtt?raw=true"
 	}
 }
