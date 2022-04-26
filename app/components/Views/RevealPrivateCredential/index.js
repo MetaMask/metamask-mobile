@@ -257,8 +257,20 @@ class RevealPrivateCredential extends PureComponent {
 		});
 	};
 
+	isPrivateKey = () => {
+		const { privateCredentialName, route } = this.props;
+		const credentialName = privateCredentialName || route.params.privateCredentialName;
+		return credentialName === PRIVATE_KEY;
+	};
+
 	cancel = () => {
-		if (!this.unlocked) AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_CANCELLED, { view: 'Enter password' });
+		if (!this.unlocked)
+			AnalyticsV2.trackEvent(
+				this.isPrivateKey()
+					? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
+					: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
+				{ view: 'Enter password' }
+			);
 
 		if (this.props.cancel) return this.props.cancel();
 		const { navigation } = this.props;
@@ -280,7 +292,12 @@ class RevealPrivateCredential extends PureComponent {
 			}
 
 			if (privateCredential && (this.state.isUserUnlocked || isPrivateKeyReveal)) {
-				AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'viewed' });
+				AnalyticsV2.trackEvent(
+					isPrivateKeyReveal
+						? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+						: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+					{ action: 'viewed' }
+				);
 
 				this.setState({
 					clipboardPrivateCredential: privateCredential,
@@ -312,7 +329,12 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	copyPrivateCredentialToClipboard = async (privateCredentialName) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'copied to clipboard' });
+		AnalyticsV2.trackEvent(
+			privateCredentialName === PRIVATE_KEY
+				? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+				: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+			{ action: 'copied to clipboard' }
+		);
 
 		const { clipboardPrivateCredential } = this.state;
 		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
@@ -437,7 +459,12 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	closeModal = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_CANCELLED, { view: 'Hold to reveal' });
+		AnalyticsV2.trackEvent(
+			this.isPrivateKey()
+				? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
+				: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
+			{ view: 'Hold to reveal' }
+		);
 
 		this.setState({
 			isModalVisible: false,
@@ -541,9 +568,9 @@ class RevealPrivateCredential extends PureComponent {
 
 	render = () => {
 		const { unlocked, password } = this.state;
-		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
-		const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
 		const { styles } = this.getStyles();
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+		const isPrivateKeyReveal = this.isPrivateKey();
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
