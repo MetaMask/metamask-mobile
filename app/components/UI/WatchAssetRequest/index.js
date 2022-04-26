@@ -157,12 +157,7 @@ const WatchAssetRequest = ({ suggestedAssetMeta, currentPageInformation, selecte
 							<View style={styles.infoToken}>
 								<View style={styles.token}>
 									<View style={styles.identicon}>
-										<TokenImage
-											asset={{
-												...asset,
-												logo: asset.image,
-											}}
-										/>
+										<TokenImage asset={asset} />
 									</View>
 									<Text style={styles.text}>{asset.symbol}</Text>
 								</View>
