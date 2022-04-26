@@ -101,11 +101,14 @@ export const ANALYTICS_EVENTS_V2 = {
 	// SETTINGS
 	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
 	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
+	// Reveal Credentials
 	REVEAL_SRP_INITIATED: generateOpt(`Reveal SRP Initiated`),
-	// REVEAL_SRP
 	REVEAL_SRP_CANCELLED: generateOpt(`Reveal SRP Cancelled`),
 	REVEAL_SRP_COMPLETED: generateOpt(`Reveal SRP Completed`),
-	// KEY MANAGMENT INVESTIGATION
+	REVEAL_PRIVATE_KEY_INITIATED: generateOpt(`Reveal Private Key Initiated`),
+	REVEAL_PRIVATE_KEY_CANCELLED: generateOpt(`Reveal Private Key Cancelled`),
+	REVEAL_PRIVATE_KEY_COMPLETED: generateOpt(`Reveal Private Key Completed`),
+	// Key Managment
 	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
 	// QR HARDWARE WALLET
 	CONNECT_HARDWARE_WALLET: generateOpt('Clicked Connect Hardware Wallet'),
