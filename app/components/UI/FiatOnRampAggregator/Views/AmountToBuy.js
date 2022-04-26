@@ -91,19 +91,13 @@ const AmountToBuy = () => {
 		selectedChainId,
 	} = useFiatOnRampSDK();
 
-	const selectedFiatCurrency = selectedFiatCurrencyId || selectedRegion?.currency;
-
-	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }, queryGetCountries] =
-		useSDKMethod({
-			method: 'getCountries',
-			onMount: false,
-		});
+	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }] = useSDKMethod('getCountries');
 
 	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
 		'getCryptoCurrencies',
 		selectedRegion?.id,
 		selectedPaymentMethod,
-		selectedFiatCurrency
+		selectedFiatCurrencyId || ''
 	);
 
 	const [{ data: defaultCurrency, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
@@ -115,19 +109,16 @@ const AmountToBuy = () => {
 		selectedPaymentMethod
 	);
 
-	const currentCurrency = useMemo(() => {
-		// whenever user will switch fiat currnecy, we lookup the new selected currency in the fiat currencies list
-		if (currencies && selectedFiatCurrencyId) {
-			const currency =
-				currencies.find((currency) => currency.id === selectedFiatCurrencyId) ||
-				currencies?.[0] ||
-				defaultCurrency;
-			setSelectedFiatCurrencyId(currency.id);
-			return currency;
+	useEffect(() => {
+		if (!selectedFiatCurrencyId && !isFetchingDefaultCurrency && defaultCurrency) {
+			setSelectedFiatCurrencyId(defaultCurrency.id);
 		}
+	}, [defaultCurrency, isFetchingDefaultCurrency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
-		return defaultCurrency;
-	}, [currencies, defaultCurrency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
+	const currentFiatCurrency = useMemo(() => {
+		const currency = currencies?.find?.((currency) => currency.id === selectedFiatCurrencyId) || defaultCurrency;
+		return currency;
+	}, [currencies, defaultCurrency, selectedFiatCurrencyId]);
 
 	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
 		useSDKMethod('getPaymentMethod', selectedRegion?.id, selectedPaymentMethod);
@@ -167,18 +158,17 @@ const AmountToBuy = () => {
 
 	/****************** COUNTRY/REGION HANDLERS ****************************/
 	const handleChangeCountry = useCallback(() => {
-		queryGetCountries();
 		setAmountFocused(false);
 		toggleRegionModal();
-	}, [queryGetCountries, toggleRegionModal]);
+	}, [toggleRegionModal]);
 
 	const handleRegionPress = useCallback(
 		(region) => {
-			setSelectedRegion(region);
 			hideRegionModal();
-			setSelectedFiatCurrencyId('');
 			setAmount('0');
 			setAmountNumber(0);
+			setSelectedFiatCurrencyId(region.currency);
+			setSelectedRegion(region);
 		},
 		[hideRegionModal, setSelectedFiatCurrencyId, setSelectedRegion]
 	);
@@ -267,13 +257,6 @@ const AmountToBuy = () => {
 		setSelectedPaymentMethod,
 	]);
 
-	// side effect to set selected fiat currenct to default
-	useEffect(() => {
-		if (!selectedFiatCurrencyId) {
-			setSelectedFiatCurrencyId(selectedRegion?.currency);
-		}
-	}, [selectedFiatCurrencyId, selectedRegion?.currency, setSelectedFiatCurrencyId]);
-
 	useEffect(() => {
 		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
 			if (amountFocused) {
@@ -342,9 +325,9 @@ const AmountToBuy = () => {
 							<AmountInput
 								highlighted={amountFocused}
 								label={'Amount'}
-								currencySymbol={currentCurrency?.denomSymbol}
+								currencySymbol={currentFiatCurrency?.denomSymbol}
 								amount={displayAmount}
-								currencyCode={currentCurrency?.symbol}
+								currencyCode={currentFiatCurrency?.symbol}
 								onPress={onAmountInputPress}
 								onCurrencyPress={handleFiatSelectorPress}
 							/>
@@ -379,7 +362,7 @@ const AmountToBuy = () => {
 				<QuickAmounts
 					onAmountPress={handleQuickAmountPress}
 					amounts={
-						currentCurrency?.id === '/currencies/fiat/usd'
+						currentFiatCurrency?.id === '/currencies/fiat/usd'
 							? [
 									{ value: 100, label: '$100' },
 									{ value: 200, label: '$200' },
@@ -390,7 +373,7 @@ const AmountToBuy = () => {
 							: []
 					}
 				/>
-				<Keypad value={amount} onChange={handleKeypadChange} currency={currentCurrency?.symbol} />
+				<Keypad value={amount} onChange={handleKeypadChange} currency={currentFiatCurrency?.symbol} />
 				<ScreenLayout.Content>
 					<StyledButton type="confirm" onPress={handleKeypadDone}>
 						Done
