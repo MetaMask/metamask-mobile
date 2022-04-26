@@ -1458,7 +1458,7 @@
 		"no_countries_result": "No supported countries match “{{searchString}}”",
 		"wyre_loading_rates": " ",
 		"fast_no_registration": "Fast - No registration required",
-		"debit_card_required": "Debit cards. Apple Cash is not supported.",
+		"debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
 		"select_card_country": "Select the country where your card is registered (not where you are located).",
 		"search_country": "Search for a country",
 		"wyre_countries": "55+ countries, fees & limits vary",
