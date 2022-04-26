@@ -23,7 +23,9 @@ import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
+import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import { BIOMETRY_CHOICE } from '../../../constants/storage';
+import { SRP_URL, NON_CUSTODIAL_WALLET_URL, KEEP_SRP_SAFE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
@@ -157,15 +159,8 @@ const createStyles = (colors) =>
 		},
 	});
 
-const WRONG_PASSWORD_ERROR = 'error: Invalid password';
 const PRIVATE_KEY = 'private_key';
 // const SEED_PHRASE = 'seed_phrase';
-const SRP_URL =
-	'https://metamask.zendesk.com/hc/en-us/articles/4404722782107-User-guide-Secret-Recovery-Phrase-password-and-private-keys';
-const NON_CUSTODIAL_WALLET_URL =
-	'https://metamask.zendesk.com/hc/en-us/articles/360059952212-MetaMask-is-a-non-custodial-wallet';
-const KEEP_SRP_SAFE_URL =
-	'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
 
 /**
  * View that displays private account information as private key or seed phrase
@@ -308,13 +303,8 @@ class RevealPrivateCredential extends PureComponent {
 		}
 	}
 
-	tryUnlock = (privateCredentialName) => {
-		if (privateCredentialName === PRIVATE_KEY) {
-			const { password } = this.state;
-			this.tryUnlockWithPassword(password, privateCredentialName);
-		} else {
-			this.setState({ isModalVisible: true });
-		}
+	tryUnlock = () => {
+		this.setState({ isModalVisible: true });
 	};
 
 	onPasswordChange = (password) => {
@@ -355,9 +345,9 @@ class RevealPrivateCredential extends PureComponent {
 		return { colors, styles, themeAppearance };
 	};
 
-	revealSRP = () => {
+	revealCredential = (privateCredentialName) => {
 		const { password } = this.state;
-		this.tryUnlockWithPassword(password);
+		this.tryUnlockWithPassword(password, privateCredentialName);
 
 		this.setState({
 			isUserUnlocked: true,
@@ -454,37 +444,55 @@ class RevealPrivateCredential extends PureComponent {
 		});
 	};
 
-	renderModal() {
+	renderModal(isPrivateKeyReveal, privateCredentialName) {
 		const { styles } = this.getStyles();
 		return (
 			<InfoModal
 				isVisible={this.state.isModalVisible}
 				toggleModal={this.closeModal}
+				title={strings('reveal_credential.keep_credential_safe', {
+					credentialName: isPrivateKeyReveal
+						? strings('reveal_credential.private_key_text')
+						: strings('reveal_credential.srp_abbreviation_text'),
+				})}
 				body={
 					<>
 						<Text style={[styles.normalText, styles.revealModalText]}>
-							{strings('reveal_credential.seed_phrase_modal')[0]}
-							<Text style={styles.boldText}>{strings('reveal_credential.seed_phrase_modal')[1]}</Text>
-							{strings('reveal_credential.seed_phrase_modal')[2]}
+							{
+								strings('reveal_credential.reveal_credential_modal', {
+									credentialName: isPrivateKeyReveal
+										? strings('reveal_credential.private_key_text')
+										: strings('reveal_credential.srp_text'),
+								})[0]
+							}
+							<Text style={styles.boldText}>
+								{isPrivateKeyReveal
+									? strings('reveal_credential.reveal_credential_modal')[1]
+									: strings('reveal_credential.reveal_credential_modal')[2]}
+							</Text>
+							{strings('reveal_credential.reveal_credential_modal')[3]}
 							<TouchableOpacity onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}>
 								<Text style={[styles.blueText, styles.link]}>
-									{strings('reveal_credential.seed_phrase_modal')[3]}
+									{strings('reveal_credential.reveal_credential_modal')[4]}
 								</Text>
 							</TouchableOpacity>
 						</Text>
 
 						<ButtonReveal
-							label={strings('reveal_credential.hold_to_reveal_srp')}
-							onLongPress={this.revealSRP}
+							label={strings('reveal_credential.hold_to_reveal_credential', {
+								credentialName: isPrivateKeyReveal
+									? strings('reveal_credential.private_key_text')
+									: strings('reveal_credential.srp_abbreviation_text'),
+							})}
+							onLongPress={() => this.revealCredential(privateCredentialName)}
 						/>
 					</>
 				}
-				title={strings('reveal_credential.keep_srp_safe')}
 			/>
 		);
 	}
 
-	renderSRPExplaination() {
+	renderSRPExplanation() {
 		const { styles } = this.getStyles();
 		return (
 			<Text style={styles.normalText}>
@@ -532,7 +540,7 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	render = () => {
-		const { unlocked, isUserUnlocked, password } = this.state;
+		const { unlocked, password } = this.state;
 		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
 		const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
 		const { styles } = this.getStyles();
@@ -544,7 +552,7 @@ class RevealPrivateCredential extends PureComponent {
 					confirmText={strings('reveal_credential.confirm')}
 					onCancelPress={this.cancel}
 					testID={`next-button`}
-					onConfirmPress={() => this.tryUnlock(privateCredentialName)}
+					onConfirmPress={() => this.tryUnlock()}
 					showConfirmButton={!unlocked}
 					confirmDisabled={!password.length}
 				>
@@ -555,19 +563,17 @@ class RevealPrivateCredential extends PureComponent {
 									{strings(`reveal_credential.private_key_explanation`)}
 								</Text>
 							) : (
-								this.renderSRPExplaination()
+								this.renderSRPExplanation()
 							)}
 						</View>
 						{this.renderWarning(privateCredentialName)}
 
 						<View style={styles.rowWrapper}>
-							{unlocked && (isUserUnlocked || isPrivateKeyReveal)
-								? this.renderTabView(privateCredentialName)
-								: this.renderPasswordEntry()}
+							{unlocked ? this.renderTabView(privateCredentialName) : this.renderPasswordEntry()}
 						</View>
 					</>
 				</ActionView>
-				{!isPrivateKeyReveal && this.renderModal()}
+				{this.renderModal(isPrivateKeyReveal, privateCredentialName)}
 			</SafeAreaView>
 		);
 	};

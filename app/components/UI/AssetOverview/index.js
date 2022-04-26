@@ -2,10 +2,9 @@ import React, { PureComponent } from 'react';
 import { InteractionManager, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import PropTypes from 'prop-types';
 import { swapsUtils } from '@metamask/swaps-controller';
-import AssetIcon from '../AssetIcon';
-import Identicon from '../Identicon';
 import AssetActionButton from '../AssetActionButton';
 import AppConstants from '../../../core/AppConstants';
+import TokenImage from '../../UI/TokenImage';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { toggleReceiveModal } from '../../../actions/modals';
@@ -208,19 +207,15 @@ class AssetOverview extends PureComponent {
 	}
 
 	renderLogo = () => {
-		const {
-			tokenList,
-			asset: { address, isETH },
-		} = this.props;
+		const { tokenList, asset } = this.props;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
-		if (isETH) {
-			return <NetworkMainAssetLogo biggest style={styles.ethLogo} />;
-		}
-		const iconUrl = tokenList[address]?.iconUrl || tokenList[address?.toLowerCase()]?.iconUrl || '';
-
-		return iconUrl ? <AssetIcon logo={iconUrl} /> : <Identicon address={address} />;
+		return asset.isETH ? (
+			<NetworkMainAssetLogo biggest style={styles.ethLogo} />
+		) : (
+			<TokenImage asset={asset} tokenList={tokenList} />
+		);
 	};
 
 	componentDidMount = async () => {
