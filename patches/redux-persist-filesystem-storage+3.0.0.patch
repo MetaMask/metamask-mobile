@@ -1,16 +1,7 @@
 diff --git a/node_modules/redux-persist-filesystem-storage/index.js b/node_modules/redux-persist-filesystem-storage/index.js
-index 7198fde..1f54f03 100644
+index 7198fde..eb187bd 100644
 --- a/node_modules/redux-persist-filesystem-storage/index.js
 +++ b/node_modules/redux-persist-filesystem-storage/index.js
-@@ -19,7 +19,7 @@ const onStorageReadyFactory = (storagePath: string) => (func: Function) => {
-   return (...args: Array<any>) => storage.then(() => func(...args));
- };
- 
--const defaultStoragePath = `${RNFetchBlob.fs.dirs.DocumentDir}/persistStore`;
-+const defaultStoragePath = `${RNFetchBlob.fs.dirs.LibraryDir}/Application Support/persistStore`;
- 
- let onStorageReady = onStorageReadyFactory(defaultStoragePath);
- let options = {
 @@ -41,11 +41,13 @@ const FilesystemStorage = {
      onStorageReady = onStorageReadyFactory(options.storagePath);
    },
