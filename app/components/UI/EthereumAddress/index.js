@@ -28,6 +28,7 @@ class EthereumAddress extends PureComponent {
 	constructor(props) {
 		super(props);
 		const { address, type } = props;
+
 		this.state = {
 			ensName: null,
 			address: formatAddress(address, type),
