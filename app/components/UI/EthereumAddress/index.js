@@ -28,11 +28,10 @@ class EthereumAddress extends PureComponent {
 	constructor(props) {
 		super(props);
 		const { address, type } = props;
-		if (address)
-			this.state = {
-				ensName: null,
-				address: formatAddress(address, type),
-			};
+		this.state = {
+			ensName: null,
+			address: formatAddress(address, type),
+		};
 	}
 
 	componentDidUpdate(prevProps) {
@@ -45,10 +44,8 @@ class EthereumAddress extends PureComponent {
 
 	formatAndResolveIfNeeded() {
 		const { address, type } = this.props;
-		if (address) {
-			const formattedAddress = formatAddress(address, type);
-			this.setState({ address: formattedAddress, ensName: null });
-		}
+		const formattedAddress = formatAddress(address, type);
+		this.setState({ address: formattedAddress, ensName: null });
 	}
 
 	render() {

@@ -1097,11 +1097,13 @@ class DrawerView extends PureComponent {
 									<Icon name="caret-down" size={24} style={styles.caretDown} />
 								</View>
 								<Text style={styles.accountBalance}>{fiatBalanceStr}</Text>
-								<EthereumAddress
-									address={account.address}
-									style={styles.accountAddress}
-									type={'short'}
-								/>
+								{account.address && (
+									<EthereumAddress
+										address={account.address}
+										style={styles.accountAddress}
+										type={'short'}
+									/>
+								)}
 								{this.renderTag()}
 							</TouchableOpacity>
 						</View>
