@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../Base/Text';
@@ -23,7 +23,6 @@ const PaymentMethod = () => {
 	const { colors } = useTheme();
 
 	const { selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
-	const [currentPaymentMethod, setCurrentPaymentMethod] = useState(selectedPaymentMethod);
 
 	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
@@ -31,10 +30,18 @@ const PaymentMethod = () => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Payment Method' }, colors));
 	}, [navigation, colors]);
 
+	useEffect(() => {
+		if (!isFetching && !error && paymentMethods) {
+			const paymentMethod = paymentMethods.find((pm) => pm.id === selectedPaymentMethod);
+			if (!paymentMethod) {
+				setSelectedPaymentMethod(paymentMethods?.[0]?.id);
+			}
+		}
+	}, [error, isFetching, paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod]);
+
 	const handleContinueToAmount = useCallback(() => {
-		setSelectedPaymentMethod(currentPaymentMethod);
 		navigation.navigate('AmountToBuy');
-	}, [currentPaymentMethod, setSelectedPaymentMethod, navigation]);
+	}, [navigation]);
 
 	// TODO: replace this with loading screen
 	if (isFetching) {
@@ -56,11 +63,11 @@ const PaymentMethod = () => {
 					{paymentMethods?.map(({ id, name, delay, amountTier }) => (
 						<View key={id} style={styles.row}>
 							<PaymentOption
-								highlighted={id === currentPaymentMethod}
+								highlighted={id === selectedPaymentMethod}
 								title={name}
 								time={delay}
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
-								onPress={() => setCurrentPaymentMethod(id)}
+								onPress={() => setSelectedPaymentMethod(id)}
 								amountTier={amountTier}
 								paymentType={PAYMENT_METHOD_ICON[id]}
 								idRequired={false}
@@ -81,7 +88,7 @@ const PaymentMethod = () => {
 						<StyledButton
 							type={'confirm'}
 							onPress={handleContinueToAmount}
-							disabled={!currentPaymentMethod}
+							disabled={!selectedPaymentMethod}
 						>
 							{strings('fiat_on_ramp_aggregator.paymentMethod.continue_to_amount')}
 						</StyledButton>
