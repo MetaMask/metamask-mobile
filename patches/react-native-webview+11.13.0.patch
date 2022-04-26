@@ -287,8 +287,8 @@ index f743bbc..fb6b4c1 100644
 +            int nextByte = pageIS.read();
 +            contentBuffer.append((char) nextByte);
 +            int bufferLength = contentBuffer.length();
-+            if (nextByte == 62 && bufferLength >= 6) {
-+                if (contentBuffer.substring(bufferLength - 6).equals("</head")) {
++            if (nextByte == 100 && bufferLength >= 5) {
++                if (contentBuffer.substring(bufferLength - 5).equals("<head")) {
 +                    this.scriptIS = getScript(this.charset);
 +                    headWasFound = true;
 +                }
