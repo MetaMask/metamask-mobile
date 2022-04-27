@@ -1,7 +1,7 @@
 'use strict';
 
 import { Dimensions, Platform } from 'react-native';
-import { getModel, hasNotch } from 'react-native-device-info';
+import { getModel, hasNotch, getSystemVersion } from 'react-native-device-info';
 
 export default class Device {
   static getDeviceWidth() {
