@@ -133,7 +133,7 @@ const NetworkModals = (props: NetworkProps) => {
 	};
 
 	const addNetwork = async () => {
-		const { PreferencesController, CurrencyRateController } = Engine.context;
+		const { PreferencesController } = Engine.context;
 		let formChainId = chainId.trim().toLowerCase();
 
 		if (!formChainId.startsWith('0x')) {
@@ -146,7 +146,6 @@ const NetworkModals = (props: NetworkProps) => {
 			const url = new URLPARSE(rpcUrl);
 			const decimalChainId = getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-			CurrencyRateController.setNativeCurrency(ticker);
 			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
 				blockExplorerUrl,
 			});
@@ -166,9 +165,10 @@ const NetworkModals = (props: NetworkProps) => {
 	};
 
 	const switchNetwork = () => {
-		const { NetworkController } = Engine.context;
+		const { NetworkController, CurrencyRateController } = Engine.context;
 		const url = new URLPARSE(rpcUrl);
 		const decimalChainId = getDecimalChainId(chainId);
+		CurrencyRateController.setNativeCurrency(ticker);
 		NetworkController.setRpcTarget(url.href, decimalChainId, ticker, nickname);
 		goHome();
 		dispatch(networkSwitched({ networkUrl: url.href, networkStatus: true }));
