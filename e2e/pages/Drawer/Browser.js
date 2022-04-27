@@ -1,4 +1,5 @@
 import TestHelpers from '../../helpers';
+import { strings } from '../../../locales/i18n';
 
 export const BROWSER_SCREEN_ID = 'browser-screen';
 
@@ -11,6 +12,8 @@ const HOME_BUTTON_ID = 'home-button';
 const GO_BACK_BUTTON_ID = 'go-back-button';
 const OPTIONS_BUTTON_ID = 'options-button';
 const URL_INPUT_BOX_ID = 'url-input';
+const RETURN_HOME_TEXT = strings('webview_error.return_home');
+const BACK_TO_SAFETY_TEXT = strings('phishing.back_to_safety');
 
 export class Browser {
 	static async tapBrowser() {
@@ -42,9 +45,11 @@ export class Browser {
 	}
 
 	static async tapBackToSafetyButton() {
-		await TestHelpers.tapByText('Back to safety');
+		await TestHelpers.tapByText(BACK_TO_SAFETY_TEXT);
 	}
-
+	static async tapReturnHomeButton() {
+		await TestHelpers.tapByText(RETURN_HOME_TEXT);
+	}
 	static async tapBrowserBackButton() {
 		// This action is android specific
 		await TestHelpers.tap(GO_BACK_BUTTON_ID);

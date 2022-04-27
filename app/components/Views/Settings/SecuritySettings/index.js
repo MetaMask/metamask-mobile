@@ -49,6 +49,11 @@ import HintModal from '../../../UI/HintModal';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
 import { useAppThemeFromContext, mockTheme, ThemeContext } from '../../../../util/theme';
+import {
+	CHANGE_PASSWORD_TITLE_ID,
+	CHANGE_PASSWORD_BUTTON_ID,
+	REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
+} from '../../../../constants/test-ids';
 
 const isIos = Device.isIos();
 const LEARN_MORE_URL =
@@ -667,7 +672,7 @@ class Settings extends PureComponent {
 						type="normal"
 						onPress={this.goToRevealPrivateCredential}
 						containerStyle={styles.confirm}
-						testID={'reveal-seed-button'}
+						testID={REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID}
 					>
 						{strings('reveal_credential.seed_phrase_title')}
 					</StyledButton>
@@ -679,10 +684,15 @@ class Settings extends PureComponent {
 	renderPasswordSection = () => {
 		const { styles } = this.getStyles();
 		return (
-			<View style={styles.setting} testID={'change-password-section'}>
+			<View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
 				<Text style={styles.title}>{strings('password_reset.password_title')}</Text>
 				<Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
-				<StyledButton type="normal" onPress={this.resetPassword} containerStyle={styles.confirm}>
+				<StyledButton
+					type="normal"
+					onPress={this.resetPassword}
+					containerStyle={styles.confirm}
+					testID={CHANGE_PASSWORD_BUTTON_ID}
+				>
 					{strings('password_reset.change_password')}
 				</StyledButton>
 			</View>
