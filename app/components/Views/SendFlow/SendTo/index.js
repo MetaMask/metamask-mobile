@@ -116,8 +116,8 @@ const createStyles = (colors) =>
 			margin: 16,
 		},
 		footerContainer: {
-			flex: 1,
 			justifyContent: 'flex-end',
+			marginBottom: 16,
 		},
 		warningContainer: {
 			marginTop: 20,
@@ -223,6 +223,9 @@ class SendFlow extends PureComponent {
 		 * Indicates whether the current transaction is a deep link transaction
 		 */
 		isPaymentRequest: PropTypes.bool,
+		/**
+		 * Returns the recent address in a json with the type ADD_RECENT
+		 */
 		addRecent: PropTypes.func,
 	};
 
@@ -240,6 +243,7 @@ class SendFlow extends PureComponent {
 		toSelectedAddressName: undefined,
 		toSelectedAddressReady: false,
 		toEnsName: undefined,
+		toEnsAddressResolved: undefined,
 		addToAddressToAddressBook: false,
 		alias: undefined,
 		confusableCollection: [],
@@ -326,11 +330,17 @@ class SendFlow extends PureComponent {
 		this.toggleFromAccountModal();
 	};
 
-	onToSelectedAddressChange = async (toSelectedAddress) => {
+	validateAddress = async (toSelectedAddress) => {
 		const { AssetsContractController } = Engine.context;
 		const { addressBook, network, identities, providerType } = this.props;
 		const networkAddressBook = addressBook[network] || {};
-		let addressError, toAddressName, toEnsName, errorContinue, isOnlyWarning, confusableCollection;
+		let addressError,
+			toAddressName,
+			toEnsName,
+			errorContinue,
+			isOnlyWarning,
+			confusableCollection,
+			toEnsAddressResolved;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -347,6 +357,7 @@ class SendFlow extends PureComponent {
 						networkAddressBook[checksummedToSelectedAddress].name) ||
 					(identities[checksummedToSelectedAddress] && identities[checksummedToSelectedAddress].name);
 			} else {
+				toAddressName = ens || toSelectedAddress;
 				// If not in address book nor user accounts
 				addToAddressToAddressBook = true;
 			}
@@ -390,7 +401,7 @@ class SendFlow extends PureComponent {
 			if (resolvedAddress) {
 				const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
 				toAddressName = toSelectedAddress;
-				toSelectedAddress = resolvedAddress;
+				toEnsAddressResolved = resolvedAddress;
 				toSelectedAddressReady = true;
 				if (!networkAddressBook[checksummedResolvedAddress] && !identities[checksummedResolvedAddress]) {
 					addToAddressToAddressBook = true;
@@ -403,7 +414,6 @@ class SendFlow extends PureComponent {
 		}
 		this.setState({
 			addressError,
-			toSelectedAddress,
 			addToAddressToAddressBook,
 			toSelectedAddressReady,
 			toSelectedAddressName: toAddressName,
@@ -411,6 +421,14 @@ class SendFlow extends PureComponent {
 			errorContinue,
 			isOnlyWarning,
 			confusableCollection,
+			toEnsAddressResolved,
+		});
+	};
+
+	onToSelectedAddressChange = (toSelectedAddress) => {
+		this.validateAddress(toSelectedAddress);
+		this.setState({
+			toSelectedAddress,
 		});
 	};
 
@@ -459,12 +477,19 @@ class SendFlow extends PureComponent {
 
 	onTransactionDirectionSet = async () => {
 		const { setRecipient, navigation, providerType, addRecent } = this.props;
-		const { fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName } =
-			this.state;
+		const {
+			fromSelectedAddress,
+			toSelectedAddress,
+			toEnsName,
+			toSelectedAddressName,
+			fromAccountName,
+			toEnsAddressResolved,
+		} = this.state;
 		const addressError = await this.validateToAddress();
 		if (addressError) return;
-		addRecent(toSelectedAddress);
-		setRecipient(fromSelectedAddress, toSelectedAddress, toEnsName, toSelectedAddressName, fromAccountName);
+		const toAddress = toEnsAddressResolved || toSelectedAddress;
+		addRecent(toAddress);
+		setRecipient(fromSelectedAddress, toAddress, toEnsName, toSelectedAddressName, fromAccountName);
 		InteractionManager.runAfterInteractions(() => {
 			Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT, {
 				network: providerType,
@@ -580,7 +605,6 @@ class SendFlow extends PureComponent {
 
 		return (
 			<>
-				{'\n'}
 				<Text bold style={styles.buyEth} onPress={this.goToBuy}>
 					{strings('fiat_on_ramp.buy', { ticker: getTicker(this.props.ticker) })}
 				</Text>
@@ -642,6 +666,18 @@ class SendFlow extends PureComponent {
 						confusableCollection={(!existingContact && confusableCollection) || []}
 					/>
 				</View>
+
+				{!toSelectedAddressReady && !!toSelectedAddress && (
+					<View style={styles.warningContainer}>
+						<WarningMessage
+							warningMessage={
+								toSelectedAddress.substring(0, 2) === '0x'
+									? strings('transaction.address_invalid')
+									: strings('transaction.ens_not_found')
+							}
+						/>
+					</View>
+				)}
 
 				{!toSelectedAddressReady ? (
 					<AddressList
@@ -708,20 +744,24 @@ class SendFlow extends PureComponent {
 								</View>
 							)}
 						</ScrollView>
-						<View style={styles.footerContainer} testID={'no-eth-message'}>
-							{!errorContinue && (
-								<View style={styles.buttonNextWrapper}>
-									<StyledButton
-										type={'confirm'}
-										containerStyle={styles.buttonNext}
-										onPress={this.onTransactionDirectionSet}
-										testID={'address-book-next-button'}
-									>
-										{strings('address_book.next')}
-									</StyledButton>
-								</View>
-							)}
-						</View>
+					</View>
+				)}
+
+				{!errorContinue && (
+					<View style={styles.footerContainer} testID={'no-eth-message'}>
+						{!errorContinue && (
+							<View style={styles.buttonNextWrapper}>
+								<StyledButton
+									type={'confirm'}
+									containerStyle={styles.buttonNext}
+									onPress={this.onTransactionDirectionSet}
+									testID={'address-book-next-button'}
+									disabled={!toSelectedAddressReady}
+								>
+									{strings('address_book.next')}
+								</StyledButton>
+							</View>
+						)}
 					</View>
 				)}
 
