@@ -37,20 +37,13 @@ const createStyle = (colors: any) =>
 		},
 		account: {
 			flexDirection: 'row',
-			paddingHorizontal: 12,
+			paddingHorizontal: 10,
 			paddingVertical: 5,
 		},
 		checkBox: {
 			backgroundColor: colors.background.default,
 		},
 		number: {
-			...fontStyles.normal,
-			color: colors.text.default,
-		},
-		address: {
-			marginLeft: 8,
-			fontSize: 15,
-			flexGrow: 1,
 			...fontStyles.normal,
 			color: colors.text.default,
 		},
@@ -63,6 +56,7 @@ const createStyle = (colors: any) =>
 			...fontStyles.normal,
 			fontSize: 18,
 			color: colors.primary.default,
+			paddingHorizontal: 10,
 		},
 		paginationItem: {
 			flexDirection: 'row',
@@ -72,12 +66,13 @@ const createStyle = (colors: any) =>
 		bottom: {
 			alignItems: 'center',
 			justifyContent: 'space-between',
-			paddingTop: 75,
+			paddingTop: 70,
 			paddingBottom: Device.isIphoneX() ? 20 : 10,
 		},
 		button: {
 			width: '100%',
 			justifyContent: 'flex-end',
+			paddingTop: 15,
 		},
 	});
 
