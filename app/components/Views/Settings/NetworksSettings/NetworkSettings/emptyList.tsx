@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../Base/Alert';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import { CHAINLIST_URL } from '../../../../../constants/urls';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -29,7 +30,7 @@ const EmptyPopularList = ({ goToCustomNetwork }: Props) => {
 		navigation.navigate('BrowserTabHome', {
 			screen: 'BrowserView',
 			params: {
-				newTabUrl: 'https://chainlist.org',
+				newTabUrl: CHAINLIST_URL,
 			},
 		});
 	};

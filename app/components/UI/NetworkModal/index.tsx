@@ -17,6 +17,8 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import sanitizeUrl from '../../../util/sanitizeUrl';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 
@@ -144,11 +146,23 @@ const NetworkModals = (props: NetworkProps) => {
 
 		if (validUrl) {
 			const url = new URLPARSE(rpcUrl);
+			const sanitizedUrl = sanitizeUrl(url.href);
 			const decimalChainId = getDecimalChainId(chainId);
 			!isprivateConnection(url.hostname) && url.set('protocol', 'https:');
 			PreferencesController.addToFrequentRpcList(url.href, decimalChainId, ticker, nickname, {
 				blockExplorerUrl,
 			});
+
+			const analyticsParamsAdd = {
+				rpc_url: sanitizedUrl,
+				chain_id: decimalChainId,
+				source: 'Popular network list',
+				symbol: ticker,
+				block_explorer_url: blockExplorerUrl,
+				network_name: nickname,
+			};
+
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 			setNetworkAdded(true);
 		} else {
 			setNetworkAdded(false);

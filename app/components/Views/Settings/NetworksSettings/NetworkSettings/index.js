@@ -30,7 +30,7 @@ import PopularList from '../../../../../util/networks/customNetworks';
 import NetworkModals from '../../../../UI/NetworkModal';
 import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
-import { MAINNET, PRIVATENETWORK } from '../../../../../constants/network';
+import { MAINNET, PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import ImageIcons from '../../../../UI/ImageIcon';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwork';
@@ -407,10 +407,10 @@ class NetworkSettings extends PureComponent {
 			const analyticsParamsAdd = {
 				rpc_url: formattedHref,
 				chain_id: decimalChainId,
-				source: 'Settings',
+				source: 'Custom network form',
 				symbol: ticker,
 				block_explorer_url: blockExplorerUrl,
-				network_name: 'rpc',
+				network_name: nickname || RPC,
 			};
 			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED, analyticsParamsAdd);
 			this.props.showNetworkOnboardingAction({ networkUrl, networkType, nativeToken, showNetworkOnboarding });
