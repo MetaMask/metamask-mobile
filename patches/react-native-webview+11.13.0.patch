@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..72450dd 100644
+index f743bbc..e88f145 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -29,7 +29,7 @@ index f743bbc..72450dd 100644
 @@ -88,18 +92,37 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
  import org.json.JSONException;
  import org.json.JSONObject;
-
+ 
 +import java.io.ByteArrayInputStream;
 +import java.io.IOException;
 +import java.io.InputStream;
@@ -51,7 +51,7 @@ index f743bbc..72450dd 100644
  import java.util.Map;
 +import java.util.Objects;
  import java.util.concurrent.atomic.AtomicReference;
-
+ 
 +import okhttp3.MediaType;
 +import okhttp3.OkHttpClient;
 +import okhttp3.Request;
@@ -67,7 +67,7 @@ index f743bbc..72450dd 100644
 @@ -137,13 +160,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
-
+ 
 +  protected static final String MIME_UNKNOWN = "application/octet-stream";
 +  protected static final String HTML_ENCODING = "UTF-8";
 +  protected static final long BYTES_IN_MEGABYTE = 1000000;
@@ -76,7 +76,7 @@ index f743bbc..72450dd 100644
    public static final int COMMAND_CLEAR_FORM_DATA = 1000;
    public static final int COMMAND_CLEAR_CACHE = 1001;
    public static final int COMMAND_CLEAR_HISTORY = 1002;
-
+ 
    protected static final String REACT_CLASS = "RNCWebView";
 -  protected static final String HTML_ENCODING = "UTF-8";
 +
@@ -88,7 +88,7 @@ index f743bbc..72450dd 100644
 @@ -158,11 +187,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
-
+ 
 +  protected static String userAgent;
 +
 +  protected static OkHttpClient httpClient;
@@ -104,7 +104,7 @@ index f743bbc..72450dd 100644
 +    .followSslRedirects(false)
 +    .build();
    }
-
+ 
    public RNCWebViewManager(WebViewConfig webViewConfig) {
 @@ -182,6 +220,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -117,7 +117,7 @@ index f743bbc..72450dd 100644
 @@ -247,9 +286,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
-
+ 
 +    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 +        ServiceWorkerController swController = ServiceWorkerController.getInstance();
 +        swController.setServiceWorkerClient(new ServiceWorkerClient() {
@@ -135,7 +135,7 @@ index f743bbc..72450dd 100644
 +
      return webView;
    }
-
+ 
 +  private Boolean urlStringLooksInvalid(String urlString) {
 +    return urlString == null ||
 +        urlString.trim().equals("") ||
@@ -214,7 +214,7 @@ index f743bbc..72450dd 100644
 @@ -842,13 +968,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
-
+ 
 -  protected static class RNCWebViewClient extends WebViewClient {
 +  public static class InputStreamWithInjectedJS extends InputStream {
 +    private InputStream pageIS;
@@ -227,7 +227,7 @@ index f743bbc..72450dd 100644
 +    private boolean headWasFound = false;
 +    private boolean scriptWasInjected = false;
 +
-+    private int lowercased = 100;
++    private int lowercaseD = 100;
 +    private int closingTag = 62;
 +    private boolean hasClosingHead = false;
 +
@@ -287,7 +287,7 @@ index f743bbc..72450dd 100644
 +              hasClosingHead = true;
 +              return nextByte;
 +            }
-+            int nextByte = scriptIS.read();
++            nextByte = scriptIS.read();
 +            if (nextByte == -1) {
 +                scriptIS.close();
 +                scriptWasInjected = true;
@@ -317,7 +317,7 @@ index f743bbc..72450dd 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
-
+ 
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
@@ -326,13 +326,13 @@ index f743bbc..72450dd 100644
      protected @Nullable String ignoreErrFailedForThisURL = null;
 +    //Allow list is used to support specific deeplinks in the webview.
 +    private final String[] DEEPLINK_ALLOW_LIST = new String[] {"https://twitter.com/i/wallet/verify"};
-
+ 
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
 @@ -872,9 +1101,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
-
+ 
 -      RNCWebView reactWebView = (RNCWebView) webView;
 -      reactWebView.callInjectedJavaScriptBeforeContentLoaded();
 -
@@ -342,7 +342,7 @@ index f743bbc..72450dd 100644
 @@ -882,6 +1108,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
-
+ 
 +    @Override
 +    public WebResourceResponse shouldInterceptRequest(WebView webView, WebResourceRequest request) {
 +        WebResourceResponse response = RNCWebViewManager.this.shouldInterceptRequest(request, true, (RNCWebView)webView);
@@ -358,7 +358,7 @@ index f743bbc..72450dd 100644
        final RNCWebView rncWebView = (RNCWebView) view;
 @@ -919,6 +1155,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
-
+ 
          return shouldOverride;
 +      } else if (url != null && Arrays.asList(DEEPLINK_ALLOW_LIST).contains(url)) {
 +        // This case is used to support deeplinking within the webview. We are limiting this but
@@ -399,7 +399,7 @@ index f743bbc..72450dd 100644
 @@ -1447,6 +1709,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
-
+ 
 +    /**
 +     * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
 +     * value directly as it was only added on Oreo, but we can apply the value
@@ -413,7 +413,7 @@ index f743bbc..72450dd 100644
 @@ -1475,6 +1744,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
-
+ 
 +    @Override
 +    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
 +      InputConnection inputConnection;
@@ -454,7 +454,7 @@ index f743bbc..72450dd 100644
      public void onHostResume() {
        // do nothing
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
-index 28c078a..6939753 100644
+index 28c078a..4c8a7fc 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
 +++ b/node_modules/react-native-webview/apple/RNCWebView.m
 @@ -851,11 +851,13 @@ - (void)                    webView:(WKWebView *)webView
