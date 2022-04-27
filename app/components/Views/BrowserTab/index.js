@@ -528,10 +528,16 @@ export const BrowserTab = (props) => {
 			} catch (err) {
 				// This is a TLD that might be a normal website
 				// For example .XYZ and might be more in the future
-				if (hostname.substr(-4) !== '.eth' && err.toString().indexOf('is not standard') !== -1) {
+
+				if (
+					hostname.substr(-4) !== '.eth' ||
+					hostname.substr(-4) === '.xyz' ||
+					err.toString().indexOf('is not standard') !== -1
+				) {
 					ensIgnoreList.push(hostname);
 					return { url: fullUrl, reload: true };
 				}
+
 				if (err?.message?.startsWith('EnsIpfsResolver - no known ens-ipfs registry for chainId')) {
 					trackErrorAsAnalytics('Browser: Failed to resolve ENS name for chainId', err?.message);
 				} else {
