@@ -1,5 +1,8 @@
+/* eslint-disable react/prop-types */
+/** This is a JS file, we can't use types */
+
 import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -55,6 +58,7 @@ import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import LedgerConnect from '../../Views/LedgerConnect';
 import { colors as importedColors } from '../../../styles/common';
+import Text from '../../Base/Text';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -66,6 +70,15 @@ const styles = StyleSheet.create({
 	},
 	hidden: {
 		opacity: 0,
+	},
+	ledgerConnectHeaderContainer: {
+		padding: 10,
+		margin: 10,
+	},
+	ledgerConnectHeaderButton: {
+		position: 'absolute',
+		top: 0,
+		right: 0,
 	},
 });
 /**
@@ -84,7 +97,7 @@ const WalletTabHome = () => (
 			component={RevealPrivateCredential}
 			options={RevealPrivateCredential.navigationOptions}
 		/>
-		<Stack.Screen name="LedgerConnect" component={LedgerConnect} options={{ headerLeft: null, title: null }} />
+
 		<Stack.Screen
 			name="ExperimentalSettings"
 			component={ExperimentalSettings}
@@ -329,6 +342,32 @@ const SetPasswordFlow = () => (
 	</Stack.Navigator>
 );
 
+
+const LedgerConnectFlow = ({ navigation }) => (
+	<Stack.Navigator
+		screenOptions={{
+			headerLeft: null,
+			headerTitle: null,
+			// eslint-disable-next-line react/display-name
+			headerRight: () => (
+				<View style={styles.ledgerConnectHeaderContainer}>
+					<TouchableOpacity
+						onPress={() => {
+							navigation.navigate('Home');
+						}}
+						style={styles.ledgerConnectHeaderButton}
+					>
+						<Text bold> X </Text>
+					</TouchableOpacity>
+				</View>
+			),
+		}}
+		initialRouteName="LedgerConnect"
+	>
+		<Stack.Screen name="LedgerConnect" component={LedgerConnect} />
+	</Stack.Navigator>
+)
+
 const ConnectQRHardwareFlow = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -364,6 +403,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
+		<Stack.Screen name="LedgerConnectFlow" component={LedgerConnectFlow} />
 		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />

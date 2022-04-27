@@ -172,7 +172,7 @@ class Tokens extends PureComponent {
 				>
 					<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
 				</TouchableOpacity>
-				<TouchableOpacity onPress={() => this.props.navigation.navigate('LedgerConnect')}>
+				<TouchableOpacity onPress={() => this.props.navigation.navigate('LedgerConnectFlow')}>
 					<Text> navigate to ledger screen </Text>
 				</TouchableOpacity>
 			</View>
@@ -251,10 +251,10 @@ class Tokens extends PureComponent {
 		const { tokens, hideZeroBalanceTokens, tokenBalances } = this.props;
 		const tokensToDisplay = hideZeroBalanceTokens
 			? tokens.filter((token) => {
-					const { address, isETH } = token;
-					return !isZero(tokenBalances[address]) || isETH;
-					// eslint-disable-next-line no-mixed-spaces-and-tabs
-			  })
+				const { address, isETH } = token;
+				return !isZero(tokenBalances[address]) || isETH;
+				// eslint-disable-next-line no-mixed-spaces-and-tabs
+			})
 			: tokens;
 
 		return (
