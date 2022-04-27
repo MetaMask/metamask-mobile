@@ -37,3 +37,11 @@ export function toggleApproveModal(show) {
 		show,
 	};
 }
+
+export const toggleLedgerDeviceActionModal = () => ({
+	type: 'TOGGLE_LEDGER_DEVICE_ACTION',
+});
+
+export const toggleLedgerDeviceActionFailModal = () => ({
+	type: 'TOGGLE_LEDGER_DEVICE_ACTION_FAIL',
+});

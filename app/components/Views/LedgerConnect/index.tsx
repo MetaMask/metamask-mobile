@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { strings } from '../../../../locales/i18n';
-
 import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
 import Text from '../../../components/Base/Text';
@@ -13,7 +12,6 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
-
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
 
