@@ -273,6 +273,10 @@ class RevealPrivateCredential extends PureComponent {
 			);
 
 		if (this.props.cancel) return this.props.cancel();
+		this.navigateBack();
+	};
+
+	navigateBack = () => {
 		const { navigation } = this.props;
 		navigation.pop();
 	};
@@ -292,13 +296,6 @@ class RevealPrivateCredential extends PureComponent {
 			}
 
 			if (privateCredential && (this.state.isUserUnlocked || isPrivateKeyReveal)) {
-				AnalyticsV2.trackEvent(
-					isPrivateKeyReveal
-						? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
-						: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
-					{ action: 'viewed' }
-				);
-
 				this.setState({
 					clipboardPrivateCredential: privateCredential,
 					unlocked: true,
@@ -393,12 +390,33 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	}
 
+	onTabBarChange = (event) => {
+		if (event.i === 0) {
+			AnalyticsV2.trackEvent(
+				this.isPrivateKey()
+					? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+					: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+				{ action: 'viewed SRP' }
+			);
+		} else if (event.i === 1) {
+			AnalyticsV2.trackEvent(
+				this.isPrivateKey()
+					? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+					: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+				{ action: 'viewed QR code' }
+			);
+		}
+	};
+
 	renderTabView(privateCredentialName) {
 		const { clipboardPrivateCredential } = this.state;
 		const { styles, colors, themeAppearance } = this.getStyles();
 
 		return (
-			<ScrollableTabView renderTabBar={() => this.renderTabBar()}>
+			<ScrollableTabView
+				renderTabBar={() => this.renderTabBar()}
+				onChangeTab={(event) => this.onTabBarChange(event)}
+			>
 				<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
 					<Text style={styles.boldText}>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
 					<View style={styles.seedPhraseView}>
@@ -577,7 +595,7 @@ class RevealPrivateCredential extends PureComponent {
 				<ActionView
 					cancelText={unlocked ? strings('reveal_credential.done') : strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
-					onCancelPress={this.cancel}
+					onCancelPress={unlocked ? this.navigateBack : this.cancel}
 					testID={`next-button`}
 					onConfirmPress={() => this.tryUnlock()}
 					showConfirmButton={!unlocked}
