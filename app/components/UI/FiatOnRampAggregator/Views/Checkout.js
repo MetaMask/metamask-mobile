@@ -14,7 +14,7 @@ import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
-import { callbackBaseUrl, processAggregatorOrder } from '../orderProcessor/aggregator';
+import { callbackBaseUrl, processAggregatorOrder, aggregatorInitialFiatOrder } from '../orderProcessor/aggregator';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getNotificationDetails } from '../../FiatOrders';
 
@@ -64,7 +64,13 @@ const CheckoutWebView = () => {
 			try {
 				const orders = await SDK.orders();
 				const orderId = await orders.getOrderIdFromCallback(params?.provider.id, navState?.url);
-				const transformedOrder = await processAggregatorOrder({ id: orderId, account: selectedAddress });
+				const transformedOrder = await processAggregatorOrder(
+					aggregatorInitialFiatOrder({
+						id: orderId,
+						account: selectedAddress,
+						network: Number(selectedChainId),
+					})
+				);
 				// add the order to the redux global store
 				handleAddFiatOrder(transformedOrder);
 				// register the token automatically

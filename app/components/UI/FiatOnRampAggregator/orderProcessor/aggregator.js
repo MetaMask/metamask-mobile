@@ -31,6 +31,19 @@ const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
 	}
 };
 
+export const aggregatorInitialFiatOrder = (initialOrder) => ({
+	...initialOrder,
+	state: FIAT_ORDER_STATES.PENDING,
+	provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+	createdAt: Date.now(),
+	amount: 0,
+	fee: null,
+	currency: '',
+	cryptoAmount: null,
+	cryptocurrency: '',
+	data: null,
+});
+
 const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
 	id: aggregatorOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
