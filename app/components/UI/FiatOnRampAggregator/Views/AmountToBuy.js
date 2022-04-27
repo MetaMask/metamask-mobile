@@ -158,10 +158,14 @@ const AmountToBuy = () => {
 	 * Select the default fiat currency if current selection is not available.
 	 */
 	useEffect(() => {
-		if (fiatCurrencies && !fiatCurrencies?.find?.((currency) => currency.id === selectedFiatCurrencyId)) {
-			setSelectedFiatCurrencyId(defaultFiatCurrency);
+		if (
+			fiatCurrencies &&
+			defaultFiatCurrency &&
+			!fiatCurrencies?.find?.((currency) => currency.id === selectedFiatCurrencyId)
+		) {
+			setSelectedFiatCurrencyId(defaultFiatCurrency.id);
 		}
-	});
+	}, [defaultFiatCurrency, fiatCurrencies, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
 	/**
 	 * Select the native crytpo currency of first of the list
