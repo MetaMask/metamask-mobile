@@ -73,7 +73,7 @@ export const getProviderName = (provider, data = {}) => {
 		}
 		case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
 			const providerName = data.provider?.name;
-			return `On-Ramp ${providerName ? '(' + providerName + ')' : ''}`;
+			return providerName ? `${providerName}` : '...';
 		}
 		default: {
 			return provider;
