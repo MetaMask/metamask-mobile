@@ -83,8 +83,14 @@ const createStyles = (colors) =>
 const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
 
 const GetQuotes = () => {
-	const { selectedPaymentMethod, selectedRegion, selectedAsset, selectedAddress, selectedFiatCurrencyId, appConfig } =
-		useFiatOnRampSDK();
+	const {
+		selectedPaymentMethodId,
+		selectedRegion,
+		selectedAsset,
+		selectedAddress,
+		selectedFiatCurrencyId,
+		appConfig,
+	} = useFiatOnRampSDK();
 
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
@@ -104,7 +110,7 @@ const GetQuotes = () => {
 	const [{ data: quotes, isFetching: isFetchingQuotes, error: ErrorFetchingQuotes }, fetchQuotes] = useSDKMethod(
 		'getQuotes',
 		selectedRegion?.id,
-		selectedPaymentMethod,
+		selectedPaymentMethodId,
 		selectedAsset?.id,
 		selectedFiatCurrencyId,
 		params.amount,

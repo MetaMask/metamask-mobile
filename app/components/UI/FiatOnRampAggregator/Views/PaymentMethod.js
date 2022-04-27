@@ -22,7 +22,7 @@ const PaymentMethod = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
 
-	const { selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
+	const { selectedRegion, selectedPaymentMethodId, setSelectedPaymentMethodId } = useFiatOnRampSDK();
 
 	const [{ data: paymentMethods, isFetching, error }] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
@@ -32,12 +32,12 @@ const PaymentMethod = () => {
 
 	useEffect(() => {
 		if (!isFetching && !error && paymentMethods) {
-			const paymentMethod = paymentMethods.find((pm) => pm.id === selectedPaymentMethod);
+			const paymentMethod = paymentMethods.find((pm) => pm.id === selectedPaymentMethodId);
 			if (!paymentMethod) {
-				setSelectedPaymentMethod(paymentMethods?.[0]?.id);
+				setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
 			}
 		}
-	}, [error, isFetching, paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod]);
+	}, [error, isFetching, paymentMethods, selectedPaymentMethodId, setSelectedPaymentMethodId]);
 
 	const handleContinueToAmount = useCallback(() => {
 		navigation.navigate('AmountToBuy');
@@ -63,11 +63,11 @@ const PaymentMethod = () => {
 					{paymentMethods?.map(({ id, name, delay, amountTier }) => (
 						<View key={id} style={styles.row}>
 							<PaymentOption
-								highlighted={id === selectedPaymentMethod}
+								highlighted={id === selectedPaymentMethodId}
 								title={name}
 								time={delay}
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
-								onPress={() => setSelectedPaymentMethod(id)}
+								onPress={() => setSelectedPaymentMethodId(id)}
 								amountTier={amountTier}
 								paymentType={PAYMENT_METHOD_ICON[id]}
 								idRequired={false}
@@ -88,7 +88,7 @@ const PaymentMethod = () => {
 						<StyledButton
 							type={'confirm'}
 							onPress={handleContinueToAmount}
-							disabled={!selectedPaymentMethod}
+							disabled={!selectedPaymentMethodId}
 						>
 							{strings('fiat_on_ramp_aggregator.paymentMethod.continue_to_amount')}
 						</StyledButton>

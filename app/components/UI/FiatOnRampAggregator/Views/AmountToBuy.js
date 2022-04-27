@@ -79,9 +79,12 @@ const AmountToBuy = () => {
 		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Amount to Buy' }, colors));
 	}, [navigation, colors]);
 
+	/**
+	 * Grab the current state of the SDK via the context.
+	 */
 	const {
-		selectedPaymentMethod,
-		setSelectedPaymentMethod,
+		selectedPaymentMethodId,
+		setSelectedPaymentMethodId,
 		selectedRegion,
 		setSelectedRegion,
 		selectedAsset,
@@ -91,41 +94,108 @@ const AmountToBuy = () => {
 		selectedChainId,
 	} = useFiatOnRampSDK();
 
+	/**
+	 * SDK methods are called as the parameters change.
+	 * We get
+	 * - getCountries -> countries
+	 * - getCryptoCurrencies -> sdkCryptoCurrencies
+	 * - getFiatCurrencies -> currencies
+	 * - defaultFiatCurrency -> getDefaultFiatCurrency
+	 * - paymentMethods -> getPaymentMethods
+	 * - currentPaymentMethod -> getCurrentPaymentMethod
+	 */
+
 	const [{ data: countries, isFetching: isFetchingCountries, error: errorCountries }] = useSDKMethod('getCountries');
 
-	const [{ data: dataTokens, error: errorDataTokens, isFetching: isFetchingDataTokens }] = useSDKMethod(
-		'getCryptoCurrencies',
-		selectedRegion?.id,
-		selectedPaymentMethod,
-		selectedFiatCurrencyId || ''
-	);
+	const [{ data: sdkCryptoCurrencies, error: errorSdkCryptoCurrencies, isFetching: isFetchingSdkCryptoCurrencies }] =
+		useSDKMethod('getCryptoCurrencies', selectedRegion?.id, selectedPaymentMethodId, selectedFiatCurrencyId || '');
 
-	const [{ data: defaultCurrency, error: errorDefaultCurrnecy, isFetching: isFetchingDefaultCurrency }] =
-		useSDKMethod('getDefaultFiatCurrency', selectedRegion?.id);
-
-	const [{ data: currencies, error: errorCurrencies, isFetching: isFetchingCurrencies }] = useSDKMethod(
+	const [{ data: fiatCurrencies, error: errorFiatCurrencies, isFetching: isFetchingFiatCurrencies }] = useSDKMethod(
 		'getFiatCurrencies',
 		selectedRegion?.id,
-		selectedPaymentMethod
+		selectedPaymentMethodId
 	);
 
+	const [{ data: defaultFiatCurrency, error: errorDefaultFiatCurrency, isFetching: isFetchingDefaultFiatCurrency }] =
+		useSDKMethod('getDefaultFiatCurrency', selectedRegion?.id);
+
+	const [{ data: paymentMethods, error: errorPaymentMethods, isFetching: isFetchingPaymentMethods }] = useSDKMethod(
+		'getPaymentMethods',
+		selectedRegion?.id
+	);
+
+	const [
+		{ data: currentPaymentMethod, error: errorCurrentPaymentMethod, isFetching: isFetchingCurrentPaymentMethod },
+	] = useSDKMethod('getPaymentMethod', selectedRegion?.id, selectedPaymentMethodId);
+
+	/**
+	 * * Defaults and validation of selected values
+	 */
+
+	/**
+	 * Temporarily filter crypto currencies to match current chain id
+	 * TODO: Remove this filter when we go multi chain. Replace `tokens` with `sdkCryptoCurrencies`
+	 */
 	useEffect(() => {
-		if (!selectedFiatCurrencyId && !isFetchingDefaultCurrency && defaultCurrency) {
-			setSelectedFiatCurrencyId(defaultCurrency.id);
+		if (!isFetchingSdkCryptoCurrencies && !errorSdkCryptoCurrencies && sdkCryptoCurrencies) {
+			const filteredTokens = sdkCryptoCurrencies.filter(
+				(token) => Number(token.network?.chainId) === Number(selectedChainId)
+			);
+			setTokens(filteredTokens);
 		}
-	}, [defaultCurrency, isFetchingDefaultCurrency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
+	}, [sdkCryptoCurrencies, errorSdkCryptoCurrencies, isFetchingSdkCryptoCurrencies, selectedChainId]);
 
-	const currentFiatCurrency = useMemo(() => {
-		const currency = currencies?.find?.((currency) => currency.id === selectedFiatCurrencyId) || defaultCurrency;
-		return currency;
-	}, [currencies, defaultCurrency, selectedFiatCurrencyId]);
+	/**
+	 * Select the default fiat currency as selected if none is selected.
+	 */
+	useEffect(() => {
+		if (!isFetchingDefaultFiatCurrency && defaultFiatCurrency && !selectedFiatCurrencyId) {
+			setSelectedFiatCurrencyId(defaultFiatCurrency.id);
+		}
+	}, [defaultFiatCurrency, isFetchingDefaultFiatCurrency, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
-	const [{ data: currentPaymentMethod, error: errorGetPaymentMethod, isFetching: isFetchingGetPaymentMethod }] =
-		useSDKMethod('getPaymentMethod', selectedRegion?.id, selectedPaymentMethod);
+	/**
+	 * Select the default fiat currency if current selection is not available.
+	 */
+	useEffect(() => {
+		if (fiatCurrencies && !fiatCurrencies?.find?.((currency) => currency.id === selectedFiatCurrencyId)) {
+			setSelectedFiatCurrencyId(defaultFiatCurrency);
+		}
+	});
 
-	const [{ data: paymentMethods, error: errorGetPaymentMethods, isFetching: isFetchingGetPaymentMethods }] =
-		useSDKMethod('getPaymentMethods', selectedRegion?.id);
+	/**
+	 * Select the native crytpo currency of first of the list
+	 * if current selection is not available.
+	 * This is using the already filtered list of tokens.
+	 */
+	useEffect(() => {
+		if (tokens) {
+			if (!selectedAsset || !tokens.find((token) => token.address === selectedAsset.address)) {
+				setSelectedAsset(tokens.find((a) => a.address === NATIVE_ADDRESS) || tokens?.[0]);
+			}
+		}
+	}, [sdkCryptoCurrencies, selectedAsset, setSelectedAsset, tokens]);
 
+	/**
+	 * Select the default payment method if current selection is not available.
+	 */
+	useEffect(() => {
+		if (!isFetchingPaymentMethods && !errorPaymentMethods && paymentMethods) {
+			if (!paymentMethods.find((pm) => pm.id === selectedPaymentMethodId)) {
+				setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
+			}
+		}
+	}, [
+		errorPaymentMethods,
+		isFetchingPaymentMethods,
+		paymentMethods,
+		selectedPaymentMethodId,
+		setSelectedPaymentMethodId,
+	]);
+
+	/**
+	 * * Keypad style, handlers and effects
+	 */
 	const keypadContainerStyle = useAnimatedStyle(() => ({
 		transform: [
 			{
@@ -134,18 +204,32 @@ const AmountToBuy = () => {
 		],
 	}));
 
-	const handleKeypadDone = useCallback(() => {
-		setAmountFocused(false);
-	}, []);
+	useEffect(() => {
+		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
+	}, [amountFocused, keyboardHeight, keypadOffset]);
 
-	const onAmountInputPress = useCallback(() => {
-		setAmountFocused(true);
-	}, []);
+	/**
+	 * Back handler to dismiss keypad
+	 */
+	useEffect(() => {
+		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+			if (amountFocused) {
+				setAmountFocused(false);
+				return true;
+			}
+		});
+
+		return () => backHandler.remove();
+	}, [amountFocused]);
+
+	const handleKeypadDone = useCallback(() => setAmountFocused(false), []);
+	const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
 
 	const handleKeypadChange = useCallback(({ value, valueAsNumber }) => {
 		setAmount(`${value}`);
 		setAmountNumber(valueAsNumber);
 	}, []);
+
 	const handleQuickAmountPress = useCallback((value) => {
 		setAmount(`${value}`);
 		setAmountNumber(value);
@@ -156,7 +240,10 @@ const AmountToBuy = () => {
 		keyboardHeight.current = height;
 	}, []);
 
-	/****************** REGION HANDLERS ****************************/
+	/**
+	 * * Region handlers
+	 */
+
 	const handleChangeRegion = useCallback(() => {
 		setAmountFocused(false);
 		toggleRegionModal();
@@ -173,7 +260,10 @@ const AmountToBuy = () => {
 		[hideRegionModal, setSelectedFiatCurrencyId, setSelectedRegion]
 	);
 
-	/****************** TOKENS HANDLERS *********************************/
+	/**
+	 * * CryptoCurrency handlers
+	 */
+
 	const handleAssetSelectorPress = useCallback(() => {
 		setAmountFocused(false);
 		toggleTokenSelectorModal();
@@ -187,15 +277,18 @@ const AmountToBuy = () => {
 		[hideTokenSelectorModal, setSelectedAsset]
 	);
 
-	/****************** FIAT CURRENCIES HANDLERS *********************************/
+	/**
+	 * * FiatCurrency handlers
+	 */
+
 	const handleFiatSelectorPress = useCallback(() => {
 		setAmountFocused(false);
 		toggleFiatSelectorModal();
 	}, [toggleFiatSelectorModal]);
 
 	const handleCurrencyPress = useCallback(
-		(newCurrency) => {
-			setSelectedFiatCurrencyId(newCurrency?.id);
+		(fiatCurrency) => {
+			setSelectedFiatCurrencyId(fiatCurrency?.id);
 			setAmount('0');
 			setAmountNumber(0);
 			hideFiatSelectorModal();
@@ -203,27 +296,45 @@ const AmountToBuy = () => {
 		[hideFiatSelectorModal, setSelectedFiatCurrencyId]
 	);
 
-	/****************** PAYMENT METHODS HANDLERS *********************************/
+	/**
+	 * * PaymentMethod handlers
+	 */
+
 	const handleChangePaymentMethod = useCallback(
 		(paymentMethodId) => {
 			if (paymentMethodId) {
 				setAmount('0');
 				setAmountNumber(0);
-				setSelectedPaymentMethod(paymentMethodId);
+				setSelectedPaymentMethodId(paymentMethodId);
 			}
 			hidePaymentMethodModal();
 		},
-		[hidePaymentMethodModal, setSelectedPaymentMethod]
+		[hidePaymentMethodModal, setSelectedPaymentMethodId]
 	);
 
+	/**
+	 * * Get Quote handlers
+	 */
 	const handleGetQuotePress = useCallback(() => {
 		navigation.navigate('GetQuotes', { amount: amountNumber });
 	}, [amountNumber, navigation]);
 
-	useEffect(() => {
-		keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
-	}, [amountFocused, keyboardHeight, keypadOffset]);
+	/**
+	 * * Derived values
+	 */
 
+	/**
+	 * Get the fiat currency object by id
+	 */
+	const currentFiatCurrency = useMemo(() => {
+		const currency =
+			fiatCurrencies?.find?.((currency) => currency.id === selectedFiatCurrencyId) || defaultFiatCurrency;
+		return currency;
+	}, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
+
+	/**
+	 * Format the amount for display (iOS only)
+	 */
 	const displayAmount = useMemo(() => {
 		if (Device.isIos() && Intl && Intl?.NumberFormat) {
 			return amountFocused ? amount : new Intl.NumberFormat().format(amountNumber);
@@ -231,50 +342,13 @@ const AmountToBuy = () => {
 		return amount;
 	}, [amount, amountFocused, amountNumber]);
 
-	// side effect to load available crypto assets to purchase using SDK method: getCryptoCurrencies
-	useEffect(() => {
-		if (!isFetchingDataTokens && !errorDataTokens && dataTokens && !selectedAsset) {
-			const filteredTokens = dataTokens.filter(
-				(token) => Number(token.network?.chainId) === Number(selectedChainId)
-			);
-			setTokens(filteredTokens);
-			setSelectedAsset(filteredTokens.find((a) => a.address === NATIVE_ADDRESS) || dataTokens[0]);
-		}
-	}, [errorDataTokens, isFetchingDataTokens, dataTokens, setSelectedAsset, selectedChainId, selectedAsset]);
-
-	useEffect(() => {
-		if (!isFetchingGetPaymentMethods && !errorGetPaymentMethods && paymentMethods) {
-			const paymentMethod = paymentMethods.find((pm) => pm.id === selectedPaymentMethod);
-			if (!paymentMethod) {
-				setSelectedPaymentMethod(paymentMethods?.[0]?.id);
-			}
-		}
-	}, [
-		errorGetPaymentMethods,
-		isFetchingGetPaymentMethods,
-		paymentMethods,
-		selectedPaymentMethod,
-		setSelectedPaymentMethod,
-	]);
-
-	useEffect(() => {
-		const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-			if (amountFocused) {
-				setAmountFocused(false);
-				return true;
-			}
-		});
-
-		return () => backHandler.remove();
-	}, [amountFocused]);
-
 	// TODO: replace this with loading screen
 	if (
-		isFetchingDataTokens ||
-		isFetchingGetPaymentMethod ||
-		isFetchingGetPaymentMethods ||
-		isFetchingCurrencies ||
-		isFetchingDefaultCurrency ||
+		isFetchingSdkCryptoCurrencies ||
+		isFetchingCurrentPaymentMethod ||
+		isFetchingPaymentMethods ||
+		isFetchingFiatCurrencies ||
+		isFetchingDefaultFiatCurrency ||
 		isFetchingCountries
 	) {
 		return (
@@ -285,16 +359,16 @@ const AmountToBuy = () => {
 	}
 
 	if (
-		errorDataTokens ||
-		errorGetPaymentMethod ||
-		errorGetPaymentMethods ||
-		errorCurrencies ||
-		errorDefaultCurrnecy ||
+		errorSdkCryptoCurrencies ||
+		errorCurrentPaymentMethod ||
+		errorPaymentMethods ||
+		errorFiatCurrencies ||
+		errorDefaultFiatCurrency ||
 		errorCountries
 	) {
 		return (
 			<WebviewError
-				error={{ description: errorDataTokens || errorGetPaymentMethod }}
+				error={{ description: errorSdkCryptoCurrencies || errorCurrentPaymentMethod }}
 				onReload={() => navigation.navigate('AmountToBuy')}
 			/>
 		);
@@ -341,7 +415,7 @@ const AmountToBuy = () => {
 						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
 						icon={
 							<PaymentIcon
-								iconType={PAYMENT_METHOD_ICON[selectedPaymentMethod]}
+								iconType={PAYMENT_METHOD_ICON[selectedPaymentMethodId]}
 								size={20}
 								color={colors.icon.default}
 							/>
@@ -391,7 +465,7 @@ const AmountToBuy = () => {
 				isVisible={isFiatSelectorModalVisible}
 				dismiss={toggleFiatSelectorModal}
 				title={strings('fiat_on_ramp_aggregator.select_region_currency')}
-				currencies={currencies}
+				currencies={fiatCurrencies}
 				onItemPress={handleCurrencyPress}
 			/>
 			<PaymentMethodModal
@@ -399,7 +473,7 @@ const AmountToBuy = () => {
 				dismiss={hidePaymentMethodModal}
 				title={strings('fiat_on_ramp_aggregator.select_payment_method')}
 				paymentMethods={paymentMethods}
-				selectedPaymentMethod={selectedPaymentMethod}
+				selectedPaymentMethod={selectedPaymentMethodId}
 				onItemPress={handleChangePaymentMethod}
 			/>
 			<RegionModal
