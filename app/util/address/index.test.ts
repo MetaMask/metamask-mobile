@@ -21,7 +21,7 @@ describe('isENS', () => {
 describe('renderSlightlyLongAddress', () => {
 	const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 	it('should return the address when the address do not exist', () => {
-		expect(renderSlightlyLongAddress(null)).toBe(null);
+		expect(renderSlightlyLongAddress(null)).toBeNull();
 	});
 	it('should return 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
 		expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(24);
