@@ -22,6 +22,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
+import passcodeType from '../../../util/auth';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -288,7 +289,7 @@ class ChoosePassword extends PureComponent {
 			});
 		else if (type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryType: passcodeType(type),
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 			});
 		this.updateNavBar();

@@ -28,6 +28,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
+import passcodeType from '../../../util/auth';
 import {
 	failedSeedPhraseRequirements,
 	isValidMnemonic,
@@ -246,7 +247,7 @@ class ImportFromSeed extends PureComponent {
 			});
 		else if (type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryType: passcodeType(type),
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 			});
 

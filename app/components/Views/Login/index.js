@@ -24,6 +24,7 @@ import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
+import passcodeType from '../../../util/auth';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
@@ -254,7 +255,7 @@ class Login extends PureComponent {
 			});
 		else if (type === AUTHENTICATION_TYPE.PASSCODE)
 			this.setState({
-				biometryType: Device.isIos() ? type + '_ios' : type + '_android',
+				biometryType: passcodeType(type),
 				biometryChoice: !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
 				biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
 				hasBiometricCredentials: !this.props.route?.params?.params?.logout,
