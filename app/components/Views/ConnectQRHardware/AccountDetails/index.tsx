@@ -6,6 +6,7 @@ import Device from '../../../../util/device';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { renderFromWei } from '../../../../util/number';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../../UI/EthereumAddress';
 
 interface IAccountDetailsProps {
@@ -36,9 +37,11 @@ const createStyle = (colors: any) =>
 		index: {
 			fontSize: 20,
 			color: colors.text.default,
+			...fontStyles.normal,
 		},
 		information: {
-			color: colors.text.muted,
+			color: colors.text.alternative,
+			...fontStyles.normal,
 		},
 	});
 
