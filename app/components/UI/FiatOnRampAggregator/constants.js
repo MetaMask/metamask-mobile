@@ -14,6 +14,7 @@ export const CHAIN_ID_NETWORKS = {
 export const PAYMENT_METHOD_ICON = {
 	'/payments/debit-credit-card': Icon.Card,
 	'/payments/bank-account': Icon.Bank,
+	'/payments/gbp-bank-transfer': Icon.Bank,
 	'/payments/apple-pay': Icon.Apple,
 };
 

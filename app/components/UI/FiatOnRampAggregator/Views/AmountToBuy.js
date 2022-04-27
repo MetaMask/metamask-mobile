@@ -339,7 +339,6 @@ const AmountToBuy = () => {
 				<ScreenLayout.Content>
 					<PaymentMethodSelector
 						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
-						id={'/payments/debit-credit-card'}
 						icon={
 							<PaymentIcon
 								iconType={PAYMENT_METHOD_ICON[selectedPaymentMethod]}
