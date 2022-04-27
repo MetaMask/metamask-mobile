@@ -1,6 +1,6 @@
+import { InteractionManager } from 'react-native';
 import Analytics from '../core/Analytics';
 import Logger from './Logger';
-import { InteractionManager } from 'react-native';
 
 const generateOpt = (name) => ({ category: name });
 
@@ -67,6 +67,12 @@ export const ANALYTICS_EVENTS_V2 = {
 	ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
 	ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt('Welcome Screen Engagement'),
 	ONBOARDING_STARTED: generateOpt('Onboarding Started'),
+	ONBOARDING_TOUR_STARTED: generateOpt('Onboarding Tour Started'),
+	ONBOARDING_TOUR_SKIPPED: generateOpt('Onboarding Tour Skipped'),
+	ONBOARDING_TOUR_STEP_COMPLETED: generateOpt('Onboarding Tour Step Completed'),
+	ONBOARDING_TOUR_STEP_REVISITED: generateOpt('Onboarding Tour Step Completed'),
+	ONBOARDING_TOUR_COMPLETED: generateOpt('Onboarding Tour Completed'),
+	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed'),
 	// Wallet Setup
 	WALLET_SETUP_STARTED: generateOpt('Wallet Setup Started'),
 	WALLET_IMPORT_STARTED: generateOpt('Wallet Import Started'),
@@ -79,16 +85,9 @@ export const ANALYTICS_EVENTS_V2 = {
 	WALLET_CREATED: generateOpt('Wallet Created'),
 	WALLET_SETUP_FAILURE: generateOpt('Wallet Setup Failure'),
 	WALLET_SETUP_COMPLETED: generateOpt('Wallet Setup Completed'),
-	// Onboarding Tour
-	ONBOARDING_TOUR_STARTED: generateOpt('Onboarding Tour Started'),
-	ONBOARDING_TOUR_SKIPPED: generateOpt('Onboarding Tour Skipped'),
-	ONBOARDING_TOUR_STEP_COMPLETED: generateOpt('Onboarding Tour Step Completed'),
-	ONBOARDING_TOUR_STEP_REVISITED: generateOpt('Onboarding Tour Step Completed'),
-	ONBOARDING_TOUR_COMPLETED: generateOpt('Onboarding Tour Completed'),
-	ONBOARDING_COMPLETED: generateOpt('Onboarding Completed'),
-	// ACCOUNT
+	// Account
 	SWITCHED_ACCOUNT: generateOpt('Switched Account'),
-	// BROWSER
+	// Browser
 	BROWSER_OPENED: generateOpt('Browser Opened'),
 	BROWSER_SEARCH_USED: generateOpt('Search Used'),
 	BROWSER_NEW_TAB: generateOpt('New Tab Opened'),
@@ -98,16 +97,19 @@ export const ANALYTICS_EVENTS_V2 = {
 	BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
 	BROWSER_RELOAD: generateOpt('Reload Browser'),
 	BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
-	// SETTINGS
+	// Settings
 	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
 	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
-	REVEAL_SRP_INITIATED: generateOpt(`Reveal SRP Initiated`),
-	// REVEAL_SRP
-	REVEAL_SRP_CANCELLED: generateOpt(`Reveal SRP Cancelled`),
-	REVEAL_SRP_COMPLETED: generateOpt(`Reveal SRP Completed`),
-	// KEY MANAGMENT INVESTIGATION
+	// Reveal Credentials
+	REVEAL_SRP_INITIATED: generateOpt('Reveal SRP Initiated'),
+	REVEAL_SRP_CANCELLED: generateOpt('Reveal SRP Cancelled'),
+	REVEAL_SRP_COMPLETED: generateOpt('Reveal SRP Completed'),
+	REVEAL_PRIVATE_KEY_INITIATED: generateOpt('Reveal Private Key Initiated'),
+	REVEAL_PRIVATE_KEY_CANCELLED: generateOpt('Reveal Private Key Cancelled'),
+	REVEAL_PRIVATE_KEY_COMPLETED: generateOpt('Reveal Private Key Completed'),
+	// Key Managment
 	ANDROID_HARDWARE_KEYSTORE: generateOpt('Android Hardware Keystore'),
-	// QR HARDWARE WALLET
+	// QR Hardware Wallet
 	CONNECT_HARDWARE_WALLET: generateOpt('Clicked Connect Hardware Wallet'),
 	CONTINUE_QR_HARDWARE_WALLET: generateOpt('Clicked Continue QR Hardware Wallet'),
 	CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt('Connected Account with hardware wallet'),
