@@ -257,10 +257,26 @@ class RevealPrivateCredential extends PureComponent {
 		});
 	};
 
+	isPrivateKey = () => {
+		const { privateCredentialName, route } = this.props;
+		const credentialName = privateCredentialName || route.params.privateCredentialName;
+		return credentialName === PRIVATE_KEY;
+	};
+
 	cancel = () => {
-		if (!this.unlocked) AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_CANCELLED, { view: 'Enter password' });
+		if (!this.unlocked)
+			AnalyticsV2.trackEvent(
+				this.isPrivateKey()
+					? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
+					: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
+				{ view: 'Enter password' }
+			);
 
 		if (this.props.cancel) return this.props.cancel();
+		this.navigateBack();
+	};
+
+	navigateBack = () => {
 		const { navigation } = this.props;
 		navigation.pop();
 	};
@@ -280,8 +296,6 @@ class RevealPrivateCredential extends PureComponent {
 			}
 
 			if (privateCredential && (this.state.isUserUnlocked || isPrivateKeyReveal)) {
-				AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'viewed' });
-
 				this.setState({
 					clipboardPrivateCredential: privateCredential,
 					unlocked: true,
@@ -312,7 +326,12 @@ class RevealPrivateCredential extends PureComponent {
 	};
 
 	copyPrivateCredentialToClipboard = async (privateCredentialName) => {
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_COMPLETED, { action: 'copied to clipboard' });
+		AnalyticsV2.trackEvent(
+			privateCredentialName === PRIVATE_KEY
+				? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+				: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+			{ action: 'copied to clipboard' }
+		);
 
 		const { clipboardPrivateCredential } = this.state;
 		await ClipboardManager.setStringExpire(clipboardPrivateCredential);
@@ -371,12 +390,33 @@ class RevealPrivateCredential extends PureComponent {
 		);
 	}
 
+	onTabBarChange = (event) => {
+		if (event.i === 0) {
+			AnalyticsV2.trackEvent(
+				this.isPrivateKey()
+					? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+					: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+				{ action: 'viewed SRP' }
+			);
+		} else if (event.i === 1) {
+			AnalyticsV2.trackEvent(
+				this.isPrivateKey()
+					? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
+					: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
+				{ action: 'viewed QR code' }
+			);
+		}
+	};
+
 	renderTabView(privateCredentialName) {
 		const { clipboardPrivateCredential } = this.state;
 		const { styles, colors, themeAppearance } = this.getStyles();
 
 		return (
-			<ScrollableTabView renderTabBar={() => this.renderTabBar()}>
+			<ScrollableTabView
+				renderTabBar={() => this.renderTabBar()}
+				onChangeTab={(event) => this.onTabBarChange(event)}
+			>
 				<View tabLabel={strings(`reveal_credential.text`)} style={styles.tabContent}>
 					<Text style={styles.boldText}>{strings(`reveal_credential.${privateCredentialName}`)}</Text>
 					<View style={styles.seedPhraseView}>
@@ -437,7 +477,12 @@ class RevealPrivateCredential extends PureComponent {
 	}
 
 	closeModal = () => {
-		AnalyticsV2.trackEvent(AnalyticsV2.REVEAL_SRP_CANCELLED, { view: 'Hold to reveal' });
+		AnalyticsV2.trackEvent(
+			this.isPrivateKey()
+				? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
+				: AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
+			{ view: 'Hold to reveal' }
+		);
 
 		this.setState({
 			isModalVisible: false,
@@ -541,16 +586,16 @@ class RevealPrivateCredential extends PureComponent {
 
 	render = () => {
 		const { unlocked, password } = this.state;
-		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
-		const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
 		const { styles } = this.getStyles();
+		const privateCredentialName = this.props.privateCredentialName || this.props.route.params.privateCredentialName;
+		const isPrivateKeyReveal = this.isPrivateKey();
 
 		return (
 			<SafeAreaView style={styles.wrapper} testID={'reveal-private-credential-screen'}>
 				<ActionView
 					cancelText={unlocked ? strings('reveal_credential.done') : strings('reveal_credential.cancel')}
 					confirmText={strings('reveal_credential.confirm')}
-					onCancelPress={this.cancel}
+					onCancelPress={unlocked ? this.navigateBack : this.cancel}
 					testID={`next-button`}
 					onConfirmPress={() => this.tryUnlock()}
 					showConfirmButton={!unlocked}
