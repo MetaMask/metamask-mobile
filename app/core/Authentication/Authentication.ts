@@ -37,7 +37,7 @@ class AuthenticationService {
 	 * @param {Store} store - A redux function that will dispatch global state actions
 	 */
 	init(store: Store) {
-		if (AuthenticationService.isInitialized === false) {
+		if (!AuthenticationService.isInitialized) {
 			AuthenticationService.isInitialized = true;
 			this.store = store;
 		} else {
@@ -122,14 +122,18 @@ class AuthenticationService {
 	 * @param authType - type of authentication required to fetch password from keychain
 	 */
 	storePassword = async (password: string, authType: AUTHENTICATION_TYPE): Promise<void> => {
-		if (authType === AUTHENTICATION_TYPE.BIOMETRIC) {
-			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
-		} else if (authType === AUTHENTICATION_TYPE.PASSCODE) {
-			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
-		} else if (authType === AUTHENTICATION_TYPE.REMEMBER_ME) {
-			await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
-		} else {
-			await SecureKeychain.resetGenericPassword();
+		switch (authType) {
+			case AUTHENTICATION_TYPE.BIOMETRIC:
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.BIOMETRICS);
+				break;
+			case AUTHENTICATION_TYPE.PASSCODE:
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.PASSCODE);
+				break;
+			case AUTHENTICATION_TYPE.REMEMBER_ME:
+				await SecureKeychain.setGenericPassword(password, SecureKeychain.TYPES.REMEMBER_ME);
+				break;
+			default:
+				await SecureKeychain.resetGenericPassword();
 		}
 	};
 
