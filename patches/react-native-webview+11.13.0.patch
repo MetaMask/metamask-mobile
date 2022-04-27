@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..fb6b4c1 100644
+index f743bbc..72450dd 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -211,7 +211,7 @@ index f743bbc..fb6b4c1 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,13 +968,102 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +968,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -226,6 +226,11 @@ index f743bbc..fb6b4c1 100644
 +    private boolean hasJS = false;
 +    private boolean headWasFound = false;
 +    private boolean scriptWasInjected = false;
++
++    private int lowercased = 100;
++    private int closingTag = 62;
++    private boolean hasClosingHead = false;
++
 +    private StringBuffer contentBuffer = new StringBuffer();
 +
 +    @SuppressLint("LongLogTag")
@@ -273,6 +278,15 @@ index f743bbc..fb6b4c1 100644
 +        }
 +
 +        if (!scriptWasInjected && headWasFound) {
++            int nextByte;
++            if (!hasClosingHead) {
++              nextByte = pageIS.read();
++              if (nextByte != closingTag) {
++                return nextByte;
++              }
++              hasClosingTag = true;
++              return nextByte;
++            }
 +            int nextByte = scriptIS.read();
 +            if (nextByte == -1) {
 +                scriptIS.close();
@@ -287,7 +301,7 @@ index f743bbc..fb6b4c1 100644
 +            int nextByte = pageIS.read();
 +            contentBuffer.append((char) nextByte);
 +            int bufferLength = contentBuffer.length();
-+            if (nextByte == 100 && bufferLength >= 5) {
++            if (nextByte == lowercaseD && bufferLength >= 5) {
 +                if (contentBuffer.substring(bufferLength - 5).equals("<head")) {
 +                    this.scriptIS = getScript(this.charset);
 +                    headWasFound = true;
@@ -315,7 +329,7 @@ index f743bbc..fb6b4c1 100644
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -872,9 +1087,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -872,9 +1101,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -325,7 +339,7 @@ index f743bbc..fb6b4c1 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1094,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1108,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -342,7 +356,7 @@ index f743bbc..fb6b4c1 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -919,6 +1141,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1155,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
  
          return shouldOverride;
@@ -360,7 +374,7 @@ index f743bbc..fb6b4c1 100644
        } else {
          FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
          progressChangedFilter.setWaitingForCommandLoadUrl(true);
-@@ -934,6 +1167,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,6 +1181,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -382,7 +396,7 @@ index f743bbc..fb6b4c1 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1695,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1709,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -396,7 +410,7 @@ index f743bbc..fb6b4c1 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1730,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1744,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
