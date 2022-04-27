@@ -27,14 +27,14 @@ export interface IFiatOnRampSDK {
 	selectedRegion: any;
 	setSelectedRegion: (region: any) => void;
 
-	selectedPaymentMethod: string;
-	setSelectedPaymentMethod: (paymentMethod: string) => void;
+	selectedPaymentMethodId: string;
+	setSelectedPaymentMethodId: (paymentMethodId: string) => void;
 
-	selectedAsset: string;
+	selectedAsset: string | null;
 	setSelectedAsset: (asset: string) => void;
 
-	selectedFiatCurrencyId: string;
-	setSelectedFiatCurrencyId: (asset: string) => void;
+	selectedFiatCurrencyId: string | null;
+	setSelectedFiatCurrencyId: (currencyId: string) => void;
 
 	getStarted: boolean;
 	setGetStarted: (getStartedFlag: boolean) => void;
@@ -90,12 +90,12 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 	const selectedChainId: string = useSelector(chainIdSelector);
 
 	const INITIAL_PAYMENT_METHOD: string = useSelector(fiatOrdersPaymentMethodSelectorAgg);
-	const INITIAL_SELECTED_ASSET = 'ETH';
+	const INITIAL_SELECTED_ASSET = null;
 
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
-	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
-	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState('');
+	const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(INITIAL_PAYMENT_METHOD);
+	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
 	const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
 
 	const setSelectedRegionCallback = useCallback(
@@ -106,9 +106,9 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		[dispatch]
 	);
 
-	const setSelectedPaymentMethodCallback = useCallback(
+	const setSelectedPaymentMethodIdCallback = useCallback(
 		(paymentMethodId) => {
-			setSelectedPaymentMethod(paymentMethodId);
+			setSelectedPaymentMethodId(paymentMethodId);
 			dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
 		},
 		[dispatch]
@@ -118,8 +118,8 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		setSelectedAsset(asset);
 	}, []);
 
-	const setSelectedFiatCurrencyCallback = useCallback((currency) => {
-		setSelectedFiatCurrencyId(currency);
+	const setSelectedFiatCurrencyIdCallback = useCallback((currencyId) => {
+		setSelectedFiatCurrencyId(currencyId);
 	}, []);
 
 	const setGetStartedCallback = useCallback(
@@ -137,14 +137,14 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		selectedRegion,
 		setSelectedRegion: setSelectedRegionCallback,
 
-		selectedPaymentMethod,
-		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+		selectedPaymentMethodId,
+		setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
 		selectedAsset,
 		setSelectedAsset: setSelectedAssetCallback,
 
 		selectedFiatCurrencyId,
-		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
+		setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
 		getStarted,
 		setGetStarted: setGetStartedCallback,
