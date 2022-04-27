@@ -65,6 +65,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { getAddressAccountType, isQRHardwareAccount } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { ERC721 } from '../../../../util/tokens';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -760,7 +761,7 @@ class Confirm extends PureComponent {
 	checkRemoveCollectible = (assetType, selectedAsset) => {
 		const { chainId } = this.props;
 		const { fromSelectedAddress } = this.state;
-		if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
+		if (assetType === ERC721 && chainId !== NetworksChainId.mainnet) {
 			const { CollectiblesController } = Engine.context;
 			removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
 			CollectiblesController.removeCollectible(selectedAsset.address, selectedAsset.tokenId);
@@ -857,7 +858,7 @@ class Confirm extends PureComponent {
 			if (transactionMeta.error) {
 				throw transactionMeta.error;
 			}
-			if (assetType === 'ERC721') {
+			if (assetType === ERC721) {
 				await CollectiblesController.updateCollectible(selectedAsset, {
 					transactionId: transactionMeta.id,
 				});
@@ -883,7 +884,7 @@ class Confirm extends PureComponent {
 				{ text: strings('navigation.ok') },
 			]);
 			Logger.error(error, 'error while trying to send transaction (Confirm)');
-			if (assetType === 'ERC721') {
+			if (assetType === ERC721) {
 				CollectiblesController.updateCollectible(selectedAsset, {
 					transactionId: undefined,
 				});

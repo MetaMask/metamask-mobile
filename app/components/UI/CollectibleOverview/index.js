@@ -458,11 +458,11 @@ CollectibleOverview.propTypes = {
 	 */
 	onTranslation: PropTypes.func,
 	/**
-	 * When the collectible is being transacted, this func will navigate to Transactions View
+	 * When the collectible is being transacted, this method will navigate to Transactions View
 	 */
 	onViewTransactionDetails: PropTypes.func,
 	/**
-	 * Returns if the collectible is being transacted or not
+	 * Indicates if the collectible is being transacted or not
 	 */
 	isTransacting: PropTypes.bool,
 };
