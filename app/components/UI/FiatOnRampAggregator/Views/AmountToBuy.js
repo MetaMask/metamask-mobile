@@ -156,8 +156,8 @@ const AmountToBuy = () => {
 		keyboardHeight.current = height;
 	}, []);
 
-	/****************** COUNTRY/REGION HANDLERS ****************************/
-	const handleChangeCountry = useCallback(() => {
+	/****************** REGION HANDLERS ****************************/
+	const handleChangeRegion = useCallback(() => {
 		setAmountFocused(false);
 		toggleRegionModal();
 	}, [toggleRegionModal]);
@@ -308,7 +308,7 @@ const AmountToBuy = () => {
 						<View style={[styles.selectors, styles.row]}>
 							<AccountSelector />
 							<View style={styles.spacer} />
-							<SelectorButton onPress={handleChangeCountry}>
+							<SelectorButton onPress={handleChangeRegion}>
 								<Text reset>{selectedRegion?.emoji}</Text>
 							</SelectorButton>
 						</View>
