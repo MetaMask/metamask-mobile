@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../Base/Alert';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
@@ -22,10 +23,24 @@ interface Props {
 const EmptyPopularList = ({ goToCustomNetwork }: Props) => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+	const navigation = useNavigation();
+
+	const goToBrowserTab = () => {
+		navigation.navigate('BrowserTabHome', {
+			screen: 'BrowserView',
+			params: {
+				newTabUrl: 'https://chainlist.org',
+			},
+		});
+	};
 	return (
 		<Alert type={AlertType.Info} style={styles.container}>
 			<>
 				<Text style={styles.emptyDescriptionText}>{`${strings('networks.empty_popular_networks')} `}</Text>
+				<Text style={styles.link} onPress={goToBrowserTab}>{`${strings(
+					'networks.add_other_network_here'
+				)} `}</Text>
+				<Text style={styles.emptyDescriptionText}>{`${strings('networks.you_can')} `}</Text>
 				<Text suppressHighlighting onPress={goToCustomNetwork} style={styles.link}>
 					{strings('networks.add_network')}
 				</Text>
