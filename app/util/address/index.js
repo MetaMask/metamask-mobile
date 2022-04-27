@@ -36,7 +36,7 @@ export const formatAddress = (rawAddress, type) => {
 		formattedAddress = renderFullAddress(rawAddress);
 	}
 
-	return formattedAddress.toLowerCase();
+	return formattedAddress;
 };
 
 /**
