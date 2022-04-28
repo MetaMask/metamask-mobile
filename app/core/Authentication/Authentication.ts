@@ -258,7 +258,7 @@ class AuthenticationService {
 		try {
 			const password = credentials?.password;
 			await this.loginVaultCreation(password, selectedAddress);
-			if (!credentials) await this.storePassword(password, this.authData.type);
+			if (!password) await this.storePassword(password, this.authData.type);
 			this.dispatchLogin();
 		} catch (e: any) {
 			this.logout(false);
