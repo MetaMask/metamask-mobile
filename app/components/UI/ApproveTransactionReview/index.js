@@ -11,7 +11,7 @@ import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit } from '../../../util/number';
 import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
@@ -19,7 +19,8 @@ import {
 	getActiveTabUrl,
 	getMethodData,
 	decodeApproveData,
-	generateApproveData,
+	generateTxWithNewTokenAllowance,
+	minimumTokenAllowance,
 } from '../../../util/transactions';
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
@@ -38,7 +39,7 @@ import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
-import EditPermission, { MINIMUM_VALUE } from './EditPermission';
+import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
@@ -313,7 +314,7 @@ class ApproveTransactionReview extends PureComponent {
 		originalApproveAmount: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
-		spendLimitCustomValue: MINIMUM_VALUE,
+		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
 		viewDetails: false,
 		spenderAddress: '0x...',
@@ -349,6 +350,7 @@ class ApproveTransactionReview extends PureComponent {
 		const { spenderAddress, encodedAmount } = decodeApproveData(data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
 		const { name: method } = await getMethodData(data);
+		const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
 		this.setState(
 			{
@@ -359,6 +361,7 @@ class ApproveTransactionReview extends PureComponent {
 				token: { symbol: tokenSymbol, decimals: tokenDecimals },
 				spenderAddress,
 				encodedAmount,
+				spendLimitCustomValue: minTokenAllowance,
 			},
 			() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
@@ -424,7 +427,9 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	onPressSpendLimitUnlimitedSelected = () => {
-		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: MINIMUM_VALUE });
+		const { token } = this.state;
+		const minTokenAllowance = minimumTokenAllowance(token.decimals);
+		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: minTokenAllowance });
 	};
 
 	onPressSpendLimitCustomSelected = () => {
@@ -472,25 +477,20 @@ class ApproveTransactionReview extends PureComponent {
 
 		try {
 			const { setTransactionObject } = this.props;
-			const uint = toTokenMinimalUnit(
+			const newApprovalTransaction = generateTxWithNewTokenAllowance(
 				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
-				token.decimals
-			).toString(10);
+				token.decimals,
+				spenderAddress,
+				transaction
+			);
 
-			const approvalData = generateApproveData({
-				spender: spenderAddress,
-				value: Number(uint).toString(16),
-			});
-			const newApprovalTransaction = {
-				...transaction,
-				data: approvalData,
+			setTransactionObject({
+				...newApprovalTransaction,
 				transaction: {
-					...transaction.transaction,
-					data: approvalData,
+					...newApprovalTransaction.transaction,
+					data: newApprovalTransaction.data,
 				},
-			};
-
-			setTransactionObject(newApprovalTransaction);
+			});
 		} catch (err) {
 			Logger.log('Failed to setTransactionObject', err);
 		}
@@ -532,12 +532,14 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderEditPermission = () => {
-		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount } =
+		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount, token } =
 			this.state;
+		const minimumSpendLimit = minimumTokenAllowance(token.decimals);
 
 		return (
 			<EditPermission
 				host={host}
+				minimumSpendLimit={minimumSpendLimit}
 				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 				tokenSymbol={tokenSymbol}
 				spendLimitCustomValue={spendLimitCustomValue}
