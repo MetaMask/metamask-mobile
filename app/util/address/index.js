@@ -12,7 +12,9 @@ import { KeyringTypes } from '@metamask/controllers';
  * @returns {String} - String corresponding to full checksummed address
  */
 export function renderFullAddress(address) {
-	return address ? toChecksumAddress(address) : strings('transactions.tx_details_not_available');
+  return address
+    ? toChecksumAddress(address)
+    : strings('transactions.tx_details_not_available');
 }
 
 /**
@@ -22,21 +24,21 @@ export function renderFullAddress(address) {
  * @returns {String} Formatted address
  */
 export const formatAddress = (rawAddress, type) => {
-	let formattedAddress = rawAddress;
+  let formattedAddress = rawAddress;
 
-	if (!isValidAddress(rawAddress)) {
-		return rawAddress;
-	}
+  if (!isValidAddress(rawAddress)) {
+    return rawAddress;
+  }
 
-	if (type && type === 'short') {
-		formattedAddress = renderShortAddress(rawAddress);
-	} else if (type && type === 'mid') {
-		formattedAddress = renderSlightlyLongAddress(rawAddress);
-	} else {
-		formattedAddress = renderFullAddress(rawAddress);
-	}
+  if (type && type === 'short') {
+    formattedAddress = renderShortAddress(rawAddress);
+  } else if (type && type === 'mid') {
+    formattedAddress = renderSlightlyLongAddress(rawAddress);
+  } else {
+    formattedAddress = renderFullAddress(rawAddress);
+  }
 
-	return formattedAddress.toLowerCase();
+  return formattedAddress.toLowerCase();
 };
 
 /**
@@ -48,15 +50,25 @@ export const formatAddress = (rawAddress, type) => {
  * @returns {String} - String corresponding to short address format
  */
 export function renderShortAddress(address, chars = 4) {
-	if (!address) return address;
-	const checksummedAddress = toChecksumAddress(address);
-	return `${checksummedAddress.substr(0, chars + 2)}...${checksummedAddress.substr(-chars)}`;
+  if (!address) return address;
+  const checksummedAddress = toChecksumAddress(address);
+  return `${checksummedAddress.substr(
+    0,
+    chars + 2,
+  )}...${checksummedAddress.substr(-chars)}`;
 }
 
-export function renderSlightlyLongAddress(address, chars = 4, initialChars = 20) {
-	if (!address) return address;
-	const checksummedAddress = toChecksumAddress(address);
-	return `${checksummedAddress.slice(0, chars + initialChars)}...${checksummedAddress.slice(-chars)}`;
+export function renderSlightlyLongAddress(
+  address,
+  chars = 4,
+  initialChars = 20,
+) {
+  if (!address) return address;
+  const checksummedAddress = toChecksumAddress(address);
+  return `${checksummedAddress.slice(
+    0,
+    chars + initialChars,
+  )}...${checksummedAddress.slice(-chars)}`;
 }
 
 /**
@@ -67,11 +79,11 @@ export function renderSlightlyLongAddress(address, chars = 4, initialChars = 20)
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
-	address = safeToChecksumAddress(address);
-	if (identities && address && address in identities) {
-		return identities[address].name;
-	}
-	return renderShortAddress(address);
+  address = safeToChecksumAddress(address);
+  if (identities && address && address in identities) {
+    return identities[address].name;
+  }
+  return renderShortAddress(address);
 }
 
 /**
@@ -82,14 +94,14 @@ export function renderAccountName(address, identities) {
  */
 
 export async function importAccountFromPrivateKey(private_key) {
-	// Import private key
-	let pkey = private_key;
-	// Handle PKeys with 0x
-	if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
-		pkey = pkey.substr(2);
-	}
-	const { KeyringController } = Engine.context;
-	return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+  // Import private key
+  let pkey = private_key;
+  // Handle PKeys with 0x
+  if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
+    pkey = pkey.substr(2);
+  }
+  const { KeyringController } = Engine.context;
+  return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
 }
 
 /**
@@ -99,14 +111,18 @@ export async function importAccountFromPrivateKey(private_key) {
  * @returns {Boolean} - Returns a boolean
  */
 export function isQRHardwareAccount(address) {
-	const { KeyringController } = Engine.context;
-	const { keyrings } = KeyringController.state;
-	const qrKeyrings = keyrings.filter((keyring) => keyring.type === KeyringTypes.qr);
-	let qrAccounts = [];
-	for (const qrKeyring of qrKeyrings) {
-		qrAccounts = qrAccounts.concat(qrKeyring.accounts.map((account) => account.toLowerCase()));
-	}
-	return qrAccounts.includes(address.toLowerCase());
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  const qrKeyrings = keyrings.filter(
+    (keyring) => keyring.type === KeyringTypes.qr,
+  );
+  let qrAccounts = [];
+  for (const qrKeyring of qrKeyrings) {
+    qrAccounts = qrAccounts.concat(
+      qrKeyring.accounts.map((account) => account.toLowerCase()),
+    );
+  }
+  return qrAccounts.includes(address.toLowerCase());
 }
 
 /**
@@ -116,22 +132,24 @@ export function isQRHardwareAccount(address) {
  * @returns {String} - Returns address's account type
  */
 export function getAddressAccountType(address) {
-	const { KeyringController } = Engine.context;
-	const { keyrings } = KeyringController.state;
-	const targetKeyring = keyrings.find((keyring) =>
-		keyring.accounts.map((account) => account.toLowerCase()).includes(address.toLowerCase())
-	);
-	if (targetKeyring) {
-		switch (targetKeyring.type) {
-			case KeyringTypes.qr:
-				return 'QR';
-			case KeyringTypes.simple:
-				return 'Imported';
-			default:
-				return 'MetaMask';
-		}
-	}
-	throw new Error(`The address: ${address} is not imported`);
+  const { KeyringController } = Engine.context;
+  const { keyrings } = KeyringController.state;
+  const targetKeyring = keyrings.find((keyring) =>
+    keyring.accounts
+      .map((account) => account.toLowerCase())
+      .includes(address.toLowerCase()),
+  );
+  if (targetKeyring) {
+    switch (targetKeyring.type) {
+      case KeyringTypes.qr:
+        return 'QR';
+      case KeyringTypes.simple:
+        return 'Imported';
+      default:
+        return 'MetaMask';
+    }
+  }
+  throw new Error(`The address: ${address} is not imported`);
 }
 
 /**
@@ -141,21 +159,26 @@ export function getAddressAccountType(address) {
  * @returns {boolean} - Returns a boolean indicating if it is valid
  */
 export function isENS(name) {
-	if (!name) return false;
+  if (!name) return false;
 
-	const match = punycode
-		.toASCII(name)
-		.toLowerCase()
-		// Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
-		// Each piece of domain name has only the characters a-z, 0-9, and a hyphen (but not at the start or end of chunk)
-		// A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
-		.match(/^(?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z0-9][-a-z0-9]*[a-z0-9]$/u);
+  const match = punycode
+    .toASCII(name)
+    .toLowerCase()
+    // Checks that the domain consists of at least one valid domain pieces separated by periods, followed by a tld
+    // Each piece of domain name has only the characters a-z, 0-9, and a hyphen (but not at the start or end of chunk)
+    // A chunk has minimum length of 1, but minimum tld is set to 2 for now (no 1-character tlds exist yet)
+    .match(
+      /^(?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z0-9][-a-z0-9]*[a-z0-9]$/u,
+    );
 
-	const OFFSET = 1;
-	const index = name && name.lastIndexOf('.');
-	const tld = index && index >= OFFSET && tlc(name.substr(index + OFFSET, name.length - OFFSET));
-	if (index && tld && !!match) return true;
-	return false;
+  const OFFSET = 1;
+  const index = name && name.lastIndexOf('.');
+  const tld =
+    index &&
+    index >= OFFSET &&
+    tlc(name.substr(index + OFFSET, name.length - OFFSET));
+  if (index && tld && !!match) return true;
+  return false;
 }
 
 /**
@@ -164,10 +187,10 @@ export function isENS(name) {
  * @param {address} string
  */
 export function resemblesAddress(address) {
-	return address.length === 2 + 20 * 2;
+  return address.length === 2 + 20 * 2;
 }
 
 export function safeToChecksumAddress(address) {
-	if (!address) return undefined;
-	return toChecksumAddress(address);
+  if (!address) return undefined;
+  return toChecksumAddress(address);
 }
