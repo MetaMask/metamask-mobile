@@ -206,11 +206,11 @@ class AuthenticationService {
 	};
 
 	/**
-	 *
-	 * @param password
-	 * @param authData
-	 * @param parsedSeed
-	 * @param clearEngine
+	 * This method is used when a user is creating a new wallet in onboarding flow or resetting their password
+	 * @param password - password provided by user
+	 * @param authData - type of authentication required to fetch password from keychain
+	 * @param parsedSeed - provides the parsed SRP
+	 * @param clearEngine - this boolean clears the engine data on new wallet
 	 */
 	newWalletAndRestore = async (
 		password: string,
