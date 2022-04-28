@@ -11,4 +11,4 @@ export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // Network
-export const CHAINLIST_URL = 'https://chainlist.org';
+export const CHAINLIST_URL = 'https://chainlist.wtf';

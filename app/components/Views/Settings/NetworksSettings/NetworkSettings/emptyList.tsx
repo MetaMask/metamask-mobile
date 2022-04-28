@@ -31,9 +31,11 @@ const EmptyPopularList = ({ goToCustomNetwork }: Props) => {
 			screen: 'BrowserView',
 			params: {
 				newTabUrl: CHAINLIST_URL,
+				timestamp: Date.now(),
 			},
 		});
 	};
+
 	return (
 		<Alert type={AlertType.Info} style={styles.container}>
 			<>
