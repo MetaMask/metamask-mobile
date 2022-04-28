@@ -1,10 +1,12 @@
 import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
+import BigNumber from 'bignumber.js';
+import humanizeDuration from 'humanize-duration';
+import { util } from '@metamask/controllers';
+import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
 import { safeToChecksumAddress } from '../address';
-import { util } from '@metamask/controllers';
-import { swapsUtils } from '@metamask/swaps-controller';
 import {
 	balanceToFiatNumber,
 	BNToHex,
@@ -14,9 +16,12 @@ import {
 	renderFromWei,
 	weiToFiat,
 	weiToFiatNumber,
+	toTokenMinimalUnit,
 } from '../number';
 import AppConstants from '../../core/AppConstants';
 import { isMainnetByChainId } from '../networks';
+import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
+import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import { addCurrencies, multiplyCurrencies, subtractCurrencies } from '../conversion';
 import { decGWEIToHexWEI, getValueFromWeiHex, formatETHFee } from '../conversions';
 import {
@@ -28,10 +33,7 @@ import {
 	roundExponential,
 } from '../confirm-tx';
 
-import humanizeDuration from 'humanize-duration';
 import Logger from '../../util/Logger';
-
-import BigNumber from 'bignumber.js';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -1171,3 +1173,38 @@ export function getTokenValue(tokenParams = []) {
 	const valueData = tokenParams.find((param) => param.name === '_value');
 	return valueData && valueData.value;
 }
+
+/**
+ * Generates a new transaction with the token allowance
+ * @param {String | Object} tokenValue - value for the token allowance
+ * @param {Number} tokenDecimals - Token decimal
+ * @param {String} spenderAddress - Address to which the allowance will be granted
+ * @param {Object} transaction - Transaction to update
+ * @returns A new transaction object with the token allowance encoded
+ */
+export const generateTxWithNewTokenAllowance = (tokenValue, tokenDecimals, spenderAddress, transaction) => {
+	const uint = toTokenMinimalUnit(tokenValue, tokenDecimals);
+	const approvalData = generateApproveData({
+		spender: spenderAddress,
+		value: uint.gt(UINT256_BN_MAX_VALUE) ? UINT256_BN_MAX_VALUE.toString(16) : uint.toString(16),
+	});
+	const newApprovalTransaction = {
+		...transaction,
+		data: approvalData,
+	};
+	return newApprovalTransaction;
+};
+
+/**
+ * Returns the minimum valid token allowance
+ * @param {Number} tokenDecimals - Token decimal
+ * @returns String indicating the minimum token allowance
+ */
+export const minimumTokenAllowance = (tokenDecimals) => {
+	if (tokenDecimals < 0) {
+		throw new Error(NEGATIVE_TOKEN_DECIMALS);
+	}
+	return Math.pow(10, -1 * tokenDecimals)
+		.toFixed(tokenDecimals)
+		.toString(10);
+};
