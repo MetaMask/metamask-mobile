@@ -420,7 +420,6 @@ class RevealPrivateCredential extends PureComponent {
 		const leastAndroidSupportedVersion = 10;
 
 		const supportedAndroidVersion = Device.isAndroid() && Device.getDeviceOS() < leastAndroidSupportedVersion;
-		
 
 		return (
 			<ScrollableTabView
@@ -441,13 +440,15 @@ class RevealPrivateCredential extends PureComponent {
 							placeholderTextColor={colors.text.muted}
 							keyboardAppearance={themeAppearance}
 						/>
-						{!supportedAndroidVersion && <TouchableOpacity
-							style={styles.privateCredentialAction}
-							onPress={() => this.copyPrivateCredentialToClipboard(privateCredentialName)}
-							testID={'private-credential-touchable'}
-						>
-							<Text style={styles.blueText}>{strings('reveal_credential.copy_to_clipboard')}</Text>
-						</TouchableOpacity>}
+						{!supportedAndroidVersion && (
+							<TouchableOpacity
+								style={styles.privateCredentialAction}
+								onPress={() => this.copyPrivateCredentialToClipboard(privateCredentialName)}
+								testID={'private-credential-touchable'}
+							>
+								<Text style={styles.blueText}>{strings('reveal_credential.copy_to_clipboard')}</Text>
+							</TouchableOpacity>
+						)}
 					</View>
 				</View>
 				<View tabLabel={strings(`reveal_credential.qr_code`)} style={styles.tabContent}>
