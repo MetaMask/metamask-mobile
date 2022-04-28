@@ -356,6 +356,31 @@ export const BrowserTab = (props) => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
 
+	/**
+	 * Inject home page scripts to get the favourites and set analytics key
+	 */
+	const injectHomePageScripts = async () => {
+		const { current } = webviewRef;
+		const analyticsEnabled = Analytics.getEnabled();
+		const disctinctId = await Analytics.getDistinctId();
+		const homepageScripts = `
+			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
+			window.__mmSearchEngine = "${props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+			(function () {
+				try {
+					window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
+				} catch (e) {
+					//Nothing to do
+				}
+			})()
+		`;
+
+		current.injectJavaScript(homepageScripts);
+	};
+
 	const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
 		const newBridge = new BackgroundBridge({
 			webview: webviewRef,
@@ -381,6 +406,7 @@ export const BrowserTab = (props) => {
 					// Wizard
 					wizardScrollAdjusted,
 					tabId: props.id,
+					injectHomePageScripts,
 				}),
 			isMainFrame,
 		});
@@ -465,25 +491,6 @@ export const BrowserTab = (props) => {
 		const { bookmarks } = props;
 		const maskedUrl = getMaskedUrl(url.current);
 		return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
-	};
-
-	/**
-	 * Inject home page scripts to get the favourites and set analytics key
-	 */
-	const injectHomePageScripts = async () => {
-		const { current } = webviewRef;
-		if (!current) return;
-		const analyticsEnabled = Analytics.getEnabled();
-		const disctinctId = await Analytics.getDistinctId();
-		const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
-			window.__mmSearchEngine = "${props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.__mmDistinctId = "${disctinctId}";
-			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-		`;
-
-		current.injectJavaScript(homepageScripts);
 	};
 
 	/**
@@ -871,9 +878,6 @@ export const BrowserTab = (props) => {
 		}
 
 		icon.current = null;
-		if (isHomepage(nativeEvent.url)) {
-			injectHomePageScripts();
-		}
 
 		// Reset the previous bridges
 		backgroundBridges.current.length && backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());

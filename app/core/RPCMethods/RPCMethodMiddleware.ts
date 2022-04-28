@@ -48,6 +48,7 @@ interface RPCMethodsMiddleParameters {
 	tabId: string;
 	// For WalletConnect
 	isWalletConnect: boolean;
+	injectHomePageScripts: () => void;
 }
 
 export const checkActiveAccountAndChainId = ({ address, chainId, activeAccounts }: any) => {
@@ -118,6 +119,7 @@ export const getRpcMethodMiddleware = ({
 	tabId,
 	// For WalletConnect
 	isWalletConnect,
+	injectHomePageScripts,
 }: RPCMethodsMiddleParameters) =>
 	// all user facing RPC calls not implemented by the provider
 	createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -508,6 +510,10 @@ export const getRpcMethodMiddleware = ({
 				}, 1500);
 
 				res.result = true;
+			},
+
+			metamask_onAppMounted: async () => {
+				injectHomePageScripts();
 			},
 
 			/**
