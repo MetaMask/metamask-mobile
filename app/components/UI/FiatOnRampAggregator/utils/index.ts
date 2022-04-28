@@ -1,3 +1,5 @@
+import { Icon } from '../components/PaymentIcon';
+
 const isOverAnHour = (minutes: number) => minutes > 59;
 
 const isOverADay = (minutes: number) => minutes > 1439;
@@ -57,3 +59,22 @@ export const formatId = (id: string) => {
 
 	return id.startsWith('/') ? id : '/' + id;
 };
+
+export function getPaymentMethodIcon(id: string) {
+	switch (id) {
+		case '/payments/apple-pay': {
+			return Icon.Apple;
+		}
+		case '/payments/bank-account':
+		case '/payments/gbp-bank-transfer':
+		case '/payments/sepa-bank-transfer':
+		case '/payments/ach-bank-transfer':
+		case '/payments/upi': {
+			return Icon.Bank;
+		}
+		case '/payments/debit-credit-card':
+		default: {
+			return Icon.Card;
+		}
+	}
+}

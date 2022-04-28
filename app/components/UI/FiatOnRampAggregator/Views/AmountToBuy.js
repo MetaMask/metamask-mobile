@@ -24,7 +24,8 @@ import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
 import WebviewError from '../../WebviewError';
-import { NATIVE_ADDRESS, PAYMENT_METHOD_ICON } from '../constants';
+import { NATIVE_ADDRESS } from '../constants';
+import { getPaymentMethodIcon } from '../utils';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
@@ -158,10 +159,14 @@ const AmountToBuy = () => {
 	 * Select the default fiat currency if current selection is not available.
 	 */
 	useEffect(() => {
-		if (fiatCurrencies && !fiatCurrencies?.find?.((currency) => currency.id === selectedFiatCurrencyId)) {
-			setSelectedFiatCurrencyId(defaultFiatCurrency);
+		if (
+			fiatCurrencies &&
+			defaultFiatCurrency &&
+			!fiatCurrencies.some((currency) => currency.id === selectedFiatCurrencyId)
+		) {
+			setSelectedFiatCurrencyId(defaultFiatCurrency.id);
 		}
-	});
+	}, [defaultFiatCurrency, fiatCurrencies, selectedFiatCurrencyId, setSelectedFiatCurrencyId]);
 
 	/**
 	 * Select the native crytpo currency of first of the list
@@ -181,7 +186,7 @@ const AmountToBuy = () => {
 	 */
 	useEffect(() => {
 		if (!isFetchingPaymentMethods && !errorPaymentMethods && paymentMethods) {
-			if (!paymentMethods.find((pm) => pm.id === selectedPaymentMethodId)) {
+			if (!paymentMethods.some((pm) => pm.id === selectedPaymentMethodId)) {
 				setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
 			}
 		}
@@ -415,7 +420,7 @@ const AmountToBuy = () => {
 						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
 						icon={
 							<PaymentIcon
-								iconType={PAYMENT_METHOD_ICON[selectedPaymentMethodId]}
+								iconType={getPaymentMethodIcon(selectedPaymentMethodId)}
 								size={20}
 								color={colors.icon.default}
 							/>
