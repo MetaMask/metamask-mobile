@@ -8,9 +8,9 @@ import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
 import WebviewError from '../../../UI/WebviewError';
-import { PAYMENT_METHOD_ICON } from '../constants';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
+import { getPaymentMethodIcon } from '../utils';
 
 const styles = StyleSheet.create({
 	row: {
@@ -69,7 +69,7 @@ const PaymentMethod = () => {
 								cardImage={['/payments/apple-pay', '/payments/debit-credit-card'].includes(id)}
 								onPress={() => setSelectedPaymentMethodId(id)}
 								amountTier={amountTier}
-								paymentType={PAYMENT_METHOD_ICON[id]}
+								paymentType={getPaymentMethodIcon(id)}
 								idRequired={false}
 							/>
 						</View>

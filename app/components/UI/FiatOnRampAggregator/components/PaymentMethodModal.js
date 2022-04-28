@@ -6,8 +6,9 @@ import Modal from 'react-native-modal';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
 import PaymentOption from './PaymentOption';
-import { PAYMENT_METHOD_ICON } from '../constants';
+
 import { useTheme } from '../../../../util/theme';
+import { getPaymentMethodIcon } from '../utils';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -81,7 +82,7 @@ function PaymentMethodModal({ isVisible, dismiss, title, onItemPress, paymentMet
 												].includes(id)}
 												onPress={() => handleOnPressItemCallback(id)}
 												amountTier={amountTier}
-												paymentType={PAYMENT_METHOD_ICON[id]}
+												paymentType={getPaymentMethodIcon(id)}
 												idRequired={false}
 											/>
 										</View>

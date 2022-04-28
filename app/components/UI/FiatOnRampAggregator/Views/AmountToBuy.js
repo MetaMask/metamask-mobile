@@ -24,7 +24,8 @@ import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
 import WebviewError from '../../WebviewError';
-import { NATIVE_ADDRESS, PAYMENT_METHOD_ICON } from '../constants';
+import { NATIVE_ADDRESS } from '../constants';
+import { getPaymentMethodIcon } from '../utils';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
@@ -419,7 +420,7 @@ const AmountToBuy = () => {
 						label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
 						icon={
 							<PaymentIcon
-								iconType={PAYMENT_METHOD_ICON[selectedPaymentMethodId]}
+								iconType={getPaymentMethodIcon(selectedPaymentMethodId)}
 								size={20}
 								color={colors.icon.default}
 							/>
