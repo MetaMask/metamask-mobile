@@ -432,11 +432,19 @@ export const getRpcMethodMiddleware = ({
 				const { TokensController } = Engine.context;
 
 				checkTabActive();
-				const { suggestedAssetMeta } = await TokensController.watchAsset(
-					{ address, symbol, decimals, image },
-					type
-				);
-				res.result = suggestedAssetMeta;
+				try {
+					const watchAssetResult = await TokensController.watchAsset(
+						{ address, symbol, decimals, image },
+						type
+					);
+					await watchAssetResult.result;
+					res.result = true;
+				} catch (error) {
+					if ((error as Error).message === 'User rejected to watch the asset.') {
+						throw ethErrors.provider.userRejectedRequest();
+					}
+					throw error;
+				}
 			},
 
 			metamask_removeFavorite: async () => {
