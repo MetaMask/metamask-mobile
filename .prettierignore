@@ -7,7 +7,6 @@ coverage
 ios
 jest.preprocessor.js
 node_modules
-# /shim.js
 CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
 /storybook/storyLoader.js
