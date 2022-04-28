@@ -887,9 +887,10 @@ export const BrowserTab = (props) => {
 					title,
 					icon,
 					// Bookmarks
-					toggleUrlModal,
 					isHomepage,
+					// Show autocomplete
 					fromHomepage,
+					toggleUrlModal,
 					// Wizard
 					wizardScrollAdjusted,
 					tabId: props.id,
