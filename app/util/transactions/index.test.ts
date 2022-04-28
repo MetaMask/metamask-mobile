@@ -1,11 +1,17 @@
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
+import { BNToHex } from '../number';
+import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
+import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 
 import {
 	generateTransferData,
+	decodeApproveData,
 	decodeTransferData,
 	getMethodData,
 	getActionKey,
+	generateTxWithNewTokenAllowance,
+	minimumTokenAllowance,
 	TOKEN_METHOD_TRANSFER,
 	CONTRACT_METHOD_DEPLOY,
 	TOKEN_METHOD_TRANSFER_FROM,
@@ -24,6 +30,7 @@ ENGINE_MOCK.context = {
 
 const MOCK_ADDRESS1 = '0x0001';
 const MOCK_ADDRESS2 = '0x0002';
+const MOCK_ADDRESS3 = '0xb794f5ea0ba39494ce839613fffba74279579268';
 
 const UNI_TICKER = 'UNI';
 const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
@@ -207,5 +214,84 @@ describe('Transactions utils :: getActionKey', () => {
 		};
 		const result = await getActionKey(tx, MOCK_ADDRESS1, undefined, MOCK_CHAIN_ID);
 		expect(result).toBe(strings('transactions.contract_deploy'));
+	});
+});
+
+describe('Transactions utils :: generateTxWithNewTokenAllowance', () => {
+	const mockDecimal = 18;
+	const mockTx = {
+		transaction: {
+			from: MOCK_ADDRESS1,
+			to: MOCK_ADDRESS3,
+		},
+	};
+
+	const decodeAmount = (data: string): string => {
+		const decode = decodeApproveData(data);
+		return BNToHex(decode.encodedAmount);
+	};
+
+	it('should encode a integer correctly and return a new transaction', () => {
+		const newTx = generateTxWithNewTokenAllowance('500', mockDecimal, MOCK_ADDRESS3, mockTx);
+		expect(newTx.data).toBeTruthy();
+
+		const expectedHexValue = '0x00000000000000000000000000000000000000000000001b1ae4d6e2ef500000';
+		const decodedHexValue = decodeAmount(newTx.data);
+		expect(expectedHexValue).toBe(decodedHexValue);
+	});
+
+	it('should encode a decimal correctly and return a new transaction', () => {
+		const newTx = generateTxWithNewTokenAllowance('100.15', mockDecimal, MOCK_ADDRESS3, mockTx);
+		expect(newTx.data).toBeTruthy();
+
+		const expectedHexValue = '0x0000000000000000000000000000000000000000000000056ddc4661ef5f0000';
+		const decodedHexValue = decodeAmount(newTx.data);
+		expect(expectedHexValue).toBe(decodedHexValue);
+	});
+
+	it('should encode the maximun amount uint256 can store correctly and return a new transaction', () => {
+		const newTx = generateTxWithNewTokenAllowance(UINT256_BN_MAX_VALUE, 0, MOCK_ADDRESS3, mockTx);
+		expect(newTx.data).toBeTruthy();
+
+		const expectedHexValue = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+		const decodedHexValue = decodeAmount(newTx.data);
+		expect(expectedHexValue).toBe(decodedHexValue);
+	});
+	it('should encode the minimum amount uint256 can store correctly and return a new transaction', () => {
+		const minAmount = '0.000000000000000001';
+		const newTx = generateTxWithNewTokenAllowance(minAmount, mockDecimal, MOCK_ADDRESS3, mockTx);
+		expect(newTx.data).toBeTruthy();
+
+		const expectedHexValue = '0x0000000000000000000000000000000000000000000000000000000000000001';
+		const decodedHexValue = decodeAmount(newTx.data);
+		expect(expectedHexValue).toBe(decodedHexValue);
+	});
+});
+
+describe('Transactions utils :: minimumTokenAllowance', () => {
+	it('should show up to 18 decimals', () => {
+		const result = minimumTokenAllowance(18);
+		const expectedResult = '0.000000000000000001';
+		expect(result).toBe(expectedResult);
+	});
+	it('should show up to 5 decimals', () => {
+		const result = minimumTokenAllowance(5);
+		const expectedResult = '0.00001';
+		expect(result).toBe(expectedResult);
+	});
+	it('should show up to 1 decimals', () => {
+		const result = minimumTokenAllowance(1);
+		const expectedResult = '0.1';
+		expect(result).toBe(expectedResult);
+	});
+	it('should show 1', () => {
+		const result = minimumTokenAllowance(0);
+		const expectedResult = '1';
+		expect(result).toBe(expectedResult);
+	});
+	it('should throw an error for negative values', () => {
+		expect(() => {
+			minimumTokenAllowance(-1);
+		}).toThrow(NEGATIVE_TOKEN_DECIMALS);
 	});
 });
