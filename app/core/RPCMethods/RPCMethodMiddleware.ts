@@ -210,7 +210,7 @@ export const getRpcMethodMiddleware = ({
 				} else {
 					try {
 						await requestUserApproval({ type: ApprovalTypes.CONNECT_ACCOUNTS, requestData: { hostname } });
-						const fullHostname = new URL(url.current).hostname;
+						const fullHostname = hostname;
 						approveHost?.(fullHostname);
 						setApprovedHosts?.({ ...getApprovedHosts?.(), [fullHostname]: true });
 

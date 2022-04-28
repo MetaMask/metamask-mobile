@@ -14,7 +14,7 @@ import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 import { ACTIONS, ETH_ACTIONS, PROTOCOLS, PREFIXES } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-
+import SDKConnect from '../core/SDKConnect';
 class DeeplinkManager {
 	constructor({ navigation, frequentRpcList, dispatch }) {
 		this.navigation = navigation;
@@ -203,7 +203,14 @@ class DeeplinkManager {
 					// action is the first part of the pathname
 					const action = urlObj.pathname.split('/')[1];
 
-					if (action === ACTIONS.WC && params?.uri) {
+					if (action === 'connect') {
+						SDKConnect.connectToChannel({
+							id: params.channelId,
+							commLayer: params.comm,
+							origin,
+							otherPublicKey: params.pubkey,
+						});
+					} else if (action === ACTIONS.WC && params?.uri) {
 						WalletConnect.newSession(params.uri, params.redirectUrl, false, origin);
 					} else if (action === ACTIONS.WC) {
 						// This is called from WC just to open the app and it's not supposed to do anything

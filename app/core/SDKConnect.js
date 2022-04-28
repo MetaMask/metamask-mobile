@@ -1,0 +1,155 @@
+import { store } from '../store';
+import BackgroundBridge from './BackgroundBridge';
+import RemoteCommunication from './RemoteCommunication';
+import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
+import { approveHost } from '../actions/privacy';
+import AppConstants from './AppConstants';
+import Minimizer from 'react-native-minimizer';
+import Engine from './Engine';
+import { WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
+import { WalletDevice } from '@metamask/controllers';
+import WebRTC from './RemoteCommunication/WebRTC';
+import Socket from './RemoteCommunication/Socket';
+
+import {
+	RTCPeerConnection,
+	RTCIceCandidate,
+	RTCSessionDescription,
+	RTCView,
+	MediaStream,
+	MediaStreamTrack,
+	mediaDevices,
+	registerGlobals,
+} from 'react-native-webrtc';
+
+const webrtc = {
+	RTCPeerConnection,
+	RTCIceCandidate,
+	RTCSessionDescription,
+	RTCView,
+	MediaStream,
+	MediaStreamTrack,
+	mediaDevices,
+	registerGlobals,
+};
+const METHODS_TO_REDIRECT = {
+	eth_requestAccounts: true,
+	eth_sendTransaction: true,
+	eth_signTransaction: true,
+	eth_sign: true,
+	personal_sign: true,
+	eth_signTypedData: true,
+	eth_signTypedData_v3: true,
+	eth_signTypedData_v4: true,
+	wallet_watchAsset: true,
+	wallet_addEthereumChain: true,
+	wallet_switchEthereumChain: true,
+};
+
+class Connection {
+	channelId = null;
+	RemoteConn = null;
+	requestsToRedirect = {};
+	origin = null;
+
+	constructor({ id, otherPublicKey, commLayer, origin }) {
+		this.origin = origin;
+		const CommLayer = commLayer === 'webrtc' ? WebRTC : Socket;
+		this.channelId = id;
+
+		this.RemoteConn = new RemoteCommunication({ CommLayer, otherPublicKey, webRTCLib: webrtc });
+
+		this.requestsToRedirect = [];
+
+		this.sendMessage = this.sendMessage.bind(this);
+
+		this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
+			this.backgroundBridge = new BackgroundBridge({
+				webview: null,
+				url: originatorInfo?.url,
+				isRemoteConn: true,
+				sendMessage: this.sendMessage,
+				getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+					getRpcMethodMiddleware({
+						hostname: `SDK:${this.channelId}:` + hostname,
+						getProviderState,
+						navigation: null, //props.navigation,
+						getApprovedHosts: () => store.getState().privacy.approvedHosts,
+						setApprovedHosts: () => null,
+						approveHost: (hostname) => store.dispatch(approveHost(hostname)), //props.approveHost,
+						// Website info
+						url: { current: originatorInfo?.url },
+						title: { current: originatorInfo?.title },
+						icon: { current: null },
+						// Bookmarks
+						isHomepage: false,
+						// Show autocomplete
+						fromHomepage: false,
+						setAutocompleteValue: () => null,
+						setShowUrlModal: () => null,
+						// Wizard
+						wizardScrollAdjusted: () => null,
+						tabId: false,
+						isWalletConnect: false,
+					}),
+				isMainFrame: true,
+			});
+
+			this.RemoteConn.on('message', async ({ message }) => {
+				if (METHODS_TO_REDIRECT[message?.method]) {
+					this.requestsToRedirect[message?.id] = true;
+				}
+
+				// We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
+				if (message.method === 'eth_sendTransaction') {
+					const { TransactionController } = Engine.context;
+					try {
+						const hash = await (
+							await TransactionController.addTransaction(
+								message.params[0],
+								originatorInfo?.url ? WALLET_CONNECT_ORIGIN + originatorInfo?.url : undefined,
+								WalletDevice.MM_MOBILE
+							)
+						).result;
+						this.sendMessage({
+							id: message.id,
+							result: hash,
+						});
+					} catch (error) {
+						this.sendMessage({
+							id: message.id,
+							error,
+						});
+					}
+					return;
+				}
+
+				this.backgroundBridge.onMessage({
+					name: 'metamask-provider',
+					data: message,
+					origin: 'sdk',
+				});
+			});
+		});
+
+		this.RemoteConn.connectToChannel(id);
+	}
+	sendMessage(msg) {
+		this.RemoteConn.sendMessage(msg);
+		if (!this.requestsToRedirect[msg?.data?.id]) return;
+
+		if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
+
+		setTimeout(() => {
+			Minimizer.goBack();
+		}, 300);
+	}
+}
+
+const SDKConnect = {
+	connectToChannel({ id, commLayer, otherPublicKey, origin }) {
+		new Connection({ id, commLayer, otherPublicKey, origin });
+	},
+};
+
+export default SDKConnect;
