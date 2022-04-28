@@ -46,6 +46,14 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 
+import {
+	CREATE_PASSWORD_CONTAINER_ID,
+	CREATE_PASSWORD_INPUT_BOX_ID,
+	CONFIRM_PASSWORD_INPUT_BOX_ID,
+	IOS_I_UNDERSTAND_BUTTON_ID,
+	ANDROID_I_UNDERSTAND_BUTTON_ID,
+} from '../../../constants/test-ids';
+
 const createStyles = (colors) =>
 	StyleSheet.create({
 		mainWrapper: {
@@ -623,7 +631,7 @@ class ChoosePassword extends PureComponent {
 							contentContainerStyle={styles.keyboardScrollableWrapper}
 							resetScrollToCoords={{ x: 0, y: 0 }}
 						>
-							<View testID={'create-password-screen'}>
+							<View testID={CREATE_PASSWORD_CONTAINER_ID}>
 								<View style={styles.content}>
 									<Text style={styles.title}>{strings('choose_password.title')}</Text>
 									<View style={styles.text}>
@@ -642,7 +650,7 @@ class ChoosePassword extends PureComponent {
 										secureTextEntry={secureTextEntry}
 										placeholder=""
 										placeholderTextColor={colors.text.muted}
-										testID="input-password"
+										testID={CREATE_PASSWORD_INPUT_BOX_ID}
 										onSubmitEditing={this.jumpToConfirmPassword}
 										returnKeyType="next"
 										autoCapitalize="none"
@@ -668,7 +676,7 @@ class ChoosePassword extends PureComponent {
 										secureTextEntry={secureTextEntry}
 										placeholder={''}
 										placeholderTextColor={colors.text.muted}
-										testID={'input-password-confirm'}
+										testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
 										onSubmitEditing={this.onPressCreate}
 										returnKeyType={'done'}
 										autoCapitalize="none"
@@ -691,9 +699,13 @@ class ChoosePassword extends PureComponent {
 										style={styles.checkbox}
 										tintColors={{ true: colors.primary.default, false: colors.border.default }}
 										boxType="square"
-										testID={'password-understand-box'}
+										testID={IOS_I_UNDERSTAND_BUTTON_ID}
 									/>
-									<Text style={styles.label} onPress={this.setSelection} testID={'i-understand-text'}>
+									<Text
+										style={styles.label}
+										onPress={this.setSelection}
+										testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+									>
 										{strings('choose_password.i_understand')}{' '}
 										<Text onPress={this.learnMore} style={styles.learnMore}>
 											{strings('choose_password.learn_more')}

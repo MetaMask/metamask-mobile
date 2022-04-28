@@ -21,6 +21,7 @@ const ENS_TLD = 'https://inbox.mailchain.xyz';
 const UNISWAP = 'https://uniswap.exchange';
 const PASSWORD = '12345678';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
+const INVALID_URL = 'https://quackquakc.easq';
 
 describe('Browser Tests', () => {
 	beforeEach(() => {
@@ -116,7 +117,7 @@ describe('Browser Tests', () => {
 			// Check that the dapp title is correct
 			await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
 		}
-		await TestHelpers.delay(3000);
+		await TestHelpers.delay(5000);
 		await ConnectModal.tapCancelButton();
 
 		// Android has weird behavior where the URL modal stays open, so this closes it
@@ -161,7 +162,7 @@ describe('Browser Tests', () => {
 			await TestHelpers.delay(1500);
 		}
 		// Wait for connect prompt to display
-		await TestHelpers.delay(3000);
+		await TestHelpers.delay(5000);
 		await ConnectModal.tapConnectButton();
 		await Browser.isVisible();
 	});
@@ -180,6 +181,20 @@ describe('Browser Tests', () => {
 		await Browser.tapBottomSearchBar();
 		// Navigate to URL
 		await Browser.navigateToURL(ENS_TLD);
+		await Browser.isVisible();
+	});
+
+	it('should test invalid URL', async () => {
+		await Browser.tapBottomSearchBar();
+		// Clear text & Navigate to URL
+		await Browser.navigateToURL(INVALID_URL);
+		await Browser.waitForBrowserPageToLoad();
+
+		await Browser.tapReturnHomeButton();
+		// Check that we are on the browser screen
+		if (!device.getPlatform() === 'android') {
+			await TestHelpers.delay(1500);
+		}
 		await Browser.isVisible();
 	});
 

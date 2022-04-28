@@ -1,10 +1,11 @@
 import TestHelpers from '../../../../helpers';
 
+import { BACK_ARROW_BUTTON_ID } from '../../../../../app/constants/test-ids';
+
 const ADD_CONTACT_BUTTON_ID = 'contact-add-contact-button';
 const ADD_CONTACT_CONTAINER_ID = 'add-contact-screen';
 const ADD_CONTACTS_VIEW_CONTACT_INPUT_BOX_ID = 'contact-name-input';
 const ADD_CONTACTS_VIEW_ADDRESS_INPUT_BOX_ID = 'contact-address-input';
-const BACK_ARROW_BUTTON_ID = 'title-back-arrow-button';
 const ERROR_MESSAGE_LABEL_ID = 'error-message-warning';
 const MEMO_INPUT_BOX_ID = 'contact-memo-input';
 

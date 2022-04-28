@@ -133,7 +133,6 @@ class OptinMetrics extends PureComponent {
 
 	componentDidMount() {
 		this.updateNavBar();
-		Analytics.enable();
 		BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 	}
 
@@ -230,6 +229,7 @@ class OptinMetrics extends PureComponent {
 	onConfirm = async () => {
 		const { events } = this.props;
 		const metricsOptionSelected = 'Metrics Opt In';
+		Analytics.enable();
 		setTimeout(async () => {
 			if (events && events.length) {
 				events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
