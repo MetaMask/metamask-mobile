@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Image, SafeAreaView, TextStyle, Alert, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, Image, SafeAreaView, TextStyle, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -12,6 +11,8 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
+import useLedgerBluetooth from '../../hooks/useLedgerBluetooth';
+
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
 
@@ -61,71 +62,8 @@ const LedgerConnect = () => {
 	const navigation = useNavigation();
 	const styles = useMemo(() => createStyles(colors), [colors]);
 	const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
-	const [isRetry, setIsRetry] = useState(false);
-	const [isConnecting, setIsConnecting] = useState(false);
-	const transportRef = useRef<BluetoothTransport>();
 
-	useEffect(
-		() => () => {
-			if (transportRef.current) {
-				transportRef.current.close();
-			}
-		},
-		[]
-	);
-
-	const onConnectToLedgerDevice = async () => {
-		setIsConnecting(true);
-
-		// Establish bluetooth connection to ledger
-		try {
-			if (!transportRef.current && selectedDevice) {
-				transportRef.current = await BluetoothTransport.open(selectedDevice);
-				transportRef.current?.on('disconnect', () => (transportRef.current = undefined));
-			}
-		} catch {
-			setIsRetry(true);
-			setIsConnecting(false);
-
-			Alert.alert(
-				strings('ledger.bluetooth_connection_failed'),
-				strings('ledger.bluetooth_connection_failed_message')
-			);
-
-			return;
-		}
-
-		// Get Account from Ledger
-		try {
-			// Initialise the keyring and check for pre-conditions (is the correct app running?)
-			const appName = await KeyringController.connectLedgerHardware(transportRef.current, selectedDevice.id);
-			if (appName !== 'Ethereum') {
-				Alert.alert(strings('ledger.ethereum_app_off'), strings('ledger.ethereum_app_off_message'));
-				setIsRetry(true);
-				setIsConnecting(false);
-				return;
-			}
-
-			// Retrieve the default account and sync the address with Metamask
-			const defaultLedgerAccount = await KeyringController.unlockLedgerDefaultAccount();
-			await AccountTrackerController.syncBalanceWithAddresses([defaultLedgerAccount]);
-
-			// Go back to main view
-			navigation.navigate('WalletView');
-		} catch (e: any) {
-			let errorMessage = e.message;
-
-			// 0x6b0c - Stands for ledger device locked
-			if (e.name === 'TransportStatusError' && e.message.includes('0x6b0c')) {
-				errorMessage = strings('ledger.unlock_ledger_message');
-			}
-
-			Alert.alert(strings('ledger.cannot_get_account'), errorMessage);
-			setIsRetry(true);
-		} finally {
-			setIsConnecting(false);
-		}
-	};
+	const { isSendingLedgerCommands, ledgerLogicToRun, ledgerErrorMessage } = useLedgerBluetooth(selectedDevice?.id);
 
 	return (
 		<SafeAreaView style={styles.container}>
@@ -147,13 +85,20 @@ const LedgerConnect = () => {
 						<View style={styles.buttonContainer}>
 							<StyledButton
 								type="confirm"
-								onPress={onConnectToLedgerDevice}
+								onPress={async () =>
+									ledgerLogicToRun(async () => {
+										const defaultLedgerAccount =
+											await KeyringController.unlockLedgerDefaultAccount();
+										await AccountTrackerController.syncBalanceWithAddresses([defaultLedgerAccount]);
+										navigation.navigate('WalletView');
+									})
+								}
 								testID={'add-network-button'}
-								disabled={isConnecting}
+								disabled={isSendingLedgerCommands}
 							>
-								{isConnecting ? (
+								{isSendingLedgerCommands ? (
 									<ActivityIndicator color={colors.white} />
-								) : isRetry ? (
+								) : ledgerErrorMessage ? (
 									strings('ledger.retry')
 								) : (
 									strings('ledger.continue')
