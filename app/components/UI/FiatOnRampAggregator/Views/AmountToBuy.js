@@ -162,7 +162,7 @@ const AmountToBuy = () => {
 		if (
 			fiatCurrencies &&
 			defaultFiatCurrency &&
-			!fiatCurrencies?.find?.((currency) => currency.id === selectedFiatCurrencyId)
+			!fiatCurrencies.some((currency) => currency.id === selectedFiatCurrencyId)
 		) {
 			setSelectedFiatCurrencyId(defaultFiatCurrency.id);
 		}
@@ -186,7 +186,7 @@ const AmountToBuy = () => {
 	 */
 	useEffect(() => {
 		if (!isFetchingPaymentMethods && !errorPaymentMethods && paymentMethods) {
-			if (!paymentMethods.find((pm) => pm.id === selectedPaymentMethodId)) {
+			if (!paymentMethods.some((pm) => pm.id === selectedPaymentMethodId)) {
 				setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
 			}
 		}
