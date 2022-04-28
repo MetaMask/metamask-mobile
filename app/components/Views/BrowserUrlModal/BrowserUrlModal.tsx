@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, InteractionManager } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
@@ -31,6 +31,10 @@ const BrowserUrlModal = () => {
 		setAutocompleteValue(undefined);
 		inputRef.current?.focus?.();
 	}, []);
+
+	InteractionManager.runAfterInteractions(() => {
+		inputRef.current?.focus?.();
+	});
 
 	const triggerClose = () => dismissModal();
 	const triggerOnSubmit = (val: string) => dismissModal(() => onUrlInputSubmit(val));
