@@ -51,6 +51,17 @@ class Port extends EventEmitter {
   };
 }
 
+class RemotePort extends EventEmitter {
+  constructor(sendMessage) {
+    super();
+    this.sendMessage = sendMessage;
+  }
+
+  postMessage = (msg) => {
+    this.sendMessage(msg);
+  };
+}
+
 class WalletConnectPort extends EventEmitter {
   constructor(wcRequestActions) {
     super();
@@ -96,6 +107,8 @@ export class BackgroundBridge extends EventEmitter {
     url,
     getRpcMethodMiddleware,
     isMainFrame,
+    isRemoteConn,
+    sendMessage,
     isWalletConnect,
     wcRequestActions,
   }) {
@@ -104,6 +117,7 @@ export class BackgroundBridge extends EventEmitter {
     this.hostname = new URL(url).hostname;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
+    this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
 
@@ -118,7 +132,9 @@ export class BackgroundBridge extends EventEmitter {
 
     this.setProviderAndBlockTracker({ provider, blockTracker });
 
-    this.port = this.isWalletConnect
+    this.port = isRemoteConn
+      ? new RemotePort(sendMessage)
+      : this.isWalletConnect
       ? new WalletConnectPort(wcRequestActions)
       : new Port(this._webviewRef, isMainFrame);
 
@@ -238,7 +254,7 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
-    if (this.isWalletConnect) {
+    if (this.isWalletConnect || this.isRemoteConn) {
       if (this.addressSent !== memState.selectedAddress) {
         this.addressSent = memState.selectedAddress;
         this.sendNotification({

@@ -159,6 +159,7 @@
     "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
     "ethjs-unit": "0.1.6",
+    "eventemitter2": "^6.4.5",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
@@ -241,6 +242,7 @@
     "react-native-vector-icons": "6.4.2",
     "react-native-video": "^5.1.1",
     "react-native-view-shot": "^3.1.2",
+    "react-native-webrtc": "^1.98.0",
     "react-native-webview": "11.13.0",
     "react-redux": "7.2.4",
     "readable-stream": "1.0.33",
@@ -250,6 +252,7 @@
     "redux-persist-filesystem-storage": "^3.0.0",
     "reselect": "^4.0.0",
     "rn-fetch-blob": "^0.12.0",
+    "socket.io-client": "^4.4.1",
     "stream-browserify": "1.0.0",
     "swappable-obj-proxy": "^1.1.0",
     "through2": "3.0.1",
@@ -420,7 +423,13 @@
       "core-js": false,
       "sharp": true,
       "highlight.js": false,
-      "es5-ext": false
+      "es5-ext": false,
+      "web3": false,
+      "web3-bzz": false,
+      "bufferutil": false,
+      "utf-8-validate": false,
+      "web3-shh": false,
+      "react-native-webrtc": true
     }
   }
 }

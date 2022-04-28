@@ -20,6 +20,7 @@ import {
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
 import Routes from '../constants/navigation/Routes';
+import SDKConnect from '../core/SDKConnect';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
