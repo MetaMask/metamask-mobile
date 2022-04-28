@@ -4,7 +4,7 @@ buildscript {
 
 	ext {
 		buildToolsVersion = "30.0.3"
-		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 23
+		minSdkVersion = project.hasProperty('minSdkVersion') ? project.getProperty('minSdkVersion') : 24
         compileSdkVersion = 30
         targetSdkVersion = 30
 		kotlin_version = "1.3.50"
