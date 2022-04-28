@@ -37,8 +37,13 @@ class DeeplinkManager {
 	_handleNetworkSwitch = (switchToChainId) => {
 		const { NetworkController, CurrencyRateController } = Engine.context;
 
+		// If not specified, use the current network
+		if (!switchToChainId) {
+			return;
+		}
+
 		// If current network is the same as the one we want to switch to, do nothing
-		if (NetworkController?.state?.provider?.chainId === switchToChainId) {
+		if (NetworkController?.state?.provider?.chainId === String(switchToChainId)) {
 			return;
 		}
 
@@ -117,7 +122,9 @@ class DeeplinkManager {
 		const txMeta = { ...ethUrl, source: url };
 
 		try {
-			// Validate and switch network before performing any other action
+			/**
+			 * Validate and switch network before performing any other action
+			 */
 			this._handleNetworkSwitch(ethUrl.chain_id);
 
 			switch (ethUrl.function_name) {
