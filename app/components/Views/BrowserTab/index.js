@@ -731,7 +731,7 @@ export const BrowserTab = (props) => {
 	/**
 	 * Handles state changes for when the url changes
 	 */
-	const changeUrl = (siteInfo, type) => {
+	const changeUrl = (siteInfo) => {
 		url.current = siteInfo.url;
 		title.current = siteInfo.title;
 		if (siteInfo.icon) icon.current = siteInfo.icon;
@@ -740,7 +740,7 @@ export const BrowserTab = (props) => {
 	/**
 	 * Handles state changes for when the url changes
 	 */
-	const changeAddressBar = (siteInfo, type) => {
+	const changeAddressBar = (siteInfo) => {
 		setBackEnabled(siteInfo.canGoBack);
 		setForwardEnabled(siteInfo.canGoForward);
 
@@ -857,17 +857,22 @@ export const BrowserTab = (props) => {
 	 */
 	const onLoadStart = async ({ nativeEvent }) => {
 		const { hostname } = new URL(nativeEvent.url);
+
+		if (nativeEvent.url !== url.current) {
+			changeAddressBar({ ...nativeEvent });
+		}
+
 		if (!isAllowedUrl(hostname)) {
 			return handleNotAllowedUrl(nativeEvent.url);
 		}
 		webviewUrlPostMessagePromiseResolve.current = null;
 		setError(false);
 
-		changeUrl(nativeEvent, 'start');
+		changeUrl(nativeEvent);
 
 		//For Android url on the navigation bar should only update upon load.
 		if (Device.isAndroid()) {
-			changeAddressBar(nativeEvent, 'start');
+			changeAddressBar(nativeEvent);
 		}
 
 		icon.current = null;
@@ -892,8 +897,8 @@ export const BrowserTab = (props) => {
 	const onLoad = ({ nativeEvent }) => {
 		//For iOS url on the navigation bar should only update upon load.
 		if (Device.isIos()) {
-			changeUrl(nativeEvent, 'start');
-			changeAddressBar(nativeEvent, 'start');
+			changeUrl(nativeEvent);
+			changeAddressBar(nativeEvent);
 		}
 	};
 
@@ -915,8 +920,8 @@ export const BrowserTab = (props) => {
 			const { hostname: currentHostname } = new URL(url.current);
 			const { hostname } = new URL(nativeEvent.url);
 			if (info.url === nativeEvent.url && currentHostname === hostname) {
-				changeUrl({ ...nativeEvent, icon: info.icon }, 'end-promise');
-				changeAddressBar({ ...nativeEvent, icon: info.icon }, 'end-promise');
+				changeUrl({ ...nativeEvent, icon: info.icon });
+				changeAddressBar({ ...nativeEvent, icon: info.icon });
 			}
 		});
 	};
