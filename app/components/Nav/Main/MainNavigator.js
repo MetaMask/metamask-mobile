@@ -51,6 +51,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
@@ -327,6 +328,16 @@ const SetPasswordFlow = () => (
 	</Stack.Navigator>
 );
 
+const ConnectHardwareWalletFlow = () => (
+	<Stack.Navigator name="ConnectHardwareWallet">
+		<Stack.Screen
+			name="SelectHardwareWallet"
+			component={SelectHardwareWallet}
+			options={SelectHardwareWallet.navigationOptions}
+		/>
+	</Stack.Navigator>
+);
+
 const ConnectQRHardwareFlow = () => (
 	<Stack.Navigator
 		screenOptions={{
@@ -362,6 +373,7 @@ const MainNavigator = () => (
 		<Stack.Screen name="Webview" component={Webview} />
 		<Stack.Screen name="SettingsView" component={SettingsModalStack} />
 		<Stack.Screen name="ImportPrivateKeyView" component={ImportPrivateKeyView} />
+		<Stack.Screen name="ConnectHardwareWalletFlow" component={ConnectHardwareWalletFlow} />
 		<Stack.Screen name="ConnectQRHardwareFlow" component={ConnectQRHardwareFlow} />
 		<Stack.Screen name="SendView" component={SendView} />
 		<Stack.Screen name="SendFlowView" component={SendFlowView} />

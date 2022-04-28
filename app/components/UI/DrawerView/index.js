@@ -780,7 +780,7 @@ class DrawerView extends PureComponent {
 
 	onConnectHardware = () => {
 		this.toggleAccountsModal();
-		this.props.navigation.navigate('ConnectQRHardwareFlow');
+		this.props.navigation.navigate('ConnectHardwareWalletFlow');
 		this.hideDrawer();
 	};
 
