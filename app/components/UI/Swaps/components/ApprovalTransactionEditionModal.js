@@ -2,14 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { connect } from 'react-redux';
-
 import Modal from 'react-native-modal';
-import { fromTokenMinimalUnitString, hexToBN, toTokenMinimalUnit } from '../../../../util/number';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import EditPermission from '../../ApproveTransactionReview/EditPermission';
-import { decodeApproveData, generateApproveData } from '../../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
+
+import EditPermission from '../../ApproveTransactionReview/EditPermission';
+import { fromTokenMinimalUnitString, hexToBN } from '../../../../util/number';
+import { decodeApproveData, generateTxWithNewTokenAllowance } from '../../../../util/transactions';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
 	keyboardAwareWrapper: {
@@ -46,17 +47,18 @@ function ApprovalTransactionEditionModal({
 	const onPressSpendLimitCustomSelected = useCallback(() => setSpendLimitUnlimitedSelected(false), []);
 
 	const onSetApprovalAmount = useCallback(() => {
-		const uint = toTokenMinimalUnit(
-			spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
-			sourceToken.decimals
-		).toString(10);
-		const approvalData = generateApproveData({
-			spender: swapsUtils.getSwapsContractAddress(chainId),
-			value: Number(uint).toString(16),
-		});
-		const newApprovalTransaction = { ...approvalTransaction, data: approvalData };
-		setApprovalTransaction(newApprovalTransaction);
-		onCancelEditQuoteTransactions();
+		try {
+			const newApprovalTransaction = generateTxWithNewTokenAllowance(
+				spendLimitUnlimitedSelected ? approvalTransactionAmount : approvalCustomValue,
+				sourceToken.decimals,
+				swapsUtils.getSwapsContractAddress(chainId),
+				approvalTransaction
+			);
+			setApprovalTransaction(newApprovalTransaction);
+			onCancelEditQuoteTransactions();
+		} catch (err) {
+			Logger.log('Failed to setTransactionObject', err);
+		}
 	}, [
 		setApprovalTransaction,
 		spendLimitUnlimitedSelected,

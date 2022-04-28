@@ -1,54 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PersonalSign should render correctly 1`] = `
-<Connect(SignatureRequest)
+<Connect(PersonalSign)
   currentPageInformation={
     Object {
       "title": "title",
       "url": "url",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  truncateMessage={false}
-  type="personalSign"
->
-  <View
-    style={
-      Object {
-        "marginBottom": 4,
-      }
+  messageParams={
+    Object {
+      "data": "message",
     }
-  >
-    <Text
-      onTextLayout={[Function]}
-      style={
-        Object {
-          "color": "#24272A",
-        }
-      }
-    >
-      <Text
-        key="txt_0"
-        style={
-          Array [
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "textAlign": "center",
-            },
-            Object {
-              "textAlign": "left",
-            },
-          ]
-        }
-      >
-        
-
-      </Text>
-    </Text>
-  </View>
-</Connect(SignatureRequest)>
+  }
+/>
 `;

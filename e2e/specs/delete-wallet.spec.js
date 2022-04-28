@@ -12,6 +12,11 @@ import LoginView from '../pages/LoginView';
 
 import DrawerView from '../pages/Drawer/DrawerView';
 
+import SettingsView from '../pages/Drawer/Settings/SettingsView';
+
+import SecurityAndPrivacyView from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/ChangePasswordView';
+
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
 
@@ -19,7 +24,7 @@ const SECRET_RECOVERY_PHRASE =
 	'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
 const PASSWORD = `12345678`;
 
-describe('Import wallet with 24 word seedphrase and delete wallet flow', () => {
+describe('Import wallet with 24 word SRP, change password then delete wallet flow', () => {
 	beforeEach(() => {
 		jest.setTimeout(150000);
 	});
@@ -56,7 +61,43 @@ describe('Import wallet with 24 word seedphrase and delete wallet flow', () => {
 		}
 	});
 
+	it('should go to settings then security & privacy', async () => {
+		// Open Drawer
+		await WalletView.tapDrawerButton(); // tapping burger menu
+
+		await DrawerView.isVisible();
+		await DrawerView.tapSettings();
+
+		await SettingsView.tapSecurityAndPrivacy();
+		await SecurityAndPrivacyView.scrollToChangePasswordView();
+
+		await SecurityAndPrivacyView.isChangePasswordSectionVisible();
+	});
+
+	it('should confirm password before changing it', async () => {
+		await SecurityAndPrivacyView.tapChangePasswordButton();
+
+		await ChangePasswordView.isVisible();
+		await ChangePasswordView.typeInConfirmPasswordInputBox(PASSWORD);
+		//await ChangePasswordView.tapConfirmButton();
+	});
+
+	it('should change the password', async () => {
+		const NEW_PASSWORD = '11111111';
+		await ChangePasswordView.enterPassword(NEW_PASSWORD);
+		await ChangePasswordView.reEnterPassword(NEW_PASSWORD);
+		await ChangePasswordView.tapIUnderstandCheckBox();
+
+		await ChangePasswordView.tapResetPasswordButton();
+	});
+
 	it('should open drawer and log out', async () => {
+		await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
+		await SecurityAndPrivacyView.tapBackButton();
+		await device.enableSynchronization();
+
+		await SettingsView.tapCloseButton();
+
 		await WalletView.tapDrawerButton();
 
 		await DrawerView.isVisible();

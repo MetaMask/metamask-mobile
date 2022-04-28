@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -13,6 +13,7 @@ import {
 	NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
 	NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
+import { fontStyles } from '../../../styles/common';
 
 const createStyles = (colors: {
 	background: { default: string };
@@ -29,7 +30,7 @@ const createStyles = (colors: {
 		},
 		title: {
 			fontSize: 16,
-			fontWeight: 'bold',
+			...fontStyles.bold,
 			marginVertical: 10,
 			textAlign: 'center',
 			color: colors.text.default,
@@ -63,7 +64,7 @@ const createStyles = (colors: {
 		},
 		messageTitle: {
 			fontSize: 14,
-			fontWeight: 'bold',
+			...fontStyles.bold,
 			marginBottom: 15,
 			textAlign: 'center',
 			color: colors.text.default,
@@ -76,6 +77,7 @@ const createStyles = (colors: {
 			borderColor: colors.border.muted,
 		},
 		rpcUrl: {
+			...fontStyles.normal,
 			fontSize: 10,
 			color: colors.border.muted,
 			textAlign: 'center',
@@ -91,6 +93,7 @@ const createStyles = (colors: {
 			justifyContent: 'center',
 		},
 		unknownText: {
+			...fontStyles.normal,
 			color: colors.text.default,
 			fontSize: 13,
 		},
@@ -108,18 +111,25 @@ interface NetworkInfoProps {
 		};
 		rpcTarget: string;
 	};
-	navigation: any;
+	isTokenDetectionEnabled: boolean;
 }
 
 const NetworkInfo = (props: NetworkInfoProps) => {
 	const {
 		onClose,
 		ticker,
+		isTokenDetectionEnabled,
 		networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
-		navigation,
 	} = props;
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
+
+	const isMainnetTokenDetectionEnabled = useMemo(() => {
+		if (type === MAINNET && isTokenDetectionEnabled) {
+			return true;
+		}
+		return false;
+	}, [isTokenDetectionEnabled, type]);
 
 	return (
 		<View style={styles.wrapper}>
@@ -176,11 +186,20 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 						number={2}
 					/>
 					<Description
-						description={strings('network_information.third_description')}
-						clickableText={strings('network_information.add_token')}
+						description={
+							isMainnetTokenDetectionEnabled
+								? strings('network_information.token_detection_mainnet_title')
+								: strings('network_information.third_description')
+						}
+						clickableText={
+							isMainnetTokenDetectionEnabled
+								? strings('network_information.token_detection_mainnet_link')
+								: strings('network_information.add_token_manually')
+						}
 						number={3}
-						navigation={navigation}
+						isMainnetTokenDetectionEnabled={isMainnetTokenDetectionEnabled}
 						onClose={onClose}
+						network={type}
 					/>
 				</View>
 				<StyledButton
@@ -197,6 +216,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
+	isTokenDetectionEnabled: !state.engine.backgroundState.PreferencesController.useStaticTokenList,
 	networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 

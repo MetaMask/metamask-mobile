@@ -6,12 +6,12 @@ import { getApproveNavbar } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
-import { safeToChecksumAddress, renderShortAddress } from '../../../util/address';
+import { safeToChecksumAddress, renderShortAddress, getAddressAccountType } from '../../../util/address';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
-import { fromTokenMinimalUnit, toTokenMinimalUnit } from '../../../util/number';
+import { fromTokenMinimalUnit } from '../../../util/number';
 import EthereumAddress from '../EthereumAddress';
 import {
 	getTicker,
@@ -19,7 +19,8 @@ import {
 	getActiveTabUrl,
 	getMethodData,
 	decodeApproveData,
-	generateApproveData,
+	generateTxWithNewTokenAllowance,
+	minimumTokenAllowance,
 } from '../../../util/transactions';
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
@@ -32,12 +33,13 @@ import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
+import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
 import { getNetworkName, isMainNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import { capitalize } from '../../../util/general';
-import EditPermission, { MINIMUM_VALUE } from './EditPermission';
+import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
@@ -45,6 +47,8 @@ import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -60,7 +64,7 @@ const createStyles = (colors) =>
 			textAlign: 'center',
 			color: colors.text.default,
 			lineHeight: 34,
-			marginVertical: 16,
+			marginVertical: 8,
 			paddingHorizontal: 16,
 		},
 		explanation: {
@@ -136,6 +140,12 @@ const createStyles = (colors) =>
 		actionViewWrapper: {
 			height: Device.isMediumDevice() ? 200 : 280,
 		},
+		actionViewChildren: {
+			height: 300,
+		},
+		actionViewQRObject: {
+			height: 648,
+		},
 		paddingHorizontal: {
 			paddingHorizontal: 16,
 		},
@@ -165,6 +175,10 @@ class ApproveTransactionReview extends PureComponent {
 	static navigationOptions = ({ navigation }) => getApproveNavbar('approve.title', navigation);
 
 	static propTypes = {
+		/**
+		 * A string that represents the selected address
+		 */
+		selectedAddress: PropTypes.string,
 		/**
 		 * Callback triggered when this transaction is cancelled
 		 */
@@ -289,6 +303,8 @@ class ApproveTransactionReview extends PureComponent {
 		 * Check if nickname is saved
 		 */
 		nicknameExists: PropTypes.bool,
+		isSigningQRObject: PropTypes.bool,
+		QRState: PropTypes.object,
 	};
 
 	state = {
@@ -298,7 +314,7 @@ class ApproveTransactionReview extends PureComponent {
 		originalApproveAmount: undefined,
 		tokenSymbol: undefined,
 		spendLimitUnlimitedSelected: true,
-		spendLimitCustomValue: MINIMUM_VALUE,
+		spendLimitCustomValue: undefined,
 		ticker: getTicker(this.props.ticker),
 		viewDetails: false,
 		spenderAddress: '0x...',
@@ -334,6 +350,7 @@ class ApproveTransactionReview extends PureComponent {
 		const { spenderAddress, encodedAmount } = decodeApproveData(data);
 		const approveAmount = fromTokenMinimalUnit(hexToBN(encodedAmount), tokenDecimals);
 		const { name: method } = await getMethodData(data);
+		const minTokenAllowance = minimumTokenAllowance(tokenDecimals);
 
 		this.setState(
 			{
@@ -344,6 +361,7 @@ class ApproveTransactionReview extends PureComponent {
 				token: { symbol: tokenSymbol, decimals: tokenDecimals },
 				spenderAddress,
 				encodedAmount,
+				spendLimitCustomValue: minTokenAllowance,
 			},
 			() => {
 				AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED, this.getAnalyticsParams());
@@ -353,13 +371,14 @@ class ApproveTransactionReview extends PureComponent {
 
 	getAnalyticsParams = () => {
 		try {
-			const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
+			const { activeTabUrl, transaction, onSetAnalyticsParams, selectedAddress } = this.props;
 			const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
 			const { NetworkController } = Engine.context;
 			const { chainId, type } = NetworkController?.state?.provider || {};
 			const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(transaction?.origin);
-			const unlimited = encodedAmount === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+			const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
 			const params = {
+				account_type: getAddressAccountType(selectedAddress),
 				dapp_host_name: transaction?.origin,
 				dapp_url: isDapp ? activeTabUrl : undefined,
 				network_name: type,
@@ -408,7 +427,9 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	onPressSpendLimitUnlimitedSelected = () => {
-		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: MINIMUM_VALUE });
+		const { token } = this.state;
+		const minTokenAllowance = minimumTokenAllowance(token.decimals);
+		this.setState({ spendLimitUnlimitedSelected: true, spendLimitCustomValue: minTokenAllowance });
 	};
 
 	onPressSpendLimitCustomSelected = () => {
@@ -456,25 +477,20 @@ class ApproveTransactionReview extends PureComponent {
 
 		try {
 			const { setTransactionObject } = this.props;
-			const uint = toTokenMinimalUnit(
+			const newApprovalTransaction = generateTxWithNewTokenAllowance(
 				spendLimitUnlimitedSelected ? originalApproveAmount : spendLimitCustomValue,
-				token.decimals
-			).toString(10);
+				token.decimals,
+				spenderAddress,
+				transaction
+			);
 
-			const approvalData = generateApproveData({
-				spender: spenderAddress,
-				value: Number(uint).toString(16),
-			});
-			const newApprovalTransaction = {
-				...transaction,
-				data: approvalData,
+			setTransactionObject({
+				...newApprovalTransaction,
 				transaction: {
-					...transaction.transaction,
-					data: approvalData,
+					...newApprovalTransaction.transaction,
+					data: newApprovalTransaction.data,
 				},
-			};
-
-			setTransactionObject(newApprovalTransaction);
+			});
 		} catch (err) {
 			Logger.log('Failed to setTransactionObject', err);
 		}
@@ -516,12 +532,14 @@ class ApproveTransactionReview extends PureComponent {
 	};
 
 	renderEditPermission = () => {
-		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount } =
+		const { host, spendLimitUnlimitedSelected, tokenSymbol, spendLimitCustomValue, originalApproveAmount, token } =
 			this.state;
+		const minimumSpendLimit = minimumTokenAllowance(token.decimals);
 
 		return (
 			<EditPermission
 				host={host}
+				minimumSpendLimit={minimumSpendLimit}
 				spendLimitUnlimitedSelected={spendLimitUnlimitedSelected}
 				tokenSymbol={tokenSymbol}
 				spendLimitCustomValue={spendLimitCustomValue}
@@ -781,8 +799,33 @@ class ApproveTransactionReview extends PureComponent {
 		});
 	};
 
+	renderQRDetails() {
+		const { host, spenderAddress } = this.state;
+		const {
+			activeTabUrl,
+			transaction: { origin },
+			QRState,
+		} = this.props;
+		const styles = this.getStyles();
+		return (
+			<View style={styles.actionViewQRObject} testID={'qr-details'}>
+				<TransactionHeader
+					currentPageInformation={{ origin, spenderAddress, title: host, url: activeTabUrl }}
+				/>
+				<QRSigningDetails
+					QRState={QRState}
+					tighten
+					showHint={false}
+					showCancelButton
+					bypassAndroidCameraAccessCheck={false}
+				/>
+			</View>
+		);
+	}
+
 	render = () => {
 		const { viewDetails, editPermissionVisible } = this.state;
+		const { isSigningQRObject } = this.props;
 
 		return (
 			<View>
@@ -790,6 +833,8 @@ class ApproveTransactionReview extends PureComponent {
 					? this.renderTransactionReview()
 					: editPermissionVisible
 					? this.renderEditPermission()
+					: isSigningQRObject
+					? this.renderQRDetails()
 					: this.renderDetails()}
 			</View>
 		);
@@ -798,6 +843,8 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
 	accounts: state.engine.backgroundState.AccountTrackerController.accounts,
+	selectedAddress: state.engine.backgroundState.PreferencesController.selectedAddress,
+	conversionRate: state.engine.backgroundState.CurrencyRateController.conversionRate,
 	ticker: state.engine.backgroundState.NetworkController.provider.ticker,
 	transaction: getNormalizedTxState(state),
 	accountsLength: Object.keys(state.engine.backgroundState.AccountTrackerController.accounts || {}).length,
@@ -817,4 +864,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 ApproveTransactionReview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(withNavigation(ApproveTransactionReview));
+export default connect(
+	mapStateToProps,
+	mapDispatchToProps
+)(withNavigation(withQRHardwareAwareness(ApproveTransactionReview)));

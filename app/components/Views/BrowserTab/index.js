@@ -1342,6 +1342,13 @@ export const BrowserTab = (props) => {
 	};
 
 	/**
+	 * Return to the MetaMask Dapp Homepage
+	 */
+	const returnHome = () => {
+		go(HOMEPAGE_HOST);
+	};
+
+	/**
 	 * Main render
 	 */
 	return (
@@ -1355,7 +1362,7 @@ export const BrowserTab = (props) => {
 						<WebView
 							decelerationRate={'normal'}
 							ref={webviewRef}
-							renderError={() => <WebviewError error={error} onReload={() => null} />}
+							renderError={() => <WebviewError error={error} returnHome={returnHome} />}
 							source={{ uri: initialUrl }}
 							injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
 							style={styles.webview}

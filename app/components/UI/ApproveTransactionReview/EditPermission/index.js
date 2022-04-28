@@ -10,8 +10,6 @@ import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
-export const MINIMUM_VALUE = '1';
-
 const createStyles = (colors) =>
 	StyleSheet.create({
 		wrapper: {
@@ -241,9 +239,6 @@ function EditPermission({
 		</View>
 	);
 }
-EditPermission.defaultProps = {
-	minimumSpendLimit: MINIMUM_VALUE,
-};
 
 EditPermission.propTypes = {
 	host: PropTypes.string.isRequired,
