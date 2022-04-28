@@ -1,3 +1,8 @@
+// eslint-disable-next-line import/no-nodejs-modules
+import crypto from 'crypto';
+// eslint-disable-next-line import/no-nodejs-modules
+import { Buffer } from 'buffer';
+
 /**
  * Class that exposes methods to generate and compute
  * Elliptic Curve Diffie-Hellman (ECDH) for key exchange
