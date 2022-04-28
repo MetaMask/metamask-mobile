@@ -1,3 +1,4 @@
+import { SDK } from '../sdk';
 import { FIAT_ORDER_PROVIDERS, FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
 
@@ -30,6 +31,19 @@ const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
 	}
 };
 
+export const aggregatorInitialFiatOrder = (initialOrder) => ({
+	...initialOrder,
+	state: FIAT_ORDER_STATES.PENDING,
+	provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
+	createdAt: Date.now(),
+	amount: 0,
+	fee: null,
+	currency: '',
+	cryptoAmount: null,
+	cryptocurrency: '',
+	data: null,
+});
+
 const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
 	id: aggregatorOrder.id,
 	provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -53,20 +67,19 @@ const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
  * @param {FiatOrder} order Order coming from the state
  * @returns {FiatOrder} Fiat order to update in the state
  */
-export async function processAggregatorOrder(order, sdk) {
+export async function processAggregatorOrder(order) {
 	try {
-		if (sdk) {
-			const updatedOrder = await sdk.getOrder(order.id, order.account);
+		const orders = await SDK.orders();
+		const updatedOrder = await orders.getOrder(order.id, order.account);
 
-			if (!updatedOrder) {
-				throw new Error('Payment Request Failed: empty order response');
-			}
-
-			return {
-				...order,
-				...aggregatorOrderToFiatOrder(updatedOrder),
-			};
+		if (!updatedOrder) {
+			throw new Error('Payment Request Failed: empty order response');
 		}
+
+		return {
+			...order,
+			...aggregatorOrderToFiatOrder(updatedOrder),
+		};
 	} catch (error) {
 		Logger.error(error, { message: 'FiatOrders::AggregatorProcessor error while processing order', order });
 		return order;

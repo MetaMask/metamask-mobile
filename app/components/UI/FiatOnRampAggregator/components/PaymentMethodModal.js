@@ -5,10 +5,10 @@ import Modal from 'react-native-modal';
 
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import PaymentOption from './PaymentOption';
-import { PAYMENT_METHOD_ICON } from '../constants';
+
 import { useTheme } from '../../../../util/theme';
+import { getPaymentMethodIcon } from '../utils';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -34,22 +34,19 @@ const createStyles = (colors) =>
 		},
 	});
 
-function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
+function PaymentMethodModal({ isVisible, dismiss, title, onItemPress, paymentMethods, selectedPaymentMethod }) {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
-	const { selectedCountry, selectedRegion, selectedPaymentMethod, setSelectedPaymentMethod } = useFiatOnRampSDK();
-	const [{ data: paymentMethods }] = useSDKMethod('getPaymentMethods', {
-		countryId: selectedCountry?.id,
-		regionId: selectedRegion?.id,
-	});
 
 	const handleOnPressItemCallback = useCallback(
 		(paymentMethodId) => {
-			setSelectedPaymentMethod(paymentMethodId);
-			dismiss();
-			onItemPress();
+			if (selectedPaymentMethod !== paymentMethodId) {
+				onItemPress(paymentMethodId);
+			} else {
+				onItemPress();
+			}
 		},
-		[dismiss, onItemPress, setSelectedPaymentMethod]
+		[onItemPress, selectedPaymentMethod]
 	);
 
 	return (
@@ -85,7 +82,7 @@ function PaymentMethodModal({ isVisible, dismiss, title, onItemPress }) {
 												].includes(id)}
 												onPress={() => handleOnPressItemCallback(id)}
 												amountTier={amountTier}
-												paymentType={PAYMENT_METHOD_ICON[id]}
+												paymentType={getPaymentMethodIcon(id)}
 												idRequired={false}
 											/>
 										</View>
@@ -105,6 +102,8 @@ PaymentMethodModal.propTypes = {
 	dismiss: PropTypes.func,
 	title: PropTypes.string,
 	onItemPress: PropTypes.func,
+	paymentMethods: PropTypes.array,
+	selectedPaymentMethod: PropTypes.string,
 };
 
 export default PaymentMethodModal;

@@ -81,16 +81,7 @@ const createStyles = (colors) =>
 
 const MAX_TOKENS_RESULTS = 20;
 
-function TokenSelectModal({
-	isVisible,
-	dismiss,
-	title,
-	description,
-	tokens,
-	onItemPress,
-	chainId,
-	excludeAddresses = [],
-}) {
+function TokenSelectModal({ isVisible, dismiss, title, description, tokens, onItemPress, excludeAddresses = [] }) {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	const searchInput = useRef(null);
@@ -103,13 +94,8 @@ function TokenSelectModal({
 	);
 
 	const filteredTokens = useMemo(
-		() =>
-			tokens?.filter(
-				(token) =>
-					Number(token.network?.chainId) === Number(chainId) &&
-					!excludedAddresses.includes(token.address?.toLowerCase())
-			),
-		[chainId, excludedAddresses, tokens]
+		() => tokens?.filter((token) => !excludedAddresses.includes(token.address?.toLowerCase())),
+		[excludedAddresses, tokens]
 	);
 
 	const tokenFuse = useMemo(
@@ -251,7 +237,6 @@ TokenSelectModal.propTypes = {
 	isVisible: PropTypes.bool,
 	dismiss: PropTypes.func,
 	title: PropTypes.string,
-	chainId: PropTypes.string,
 	description: PropTypes.string,
 	tokens: PropTypes.arrayOf(PropTypes.object),
 	onItemPress: PropTypes.func,

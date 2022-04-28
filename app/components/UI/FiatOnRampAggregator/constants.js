@@ -1,5 +1,3 @@
-import { Icon } from './components/PaymentIcon';
-
 export const CHAIN_ID_NETWORKS = {
 	1: 'ethereum',
 	10: 'optimism',
@@ -11,8 +9,4 @@ export const CHAIN_ID_NETWORKS = {
 	250: 'fantom',
 };
 
-export const PAYMENT_METHOD_ICON = {
-	'/payments/debit-credit-card': Icon.Card,
-	'/payments/bank-account': Icon.Bank,
-	'/payments/apple-pay': Icon.Apple,
-};
+export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';

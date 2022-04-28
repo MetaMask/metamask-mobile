@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useEffect, createContext, useContext, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { OnRampSdk, IOnRampSdk, Environment, Context } from '@consensys/on-ramp-sdk';
+import { OnRampSdk, Environment, Context, RegionsService } from '@consensys/on-ramp-sdk';
+
 import Logger from '../../../../util/Logger';
 
 import {
-	fiatOrdersCountrySelectorAgg,
-	setFiatOrdersCountryAGG,
 	selectedAddressSelector,
 	chainIdSelector,
 	fiatOrdersGetStartedAgg,
@@ -20,23 +19,22 @@ interface IFiatOnRampSDKConfig {
 	POLLING_INTERVAL_HIGHLIGHT: number;
 	POLLING_CYCLES: number;
 }
+
 export interface IFiatOnRampSDK {
-	sdk: IOnRampSdk | undefined;
+	sdk: RegionsService | undefined;
 	sdkError?: Error;
-	selectedCountry: any;
-	setSelectedCountry: (country: any) => void;
 
 	selectedRegion: any;
 	setSelectedRegion: (region: any) => void;
 
-	selectedPaymentMethod: string;
-	setSelectedPaymentMethod: (paymentMethod: string) => void;
+	selectedPaymentMethodId: string;
+	setSelectedPaymentMethodId: (paymentMethodId: string) => void;
 
-	selectedAsset: string;
+	selectedAsset: string | null;
 	setSelectedAsset: (asset: string) => void;
 
-	selectedFiatCurrencyId: string;
-	setSelectedFiatCurrencyId: (asset: string) => void;
+	selectedFiatCurrencyId: string | null;
+	setSelectedFiatCurrencyId: (currencyId: string) => void;
 
 	getStarted: boolean;
 	setGetStarted: (getStartedFlag: boolean) => void;
@@ -54,6 +52,11 @@ interface IProviderProps<T> {
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
+
+export const SDK = OnRampSdk.create(Environment.Staging, Context.Mobile, {
+	verbose: VERBOSE_SDK,
+});
+
 const appConfig = {
 	POLLING_INTERVAL: 15000,
 	POLLING_INTERVAL_HIGHLIGHT: 10000,
@@ -63,54 +66,37 @@ const appConfig = {
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
 
 export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatOnRampSDK>) => {
-	const [sdkModule, setSdkModule] = useState<IOnRampSdk | undefined>(undefined);
+	const [sdkModule, setSdkModule] = useState<RegionsService>();
 	const [sdkError, setSdkError] = useState<Error>();
 
 	useEffect(() => {
 		(async () => {
 			try {
-				const sdk = await OnRampSdk.getSDK(Environment.Staging, Context.Mobile, {
-					verbose: VERBOSE_SDK,
-					maxInstanceCount: 2,
-				});
+				const sdk = await SDK.regions();
 				setSdkModule(sdk);
 			} catch (error) {
 				setSdkError(error as Error);
 			}
 		})();
-
-		return () => {
-			OnRampSdk.destructInstance();
-		};
 	}, []);
 
-	const sdk: IOnRampSdk | undefined = useMemo(() => sdkModule, [sdkModule]);
+	const sdk: RegionsService | undefined = useMemo(() => sdkModule, [sdkModule]);
 
 	const dispatch = useDispatch();
 
-	const INITIAL_SELECTED_COUNTRY: any = useSelector(fiatOrdersCountrySelectorAgg);
-	const INITIAL_SELECTED_REGION: any = useSelector(fiatOrdersRegionSelectorAgg);
+	const INITIAL_SELECTED_REGION: string = useSelector(fiatOrdersRegionSelectorAgg);
 	const INITIAL_GET_STARTED: boolean = useSelector(fiatOrdersGetStartedAgg);
 	const selectedAddress: string = useSelector(selectedAddressSelector);
 	const selectedChainId: string = useSelector(chainIdSelector);
 
 	const INITIAL_PAYMENT_METHOD: string = useSelector(fiatOrdersPaymentMethodSelectorAgg);
-	const INITIAL_SELECTED_ASSET = 'ETH';
+	const INITIAL_SELECTED_ASSET = null;
 
-	const [selectedCountry, setSelectedCountry] = useState(INITIAL_SELECTED_COUNTRY);
 	const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
 	const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
-	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(INITIAL_PAYMENT_METHOD);
-	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState('');
+	const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(INITIAL_PAYMENT_METHOD);
+	const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
 	const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
-
-	const setSelectedCountryCallback = useCallback(
-		(country) => {
-			setSelectedCountry(country);
-			dispatch(setFiatOrdersCountryAGG(country));
-		},
-		[dispatch]
-	);
 
 	const setSelectedRegionCallback = useCallback(
 		(region) => {
@@ -120,9 +106,9 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		[dispatch]
 	);
 
-	const setSelectedPaymentMethodCallback = useCallback(
+	const setSelectedPaymentMethodIdCallback = useCallback(
 		(paymentMethodId) => {
-			setSelectedPaymentMethod(paymentMethodId);
+			setSelectedPaymentMethodId(paymentMethodId);
 			dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
 		},
 		[dispatch]
@@ -132,8 +118,8 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		setSelectedAsset(asset);
 	}, []);
 
-	const setSelectedFiatCurrencyCallback = useCallback((currency) => {
-		setSelectedFiatCurrencyId(currency);
+	const setSelectedFiatCurrencyIdCallback = useCallback((currencyId) => {
+		setSelectedFiatCurrencyId(currencyId);
 	}, []);
 
 	const setGetStartedCallback = useCallback(
@@ -148,20 +134,17 @@ export const FiatOnRampSDKProvider = ({ value, ...props }: IProviderProps<IFiatO
 		sdk,
 		sdkError,
 
-		selectedCountry,
-		setSelectedCountry: setSelectedCountryCallback,
-
 		selectedRegion,
 		setSelectedRegion: setSelectedRegionCallback,
 
-		selectedPaymentMethod,
-		setSelectedPaymentMethod: setSelectedPaymentMethodCallback,
+		selectedPaymentMethodId,
+		setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
 		selectedAsset,
 		setSelectedAsset: setSelectedAssetCallback,
 
 		selectedFiatCurrencyId,
-		setSelectedFiatCurrencyId: setSelectedFiatCurrencyCallback,
+		setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
 		getStarted,
 		setGetStarted: setGetStartedCallback,
@@ -185,11 +168,11 @@ interface config<T> {
 	onMount?: boolean;
 }
 
-export function useSDKMethod<T extends keyof IOnRampSdk>(
+export function useSDKMethod<T extends keyof RegionsService>(
 	config: T | config<T>,
-	...params: Parameters<IOnRampSdk[T]>
+	...params: Parameters<RegionsService[T]>
 ): [{ data: any; error: string | null; isFetching: boolean }, () => Promise<void>] {
-	const { sdk }: { sdk: IOnRampSdk } = useFiatOnRampSDK() as any;
+	const { sdk }: { sdk: RegionsService } = useFiatOnRampSDK() as any;
 	const [data, setData] = useState<any | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [isFetching, setIsFetching] = useState<boolean>(true);
