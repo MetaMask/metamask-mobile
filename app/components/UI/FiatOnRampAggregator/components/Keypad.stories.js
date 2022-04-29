@@ -9,18 +9,18 @@ import Text from '../../../Base/Text';
 import Keypad from './Keypad';
 
 storiesOf('FiatOnRamp / Keypad', module)
-	.addDecorator((getStory) => getStory())
-	.add('Default', () => {
-		const currency = select('Currency', ['usd', 'eur', 'jpy', 'clp'], 'usd');
-		const onKeypadChange = action('Keypad change');
+  .addDecorator((getStory) => getStory())
+  .add('Default', () => {
+    const currency = select('Currency', ['usd', 'eur', 'jpy', 'clp'], 'usd');
+    const onKeypadChange = action('Keypad change');
 
-		return (
-			<SafeAreaView>
-				<Text big centered primary>
-					{`<Keypad>`} Component
-				</Text>
-				<Text primary>Example</Text>
-				<Keypad value="123" onChange={onKeypadChange} currency={currency} />
-			</SafeAreaView>
-		);
-	});
+    return (
+      <SafeAreaView>
+        <Text big centered primary>
+          {`<Keypad>`} Component
+        </Text>
+        <Text primary>Example</Text>
+        <Keypad value="123" onChange={onKeypadChange} currency={currency} />
+      </SafeAreaView>
+    );
+  });

@@ -505,7 +505,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           :
                         </Text>
                          
-                         GWEI
+                         
+                        GWEI
                       </Text>
                     }
                     unit="GWEI"
@@ -629,7 +630,8 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                           :
                         </Text>
                          
-                         GWEI
+                         
+                        GWEI
                       </Text>
                     }
                     unit="GWEI"

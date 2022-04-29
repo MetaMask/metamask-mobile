@@ -11,41 +11,47 @@ const ListItem = ListItemBase as any;
 const Text = TextBase as any;
 
 const createStyles = (colors: any) =>
-	StyleSheet.create({
-		chevron: {
-			marginLeft: 10,
-			color: colors.icon.default,
-		},
-	});
+  StyleSheet.create({
+    chevron: {
+      marginLeft: 10,
+      color: colors.icon.default,
+    },
+  });
 interface IProps {
-	id?: string;
-	name?: string;
-	label?: string;
-	icon?: ReactNode;
-	highlighted?: boolean;
-	onPress?: () => void;
+  id?: string;
+  name?: string;
+  label?: string;
+  icon?: ReactNode;
+  highlighted?: boolean;
+  onPress?: () => void;
 }
 
-const PaymentMethodSelector: React.FC<IProps> = ({ name, icon, label, highlighted, onPress }: IProps) => {
-	const { colors } = useTheme();
-	const styles = createStyles(colors);
-	return (
-		<Box label={label} onPress={onPress} highlighted={highlighted} thin>
-			<View>
-				<ListItem.Content>
-					{Boolean(icon) && <ListItem.Icon>{icon}</ListItem.Icon>}
-					<ListItem.Body>
-						<Text black bold numberOfLines={1} adjustsFontSizeToFit>
-							{name}
-						</Text>
-					</ListItem.Body>
-					<ListItem.Amount>
-						<Entypo name="chevron-right" size={16} style={styles.chevron} />
-					</ListItem.Amount>
-				</ListItem.Content>
-			</View>
-		</Box>
-	);
+const PaymentMethodSelector: React.FC<IProps> = ({
+  name,
+  icon,
+  label,
+  highlighted,
+  onPress,
+}: IProps) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return (
+    <Box label={label} onPress={onPress} highlighted={highlighted} thin>
+      <View>
+        <ListItem.Content>
+          {Boolean(icon) && <ListItem.Icon>{icon}</ListItem.Icon>}
+          <ListItem.Body>
+            <Text black bold numberOfLines={1} adjustsFontSizeToFit>
+              {name}
+            </Text>
+          </ListItem.Body>
+          <ListItem.Amount>
+            <Entypo name="chevron-right" size={16} style={styles.chevron} />
+          </ListItem.Amount>
+        </ListItem.Content>
+      </View>
+    </Box>
+  );
 };
 
 export default PaymentMethodSelector;

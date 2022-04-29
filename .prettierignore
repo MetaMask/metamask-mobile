@@ -1,18 +1,12 @@
 /android/app/src/main/assets/InpageBridgeWeb3.js
 /app/core/InpageBridgeWeb3.js
+/app/util/blockies.js
 __snapshots__
 android
 coverage
 ios
-node_modules
-package-lock.json
-package.json
-app/util/blockies.js
-/shim.js
-babel.config.js
-metro.config.js
 jest.preprocessor.js
-scripts/metamask-bot-build-announce.js
+node_modules
 CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
 /storybook/storyLoader.js
