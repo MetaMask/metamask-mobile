@@ -1,6 +1,6 @@
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
-import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC } from '../../../app/constants/network';
+import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC, BSC, POLYGON } from '../../../app/constants/network';
 import {
 	NETWORK_ERROR_MISSING_NETWORK_ID,
 	NETWORK_ERROR_UNKNOWN_NETWORK_ID,
@@ -69,6 +69,24 @@ const NetworkList = {
 		color: '#f2f3f4',
 		networkType: 'rpc',
 	},
+	[BSC]: {
+		name: 'Binance Smart Chain Network',
+		shortName: 'Binance',
+		networkId: 56,
+		chainId: 56,
+		hexChainId: '0x6',
+		color: '#e4b00b',
+		networkType: 'bnb',
+	},
+	[POLYGON]: {
+		name: 'Polygon Network',
+		shortName: 'Polygon',
+		networkId: 137,
+		chainId: 137,
+		hexChainId: '0x7',
+		color: '#2891fa',
+		networkType: 'matic',
+	},
 };
 
 const NetworkListKeys = Object.keys(NetworkList);
@@ -89,6 +107,20 @@ export const getDecimalChainId = (chainId) => {
 export const isMainnetByChainId = (chainId) => getDecimalChainId(String(chainId)) === String(1);
 
 export const getNetworkName = (id) => NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
+
+export const isTestNet = (networkId) => {
+	const networkName = getNetworkName(networkId);
+
+	if (
+		networkName === 'ropsten' ||
+		networkName === 'ropsten' ||
+		networkName === 'kovan' ||
+		networkName === 'rinkeby'
+	) {
+		return true;
+	}
+	return false;
+};
 
 export function getNetworkTypeById(id) {
 	if (!id) {

@@ -24,8 +24,7 @@ import {
 } from '../../../../util/transactions';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { getNetworkName, getNetworkNonce, isMainNet } from '../../../../util/networks';
-import { capitalize } from '../../../../util/general';
+import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
@@ -554,13 +553,10 @@ class TransactionReviewInformation extends PureComponent {
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
-		const is_main_net = isMainNet(network);
+		const is_test_net = isTestNet(network);
 
-		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-		const networkName = capitalize(getNetworkName(network));
-		const errorLinkText = is_main_net
-			? strings('transaction.buy_more_eth')
-			: strings('transaction.get_ether', { networkName });
+		const errorPress = is_test_net ? this.gotoFaucet : this.buyEth;
+		const errorLinkText = is_test_net ? strings('transaction.go_to_faucet') : strings('transaction.buy_more');
 
 		const showFeeMarket =
 			!gasEstimateType ||
@@ -585,9 +581,7 @@ class TransactionReviewInformation extends PureComponent {
 						<TouchableOpacity onPress={errorPress}>
 							<Text style={styles.error}>{error}</Text>
 							{/* only show buy more on mainnet */}
-							{over && is_main_net && (
-								<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
-							)}
+							{over && <Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>}
 						</TouchableOpacity>
 					</View>
 				)}
