@@ -7,6 +7,7 @@ import rootReducer from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
+import Device from '../util/device';
 
 const TIMEOUT = 40000;
 
@@ -36,7 +37,7 @@ const MigratedStorage = {
 	},
 	async setItem(key, value) {
 		try {
-			return await FilesystemStorage.setItem(key, value);
+			return await FilesystemStorage.setItem(key, value, Device.isIos());
 		} catch (error) {
 			Logger.error(error, { message: 'Failed to set item' });
 		}
