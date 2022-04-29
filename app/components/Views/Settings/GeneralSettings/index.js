@@ -241,11 +241,13 @@ class Settings extends PureComponent {
     this.updateNavBar();
     const languages = getLanguages();
     this.setState({ languages });
-    this.languageOptions = Object.keys(languages).map((key) => ({
-      value: key,
-      label: languages[key],
-      key,
-    }));
+    this.languageOptions = Object.keys(languages)
+      .map((key) => ({
+        value: key,
+        label: languages[key],
+        key,
+      }))
+      .sort((a, b) => (a.label > b.label ? 1 : -1));
     this.searchEngineOptions = [
       { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
       { value: 'Google', label: 'Google', key: 'Google' },
