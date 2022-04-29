@@ -3,8 +3,8 @@ import { shallow } from 'enzyme';
 import InvalidCustomNetworkAlert from '.';
 
 describe('InvalidCustomNetworkAlert', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(<InvalidCustomNetworkAlert />);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(<InvalidCustomNetworkAlert />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });

@@ -17,35 +17,35 @@ const STAGE_SIZE = IS_NARROW ? 240 : 260;
 const FINALIZING_PERCENTAGE = 80;
 
 const createStyles = (colors) =>
-	StyleSheet.create({
-		screen: {
-			flex: 1,
-			justifyContent: 'center',
-			alignItems: 'center',
-		},
-		content: {
-			width: '100%',
-			paddingHorizontal: 60,
-			marginVertical: 15,
-		},
-		progressWrapper: {
-			backgroundColor: colors.primary.muted,
-			height: 3,
-			borderRadius: 3,
-			marginVertical: 15,
-		},
-		progressBar: {
-			backgroundColor: colors.primary.default,
-			height: 3,
-			width: 3,
-			borderRadius: 3,
-			flex: 1,
-		},
-		foxContainer: {
-			width: STAGE_SIZE,
-			height: STAGE_SIZE,
-		},
-	});
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    content: {
+      width: '100%',
+      paddingHorizontal: 60,
+      marginVertical: 15,
+    },
+    progressWrapper: {
+      backgroundColor: colors.primary.muted,
+      height: 3,
+      borderRadius: 3,
+      marginVertical: 15,
+    },
+    progressBar: {
+      backgroundColor: colors.primary.default,
+      height: 3,
+      width: 3,
+      borderRadius: 3,
+      flex: 1,
+    },
+    foxContainer: {
+      width: STAGE_SIZE,
+      height: STAGE_SIZE,
+    },
+  });
 
 const customStyle = (colors) => `
 	body {
@@ -74,90 +74,96 @@ const customStyle = (colors) => `
 `;
 
 function LoadingAnimation({ title, finish, onAnimationEnd }) {
-	const { colors } = useTheme();
-	const styles = createStyles(colors);
-	const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
-	const [hasStarted, setHasStarted] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
 
-	/* References */
-	const foxRef = useRef();
-	const progressValue = useRef(new Animated.Value(0)).current;
-	const progressWidth = progressValue.interpolate({
-		inputRange: [0, 100],
-		outputRange: ['0%', '100%'],
-	});
+  /* References */
+  const foxRef = useRef();
+  const progressValue = useRef(new Animated.Value(0)).current;
+  const progressWidth = progressValue.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
 
-	const startAnimation = useCallback(() => {
-		setHasStarted(true);
-		Animated.sequence([
-			Animated.delay(DELAY),
-			Animated.timing(progressValue, {
-				toValue: FINALIZING_PERCENTAGE,
-				duration: START_DURATION,
-				useNativeDriver: false,
-			}),
-		]).start();
-	}, [progressValue]);
+  const startAnimation = useCallback(() => {
+    setHasStarted(true);
+    Animated.sequence([
+      Animated.delay(DELAY),
+      Animated.timing(progressValue, {
+        toValue: FINALIZING_PERCENTAGE,
+        duration: START_DURATION,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [progressValue]);
 
-	const endAnimation = useCallback(() => {
-		setHasStartedFinishing(true);
-		Animated.timing(progressValue, {
-			toValue: 100,
-			duration: FINISH_DURATION,
-			useNativeDriver: false,
-		}).start(() => {
-			if (onAnimationEnd) {
-				onAnimationEnd();
-			}
-		});
-	}, [onAnimationEnd, progressValue]);
+  const endAnimation = useCallback(() => {
+    setHasStartedFinishing(true);
+    Animated.timing(progressValue, {
+      toValue: 100,
+      duration: FINISH_DURATION,
+      useNativeDriver: false,
+    }).start(() => {
+      if (onAnimationEnd) {
+        onAnimationEnd();
+      }
+    });
+  }, [onAnimationEnd, progressValue]);
 
-	/* Effects */
+  /* Effects */
 
-	/* Effect to finish animation once sequence is completed */
-	useEffect(() => {
-		if (finish && !hasStartedFinishing) {
-			endAnimation();
-		}
-	}, [endAnimation, finish, hasStartedFinishing]);
+  /* Effect to finish animation once sequence is completed */
+  useEffect(() => {
+    if (finish && !hasStartedFinishing) {
+      endAnimation();
+    }
+  }, [endAnimation, finish, hasStartedFinishing]);
 
-	useEffect(() => {
-		if (!hasStarted) {
-			startAnimation();
-		}
-	}, [hasStarted, startAnimation]);
+  useEffect(() => {
+    if (!hasStarted) {
+      startAnimation();
+    }
+  }, [hasStarted, startAnimation]);
 
-	return (
-		<View style={styles.screen}>
-			<View style={styles.content}>
-				<>
-					<Title centered>{title}</Title>
-				</>
+  return (
+    <View style={styles.screen}>
+      <View style={styles.content}>
+        <>
+          <Title centered>{title}</Title>
+        </>
 
-				<View style={styles.progressWrapper}>
-					<Animated.View style={[styles.progressBar, { width: progressWidth }]} />
-				</View>
-			</View>
-			<View style={styles.foxContainer} pointerEvents="none">
-				<Fox ref={foxRef} customContent={backgroundShapes} customStyle={customStyle(colors)} />
-			</View>
-		</View>
-	);
+        <View style={styles.progressWrapper}>
+          <Animated.View
+            style={[styles.progressBar, { width: progressWidth }]}
+          />
+        </View>
+      </View>
+      <View style={styles.foxContainer} pointerEvents="none">
+        <Fox
+          ref={foxRef}
+          customContent={backgroundShapes}
+          customStyle={customStyle(colors)}
+        />
+      </View>
+    </View>
+  );
 }
 
 LoadingAnimation.propTypes = {
-	/**
-	 * Wether to execute the "Finalizing" animation after the main sequence
-	 */
-	finish: PropTypes.bool,
-	/**
-	 * Function callback executed once both the main sequence and the finalizing animation ends
-	 */
-	onAnimationEnd: PropTypes.func,
-	/**
-	 * Title string
-	 */
-	title: PropTypes.string,
+  /**
+   * Wether to execute the "Finalizing" animation after the main sequence
+   */
+  finish: PropTypes.bool,
+  /**
+   * Function callback executed once both the main sequence and the finalizing animation ends
+   */
+  onAnimationEnd: PropTypes.func,
+  /**
+   * Title string
+   */
+  title: PropTypes.string,
 };
 
 export default LoadingAnimation;

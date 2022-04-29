@@ -12,40 +12,53 @@ const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
-	name: {
-		fontSize: 16,
-	},
-	chevron: {
-		flex: 0,
-		marginLeft: 8,
-	},
+  name: {
+    fontSize: 16,
+  },
+  chevron: {
+    flex: 0,
+    marginLeft: 8,
+  },
 });
 
 interface Props {
-	label?: string;
-	assetSymbol: string;
-	icon?: ReactNode;
-	assetName: string;
-	highlighted?: boolean;
-	onPress?: () => any;
+  label?: string;
+  assetSymbol: string;
+  icon?: ReactNode;
+  assetName: string;
+  highlighted?: boolean;
+  onPress?: () => any;
 }
 
-const AssetSelectorButton: React.FC<Props> = ({ label, assetSymbol, assetName, icon, onPress, highlighted }: Props) => (
-	<Box label={label} onPress={onPress} highlighted={highlighted}>
-		<View>
-			<ListItem.Content>
-				{Boolean(icon) && <ListItem.Icon>{icon}</ListItem.Icon>}
-				<ListItem.Body>
-					<Text black bold style={styles.name} numberOfLines={1} adjustsFontSizeToFit>
-						{assetName}
-					</Text>
-				</ListItem.Body>
-				<ListItem.Amounts style={styles.chevron}>
-					<CurrencyChevron currency={assetSymbol} />
-				</ListItem.Amounts>
-			</ListItem.Content>
-		</View>
-	</Box>
+const AssetSelectorButton: React.FC<Props> = ({
+  label,
+  assetSymbol,
+  assetName,
+  icon,
+  onPress,
+  highlighted,
+}: Props) => (
+  <Box label={label} onPress={onPress} highlighted={highlighted}>
+    <View>
+      <ListItem.Content>
+        {Boolean(icon) && <ListItem.Icon>{icon}</ListItem.Icon>}
+        <ListItem.Body>
+          <Text
+            black
+            bold
+            style={styles.name}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {assetName}
+          </Text>
+        </ListItem.Body>
+        <ListItem.Amounts style={styles.chevron}>
+          <CurrencyChevron currency={assetSymbol} />
+        </ListItem.Amounts>
+      </ListItem.Content>
+    </View>
+  </Box>
 );
 
 export default AssetSelectorButton;

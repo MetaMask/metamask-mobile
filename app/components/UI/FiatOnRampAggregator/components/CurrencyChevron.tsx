@@ -8,25 +8,25 @@ import CustomText from '../../../Base/Text';
 const Text = CustomText as any;
 
 const styles = StyleSheet.create({
-	chevron: {
-		marginLeft: 10,
-	},
+  chevron: {
+    marginLeft: 10,
+  },
 });
 
 interface Props {
-	currency: string;
+  currency: string;
 }
 
 const CurrencyChevron = ({ currency, ...props }: Props) => (
-	<View {...props}>
-		<Text black>
-			<Text black bold>
-				{currency}
-			</Text>
-			{'  '}
-			<Entypo name="chevron-down" size={16} style={styles.chevron} />
-		</Text>
-	</View>
+  <View {...props}>
+    <Text black>
+      <Text black bold>
+        {currency}
+      </Text>
+      {'  '}
+      <Entypo name="chevron-down" size={16} style={styles.chevron} />
+    </Text>
+  </View>
 );
 
 export default CurrencyChevron;
