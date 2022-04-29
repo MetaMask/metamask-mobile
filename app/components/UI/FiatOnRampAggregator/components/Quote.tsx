@@ -12,7 +12,6 @@ import ApplePayButton from '../containers/ApplePayButton';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import { useAssetFromTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
-import { Logos } from '@consensys/on-ramp-sdk/dist/API';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
@@ -44,7 +43,7 @@ interface Props {
 }
 
 const Quote: React.FC<Props> = ({ quote, onPress, onPressBuy, showInfo, highlighted }: Props) => {
-	const logoKey: keyof Logos = useAssetFromTheme('light', 'dark');
+	const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 	const { networkFee = 0, providerFee = 0, amountIn = 0, amountOut = 0, fiat, provider, crypto } = quote;
 	const totalFees = networkFee + providerFee;
 	const price = amountIn - totalFees;

@@ -1,15 +1,17 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity, View, Linking } from 'react-native';
 import Modal from 'react-native-modal';
+import { QuoteResponse } from '@consensys/on-ramp-sdk';
+import IonicIcon from 'react-native-vector-icons/Ionicons';
 
+import Box from '../components/Box';
 import CustomText from '../../../Base/Text';
 import CustomTitle from '../../../Base/Title';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Box from '../components/Box';
-import { strings } from '../../../../../locales/i18n';
-import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
-import { Logos } from '@consensys/on-ramp-sdk/dist/API';
+import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+
+type Logos = QuoteResponse['provider']['logos'];
 
 const Text = CustomText as any;
 const Title = CustomTitle as any;
@@ -67,7 +69,8 @@ const InfoAlert: React.FC<Props> = ({
 }: Props) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
-	const logoKey: keyof Logos = useAssetFromTheme('light', 'dark');
+
+	const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
 	const handleLinkPress = useCallback(async (url: string) => {
 		const supported = await Linking.canOpenURL(url);
