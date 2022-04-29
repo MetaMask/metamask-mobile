@@ -2,13 +2,12 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert, Linking } from 'react-native';
+import { InteractionManager, Alert } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
-import Logger from '../util/Logger';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
@@ -226,8 +225,7 @@ class DeeplinkManager {
 
     const handled = () => (onHandled ? onHandled() : false);
 
-    const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK, MM_ITMS_APP_LINK } =
-      AppConstants;
+    const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
 
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
@@ -257,20 +255,14 @@ class DeeplinkManager {
             // loops back to open the link with the right protocol
             this.parse(url, { browserCallBack });
           } else {
-            // If it's our universal link don't open it in the browser
-            if (!action && urlObj.href === `https://${MM_UNIVERSAL_LINK_HOST}/`)
-              return;
+            // If it's our universal link or Apple store deep link don't open it in the browser
 
-            // if it's Apple store deep link, opens Apple store page
-            if (urlObj.href === MM_DEEP_ITMS_APP_LINK) {
-              Linking.canOpenURL(MM_ITMS_APP_LINK).then(
-                (supported) => {
-                  supported && Linking.openURL(MM_ITMS_APP_LINK);
-                },
-                (err) => Logger.log(err),
-              );
+            if (
+              (!action &&
+                urlObj.href === `https://${MM_UNIVERSAL_LINK_HOST}/`) ||
+              urlObj.href === MM_DEEP_ITMS_APP_LINK
+            )
               return;
-            }
 
             // Normal links (same as dapp)
             this._handleBrowserUrl(urlObj.href, browserCallBack);
