@@ -48,8 +48,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import { capitalize, shallowEqual, renderShortText } from '../../../../util/general';
-import { isMainNet, getNetworkName, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
+import { shallowEqual, renderShortText } from '../../../../util/general';
+import { isTestNet, getNetworkNonce, isMainnetByChainId } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/confusables';
@@ -1244,12 +1244,13 @@ class Confirm extends PureComponent {
 				<AdressToComponent />
 			);
 
-		const is_main_net = isMainNet(network);
-		const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-		const networkName = capitalize(getNetworkName(network));
-		const errorLinkText = is_main_net
-			? strings('transaction.buy_more_eth')
-			: strings('transaction.get_ether', { networkName });
+		const is_test_net = isTestNet(network);
+		const errorPress = is_test_net
+			? /* this.gotoFaucet -> browser view is not available in this navigation stack */ {}
+			: this.buyEth;
+		const errorLinkText = is_test_net
+			? /* strings('transaction.go_to_faucet') */ ''
+			: strings('transaction.buy_more');
 
 		const { EIP1559TransactionData } = this.state;
 
@@ -1348,10 +1349,7 @@ class Confirm extends PureComponent {
 						<View style={styles.errorWrapper}>
 							<TouchableOpacity onPress={errorPress}>
 								<Text style={styles.error}>{errorMessage}</Text>
-								{/* only show buy more on mainnet */}
-								{over && is_main_net && (
-									<Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>
-								)}
+								{over && <Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>}
 							</TouchableOpacity>
 						</View>
 					)}

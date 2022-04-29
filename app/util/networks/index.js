@@ -1,6 +1,18 @@
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
-import { MAINNET, ROPSTEN, KOVAN, RINKEBY, GOERLI, RPC, BSC, POLYGON } from '../../../app/constants/network';
+import {
+	MAINNET,
+	ROPSTEN,
+	KOVAN,
+	RINKEBY,
+	GOERLI,
+	RPC,
+	BSC,
+	POLYGON,
+	AVALANCHE,
+	CELO,
+	FANTOM,
+} from '../../../app/constants/network';
 import {
 	NETWORK_ERROR_MISSING_NETWORK_ID,
 	NETWORK_ERROR_UNKNOWN_NETWORK_ID,
@@ -86,6 +98,33 @@ const NetworkList = {
 		hexChainId: '0x7',
 		color: '#2891fa',
 		networkType: 'matic',
+	},
+	[AVALANCHE]: {
+		name: 'Avanlanche Network',
+		shortName: 'Avalanche',
+		networkId: 43114,
+		chainId: 43114,
+		hexChainId: '0x8',
+		color: '#de3e3f',
+		networkType: 'avax',
+	},
+	[CELO]: {
+		name: 'Celo Network',
+		shortName: 'Celo',
+		networkId: 42220,
+		chainId: 42220,
+		hexChainId: '0x9',
+		color: '#ffc300',
+		networkType: 'celo',
+	},
+	[FANTOM]: {
+		name: 'Fantom Network',
+		shortName: 'Fantom',
+		networkId: 250,
+		chainId: 250,
+		hexChainId: '0x10',
+		color: '#2266f7',
+		networkType: 'ftm',
 	},
 };
 

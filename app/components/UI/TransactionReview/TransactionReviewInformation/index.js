@@ -580,7 +580,6 @@ class TransactionReviewInformation extends PureComponent {
 					<View style={styles.errorWrapper}>
 						<TouchableOpacity onPress={errorPress}>
 							<Text style={styles.error}>{error}</Text>
-							{/* only show buy more on mainnet */}
 							{over && <Text style={[styles.error, styles.underline]}>{errorLinkText}</Text>}
 						</TouchableOpacity>
 					</View>

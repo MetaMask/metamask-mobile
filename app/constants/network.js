@@ -8,3 +8,6 @@ export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
 export const BSC = 'bsc';
 export const POLYGON = 'polygon';
+export const AVALANCHE = 'avalanche';
+export const CELO = 'celo';
+export const fantom = 'fantom';
