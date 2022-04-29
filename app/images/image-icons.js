@@ -9,13 +9,13 @@ import BNB from './binance.png';
 import AVAX from './avalanche.png';
 
 export default {
-	PALM,
-	MATIC,
-	OPTIMISM,
-	ONE,
-	FTM,
-	ETHEREUM,
-	BNB,
-	AETH,
-	AVAX,
+  PALM,
+  MATIC,
+  OPTIMISM,
+  ONE,
+  FTM,
+  ETHEREUM,
+  BNB,
+  AETH,
+  AVAX,
 };

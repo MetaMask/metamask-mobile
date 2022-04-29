@@ -5,71 +5,73 @@ import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import {
-	NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
-	NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
+  NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
+  NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
 } from '../../../../constants/test-ids';
 
 const createStyles = (colors: any) =>
-	StyleSheet.create({
-		buttonView: {
-			flexDirection: 'row',
-			paddingVertical: 16,
-		},
-		button: {
-			flex: 1,
-		},
-		cancel: {
-			marginRight: 8,
-			backgroundColor: colors.background.default,
-			borderColor: colors.border.default,
+  StyleSheet.create({
+    buttonView: {
+      flexDirection: 'row',
+      paddingVertical: 16,
+    },
+    button: {
+      flex: 1,
+    },
+    cancel: {
+      marginRight: 8,
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
 
-			borderWidth: 1,
-		},
-		confirm: {
-			marginLeft: 8,
-		},
-	});
+      borderWidth: 1,
+    },
+    confirm: {
+      marginLeft: 8,
+    },
+  });
 
 interface NetworkAddedProps {
-	nickname: string;
-	goHome: () => void;
-	switchNetwork: () => void;
+  nickname: string;
+  closeModal: () => void;
+  switchNetwork: () => void;
 }
 
 const NetworkAdded = (props: NetworkAddedProps) => {
-	const { nickname, goHome, switchNetwork } = props;
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { nickname, closeModal, switchNetwork } = props;
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return (
-		<View>
-			<Text centered bold black big>
-				{strings('networks.new_network')}
-			</Text>
-			<Text centered>
-				<Text bold>{`"${strings('networks.network_name', { networkName: nickname })}"`}</Text>
-				<Text>{strings('networks.network_added')}</Text>
-			</Text>
-			<View style={styles.buttonView}>
-				<StyledButton
-					type={'cancel'}
-					testID={NEW_NETWORK_ADDED_CLOSE_BUTTON_ID}
-					onPress={goHome}
-					containerStyle={[styles.button, styles.cancel]}
-				>
-					{strings('networks.close')}
-				</StyledButton>
-				<StyledButton
-					type={'confirm'}
-					onPress={switchNetwork}
-					testID={NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID}
-					containerStyle={[styles.button, styles.confirm]}
-				>
-					{strings('networks.switch_network')}
-				</StyledButton>
-			</View>
-		</View>
-	);
+  return (
+    <View>
+      <Text centered bold black big>
+        {strings('networks.new_network')}
+      </Text>
+      <Text centered>
+        <Text bold>{`"${strings('networks.network_name', {
+          networkName: nickname,
+        })}"`}</Text>
+        <Text>{strings('networks.network_added')}</Text>
+      </Text>
+      <View style={styles.buttonView}>
+        <StyledButton
+          type={'cancel'}
+          testID={NEW_NETWORK_ADDED_CLOSE_BUTTON_ID}
+          onPress={closeModal}
+          containerStyle={[styles.button, styles.cancel]}
+        >
+          {strings('networks.close')}
+        </StyledButton>
+        <StyledButton
+          type={'confirm'}
+          onPress={switchNetwork}
+          testID={NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID}
+          containerStyle={[styles.button, styles.confirm]}
+        >
+          {strings('networks.switch_network')}
+        </StyledButton>
+      </View>
+    </View>
+  );
 };
 
 export default NetworkAdded;

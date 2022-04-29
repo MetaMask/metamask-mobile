@@ -6,19 +6,19 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	engine: {
-		backgroundState: {
-			PreferencesController: {
-				frequentRpcList: [],
-			},
-		},
-	},
-	networkOnboarded: {
-		networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
-	},
-	privacy: {
-		thirdPartyApiMode: true,
-	},
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        frequentRpcList: [],
+      },
+    },
+  },
+  networkOnboarded: {
+    networkOnboardedState: [{ network: 'mainnet', onboarded: true }],
+  },
+  privacy: {
+    thirdPartyApiMode: true,
+  },
 };
 const store = mockStore(initialState);
 
