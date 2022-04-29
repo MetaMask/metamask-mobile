@@ -121,7 +121,7 @@ const GetQuotes = () => {
 	const [isInPolling, setIsInPolling] = useState(false);
 	const [pollingCyclesLeft, setPollingCyclesLeft] = useState(appConfig.POLLING_CYCLES - 1);
 	const [remainingTime, setRemainingTime] = useState(appConfig.POLLING_INTERVAL);
-	const [showInfo, setShowInfo] = useState(false);
+	const [showProviderInfo, setShowProviderInfo] = useState(false);
 	const [selectedProviderInfo, setSelectedProviderInfo] = useState(null);
 	const [providerId, setProviderId] = useState(null);
 
@@ -156,7 +156,7 @@ const GetQuotes = () => {
 				if (newRemainingTime <= 0) {
 					setPollingCyclesLeft((cycles) => cycles - 1);
 					// we never fetch data if we run out of remaining polling cycles
-					setShowInfo(false);
+					setShowProviderInfo(false);
 					pollingCyclesLeft > 0 && fetchQuotes();
 				}
 
@@ -185,7 +185,7 @@ const GetQuotes = () => {
 	useEffect(() => {
 		if (pollingCyclesLeft < 0 || ErrorFetchingQuotes) {
 			setIsInPolling(false);
-			setShowInfo(false);
+			setShowProviderInfo(false);
 		}
 	}, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
@@ -204,8 +204,8 @@ const GetQuotes = () => {
 
 	const handleInfoPress = useCallback((quote) => {
 		if (quote?.provider) {
-			setSelectedProviderInfo(quote?.provider);
-			setShowInfo(true);
+			setSelectedProviderInfo(quote.provider);
+			setShowProviderInfo(true);
 		}
 	}, []);
 
@@ -299,8 +299,8 @@ const GetQuotes = () => {
 				</Text>
 			</ScreenLayout.Header>
 			<InfoAlert
-				isVisible={showInfo}
-				dismiss={() => setShowInfo(false)}
+				isVisible={showProviderInfo}
+				dismiss={() => setShowProviderInfo(false)}
 				providerName={selectedProviderInfo?.name}
 				logos={selectedProviderInfo?.logos}
 				subtitle={selectedProviderInfo?.hqAddress}
