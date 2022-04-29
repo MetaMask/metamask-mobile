@@ -1561,13 +1561,13 @@ class Confirm extends PureComponent {
             </View>
           )}
 
-{this.state.gasSelected === AppConstants.GAS_OPTIONS.LOW && (
-                        <WarningMessage
-                            style={styles.actionsWrapper}
-                            warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
-                        />
-                    )}
-					
+          {this.state.gasSelected === AppConstants.GAS_OPTIONS.LOW && (
+            <WarningMessage
+              style={styles.actionsWrapper}
+              warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
+            />
+          )}
+
           <View style={styles.actionsWrapper}>
             {showHexData && (
               <TouchableOpacity

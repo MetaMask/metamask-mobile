@@ -829,7 +829,9 @@ const EditGasFee1559 = ({
                           )}
                         </Text>
                         <Text noMargin grey infoModal>
-                          {strings('edit_gas_fee_eip1559.learn_more.aggressive_text')}
+                          {strings(
+                            'edit_gas_fee_eip1559.learn_more.aggressive_text',
+                          )}
                         </Text>
                         {/* TODO(eip1559) add link when available
                         <TouchableOpacity style={styles.learnMoreLink}>
