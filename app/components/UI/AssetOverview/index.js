@@ -40,6 +40,7 @@ import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { BROWSER_TAB_HOME, BROWSER_VIEW } from '../../Nav/navigationKeys';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -213,15 +214,15 @@ class AssetOverview extends PureComponent {
     });
   };
 
-  goToBrowserUrl(url) {
-    this.props.navigation.navigate('BrowserTabHome', {
-      screen: 'BrowserView',
-      params: {
-        newTabUrl: url,
-        timestamp: Date.now(),
-      },
-    });
-  }
+	goToBrowserUrl(url) {
+		this.props.navigation.navigate(BROWSER_TAB_HOME, {
+			screen: BROWSER_VIEW,
+			params: {
+				newTabUrl: url,
+				timestamp: Date.now(),
+			},
+		});
+	}
 
   renderLogo = () => {
     const { tokenList, asset } = this.props;

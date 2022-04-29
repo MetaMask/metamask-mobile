@@ -55,7 +55,7 @@ import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-import { BROWSER_URL_MODAL, BROWSER_VIEW } from '../navigationKeys';
+import { BROWSER_TAB_HOME, BROWSER_URL_MODAL, BROWSER_VIEW } from '../navigationKeys';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -122,7 +122,7 @@ const BrowserModalFlow = () => (
 
 const BrowserTabHome = () => (
 	<Stack.Navigator screenOptions={{ headerShown: false }}>
-		<Stack.Screen name={BROWSER_VIEW} component={BrowserModalFlow} />
+		<Stack.Screen name={BROWSER_TAB_HOME} component={BrowserModalFlow} />
 	</Stack.Navigator>
 );
 

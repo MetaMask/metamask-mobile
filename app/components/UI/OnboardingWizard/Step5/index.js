@@ -12,6 +12,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { BROWSER_TAB_HOME, BROWSER_VIEW } from '../../../Nav/navigationKeys';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;
@@ -63,25 +64,22 @@ const Step5 = (props) => {
     [getPosition],
   );
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with next step
-   * Closing drawer and navigating to 'BrowserView'
-   */
-  const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(6);
-    drawerRef?.current?.dismissDrawer?.();
-    navigation &&
-      navigation.navigate('BrowserTabHome', {
-        screen: 'BrowserView',
-      });
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED,
-      {
-        tutorial_step_count: 5,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
-      },
-    );
-  };
+	/**
+	 * Dispatches 'setOnboardingWizardStep' with next step
+	 * Closing drawer and navigating to 'BrowserView'
+	 */
+	const onNext = () => {
+		setOnboardingWizardStep && setOnboardingWizardStep(6);
+		drawerRef?.current?.dismissDrawer?.();
+		navigation &&
+			navigation.navigate(BROWSER_TAB_HOME, {
+				screen: BROWSER_VIEW,
+			});
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED, {
+			tutorial_step_count: 5,
+			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
+		});
+	};
 
   /**
    * Dispatches 'setOnboardingWizardStep' with next step
