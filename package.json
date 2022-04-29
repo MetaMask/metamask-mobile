@@ -51,12 +51,6 @@
     "prestorybook": "rnstl",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog"
   },
-  "prettier": {
-    "printWidth": 120,
-    "singleQuote": true,
-    "tabWidth": 4,
-    "useTabs": true
-  },
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged"
