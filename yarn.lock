@@ -1006,9 +1006,9 @@
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.15.4":
-  version "7.17.8"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.8.tgz#3e56e4aff81befa55ac3ac6a0967349fd1c5bca2"
-  integrity sha512-dQpEpK0O9o6lj6oPu0gRDbbnk+4LeHlNcBpspf6Olzt3GIX4P1lWF1gS+pHLDFlaJvbR6q7jCfQ08zA4QJBnmA==
+  version "7.17.9"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.9.tgz#d19fbf802d01a8cb6cf053a64e472d42c434ba72"
+  integrity sha512-lSiBBvodq29uShpWGNbgFdKYNiFDo5/HIYsaCEY9ff4sb10x9jizo2+pRrSyF4jKZCXqgzuqBOQKbUm90gQwJg==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -1104,10 +1104,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@consensys/on-ramp-sdk@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-0.0.24.tgz#51f3abc3ca5394ec8c13a867c4668ed3b5b8792f"
-  integrity sha512-Q+otshwvAeZ+q2uKjCJ7Zybwdji3IrdqCmxqpT58/bTTZgnlWshBNrllVWhGjK6NDbnOFXDyKtGYCBHUUl+Jng==
+"@consensys/on-ramp-sdk@^0.0.25":
+  version "0.0.25"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-0.0.25.tgz#a21972462ec09e37cc2c1a919f8b0bca392ba231"
+  integrity sha512-PZyTbWodfvzLwCcrf1fKMyqdBG0lUw0LmhbH0XUcTV61P4Js9Ihixz7c42Zc+YSuKcEA9yhkkmUZ6kVDQ1yrkA==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -4478,9 +4478,9 @@ aws4@^1.8.0:
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
 
 axios-retry@^3.1.2:
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.2.4.tgz#f447a53c3456f5bfeca18f20c3a3272207d082ae"
-  integrity sha512-Co3UXiv4npi6lM963mfnuH90/YFLKWWDmoBYfxkHT5xtkSSWNqK9zdG3fw5/CP/dsoKB5aMMJCsgab+tp1OxLQ==
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.2.5.tgz#64952992837c7d9a12eec156a2694a7945f60895"
+  integrity sha512-a8umkKbfIkTiYJQLx3v3TzKM85TGKB8ZQYz4zwykt2fpO64TsRlUhjaPaAb3fqMWCXFm2YhWcd8V5FHDKO9bSA==
   dependencies:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
