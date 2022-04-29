@@ -7,25 +7,28 @@ import { LANGUAGE } from '../app/constants/storage';
 // import 'intl/locale-data/jsonp/en.js';
 
 // Import all locales
-import en from './languages/en.json';
-import es from './languages/es.json';
-import hi from './languages/hi-in.json';
-import id from './languages/id-id.json';
-import ja from './languages/ja-jp.json';
-import ko from './languages/ko-kr.json';
-import pt from './languages/pt-br.json';
-import ru from './languages/ru-ru.json';
-import tl from './languages/tl.json';
-import vi from './languages/vi-vn.json';
-import zh from './languages/zh-cn.json';
+import de from './languages/de';
+import el from './languages/el';
+import en from './languages/en';
+import es from './languages/es';
+import fr from './languages/fr';
+import hi from './languages/hi';
+import id from './languages/id';
+import ja from './languages/ja';
+import ko from './languages/ko';
+import pt from './languages/pt';
+import ru from './languages/ru';
+import tl from './languages/tl';
+import tr from './languages/tr';
+import vi from './languages/vi';
+import zh from './languages/zh';
 
-// Should the app fallback to English if user locale doesn't exists
-I18n.fallbacks = true;
-I18n.defaultLocale = 'en';
-// Define the supported translations
-I18n.translations = {
+export const supportedTranslations = {
+  de,
+  el,
   en,
   es,
+  fr,
   hi,
   id,
   ja,
@@ -33,9 +36,16 @@ I18n.translations = {
   pt,
   ru,
   tl,
+  tr,
   vi,
   zh,
 };
+
+// Should the app fallback to English if user locale doesn't exists
+I18n.fallbacks = true;
+I18n.defaultLocale = 'en';
+// Define the supported translations
+I18n.translations = supportedTranslations;
 // If language selected get locale
 getUserPreferableLocale();
 
@@ -89,8 +99,11 @@ export async function setLocale(locale) {
 // Get languages
 export function getLanguages() {
   return {
+    de: 'German',
+    el: 'Greek',
     en: 'English',
     es: 'Spanish',
+    fr: 'French',
     hi: 'Hindi',
     id: 'Bahasa Indonesian',
     ja: 'Japanese',
@@ -98,6 +111,7 @@ export function getLanguages() {
     pt: 'Portuguese - Brazil',
     ru: 'Russian',
     tl: 'Filipino',
+    tr: 'Turkish',
     vi: 'Vietnamese',
     zh: 'Chinese - China',
   };
