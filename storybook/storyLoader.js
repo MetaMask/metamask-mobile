@@ -40,6 +40,6 @@ const stories = [
 ];
 
 module.exports = {
-	loadStories,
-	stories,
+  loadStories,
+  stories,
 };
