@@ -6,7 +6,8 @@ export const PASSWORD_INPUT_BOX_ID = 'login-password-input';
 export const LOGIN_PASSWORD_ERROR = 'invalid-password-error';
 export const RESET_WALLET_ID = 'reset-wallet-button';
 
-export const ACCOUNT_APROVAL_MODAL_CONTAINER_ID = 'account-approval-modal-container';
+export const ACCOUNT_APROVAL_MODAL_CONTAINER_ID =
+  'account-approval-modal-container';
 export const CANCEL_BUTTON_ID = 'connect-cancel-button';
 export const CONNECT_BUTTON_ID = 'connect-approve-button';
 
@@ -18,16 +19,20 @@ export const OTHER_NETWORK_LIST_ID = 'other-network-name';
 export const NETWORK_SCROLL_ID = 'other-networks-scroll';
 
 export const NETWORK_EDUCATION_MODAL_CONTAINER_ID = 'network-education-modal';
-export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID = 'network-education-modal-close-button';
-export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID = 'network-education-modal-network-name';
+export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID =
+  'network-education-modal-close-button';
+export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID =
+  'network-education-modal-network-name';
 
 export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
 export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
-export const CONFIRM_PASSWORD_INPUT_BOX_ID = 'create-password-second-input-field';
+export const CONFIRM_PASSWORD_INPUT_BOX_ID =
+  'create-password-second-input-field';
 
 export const CHANGE_PASSWORD_TITLE_ID = 'change-password-section';
 export const CHANGE_PASSWORD_BUTTON_ID = 'change-password-button-id';
-export const CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID = 'private-credential-password-input-field';
+export const CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID =
+  'private-credential-password-input-field';
 
 export const REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID = 'reveal-seed-button';
 

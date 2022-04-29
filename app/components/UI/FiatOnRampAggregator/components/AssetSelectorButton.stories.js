@@ -11,29 +11,29 @@ import AssetSelectorButton from './AssetSelectorButton';
 import Text from '../../../Base/Text';
 
 storiesOf('FiatOnRamp / AssetSelectorButton', module)
-	.addDecorator((getStory) => getStory())
-	.add('Default', () => {
-		const highlighted = boolean('Highlighted', false);
-		const label = text('Box label', 'Amount');
-		const assetSymbol = text('Asset Symbol', 'ETH');
+  .addDecorator((getStory) => getStory())
+  .add('Default', () => {
+    const highlighted = boolean('Highlighted', false);
+    const label = text('Box label', 'Amount');
+    const assetSymbol = text('Asset Symbol', 'ETH');
 
-		const assetName = text('Asset Name', 'Ethereum');
-		const onPress = action('AssetSelectorButton pressed');
+    const assetName = text('Asset Name', 'Ethereum');
+    const onPress = action('AssetSelectorButton pressed');
 
-		return (
-			<SafeAreaView>
-				<Text big centered primary>
-					{`<AssetSelectorButton>`} Component
-				</Text>
-				<Text primary>Example</Text>
-				<AssetSelectorButton
-					highlighted={highlighted}
-					label={label}
-					icon={<FontAwesome name="circle" size={32} />}
-					assetSymbol={assetSymbol}
-					assetName={assetName}
-					onPress={onPress}
-				/>
-			</SafeAreaView>
-		);
-	});
+    return (
+      <SafeAreaView>
+        <Text big centered primary>
+          {`<AssetSelectorButton>`} Component
+        </Text>
+        <Text primary>Example</Text>
+        <AssetSelectorButton
+          highlighted={highlighted}
+          label={label}
+          icon={<FontAwesome name="circle" size={32} />}
+          assetSymbol={assetSymbol}
+          assetName={assetName}
+          onPress={onPress}
+        />
+      </SafeAreaView>
+    );
+  });

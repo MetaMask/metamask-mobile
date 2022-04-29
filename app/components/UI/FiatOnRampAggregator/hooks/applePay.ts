@@ -12,57 +12,59 @@ export const ABORTED = 'ABORTED';
 
 //* Setup */
 const applePaySetup = {
-	getPurchaseFiatAmountWithoutFeeLabel(crypto: CryptoCurrency) {
-		return strings('fiat_on_ramp.wyre_purchase', { currency: crypto.symbol });
-	},
+  getPurchaseFiatAmountWithoutFeeLabel(crypto: CryptoCurrency) {
+    return strings('fiat_on_ramp.wyre_purchase', { currency: crypto.symbol });
+  },
 
-	getPurchaseFiatFeeLabel() {
-		return strings('fiat_on_ramp.Fee');
-	},
+  getPurchaseFiatFeeLabel() {
+    return strings('fiat_on_ramp.Fee');
+  },
 
-	getPurchaseFiatTotalAmountLabel() {
-		return strings('fiat_on_ramp.wyre_total_label');
-	},
+  getPurchaseFiatTotalAmountLabel() {
+    return strings('fiat_on_ramp.wyre_total_label');
+  },
 };
 
 function useApplePay(quote: QuoteResponse) {
-	const showRequest = useCallback(async () => {
-		if (!quote.getApplePayRequestInfo || !quote.purchaseWithApplePay) {
-			throw new Error('Quote does not support Apple Pay');
-		}
+  const showRequest = useCallback(async () => {
+    if (!quote.getApplePayRequestInfo || !quote.purchaseWithApplePay) {
+      throw new Error('Quote does not support Apple Pay');
+    }
 
-		const applePayInfo = quote.getApplePayRequestInfo(applePaySetup);
-		const paymentRequest = new PaymentRequest(
-			applePayInfo.methodData,
-			applePayInfo.paymentDetails,
-			applePayInfo.paymentOptions
-		);
-		try {
-			const paymentResponse = await paymentRequest.show();
-			if (!paymentResponse) {
-				throw new Error('Payment Request Failed: empty apple pay response');
-			}
+    const applePayInfo = quote.getApplePayRequestInfo(applePaySetup);
+    const paymentRequest = new PaymentRequest(
+      applePayInfo.methodData,
+      applePayInfo.paymentDetails,
+      applePayInfo.paymentOptions,
+    );
+    try {
+      const paymentResponse = await paymentRequest.show();
+      if (!paymentResponse) {
+        throw new Error('Payment Request Failed: empty apple pay response');
+      }
 
-			const purchaseResult = await quote.purchaseWithApplePay(paymentResponse);
+      const purchaseResult = await quote.purchaseWithApplePay(paymentResponse);
 
-			if (purchaseResult.success) {
-				return purchaseResult.order;
-			}
+      if (purchaseResult.success) {
+        return purchaseResult.order;
+      }
 
-			throw new Error(purchaseResult.error);
-		} catch (error) {
-			if ((error as Error).message.includes('AbortError')) {
-				return ABORTED;
-			}
-			if (paymentRequest?.abort) {
-				paymentRequest.abort();
-			}
-			Logger.error(error as Error, { message: 'FiatOnRampAgg::ApplePay error while creating order' });
-			throw error;
-		}
-	}, [quote]);
+      throw new Error(purchaseResult.error);
+    } catch (error) {
+      if ((error as Error).message.includes('AbortError')) {
+        return ABORTED;
+      }
+      if (paymentRequest?.abort) {
+        paymentRequest.abort();
+      }
+      Logger.error(error as Error, {
+        message: 'FiatOnRampAgg::ApplePay error while creating order',
+      });
+      throw error;
+    }
+  }, [quote]);
 
-	return [showRequest, ABORTED];
+  return [showRequest, ABORTED];
 }
 
 export default useApplePay;
