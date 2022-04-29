@@ -2,12 +2,13 @@
 
 import URL from 'url-parse';
 import qs from 'qs';
-import { InteractionManager, Alert } from 'react-native';
+import { InteractionManager, Alert, Linking } from 'react-native';
 import { parse } from 'eth-url-parser';
 import WalletConnect from '../core/WalletConnect';
 import AppConstants from './AppConstants';
 import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
+import Logger from '../util/Logger';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
@@ -42,8 +43,15 @@ class DeeplinkManager {
   _handleNetworkSwitch = (switchToChainId) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
+    // If not specified, use the current network
+    if (!switchToChainId) {
+      return;
+    }
+
     // If current network is the same as the one we want to switch to, do nothing
-    if (NetworkController?.state?.provider?.chainId === switchToChainId) {
+    if (
+      NetworkController?.state?.provider?.chainId === String(switchToChainId)
+    ) {
       return;
     }
 
@@ -131,7 +139,9 @@ class DeeplinkManager {
     const txMeta = { ...ethUrl, source: url };
 
     try {
-      // Validate and switch network before performing any other action
+      /**
+       * Validate and switch network before performing any other action
+       */
       this._handleNetworkSwitch(ethUrl.chain_id);
 
       switch (ethUrl.function_name) {
@@ -216,7 +226,8 @@ class DeeplinkManager {
 
     const handled = () => (onHandled ? onHandled() : false);
 
-    const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
+    const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK, MM_ITMS_APP_LINK } =
+      AppConstants;
 
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
@@ -249,6 +260,17 @@ class DeeplinkManager {
             // If it's our universal link don't open it in the browser
             if (!action && urlObj.href === `https://${MM_UNIVERSAL_LINK_HOST}/`)
               return;
+
+            // if it's Apple store deep link, opens Apple store page
+            if (urlObj.href === MM_DEEP_ITMS_APP_LINK) {
+              Linking.canOpenURL(MM_ITMS_APP_LINK).then(
+                (supported) => {
+                  supported && Linking.openURL(MM_ITMS_APP_LINK);
+                },
+                (err) => Logger.log(err),
+              );
+              return;
+            }
 
             // Normal links (same as dapp)
             this._handleBrowserUrl(urlObj.href, browserCallBack);

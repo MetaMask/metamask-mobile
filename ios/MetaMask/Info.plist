@@ -123,6 +123,7 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>twitter</string>
+		<string>itms-apps</string>
 	</array>
 </dict>
 </plist>
