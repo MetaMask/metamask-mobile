@@ -55,7 +55,11 @@ import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-import { BROWSER_TAB_HOME, BROWSER_URL_MODAL, BROWSER_VIEW } from '../navigationKeys';
+import {
+  BROWSER_TAB_HOME,
+  BROWSER_URL_MODAL,
+  BROWSER_VIEW,
+} from '../navigationKeys';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -106,24 +110,26 @@ const WalletTabHome = () => (
 );
 
 const BrowserModalFlow = () => (
-	<Stack.Navigator
-		initialRouteName={BROWSER_VIEW}
-		mode={'modal'}
-		screenOptions={{ cardStyle: { backgroundColor: importedColors.transparent } }}
-	>
-		<Stack.Screen name={BROWSER_VIEW} component={Browser} />
-		<Stack.Screen
-			name={BROWSER_URL_MODAL}
-			component={BrowserUrlModal}
-			options={{ animationEnabled: false, headerShown: false }}
-		/>
-	</Stack.Navigator>
+  <Stack.Navigator
+    initialRouteName={BROWSER_VIEW}
+    mode={'modal'}
+    screenOptions={{
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+  >
+    <Stack.Screen name={BROWSER_VIEW} component={Browser} />
+    <Stack.Screen
+      name={BROWSER_URL_MODAL}
+      component={BrowserUrlModal}
+      options={{ animationEnabled: false, headerShown: false }}
+    />
+  </Stack.Navigator>
 );
 
 const BrowserTabHome = () => (
-	<Stack.Navigator screenOptions={{ headerShown: false }}>
-		<Stack.Screen name={BROWSER_TAB_HOME} component={BrowserModalFlow} />
-	</Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name={BROWSER_TAB_HOME} component={BrowserModalFlow} />
+  </Stack.Navigator>
 );
 
 const TransactionsHome = () => (

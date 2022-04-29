@@ -174,7 +174,6 @@ class Tokens extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-<<<<<<< HEAD
     return (
       <View style={styles.footer} key={'tokens-footer'}>
         <Text style={styles.emptyText}>
@@ -191,22 +190,6 @@ class Tokens extends PureComponent {
       </View>
     );
   };
-=======
-		return (
-			<View style={styles.footer} key={'tokens-footer'}>
-				<Text style={styles.emptyText}>{strings('wallet.no_available_tokens')}</Text>
-				<TouchableOpacity
-					style={styles.add}
-					onPress={this.goToAddToken}
-					disabled={!this.state.isAddTokenEnabled}
-					testID={'add-token-button'}
-				>
-					<Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
-				</TouchableOpacity>
-			</View>
-		);
-	};
->>>>>>> 0aabcf414 (Download attachement and open share modal)
 
   renderItem = (asset) => {
     const {

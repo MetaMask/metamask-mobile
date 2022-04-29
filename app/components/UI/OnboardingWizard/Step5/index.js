@@ -64,22 +64,25 @@ const Step5 = (props) => {
     [getPosition],
   );
 
-	/**
-	 * Dispatches 'setOnboardingWizardStep' with next step
-	 * Closing drawer and navigating to 'BrowserView'
-	 */
-	const onNext = () => {
-		setOnboardingWizardStep && setOnboardingWizardStep(6);
-		drawerRef?.current?.dismissDrawer?.();
-		navigation &&
-			navigation.navigate(BROWSER_TAB_HOME, {
-				screen: BROWSER_VIEW,
-			});
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED, {
-			tutorial_step_count: 5,
-			tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
-		});
-	};
+  /**
+   * Dispatches 'setOnboardingWizardStep' with next step
+   * Closing drawer and navigating to 'BrowserView'
+   */
+  const onNext = () => {
+    setOnboardingWizardStep && setOnboardingWizardStep(6);
+    drawerRef?.current?.dismissDrawer?.();
+    navigation &&
+      navigation.navigate(BROWSER_TAB_HOME, {
+        screen: BROWSER_VIEW,
+      });
+    AnalyticsV2.trackEvent(
+      AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED,
+      {
+        tutorial_step_count: 5,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
+      },
+    );
+  };
 
   /**
    * Dispatches 'setOnboardingWizardStep' with next step

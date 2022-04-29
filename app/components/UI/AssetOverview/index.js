@@ -214,15 +214,15 @@ class AssetOverview extends PureComponent {
     });
   };
 
-	goToBrowserUrl(url) {
-		this.props.navigation.navigate(BROWSER_TAB_HOME, {
-			screen: BROWSER_VIEW,
-			params: {
-				newTabUrl: url,
-				timestamp: Date.now(),
-			},
-		});
-	}
+  goToBrowserUrl(url) {
+    this.props.navigation.navigate(BROWSER_TAB_HOME, {
+      screen: BROWSER_VIEW,
+      params: {
+        newTabUrl: url,
+        timestamp: Date.now(),
+      },
+    });
+  }
 
   renderLogo = () => {
     const { tokenList, asset } = this.props;
