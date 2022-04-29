@@ -513,7 +513,10 @@ export const getRpcMethodMiddleware = ({
 			},
 
 			metamask_onAppMounted: async () => {
-				injectHomePageScripts();
+				if (isHomepage()) {
+					injectHomePageScripts();
+				}
+				res.result = true;
 			},
 
 			/**
