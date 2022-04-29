@@ -321,8 +321,8 @@ const ICON_IMAGES = {
 class DrawerView extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Object representing the selected the selected network
@@ -341,8 +341,8 @@ class DrawerView extends PureComponent {
      */
     identities: PropTypes.object,
     /**
-		/* Selected currency
-		*/
+    /* Selected currency
+    */
     currentCurrency: PropTypes.string,
     /**
      * List of keyrings
@@ -534,8 +534,8 @@ class DrawerView extends PureComponent {
           'LockScreen',
         ].includes(route)
       ) {
-        // eslint-disable-next-line react/no-did-update-set-state
         this.state.showProtectWalletModal &&
+          // eslint-disable-next-line react/no-did-update-set-state
           this.setState({ showProtectWalletModal: false });
         return;
       }
@@ -1316,7 +1316,7 @@ class DrawerView extends PureComponent {
                             item.name === strings('drawer.browser') &&
                             this.browserSectionRef
                           }
-													onPress={() => item.action()} // eslint-disable-line
+                          onPress={() => item.action()} // eslint-disable-line
                         >
                           {item.icon
                             ? item.routeNames &&
