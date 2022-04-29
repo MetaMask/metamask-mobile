@@ -24,15 +24,18 @@ export function renderFullAddress(address) {
 export const formatAddress = (rawAddress, type) => {
 	let formattedAddress = rawAddress;
 
-	if (isValidAddress(rawAddress)) {
-		if (type && type === 'short') {
-			formattedAddress = renderShortAddress(rawAddress);
-		} else if (type && type === 'mid') {
-			formattedAddress = renderSlightlyLongAddress(rawAddress);
-		} else {
-			formattedAddress = renderFullAddress(rawAddress);
-		}
+	if (!isValidAddress(rawAddress)) {
+		return rawAddress;
 	}
+
+	if (type && type === 'short') {
+		formattedAddress = renderShortAddress(rawAddress);
+	} else if (type && type === 'mid') {
+		formattedAddress = renderSlightlyLongAddress(rawAddress);
+	} else {
+		formattedAddress = renderFullAddress(rawAddress);
+	}
+
 	return formattedAddress.toLowerCase();
 };
 

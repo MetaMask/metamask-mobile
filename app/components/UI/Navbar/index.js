@@ -20,6 +20,7 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
+import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -179,7 +180,7 @@ export function getNavigationOptionsTitle(title, navigation, isFullScreenModal, 
 			) : null,
 		headerLeft: () =>
 			isFullScreenModal ? null : (
-				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={'title-back-arrow-button'}>
+				<TouchableOpacity onPress={navigationPop} style={styles.backButton} testID={BACK_ARROW_BUTTON_ID}>
 					<IonicIcon
 						name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
 						size={Device.isAndroid() ? 24 : 28}

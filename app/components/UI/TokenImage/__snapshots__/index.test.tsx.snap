@@ -6,6 +6,7 @@ exports[`TokenImage should render correctly 1`] = `
     Object {
       "address": "0x123",
       "decimals": 18,
+      "image": "invalid-uri",
       "symbol": "ABC",
     }
   }
