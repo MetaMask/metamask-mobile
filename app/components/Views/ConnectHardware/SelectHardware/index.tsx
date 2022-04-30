@@ -1,9 +1,11 @@
+/* eslint @typescript-eslint/no-var-requires: "off" */
+/* eslint @typescript-eslint/no-require-imports: "off" */
+
 import React, { useEffect } from 'react';
-import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, SafeAreaView, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
-import StyledButton from '../../../UI/StyledButton';
-import { getClosableNavigationOptions } from '../../../UI/Navbar';
+import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 
@@ -14,33 +16,33 @@ const createStyle = (colors: any) =>
 			marginHorizontal: '5%',
 			justifyContent: 'center',
 		},
-		topContainer: {
-			flex: 2,
+		textContainer: {
+			flex: 1,
 			width: '100%',
 			alignItems: 'center',
 			justifyContent: 'center',
 		},
-		middleContainer: {
+		buttonsContainer: {
 			flex: 7,
 			width: '100%',
 			alignItems: 'center',
-		},
-		bottomContainer: {
-			flex: 1,
-			width: '100%',
-			alignItems: 'center',
-			justifyContent: 'space-between',
 		},
 		text: {
 			...fontStyles.normal,
 			color: colors.text.alternative,
 		},
+		image: {
+			width: 150,
+			height: 75,
+		},
 		box: {
 			height: 125,
 			width: 200,
-			margin: 5,
+			margin: 10,
 			borderWidth: 1,
 			borderRadius: 5,
+			alignItems: 'center',
+			justifyContent: 'center',
 			borderColor: colors.border.default,
 			backgroundColor: colors.background.alternative,
 		},
@@ -54,6 +56,9 @@ const createStyle = (colors: any) =>
 		},
 	});
 
+const imgPath = 'images/ledger-logo.png';
+const ledgerLogo = require(imgPath);
+
 const SelectHardwareWallet = () => {
 	const navigation = useNavigation();
 	const { colors } = useAppThemeFromContext() || mockTheme;
@@ -61,7 +66,7 @@ const SelectHardwareWallet = () => {
 
 	useEffect(() => {
 		navigation.setOptions(
-			getClosableNavigationOptions(strings('connect_hardware.title_select_hardware'), '', navigation, colors)
+			getNavigationOptionsTitle(strings('connect_hardware.title_select_hardware'), navigation, false, colors)
 		);
 	}, [navigation, colors]);
 
@@ -74,33 +79,18 @@ const SelectHardwareWallet = () => {
 		console.log('navigateToConnectLedger');
 	};
 
-	const navigateToConnectHardwareWallet = () => {
-		// eslint-disable-next-line no-console
-		console.log('navigateToConnectHardwareWallet');
-	};
-
 	return (
 		<SafeAreaView style={styles.container}>
-			<View style={styles.topContainer}>
+			<View style={styles.textContainer}>
 				<Text style={styles.text}>{strings('connect_hardware.select_hardware')}</Text>
 			</View>
-			<View style={styles.middleContainer}>
+			<View style={styles.buttonsContainer}>
 				<TouchableOpacity onPress={navigateToConnectLedger} style={styles.box}>
-					<Text>Ledger</Text>
+					<Image style={styles.image} source={ledgerLogo} resizeMode={'contain'} />
 				</TouchableOpacity>
 				<TouchableOpacity onPress={navigateToConnectQRWallet} style={styles.box}>
 					<Text>QR-based</Text>
 				</TouchableOpacity>
-			</View>
-			<View style={styles.bottomContainer}>
-				<StyledButton
-					containerStyle={[styles.button]}
-					type={'confirm'}
-					onPress={navigateToConnectHardwareWallet}
-					disabled={false}
-				>
-					{strings('connect_hardware.continue')}
-				</StyledButton>
 			</View>
 		</SafeAreaView>
 	);
