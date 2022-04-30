@@ -3,6 +3,7 @@ import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
 import CustomText from '../../../Base/Text';
+import CustomTitle from '../../../Base/Title';
 import BaseListItem from '../../../Base/ListItem';
 import StyledButton from '../../StyledButton';
 import {
@@ -10,10 +11,15 @@ import {
   renderFromTokenMinimalUnit,
   toTokenMinimalUnit,
 } from '../../../../util/number';
+import { strings } from '../../../../../locales/i18n';
+import ApplePayButton from '../containers/ApplePayButton';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
+import { useAssetFromTheme } from '../../../../util/theme';
+import RemoteImage from '../../../Base/RemoteImage';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
+const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
@@ -22,6 +28,13 @@ const styles = StyleSheet.create({
   },
   buyButton: {
     marginTop: 10,
+  },
+  title: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoIcon: {
+    marginLeft: 8,
   },
 });
 
@@ -40,6 +53,7 @@ const Quote: React.FC<Props> = ({
   showInfo,
   highlighted,
 }: Props) => {
+  const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
   const {
     networkFee = 0,
     providerFee = 0,
@@ -56,14 +70,28 @@ const Quote: React.FC<Props> = ({
   const fiatSymbol = fiat?.denomSymbol || '';
 
   return (
-    <Box onPress={onPress} highlighted={highlighted}>
+    <Box onPress={highlighted ? undefined : onPress} highlighted={highlighted}>
       <ListItem.Content>
         <ListItem.Body>
           <ListItem.Title>
             <TouchableOpacity onPress={showInfo}>
-              <Text big primary bold>
-                {provider.name} <Feather name="info" size={12} />
-              </Text>
+              <View style={styles.title}>
+                {quote.provider?.logos?.[logoKey] ? (
+                  <RemoteImage
+                    style={{
+                      width: quote.provider.logos.width,
+                      height: quote.provider.logos.height,
+                    }}
+                    source={{ uri: quote.provider?.logos?.[logoKey] }}
+                  />
+                ) : (
+                  <Title>{quote?.provider?.name}</Title>
+                )}
+
+                {quote?.provider && (
+                  <Feather name="info" size={12} style={styles.infoIcon} />
+                )}
+              </View>
             </TouchableOpacity>
           </ListItem.Title>
         </ListItem.Body>
@@ -144,9 +172,16 @@ const Quote: React.FC<Props> = ({
 
       {highlighted && (
         <View style={styles.buyButton}>
-          <StyledButton type={'blue'} onPress={onPressBuy}>
-            Buy with {provider.name}
-          </StyledButton>
+          {quote.paymentMethod?.isApplePay ? (
+            <ApplePayButton
+              quote={quote}
+              label={strings('fiat_on_ramp.buy_with')}
+            />
+          ) : (
+            <StyledButton type={'blue'} onPress={onPressBuy}>
+              Buy with {provider.name}
+            </StyledButton>
+          )}
         </View>
       )}
     </Box>

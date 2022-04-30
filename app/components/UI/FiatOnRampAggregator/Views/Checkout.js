@@ -130,6 +130,7 @@ const CheckoutWebView = () => {
           key={key}
           source={{ uri }}
           allowInlineMediaPlayback
+          enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
         />

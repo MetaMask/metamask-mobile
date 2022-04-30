@@ -8,7 +8,6 @@ import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { ScrollView } from 'react-native-gesture-handler';
 import useInterval from '../../../hooks/useInterval';
 import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
@@ -18,10 +17,23 @@ import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import InfoAlert from '../components/InfoAlert';
 
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     row: {
       marginVertical: 8,
+    },
+    topBorder: {
+      height: 1,
+      width: '100%',
+      backgroundColor: colors.border.default,
     },
     firstRow: {
       marginTop: 0,
@@ -80,6 +92,12 @@ const createStyles = (colors) =>
     },
   });
 
+const LINK = {
+  HOMEPAGE: 'Homepage',
+  PRIVACY_POLICY: 'Privacy Policy',
+  SUPPORT: 'Support',
+};
+
 const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
 
 const GetQuotes = () => {
@@ -107,9 +125,23 @@ const GetQuotes = () => {
   const [remainingTime, setRemainingTime] = useState(
     appConfig.POLLING_INTERVAL,
   );
-  const [showInfo, setShowInfo] = useState(false);
-  const [selectedProviderInfo] = useState({});
+  const [showProviderInfo, setShowProviderInfo] = useState(false);
+  const [selectedProviderInfo, setSelectedProviderInfo] = useState(null);
   const [providerId, setProviderId] = useState(null);
+
+  const scrollOffsetY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollOffsetY.value = event.contentOffset.y;
+  });
+  const animatedStyles = useAnimatedStyle(() => {
+    const value = interpolate(
+      scrollOffsetY.value,
+      [0, 50],
+      [0, 1],
+      Extrapolate.EXTEND,
+    );
+    return { opacity: value };
+  });
 
   const [
     { data: quotes, isFetching: isFetchingQuotes, error: ErrorFetchingQuotes },
@@ -139,6 +171,7 @@ const GetQuotes = () => {
         if (newRemainingTime <= 0) {
           setPollingCyclesLeft((cycles) => cycles - 1);
           // we never fetch data if we run out of remaining polling cycles
+          setShowProviderInfo(false);
           pollingCyclesLeft > 0 && fetchQuotes();
         }
 
@@ -175,6 +208,7 @@ const GetQuotes = () => {
   useEffect(() => {
     if (pollingCyclesLeft < 0 || ErrorFetchingQuotes) {
       setIsInPolling(false);
+      setShowProviderInfo(false);
     }
   }, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
@@ -191,6 +225,13 @@ const GetQuotes = () => {
 
   const handleOnPress = useCallback((quote) => {
     setProviderId(quote.provider.id);
+  }, []);
+
+  const handleInfoPress = useCallback((quote) => {
+    if (quote?.provider) {
+      setSelectedProviderInfo(quote.provider);
+      setShowProviderInfo(true);
+    }
   }, []);
 
   const handleOnPressBuy = useCallback(
@@ -217,11 +258,11 @@ const GetQuotes = () => {
             primary
             style={[
               styles.timer,
-              remainingTime < appConfig.POLLING_INTERVAL_HIGHLIGHT &&
+              remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT &&
                 styles.timerHiglight,
             ]}
           >
-            {new Date(remainingTime).toISOString().substr(15, 4)}
+            {new Date(remainingTime).toISOString().substring(15, 19)}
           </Text>
         </Text>
       )}
@@ -289,17 +330,31 @@ const GetQuotes = () => {
         </Text>
       </ScreenLayout.Header>
       <InfoAlert
-        isVisible={showInfo}
-        subtitle={selectedProviderInfo.subtitle}
-        dismiss={() => setShowInfo(false)}
-        providerName={selectedProviderInfo.name}
-        body={selectedProviderInfo.body}
-        providerWebsite={selectedProviderInfo.website}
-        providerPrivacyPolicy={selectedProviderInfo.privacyPolicy}
-        providerSupport={selectedProviderInfo.support}
+        isVisible={showProviderInfo}
+        dismiss={() => setShowProviderInfo(false)}
+        providerName={selectedProviderInfo?.name}
+        logos={selectedProviderInfo?.logos}
+        subtitle={selectedProviderInfo?.hqAddress}
+        body={selectedProviderInfo?.description}
+        providerWebsite={
+          selectedProviderInfo?.links?.find(
+            (link) => link.name === LINK.HOMEPAGE,
+          )?.url
+        }
+        providerPrivacyPolicy={
+          selectedProviderInfo?.links?.find(
+            (link) => link.name === LINK.PRIVACY_POLICY,
+          )?.url
+        }
+        providerSupport={
+          selectedProviderInfo?.links?.find(
+            (link) => link.name === LINK.SUPPORT,
+          )?.url
+        }
       />
       <ScreenLayout.Body>
-        <ScrollView>
+        <Animated.View style={[styles.topBorder, animatedStyles]} />
+        <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
           <ScreenLayout.Content>
             {filteredQuotes.length <= 0 ? (
               <Text black center>
@@ -315,13 +370,13 @@ const GetQuotes = () => {
                     onPress={() => handleOnPress(quote)}
                     onPressBuy={() => handleOnPressBuy(quote)}
                     highlighted={quote.provider.id === providerId}
-                    showInfo={() => setShowInfo(true)}
+                    showInfo={() => handleInfoPress(quote)}
                   />
                 </View>
               ))
             )}
           </ScreenLayout.Content>
-        </ScrollView>
+        </Animated.ScrollView>
       </ScreenLayout.Body>
     </ScreenLayout>
   );
