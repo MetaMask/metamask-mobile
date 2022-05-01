@@ -1,22 +1,22 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Engine from '../../../core/Engine';
-import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
+import Engine from '../../../../core/Engine';
+import AnimatedQRScannerModal from '../../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import BlockingActionModal from '../../UI/BlockingActionModal';
-import { strings } from '../../../../locales/i18n';
+import BlockingActionModal from '../../../UI/BlockingActionModal';
+import { strings } from '../../../../../locales/i18n';
 import { IAccount } from './types';
 import { UR } from '@ngraveio/bc-ur';
-import Alert, { AlertType } from '../../Base/Alert';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import Alert, { AlertType } from '../../../Base/Alert';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Device from '../../../util/device';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
-import { fontStyles } from '../../../styles/common';
-import Logger from '../../../util/Logger';
+import Device from '../../../../util/device';
+import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { SUPPORTED_UR_TYPE } from '../../../../constants/qr';
+import { fontStyles } from '../../../../styles/common';
+import Logger from '../../../../util/Logger';
 
 interface IConnectQRHardwareProps {
 	navigation: any;

@@ -3,11 +3,11 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
-import { KEYSTONE_SUPPORT, KEYSTONE_SUPPORT_VIDEO } from '../../../../constants/urls';
-import { fontStyles, colors as importedColors } from '../../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-import StyledButton from '../../../UI/StyledButton';
+import { strings } from '../../../../../../locales/i18n';
+import { KEYSTONE_SUPPORT, KEYSTONE_SUPPORT_VIDEO } from '../../../../../constants/urls';
+import { fontStyles, colors as importedColors } from '../../../../../styles/common';
+import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import StyledButton from '../../../../UI/StyledButton';
 
 interface IConnectQRInstructionProps {
 	navigation: any;

@@ -24,7 +24,7 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
-import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import ConnectQRHardware from '../../Views/ConnectHardware/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
