@@ -35,7 +35,7 @@ const createStyle = (colors: any) =>
 			width: 150,
 			height: 75,
 		},
-		box: {
+		hardwareButton: {
 			height: 125,
 			width: 200,
 			margin: 10,
@@ -56,8 +56,11 @@ const createStyle = (colors: any) =>
 		},
 	});
 
-const imgPath = 'images/ledger-logo.png';
-const ledgerLogo = require(imgPath);
+const ledgerLogoImgPath = 'images/ledger-logo.png';
+const ledgerLogo = require(ledgerLogoImgPath);
+
+// const qrHardwareLogoImgPath = 'images/';
+// const qrHardwareLogo = require(qrHardwareLogoImgPath);
 
 const SelectHardwareWallet = () => {
 	const navigation = useNavigation();
@@ -85,10 +88,10 @@ const SelectHardwareWallet = () => {
 				<Text style={styles.text}>{strings('connect_hardware.select_hardware')}</Text>
 			</View>
 			<View style={styles.buttonsContainer}>
-				<TouchableOpacity onPress={navigateToConnectLedger} style={styles.box}>
+				<TouchableOpacity onPress={navigateToConnectLedger} style={styles.hardwareButton}>
 					<Image style={styles.image} source={ledgerLogo} resizeMode={'contain'} />
 				</TouchableOpacity>
-				<TouchableOpacity onPress={navigateToConnectQRWallet} style={styles.box}>
+				<TouchableOpacity onPress={navigateToConnectQRWallet} style={styles.hardwareButton}>
 					<Text>QR-based</Text>
 				</TouchableOpacity>
 			</View>
