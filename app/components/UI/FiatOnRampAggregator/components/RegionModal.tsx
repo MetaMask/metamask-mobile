@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   View,
   TouchableWithoutFeedback,
+  FlatList,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
@@ -233,6 +233,14 @@ const RegionModal: React.FC<Props> = ({
     setSearchString('');
   }, [data]);
 
+  const onBackButtonPress = useCallback(() => {
+    if (activeView === RegionViewType.STATE) {
+      handleRegionBackButton();
+    } else {
+      dismiss?.();
+    }
+  }, [activeView, dismiss, handleRegionBackButton]);
+
   const handleSearchTextChange = useCallback((text) => {
     setSearchString(text);
     if (list?.current)
@@ -255,6 +263,7 @@ const RegionModal: React.FC<Props> = ({
     <Modal
       isVisible={isVisible}
       onBackdropPress={dismiss}
+      onBackButtonPress={onBackButtonPress}
       swipeDirection="down"
       onSwipeComplete={dismiss}
       propagateSwipe
