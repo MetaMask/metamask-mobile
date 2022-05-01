@@ -232,7 +232,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 			Logger.log('Error: Connecting QR hardware wallet', err);
 		}
 		setBlockingModalVisible(false);
-		navigation.goBack();
+		navigation.popToTop();
 	}, [KeyringController, checkedAccounts, navigation, resetError]);
 
 	const onForget = useCallback(async () => {
