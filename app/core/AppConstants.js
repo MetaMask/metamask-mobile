@@ -81,6 +81,7 @@ export default {
 		NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
 		SECURITY:
 			'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
+		MM_FAUCET: 'https://faucet.metamask.io/',
 	},
 	ERRORS: {
 		INFURA_BLOCKED_MESSAGE: 'EthQuery - RPC Error - This service is not available in your country',

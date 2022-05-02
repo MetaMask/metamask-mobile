@@ -1142,10 +1142,10 @@ class Confirm extends PureComponent {
 	};
 
 	gotoFaucet = () => {
-		const mmFaucetUrl = 'https://faucet.metamask.io/';
+		// browser view is not available in this navigation stack */
 		InteractionManager.runAfterInteractions(() => {
-			this.props.navigation.navigate('BrowserView', {
-				newTabUrl: mmFaucetUrl,
+			this.props.navigation.navigate('BrowserTabHome', {
+				newTabUrl: AppConstants.URLS.MM_FAUCET,
 				timestamp: Date.now(),
 			});
 		});
@@ -1247,7 +1247,6 @@ class Confirm extends PureComponent {
 		const is_test_net = isTestNet(network);
 		const errorPress = is_test_net ? this.gotoFaucet : this.buyEth;
 		const errorLinkText = is_test_net ? strings('transaction.go_to_faucet') : strings('transaction.buy_more');
-
 		const { EIP1559TransactionData } = this.state;
 
 		return (
