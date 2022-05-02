@@ -36,7 +36,10 @@ const BrowserUrlModal = () => {
     string | undefined
   >(url);
   const inputRef = useRef<TextInput | null>(null);
-  const dismissModal = (cb?: () => void) => modalRef?.current?.dismissModal(cb);
+  const dismissModal = useCallback(
+    (callback?: () => void) => modalRef?.current?.dismissModal(callback),
+    [],
+  );
 
   /** Clear search input and focus */
   const clearSearchInput = useCallback(() => {
@@ -44,13 +47,16 @@ const BrowserUrlModal = () => {
     inputRef.current?.focus?.();
   }, []);
 
+  // Needed to focus the input after modal renders on Android
   InteractionManager.runAfterInteractions(() => {
     inputRef.current?.focus?.();
   });
 
-  const triggerClose = () => dismissModal();
-  const triggerOnSubmit = (val: string) =>
-    dismissModal(() => onUrlInputSubmit(val));
+  const triggerClose = useCallback(() => dismissModal(), [dismissModal]);
+  const triggerOnSubmit = useCallback(
+    (val: string) => dismissModal(() => onUrlInputSubmit(val)),
+    [dismissModal, onUrlInputSubmit],
+  );
 
   const renderContent = () => (
     <>
