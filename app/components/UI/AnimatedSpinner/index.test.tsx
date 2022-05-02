@@ -3,8 +3,8 @@ import { shallow } from 'enzyme';
 import AnimatedSpinner from './';
 
 describe('AnimatedSpinner', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(<AnimatedSpinner />);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(<AnimatedSpinner />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });
