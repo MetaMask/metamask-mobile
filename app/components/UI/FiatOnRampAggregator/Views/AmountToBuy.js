@@ -60,42 +60,8 @@ const createStyles = (colors) =>
 		cta: {
 			paddingTop: 12,
 		},
-		rowTop: {
-			width: '75%',
-		},
-		rowTopSmall: {
-			width: '20%',
-			marginHorizontal: 15,
-		},
-		topView: {
+		flexRow: {
 			flexDirection: 'row',
-			marginTop: 15,
-		},
-		lineOne: {
-			marginTop: 25,
-			marginBottom: 10,
-			padding: 8,
-			width: '25%',
-		},
-		lineTwo: {
-			marginTop: 12,
-			marginBottom: 10,
-			padding: 8,
-			width: '50%',
-		},
-		lineThree: {
-			marginTop: 5,
-			marginBottom: 10,
-			padding: 8,
-			width: '20%',
-		},
-		listItemText: {
-			width: '40%',
-		},
-		listItemAmounts: {
-			marginLeft: 50,
-			padding: 8,
-			width: '20%',
 		},
 	});
 
@@ -321,7 +287,6 @@ const AmountToBuy = () => {
 		return () => backHandler.remove();
 	}, [amountFocused]);
 
-	// TODO: replace this with loading screen
 	if (
 		isFetchingDataTokens ||
 		isFetchingGetPaymentMethod ||
@@ -333,11 +298,11 @@ const AmountToBuy = () => {
 			<ScreenLayout>
 				<ScreenLayout.Body>
 					<ScreenLayout.Content>
-						<View style={styles.topView}>
-							<SkeletonText style={styles.rowTop} />
-							<SkeletonText style={styles.rowTopSmall} />
+						<View style={styles.flexRow}>
+							<SkeletonText large thick />
+							<SkeletonText thick smaller spacingHorizontal />
 						</View>
-						<SkeletonText style={styles.lineOne} />
+						<SkeletonText thin small spacingTop spacingVertical />
 						<Box>
 							<ListItem.Content>
 								<ListItem.Body>
@@ -345,20 +310,20 @@ const AmountToBuy = () => {
 										<SkeletonText />
 									</ListItem.Icon>
 								</ListItem.Body>
-								<SkeletonText style={styles.listItemAmounts} />
+								<SkeletonText smaller thin />
 							</ListItem.Content>
 						</Box>
-						<SkeletonText style={styles.lineTwo} />
-						<SkeletonText style={styles.lineThree} />
+						<SkeletonText spacingTopSmall spacingVertical thin medium />
+						<SkeletonText thin smaller spacingVertical />
 						<Box>
 							<ListItem.Content>
 								<ListItem.Body>
-									<SkeletonText style={styles.listItemText} />
+									<SkeletonText small />
 								</ListItem.Body>
-								<SkeletonText style={styles.listItemAmounts} />
+								<SkeletonText smaller thin />
 							</ListItem.Content>
 						</Box>
-						<SkeletonText style={styles.lineTwo} />
+						<SkeletonText spacingTopSmall spacingVertical thin medium />
 					</ScreenLayout.Content>
 				</ScreenLayout.Body>
 			</ScreenLayout>

@@ -9,15 +9,6 @@ const createStyles = (colors: any) =>
 			borderRadius: 6,
 			backgroundColor: colors.background.alternative,
 		},
-		label: {
-			marginVertical: 8,
-		},
-		highlighted: {
-			borderColor: colors.primary.default,
-		},
-		thin: {
-			paddingVertical: 12,
-		},
 	});
 
 interface Props {
@@ -25,14 +16,14 @@ interface Props {
 	thin?: boolean;
 }
 
-const Box: React.FC<Props> = ({ style, thin, ...props }: Props) => {
+const SkeletonBox: React.FC<Props> = ({ style, ...props }: Props) => {
 	const { colors } = useTheme();
 	const styles = createStyles(colors);
 	return (
 		<>
-			<View style={[styles.wrapper, thin && styles.thin, style]} {...props} />
+			<View style={[styles.wrapper, style]} {...props} />
 		</>
 	);
 };
 
-export default Box;
+export default SkeletonBox;

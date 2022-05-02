@@ -19,10 +19,6 @@ const styles = StyleSheet.create({
 	row: {
 		marginVertical: 8,
 	},
-	lineTwo: {
-		padding: 8,
-		marginHorizontal: 40,
-	},
 	boxMargin: {
 		marginVertical: 10,
 	},
@@ -37,7 +33,7 @@ const SkeletonPaymentOption = () => (
 				</ListItem.Icon>
 				<ListItem.Body>
 					<ListItem.Title>
-						<SkeletonText style={styles.lineTwo} />
+						<SkeletonText thin title />
 					</ListItem.Title>
 				</ListItem.Body>
 			</ListItem.Content>
@@ -66,7 +62,6 @@ const PaymentMethod = () => {
 		navigation.navigate('AmountToBuy');
 	}, [currentPaymentMethod, setSelectedPaymentMethod, navigation]);
 
-	// TODO: replace this with loading screen
 	if (isFetching) {
 		return (
 			<ScreenLayout>

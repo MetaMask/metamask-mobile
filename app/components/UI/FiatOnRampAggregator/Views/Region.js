@@ -16,28 +16,6 @@ import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
 import SkeletonText from '../components/SkeletonText';
 
-const styles = StyleSheet.create({
-	rowTop: {
-		marginVertical: 10,
-		marginHorizontal: 110,
-	},
-	lineOne: {
-		padding: 8,
-		marginVertical: 10,
-		//	marginHorizontal: 50,
-	},
-	lineTwo: {
-		padding: 8,
-		marginHorizontal: 40,
-	},
-	lineThree: {
-		padding: 8,
-	},
-	box: {
-		marginTop: 25,
-	},
-});
-
 const Region = () => {
 	const navigation = useNavigation();
 	const { colors } = useTheme();
@@ -83,17 +61,16 @@ const Region = () => {
 		setSelectedRegion(undefined);
 	}, [setSelectedRegion]);
 
-	// TODO: replace this with loading screen
 	if (isFetching || !data) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
 					<ScreenLayout.Content>
-						<SkeletonText style={styles.rowTop} />
-						<SkeletonText style={styles.lineOne} />
-						<SkeletonText style={styles.lineTwo} />
-						<Box style={styles.box}>
-							<SkeletonText style={styles.lineThree} />
+						<SkeletonText small center spacingVertical />
+						<SkeletonText thin spacingVertical />
+						<SkeletonText thin center large spacingBottom />
+						<Box>
+							<SkeletonText thin medium />
 						</Box>
 					</ScreenLayout.Content>
 				</ScreenLayout.Body>
