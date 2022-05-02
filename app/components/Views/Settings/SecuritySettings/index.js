@@ -34,6 +34,8 @@ import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
 	EXISTING_USER,
+	BIOMETRY_CHOICE,
+	PASSCODE_CHOICE,
 	TRUE,
 	PASSCODE_DISABLED,
 	BIOMETRY_CHOICE_DISABLED,
@@ -189,9 +191,6 @@ Heading.propTypes = {
 	children: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node), PropTypes.node]),
 	first: PropTypes.bool,
 };
-
-const PASSCODE_CHOICE = 'passcodeChoice';
-const BIOMETRY_CHOICE = 'biometryChoice';
 
 /**
  * Main view for app configurations
