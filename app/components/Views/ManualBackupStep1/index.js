@@ -256,7 +256,7 @@ class ManualBackupStep1 extends PureComponent {
 
 		if (!this.words.length) {
 			try {
-				const credentials = await Authentication.getPassowrd();
+				const credentials = await Authentication.getPassword();
 				if (credentials) {
 					this.words = await this.tryExportSeedPhrase(credentials.password);
 				} else {
