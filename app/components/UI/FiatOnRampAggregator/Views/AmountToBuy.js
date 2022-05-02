@@ -195,6 +195,15 @@ const AmountToBuy = () => {
    * * Defaults and validation of selected values
    */
 
+  const filteredPaymentMethods = useMemo(() => {
+    if (paymentMethods) {
+      return paymentMethods.filter((paymentMethod) =>
+        Device.isAndroid() ? !paymentMethod.isApplePay : true,
+      );
+    }
+    return null;
+  }, [paymentMethods]);
+
   /**
    * Temporarily filter crypto currencies to match current chain id
    * TODO: Remove this filter when we go multi chain. Replace `tokens` with `sdkCryptoCurrencies`
@@ -275,15 +284,21 @@ const AmountToBuy = () => {
    * Select the default payment method if current selection is not available.
    */
   useEffect(() => {
-    if (!isFetchingPaymentMethods && !errorPaymentMethods && paymentMethods) {
-      if (!paymentMethods.some((pm) => pm.id === selectedPaymentMethodId)) {
-        setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
+    if (
+      !isFetchingPaymentMethods &&
+      !errorPaymentMethods &&
+      filteredPaymentMethods
+    ) {
+      if (
+        !filteredPaymentMethods.some((pm) => pm.id === selectedPaymentMethodId)
+      ) {
+        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
       }
     }
   }, [
     errorPaymentMethods,
+    filteredPaymentMethods,
     isFetchingPaymentMethods,
-    paymentMethods,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
   ]);
@@ -595,7 +610,7 @@ const AmountToBuy = () => {
         isVisible={isPaymentMethodModalVisible}
         dismiss={hidePaymentMethodModal}
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-        paymentMethods={paymentMethods}
+        paymentMethods={filteredPaymentMethods}
         selectedPaymentMethod={selectedPaymentMethodId}
         onItemPress={handleChangePaymentMethod}
       />

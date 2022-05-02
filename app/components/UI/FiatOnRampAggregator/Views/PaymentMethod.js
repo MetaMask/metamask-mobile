@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../Base/Text';
@@ -11,6 +11,7 @@ import WebviewError from '../../../UI/WebviewError';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { getPaymentMethodIcon } from '../utils';
+import Device from '../../../../util/device';
 
 const styles = StyleSheet.create({
   row: {
@@ -21,6 +22,12 @@ const styles = StyleSheet.create({
 const PaymentMethod = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+
+  useEffect(() => {
+    navigation.setOptions(
+      getFiatOnRampAggNavbar(navigation, { title: 'Payment Method' }, colors),
+    );
+  }, [navigation, colors]);
 
   const {
     selectedRegion,
@@ -33,25 +40,28 @@ const PaymentMethod = () => {
     selectedRegion?.id,
   );
 
-  useEffect(() => {
-    navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, { title: 'Payment Method' }, colors),
-    );
-  }, [navigation, colors]);
+  const filteredPaymentMethods = useMemo(() => {
+    if (paymentMethods) {
+      return paymentMethods.filter((paymentMethod) =>
+        Device.isAndroid() ? !paymentMethod.isApplePay : true,
+      );
+    }
+    return null;
+  }, [paymentMethods]);
 
   useEffect(() => {
-    if (!isFetching && !error && paymentMethods) {
-      const paymentMethod = paymentMethods.find(
+    if (!isFetching && !error && filteredPaymentMethods) {
+      const paymentMethod = filteredPaymentMethods.find(
         (pm) => pm.id === selectedPaymentMethodId,
       );
       if (!paymentMethod) {
-        setSelectedPaymentMethodId(paymentMethods?.[0]?.id);
+        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
       }
     }
   }, [
     error,
+    filteredPaymentMethods,
     isFetching,
-    paymentMethods,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
   ]);
@@ -82,7 +92,7 @@ const PaymentMethod = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          {paymentMethods?.map(({ id, name, delay, amountTier }) => (
+          {filteredPaymentMethods?.map(({ id, name, delay, amountTier }) => (
             <View key={id} style={styles.row}>
               <PaymentOption
                 highlighted={id === selectedPaymentMethodId}
