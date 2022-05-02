@@ -11,7 +11,11 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+  useAssetFromTheme,
+} from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
@@ -63,11 +67,19 @@ const createStyle = (colors: any) =>
     },
   });
 
-const ledgerLogoImgPath = 'images/ledger-logo.png';
-const ledgerLogo = require(ledgerLogoImgPath);
+// Ledger Logo
+const ledgerLogoLightImgPath = 'images/ledger-light.png';
+const ledgerLogoLight = require(ledgerLogoLightImgPath);
 
-// const qrHardwareLogoImgPath = 'images/';
-// const qrHardwareLogo = require(qrHardwareLogoImgPath);
+const ledgerLogoDarkImgPath = 'images/ledger-dark.png';
+const ledgerLogoDark = require(ledgerLogoDarkImgPath);
+
+// QR Hardware Logo
+const qrHardwareLogoLightImgPath = 'images/qrhardware-light.png';
+const qrHardwareLogoLight = require(qrHardwareLogoLightImgPath);
+
+const qrHardwareLogoDarkImgPath = 'images/qrhardware-dark.png';
+const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
@@ -94,6 +106,12 @@ const SelectHardwareWallet = () => {
     console.log('navigateToConnectLedger');
   };
 
+  const renderHardwareButton = (image: any, onPress: any) => (
+    <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
+      <Image style={styles.image} source={image} resizeMode={'contain'} />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.textContainer}>
@@ -102,22 +120,14 @@ const SelectHardwareWallet = () => {
         </Text>
       </View>
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-          onPress={navigateToConnectLedger}
-          style={styles.hardwareButton}
-        >
-          <Image
-            style={styles.image}
-            source={ledgerLogo}
-            resizeMode={'contain'}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={navigateToConnectQRWallet}
-          style={styles.hardwareButton}
-        >
-          <Text>QR-based</Text>
-        </TouchableOpacity>
+        {renderHardwareButton(
+          useAssetFromTheme(ledgerLogoLight, ledgerLogoDark),
+          navigateToConnectLedger,
+        )}
+        {renderHardwareButton(
+          useAssetFromTheme(qrHardwareLogoLight, qrHardwareLogoDark),
+          navigateToConnectQRWallet,
+        )}
       </View>
     </SafeAreaView>
   );
