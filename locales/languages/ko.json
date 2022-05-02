@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "이 키를 절대 다른 사람에게 공개하지 마세요. 개인 키를 가지고 있는 사람은 누구든 해당 계정을 완전히 통제할 수 있습니다. 계정의 자금을 다른 곳에 송금할 수도 있습니다.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "{{credentialName}} 사용자 이름으로 ",
+      "계정과 자금에 완전히 액세스할 수 있습니다.\n\n이 정보를 아무에게도 알려주지 마세요.\n",
+      "지갑과 자금에 완전히 액세스할 수 있습니다.\n\n이 정보를 아무에게도 알려주지 마세요.\n",
+      "MetaMask의 지원팀은 이러한 정보를 절대로 묻지 않습니다, ",
+      "오히려 피싱 사기꾼들이 요구할 수 있으니 주의가 필요합니다."
     ],
     "seed_phrase": "비밀 복구 구문",
     "private_key": "개인 키",
@@ -637,11 +637,11 @@
     "seed_warning": "이것은 지갑용 12단어 구문입니다. 이 구문은 현재 계정은 물론 앞으로 만들 계정도 통제하는 데 사용됩니다. 이 구문이 있으면 지갑의 어떤 자금도 송금할 수 있는 권한이 생깁니다. 그러니 구문을 안전하게 보관하세요. 절대 이를 다른 사람과 공유하지 마세요.",
     "text": "텍스트",
     "qr_code": "QR 코드",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "hold_to_reveal_credential": "눌러서 {{credentialName}} 정보를 확인하세요",
+    "keep_credential_safe": "{{credentialName}} 정보를 안전하게 보관하세요",
     "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "srp_text": "비밀 복구 구문",
+    "private_key_text": "비공개 키"
   },
   "password_reset": {
     "password_title": "비밀번호",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "“{{searchString}}”와(과) 일치하는 지원 국가가 확인되지 않음",
     "wyre_loading_rates": " ",
     "fast_no_registration": "등록이 필요 없어 빠릅니다.",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "직불카드 또는 신용카드. 애플 캐시는 지원되지 않습니다.",
     "select_card_country": "(귀하가 위치한 곳이 아닌) 카드가 등록된 국가를 선택하세요.",
     "search_country": "국가 검색",
     "wyre_countries": "55개국 이상에서 사용할 수 있습니다. 수수료 및 한도액은 국가에 따라 다릅니다.",

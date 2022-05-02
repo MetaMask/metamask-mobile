@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Jangan pernah mengungkapkan kunci ini. Siapa pun yang memiliki kunci pribadi Anda dapat mengontrol akun Anda sepenuhnya, termasuk mentransfer semua dana Anda.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "{{credentialName}} memberikan ",
+      "akses penuh ke akun dan dana Anda.\n\nJangan membagikannya kepada siapa pun.\n",
+      "akses penuh ke akun dan dana Anda.\n\nJangan membagikannya kepada siapa pun.\n",
+      "Dukungan MetaMask tidak akan memintanya, ",
+      "tetapi penipu akan berusaha mendapatkannya."
     ],
     "seed_phrase": "Frasa Pemulihan Rahasia Anda",
     "private_key": "Kunci pribadi Anda",
@@ -637,11 +637,11 @@
     "seed_warning": "Ini merupakan frasa 12 kata dompet Anda. Frasa ini dapat digunakan untuk mengontrol semua akun saat ini dan di masa mendatang, termasuk kemampuan untuk mengirim dana mereka. Simpan frasa ini dengan aman, JANGAN bagikan kepada siapa pun.",
     "text": "TEKS",
     "qr_code": "KODE QR",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
-    "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "hold_to_reveal_credential": "Tahan untuk mengungkap {{credentialName}}",
+    "keep_credential_safe": "Jaga keamanan {{credentialName}} Anda",
+    "srp_abbreviation_text": "FPR",
+    "srp_text": "Frasa Pemulihan Rahasia",
+    "private_key_text": "Kunci Pribadi"
   },
   "password_reset": {
     "password_title": "Kata sandi",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "Tidak ada negara yang didukung yang cocok dengan “{{searchString}}”",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Cepat - Tak perlu mendaftar",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Kartu Debit atau Kredit. Tidak mendukung Apple Cash.",
     "select_card_country": "Pilih negara tempat kartu Anda terdaftar (bukan lokasi Anda saat ini).",
     "search_country": "Cari negara",
     "wyre_countries": "55+ negara, biaya dan batasan bervariasi",
