@@ -60,11 +60,6 @@ const createStyle = (colors: any) =>
     button: {
       width: '100%',
     },
-    // eslint-disable-next-line react-native/no-color-literals
-    debugBorder: {
-      borderColor: '#FF3D00',
-      borderWidth: 1,
-    },
   });
 
 // Ledger Logo
