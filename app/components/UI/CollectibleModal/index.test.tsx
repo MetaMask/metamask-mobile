@@ -9,20 +9,20 @@ const initialState = {};
 const store = mockStore(initialState);
 
 describe('CollectibleModal', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<CollectibleModal
-					navigation={{}}
-					route={{
-						params: {
-							contractName: 'Opensea',
-							collectible: { name: 'Leopard', tokenId: 6904, address: '0x123' },
-						},
-					}}
-				/>
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <CollectibleModal
+          navigation={{}}
+          route={{
+            params: {
+              contractName: 'Opensea',
+              collectible: { name: 'Leopard', tokenId: 6904, address: '0x123' },
+            },
+          }}
+        />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });
