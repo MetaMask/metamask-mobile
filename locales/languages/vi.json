@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Đừng bao giờ tiết lộ khóa này. Bất kỳ ai có khóa cá nhân của bạn đều có toàn quyền kiểm soát tài khoản của bạn, bao gồm cả quyền chuyển bất kỳ khoản tiền nào của bạn đi.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "{{credentialName}} của bạn cung cấp ",
+      "toàn quyền truy cập vào tài khoản và tiền của bạn.\n\nĐừng chia sẻ điều này với bất kỳ ai.\n",
+      "toàn quyền truy cập vào ví và tiền của bạn.\n\nĐừng chia sẻ điều này với bất kỳ ai.\n",
+      "Bộ phận Hỗ trợ của MetaMask sẽ không yêu cầu điều này, ",
+      "nhưng những kẻ lừa đảo qua mạng thì có."
     ],
     "seed_phrase": "Cụm từ khôi phục bí mật của bạn",
     "private_key": "Khóa cá nhân của bạn",
@@ -637,11 +637,11 @@
     "seed_warning": "Đây là cụm từ gồm 12 từ của ví của bạn. Cụm từ này có thể được sử dụng để kiểm soát tất cả tài khoản hiện tại và tương lai của bạn, bao gồm cả khả năng gửi bất kỳ khoản tiền nào đi. Hãy cất giữ cụm từ này an toàn, KHÔNG chia sẻ nó với bất kỳ ai.",
     "text": "VĂN BẢN",
     "qr_code": "MÃ QR",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "hold_to_reveal_credential": "Giữ để hiển thị {{credentialName}}",
+    "keep_credential_safe": "Đảm bảo an toàn cho {{credentialName}} của bạn",
     "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "srp_text": "Cụm từ khôi phục bí mật",
+    "private_key_text": "Khóa riêng tư"
   },
   "password_reset": {
     "password_title": "Mật khẩu",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "Không có quốc gia hỗ trợ nào khớp \"{{searchString}}\"",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Nhanh chóng - Không cần đăng ký",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Thẻ tín dụng hoặc ghi nợ. Không hỗ trợ Apple Cash.",
     "select_card_country": "Chọn quốc gia nơi đăng ký thẻ của bạn (không phải nơi bạn đang sống).",
     "search_country": "Tìm quốc gia",
     "wyre_countries": "Hơn 55 quốc gia, phí và hạn mức khác nhau",

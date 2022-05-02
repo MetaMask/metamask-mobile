@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Bu anahtarı hiçbir zaman ifşa etmeyin. Özel anahtarınıza sahip olan herkes, paranızın tamamını transfer etmek de dahil olmak üzere hesabınızı tamamen kontrol edebilir.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "{{credentialName}} bilgileriniz ",
+      "hesabınıza ve paranıza tam erişim sunar.\n\nBunu hiç kimseyle paylaşmayın.",
+      "cüzdanınıza ve paranıza tam erişim sunar.\n\nBunu hiç kimseyle paylaşmayın.",
+      "MetaMask Destek tarafından bu talep edilmez, ",
+      "ancak dolandırıcılar tarafından talep edilebilir."
     ],
     "seed_phrase": "Gizli Kurtarma İfadeniz",
     "private_key": "Özel anahtarınız",
@@ -637,11 +637,11 @@
     "seed_warning": "Bu sizin cüzdanınızın 12 sözcükten oluşan ifadesidir. Bu ifade, cüzdanınızda para gönderme kabiliyeti de dahil olmak üzere tüm şimdiki ve gelecekteki hesaplarınızı kontrol etmek için kullanılabilir. Bu ifadeyi güvenli bir şekilde saklayın, hiç kimseyle PAYLAŞMAYIN.",
     "text": "METİN",
     "qr_code": "QR KODU",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
-    "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "hold_to_reveal_credential": "{{credentialName}} bilgisinin gösterilmesi için tut",
+    "keep_credential_safe": "{{credentialName}} bilgini güvende tut",
+    "srp_abbreviation_text": "GKİ",
+    "srp_text": "Gizli Kurtarma İfadesi",
+    "private_key_text": "Özel Anahtar"
   },
   "password_reset": {
     "password_title": "Şifre",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "“{{searchString}}” ile uyumlu desteklenen ülke yok",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Hızlı - Kayıt gerekmez",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Banka veya Kredi kartları. Apple Cash desteklenmemektedir.",
     "select_card_country": "Kartınızın kayıtlı olduğu ülkeyi seçin (sizin bulunduğunuz ülke değil).",
     "search_country": "Ülke ara",
     "wyre_countries": "55'ten fazla ülke, ücret ve limitler değişiklik gösterir",
