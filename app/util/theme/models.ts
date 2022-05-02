@@ -2,11 +2,11 @@
 export type Colors = any;
 
 export enum AppThemeKey {
-	os = 'os',
-	light = 'light',
-	dark = 'dark',
+  os = 'os',
+  light = 'light',
+  dark = 'dark',
 }
 export interface Theme {
-	colors: Colors;
-	themeAppearance: AppThemeKey.light | AppThemeKey.dark;
+  colors: Colors;
+  themeAppearance: AppThemeKey.light | AppThemeKey.dark;
 }

@@ -11,21 +11,21 @@ import { useState, useEffect } from 'react';
  * @return {Boolean[]} `[resourceExists, isLoading]`
  */
 const useRemoteResourceExists = (uri: string): boolean[] => {
-	const [resourceExists, setResourceExists] = useState<boolean>(false);
-	const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [resourceExists, setResourceExists] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-	const fetchStatus = async (innerUri: string): Promise<void> => {
-		fetch(innerUri, { method: 'HEAD' })
-			.then((res) => setResourceExists(res.status === 200))
-			.catch(() => setResourceExists(false))
-			.finally(() => setIsLoading(false));
-	};
+  const fetchStatus = async (innerUri: string): Promise<void> => {
+    fetch(innerUri, { method: 'HEAD' })
+      .then((res) => setResourceExists(res.status === 200))
+      .catch(() => setResourceExists(false))
+      .finally(() => setIsLoading(false));
+  };
 
-	useEffect(() => {
-		fetchStatus(uri);
-	}, [uri]);
+  useEffect(() => {
+    fetchStatus(uri);
+  }, [uri]);
 
-	return [resourceExists, isLoading];
+  return [resourceExists, isLoading];
 };
 
 export default useRemoteResourceExists;

@@ -9,4 +9,5 @@ export const TX_CONFIRMED = 'confirmed';
 
 // Values
 export const UINT256_BN_MAX_VALUE = new BN(2).pow(new BN(256)).sub(new BN(1));
-export const UINT256_HEX_MAX_VALUE = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+export const UINT256_HEX_MAX_VALUE =
+  'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';

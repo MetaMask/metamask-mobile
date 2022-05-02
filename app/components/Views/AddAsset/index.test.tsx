@@ -6,28 +6,28 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	engine: {
-		backgroundState: {
-			NetworkController: {
-				provider: {
-					chainId: '1',
-				},
-			},
-			PreferencesController: {
-				useCollectibleDetection: true,
-			},
-		},
-	},
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        provider: {
+          chainId: '1',
+        },
+      },
+      PreferencesController: {
+        useCollectibleDetection: true,
+      },
+    },
+  },
 };
 const store = mockStore(initialState);
 
 describe('AddAsset', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<AddAsset route={{ params: { assetType: 'token' } }} />
-			</Provider>
-		);
-		expect(wrapper.dive()).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <AddAsset route={{ params: { assetType: 'token' } }} />
+      </Provider>,
+    );
+    expect(wrapper.dive()).toMatchSnapshot();
+  });
 });
