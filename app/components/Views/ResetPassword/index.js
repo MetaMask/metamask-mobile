@@ -361,7 +361,7 @@ class ResetPassword extends PureComponent {
 	};
 
 	onPressCreate = async () => {
-		const { loading, isSelected, password, confirmPassword, originalPassword } = this.state;
+		const { loading, isSelected, password, confirmPassword } = this.state;
 		const passwordsMatch = password !== '' && password === confirmPassword;
 		const canSubmit = passwordsMatch && isSelected;
 
@@ -377,7 +377,7 @@ class ResetPassword extends PureComponent {
 		try {
 			this.setState({ loading: true });
 
-			await this.recreateVault(originalPassword);
+			await this.recreateVault();
 
 			this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
 			this.props.passwordSet();
@@ -409,7 +409,7 @@ class ResetPassword extends PureComponent {
 	 * Recreates a vault
 	 *
 	 */
-	recreateVault = async (password) => {
+	recreateVault = async () => {
 		const { originalPassword, password: newPassword } = this.state;
 		const { KeyringController, PreferencesController } = Engine.context;
 		const seedPhrase = await this.getSeedPhrase();
