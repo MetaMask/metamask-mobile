@@ -1,16 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
+
+export enum LedgerCommunicationErrors {
+	LedgerDisconnected,
+	FailedToOpenApp,
+	FailedToCloseApp,
+	UserRefusedConfirmation,
+	AppIsNotInstalled,
+	LedgerIsLocked,
+	UnknownError,
+}
+class LedgerError extends Error {
+	public readonly code: LedgerCommunicationErrors;
+
+	constructor(message: string, code: LedgerCommunicationErrors) {
+		super(message);
+		this.code = code;
+	}
+}
 
 type LedgerLogicToRunType = (transport: BluetoothTransport) => Promise<void>;
 
 interface UseLedgerBluetoothHook {
 	isSendingLedgerCommands: boolean;
 	ledgerLogicToRun: (func: LedgerLogicToRunType) => Promise<void>;
-	ledgerErrorMessage: string | undefined;
+	error?: LedgerCommunicationErrors;
 	cleanupBluetoothConnection: () => void;
 }
 
@@ -37,7 +54,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 	// Due to the async nature of the disconnects after sending an APDU command we load the code to run in a stack
 	// with code being pushed and popped off of the stack
 	const workflowSteps = useRef<(() => Promise<void>)[]>([]);
-	const [ledgerError, setLedgerError] = useState<string | undefined>();
+	const [ledgerError, setLedgerError] = useState<LedgerCommunicationErrors>();
 
 	const resetConnectionState = () => {
 		restartConnectionState.current.restartCount = 0;
@@ -75,9 +92,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 						const funcAfterDisconnect = workflowSteps.current.pop();
 
 						if (!funcAfterDisconnect) {
-							return setLedgerError(
-								strings('ledger.bluetooth_connection_failed') + strings('ledger.unknown_code_error')
-							);
+							return setLedgerError(LedgerCommunicationErrors.UnknownError);
 						}
 
 						return funcAfterDisconnect();
@@ -85,10 +100,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
 					// In case we somehow end up in an infinite loop or bluetooth connection is faulty
 					if (restartConnectionState.current.restartCount === RESTART_LIMIT) {
-						setLedgerError(
-							strings('ledger.bluetooth_connection_failed') +
-								strings('ledger.bluetooth_connection_failed_message')
-						);
+						setLedgerError(LedgerCommunicationErrors.LedgerDisconnected);
 					}
 
 					// Reset all connection states
@@ -100,11 +112,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 			} catch (e) {
 				// Reset all connection states
 				resetConnectionState();
-
-				setLedgerError(
-					strings('ledger.bluetooth_connection_failed') +
-						strings('ledger.bluetooth_connection_failed_message')
-				);
+				setLedgerError(LedgerCommunicationErrors.LedgerDisconnected);
 			}
 		}
 	};
@@ -120,18 +128,45 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 			// BOLOS is the Ledger main screen app
 			if (appName === 'BOLOS') {
 				// Open Ethereum App
-				// Alert.alert(strings('ledger.ethereum_app_open'), strings('ledger.ethereum_app_open_message'));
 				try {
 					await KeyringController.openEthereumApp();
-				} catch (e) {
-					throw new Error(strings('ledger.ethereum_app_open_error'));
+				} catch (e: any) {
+					if (e.name === 'TransportStatusError') {
+						switch (e.statusCode) {
+							case 0x6984:
+							case 0x6807:
+								throw new LedgerError(
+									strings('ledger.ethereum_app_not_installed_error'),
+									LedgerCommunicationErrors.AppIsNotInstalled
+								);
+							case 0x6985:
+							case 0x5501:
+								throw new LedgerError(
+									strings('ledger.ethereum_app_unconfirmed_error'),
+									LedgerCommunicationErrors.UserRefusedConfirmation
+								);
+						}
+					}
+
+					throw new LedgerError(
+						strings('ledger.ethereum_app_open_error'),
+						LedgerCommunicationErrors.FailedToOpenApp
+					);
 				}
+
 				workflowSteps.current.push(processLedgerWorkflow);
 				restartConnectionState.current.shouldRestartConnection = true;
 
 				return;
 			} else if (appName !== 'Ethereum') {
-				await KeyringController.closeRunningApp();
+				try {
+					await KeyringController.closeRunningApp();
+				} catch (e) {
+					throw new LedgerError(
+						strings('ledger.running_app_close_error'),
+						LedgerCommunicationErrors.FailedToCloseApp
+					);
+				}
 
 				workflowSteps.current.push(processLedgerWorkflow);
 				restartConnectionState.current.shouldRestartConnection = true;
@@ -143,20 +178,22 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 			if (workflowSteps.current.length === 1) {
 				const finalLogicFunc = workflowSteps.current.pop();
 				if (!finalLogicFunc) {
-					throw new Error(strings('ledger.unknown_code_error'));
+					throw new Error('finalLogicFunc is undefined inside workflowSteps.');
 				}
 				return await finalLogicFunc();
 			}
 		} catch (e: any) {
-			let errorMessage = e.message;
-
-			if (e.name === 'TransportStatusError' && e.message.includes('0x6b0c')) {
-				errorMessage = strings('ledger.unlock_ledger_message');
+			if (e.name === 'TransportStatusError' && e.statusCode === 0x6b0c) {
+				setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
 			}
 
-			Alert.alert(strings('ledger.cannot_get_account'), errorMessage);
+			if (e instanceof LedgerError) {
+				setLedgerError(e.code);
+			} else {
+				setLedgerError(LedgerCommunicationErrors.UnknownError);
+			}
+
 			resetConnectionState();
-			setLedgerError(errorMessage);
 		}
 	};
 
@@ -170,7 +207,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 			//  Start off workflow
 			processLedgerWorkflow();
 		},
-		ledgerErrorMessage: ledgerError,
+		error: ledgerError,
 		cleanupBluetoothConnection: resetConnectionState,
 	};
 }

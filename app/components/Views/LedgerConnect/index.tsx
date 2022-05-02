@@ -11,7 +11,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
-import useLedgerBluetooth from '../../hooks/useLedgerBluetooth';
+import useLedgerBluetooth, { LedgerCommunicationErrors } from '../../hooks/useLedgerBluetooth';
 
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
@@ -63,7 +63,29 @@ const LedgerConnect = () => {
 	const styles = useMemo(() => createStyles(colors), [colors]);
 	const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
 
-	const { isSendingLedgerCommands, ledgerLogicToRun, ledgerErrorMessage } = useLedgerBluetooth(selectedDevice?.id);
+	const { isSendingLedgerCommands, ledgerLogicToRun, error: ledgerError } = useLedgerBluetooth(selectedDevice?.id);
+
+	if (ledgerError) {
+		// TODO handle all these cases
+		switch (ledgerError) {
+			case LedgerCommunicationErrors.LedgerDisconnected:
+				break;
+			case LedgerCommunicationErrors.FailedToOpenApp:
+				break;
+			case LedgerCommunicationErrors.FailedToCloseApp:
+				break;
+			case LedgerCommunicationErrors.AppIsNotInstalled:
+				break;
+			case LedgerCommunicationErrors.UserRefusedConfirmation:
+				break;
+			case LedgerCommunicationErrors.LedgerIsLocked:
+				break;
+			case LedgerCommunicationErrors.UnknownError:
+				break;
+			default:
+				break;
+		}
+	}
 
 	return (
 		<SafeAreaView style={styles.container}>
@@ -98,7 +120,7 @@ const LedgerConnect = () => {
 							>
 								{isSendingLedgerCommands ? (
 									<ActivityIndicator color={colors.white} />
-								) : ledgerErrorMessage ? (
+								) : ledgerError ? (
 									strings('ledger.retry')
 								) : (
 									strings('ledger.continue')

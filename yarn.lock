@@ -2342,10 +2342,10 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.10.0.tgz#c012c1ecc1a0e53d50e6af381618dca5268461c1"
   integrity sha512-lLseUPEhSFUXYTKj6q7s2O3s2vW2ebgA11vMAlKodXGf5AFw4zUoEbTz9CoFOC9jS6xY4Qr8BmRnxP/odT4Uuw==
 
-"@ledgerhq/metamask-keyring@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.2.0.tgz#1476925c9517821e857f89ab667f68836a4adbef"
-  integrity sha512-Av3hxxWm9lOKWxwiegyGzWJ62TkfAnl50XZok3TrV9Q/SW423U0mQw5lGwwqO1RRL4UhXz56ckz7YHxRYjpPnw==
+"@ledgerhq/metamask-keyring@0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.3.0.tgz#98f68b7c62c04c3f15ef490f7672ebab75e76dc3"
+  integrity sha512-sgAdq51RaJULjFfnhDIej7DKSo5RxLJndXtEVdeQsTSt3nprUouWNDV6CIIoA5OdlYxm8CT2Y9gyecFRHfhEFw==
   dependencies:
     "@ethereumjs/tx" "^3.5.0"
     "@ledgerhq/hw-app-eth" "^6.26.1"
@@ -4545,13 +4545,6 @@ aws4@^1.8.0:
   version "1.11.0"
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz#d61f46d83b2519250e2784daf5b09479a8b41c59"
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
-
-axios@^0.26.1:
-  version "0.26.1"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-0.26.1.tgz#1ede41c51fcf51bbbd6fd43669caaa4f0495aaa9"
-  integrity sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==
-  dependencies:
-    follow-redirects "^1.14.8"
 
 axios@^0.26.1:
   version "0.26.1"
@@ -8878,11 +8871,6 @@ focus-lock@^0.10.1:
   integrity sha512-b9yUklCi4fTu2GXn7dnaVf4hiLVVBp7xTiZarAHMODV2To6Bitf6F/UI67RmKbdgJQeVwI1UO0d9HYNbXt3GkA==
   dependencies:
     tslib "^2.0.3"
-
-follow-redirects@^1.14.8:
-  version "1.14.9"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.9.tgz#dd4ea157de7bfaf9ea9b3fbd85aa16951f78d8d7"
-  integrity sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==
 
 follow-redirects@^1.14.8:
   version "1.14.9"
