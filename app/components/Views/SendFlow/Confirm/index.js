@@ -1245,12 +1245,8 @@ class Confirm extends PureComponent {
 			);
 
 		const is_test_net = isTestNet(network);
-		const errorPress = is_test_net
-			? /* this.gotoFaucet -> browser view is not available in this navigation stack */ {}
-			: this.buyEth;
-		const errorLinkText = is_test_net
-			? /* strings('transaction.go_to_faucet') */ ''
-			: strings('transaction.buy_more');
+		const errorPress = is_test_net ? this.gotoFaucet : this.buyEth;
+		const errorLinkText = is_test_net ? strings('transaction.go_to_faucet') : strings('transaction.buy_more');
 
 		const { EIP1559TransactionData } = this.state;
 

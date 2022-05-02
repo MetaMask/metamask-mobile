@@ -240,6 +240,7 @@ const SendFlowView = () => (
 		<Stack.Screen name="SendTo" component={SendTo} options={SendTo.navigationOptions} />
 		<Stack.Screen name="Amount" component={Amount} options={Amount.navigationOptions} />
 		<Stack.Screen name="Confirm" component={Confirm} options={Confirm.navigationOptions} />
+		<Stack.Screen name="BrowserView" component={Browser} />
 	</Stack.Navigator>
 );
 
