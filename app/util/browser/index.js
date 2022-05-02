@@ -10,23 +10,32 @@ import isUrl from 'is-url';
  * @param {string} defaultProtocol - Protocol string to append to URLs that have none
  * @returns {string} - String corresponding to sanitized input depending if it's a search or url
  */
-export default function onUrlSubmit(input, searchEngine = 'Google', defaultProtocol = 'https://') {
-	//Check if it's a url or a keyword
-	const regEx = new RegExp(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g);
-	if (!isUrl(input) && !regEx.test(input)) {
-		// Add exception for localhost
-		if (!input.startsWith('http://localhost') && !input.startsWith('localhost')) {
-			// In case of keywords we default to google search
-			let searchUrl = 'https://www.google.com/search?q=' + escape(input);
-			if (searchEngine === 'DuckDuckGo') {
-				searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
-			}
-			return searchUrl;
-		}
-	}
-	const hasProtocol = /^[a-z]*:\/\//.test(input);
-	const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;
-	return sanitizedURL;
+export default function onUrlSubmit(
+  input,
+  searchEngine = 'Google',
+  defaultProtocol = 'https://',
+) {
+  //Check if it's a url or a keyword
+  const regEx = new RegExp(
+    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!&',;=.+]+$/g,
+  );
+  if (!isUrl(input) && !regEx.test(input)) {
+    // Add exception for localhost
+    if (
+      !input.startsWith('http://localhost') &&
+      !input.startsWith('localhost')
+    ) {
+      // In case of keywords we default to google search
+      let searchUrl = 'https://www.google.com/search?q=' + escape(input);
+      if (searchEngine === 'DuckDuckGo') {
+        searchUrl = 'https://duckduckgo.com/?q=' + escape(input);
+      }
+      return searchUrl;
+    }
+  }
+  const hasProtocol = /^[a-z]*:\/\//.test(input);
+  const sanitizedURL = hasProtocol ? input : `${defaultProtocol}${input}`;
+  return sanitizedURL;
 }
 
 /**
@@ -37,10 +46,10 @@ export default function onUrlSubmit(input, searchEngine = 'Google', defaultProto
  * @returns {string} - String corresponding to host
  */
 export function getHost(url, defaultProtocol = 'https://') {
-	const hasProtocol = url && url.match(/^[a-z]*:\/\//);
-	const urlObj = new URL(hasProtocol ? url : `${defaultProtocol}${url}`);
-	const { hostname } = urlObj;
-	return hostname;
+  const hasProtocol = url && url.match(/^[a-z]*:\/\//);
+  const urlObj = new URL(hasProtocol ? url : `${defaultProtocol}${url}`);
+  const { hostname } = urlObj;
+  return hostname;
 }
 
 /**
@@ -50,6 +59,6 @@ export function getHost(url, defaultProtocol = 'https://') {
  * @returns {object} - URL object
  */
 export function getUrlObj(url) {
-	const urlObj = new URL(url);
-	return urlObj;
+  const urlObj = new URL(url);
+  return urlObj;
 }

@@ -8,14 +8,14 @@ const mockStore = configureMockStore();
 const store = mockStore({});
 
 describe('NavbarLeftButton', () => {
-	it('should render correctly', () => {
-		const address = '0xe7E125654064EEa56229f273dA586F10DF96B0a1';
+  it('should render correctly', () => {
+    const address = '0xe7E125654064EEa56229f273dA586F10DF96B0a1';
 
-		const wrapper = shallow(
-			<Provider store={store}>
-				<NavbarLeftButton address={address} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+    const wrapper = shallow(
+      <Provider store={store}>
+        <NavbarLeftButton address={address} />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });
