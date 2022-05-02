@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Μην αποκαλύψετε ποτέ αυτό το κλειδί. Όποιος έχει το ιδιωτικό σας κλειδί μπορεί να ελέγξει πλήρως τον λογαριασμό σας, όπως και τη μεταφορά των χρημάτων σας.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "Το {{credentialName}} σάς παρέχει ",
+      "πλήρη πρόσβαση στον λογαριασμό σας και τα χρήματά σας.\n\nΜην το μοιράζεστε με κανέναν.\n",
+      "πλήρη πρόσβαση στο πορτοφόλι σας και τα χρήματά σας.\n\nΜην το μοιράζεστε με κανέναν.\n",
+      "Η Υποστήριξη MetaMask δεν θα σας το ζητήσει ποτέ, ",
+      "αλλά ίσως το ζητήσουν οι απατεώνες."
     ],
     "seed_phrase": "Η Μυστική σας Φράση Ανάκτησης",
     "private_key": "Το ιδιωτικό σας κλειδί",
@@ -637,11 +637,11 @@
     "seed_warning": "Αυτή είναι η φράση 12 λέξεων του πορτοφολιού σας. Αυτή η φράση μπορεί να χρησιμοποιηθεί για τον έλεγχο όλων των τρεχόντων και μελλοντικών λογαριασμών σας, όπως και της δυνατότητας να στέλνετε χρήματα στο πορτοφόλι σας. Αποθηκεύστε με ασφάλεια αυτήν τη φράση και ΜΗΝ την μοιραστείτε με κανέναν.",
     "text": "ΚΕΙΜΕΝΟ",
     "qr_code": "ΚΩΔΙΚΟΣ QR",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "hold_to_reveal_credential": "Κρατήστε το πατημένο για να αποκαλυφθεί το {{credentialName}}",
+    "keep_credential_safe": "Κρατήστε το {{credentialName}} σας ασφαλές",
     "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "srp_text": "Μυστική Φράση Ανάκτησης",
+    "private_key_text": "Ιδιωτικό Κλειδί"
   },
   "password_reset": {
     "password_title": "Κωδικός",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "Καμία υποστηριζόμενη χώρα δεν ταιριάζει με το “{{searchString}}”",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Γρήγορο - Χωρίς απαίτηση εγγραφής",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Χρεωστικές ή Πιστωτικές κάρτες. Το Apple Cash δεν υποστηρίζεται.",
     "select_card_country": "Επιλέξτε τη χώρα στην οποία είναι εγγεγραμμένη η κάρτα σας (όχι το πού βρίσκεστε).",
     "search_country": " Αναζήτηση χώρας",
     "wyre_countries": "Περισσότερες από 55 χώρες, τέλη και όρια ποικίλουν",

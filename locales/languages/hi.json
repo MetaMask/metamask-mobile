@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "इस की को कभी उजागर ना करें। आपकी निजी की के साथ कोई भी आपके अकाउंट पर पूरा नियंत्रण रख सकता है, जिसमें आपके किसी फंड का स्थानांतरण शामिल है।",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "आपके {{credentialName}} ",
+      "आपके खाते तथा धनराशि तक पूर्ण पहुंच प्रदान करते हैं।\n\nइसे किसी के साथ साझा न करें।",
+      "आपके वॉलेट तथा धनराशि तक पूर्ण पहुंच प्रदान करते हैं।\n\nइसे किसी के साथ साझा न करें।",
+      "MetaMask सपोर्ट कभी इसका अनुरोध नहीं करेगा, ",
+      "लेकिन फिशर कर सकते हैं।"
     ],
     "seed_phrase": "आपका सीक्रेट रिकवरी फ्रेज",
     "private_key": "आपकी निजी की",
@@ -637,11 +637,11 @@
     "seed_warning": "यह आपके वॉलेट का 12 शब्दों का फ्रेज है। इस फ्रेज का उपयोग आपके सारे वर्तमान और भविष्य के अकाउंट पर नियंत्रण रखने के लिए किया जा सकता है, जिसमें उनके किसी फंड को दूर भेजने की क्षमता शामिल है। कृपया इस फ्रेज को सुरक्षित रुप से स्टोर करें, किसी के साथ साझा ना करें।",
     "text": "टेक्स्ट",
     "qr_code": "QR कोड",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "hold_to_reveal_credential": "{{credentialName}} दिखाने के लिए होल्ड करें",
+    "keep_credential_safe": "अपना {{credentialName}} सुरक्षित रखें",
     "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "srp_text": "गुप्त रिकवरी वाक्यांश",
+    "private_key_text": "निजी कुंजी"
   },
   "password_reset": {
     "password_title": "पासवर्ड",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "कोई समर्थित देश “{{searchString}}”से मेल नहीं खाते",
     "wyre_loading_rates": " ",
     "fast_no_registration": "फास्ट- पंजीकरण की आवश्यकता नहीं",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "डेबिट या क्रेडिट कार्ड। Apple Cash समर्थित नहीं है।",
     "select_card_country": "उस देश का चयन करें जहां आपके कार्ड का पंजीकरण हुआ है (वहां नहीं जहां आप रहते हैं)।",
     "search_country": "एक देश के लिए खोजें",
     "wyre_countries": "55 से ज्यादा देश, शुल्क और सीमाएं अलग-अलग हैं",
