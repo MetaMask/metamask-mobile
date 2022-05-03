@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   View,
   TouchableWithoutFeedback,
+  FlatList,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
@@ -30,6 +30,14 @@ const MAX_REGION_RESULTS = 20;
 enum RegionViewType {
   COUNTRY = 'COUNTRY',
   STATE = 'STATE',
+}
+
+interface Region {
+  id: string;
+  name: string;
+  emoji: string;
+  currency: string;
+  states?: [Region];
 }
 
 const createStyles = (colors: any) =>
@@ -116,8 +124,8 @@ interface Props {
   title?: string;
   description?: string;
   dismiss?: () => any;
-  data?: [JSON];
-  onRegionPress: (region: JSON) => any;
+  data: Region[];
+  onRegionPress: (region: Region) => any;
   unsetRegion: () => void;
 }
 
@@ -132,18 +140,23 @@ const RegionModal: React.FC<Props> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const searchInput = useRef<TextInput>(null);
-  const list = useRef<FlatList<any>>(null);
+  const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
+  const [currentData, setCurrentData] = useState(data);
+
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
   // local state variable to save the country object in transite
-  const [regionInTransit, setRegionInTransit] = useState<any>({});
-  const [unsupportedRegion, setUnsupportedRegion] = useState<any>({});
+  const [regionInTransit, setRegionInTransit] = useState<
+    Region | Record<string, never>
+  >({});
+  const [unsupportedRegion, setUnsupportedRegion] = useState<
+    Region | Record<string, never>
+  >({});
   const [showAlert, setShowAlert] = useState(false);
-  const dataRef = useRef(data);
   const dataFuse = useMemo(
     () =>
-      new Fuse(dataRef.current as [JSON], {
+      new Fuse(currentData, {
         shouldSort: true,
         threshold: 0.2,
         location: 0,
@@ -152,16 +165,15 @@ const RegionModal: React.FC<Props> = ({
         minMatchCharLength: 1,
         keys: ['name'],
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dataRef.current],
+    [currentData],
   );
 
   const dataSearchResults = useMemo(
     () =>
       searchString.length > 0
         ? dataFuse.search(searchString)?.slice(0, MAX_REGION_RESULTS)
-        : dataRef.current,
-    [searchString, dataFuse],
+        : currentData,
+    [searchString, dataFuse, currentData],
   );
 
   const handleOnRegionPressCallback = useCallback(
@@ -169,7 +181,7 @@ const RegionModal: React.FC<Props> = ({
       if (region.states) {
         setActiveView(RegionViewType.STATE);
         setRegionInTransit(region);
-        dataRef.current = region.states;
+        setCurrentData(region.states);
         setSearchString('');
       } else if (region.unsupported) {
         setUnsupportedRegion(region);
@@ -185,7 +197,7 @@ const RegionModal: React.FC<Props> = ({
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }) => (
+    ({ item: region }: { item: Region }) => (
       <TouchableOpacity onPress={() => handleOnRegionPressCallback(region)}>
         <ListItem style={styles.listItem}>
           <ListItem.Content>
@@ -229,9 +241,17 @@ const RegionModal: React.FC<Props> = ({
 
   const handleRegionBackButton = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
-    dataRef.current = data;
+    setCurrentData(data);
     setSearchString('');
   }, [data]);
+
+  const onBackButtonPress = useCallback(() => {
+    if (activeView === RegionViewType.STATE) {
+      handleRegionBackButton();
+    } else {
+      dismiss?.();
+    }
+  }, [activeView, dismiss, handleRegionBackButton]);
 
   const handleSearchTextChange = useCallback((text) => {
     setSearchString(text);
@@ -247,7 +267,7 @@ const RegionModal: React.FC<Props> = ({
   const onModalHide = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
     setRegionInTransit({});
-    dataRef.current = data;
+    setCurrentData(data);
     setSearchString('');
   }, [data]);
 
@@ -255,6 +275,7 @@ const RegionModal: React.FC<Props> = ({
     <Modal
       isVisible={isVisible}
       onBackdropPress={dismiss}
+      onBackButtonPress={onBackButtonPress}
       swipeDirection="down"
       onSwipeComplete={dismiss}
       propagateSwipe
@@ -278,7 +299,7 @@ const RegionModal: React.FC<Props> = ({
                   <Icon name="ios-search" size={20} style={styles.searchIcon} />
                   <TextInput
                     ref={searchInput}
-                    style={styles.input as any}
+                    style={styles.input}
                     placeholder={strings(
                       'fiat_on_ramp_aggregator.region.search_by_country',
                     )}
@@ -303,7 +324,7 @@ const RegionModal: React.FC<Props> = ({
             <ScreenLayout.Body>
               <View style={styles.resultsView}>
                 <FlatList
-                  ref={list as any}
+                  ref={list}
                   style={styles.rowView}
                   keyboardDismissMode="none"
                   keyboardShouldPersistTaps="always"
@@ -339,7 +360,7 @@ const RegionModal: React.FC<Props> = ({
                   <Icon name="ios-search" size={20} style={styles.searchIcon} />
                   <TextInput
                     ref={searchInput}
-                    style={styles.input as any}
+                    style={styles.input}
                     placeholder={strings(
                       'fiat_on_ramp_aggregator.region.search_by_state',
                     )}
