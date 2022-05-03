@@ -13,7 +13,7 @@ config.capabilities = [
 		appPackage: 'io.metamask',
 		appActivity: '.MainActivity',
 		automationName: 'UiAutomator2',
-	},
+	}
 ];
 
 config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android

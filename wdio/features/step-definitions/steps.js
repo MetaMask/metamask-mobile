@@ -1,31 +1,25 @@
 const { Given, When, Then } = require('@wdio/cucumber-framework');
 
-const DemoPage = require('../pageobjects/login.page');
-const SettingsPage = require('../pageobjects/ios/settings.page');
+const OnboardingPages = require('../pageobjects/onboarding.pages.js');
 
-const pages = {
-    demo: DemoPage
-}
+Given(/^I have installed MetaMask mobile app on my device/, async () => {
+    /** This is automatically done by the automation framework **/
+});
 
-Given(/^I am on the demo page/, async () => {
+When(/^I tap to open MetaMask mobile app/, async () => {
     // await driver.launchApp();
-    await driver.switchContext('NATIVE_APP');
-    await driver.pause(3000);
+    // await driver.switchContext('NATIVE_APP');
+    // await OnboardingPages.verifyWelcomeScreen();
+    // await driver.pause(15000);
 });
 
-When(/^I input (.*) in textfield$/, async (input) => {
-    await DemoPage.setmessage(input);
+Then(/^MetaMask animated loading logo is displayed/, async () => {
+    // check for animated loading logo
+    await OnboardingPages.verifyWelcomeScreen();
+
 });
 
-Then(/^I should see (.*) in textfield$/, async (message) => {
-    await DemoPage.verifymessage(message);
-});
-
-Given(/^I launch the settings app of iphone$/, async () => {
-    await driver.switchContext('NATIVE_APP');
-    await driver.pause(3000);
-});
-
-Then(/^I should see the general label$/, async () => {
-    await SettingsPage.verifyGeneralLabel();
+Then(/^(.*) screen is displayed after logo/, async (title) => {
+    // check for Welcome to MetaMask screen
+    await OnboardingPages.verifyWelcomeScreen();
 });

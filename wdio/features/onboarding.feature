@@ -1,24 +1,12 @@
+@install @e2e
 Feature: New app install setup on a mobile device
-    
+    Users can install MetaMask mobile app from the device app store.
 
-    Scenario: Import Wallet
-        MetaMask mobile users can import existing Ethereum supported 
-        digital wallets. Users can choose to import existing wallet as
-        one of the options for onboarding after installing MetaMask 
-        mobile.
+    Scenario: Fresh install of MetaMask mobile on device
+        User downloads and installs MetaMask mobile app from the device
+        app store for the first time.
 
         Given I have installed MetaMask mobile app on my device
-        And I am on the onboarding welcome screen
-        When I tap "Get started"
-        Then "Wallet setup" screen is displayed
-        When I tap "Import using Secret Recovery Phrase"
-        Then "Help make MetaMask better" screen is displayed
-        When I tap "I Agree"
-        Then "Import from seed" screen is displayed
-        When I input "<SRP>" for Secret Recovery Phrase
-        And I input "<metapass1>" for New Password
-        And I input "<metapass1>" for Confirm password
-        And I tap "Remember me"
-        And I tap "Import"
-        Then "Wallet view" screen is displayed
-        And "Take a tour" is displayed
+        When I tap to open MetaMask mobile app
+        Then MetaMask animated loading logo is displayed
+        And "Welcome to MetaMask" screen is displayed after logo
