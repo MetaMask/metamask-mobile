@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "この鍵は絶対に開示しないでください。資金の送金を含め、秘密鍵を持っていれば誰でもアカウントを完全にコントロールできます。",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "{{credentialName}}があれば、",
+      "アカウントと資金に完全にアクセスできます。\n\n誰にも教えないでください。",
+      "ウォレットと資金に完全にアクセスできます。\n\n誰にも教えないでください。",
+      "MetaMask サポートがこの情報を尋ねることはなく、",
+      "もし尋ねられた場合はフィッシング詐欺の可能性があります。"
     ],
     "seed_phrase": "秘密のリカバリーフレーズ",
     "private_key": "秘密鍵",
@@ -637,11 +637,11 @@
     "seed_warning": "これはウォレットの12の単語からなるフレーズです。このフレーズは、資金の送金を含め、現在と未来のすべてのアカウントをコントロールするために使用します。このフレーズは安全に保管し、誰にも教えないでください。",
     "text": "テキスト",
     "qr_code": "QRコード",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "hold_to_reveal_credential": "長押しして{{credentialName}}を表示",
+    "keep_credential_safe": "{{credentialName}}は安全に保管してください",
     "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "srp_text": "秘密のリカバリーフレーズ",
+    "private_key_text": "秘密鍵"
   },
   "password_reset": {
     "password_title": "パスワード",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "「{{searchString}}」と一致する対応国がありません",
     "wyre_loading_rates": " ",
     "fast_no_registration": "迅速 - 登録不要",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "デビットカードまたはクレジットカード。Apple Cash には対応していません。",
     "select_card_country": "（お住まいの国ではなく）カードが登録されている国を選択してください。",
     "search_country": "国を検索",
     "wyre_countries": "55か国以上、手数料と限度額は異なります",

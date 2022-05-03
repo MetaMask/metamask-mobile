@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Ne divulguez jamais cette clé. Quiconque est en sa possession peut exercer un contrôle total sur votre compte, y compris le transfert de vos fonds.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "Votre {{credentialName}} donne ",
+      "un accès complet à votre compte et vos fonds. \n\nNe la partagez avec personne.",
+      "un accès complet à votre portefeuille et vos fonds. \n\nNe la partagez avec personne.",
+      "Le service d’assistance de MetaMask ne vous le demandera pas, ",
+      "mais les hameçonneurs pourraient le faire."
     ],
     "seed_phrase": "Votre phrase secrète de récupération",
     "private_key": "Votre clé privée",
@@ -637,11 +637,11 @@
     "seed_warning": "Voici la phrase de 12 mots de votre portefeuille. Celle-ci peut être utilisée pour prendre le contrôle de tous vos comptes actuels et futurs, y compris la possibilité d’envoyer les fonds existants. Conservez-la en sécurité et ne la partagez avec PERSONNE.",
     "text": "TEXTE",
     "qr_code": "CODE QR",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
-    "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "hold_to_reveal_credential": "Appuyez longuement pour révéler {{credentialName}}",
+    "keep_credential_safe": "Protégez votre {{credentialName}}",
+    "srp_abbreviation_text": "PSR",
+    "srp_text": "Phrase secrète de récupération",
+    "private_key_text": "Clé privée"
   },
   "password_reset": {
     "password_title": "Mot de passe",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "Aucun pays accepté ne correspond à « {{searchString}} »",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Rapide – aucune inscription requise",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Cartes de débit ou de crédit. Apple Cash non pris en charge.",
     "select_card_country": "Sélectionnez le pays où votre carte est enregistrée (et non celui où vous vous trouvez).",
     "search_country": "Rechercher un pays",
     "wyre_countries": "Plus de 55 pays, les frais et les limites varient",
