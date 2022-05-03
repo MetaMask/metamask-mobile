@@ -86,27 +86,25 @@ const SkeletonText: React.FC<Props> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <>
-      <View
-        style={[
-          styles.wrapper,
-          thin && styles.thin,
-          thick && styles.thick,
-          large && styles.large,
-          medium && styles.medium,
-          small && styles.small,
-          smaller && styles.smaller,
-          center && styles.center,
-          spacingVertical && styles.spacingVertical,
-          spacingHorizontal && styles.spacingHorizontal,
-          spacingBottom && styles.spacingBottom,
-          spacingTop && styles.spacingTop,
-          spacingTopSmall && styles.spacingTopSmall,
-          title && styles.title,
-          style,
-        ]}
-      />
-    </>
+    <View
+      style={[
+        styles.wrapper,
+        thin && styles.thin,
+        thick && styles.thick,
+        large && styles.large,
+        medium && styles.medium,
+        small && styles.small,
+        smaller && styles.smaller,
+        center && styles.center,
+        spacingVertical && styles.spacingVertical,
+        spacingHorizontal && styles.spacingHorizontal,
+        spacingBottom && styles.spacingBottom,
+        spacingTop && styles.spacingTop,
+        spacingTopSmall && styles.spacingTopSmall,
+        title && styles.title,
+        style,
+      ]}
+    />
   );
 };
 

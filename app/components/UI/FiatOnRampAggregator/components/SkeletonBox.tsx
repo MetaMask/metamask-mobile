@@ -13,17 +13,12 @@ const createStyles = (colors: any) =>
 
 interface Props {
   style?: StyleProp<ViewStyle>;
-  thin?: boolean;
 }
 
-const SkeletonBox: React.FC<Props> = ({ style, ...props }: Props) => {
+const SkeletonBox: React.FC<Props> = ({ style }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  return (
-    <>
-      <View style={[styles.wrapper, style]} {...props} />
-    </>
-  );
+  return <View style={[styles.wrapper, style]} />;
 };
 
 export default SkeletonBox;
