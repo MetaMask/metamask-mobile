@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Huwag ipaalam ang key na ito. Ang sinumang nakakalaam ng iyong pribadong key ay ganap na makokontrol ang iyong account, pati na ang pag-transfer ng alinman sa iyong mga pondo.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "Ang iyong {{credentialName}} ay nagbibigay ng ",
+      "buong access sa iyong account at pondo.\n\nHuwag ibahagi ito sa iba.\n",
+      "buong access sa iyong wallet at pondo.\n\nHuwag ibahagi ito sa iba.\n",
+      "Hindi ito hihingin sayo ng MetaMask Support, ",
+      "pero pwedeng hingiin ng mga manloloko."
     ],
     "seed_phrase": "Ang Iyong Lihim na Recovery Phrase",
     "private_key": "Ang iyong pribadong key",
@@ -637,11 +637,11 @@
     "seed_warning": "Ito ang 12 word phrase ng iyong wallet. Magagamit ang phrase na ito para makontrol ang lahat ng iyong account sa kasalukuyan at hinaharap, pati na ang kakayahang ipadala ang alinman sa kanilang mga pondo. Ligtas na itabi ang phrase na ito, HUWAG itong ibahagi sa kahit sino.",
     "text": "TEXT",
     "qr_code": "QR CODE",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "hold_to_reveal_credential": "I-hold para ipakita ang {{credentialName}}",
+    "keep_credential_safe": "Panatilihing ligtas ang iyong {{credentialName}}",
     "srp_abbreviation_text": "SRP",
     "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "private_key_text": "Pribadong Key"
   },
   "password_reset": {
     "password_title": "Password",
@@ -794,8 +794,8 @@
     "contains_zero_width": "naglalaman ng zero na lapad ng karakter",
     "dapp_suggested_gas": "Ang bayad sa gas na ito ay iminungkahi ng %{origin}. Gumagamit ito ng legacy na pagtatantya ng gas na maaaring hindi tumpak. Gayunpaman, maaaring magdulot ng problema sa iyong transaksyon ang pag-edit sa bayarin sa gas na ito. Mangyaring makipag-ugnayan sa %{origin} kung mayroon kang mga katanungan.",
     "dapp_suggested_eip1559_gas": "Ang bayad sa gas na ito ay iminungkahi ng %{origin}. Ang pag-override nito ay maaaring magdulot ng problema sa iyong transaksyon. Mangyaring makipag-ugnayan sa %{origin} kung mayroon kang mga katanungan.",
-    "address_invalid": "Recipient address is invalid.",
-    "ens_not_found": "No address has been set for this name.",
+    "address_invalid": "Di-wasto ang address ng tatanggap.",
+    "ens_not_found": "Walang address ang naitakda para sa pangalang ito.",
     "unknown_qr_code": "Di-wastong QR code. Mangyaring subukang muli.",
     "invalid_qr_code_sync": "Maling QR code. paki-scan ang sync QR code ng hardware wallet.",
     "no_camera_permission": "Hindi awtorisado ang kamera. Mangyaring magbigay ng pahintulot at subukang muli",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "Walang sinusuportahang bansa ang tumutugma sa “{{searchString}}”",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Mabilis - Hindi kailangang magparehistro",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Mga Debit o Credit card. Hindi magagamit ang Apple Cash.",
     "select_card_country": "Piliin ang bansa kung saan naka-register ang iyong card (hindi ang lokasyon kung nasaan ka).",
     "search_country": "Maghanap ng bansa",
     "wyre_countries": " U.S. + 33 bansa, iba-iba ang mga bayarin at limitasyon",
@@ -1888,15 +1888,15 @@
     "switched_network": "Lumipat ka sa",
     "learn_more": "Matuto pa",
     "add_token": "I-click dito para mano-manong idagdag ang mga token",
-    "add_token_manually": "Add them manually.",
+    "add_token_manually": "Idagdag ang mga ito ng manu-mano.",
     "got_it": "Kuha ko na",
     "error_title": "Oops! Nagkaroon ng problema.",
     "error_message": "Nagkaroon ng error sa pag-load ng impormasyon ng network. Pakisubukan muli mamaya.",
     "private_network_third_description": "Pakilagyan ng pangalan ang network na ito para mas madaling tukuyin.",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
-    "enable_token_detection": "Enable auto token detection",
-    "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
-    "token_detection_mainnet_link": "You can also add tokens manually.",
-    "or": "or"
+    "enable_token_detection": "Paganahin ang awtomatikong pagtuklas ng token",
+    "token_detection_mainnet_title": "Pinagana ang pagtuklas ng token kaya maraming mga token ang awtomatikong lalabas sa iyong wallet.",
+    "token_detection_mainnet_link": "Maaari ka ring magdagdag ng mga token ng manu-mano.",
+    "or": "o"
   }
 }
