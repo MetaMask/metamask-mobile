@@ -41,6 +41,9 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
+import SkeletonText from '../components/SkeletonText';
+import ListItem from '../../../Base/ListItem';
+import Box from '../components/Box';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -68,6 +71,9 @@ const createStyles = (colors) =>
     },
     cta: {
       paddingTop: 12,
+    },
+    flexRow: {
+      flexDirection: 'row',
     },
   });
 
@@ -444,7 +450,6 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
-  // TODO: replace this with loading screen
   if (
     isFetchingSdkCryptoCurrencies ||
     isFetchingCurrentPaymentMethod ||
@@ -455,7 +460,36 @@ const AmountToBuy = () => {
   ) {
     return (
       <ScreenLayout>
-        <ScreenLayout.Body></ScreenLayout.Body>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <View style={styles.flexRow}>
+              <SkeletonText large thick />
+              <SkeletonText thick smaller spacingHorizontal />
+            </View>
+            <SkeletonText thin small spacingTop spacingVertical />
+            <Box>
+              <ListItem.Content>
+                <ListItem.Body>
+                  <ListItem.Icon>
+                    <SkeletonText />
+                  </ListItem.Icon>
+                </ListItem.Body>
+                <SkeletonText smaller thin />
+              </ListItem.Content>
+            </Box>
+            <SkeletonText spacingTopSmall spacingVertical thin medium />
+            <SkeletonText thin smaller spacingVertical />
+            <Box>
+              <ListItem.Content>
+                <ListItem.Body>
+                  <SkeletonText small />
+                </ListItem.Body>
+                <SkeletonText smaller thin />
+              </ListItem.Content>
+            </Box>
+            <SkeletonText spacingTopSmall spacingVertical thin medium />
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
       </ScreenLayout>
     );
   }
