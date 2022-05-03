@@ -11,36 +11,36 @@ import ListItem from '../../../Base/ListItem';
 import CurrencyChevron from './CurrencyChevron';
 
 storiesOf('FiatOnRamp / CurrencyChevron', module)
-	.addDecorator((getStory) => getStory())
-	.add('Default', () => {
-		const currency = text('Currency', 'USD');
+  .addDecorator((getStory) => getStory())
+  .add('Default', () => {
+    const currency = text('Currency', 'USD');
 
-		return (
-			<SafeAreaView>
-				<Text big centered primary>
-					{`<CurrencyChevron>`} Component
-				</Text>
-				<Text primary>Example</Text>
+    return (
+      <SafeAreaView>
+        <Text big centered primary>
+          {`<CurrencyChevron>`} Component
+        </Text>
+        <Text primary>Example</Text>
 
-				<CurrencyChevron currency={currency} />
+        <CurrencyChevron currency={currency} />
 
-				<Text primary>Example with Box and ListItem</Text>
+        <Text primary>Example with Box and ListItem</Text>
 
-				<Box>
-					<View>
-						<ListItem.Content>
-							<ListItem.Body>
-								<Text big black>
-									$1230
-								</Text>
-							</ListItem.Body>
-							<ListItem.Body></ListItem.Body>
-							<ListItem.Amounts>
-								<CurrencyChevron currency={'CLP'} />
-							</ListItem.Amounts>
-						</ListItem.Content>
-					</View>
-				</Box>
-			</SafeAreaView>
-		);
-	});
+        <Box>
+          <View>
+            <ListItem.Content>
+              <ListItem.Body>
+                <Text big black>
+                  $1230
+                </Text>
+              </ListItem.Body>
+              <ListItem.Body></ListItem.Body>
+              <ListItem.Amounts>
+                <CurrencyChevron currency={'CLP'} />
+              </ListItem.Amounts>
+            </ListItem.Content>
+          </View>
+        </Box>
+      </SafeAreaView>
+    );
+  });

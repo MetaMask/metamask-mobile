@@ -5,25 +5,25 @@ import { processMoonPayOrder } from '../../FiatOrders/orderProcessor/moonpay';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
 
-function processOrder(order, sdk) {
-	switch (order.provider) {
-		case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
-			return processWyreApplePayOrder(order);
-		}
-		case FIAT_ORDER_PROVIDERS.TRANSAK: {
-			return processTransakOrder(order);
-		}
-		case FIAT_ORDER_PROVIDERS.MOONPAY: {
-			return processMoonPayOrder(order);
-		}
-		case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
-			return processAggregatorOrder(order, sdk);
-		}
-		default: {
-			Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);
-			return order;
-		}
-	}
+function processOrder(order) {
+  switch (order.provider) {
+    case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
+      return processWyreApplePayOrder(order);
+    }
+    case FIAT_ORDER_PROVIDERS.TRANSAK: {
+      return processTransakOrder(order);
+    }
+    case FIAT_ORDER_PROVIDERS.MOONPAY: {
+      return processMoonPayOrder(order);
+    }
+    case FIAT_ORDER_PROVIDERS.AGGREGATOR: {
+      return processAggregatorOrder(order);
+    }
+    default: {
+      Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);
+      return order;
+    }
+  }
 }
 
 export default processOrder;

@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Text from '../../../Base/Text';
@@ -17,51 +17,56 @@ import RegionAlert from '../components/RegionAlert';
 import SkeletonText from '../components/SkeletonText';
 
 const Region = () => {
-	const navigation = useNavigation();
-	const { colors } = useTheme();
-	const { setSelectedCountry, setSelectedRegion, selectedCountry, selectedRegion } = useFiatOnRampSDK();
-	const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] = useModalHandler(false);
+  const navigation = useNavigation();
+  const { colors } = useTheme();
+  const { selectedRegion, setSelectedRegion } = useFiatOnRampSDK();
+  const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
+    useModalHandler(false);
 
-	const [showAlert, setShowAlert] = useState(false);
-	const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] = useState({});
-	const [{ data, isFetching, error }] = useSDKMethod('getCountries');
+  const [showAlert, setShowAlert] = useState(false);
+  const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] =
+    useState({});
+  const [{ data, isFetching, error }] = useSDKMethod('getCountries');
+  useEffect(() => {
+    navigation.setOptions(
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: 'Region', showBack: false },
+        colors,
+      ),
+    );
+  }, [navigation, colors]);
 
-	useEffect(() => {
-		navigation.setOptions(getFiatOnRampAggNavbar(navigation, { title: 'Region', showBack: false }, colors));
-	}, [navigation, colors]);
+  const handleOnPress = useCallback(() => {
+    navigation.navigate('PaymentMethod');
+  }, [navigation]);
 
-	const handleRegionButton = () => {
-		toggleRegionModal();
-	};
+  const handleRegionPress = useCallback(
+    (region) => {
+      setSelectedRegion(region);
+      hideRegionModal();
+    },
+    [hideRegionModal, setSelectedRegion],
+  );
 
-	const handleOnPress = useCallback(() => {
-		navigation.navigate('PaymentMethod');
-	}, [navigation]);
+  const updatedRegion = useMemo(() => {
+    if (!selectedRegion || !data) return null;
+    const allRegions = data.reduce(
+      (acc, region) => [...acc, region, ...(region.states || [])],
+      [],
+    );
+    return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
+  }, [data, selectedRegion]);
 
-	const handleCountryPress = (country) => {
-		setSelectedCountry(country);
-		hideRegionModal();
-	};
+  useEffect(() => {
+    if (updatedRegion && updatedRegion.unsupported) {
+      setShowAlert(true);
+      setSelectedUnsupportedLocation(updatedRegion);
+      setSelectedRegion(null);
+    }
+  }, [updatedRegion, setSelectedRegion]);
 
-	const handleRegionPress = useCallback(
-		(region, country) => {
-			if (region.unsupported) {
-				setShowAlert(true);
-				setSelectedUnsupportedLocation(region);
-			} else {
-				setSelectedRegion(region);
-				setSelectedCountry(country);
-				hideRegionModal();
-			}
-		},
-		[hideRegionModal, setSelectedCountry, setSelectedRegion]
-	);
-
-	const handleUnsetRegion = useCallback(() => {
-		setSelectedRegion(undefined);
-	}, [setSelectedRegion]);
-
-	if (isFetching || !data) {
+ if (isFetching || !data) {
 		return (
 			<ScreenLayout>
 				<ScreenLayout.Body>
@@ -77,80 +82,84 @@ const Region = () => {
 			</ScreenLayout>
 		);
 	}
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <Text>{error}</Text>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
-	if (error) {
-		return (
-			<ScreenLayout>
-				<ScreenLayout.Body>
-					<Text>{error}</Text>
-				</ScreenLayout.Body>
-			</ScreenLayout>
-		);
-	}
-
-	return (
-		<ScreenLayout>
-			<ScreenLayout.Header
-				title={strings('fiat_on_ramp_aggregator.region.your_region')}
-				description={strings('fiat_on_ramp_aggregator.region.subtitle_description')}
-			/>
-			<RegionAlert
-				isVisible={showAlert}
-				subtitle={`${selectedUnsupportedLocation.emoji}   ${selectedUnsupportedLocation.name}`}
-				dismiss={() => setShowAlert(false)}
-				title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-				body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
-				link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
-			/>
-			<ScreenLayout.Body>
-				<ScreenLayout.Content>
-					<TouchableOpacity onPress={handleRegionButton}>
-						<Box>
-							<ListItem.Content>
-								<ListItem.Body>
-									{selectedRegion?.id ? (
-										<Text>
-											{selectedRegion.emoji} {'   '}
-											{selectedRegion.name}
-										</Text>
-									) : selectedCountry?.id ? (
-										<Text>
-											{selectedCountry.emoji} {'   '}
-											{selectedCountry.name}
-										</Text>
-									) : (
-										<Text>{strings('fiat_on_ramp_aggregator.region.select_region')}</Text>
-									)}
-								</ListItem.Body>
-								<ListItem.Amounts>
-									<FontAwesome name="caret-down" size={15} color={colors.icon.default} />
-								</ListItem.Amounts>
-							</ListItem.Content>
-						</Box>
-					</TouchableOpacity>
-				</ScreenLayout.Content>
-				<RegionModal
-					isVisible={isRegionModalVisible}
-					title={strings('fiat_on_ramp_aggregator.region.title')}
-					description={strings('fiat_on_ramp_aggregator.region.description')}
-					data={data}
-					dismiss={toggleRegionModal}
-					onCountryPress={handleCountryPress}
-					onRegionPress={handleRegionPress}
-					unsetRegion={handleUnsetRegion}
-				/>
-			</ScreenLayout.Body>
-			<ScreenLayout.Footer>
-				<ScreenLayout.Content>
-					<View>
-						<StyledButton type="confirm" onPress={handleOnPress} disabled={!selectedCountry?.id}>
-							{strings('swaps.continue')}
-						</StyledButton>
-					</View>
-				</ScreenLayout.Content>
-			</ScreenLayout.Footer>
-		</ScreenLayout>
-	);
+  return (
+    <ScreenLayout>
+      <ScreenLayout.Header
+        title={strings('fiat_on_ramp_aggregator.region.your_region')}
+        description={strings(
+          'fiat_on_ramp_aggregator.region.subtitle_description',
+        )}
+      />
+      <RegionAlert
+        isVisible={showAlert}
+        subtitle={`${selectedUnsupportedLocation.emoji}   ${selectedUnsupportedLocation.name}`}
+        dismiss={() => setShowAlert(false)}
+        title={strings('fiat_on_ramp_aggregator.region.unsupported')}
+        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+        link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
+      />
+      <ScreenLayout.Body>
+        <ScreenLayout.Content>
+          <TouchableOpacity onPress={showRegionModal}>
+            <Box>
+              <ListItem.Content>
+                <ListItem.Body>
+                  {updatedRegion ? (
+                    <Text>
+                      {updatedRegion.emoji} {'   '}
+                      {updatedRegion.name}
+                    </Text>
+                  ) : (
+                    <Text>
+                      {strings('fiat_on_ramp_aggregator.region.select_region')}
+                    </Text>
+                  )}
+                </ListItem.Body>
+                <ListItem.Amounts>
+                  <FontAwesome
+                    name="caret-down"
+                    size={15}
+                    color={colors.icon.default}
+                  />
+                </ListItem.Amounts>
+              </ListItem.Content>
+            </Box>
+          </TouchableOpacity>
+        </ScreenLayout.Content>
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings('fiat_on_ramp_aggregator.region.description')}
+          data={data}
+          dismiss={hideRegionModal}
+          onRegionPress={handleRegionPress}
+        />
+      </ScreenLayout.Body>
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content>
+          <View>
+            <StyledButton
+              type="confirm"
+              onPress={handleOnPress}
+              disabled={!updatedRegion}
+            >
+              {strings('swaps.continue')}
+            </StyledButton>
+          </View>
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
+    </ScreenLayout>
+  );
 };
 
 export default Region;
