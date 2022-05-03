@@ -504,12 +504,16 @@ class SendFlow extends PureComponent {
 
   onSaveToAddressBook = () => {
     const { network } = this.props;
-    const { toSelectedAddress, alias } = this.state;
+    const { toSelectedAddress, alias, toEnsAddressResolved } = this.state;
     const { AddressBookController } = Engine.context;
-    AddressBookController.set(toSelectedAddress, alias, network);
+    const toAddress = toEnsAddressResolved || toSelectedAddress;
+    AddressBookController.set(toAddress, alias, network);
     this.toggleAddToAddressBookModal();
+
     this.setState({
-      toSelectedAddressName: alias,
+      toSelectedAddressName: isENS(toSelectedAddress)
+        ? toSelectedAddress
+        : alias,
       addToAddressToAddressBook: false,
       alias: undefined,
     });
