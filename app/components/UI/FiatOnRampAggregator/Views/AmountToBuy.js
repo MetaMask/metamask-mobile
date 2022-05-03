@@ -127,9 +127,9 @@ const AmountToBuy = () => {
    * SDK methods are called as the parameters change.
    * We get
    * - getCountries -> countries
-   * - getCryptoCurrencies -> sdkCryptoCurrencies
-   * - getFiatCurrencies -> currencies
    * - defaultFiatCurrency -> getDefaultFiatCurrency
+   * - getFiatCurrencies -> currencies
+   * - getCryptoCurrencies -> sdkCryptoCurrencies
    * - paymentMethods -> getPaymentMethods
    * - currentPaymentMethod -> getCurrentPaymentMethod
    */
@@ -140,16 +140,12 @@ const AmountToBuy = () => {
 
   const [
     {
-      data: sdkCryptoCurrencies,
-      error: errorSdkCryptoCurrencies,
-      isFetching: isFetchingSdkCryptoCurrencies,
+      data: defaultFiatCurrency,
+      error: errorDefaultFiatCurrency,
+      isFetching: isFetchingDefaultFiatCurrency,
     },
-  ] = useSDKMethod(
-    'getCryptoCurrencies',
-    selectedRegion?.id,
-    selectedPaymentMethodId,
-    selectedFiatCurrencyId || '',
-  );
+    queryDefaultFiatCurrency,
+  ] = useSDKMethod('getDefaultFiatCurrency', selectedRegion?.id);
 
   const [
     {
@@ -165,11 +161,16 @@ const AmountToBuy = () => {
 
   const [
     {
-      data: defaultFiatCurrency,
-      error: errorDefaultFiatCurrency,
-      isFetching: isFetchingDefaultFiatCurrency,
+      data: sdkCryptoCurrencies,
+      error: errorSdkCryptoCurrencies,
+      isFetching: isFetchingSdkCryptoCurrencies,
     },
-  ] = useSDKMethod('getDefaultFiatCurrency', selectedRegion?.id);
+  ] = useSDKMethod(
+    'getCryptoCurrencies',
+    selectedRegion?.id,
+    selectedPaymentMethodId,
+    selectedFiatCurrencyId || '',
+  );
 
   const [
     {
@@ -240,6 +241,9 @@ const AmountToBuy = () => {
    */
   useEffect(() => {
     if (
+      !isFetchingFiatCurrencies &&
+      !isFetchingDefaultFiatCurrency &&
+      selectedFiatCurrencyId &&
       fiatCurrencies &&
       defaultFiatCurrency &&
       !fiatCurrencies.some((currency) => currency.id === selectedFiatCurrencyId)
@@ -249,6 +253,8 @@ const AmountToBuy = () => {
   }, [
     defaultFiatCurrency,
     fiatCurrencies,
+    isFetchingDefaultFiatCurrency,
+    isFetchingFiatCurrencies,
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
   ]);
@@ -348,14 +354,28 @@ const AmountToBuy = () => {
   }, [toggleRegionModal]);
 
   const handleRegionPress = useCallback(
-    (region) => {
+    async (region) => {
       hideRegionModal();
       setAmount('0');
       setAmountNumber(0);
-      setSelectedFiatCurrencyId(region.currency);
       setSelectedRegion(region);
+      if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
+        /*
+         * Selected fiat currency is default, we will fetch
+         * and select new region default fiat currency
+         */
+        const newRegionCurrency = await queryDefaultFiatCurrency(region.id);
+        setSelectedFiatCurrencyId(newRegionCurrency?.id);
+      }
     },
-    [hideRegionModal, setSelectedFiatCurrencyId, setSelectedRegion],
+    [
+      defaultFiatCurrency?.id,
+      hideRegionModal,
+      queryDefaultFiatCurrency,
+      selectedFiatCurrencyId,
+      setSelectedFiatCurrencyId,
+      setSelectedRegion,
+    ],
   );
 
   /**
