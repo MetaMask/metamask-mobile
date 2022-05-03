@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "Nunca divulgue esta chave. Qualquer pessoa que tiver a chave privada poderá controlar totalmente a sua conta, inclusive retirar seus fundos.",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "Sua {{credentialName}} oferece ",
+      "acesso total à sua conta e fundos.\n\nNão compartilhe com ninguém.\n",
+      "acesso total à sua carteira e fundos.\n\nNão compartilhe com ninguém.\n",
+      "O suporte da MetaMask nunca pedirá essa informação, ",
+      "mas golpistas talvez peçam."
     ],
     "seed_phrase": "Sua Frase Secreta de Recuperação",
     "private_key": "Sua chave privada",
@@ -637,11 +637,11 @@
     "seed_warning": "Esta é a frase de 12 palavras da sua carteira. Ela pode ser usada para assumir o controle de todas as suas contas, atuais e futuras, incluindo a capacidade de retirar fundos. Guarde esta frase em segurança e NÃO a compartilhe com ninguém.",
     "text": "TEXTO",
     "qr_code": "CÓDIGO QR",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
-    "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "hold_to_reveal_credential": "Mantenha pressionado para revelar {{credentialName}}",
+    "keep_credential_safe": "Mantenha sua {{credentialName}} protegida",
+    "srp_abbreviation_text": "FRS",
+    "srp_text": "Frase de Recuperação Secreta",
+    "private_key_text": "Chave Privada"
   },
   "password_reset": {
     "password_title": "Senha",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "Nenhum país habilitado corresponde a “{{searchString}}”",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Rápido - Não é necessário registro",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "Cartões de débito ou crédito. Apple Cash não é aceito.",
     "select_card_country": "Selecione o país onde seu cartão está registrado (não onde você está localizado).",
     "search_country": "Pesquise um país",
     "wyre_countries": "Mais de 55 países, as taxas e limites variam",
