@@ -41,7 +41,6 @@ class DeeplinkManager {
    */
   _handleNetworkSwitch = (switchToChainId) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
-
     // If not specified, use the current network
     if (!switchToChainId) {
       return;
@@ -111,12 +110,12 @@ class DeeplinkManager {
       throw new Error('The parameter uint256 should be an integer');
 
     const value = uint256Number.toString(16);
-
     const txParams = {
       to: target_address.toString(),
       from: PreferencesController.state.selectedAddress.toString(),
       value: '0x0',
       data: generateApproveData({ spender: address, value }),
+      chainId: chain_id,
     };
 
     TransactionController.addTransaction(
