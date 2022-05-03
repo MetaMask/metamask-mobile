@@ -14,6 +14,7 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
+import SkeletonText from '../components/SkeletonText';
 
 const Region = () => {
   const navigation = useNavigation();
@@ -65,11 +66,19 @@ const Region = () => {
     }
   }, [updatedRegion, setSelectedRegion]);
 
-  // TODO: replace this with loading screen
   if (isFetching || !data) {
     return (
       <ScreenLayout>
-        <ScreenLayout.Body></ScreenLayout.Body>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content>
+            <SkeletonText small center spacingVertical />
+            <SkeletonText thin spacingVertical />
+            <SkeletonText thin center large spacingBottom />
+            <Box>
+              <SkeletonText thin medium />
+            </Box>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
       </ScreenLayout>
     );
   }
