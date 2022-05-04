@@ -42,6 +42,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -417,9 +418,9 @@ class RevealPrivateCredential extends PureComponent {
 	renderTabView(privateCredentialName) {
 		const { clipboardPrivateCredential } = this.state;
 		const { styles, colors, themeAppearance } = this.getStyles();
-		const leastAndroidSupportedVersion = 10;
 
-		const supportedAndroidVersion = Device.isAndroid() && Device.getDeviceOS() < leastAndroidSupportedVersion;
+		const supportedAndroidVersion =
+			Device.isAndroid() && Device.getDeviceOS() < AppConstants.LEAST_SUPPORTED_ANDROID_VERSION;
 
 		return (
 			<ScrollableTabView
