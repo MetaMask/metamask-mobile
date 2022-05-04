@@ -16,6 +16,9 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import InfoAlert from '../components/InfoAlert';
+import SkeletonText from '../components/SkeletonText';
+import ListItem from '../../../Base/ListItem';
+import Box from '../components/Box';
 
 import Animated, {
   Extrapolate,
@@ -91,6 +94,49 @@ const createStyles = (colors) =>
       marginBottom: 30,
     },
   });
+
+const SkeletonQuote = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return (
+    <Box style={styles.row}>
+      <ListItem.Content>
+        <ListItem.Body>
+          <ListItem.Title>
+            <SkeletonText title />
+          </ListItem.Title>
+        </ListItem.Body>
+        <ListItem.Amounts>
+          <SkeletonText medium />
+        </ListItem.Amounts>
+      </ListItem.Content>
+      <ListItem.Content>
+        <ListItem.Body>
+          <SkeletonText thin />
+        </ListItem.Body>
+        <ListItem.Amounts>
+          <SkeletonText thin spacingVertical small />
+        </ListItem.Amounts>
+      </ListItem.Content>
+      <ListItem.Content>
+        <ListItem.Body>
+          <SkeletonText thin />
+        </ListItem.Body>
+        <ListItem.Amounts>
+          <SkeletonText thin small />
+        </ListItem.Amounts>
+      </ListItem.Content>
+      <ListItem.Content>
+        <ListItem.Body>
+          <SkeletonText thin />
+        </ListItem.Body>
+        <ListItem.Amounts>
+          <SkeletonText thin spacingVertical small />
+        </ListItem.Amounts>
+      </ListItem.Content>
+    </Box>
+  );
+};
 
 const LINK = {
   HOMEPAGE: 'Homepage',
@@ -361,7 +407,10 @@ const GetQuotes = () => {
                 No providers available!
               </Text>
             ) : isFetchingQuotes && isInPolling ? (
-              <Text>...</Text> //todo: to be replaced with the skelton screen
+              <>
+                <SkeletonQuote />
+                <SkeletonQuote />
+              </>
             ) : (
               filteredQuotes.sort(sortByAmountOut).map((quote) => (
                 <View key={quote.provider.id} style={styles.row}>
