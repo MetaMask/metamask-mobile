@@ -469,9 +469,11 @@ class SendFlow extends PureComponent {
 		this.toggleAddToAddressBookModal();
 
 		this.setState({
-			toSelectedAddressName: isENS(toSelectedAddress) ? toSelectedAddress : alias,
+			toSelectedAddressName: alias,
 			addToAddressToAddressBook: false,
 			alias: undefined,
+			isFromAddressBook: true,
+			toSelectedAddress: toAddress,
 		});
 	};
 
