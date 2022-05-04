@@ -24,7 +24,7 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
-import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import ConnectQRHardware from '../../Views/ConnectHardware/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -51,6 +51,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
@@ -437,6 +438,16 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+const ConnectHardwareWalletFlow = () => (
+  <Stack.Navigator name="ConnectHardwareWallet">
+    <Stack.Screen
+      name="SelectHardwareWallet"
+      component={SelectHardwareWallet}
+      options={SelectHardwareWallet.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
     screenOptions={{
@@ -474,6 +485,10 @@ const MainNavigator = () => (
     <Stack.Screen
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}
+    />
+    <Stack.Screen
+      name="ConnectHardwareWalletFlow"
+      component={ConnectHardwareWalletFlow}
     />
     <Stack.Screen
       name="ConnectQRHardwareFlow"

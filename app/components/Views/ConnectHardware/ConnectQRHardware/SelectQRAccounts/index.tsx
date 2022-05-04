@@ -9,15 +9,15 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import CheckBox from '@react-native-community/checkbox';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { fontStyles } from '../../../../styles/common';
+import { fontStyles } from '../../../../../styles/common';
 import { IAccount } from '../types';
-import { renderFromWei } from '../../../../util/number';
-import { getEtherscanAddressUrl } from '../../../../util/etherscan';
-import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
-import EthereumAddress from '../../../UI/EthereumAddress';
-import StyledButton from '../../../UI/StyledButton';
+import { renderFromWei } from '../../../../../util/number';
+import { getEtherscanAddressUrl } from '../../../../../util/etherscan';
+import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
+import EthereumAddress from '../../../../UI/EthereumAddress';
+import StyledButton from '../../../../UI/StyledButton';
 
 interface ISelectQRAccountsProps {
   canUnlock: boolean;
