@@ -8,12 +8,14 @@ module.exports = {
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
+
   overrides: [
     {
       files: ['*.{ts,tsx}'],
       extends: ['@metamask/eslint-config-typescript'],
     },
   ],
+
   globals: {
     process: true,
     beforeAll: true,
@@ -31,11 +33,13 @@ module.exports = {
     waitFor: true,
     __DEV__: true,
   },
+
   settings: {
     'import/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
   },
+
   rules: {
     'no-catch-shadow': 0,
     'no-console': ['error', { allow: ['warn', 'error'] }],
