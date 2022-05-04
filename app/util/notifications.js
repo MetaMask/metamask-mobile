@@ -1,6 +1,6 @@
 const notificationTypes = {
-	TRANSACTION: 'transaction',
-	SIMPLE: 'simple',
+  TRANSACTION: 'transaction',
+  SIMPLE: 'simple',
 };
 
 export default notificationTypes;
