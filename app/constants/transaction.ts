@@ -5,4 +5,5 @@ export const TX_PENDING = 'pending';
 export const TX_CONFIRMED = 'confirmed';
 
 // Values
-export const UINT256_HEX_MAX_VALUE = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+export const UINT256_HEX_MAX_VALUE =
+  'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';

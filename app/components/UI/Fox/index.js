@@ -3,40 +3,50 @@ import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 const createStyles = (colors) =>
-	StyleSheet.create({
-		webView: {
-			flex: 1,
-			backgroundColor: colors.background.default,
-		},
-	});
+  StyleSheet.create({
+    webView: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
+  });
 
-function Fox({ style, customStyle, customContent = '', forwardedRef, ...props }) {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
-	const opacityControl = useSharedValue(0);
+function Fox({
+  style,
+  customStyle,
+  customContent = '',
+  forwardedRef,
+  ...props
+}) {
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
+  const opacityControl = useSharedValue(0);
 
-	/* eslint-disable-next-line */
-	const webViewStyle = useAnimatedStyle(() => {
-		return {
-			opacity: opacityControl.value,
-		};
-	});
+  /* eslint-disable-next-line */
+  const webViewStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacityControl.value,
+    };
+  });
 
-	const showWebView = () => {
-		opacityControl.value = withTiming(1, { duration: 500 });
-	};
+  const showWebView = () => {
+    opacityControl.value = withTiming(1, { duration: 500 });
+  };
 
-	return (
-		<Animated.View style={[styles.webView, webViewStyle]}>
-			<WebView
-				ref={forwardedRef}
-				style={[styles.webView, style]}
-				onLoadEnd={showWebView}
-				source={{
-					html: `
+  return (
+    <Animated.View style={[styles.webView, webViewStyle]}>
+      <WebView
+        ref={forwardedRef}
+        style={[styles.webView, style]}
+        onLoadEnd={showWebView}
+        source={{
+          html: `
 					<!DOCTYPE html>
 					<html>
 					<head>
@@ -1523,24 +1533,26 @@ function Fox({ style, customStyle, customContent = '', forwardedRef, ...props })
 					</body>
 					</html>
 				`,
-				}}
-				javaScriptEnabled
-				bounces={false}
-				scrollEnabled={false}
-				{...props}
-			/>
-		</Animated.View>
-	);
+        }}
+        javaScriptEnabled
+        bounces={false}
+        scrollEnabled={false}
+        {...props}
+      />
+    </Animated.View>
+  );
 }
 
 Fox.propTypes = {
-	style: PropTypes.object,
-	customStyle: PropTypes.string,
-	customContent: PropTypes.string,
-	forwardedRef: PropTypes.any,
+  style: PropTypes.object,
+  customStyle: PropTypes.string,
+  customContent: PropTypes.string,
+  forwardedRef: PropTypes.any,
 };
 
-const FoxWithRef = forwardRef((props, ref) => <Fox {...props} forwardedRef={ref} />);
+const FoxWithRef = forwardRef((props, ref) => (
+  <Fox {...props} forwardedRef={ref} />
+));
 FoxWithRef.displayName = 'FoxWithRef';
 
 export default FoxWithRef;

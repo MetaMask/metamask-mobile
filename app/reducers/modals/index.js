@@ -1,74 +1,78 @@
 const initialState = {
-	networkModalVisible: false,
-	accountsModalVisible: false,
-	collectibleContractModalVisible: false,
-	receiveModalVisible: false,
-	receiveAsset: undefined,
-	dappTransactionModalVisible: false,
-	approveModalVisible: false,
-	ledgerDeviceActionModalVisible: false,
-	ledgerDeviceActionModalFailVisible: false,
+  networkModalVisible: false,
+  accountsModalVisible: false,
+  collectibleContractModalVisible: false,
+  receiveModalVisible: false,
+  receiveAsset: undefined,
+  dappTransactionModalVisible: false,
+  approveModalVisible: false,
+  ledgerDeviceActionModalVisible: false,
+  ledgerDeviceActionModalFailVisible: false,
 };
 
 const modalsReducer = (state = initialState, action) => {
-	switch (action.type) {
-		case 'TOGGLE_NETWORK_MODAL':
-			return {
-				...state,
-				networkModalVisible: !state.networkModalVisible,
-			};
-		case 'TOGGLE_RECEIVE_MODAL': {
-			return {
-				...state,
-				receiveModalVisible: !state.receiveModalVisible,
-				receiveAsset: action.asset,
-			};
-		}
-		case 'TOGGLE_ACCOUNT_MODAL':
-			return {
-				...state,
-				accountsModalVisible: !state.accountsModalVisible,
-			};
-		case 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL':
-			return {
-				...state,
-				collectibleContractModalVisible: !state.collectibleContractModalVisible,
-			};
-		case 'TOGGLE_DAPP_TRANSACTION_MODAL':
-			if (action.show === false) {
-				return {
-					...state,
-					dappTransactionModalVisible: false,
-				};
-			}
-			return {
-				...state,
-				dappTransactionModalVisible: action.show === null ? !state.dappTransactionModalVisible : action.show,
-			};
-		case 'TOGGLE_APPROVE_MODAL':
-			if (action.show === false) {
-				return {
-					...state,
-					approveModalVisible: false,
-				};
-			}
-			return {
-				...state,
-				approveModalVisible: !state.approveModalVisible,
-			};
-		case 'TOGGLE_LEDGER_DEVICE_ACTION':
-			return {
-				...state,
-				ledgerDeviceActionModalVisible: !state.ledgerDeviceActionModalVisible,
-			};
-		case 'TOGGLE_LEDGER_DEVICE_ACTION_FAIL':
-			return {
-				...state,
-				ledgerDeviceActionModalFailVisible: !state.ledgerDeviceActionModalFailVisible,
-			};
+  switch (action.type) {
+    case 'TOGGLE_NETWORK_MODAL':
+      return {
+        ...state,
+        networkModalVisible: !state.networkModalVisible,
+      };
+    case 'TOGGLE_RECEIVE_MODAL': {
+      return {
+        ...state,
+        receiveModalVisible: !state.receiveModalVisible,
+        receiveAsset: action.asset,
+      };
+    }
+    case 'TOGGLE_ACCOUNT_MODAL':
+      return {
+        ...state,
+        accountsModalVisible: !state.accountsModalVisible,
+      };
+    case 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL':
+      return {
+        ...state,
+        collectibleContractModalVisible: !state.collectibleContractModalVisible,
+      };
+    case 'TOGGLE_DAPP_TRANSACTION_MODAL':
+      if (action.show === false) {
+        return {
+          ...state,
+          dappTransactionModalVisible: false,
+        };
+      }
+      return {
+        ...state,
+        dappTransactionModalVisible:
+          action.show === null
+            ? !state.dappTransactionModalVisible
+            : action.show,
+      };
+    case 'TOGGLE_APPROVE_MODAL':
+      if (action.show === false) {
+        return {
+          ...state,
+          approveModalVisible: false,
+        };
+      }
+      return {
+        ...state,
+        approveModalVisible: !state.approveModalVisible,
+      };
+    case 'TOGGLE_LEDGER_DEVICE_ACTION':
+      return {
+        ...state,
+        ledgerDeviceActionModalVisible: !state.ledgerDeviceActionModalVisible,
+      };
+    case 'TOGGLE_LEDGER_DEVICE_ACTION_FAIL':
+      return {
+        ...state,
+        ledgerDeviceActionModalFailVisible:
+          !state.ledgerDeviceActionModalFailVisible,
+      };
 
-		default:
-			return state;
-	}
+    default:
+      return state;
+  }
 };
 export default modalsReducer;

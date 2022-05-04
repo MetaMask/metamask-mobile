@@ -14,61 +14,63 @@ const MAX = 20;
  * @param {EthQuery} ethQuery - The EthQuery instance to use when asking the network
  */
 const getBalance = async (address, ethQuery) =>
-	new Promise((resolve, reject) => {
-		ethQuery.getBalance(address, (error, balance) => {
-			if (error) {
-				reject(error);
-				Logger.error(error);
-			} else {
-				const balanceHex = BNToHex(balance);
-				resolve(balanceHex || ZERO_BALANCE);
-			}
-		});
-	});
+  new Promise((resolve, reject) => {
+    ethQuery.getBalance(address, (error, balance) => {
+      if (error) {
+        reject(error);
+        Logger.error(error);
+      } else {
+        const balanceHex = BNToHex(balance);
+        resolve(balanceHex || ZERO_BALANCE);
+      }
+    });
+  });
 
 /**
  * Updates identities in the preferences controllers
  * @param {array} accounts - an array of addresses
  */
 const updateIdentities = async (accounts) => {
-	const { KeyringController, PreferencesController } = Engine.context;
-	const newAccounts = await KeyringController.getAccounts();
-	PreferencesController.updateIdentities(newAccounts);
-	newAccounts.forEach((selectedAddress) => {
-		if (!accounts.includes(selectedAddress)) {
-			PreferencesController.update({ selectedAddress });
-		}
-	});
+  const { KeyringController, PreferencesController } = Engine.context;
+  const newAccounts = await KeyringController.getAccounts();
+  PreferencesController.updateIdentities(newAccounts);
+  newAccounts.forEach((selectedAddress) => {
+    if (!accounts.includes(selectedAddress)) {
+      PreferencesController.update({ selectedAddress });
+    }
+  });
 
-	// setSelectedAddress to the initial account
-	PreferencesController.setSelectedAddress(accounts[0]);
+  // setSelectedAddress to the initial account
+  PreferencesController.setSelectedAddress(accounts[0]);
 };
 
 /**
  * Add additional accounts in the wallet based on balance
  */
 export default async () => {
-	const { KeyringController, NetworkController } = Engine.context;
-	const { provider } = NetworkController;
+  const { KeyringController, NetworkController } = Engine.context;
+  const { provider } = NetworkController;
 
-	const ethQuery = new EthQuery(provider);
-	let accounts = await KeyringController.getAccounts();
-	let lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
+  const ethQuery = new EthQuery(provider);
+  let accounts = await KeyringController.getAccounts();
+  let lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
 
-	const { keyrings } = KeyringController.state;
-	const filteredKeyrings = keyrings.filter((keyring) => keyring.type === HD_KEY_TREE);
-	const primaryKeyring = filteredKeyrings[0];
-	if (!primaryKeyring) throw new Error(HD_KEY_TREE_ERROR);
+  const { keyrings } = KeyringController.state;
+  const filteredKeyrings = keyrings.filter(
+    (keyring) => keyring.type === HD_KEY_TREE,
+  );
+  const primaryKeyring = filteredKeyrings[0];
+  if (!primaryKeyring) throw new Error(HD_KEY_TREE_ERROR);
 
-	let i = 0;
-	// seek out the first zero balance
-	while (lastBalance !== ZERO_BALANCE) {
-		if (i === MAX) break;
-		await KeyringController.addNewAccountWithoutUpdate(primaryKeyring);
-		accounts = await KeyringController.getAccounts();
-		lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
-		i++;
-	}
+  let i = 0;
+  // seek out the first zero balance
+  while (lastBalance !== ZERO_BALANCE) {
+    if (i === MAX) break;
+    await KeyringController.addNewAccountWithoutUpdate(primaryKeyring);
+    accounts = await KeyringController.getAccounts();
+    lastBalance = await getBalance(accounts[accounts.length - 1], ethQuery);
+    i++;
+  }
 
-	updateIdentities(accounts);
+  updateIdentities(accounts);
 };

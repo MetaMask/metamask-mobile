@@ -29,8 +29,13 @@ const customStyle = `
 	}
 `;
 storiesOf('UI / Fox', module)
-	.addDecorator((getStory) => getStory())
-	.add('Default', () => {
-		const customContentKnob = boolean('customContent', false);
-		return <Fox customContent={customContentKnob ? backgroundShapes : ''} customStyle={customStyle} />;
-	});
+  .addDecorator((getStory) => getStory())
+  .add('Default', () => {
+    const customContentKnob = boolean('customContent', false);
+    return (
+      <Fox
+        customContent={customContentKnob ? backgroundShapes : ''}
+        customStyle={customStyle}
+      />
+    );
+  });

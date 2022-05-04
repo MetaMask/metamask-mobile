@@ -12,36 +12,49 @@ const en = require(`${languagesFolder}/en.json`);
  */
 
 const updateLanguage = (language) => {
-	const languageToUpdate = require(`${languagesToUpdateFolder}/${language}`);
+  const languageToUpdate = require(`${languagesToUpdateFolder}/${language}`);
 
-	let existentLanguage = {};
-	if (fs.existsSync(`${languagesFolder}/${language}`)) {
-		existentLanguage = require(`${languagesFolder}/${language}`);
-	}
+  let existentLanguage = {};
+  if (fs.existsSync(`${languagesFolder}/${language}`)) {
+    existentLanguage = require(`${languagesFolder}/${language}`);
+  }
 
-	const updated = {};
+  const updated = {};
 
-	for (const screenKey in en) {
-		// Checks if either the new language file or the existent language file has the screen key
-		if (languageToUpdate[screenKey] || existentLanguage[screenKey]) {
-			updated[screenKey] = {};
-			for (const translationKey in en[screenKey]) {
-				// Update the language either with the new translation or the existent one if it exists
-				if (languageToUpdate[screenKey] && languageToUpdate[screenKey][translationKey]) {
-					updated[screenKey][translationKey] = languageToUpdate[screenKey][translationKey];
-				} else if (existentLanguage[screenKey] && existentLanguage[screenKey][translationKey]) {
-					updated[screenKey][translationKey] = existentLanguage[screenKey][translationKey];
-				}
-			}
-		}
-	}
+  for (const screenKey in en) {
+    // Checks if either the new language file or the existent language file has the screen key
+    if (languageToUpdate[screenKey] || existentLanguage[screenKey]) {
+      updated[screenKey] = {};
+      for (const translationKey in en[screenKey]) {
+        // Update the language either with the new translation or the existent one if it exists
+        if (
+          languageToUpdate[screenKey] &&
+          languageToUpdate[screenKey][translationKey]
+        ) {
+          updated[screenKey][translationKey] =
+            languageToUpdate[screenKey][translationKey];
+        } else if (
+          existentLanguage[screenKey] &&
+          existentLanguage[screenKey][translationKey]
+        ) {
+          updated[screenKey][translationKey] =
+            existentLanguage[screenKey][translationKey];
+        }
+      }
+    }
+  }
 
-	fs.writeFileSync(`${languagesFolder}/${language}`, JSON.stringify(updated, null, '\t') + '\n');
-	console.log(language + ' updated!');
+  fs.writeFileSync(
+    `${languagesFolder}/${language}`,
+    JSON.stringify(updated, null, '\t') + '\n',
+  );
+  console.log(language + ' updated!');
 };
 
 const allLanguagesToUpdateFiles = fs.readdirSync(languagesToUpdateFolder);
-const languageFilesToUpdate = allLanguagesToUpdateFiles.filter((lang) => lang !== 'en.json' && lang.endsWith('.json'));
+const languageFilesToUpdate = allLanguagesToUpdateFiles.filter(
+  (lang) => lang !== 'en.json' && lang.endsWith('.json'),
+);
 languageFilesToUpdate.forEach(updateLanguage);
 console.log('All done!');
 
