@@ -189,7 +189,7 @@ const LedgerConnect = () => {
         <Image
           source={useAssetFromTheme(
             ledgerDeviceLightImage,
-            ledgerConnectDarkImage,
+            ledgerDeviceDarkImage,
           )}
           style={styles.ledgerImage}
         />

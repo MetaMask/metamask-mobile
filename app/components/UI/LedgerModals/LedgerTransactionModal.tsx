@@ -7,7 +7,11 @@ import {
   View,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+  useAssetFromTheme,
+} from '../../../util/theme';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -40,7 +44,8 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const ledgerConnectImage = require('../../../images/ledger-connect.png');
+const ledgerConnectLightImage = require('../../../images/ledger-connect-light.png');
+const ledgerConnectDarkImage = require('../../../images/ledger-connect-dark.png');
 
 const LedgerTransactionModal = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
@@ -50,7 +55,12 @@ const LedgerTransactionModal = () => {
   return (
     <SafeAreaView style={styles.wrapper}>
       <View style={styles.contentWrapper}>
-        <Image source={ledgerConnectImage} />
+        <Image
+          source={useAssetFromTheme(
+            ledgerConnectLightImage,
+            ledgerConnectDarkImage,
+          )}
+        />
         <View style={styles.confirmTransactionTextContainer}>
           <Text bold big>
             {strings('ledger.confirm_transaction_on_ledger')}
