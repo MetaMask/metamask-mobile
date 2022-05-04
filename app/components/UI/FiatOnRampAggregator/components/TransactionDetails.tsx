@@ -102,7 +102,24 @@ const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
         </>
       );
     }
-    case SDK_ORDER_STATUS.Pending: {
+    case SDK_ORDER_STATUS.Cancelled:
+    case SDK_ORDER_STATUS.Failed: {
+      return (
+        <>
+          <Image source={failedIcon} />
+          <Text bold big primary centered style={styles.stageDescription}>
+            {stage === 'FAILED'
+              ? strings('fiat_on_ramp_aggregator.transaction.failed')
+              : 'fiat_on_ramp.cancelled'}
+          </Text>
+          <Text small centered style={styles.stageMessage}>
+            {strings('fiat_on_ramp_aggregator.transaction.failed_description')}
+          </Text>
+        </>
+      );
+    }
+    case SDK_ORDER_STATUS.Pending:
+    default: {
       return (
         <>
           <Spinner />
@@ -124,21 +141,6 @@ const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
               )}
             </Text>
           )}
-        </>
-      );
-    }
-    default: {
-      return (
-        <>
-          <Image source={failedIcon} />
-          <Text bold big primary centered style={styles.stageDescription}>
-            {stage === 'FAILED'
-              ? strings('fiat_on_ramp_aggregator.transaction.failed')
-              : 'fiat_on_ramp.cancelled'}
-          </Text>
-          <Text small centered style={styles.stageMessage}>
-            {strings('fiat_on_ramp_aggregator.transaction.failed_description')}
-          </Text>
         </>
       );
     }
@@ -205,10 +207,14 @@ const TransactionDetails: React.FC<Props> = ({
           )}{' '}
         {cryptocurrency}
       </Text>
-      <Text centered small style={styles.fiatColor}>
-        {currencySymbol}
-        {renderFiat(amountOut, currency, data?.fiatCurrency?.decimals)}
-      </Text>
+      {data?.fiatCurrency?.decimals && currencySymbol ? (
+        <Text centered small style={styles.fiatColor}>
+          {currencySymbol}
+          {renderFiat(amountOut, currency, data?.fiatCurrency?.decimals)}
+        </Text>
+      ) : (
+        <Text>...</Text>
+      )}
       <Box>
         <Text bold primary style={styles.transactionTitle}>
           {strings('fiat_on_ramp_aggregator.transaction.details')}
@@ -263,7 +269,7 @@ const TransactionDetails: React.FC<Props> = ({
               </Text>
             </ListItem.Body>
             <ListItem.Amount>
-              {cryptoAmount && data && (
+              {cryptoAmount && data?.cryptoCurrency?.decimals ? (
                 <Text small bold primary>
                   {renderFromTokenMinimalUnit(
                     toTokenMinimalUnit(
@@ -274,6 +280,8 @@ const TransactionDetails: React.FC<Props> = ({
                   )}{' '}
                   {cryptocurrency}
                 </Text>
+              ) : (
+                <Text>...</Text>
               )}
             </ListItem.Amount>
           </ListItem.Content>
@@ -284,10 +292,18 @@ const TransactionDetails: React.FC<Props> = ({
               </Text>
             </ListItem.Body>
             <ListItem.Amount>
-              <Text small bold primary>
-                {currencySymbol}
-                {renderFiat(amountOut, currency, data?.fiatCurrency?.decimals)}
-              </Text>
+              {data?.fiatCurrency?.decimals && amountOut && currency ? (
+                <Text small bold primary>
+                  {currencySymbol}
+                  {renderFiat(
+                    amountOut,
+                    currency,
+                    data?.fiatCurrency?.decimals,
+                  )}
+                </Text>
+              ) : (
+                <Text>...</Text>
+              )}
             </ListItem.Amount>
           </ListItem.Content>
           <ListItem.Content style={styles.listItems}>
@@ -297,14 +313,21 @@ const TransactionDetails: React.FC<Props> = ({
               </Text>
             </ListItem.Body>
             <ListItem.Amount>
-              <Text small bold primary>
-                1 {order.cryptocurrency} @{' '}
-                {renderFiat(
-                  exchangeRate,
-                  currency,
-                  data?.fiatCurrency?.decimals,
-                )}
-              </Text>
+              {order.cryptocurrency &&
+              exchangeRate &&
+              currency &&
+              data?.fiatCurrency?.decimals ? (
+                <Text small bold primary>
+                  1 {order.cryptocurrency} @{' '}
+                  {renderFiat(
+                    exchangeRate,
+                    currency,
+                    data?.fiatCurrency?.decimals,
+                  )}
+                </Text>
+              ) : (
+                <Text>...</Text>
+              )}
             </ListItem.Amount>
           </ListItem.Content>
           <ListItem.Content style={styles.listItems}>
@@ -314,10 +337,18 @@ const TransactionDetails: React.FC<Props> = ({
               </Text>
             </ListItem.Body>
             <ListItem.Amount>
-              <Text small bold primary>
-                {currencySymbol}
-                {renderFiat(cryptoFee, currency, data?.fiatCurrency?.decimals)}
-              </Text>
+              {cryptoFee && currency && data?.fiatCurrency?.decimals ? (
+                <Text small bold primary>
+                  {currencySymbol}
+                  {renderFiat(
+                    cryptoFee,
+                    currency,
+                    data?.fiatCurrency?.decimals,
+                  )}
+                </Text>
+              ) : (
+                <Text>...</Text>
+              )}
             </ListItem.Amount>
           </ListItem.Content>
         </View>
@@ -331,10 +362,17 @@ const TransactionDetails: React.FC<Props> = ({
             </Text>
           </ListItem.Body>
           <ListItem.Amount>
-            <Text small bold primary>
-              {currencySymbol}
-              {renderFiat(amount, currency, data?.fiatCurrency?.decimals)}
-            </Text>
+            {currencySymbol &&
+            amount &&
+            currency &&
+            data?.fiatCurrency?.decimals ? (
+              <Text small bold primary>
+                {currencySymbol}
+                {renderFiat(amount, currency, data?.fiatCurrency?.decimals)}
+              </Text>
+            ) : (
+              <Text>...</Text>
+            )}
           </ListItem.Amount>
         </ListItem.Content>
         {order.state === SDK_ORDER_STATUS.Completed && txHash && (
