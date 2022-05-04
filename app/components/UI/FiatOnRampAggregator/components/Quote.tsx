@@ -14,7 +14,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
-import { useAssetFromTheme } from '../../../../util/theme';
+import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 
 // TODO: Convert into typescript and correctly type optionals
@@ -22,21 +22,23 @@ const Text = CustomText as any;
 const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
-const styles = StyleSheet.create({
-  fee: {
-    marginLeft: 8,
-  },
-  buyButton: {
-    marginTop: 10,
-  },
-  title: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoIcon: {
-    marginLeft: 8,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    fee: {
+      marginLeft: 8,
+    },
+    buyButton: {
+      marginTop: 10,
+    },
+    title: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    infoIcon: {
+      marginLeft: 8,
+      color: colors.icon.default,
+    },
+  });
 
 interface Props {
   quote: QuoteResponse;
@@ -53,6 +55,8 @@ const Quote: React.FC<Props> = ({
   showInfo,
   highlighted,
 }: Props) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
   const {
     networkFee = 0,
