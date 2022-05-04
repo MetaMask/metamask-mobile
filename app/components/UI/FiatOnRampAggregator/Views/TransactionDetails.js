@@ -11,6 +11,7 @@ import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
 import { useSelector, connect } from 'react-redux';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const styles = StyleSheet.create({
   screenLayout: {
@@ -39,32 +40,36 @@ const TransactionDetails = ({ route, provider, frequentRpcList }) => {
   }, [colors, navigation]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
-    navigation.navigate('PaymentMethod');
+    navigation.replace('PaymentMethod');
   }, [navigation]);
 
   return (
     <ScreenLayout>
-      <ScreenLayout.Header>
-        <Account />
-      </ScreenLayout.Header>
-      <ScreenLayout.Body>
-        <ScreenLayout.Content style={styles.screenLayout}>
-          <TransactionDetail
-            order={order}
-            provider={provider}
-            frequentRpcList={frequentRpcList}
-          />
-        </ScreenLayout.Content>
-      </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <View>
-            <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
-              {strings('fiat_on_ramp_aggregator.transaction.another_purchase')}
-            </StyledButton>
-          </View>
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
+      <ScrollView>
+        <ScreenLayout.Header>
+          <Account />
+        </ScreenLayout.Header>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content style={styles.screenLayout}>
+            <TransactionDetail
+              order={order}
+              provider={provider}
+              frequentRpcList={frequentRpcList}
+            />
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <View>
+              <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
+                {strings(
+                  'fiat_on_ramp_aggregator.transaction.another_purchase',
+                )}
+              </StyledButton>
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      </ScrollView>
     </ScreenLayout>
   );
 };
