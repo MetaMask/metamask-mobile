@@ -19,7 +19,8 @@ import SkeletonText from '../components/SkeletonText';
 const Region = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { selectedRegion, setSelectedRegion } = useFiatOnRampSDK();
+  const { selectedRegion, setSelectedRegion, setSelectedFiatCurrencyId } =
+    useFiatOnRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
     useModalHandler(false);
 
@@ -44,9 +45,10 @@ const Region = () => {
   const handleRegionPress = useCallback(
     (region) => {
       setSelectedRegion(region);
+      setSelectedFiatCurrencyId(null);
       hideRegionModal();
     },
-    [hideRegionModal, setSelectedRegion],
+    [hideRegionModal, setSelectedFiatCurrencyId, setSelectedRegion],
   );
 
   const updatedRegion = useMemo(() => {
