@@ -95,4 +95,8 @@ export default class Device {
   static hasNotch() {
     return hasNotch();
   }
+
+  static getDeviceOS() {
+    return getSystemVersion();
+  }
 }

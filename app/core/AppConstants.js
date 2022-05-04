@@ -116,4 +116,5 @@ export default {
     IOS: 'io.metamask.MetaMask',
     ANDROID: 'io.metamask',
   },
+  LEAST_SUPPORTED_ANDROID_VERSION: 10,
 };
