@@ -75,6 +75,10 @@ const createStyles = (colors) =>
     flexRow: {
       flexDirection: 'row',
     },
+    flagText: {
+      marginVertical: 3,
+      marginHorizontal: 0,
+    },
   });
 
 const AmountToBuy = () => {
@@ -556,7 +560,9 @@ const AmountToBuy = () => {
               <AccountSelector />
               <View style={styles.spacer} />
               <SelectorButton onPress={handleChangeRegion}>
-                <Text reset>{selectedRegion?.emoji}</Text>
+                <Text reset style={styles.flagText}>
+                  {selectedRegion?.emoji}
+                </Text>
               </SelectorButton>
             </View>
             <View style={styles.row}>
