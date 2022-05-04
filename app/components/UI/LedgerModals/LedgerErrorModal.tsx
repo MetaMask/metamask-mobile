@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 import { Image, SafeAreaView, StyleSheet, View } from 'react-native';
 import { RootStateOrAny, useSelector } from 'react-redux';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+  useAssetFromTheme,
+} from '../../../util/theme';
 import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
@@ -44,7 +48,8 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const ledgerConnectImage = require('../../../images/ledger-connect-error.png');
+const ledgerConnectErrorDarkImage = require('../../../images/ledger-connect-error-dark.png');
+const ledgerConnectErrorLightImage = require('../../../images/ledger-connect-error-light.png');
 
 const LedgerErrorModal = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
@@ -61,7 +66,12 @@ const LedgerErrorModal = () => {
   return (
     <SafeAreaView style={styles.wrapper}>
       <View style={styles.contentWrapper}>
-        <Image source={ledgerConnectImage} />
+        <Image
+          source={useAssetFromTheme(
+            ledgerConnectErrorLightImage,
+            ledgerConnectErrorDarkImage,
+          )}
+        />
         <View style={styles.errorHasOccuredTextContainer}>
           <Text bold big style={styles.errorHasOccuredText}>
             {strings('ledger.error_occured')}

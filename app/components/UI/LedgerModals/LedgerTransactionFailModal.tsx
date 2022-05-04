@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 import { Image, SafeAreaView, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+  useAssetFromTheme,
+} from '../../../util/theme';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
@@ -40,7 +44,8 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const ledgerConnectImage = require('../../../images/ledger-connect-error.png');
+const ledgerConnectErrorDarkImage = require('../../../images/ledger-connect-error-dark.png');
+const ledgerConnectErrorLightImage = require('../../../images/ledger-connect-error-light.png');
 
 const LedgerTransactionFailModal = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
@@ -50,7 +55,12 @@ const LedgerTransactionFailModal = () => {
   return (
     <SafeAreaView style={styles.wrapper}>
       <View style={styles.contentWrapper}>
-        <Image source={ledgerConnectImage} />
+        <Image
+          source={useAssetFromTheme(
+            ledgerConnectErrorLightImage,
+            ledgerConnectErrorDarkImage,
+          )}
+        />
         <View style={styles.confirmTransactionTextContainer}>
           <Text bold big>
             {strings('ledger.confirm_transaction_on_ledger')}
