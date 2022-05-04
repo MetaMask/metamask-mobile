@@ -430,13 +430,13 @@ class SendFlow extends PureComponent {
        * Check if it's smart contract address
        */
       /*
-			const smart = false; //
+      const smart = false; //
 
-			if (smart) {
-				addressError = strings('transaction.smartContractAddressWarning');
-				isOnlyWarning = true;
-			}
-			*/
+      if (smart) {
+        addressError = strings('transaction.smartContractAddressWarning');
+        isOnlyWarning = true;
+      }
+      */
     } else if (isENS(toSelectedAddress)) {
       toEnsName = toSelectedAddress;
       confusableCollection = collectConfusables(toEnsName);

@@ -98,12 +98,12 @@ const SeedphraseModal = ({
 
 SeedphraseModal.propTypes = {
   /**
-	/* Show or hide modal
-	*/
+  /* Show or hide modal
+  */
   showWhatIsSeedphraseModal: PropTypes.bool,
   /**
-	/* Function to hide modal
-	*/
+  /* Function to hide modal
+  */
   hideWhatIsSeedphrase: PropTypes.func,
 };
 

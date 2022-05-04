@@ -102,8 +102,8 @@ class ManualBackupStep3 extends PureComponent {
 
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it

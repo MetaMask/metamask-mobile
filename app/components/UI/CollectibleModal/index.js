@@ -125,9 +125,9 @@ const CollectibleModal = (props) => {
 
 CollectibleModal.propTypes = {
   /**
-	/* navigation object required to access the props
-	/* passed by the parent component
-	*/
+  /* navigation object required to access the props
+  /* passed by the parent component
+  */
   navigation: PropTypes.object,
   /**
    * Route contains props passed when navigating

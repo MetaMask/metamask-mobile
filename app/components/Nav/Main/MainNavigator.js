@@ -27,7 +27,7 @@ import RevealPrivateCredential from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QrScanner from '../../Views/QRScanner';
-import ConnectQRHardware from '../../Views/ConnectQRHardware';
+import ConnectQRHardware from '../../Views/ConnectHardware/ConnectQRHardware';
 import LockScreen from '../../Views/LockScreen';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -54,6 +54,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import LedgerConnect from '../../Views/LedgerConnect';
@@ -109,7 +110,6 @@ const WalletTabHome = () => (
       component={RevealPrivateCredential}
       options={RevealPrivateCredential.navigationOptions}
     />
-
     <Stack.Screen
       name="ExperimentalSettings"
       component={ExperimentalSettings}
@@ -477,6 +477,16 @@ const LedgerConnectFlow = ({ navigation }) => (
   </Stack.Navigator>
 );
 
+const ConnectHardwareWalletFlow = () => (
+  <Stack.Navigator name="ConnectHardwareWallet">
+    <Stack.Screen
+      name="SelectHardwareWallet"
+      component={SelectHardwareWallet}
+      options={SelectHardwareWallet.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
     screenOptions={{
@@ -516,6 +526,10 @@ const MainNavigator = () => (
       component={ImportPrivateKeyView}
     />
     <Stack.Screen name="LedgerConnectFlow" component={LedgerConnectFlow} />
+    <Stack.Screen
+      name="ConnectHardwareWalletFlow"
+      component={ConnectHardwareWalletFlow}
+    />
     <Stack.Screen
       name="ConnectQRHardwareFlow"
       component={ConnectQRHardwareFlow}

@@ -80,8 +80,8 @@ const createStyles = (colors) =>
 class ImportPrivateKeySuccess extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
     /**
      * List of keyrings

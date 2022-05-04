@@ -134,7 +134,7 @@ const SlippageSlider = ({
   const [temporaryValue, setTemporaryValue] = useState(value);
 
   /* Pan and slider position
-	/* Pan will handle the gesture and update slider */
+  /* Pan will handle the gesture and update slider */
   const pan = useRef(new Animated.Value(0)).current;
   const slider = useRef(new Animated.Value(0)).current;
   const sliderPosition = slider.interpolate({

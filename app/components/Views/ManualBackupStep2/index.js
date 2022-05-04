@@ -167,8 +167,8 @@ const createStyles = (colors) =>
 class ManualBackupStep2 extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
     /**
      * The action to update the seedphrase backed up flag

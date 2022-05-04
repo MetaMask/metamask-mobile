@@ -1,3 +1,4 @@
+/* eslint-disable import/no-commonjs */
 /**
  * Metro configuration for React Native
  * https://github.com/facebook/react-native

@@ -54,6 +54,14 @@ import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
+import {
+  CREATE_PASSWORD_CONTAINER_ID,
+  CREATE_PASSWORD_INPUT_BOX_ID,
+  CONFIRM_PASSWORD_INPUT_BOX_ID,
+  IOS_I_UNDERSTAND_BUTTON_ID,
+  ANDROID_I_UNDERSTAND_BUTTON_ID,
+  CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
+} from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -678,7 +686,7 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 onSubmitEditing={this.tryUnlock}
-                testID={'private-credential-password-text-input'}
+                testID={CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID}
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (
@@ -756,7 +764,7 @@ class ResetPassword extends PureComponent {
               contentContainerStyle={styles.keyboardScrollableWrapper}
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
-              <View testID={'create-password-screen'}>
+              <View testID={CREATE_PASSWORD_CONTAINER_ID}>
                 <View style={styles.content}>
                   <Text style={styles.title}>
                     {strings('reset_password.title')}
@@ -786,7 +794,7 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    testID="input-password"
+                    testID={CREATE_PASSWORD_INPUT_BOX_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -816,7 +824,8 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    testID={'input-password-confirm'}
+                    testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    zasdfasfasf
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
@@ -846,12 +855,12 @@ class ResetPassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={'password-understand-box'}
+                    testID={IOS_I_UNDERSTAND_BUTTON_ID}
                   />
                   <Text
                     style={styles.label}
                     onPress={this.setSelection}
-                    testID={'i-understand-text'}
+                    testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
                   >
                     {strings('reset_password.i_understand')}{' '}
                     <Text onPress={this.learnMore} style={styles.learnMore}>

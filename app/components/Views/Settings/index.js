@@ -25,8 +25,8 @@ const createStyles = (colors) =>
 class Settings extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * redux flag that indicates if the user

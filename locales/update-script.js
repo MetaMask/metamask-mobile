@@ -66,7 +66,7 @@ const camelCase = str => str.toLowerCase().replace(/-(.)/g, (match, group1) => g
 console.log("\nCopy this to i18n.js if it's not there\n");
 const allLanguageFiles = fs.readdirSync(languagesFolder).filter(lang => lang.endsWith('.json'));
 allLanguageFiles.forEach(lang =>
-	console.log(`import ${camelCase(lang.replace('.json', ''))} from './languages/${lang}'`)
+  console.log(`import ${camelCase(lang.replace('.json', ''))} from './languages/${lang}'`)
 );
 console.log(`\nI18n.translations = {`);
 allLanguageFiles.forEach(lang => console.log(`\t${camelCase(lang.replace('.json', ''))},`));

@@ -35,8 +35,8 @@ class Contacts extends PureComponent {
      */
     addressBook: PropTypes.object,
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Network id

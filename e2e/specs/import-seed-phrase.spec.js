@@ -86,25 +86,25 @@ describe('Import seedphrase flow', () => {
   });
 
   // it('should validate secret recovery phrase in settings', async () => {
-  // 	await WalletView.tapDrawerButton();
+  //   await WalletView.tapDrawerButton();
 
-  // 	await DrawerView.isVisible();
-  // 	await DrawerView.tapSettings();
+  //   await DrawerView.isVisible();
+  //   await DrawerView.tapSettings();
 
-  // 	await SettingsView.tapSecurityAndPrivacy();
+  //   await SettingsView.tapSecurityAndPrivacy();
 
-  // 	await SecurityAndPrivacy.tapRevealSecretRecoveryPhrase();
-  // 	await RevealSecretRecoveryPhrase.isVisible();
-  // 	await RevealSecretRecoveryPhrase.enterPassword(SHORT_PASSWORD);
-  // 	// Ensure error is displayed
-  // 	await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
-  // 	await RevealSecretRecoveryPhrase.enterPassword(CORRECT_PASSWORD);
+  //   await SecurityAndPrivacy.tapRevealSecretRecoveryPhrase();
+  //   await RevealSecretRecoveryPhrase.isVisible();
+  //   await RevealSecretRecoveryPhrase.enterPassword(SHORT_PASSWORD);
+  //   // Ensure error is displayed
+  //   await RevealSecretRecoveryPhrase.passwordWarningIsVisible();
+  //   await RevealSecretRecoveryPhrase.enterPassword(CORRECT_PASSWORD);
 
-  // 	await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
-  // 	// Seed phrase should now be revealed
-  // 	await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTouchableBoxVisible();
-  // 	// Check that the seed phrase displayed matches what we inputted in the beginning
-  // 	await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTextCorrect(CORRECT_SECRET_RECOVERY_PHRASE);
+  //   await RevealSecretRecoveryPhrase.passwordInputIsNotVisible();
+  //   // Seed phrase should now be revealed
+  //   await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTouchableBoxVisible();
+  //   // Check that the seed phrase displayed matches what we inputted in the beginning
+  //   await RevealSecretRecoveryPhrase.isSecretRecoveryPhraseTextCorrect(CORRECT_SECRET_RECOVERY_PHRASE);
   // });
 
   it('should be able to log in', async () => {

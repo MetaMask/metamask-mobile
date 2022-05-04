@@ -124,8 +124,8 @@ class AdvancedSettings extends PureComponent {
      */
     ipfsGateway: PropTypes.string,
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Indicates whether hex data should be shown in transaction editor

@@ -82,8 +82,8 @@ const foxImage = require('../../../../images/fox.png'); // eslint-disable-line i
 export default class AppInformation extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
   };
 

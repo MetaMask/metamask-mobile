@@ -25,8 +25,8 @@ const createStyles = (colors) =>
 export default class TermsAndConditions extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
   };
 

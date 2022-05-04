@@ -45,8 +45,8 @@ export default class AddBookmark extends PureComponent {
 
   static propTypes = {
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it

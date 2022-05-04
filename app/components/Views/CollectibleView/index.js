@@ -43,9 +43,9 @@ const createStyles = (colors) =>
 class CollectibleView extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to access the props
-		/* passed by the parent component
-		*/
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
     navigation: PropTypes.object,
     /**
      * Start transaction with asset

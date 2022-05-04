@@ -111,9 +111,9 @@ const createStyles = (colors) =>
       marginTop: 9,
     },
     /* Add when the learn more link is ready
-	learnMoreLink: {
-		marginTop: 14
-	},*/
+  learnMoreLink: {
+    marginTop: 14
+  },*/
     warningTextContainer: {
       lineHeight: 20,
       paddingLeft: 4,
@@ -832,11 +832,11 @@ const EditGasFee1559 = ({
                           {strings('edit_gas_fee_eip1559.learn_more.low_text')}
                         </Text>
                         {/* TODO(eip1559) add link when available
-												<TouchableOpacity style={styles.learnMoreLink}>
-													<Text grey infoModal link>
-														{strings('edit_gas_fee_eip1559.learn_more.link')}
-													</Text>
-												</TouchableOpacity>*/}
+                        <TouchableOpacity style={styles.learnMoreLink}>
+                          <Text grey infoModal link>
+                            {strings('edit_gas_fee_eip1559.learn_more.link')}
+                          </Text>
+                        </TouchableOpacity>*/}
                       </View>
                     </TouchableWithoutFeedback>
                   </ScrollView>

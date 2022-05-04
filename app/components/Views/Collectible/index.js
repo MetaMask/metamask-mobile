@@ -33,9 +33,9 @@ class Collectible extends PureComponent {
      */
     collectibles: PropTypes.array,
     /**
-		/* navigation object required to access the props
-		/* passed by the parent component
-		*/
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
     navigation: PropTypes.object,
     /**
      * Called to toggle collectible contract information modal

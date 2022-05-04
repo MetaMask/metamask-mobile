@@ -113,9 +113,9 @@ class AssetOverview extends PureComponent {
      */
     accounts: PropTypes.object,
     /**
-		/* navigation object required to access the props
-		/* passed by the parent component
-		*/
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
     navigation: PropTypes.object,
     /**
      * Object that represents the asset to be displayed

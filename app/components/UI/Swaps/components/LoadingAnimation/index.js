@@ -91,29 +91,29 @@ const createStyles = (colors) =>
   });
 
 const customStyle = (colors) => `
-	body {
-		background-color: ${colors.background.default};
-	}
-	#head {
-		height: 35%;
-		top: 50%;
-		transform: translateY(-50%);
-	}
-	#bgShapes {
-		position: absolute;
-		left: 50%;
-		top: 50%;
-		width: 70%;
-		height: 70%;
-		transform: translateX(-50%) translateY(-50%) rotate(0deg);
-		animation: rotate 50s linear infinite;
-	}
+  body {
+    background-color: ${colors.background.default};
+  }
+  #head {
+    height: 35%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #bgShapes {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 70%;
+    height: 70%;
+    transform: translateX(-50%) translateY(-50%) rotate(0deg);
+    animation: rotate 50s linear infinite;
+  }
 
-	@keyframes rotate {
-		to {
-			transform: translateX(-50%) translateY(-50%) rotate(360deg);
-		}
-	}
+  @keyframes rotate {
+    to {
+      transform: translateX(-50%) translateY(-50%) rotate(360deg);
+    }
+  }
 `;
 
 function round(value, decimals) {
@@ -388,13 +388,13 @@ function LoadingAnimation({
       requestAnimationFrame(() => {
         if (foxRef?.current?.injectJavaScript) {
           const JS = `window.dispatchEvent(new CustomEvent('nativedeviceorientation', {
-									detail: {
-										alpha: 0,
-										beta: ${round(-y, 4)},
-										gamma: ${round(-x, 4)}
-									}
-								}));
-								`;
+                  detail: {
+                    alpha: 0,
+                    beta: ${round(-y, 4)},
+                    gamma: ${round(-x, 4)}
+                  }
+                }));
+                `;
           foxRef.current.injectJavaScript(JS);
         }
       });

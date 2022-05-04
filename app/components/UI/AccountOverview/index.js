@@ -148,20 +148,20 @@ class AccountOverview extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-		/* Identities object required to get account name
-		*/
+    /* Identities object required to get account name
+    */
     identities: PropTypes.object,
     /**
      * Object that represents the selected account
      */
     account: PropTypes.object,
     /**
-		/* Selected currency
-		*/
+    /* Selected currency
+    */
     currentCurrency: PropTypes.string,
     /**
-		/* Triggers global alert
-		*/
+    /* Triggers global alert
+    */
     showAlert: PropTypes.func,
     /**
      * Action that toggles the accounts modal
@@ -184,9 +184,9 @@ class AccountOverview extends PureComponent {
      */
     newAssetTransaction: PropTypes.func,
     /**
-		/* navigation object required to access the props
-		/* passed by the parent component
-		*/
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
     navigation: PropTypes.object,
     /**
      * Action that toggles the receive modal

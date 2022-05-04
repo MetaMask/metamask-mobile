@@ -110,7 +110,7 @@ const CollectibleContracts = ({
   );
 
   /**
-   *	Method to check the token id data type of the current collectibles.
+   *  Method to check the token id data type of the current collectibles.
    *
    * @param collectible - Collectible object.
    * @returns Boolean indicating if the collectible should be updated.

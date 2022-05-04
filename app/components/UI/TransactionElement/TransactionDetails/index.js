@@ -67,8 +67,8 @@ const createStyles = (colors) =>
 class TransactionDetails extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Chain Id

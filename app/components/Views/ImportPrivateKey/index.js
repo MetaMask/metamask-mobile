@@ -130,8 +130,8 @@ const createStyles = (colors) =>
 export default class ImportPrivateKey extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
   };
 

@@ -104,8 +104,8 @@ const createStyles = (colors) =>
 class OptinMetrics extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
     /**
      * Action to set onboarding wizard step
@@ -138,7 +138,6 @@ class OptinMetrics extends PureComponent {
 
   componentDidMount() {
     this.updateNavBar();
-    Analytics.enable();
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
   }
 
@@ -249,6 +248,7 @@ class OptinMetrics extends PureComponent {
   onConfirm = async () => {
     const { events } = this.props;
     const metricsOptionSelected = 'Metrics Opt In';
+    Analytics.enable();
     setTimeout(async () => {
       if (events && events.length) {
         events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));

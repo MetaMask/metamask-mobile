@@ -146,12 +146,12 @@ const createStyles = (colors) =>
 class Settings extends PureComponent {
   static propTypes = {
     /**
-		/* State current currency
-		*/
+    /* State current currency
+    */
     currentCurrency: PropTypes.string,
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Called to set the active search engine
@@ -270,30 +270,30 @@ class Settings extends PureComponent {
 
   // TODO - Reintroduce once we enable manual theme settings
   // goToThemeSettings = () => {
-  // 	const { navigation } = this.props;
-  // 	navigation.navigate('ThemeSettings');
+  //   const { navigation } = this.props;
+  //   navigation.navigate('ThemeSettings');
   // };
 
   // renderThemeSettingsSection = () => {
-  // 	const { appTheme } = this.props;
-  // 	const colors = this.context.colors || mockTheme.colors;
-  // 	const styles = createStyles(colors);
+  //   const { appTheme } = this.props;
+  //   const colors = this.context.colors || mockTheme.colors;
+  //   const styles = createStyles(colors);
 
-  // 	return (
-  // 		<View style={styles.setting}>
-  // 			<View>
-  // 				<Text style={styles.title}>
-  // 					{strings('app_settings.theme_title', {
-  // 						theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
-  // 					})}
-  // 				</Text>
-  // 				<Text style={styles.desc}>{strings('app_settings.theme_description')}</Text>
-  // 				<StyledButton type="normal" onPress={this.goToThemeSettings} containerStyle={styles.marginTop}>
-  // 					{strings('app_settings.theme_button_text')}
-  // 				</StyledButton>
-  // 			</View>
-  // 		</View>
-  // 	);
+  //   return (
+  //     <View style={styles.setting}>
+  //       <View>
+  //         <Text style={styles.title}>
+  //           {strings('app_settings.theme_title', {
+  //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
+  //           })}
+  //         </Text>
+  //         <Text style={styles.desc}>{strings('app_settings.theme_description')}</Text>
+  //         <StyledButton type="normal" onPress={this.goToThemeSettings} containerStyle={styles.marginTop}>
+  //           {strings('app_settings.theme_button_text')}
+  //         </StyledButton>
+  //       </View>
+  //     </View>
+  //   );
   // };
 
   render() {

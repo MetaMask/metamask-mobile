@@ -409,12 +409,12 @@ GasEducationCarousel.propTypes = {
    */
   navigation: PropTypes.object,
   /**
-		/* conversion rate of ETH - FIAT
-		*/
+    /* conversion rate of ETH - FIAT
+    */
   conversionRate: PropTypes.any,
   /**
-		/* Selected currency
-		*/
+    /* Selected currency
+    */
   currentCurrency: PropTypes.string,
   /**
    * Object that represents the current route info like params passed to it

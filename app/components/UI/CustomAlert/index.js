@@ -45,48 +45,48 @@ const createStyles = (colors) =>
 export default class CustomAlert extends PureComponent {
   static propTypes = {
     /**
-		/* Style of the header view
-		*/
+    /* Style of the header view
+    */
     headerStyle: ViewPropTypes.style,
     /**
-		/* Content to be displayed in the header
-		*/
+    /* Content to be displayed in the header
+    */
     headerContent: PropTypes.any,
     /**
-		/* Text of the tile
-		*/
+    /* Text of the tile
+    */
     titleText: PropTypes.string,
     /**
-		/* PureComponent that contains the content of the modal
-		*/
+    /* PureComponent that contains the content of the modal
+    */
     bodyContent: PropTypes.element,
     /**
-		/* Text of the button
-		*/
+    /* Text of the button
+    */
     buttonText: PropTypes.string,
     /**
-		/* Action of the button
-		*/
+    /* Action of the button
+    */
     onPress: PropTypes.func,
     /**
-		/* Boolean that controls the modal visibility
-		*/
+    /* Boolean that controls the modal visibility
+    */
     isVisible: PropTypes.bool,
     /**
-		/* Function that will be called when tapping on the backdrop
-		*/
+    /* Function that will be called when tapping on the backdrop
+    */
     onBackdropPress: PropTypes.func,
     /**
-		/* Function that will be called when swiping on swipeDirection
-		*/
+    /* Function that will be called when swiping on swipeDirection
+    */
     onSwipeComplete: PropTypes.func,
     /**
-		/* Direction of the swipe gesture to trigger a swipeComplete event
-		*/
+    /* Direction of the swipe gesture to trigger a swipeComplete event
+    */
     swipeDirection: PropTypes.string,
     /**
-		/* Children components
-		*/
+    /* Children components
+    */
     children: PropTypes.any,
   };
 

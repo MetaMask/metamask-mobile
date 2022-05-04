@@ -100,8 +100,8 @@ class TransactionElement extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-		/* Identities object required to get import time name
-		*/
+    /* Identities object required to get import time name
+    */
     identities: PropTypes.object,
     /**
      * Current element of the list index
@@ -196,7 +196,7 @@ class TransactionElement extends PureComponent {
             // eslint-disable-next-line no-mixed-spaces-and-tabs
           )}`
         : `${toDateFormat(tx.time)}
-			`
+      `
     }`;
   };
 

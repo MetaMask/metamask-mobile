@@ -6,23 +6,23 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Engine from '../../../core/Engine';
-import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
+import Engine from '../../../../core/Engine';
+import AnimatedQRScannerModal from '../../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import BlockingActionModal from '../../UI/BlockingActionModal';
-import { strings } from '../../../../locales/i18n';
+import BlockingActionModal from '../../../UI/BlockingActionModal';
+import { strings } from '../../../../../locales/i18n';
 import { IAccount } from './types';
 import { UR } from '@ngraveio/bc-ur';
-import Alert, { AlertType } from '../../Base/Alert';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import Alert, { AlertType } from '../../../Base/Alert';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Device from '../../../util/device';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
-import { fontStyles } from '../../../styles/common';
-import Logger from '../../../util/Logger';
+import Device from '../../../../util/device';
+import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { SUPPORTED_UR_TYPE } from '../../../../constants/qr';
+import { fontStyles } from '../../../../styles/common';
+import Logger from '../../../../util/Logger';
 
 interface IConnectQRHardwareProps {
   navigation: any;
@@ -34,31 +34,28 @@ const createStyles = (colors: any) =>
       flexDirection: 'column',
       alignItems: 'center',
     },
+    header: {
+      marginTop: Device.isIphoneX() ? 50 : 20,
+      flexDirection: 'row',
+      width: '100%',
+      paddingHorizontal: 32,
+      alignItems: 'center',
+    },
     navbarRightButton: {
-      alignSelf: 'flex-end',
-      paddingTop: 20,
-      paddingBottom: 10,
-      marginTop: Device.isIphoneX() ? 40 : 20,
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      height: 48,
+      width: 48,
+      flex: 1,
     },
     closeIcon: {
       fontSize: 28,
       color: colors.text.default,
     },
-    header: {
-      width: '100%',
-      paddingHorizontal: 32,
-      flexDirection: 'column',
-      alignItems: 'center',
-    },
-    close: {
-      alignSelf: 'flex-end',
-      width: 48,
-      height: 48,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     qrcode: {
-      alignSelf: 'flex-start',
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
     },
     error: {
       ...fontStyles.normal,
@@ -262,7 +259,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       Logger.log('Error: Connecting QR hardware wallet', err);
     }
     setBlockingModalVisible(false);
-    navigation.goBack();
+    navigation.popToTop();
   }, [KeyringController, checkedAccounts, navigation, resetError]);
 
   const onForget = useCallback(async () => {
@@ -282,18 +279,18 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     <Fragment>
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={navigation.goBack}
-            style={styles.navbarRightButton}
-          >
-            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
-          </TouchableOpacity>
           <Icon
             name="qrcode"
             size={42}
             style={styles.qrcode}
             color={colors.text.default}
           />
+          <TouchableOpacity
+            onPress={navigation.goBack}
+            style={styles.navbarRightButton}
+          >
+            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
+          </TouchableOpacity>
         </View>
         {accounts.length <= 0 ? (
           <ConnectQRInstruction

@@ -206,7 +206,7 @@ class WalletConnect {
     });
 
     /**
-     *	Subscribe to disconnect
+     *  Subscribe to disconnect
      */
     this.walletConnector.on('disconnect', (error) => {
       if (error) {

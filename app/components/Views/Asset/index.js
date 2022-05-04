@@ -50,21 +50,21 @@ const createStyles = (colors) =>
 class Asset extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to access the props
-		/* passed by the parent component
-		*/
+    /* navigation object required to access the props
+    /* passed by the parent component
+    */
     navigation: PropTypes.object,
     /**
-		/* conversion rate of ETH - FIAT
-		*/
+    /* conversion rate of ETH - FIAT
+    */
     conversionRate: PropTypes.any,
     /**
-		/* Selected currency
-		*/
+    /* Selected currency
+    */
     currentCurrency: PropTypes.string,
     /**
-		/* Identities object required to get account name
-		*/
+    /* Identities object required to get account name
+    */
     identities: PropTypes.object,
     /**
      * A string that represents the selected address

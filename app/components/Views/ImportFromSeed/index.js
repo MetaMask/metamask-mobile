@@ -56,6 +56,12 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  CREATE_PASSWORD_INPUT_BOX_ID,
+  CONFIRM_PASSWORD_INPUT_BOX_ID,
+  IMPORT_PASSWORD_CONTAINER_ID,
+  SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
+} from '../../../constants/test-ids';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -556,7 +562,7 @@ class ImportFromSeed extends PureComponent {
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
         >
-          <View testID={'import-from-seed-screen'}>
+          <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
             <Text style={styles.title}>
               {strings('import_from_seed.title')}
             </Text>
@@ -587,7 +593,7 @@ class ImportFromSeed extends PureComponent {
                   'import_from_seed.seed_phrase_placeholder',
                 )}
                 placeholderTextColor={colors.text.muted}
-                testID="input-seed-phrase"
+                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
                 returnKeyType="next"
                 autoCapitalize="none"
                 secureTextEntry={hideSeedPhraseInput}
@@ -614,7 +620,7 @@ class ImportFromSeed extends PureComponent {
                 )}
                 placeholderTextColor={colors.text.muted}
                 onChangeText={this.onSeedWordsChange}
-                testID="input-seed-phrase"
+                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
                 blurOnSubmit
                 onSubmitEditing={this.jumpToPassword}
                 returnKeyType="next"
@@ -664,7 +670,7 @@ class ImportFromSeed extends PureComponent {
                 // ref={this.passwordInput}
                 placeholder={strings('import_from_seed.new_password')}
                 placeholderTextColor={colors.text.muted}
-                testID={'input-password-field'}
+                testID={CREATE_PASSWORD_INPUT_BOX_ID}
                 returnKeyType={'next'}
                 autoCapitalize="none"
                 secureTextEntry={secureTextEntry}
@@ -697,7 +703,7 @@ class ImportFromSeed extends PureComponent {
                 style={styles.input}
                 containerStyle={inputWidth}
                 // ref={this.confirmPasswordInput}
-                testID={'input-password-field-confirm'}
+                testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
                 onChangeText={this.onPasswordConfirmChange}
                 returnKeyType={'next'}
                 autoCapitalize="none"

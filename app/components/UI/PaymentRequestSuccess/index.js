@@ -170,12 +170,12 @@ class PaymentRequestSuccess extends PureComponent {
      */
     route: PropTypes.object,
     /**
-		/* Triggers global alert
-		*/
+    /* Triggers global alert
+    */
     showAlert: PropTypes.func,
     /**
-		/* Prompts protect wallet modal
-		*/
+    /* Prompts protect wallet modal
+    */
     protectWalletModalVisible: PropTypes.func,
   };
 

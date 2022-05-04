@@ -26,16 +26,19 @@ export function renderFullAddress(address) {
 export const formatAddress = (rawAddress, type) => {
   let formattedAddress = rawAddress;
 
-  if (isValidAddress(rawAddress)) {
-    if (type && type === 'short') {
-      formattedAddress = renderShortAddress(rawAddress);
-    } else if (type && type === 'mid') {
-      formattedAddress = renderSlightlyLongAddress(rawAddress);
-    } else {
-      formattedAddress = renderFullAddress(rawAddress);
-    }
+  if (!isValidAddress(rawAddress)) {
+    return rawAddress;
   }
-  return formattedAddress.toLowerCase();
+
+  if (type && type === 'short') {
+    formattedAddress = renderShortAddress(rawAddress);
+  } else if (type && type === 'mid') {
+    formattedAddress = renderSlightlyLongAddress(rawAddress);
+  } else {
+    formattedAddress = renderFullAddress(rawAddress);
+  }
+
+  return formattedAddress;
 };
 
 /**
@@ -120,30 +123,6 @@ export function isQRHardwareAccount(address) {
     );
   }
   return qrAccounts.includes(address.toLowerCase());
-}
-
-/**
- * judge address is hardware account or not
- *
- * @param {String} address - String corresponding to an address
- * @returns {Boolean} - Returns a boolean
- */
-export function isHardwareAccount(address) {
-  const addressToCheck = address.toLowerCase();
-  const { KeyringController } = Engine.context;
-  const { keyrings } = KeyringController.state;
-  for (const keyring of keyrings) {
-    if (
-      [KeyringTypes.qr, KeyringTypes.ledger].includes(keyring.type) &&
-      keyring.accounts.findIndex(
-        (account) => account.toLowerCase() === addressToCheck,
-      ) >= 0
-    ) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 /**

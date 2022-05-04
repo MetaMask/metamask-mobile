@@ -814,20 +814,20 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-	/* Hides or shows dApp transaction modal
-	*/
+  /* Hides or shows dApp transaction modal
+  */
   toggleDappTransactionModal: PropTypes.func,
   /**
-	/* Hides or shows approve modal
-	*/
+  /* Hides or shows approve modal
+  */
   toggleApproveModal: PropTypes.func,
   /**
-	/* dApp transaction modal visible or not
-	*/
+  /* dApp transaction modal visible or not
+  */
   dappTransactionModalVisible: PropTypes.bool,
   /**
-	/* Token approve modal visible or not
-	*/
+  /* Token approve modal visible or not
+  */
   approveModalVisible: PropTypes.bool,
   /**
    * Selected address

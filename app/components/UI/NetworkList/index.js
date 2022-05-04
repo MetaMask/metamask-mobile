@@ -160,11 +160,11 @@ export class NetworkList extends PureComponent {
      */
     onNetworkSelected: PropTypes.func,
     /**
-     * 	A function that handles switching to info modal
+     *   A function that handles switching to info modal
      */
     switchModalContent: PropTypes.func,
     /**
-     * 	returns the network onboarding state
+     *   returns the network onboarding state
      */
     networkOnboardedState: PropTypes.array,
   };

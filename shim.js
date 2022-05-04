@@ -1,3 +1,4 @@
+/* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
 
 if (!global.btoa) {
@@ -19,7 +20,7 @@ if (typeof process === 'undefined') {
   global.process = require('process');
 } else {
   const bProcess = require('process');
-  for (var p in bProcess) {
+  for (const p in bProcess) {
     if (!(p in process)) {
       process[p] = bProcess[p];
     }
@@ -34,6 +35,7 @@ const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 Object.assign(process.env, { NODE_ENV: isDev ? 'development' : 'production' });
 
 if (typeof localStorage !== 'undefined') {
+  // eslint-disable-next-line no-undef
   localStorage.debug = isDev ? '*' : '';
 }
 

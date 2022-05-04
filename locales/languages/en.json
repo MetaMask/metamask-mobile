@@ -445,6 +445,10 @@
     "no": "No",
     "yes_remove_it": "Yes, remove it"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Connect a hardware wallet",
+    "select_hardware": "Select a hardware wallet you'd like to use"
+  },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
     "description1": "Connect an airgapped hardware wallet that communicates through QR-codes.",

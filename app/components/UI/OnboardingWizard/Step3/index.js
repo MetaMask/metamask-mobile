@@ -41,8 +41,8 @@ class Step3 extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-		/* Identities object required to get account name
-		*/
+    /* Identities object required to get account name
+    */
     identities: PropTypes.object,
     /**
      * Map of accounts to information objects including balances

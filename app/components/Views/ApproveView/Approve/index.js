@@ -101,8 +101,8 @@ class Approve extends PureComponent {
      */
     modalVisible: PropTypes.bool,
     /**
-		/* Token approve modal visible or not
-		*/
+    /* Token approve modal visible or not
+    */
     toggleApproveModal: PropTypes.func,
     /**
      * Current selected ticker

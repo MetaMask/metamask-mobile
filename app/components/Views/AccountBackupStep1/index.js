@@ -127,9 +127,9 @@ const AccountBackupStep1 = (props) => {
 
   useEffect(() => {
     navigation.setOptions({
-      // eslint-disable-next-line react/display-name
       ...getOnboardingNavbarOptions(
         route,
+        // eslint-disable-next-line react/display-name
         { headerLeft: () => <View /> },
         colors,
       ),
@@ -292,8 +292,8 @@ const AccountBackupStep1 = (props) => {
 
 AccountBackupStep1.propTypes = {
   /**
-	/* navigation object required to push and pop other views
-	*/
+  /* navigation object required to push and pop other views
+  */
   navigation: PropTypes.object,
   /**
    * Object that represents the current route info like params passed to it

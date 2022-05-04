@@ -407,11 +407,11 @@ export const BrowserTab = (props) => {
   };
 
   /**
-	 * Disabling iframes for now
-	const onFrameLoadStarted = url => {
-		url && initializeBackgroundBridge(url, false);
-	};
-	*/
+   * Disabling iframes for now
+  const onFrameLoadStarted = url => {
+    url && initializeBackgroundBridge(url, false);
+  };
+  */
 
   /**
    * Dismiss the text selection on the current website
@@ -498,12 +498,12 @@ export const BrowserTab = (props) => {
     const analyticsEnabled = Analytics.getEnabled();
     const disctinctId = await Analytics.getDistinctId();
     const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
-			window.__mmSearchEngine = "${props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.__mmDistinctId = "${disctinctId}";
-			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-		`;
+      window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
+      window.__mmSearchEngine = "${props.searchEngine}";
+      window.__mmMetametrics = ${analyticsEnabled};
+      window.__mmDistinctId = "${disctinctId}";
+      window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+    `;
 
     current.injectJavaScript(homepageScripts);
   };
@@ -1012,12 +1012,12 @@ export const BrowserTab = (props) => {
 
       switch (data.type) {
         /**
-				* Disabling iframes for now
-				case 'FRAME_READY': {
-					const { url } = data.payload;
-					onFrameLoadStarted(url);
-					break;
-				}*/
+        * Disabling iframes for now
+        case 'FRAME_READY': {
+          const { url } = data.payload;
+          onFrameLoadStarted(url);
+          break;
+        }*/
         case 'GET_WEBVIEW_URL': {
           const { url } = data.payload;
           if (url === nativeEvent.url)

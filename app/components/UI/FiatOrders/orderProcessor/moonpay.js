@@ -234,7 +234,7 @@ const moonPayCallbackOrderToFiatOrder = (moonPayRedirectObject) => ({
 /**
  * Function to handle MoonPay flow redirect after order creation
  * @param {String} url Custom URL with query params MoonPay flow redirected to.
- * 	Query parameters are: `transactionId`, `transactionStatus`.
+ *   Query parameters are: `transactionId`, `transactionStatus`.
  * @param {String} network Current network selected in the app
  * @param {String} account Current account selected in the app
  * @returns {FiatOrder}

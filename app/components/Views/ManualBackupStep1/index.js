@@ -31,6 +31,9 @@ import {
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
+
+import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
+
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -220,8 +223,8 @@ const createStyles = (colors) =>
 class ManualBackupStep1 extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push and pop other views
-		*/
+    /* navigation object required to push and pop other views
+    */
     navigation: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it
@@ -419,7 +422,7 @@ class ManualBackupStep1 extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 onSubmitEditing={this.tryUnlock}
-                testID={'private-credential-password-text-input'}
+                testID={CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID}
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (

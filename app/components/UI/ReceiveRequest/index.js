@@ -113,8 +113,8 @@ class ReceiveRequest extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-		/* Triggers global alert
-		*/
+    /* Triggers global alert
+    */
     showAlert: PropTypes.func,
     /**
      * Network id

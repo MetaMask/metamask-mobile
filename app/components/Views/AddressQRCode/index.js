@@ -81,12 +81,12 @@ class AddressQRCode extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-		/* Triggers global alert
-		*/
+    /* Triggers global alert
+    */
     showAlert: PropTypes.func,
     /**
-		/* Callback to close the modal
-		*/
+    /* Callback to close the modal
+    */
     closeQrModal: PropTypes.func,
     /**
      * Prompts protect wallet modal

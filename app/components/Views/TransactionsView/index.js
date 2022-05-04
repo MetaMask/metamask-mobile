@@ -128,11 +128,11 @@ const TransactionsView = ({
   useEffect(() => {
     setLoading(true);
     /*
-		Since this screen is always mounted and computations happen on this screen everytime the user changes network
-		using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
-		computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
-		so the effect will not be noticeable if the user is in this screen.
-		*/
+    Since this screen is always mounted and computations happen on this screen everytime the user changes network
+    using the InteractionManager will help by giving enough time for any animations/screen transactions before it starts
+    computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
+    so the effect will not be noticeable if the user is in this screen.
+    */
     InteractionManager.runAfterInteractions(() => {
       filterTransactions();
     });
@@ -165,12 +165,12 @@ TransactionsView.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-	/* Identities object required to get account name
-	*/
+  /* Identities object required to get account name
+  */
   identities: PropTypes.object,
   /**
-	/* navigation object required to push new views
-	*/
+  /* navigation object required to push new views
+  */
   navigation: PropTypes.object,
   /**
    * A string that represents the selected address
