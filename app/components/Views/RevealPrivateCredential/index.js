@@ -338,9 +338,7 @@ class RevealPrivateCredential extends PureComponent {
 
 		const msg =
 			privateCredentialName === PRIVATE_KEY
-				? `${strings(`reveal_credential.${privateCredentialName}_copied`)}\n${strings(
-						`reveal_credential.${privateCredentialName}_copied_time`
-				  )}`
+				? `${strings(`reveal_credential.${privateCredentialName}_copied`)}`
 				: // for SRP on Android it doesn't show clipboard time limit
 				  `${strings(`reveal_credential.${privateCredentialName}_copied_${Platform.OS}`)}${
 						Device.isIos() ? strings(`reveal_credential.${privateCredentialName}_copied_time`) : ''
