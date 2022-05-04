@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Image, SafeAreaView, StyleSheet, View } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
@@ -7,6 +8,7 @@ import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
 import InfoBox from './InfoBox';
 import Device from '../../../util/device';
+import { toggleLedgerDeviceActionFailModal } from '../../../actions/modals';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -43,6 +45,7 @@ const ledgerConnectImage = require('../../../images/ledger-connect-error.png');
 const LedgerTransactionFailModal = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const dispatch = useDispatch();
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -64,10 +67,12 @@ const LedgerTransactionFailModal = () => {
           </StyledButton>
           <StyledButton
             type="blue"
-            onPress={() => null}
+            onPress={() => {
+              dispatch(toggleLedgerDeviceActionFailModal());
+            }}
             style={styles.buttonStyle}
           >
-            {strings('transaction.reject')}
+            {strings('transaction.confirm')}
           </StyledButton>
         </View>
       </View>

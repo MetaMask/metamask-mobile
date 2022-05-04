@@ -45,3 +45,12 @@ export const toggleLedgerDeviceActionModal = () => ({
 export const toggleLedgerDeviceActionFailModal = () => ({
   type: 'TOGGLE_LEDGER_DEVICE_ACTION_FAIL',
 });
+
+export const closeLedgerDeviceErrorModal = () => ({
+  type: 'CLOSE_LEDGER_DEVICE_ERROR_MODAL',
+});
+
+export const openLedgerDeviceErrorModal = (params) => ({
+  type: 'OPEN_LEDGER_DEVICE_ERROR_MODAL',
+  params,
+});

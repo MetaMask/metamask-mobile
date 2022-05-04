@@ -6,12 +6,14 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { useDispatch } from 'react-redux';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
 import InfoBox from './InfoBox';
+import { toggleLedgerDeviceActionModal } from '../../../actions/modals';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -43,6 +45,7 @@ const ledgerConnectImage = require('../../../images/ledger-connect.png');
 const LedgerTransactionModal = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const dispatch = useDispatch();
 
   return (
     <SafeAreaView style={styles.wrapper}>
@@ -58,7 +61,12 @@ const LedgerTransactionModal = () => {
         </View>
         <InfoBox />
         <View style={styles.buttonContainer}>
-          <StyledButton type="cancel" onPress={() => null}>
+          <StyledButton
+            type="cancel"
+            onPress={() => {
+              dispatch(toggleLedgerDeviceActionModal());
+            }}
+          >
             {strings('transaction.reject')}
           </StyledButton>
         </View>

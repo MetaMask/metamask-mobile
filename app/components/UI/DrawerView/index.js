@@ -32,6 +32,9 @@ import {
   toggleNetworkModal,
   toggleAccountsModal,
   toggleReceiveModal,
+  toggleLedgerDeviceActionModal,
+  toggleLedgerDeviceActionFailModal,
+  closeLedgerDeviceErrorModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -75,6 +78,9 @@ import {
   onboardNetworkAction,
   networkSwitched,
 } from '../../../actions/onboardNetwork';
+import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
+import LedgerTransactionFailModal from '../LedgerModals/LedgerTransactionFailModal';
+import LedgerErrorModal from '../LedgerModals/LedgerErrorModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -320,8 +326,8 @@ const ICON_IMAGES = {
 class DrawerView extends PureComponent {
   static propTypes = {
     /**
-		/* navigation object required to push new views
-		*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Object representing the selected the selected network
@@ -340,8 +346,8 @@ class DrawerView extends PureComponent {
      */
     identities: PropTypes.object,
     /**
-		/* Selected currency
-		*/
+    /* Selected currency
+    */
     currentCurrency: PropTypes.string,
     /**
      * List of keyrings
@@ -359,6 +365,18 @@ class DrawerView extends PureComponent {
      * Action that toggles the receive modal
      */
     toggleReceiveModal: PropTypes.func,
+    /**
+     * Action that toggles the Ledger's transaction modal
+     */
+    toggleLedgerDeviceActionModal: PropTypes.func,
+    /**
+     * Action that toggles the Ledger's failed transaction modal
+     */
+    toggleLedgerDeviceActionFailModal: PropTypes.func,
+    /**
+     * Action that toggles the Ledger's error modal
+     */
+    closeLedgerDeviceErrorModal: PropTypes.func,
     /**
      * Action that shows the global alert
      */
@@ -445,7 +463,24 @@ class DrawerView extends PureComponent {
      *
      */
     networkOnboardedState: PropTypes.array,
+    /**
+     * Decides if Ledger's transaction modal is visible
+     */
+    ledgerDeviceActionModalVisible: PropTypes.bool,
+    /**
+     * Decides if Ledger's error modal is visible
+     */
+    ledgerDeviceActionErrorModalVisible: PropTypes.bool,
+    /**
+     * Decides if Ledger's failed transaction modal is visible
+     */
+    ledgerDeviceActionModalFailVisible: PropTypes.bool,
   };
+
+  constructor(props) {
+    super(props);
+    this.ledgerModalTimer = null;
+  }
 
   state = {
     showProtectWalletModal: undefined,
@@ -469,9 +504,26 @@ class DrawerView extends PureComponent {
   processedNewBalance = false;
   animatingNetworksModal = false;
   animatingAccountsModal = false;
+  animatingLedgerDeviceActionModal = false;
+  animatingLedgerDeviceActionFailModal = false;
+  animatingLedgerDeviceErrorModal = false;
 
-  isCurrentAccountImported() {
-    let ret = false;
+  componentWillUnmount() {
+    if (this.ledgerModalTimer) {
+      clearTimeout(this.ledgerModalTimer);
+    }
+
+    if (this.ledgerModalFailTimer) {
+      clearTimeout(this.ledgerModalFailTimer);
+    }
+
+    if (this.ledgerErrorModalTimer) {
+      clearTimeout(this.ledgerErrorModalTimer);
+    }
+  }
+
+  getKeyringType() {
+    const ret = 'Imported';
     const { keyrings, selectedAddress } = this.props;
     const allKeyrings =
       keyrings && keyrings.length
@@ -479,7 +531,9 @@ class DrawerView extends PureComponent {
         : Engine.context.KeyringController.state.keyrings;
     for (const keyring of allKeyrings) {
       if (keyring.accounts.includes(selectedAddress)) {
-        ret = keyring.type !== 'HD Key Tree';
+        if (['HD Key Tree', 'Ledger'].includes(keyring.type)) {
+          return keyring.type;
+        }
         break;
       }
     }
@@ -488,28 +542,24 @@ class DrawerView extends PureComponent {
   }
 
   renderTag() {
-    let tag = null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(selectedAddress)) {
-        if (keyring.type === KeyringTypes.simple) {
-          tag = strings('accounts.imported');
-        } else if (keyring.type === KeyringTypes.qr) {
-          tag = strings('transaction.hardware');
-        }
-        break;
-      }
-    }
-    return tag ? (
-      <View style={styles.importedWrapper}>
-        <Text numberOfLines={1} style={styles.importedText}>
-          {tag}
+
+    const keyringType = this.getKeyringType();
+    const isHardwareKeyring = [KeyringTypes.ledger, KeyringTypes.qr].includes(
+      keyringType,
+    );
+
+    return keyringType !== KeyringTypes.hd ? (
+      <View
+        style={[
+          styles.keyringTypeWrapper,
+          isHardwareKeyring && styles.hardwareKeyringTypeWrapper,
+        ]}
+      >
+        <Text numberOfLines={1} style={styles.keyringTypeText}>
+          {keyringType === 'Imported' && strings('accounts.imported')}
+          {isHardwareKeyring && strings('accounts.hardware')}
         </Text>
       </View>
     ) : null;
@@ -533,8 +583,8 @@ class DrawerView extends PureComponent {
           'LockScreen',
         ].includes(route)
       ) {
+        // eslint-disable-next-line react/no-did-update-set-state
         this.state.showProtectWalletModal &&
-          // eslint-disable-next-line react/no-did-update-set-state
           this.setState({ showProtectWalletModal: false });
         return;
       }
@@ -624,6 +674,36 @@ class DrawerView extends PureComponent {
       this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
   };
 
+  toggleLedgerDeviceActionModal = async () => {
+    if (!this.animatingLedgerDeviceActionModal) {
+      this.animatingLedgerDeviceActionModal = true;
+      this.props.toggleLedgerDeviceActionModal();
+      this.ledgerModalTimer = setTimeout(() => {
+        this.animatingLedgerDeviceActionModal = false;
+      }, 500);
+    }
+  };
+
+  toggleLedgerDeviceActionFailModal = async () => {
+    if (!this.animatingLedgerDeviceActionFailModal) {
+      this.animatingLedgerDeviceActionFailModal = true;
+      this.props.toggleLedgerDeviceActionFailModal();
+      this.ledgerModalFailTimer = setTimeout(() => {
+        this.animatingLedgerDeviceActionFailModal = false;
+      }, 500);
+    }
+  };
+
+  closeLedgerDeviceErrorModal = async () => {
+    if (!this.animatingLedgerDeviceErrorModal) {
+      this.animatingLedgerDeviceErrorModal = true;
+      this.props.closeLedgerDeviceErrorModal();
+      this.ledgerErrorModalTimer = setTimeout(() => {
+        this.animatingLedgerDeviceErrorModal = false;
+      }, 500);
+    }
+  };
+
   toggleReceiveModal = () => {
     this.props.toggleReceiveModal();
   };
@@ -649,8 +729,8 @@ class DrawerView extends PureComponent {
     !showNetworkOnboarding && this.toggleNetworksModal();
     onboardNetworkAction(
       sanitizeUrl(networkUrl) ||
-        sanitizeUrl(switchedNetworkUrl) ||
-        this.state.networkUrl,
+      sanitizeUrl(switchedNetworkUrl) ||
+      this.state.networkUrl,
     );
     networkSwitched({ networkUrl: '', networkStatus: false });
     if (!manualClose) {
@@ -850,7 +930,7 @@ class DrawerView extends PureComponent {
 
   onConnectHardware = () => {
     this.toggleAccountsModal();
-    this.props.navigation.navigate('ConnectHardwareWalletFlow');
+    this.props.navigation.navigate('ConnectHardwareWallet');
     this.hideDrawer();
   };
 
@@ -1307,7 +1387,7 @@ class DrawerView extends PureComponent {
                           style={[
                             styles.menuItem,
                             item.routeNames &&
-                            item.routeNames.includes(currentRoute)
+                              item.routeNames.includes(currentRoute)
                               ? styles.selectedRoute
                               : null,
                           ]}
@@ -1328,7 +1408,7 @@ class DrawerView extends PureComponent {
                               styles.menuItemName,
                               !item.icon ? styles.noIcon : null,
                               item.routeNames &&
-                              item.routeNames.includes(currentRoute)
+                                item.routeNames.includes(currentRoute)
                                 ? styles.selectedName
                                 : null,
                             ]}
@@ -1363,10 +1443,10 @@ class DrawerView extends PureComponent {
           backdropOpacity={1}
         >
           {showModal ||
-          networkOnboarding.showNetworkOnboarding ||
-          (currentRoute === 'WalletView' &&
-            switchedNetwork.networkStatus &&
-            checkIfCustomNetworkExists.length === 0) ? (
+            networkOnboarding.showNetworkOnboarding ||
+            (currentRoute === 'WalletView' &&
+              switchedNetwork.networkStatus &&
+              checkIfCustomNetworkExists.length === 0) ? (
             <NetworkInfo
               onClose={this.onInfoNetworksModalClose}
               type={networkType || networkOnboarding.networkType}
@@ -1415,6 +1495,44 @@ class DrawerView extends PureComponent {
             ticker={ticker}
           />
         </Modal>
+        <Modal
+          isVisible={this.props.ledgerDeviceActionModalVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleLedgerDeviceActionModal}
+          onBackButtonPress={this.toggleLedgerDeviceActionModal}
+          onSwipeComplete={this.toggleLedgerDeviceActionModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <LedgerTransactionModal />
+        </Modal>
+        <Modal
+          isVisible={this.props.ledgerDeviceActionModalFailVisible}
+          style={styles.bottomModal}
+          onBackdropPress={this.toggleLedgerDeviceActionFailModal}
+          onBackButtonPress={this.toggleLedgerDeviceActionFailModal}
+          onSwipeComplete={this.toggleLedgerDeviceActionFailModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          backdropOpacity={1}
+        >
+          <LedgerTransactionFailModal />
+        </Modal>
+        <Modal
+          isVisible={this.props.ledgerDeviceActionErrorModalVisible}
+          onBackdropPress={this.closeLedgerDeviceErrorModal}
+          onBackButtonPress={this.closeLedgerDeviceErrorModal}
+          onSwipeComplete={this.closeLedgerDeviceErrorModal}
+          swipeDirection={'down'}
+          propagateSwipe
+          backdropColor={colors.overlay.default}
+          style={styles.bottomModal}
+        >
+          <LedgerErrorModal />
+        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1458,6 +1576,11 @@ const mapStateToProps = (state) => ({
   networkModalVisible: state.modals.networkModalVisible,
   accountsModalVisible: state.modals.accountsModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
+  ledgerDeviceActionModalVisible: state.modals.ledgerDeviceActionModalVisible,
+  ledgerDeviceActionModalFailVisible:
+    state.modals.ledgerDeviceActionModalFailVisible,
+  ledgerDeviceActionErrorModalVisible:
+    state.modals.ledgerDeviceActionErrorModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -1476,6 +1599,11 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
+  toggleLedgerDeviceActionModal: () =>
+    dispatch(toggleLedgerDeviceActionModal()),
+  toggleLedgerDeviceActionFailModal: () =>
+    dispatch(toggleLedgerDeviceActionFailModal()),
+  closeLedgerDeviceErrorModal: () => dispatch(closeLedgerDeviceErrorModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>

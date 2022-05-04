@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -21,6 +21,11 @@ import Scan from './Scan';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
 } from '../../hooks/useLedgerBluetooth';
+import { useDispatch } from 'react-redux';
+import {
+  closeLedgerDeviceErrorModal,
+  openLedgerDeviceErrorModal,
+} from '../../../actions/modals';
 
 const ledgerImage = require('../../../images/ledger.png');
 const ledgerConnectImage = require('../../../images/ledger-connect.png');
@@ -57,7 +62,7 @@ const createStyles = (colors: any) =>
     },
     imageContainer: {
       alignItems: 'center',
-      marginTop: Device.getDeviceHeight() * 0.02,
+      marginTop: Device.getDeviceHeight() * 0.08,
     },
     buttonContainer: {
       position: 'absolute',
@@ -65,6 +70,21 @@ const createStyles = (colors: any) =>
       bottom: Device.getDeviceHeight() * 0.025,
       left: 0,
       width: '100%',
+    },
+    lookingForDeviceContainer: {
+      flexDirection: 'row',
+    },
+    lookingForDeviceText: {
+      fontSize: 18,
+    },
+    activityIndicatorStyle: {
+      marginLeft: 10,
+    },
+    ledgerInstructionText: {
+      paddingLeft: 7,
+    },
+    howToInstallEthAppText: {
+      marginTop: Device.getDeviceHeight() * 0.025,
     },
   });
 
@@ -74,6 +94,7 @@ const LedgerConnect = () => {
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
+  const dispatch = useDispatch();
 
   const {
     isSendingLedgerCommands,
@@ -81,27 +102,80 @@ const LedgerConnect = () => {
     error: ledgerError,
   } = useLedgerBluetooth(selectedDevice?.id);
 
-  if (ledgerError) {
-    // TODO handle all these cases
-    switch (ledgerError) {
-      case LedgerCommunicationErrors.LedgerDisconnected:
-        break;
-      case LedgerCommunicationErrors.FailedToOpenApp:
-        break;
-      case LedgerCommunicationErrors.FailedToCloseApp:
-        break;
-      case LedgerCommunicationErrors.AppIsNotInstalled:
-        break;
-      case LedgerCommunicationErrors.UserRefusedConfirmation:
-        break;
-      case LedgerCommunicationErrors.LedgerIsLocked:
-        break;
-      case LedgerCommunicationErrors.UnknownError:
-        break;
-      default:
-        break;
+  const connectLedger = (shouldNavigateToWallet = false) =>
+    ledgerLogicToRun(async () => {
+      const defaultLedgerAccount =
+        await KeyringController.unlockLedgerDefaultAccount();
+      await AccountTrackerController.syncBalanceWithAddresses([
+        defaultLedgerAccount,
+      ]);
+      shouldNavigateToWallet && navigation.navigate('WalletView');
+    });
+
+  const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
+    dispatch(
+      openLedgerDeviceErrorModal({
+        errorTitle,
+        errorSubtitle,
+        primaryButtonConfig: {
+          title: strings('ledger.retry'),
+          onPress: () => {
+            dispatch(closeLedgerDeviceErrorModal());
+            connectLedger(true);
+          },
+        },
+      }),
+    );
+  };
+
+  useEffect(() => {
+    if (ledgerError) {
+      switch (ledgerError) {
+        case LedgerCommunicationErrors.LedgerDisconnected:
+          handleErrorWithRetry(
+            strings('ledger.bluetooth_connection_failed'),
+            strings('ledger.bluetooth_connection_failed_message'),
+          );
+          break;
+        case LedgerCommunicationErrors.FailedToOpenApp:
+          handleErrorWithRetry(
+            strings('ledger.failed_to_open_eth_app'),
+            strings('ledger.ethereum_app_open_error'),
+          );
+          break;
+        case LedgerCommunicationErrors.FailedToCloseApp:
+          handleErrorWithRetry(
+            strings('ledger.running_app_close'),
+            strings('ledger.running_app_close_error'),
+          );
+          break;
+        case LedgerCommunicationErrors.AppIsNotInstalled:
+          handleErrorWithRetry(
+            strings('ledger.ethereum_app_not_installed'),
+            strings('ledger.ethereum_app_not_installed_error'),
+          );
+          break;
+        case LedgerCommunicationErrors.UserRefusedConfirmation:
+          // TODO: CHANGE Location to hardware wallet selector when it's ready
+          navigation.navigate('WalletView');
+          break;
+        case LedgerCommunicationErrors.LedgerIsLocked:
+          handleErrorWithRetry(
+            strings('ledger.ledger_is_locked'),
+            strings('ledger.unlock_ledger_message'),
+          );
+          break;
+        case LedgerCommunicationErrors.UnknownError:
+        default:
+          handleErrorWithRetry(
+            strings('ledger.unknown_error'),
+            strings('ledger.unknown_error_message'),
+          );
+          break;
+      }
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ledgerError]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -114,9 +188,28 @@ const LedgerConnect = () => {
           <Image source={ledgerConnectImage} />
         </View>
         <View style={styles.textContainer}>
-          <Text bold>{strings('ledger.looking_for_device')}</Text>
+          <View style={styles.lookingForDeviceContainer}>
+            <Text style={styles.lookingForDeviceText} bold>
+              {strings('ledger.looking_for_device')}
+            </Text>
+            {!selectedDevice && (
+              <ActivityIndicator style={styles.activityIndicatorStyle} />
+            )}
+          </View>
           <Text style={styles.instructionsText}>
             {strings('ledger.ledger_reminder_message')}
+          </Text>
+          <Text style={styles.ledgerInstructionText}>
+            {strings('ledger.ledger_reminder_message_step_one')}
+          </Text>
+          <Text style={styles.ledgerInstructionText}>
+            {strings('ledger.ledger_reminder_message_step_two')}
+          </Text>
+          <Text style={styles.ledgerInstructionText}>
+            {strings('ledger.ledger_reminder_message_step_three')}
+          </Text>
+          <Text style={styles.howToInstallEthAppText} bold big link>
+            {strings('ledger.how_to_install_eth_app')}
           </Text>
         </View>
         <View style={styles.bodyContainer}>
@@ -127,16 +220,7 @@ const LedgerConnect = () => {
             <View style={styles.buttonContainer}>
               <StyledButton
                 type="confirm"
-                onPress={async () =>
-                  ledgerLogicToRun(async () => {
-                    const defaultLedgerAccount =
-                      await KeyringController.unlockLedgerDefaultAccount();
-                    await AccountTrackerController.syncBalanceWithAddresses([
-                      defaultLedgerAccount,
-                    ]);
-                    navigation.navigate('WalletView');
-                  })
-                }
+                onPress={() => connectLedger(true)}
                 testID={'add-network-button'}
                 disabled={isSendingLedgerCommands}
               >

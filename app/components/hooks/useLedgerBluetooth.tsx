@@ -5,13 +5,13 @@ import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 
 export enum LedgerCommunicationErrors {
-  LedgerDisconnected,
-  FailedToOpenApp,
-  FailedToCloseApp,
-  UserRefusedConfirmation,
-  AppIsNotInstalled,
-  LedgerIsLocked,
-  UnknownError,
+  LedgerDisconnected = 'LedgerDisconnected',
+  FailedToOpenApp = 'FailedToOpenApp',
+  FailedToCloseApp = 'FailedToCloseApp',
+  UserRefusedConfirmation = 'UserRefusedConfirmation',
+  AppIsNotInstalled = 'AppIsNotInstalled',
+  LedgerIsLocked = 'LedgerIsLocked',
+  UnknownError = 'UnknownError',
 }
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
@@ -122,7 +122,6 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
     try {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
-
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await KeyringController.connectLedgerHardware(
         transportRef.current,
