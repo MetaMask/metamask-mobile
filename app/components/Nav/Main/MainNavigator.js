@@ -59,7 +59,6 @@ import {
   BROWSER_TAB_HOME,
   BROWSER_URL_MODAL,
   BROWSER_VIEW,
-  BROWSER_TAB_HOME_CONTAINER,
 } from '../navigationKeys';
 
 const Stack = createStackNavigator();
@@ -110,7 +109,7 @@ const WalletTabHome = () => (
   </Stack.Navigator>
 );
 
-const BrowserModalFlow = () => (
+const BrowserFlow = () => (
   <Stack.Navigator
     initialRouteName={BROWSER_VIEW}
     mode={'modal'}
@@ -124,12 +123,6 @@ const BrowserModalFlow = () => (
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
-  </Stack.Navigator>
-);
-
-const BrowserTabHome = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name={BROWSER_TAB_HOME} component={BrowserModalFlow} />
   </Stack.Navigator>
 );
 
@@ -158,8 +151,8 @@ const HomeTabs = () => {
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
-            name={BROWSER_TAB_HOME_CONTAINER}
-            component={BrowserTabHome}
+            name={BROWSER_TAB_HOME}
+            component={BrowserFlow}
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
