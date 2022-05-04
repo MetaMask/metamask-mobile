@@ -248,6 +248,7 @@ class SendFlow extends PureComponent {
 		alias: undefined,
 		confusableCollection: [],
 		inputWidth: { width: '99%' },
+		isFromAddressBook: false,
 	};
 
 	updateNavBar = () => {
@@ -340,7 +341,8 @@ class SendFlow extends PureComponent {
 			errorContinue,
 			isOnlyWarning,
 			confusableCollection,
-			toEnsAddressResolved;
+			toEnsAddressResolved,
+			isFromAddressBook;
 		let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
 		if (isValidAddress(toSelectedAddress)) {
 			const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -356,6 +358,7 @@ class SendFlow extends PureComponent {
 					(networkAddressBook[checksummedToSelectedAddress] &&
 						networkAddressBook[checksummedToSelectedAddress].name) ||
 					(identities[checksummedToSelectedAddress] && identities[checksummedToSelectedAddress].name);
+				isFromAddressBook = true;
 			} else {
 				toAddressName = ens || toSelectedAddress;
 				// If not in address book nor user accounts
@@ -422,6 +425,7 @@ class SendFlow extends PureComponent {
 			isOnlyWarning,
 			confusableCollection,
 			toEnsAddressResolved,
+			isFromAddressBook,
 		});
 	};
 
@@ -636,6 +640,7 @@ class SendFlow extends PureComponent {
 			errorContinue,
 			isOnlyWarning,
 			confusableCollection,
+			isFromAddressBook,
 		} = this.state;
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
@@ -670,6 +675,7 @@ class SendFlow extends PureComponent {
 						onSubmit={this.onTransactionDirectionSet}
 						inputWidth={inputWidth}
 						confusableCollection={(!existingContact && confusableCollection) || []}
+						isFromAddressBook={isFromAddressBook}
 					/>
 				</View>
 
