@@ -527,7 +527,9 @@ class ResetPassword extends PureComponent {
     const { KeyringController } = Engine.context;
     const { originalPassword } = this.state;
     const keychainPassword = originalPassword;
-    const mnemonic = await KeyringController.exportSeedPhrase(keychainPassword);
+    const mnemonic = await KeyringController.exportSeedPhrase(
+      keychainPassword,
+    ).toString();
     return JSON.stringify(mnemonic).replace(/"/g, '');
   };
 
@@ -596,7 +598,7 @@ class ResetPassword extends PureComponent {
   tryExportSeedPhrase = async (password) => {
     // const { originalPassword } = this.state;
     const { KeyringController } = Engine.context;
-    await KeyringController.exportSeedPhrase(password);
+    await KeyringController.exportSeedPhrase(password).toString();
   };
 
   tryUnlockWithPassword = async (password) => {

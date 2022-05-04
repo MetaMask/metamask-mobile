@@ -462,7 +462,9 @@ class Settings extends PureComponent {
     try {
       await SecureKeychain.resetGenericPassword();
 
-      await Engine.context.KeyringController.exportSeedPhrase(password);
+      await Engine.context.KeyringController.exportSeedPhrase(
+        password,
+      ).toString();
 
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
 
