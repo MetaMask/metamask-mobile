@@ -32,24 +32,27 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 
 // Setter Maps
 const toBigNumber = {
-	hex: (n) => new BigNumber(stripHexPrefix(n), 16),
-	dec: (n) => new BigNumber(String(n), 10),
-	BN: (n) => new BigNumber(n.toString(16), 16),
+  hex: (n) => new BigNumber(stripHexPrefix(n), 16),
+  dec: (n) => new BigNumber(String(n), 10),
+  BN: (n) => new BigNumber(n.toString(16), 16),
 };
 const toNormalizedDenomination = {
-	WEI: (bigNumber) => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
-	GWEI: (bigNumber) => bigNumber.div(BIG_NUMBER_GWEI_MULTIPLIER),
-	ETH: (bigNumber) => bigNumber.div(BIG_NUMBER_ETH_MULTIPLIER),
+  WEI: (bigNumber) => bigNumber.div(BIG_NUMBER_WEI_MULTIPLIER),
+  GWEI: (bigNumber) => bigNumber.div(BIG_NUMBER_GWEI_MULTIPLIER),
+  ETH: (bigNumber) => bigNumber.div(BIG_NUMBER_ETH_MULTIPLIER),
 };
 const toSpecifiedDenomination = {
-	WEI: (bigNumber) => bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(0),
-	GWEI: (bigNumber) => bigNumber.times(BIG_NUMBER_GWEI_MULTIPLIER).decimalPlaces(9),
-	ETH: (bigNumber) => bigNumber.times(BIG_NUMBER_ETH_MULTIPLIER).decimalPlaces(9),
+  WEI: (bigNumber) =>
+    bigNumber.times(BIG_NUMBER_WEI_MULTIPLIER).decimalPlaces(0),
+  GWEI: (bigNumber) =>
+    bigNumber.times(BIG_NUMBER_GWEI_MULTIPLIER).decimalPlaces(9),
+  ETH: (bigNumber) =>
+    bigNumber.times(BIG_NUMBER_ETH_MULTIPLIER).decimalPlaces(9),
 };
 const baseChange = {
-	hex: (n) => n.toString(16),
-	dec: (n) => new BigNumber(n).toString(10),
-	BN: (n) => new BN(n.toString(16)),
+  hex: (n) => n.toString(16),
+  dec: (n) => new BigNumber(n).toString(10),
+  BN: (n) => new BN(n.toString(16)),
 };
 
 // Utility function for checking base types
@@ -81,187 +84,200 @@ const isValidBase = (base) => Number.isInteger(base) && base > 1;
  * @param {string} [input.roundDown]
  */
 const converter = ({
-	value,
-	fromNumericBase,
-	fromDenomination,
-	fromCurrency,
-	toNumericBase,
-	toDenomination,
-	toCurrency,
-	numberOfDecimals,
-	conversionRate,
-	invertConversionRate,
-	roundDown,
+  value,
+  fromNumericBase,
+  fromDenomination,
+  fromCurrency,
+  toNumericBase,
+  toDenomination,
+  toCurrency,
+  numberOfDecimals,
+  conversionRate,
+  invertConversionRate,
+  roundDown,
 }) => {
-	let convertedValue = fromNumericBase ? toBigNumber[fromNumericBase](value) : value;
+  let convertedValue = fromNumericBase
+    ? toBigNumber[fromNumericBase](value)
+    : value;
 
-	if (fromDenomination) {
-		convertedValue = toNormalizedDenomination[fromDenomination](convertedValue);
-	}
+  if (fromDenomination) {
+    convertedValue = toNormalizedDenomination[fromDenomination](convertedValue);
+  }
 
-	if (fromCurrency !== toCurrency) {
-		if (conversionRate === null || conversionRate === undefined) {
-			throw new Error(
-				`Converting from ${fromCurrency} to ${toCurrency} requires a conversionRate, but one was not provided`
-			);
-		}
-		let rate = toBigNumber.dec(conversionRate);
-		if (invertConversionRate) {
-			rate = new BigNumber(1.0).div(conversionRate);
-		}
-		convertedValue = convertedValue.times(rate);
-	}
+  if (fromCurrency !== toCurrency) {
+    if (conversionRate === null || conversionRate === undefined) {
+      throw new Error(
+        `Converting from ${fromCurrency} to ${toCurrency} requires a conversionRate, but one was not provided`,
+      );
+    }
+    let rate = toBigNumber.dec(conversionRate);
+    if (invertConversionRate) {
+      rate = new BigNumber(1.0).div(conversionRate);
+    }
+    convertedValue = convertedValue.times(rate);
+  }
 
-	if (toDenomination) {
-		convertedValue = toSpecifiedDenomination[toDenomination](convertedValue);
-	}
+  if (toDenomination) {
+    convertedValue = toSpecifiedDenomination[toDenomination](convertedValue);
+  }
 
-	if (numberOfDecimals) {
-		convertedValue = convertedValue.decimalPlaces(numberOfDecimals, BigNumber.ROUND_HALF_DOWN);
-	}
+  if (numberOfDecimals) {
+    convertedValue = convertedValue.decimalPlaces(
+      numberOfDecimals,
+      BigNumber.ROUND_HALF_DOWN,
+    );
+  }
 
-	if (roundDown) {
-		convertedValue = convertedValue.decimalPlaces(roundDown, BigNumber.ROUND_DOWN);
-	}
+  if (roundDown) {
+    convertedValue = convertedValue.decimalPlaces(
+      roundDown,
+      BigNumber.ROUND_DOWN,
+    );
+  }
 
-	if (toNumericBase) {
-		convertedValue = baseChange[toNumericBase](convertedValue);
-	}
-	return convertedValue;
+  if (toNumericBase) {
+    convertedValue = baseChange[toNumericBase](convertedValue);
+  }
+  return convertedValue;
 };
 
 const conversionUtil = (
-	value,
-	{
-		fromCurrency = null,
-		toCurrency = fromCurrency,
-		fromNumericBase,
-		toNumericBase,
-		fromDenomination,
-		toDenomination,
-		numberOfDecimals,
-		conversionRate,
-		invertConversionRate,
-	}
+  value,
+  {
+    fromCurrency = null,
+    toCurrency = fromCurrency,
+    fromNumericBase,
+    toNumericBase,
+    fromDenomination,
+    toDenomination,
+    numberOfDecimals,
+    conversionRate,
+    invertConversionRate,
+  },
 ) => {
-	if (fromCurrency !== toCurrency && !conversionRate) {
-		return 0;
-	}
-	return converter({
-		fromCurrency,
-		toCurrency,
-		fromNumericBase,
-		toNumericBase,
-		fromDenomination,
-		toDenomination,
-		numberOfDecimals,
-		conversionRate,
-		invertConversionRate,
-		value: value || '0',
-	});
+  if (fromCurrency !== toCurrency && !conversionRate) {
+    return 0;
+  }
+  return converter({
+    fromCurrency,
+    toCurrency,
+    fromNumericBase,
+    toNumericBase,
+    fromDenomination,
+    toDenomination,
+    numberOfDecimals,
+    conversionRate,
+    invertConversionRate,
+    value: value || '0',
+  });
 };
 
 const getBigNumber = (value, base) => {
-	if (!isValidBase(base)) {
-		throw new Error('Must specificy valid base');
-	}
+  if (!isValidBase(base)) {
+    throw new Error('Must specificy valid base');
+  }
 
-	// We don't include 'number' here, because BigNumber will throw if passed
-	// a number primitive it considers unsafe.
-	if (typeof value === 'string' || value instanceof BigNumber) {
-		return new BigNumber(value, base);
-	}
+  // We don't include 'number' here, because BigNumber will throw if passed
+  // a number primitive it considers unsafe.
+  if (typeof value === 'string' || value instanceof BigNumber) {
+    return new BigNumber(value, base);
+  }
 
-	return new BigNumber(String(value), base);
+  return new BigNumber(String(value), base);
 };
 
 const addCurrencies = (a, b, options = {}) => {
-	const { aBase, bBase, ...conversionOptions } = options;
+  const { aBase, bBase, ...conversionOptions } = options;
 
-	if (!isValidBase(aBase) || !isValidBase(bBase)) {
-		throw new Error('Must specify valid aBase and bBase');
-	}
-	const value = getBigNumber(a, aBase).plus(getBigNumber(b, bBase));
+  if (!isValidBase(aBase) || !isValidBase(bBase)) {
+    throw new Error('Must specify valid aBase and bBase');
+  }
+  const value = getBigNumber(a, aBase).plus(getBigNumber(b, bBase));
 
-	return converter({
-		value,
-		...conversionOptions,
-	});
+  return converter({
+    value,
+    ...conversionOptions,
+  });
 };
 
 const subtractCurrencies = (a, b, options = {}) => {
-	const { aBase, bBase, ...conversionOptions } = options;
+  const { aBase, bBase, ...conversionOptions } = options;
 
-	if (!isValidBase(aBase) || !isValidBase(bBase)) {
-		throw new Error('Must specify valid aBase and bBase');
-	}
+  if (!isValidBase(aBase) || !isValidBase(bBase)) {
+    throw new Error('Must specify valid aBase and bBase');
+  }
 
-	const value = getBigNumber(a, aBase).minus(getBigNumber(b, bBase));
+  const value = getBigNumber(a, aBase).minus(getBigNumber(b, bBase));
 
-	return converter({
-		value,
-		...conversionOptions,
-	});
+  return converter({
+    value,
+    ...conversionOptions,
+  });
 };
 
 const multiplyCurrencies = (a, b, options = {}) => {
-	const { multiplicandBase, multiplierBase, ...conversionOptions } = options;
+  const { multiplicandBase, multiplierBase, ...conversionOptions } = options;
 
-	if (!isValidBase(multiplicandBase) || !isValidBase(multiplierBase)) {
-		throw new Error('Must specify valid multiplicandBase and multiplierBase');
-	}
+  if (!isValidBase(multiplicandBase) || !isValidBase(multiplierBase)) {
+    throw new Error('Must specify valid multiplicandBase and multiplierBase');
+  }
 
-	const value = getBigNumber(a, multiplicandBase).times(getBigNumber(b, multiplierBase));
+  const value = getBigNumber(a, multiplicandBase).times(
+    getBigNumber(b, multiplierBase),
+  );
 
-	return converter({
-		value,
-		...conversionOptions,
-	});
+  return converter({
+    value,
+    ...conversionOptions,
+  });
 };
 
 const conversionGreaterThan = ({ ...firstProps }, { ...secondProps }) => {
-	const firstValue = converter({ ...firstProps });
-	const secondValue = converter({ ...secondProps });
+  const firstValue = converter({ ...firstProps });
+  const secondValue = converter({ ...secondProps });
 
-	return firstValue.gt(secondValue);
+  return firstValue.gt(secondValue);
 };
 
 const conversionLessThan = ({ ...firstProps }, { ...secondProps }) => {
-	const firstValue = converter({ ...firstProps });
-	const secondValue = converter({ ...secondProps });
+  const firstValue = converter({ ...firstProps });
+  const secondValue = converter({ ...secondProps });
 
-	return firstValue.lt(secondValue);
+  return firstValue.lt(secondValue);
 };
 
 const conversionMax = ({ ...firstProps }, { ...secondProps }) => {
-	const firstIsGreater = conversionGreaterThan({ ...firstProps }, { ...secondProps });
+  const firstIsGreater = conversionGreaterThan(
+    { ...firstProps },
+    { ...secondProps },
+  );
 
-	return firstIsGreater ? firstProps.value : secondProps.value;
+  return firstIsGreater ? firstProps.value : secondProps.value;
 };
 
 const conversionGTE = ({ ...firstProps }, { ...secondProps }) => {
-	const firstValue = converter({ ...firstProps });
-	const secondValue = converter({ ...secondProps });
-	return firstValue.greaterThanOrEqualTo(secondValue);
+  const firstValue = converter({ ...firstProps });
+  const secondValue = converter({ ...secondProps });
+  return firstValue.greaterThanOrEqualTo(secondValue);
 };
 
 const conversionLTE = ({ ...firstProps }, { ...secondProps }) => {
-	const firstValue = converter({ ...firstProps });
-	const secondValue = converter({ ...secondProps });
-	return firstValue.lessThanOrEqualTo(secondValue);
+  const firstValue = converter({ ...firstProps });
+  const secondValue = converter({ ...secondProps });
+  return firstValue.lessThanOrEqualTo(secondValue);
 };
 
 const toNegative = (n, options = {}) => multiplyCurrencies(n, -1, options);
 
 export {
-	conversionUtil,
-	addCurrencies,
-	multiplyCurrencies,
-	conversionGreaterThan,
-	conversionLessThan,
-	conversionGTE,
-	conversionLTE,
-	conversionMax,
-	toNegative,
-	subtractCurrencies,
+  conversionUtil,
+  addCurrencies,
+  multiplyCurrencies,
+  conversionGreaterThan,
+  conversionLessThan,
+  conversionGTE,
+  conversionLTE,
+  conversionMax,
+  toNegative,
+  subtractCurrencies,
 };
