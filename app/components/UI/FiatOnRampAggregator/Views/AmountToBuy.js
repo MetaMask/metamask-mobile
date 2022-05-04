@@ -66,7 +66,7 @@ const createStyles = (colors) =>
       bottom: 0,
       left: 0,
       right: 0,
-      paddingBottom: 25,
+      paddingBottom: 50,
       backgroundColor: colors.background.alternative,
     },
     cta: {
@@ -331,7 +331,7 @@ const AmountToBuy = () => {
   }));
 
   useEffect(() => {
-    keypadOffset.value = amountFocused ? 0 : keyboardHeight.current + 20;
+    keypadOffset.value = amountFocused ? 30 : keyboardHeight.current + 30;
   }, [amountFocused, keyboardHeight, keypadOffset]);
 
   /**
