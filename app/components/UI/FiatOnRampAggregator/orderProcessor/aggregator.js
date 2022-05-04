@@ -39,7 +39,7 @@ export const aggregatorInitialFiatOrder = (initialOrder) => ({
   state: FIAT_ORDER_STATES.PENDING,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
   createdAt: Date.now(),
-  amount: 0,
+  amount: null,
   fee: null,
   currency: '',
   cryptoAmount: null,
