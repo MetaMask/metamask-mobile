@@ -22,6 +22,7 @@ import { showAlert } from '../actions/alert';
 import {
   BROWSER_TAB_HOME,
   BROWSER_VIEW,
+  BROWSER_TAB_HOME_CONTAINER,
 } from '../../app/components/Nav/navigationKeys';
 
 class DeeplinkManager {
@@ -193,11 +194,14 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
-        this.navigation.navigate(BROWSER_TAB_HOME, {
-          screen: BROWSER_VIEW,
+        this.navigation.navigate(BROWSER_TAB_HOME_CONTAINER, {
+          screen: BROWSER_TAB_HOME,
           params: {
-            newTabUrl: url,
-            timestamp: Date.now(),
+            screen: BROWSER_VIEW,
+            params: {
+              newTabUrl: url,
+              timestamp: Date.now(),
+            },
           },
         });
       }

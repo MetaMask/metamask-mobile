@@ -59,6 +59,7 @@ import {
   BROWSER_TAB_HOME,
   BROWSER_URL_MODAL,
   BROWSER_VIEW,
+  BROWSER_TAB_HOME_CONTAINER,
 } from '../navigationKeys';
 
 const Stack = createStackNavigator();
@@ -157,7 +158,7 @@ const HomeTabs = () => {
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
-            name="BrowserTabHome"
+            name={BROWSER_TAB_HOME_CONTAINER}
             component={BrowserTabHome}
             options={{ tabBarVisible: false }}
           />
