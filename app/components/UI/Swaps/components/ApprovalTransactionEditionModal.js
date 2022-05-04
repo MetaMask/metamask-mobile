@@ -85,10 +85,18 @@ function ApprovalTransactionEditionModal({
   ]);
 
   useEffect(() => {
-    setApprovalTransaction(originalApprovalTransaction);
-    if (originalApprovalTransaction) {
+    const approvalTx = spendLimitUnlimitedSelected
+      ? originalApprovalTransaction
+      : generateTxWithNewTokenAllowance(
+          approvalCustomValue,
+          sourceToken.decimals,
+          swapsUtils.getSwapsContractAddress(chainId),
+          originalApprovalTransaction,
+        );
+    setApprovalTransaction(approvalTx);
+    if (approvalTx) {
       const approvalTransactionAmount = decodeApproveData(
-        originalApprovalTransaction.data,
+        approvalTx.data,
       ).encodedAmount;
       const amountDec = hexToBN(approvalTransactionAmount).toString(10);
       setApprovalTransactionAmount(
@@ -99,6 +107,9 @@ function ApprovalTransactionEditionModal({
     originalApprovalTransaction,
     sourceToken.decimals,
     setApprovalTransaction,
+    spendLimitUnlimitedSelected,
+    approvalCustomValue,
+    chainId,
   ]);
 
   return (
