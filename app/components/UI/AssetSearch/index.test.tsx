@@ -6,23 +6,23 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	engine: {
-		backgroundState: {
-			TokenListController: {
-				tokenList: {},
-			},
-		},
-	},
+  engine: {
+    backgroundState: {
+      TokenListController: {
+        tokenList: {},
+      },
+    },
+  },
 };
 const store = mockStore(initialState);
 
 describe('AssetSearch', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<AssetSearch onSearch={() => null} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <AssetSearch onSearch={() => null} />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });
