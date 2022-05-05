@@ -28,7 +28,7 @@
 - [#4062](https://github.com/MetaMask/metamask-mobile/pull/4062): Remove design token patch
 - [#4056](https://github.com/MetaMask/metamask-mobile/pull/4056): Update controllers patch
 - [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [trivial] - Update react-native-webview+11.13.0.patch
-- [4135](https://github.com/MetaMask/metamask-mobile/pull/4135): browser improvement 
+- [#4135](https://github.com/MetaMask/metamask-mobile/pull/4135): browser improvement 
 
 ## 5.0.1 - April 20, 2022
 - [FIX] iOS Hotfix - Add LinkPresentation library
