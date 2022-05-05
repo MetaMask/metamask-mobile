@@ -101,7 +101,7 @@ function ApprovalTransactionEditionModal({
       originalApprovalTransaction,
     );
     setApprovalTransaction(newApprovalTransaction);
-    if (originalApprovalTransaction.data) {
+    if (originalApprovalTransaction) {
       const approvalTransactionAmount = decodeApproveData(
         originalApprovalTransaction.data,
       ).encodedAmount;
