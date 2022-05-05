@@ -1,12 +1,23 @@
 import React, { useMemo } from 'react';
-import { Image, SafeAreaView, StyleSheet, View } from 'react-native';
-import { RootStateOrAny, useSelector } from 'react-redux';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import {
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+  useAssetFromTheme,
+} from '../../../util/theme';
 import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import StyledButton from '../StyledButton';
+import { closeLedgerDeviceErrorModal } from '../../../actions/modals';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -38,17 +49,27 @@ const createStyles = (colors: Colors) =>
     buttonsContainer: {
       flex: 1,
       flexDirection: 'column',
+      // alignItems: 'flex-end',
+      justifyContent: 'flex-end',
     },
     buttonStyle: {
-      flex: 1,
+      width: Device.getDeviceWidth() * 0.8,
+    },
+    closeButton: {
+      position: 'absolute',
+      top: Device.getDeviceHeight() * 0.05,
+      right: 0,
+      padding: 20,
     },
   });
 
-const ledgerConnectImage = require('../../../images/ledger-connect-error.png');
+const ledgerConnectErrorDarkImage = require('../../../images/ledger-connect-error-dark.png');
+const ledgerConnectErrorLightImage = require('../../../images/ledger-connect-error-light.png');
 
 const LedgerErrorModal = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const dispatch = useDispatch();
   const {
     errorTitle,
     errorSubtitle,
@@ -58,10 +79,24 @@ const LedgerErrorModal = () => {
     (state: RootStateOrAny) => state.modals.ledgerDeviceActionMetadata,
   );
 
+  const onClosePress = () => {
+    dispatch(closeLedgerDeviceErrorModal());
+  };
+
   return (
     <SafeAreaView style={styles.wrapper}>
+      <TouchableOpacity style={styles.closeButton} onPress={onClosePress}>
+        <Text bold big>
+          X
+        </Text>
+      </TouchableOpacity>
       <View style={styles.contentWrapper}>
-        <Image source={ledgerConnectImage} />
+        <Image
+          source={useAssetFromTheme(
+            ledgerConnectErrorLightImage,
+            ledgerConnectErrorDarkImage,
+          )}
+        />
         <View style={styles.errorHasOccuredTextContainer}>
           <Text bold big style={styles.errorHasOccuredText}>
             {strings('ledger.error_occured')}

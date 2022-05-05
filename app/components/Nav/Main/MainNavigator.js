@@ -72,14 +72,11 @@ const styles = StyleSheet.create({
   hidden: {
     opacity: 0,
   },
-  ledgerConnectHeaderContainer: {
-    padding: 10,
-    margin: 10,
-  },
   ledgerConnectHeaderButton: {
     position: 'absolute',
     top: 0,
     right: 0,
+    padding: 20,
   },
 });
 /**
@@ -459,7 +456,7 @@ const LedgerConnectFlow = ({ navigation }) => (
       headerTitle: null,
       // eslint-disable-next-line react/display-name
       headerRight: () => (
-        <View style={styles.ledgerConnectHeaderContainer}>
+        <View>
           <TouchableOpacity
             onPress={() => {
               navigation.navigate('Home');

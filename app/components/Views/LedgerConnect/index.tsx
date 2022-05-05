@@ -14,7 +14,11 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
 import Text from '../../../components/Base/Text';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import {
+  mockTheme,
+  useAppThemeFromContext,
+  useAssetFromTheme,
+} from '../../../util/theme';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
@@ -27,8 +31,10 @@ import {
   openLedgerDeviceErrorModal,
 } from '../../../actions/modals';
 
-const ledgerImage = require('../../../images/ledger.png');
-const ledgerConnectImage = require('../../../images/ledger-connect.png');
+const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
+const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
+const ledgerConnectLightImage = require('../../../images/ledger-connect-light.png');
+const ledgerConnectDarkImage = require('../../../images/ledger-connect-dark.png');
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -44,6 +50,12 @@ const createStyles = (colors: any) =>
     ledgerImage: {
       width: 68,
       height: 68,
+    },
+    coverImage: {
+      resizeMode: 'cover',
+      width: Device.getDeviceWidth() * 0.6,
+      height: 64,
+      overflow: 'visible',
     },
     connectLedgerText: {
       ...(fontStyles.normal as TextStyle),
@@ -180,12 +192,24 @@ const LedgerConnect = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.connectLedgerWrapper}>
-        <Image source={ledgerImage} style={styles.ledgerImage} />
+        <Image
+          source={useAssetFromTheme(
+            ledgerDeviceLightImage,
+            ledgerDeviceDarkImage,
+          )}
+          style={styles.ledgerImage}
+        />
         <Text bold style={styles.connectLedgerText}>
           {strings('ledger.connect_ledger')}
         </Text>
         <View style={styles.imageContainer}>
-          <Image source={ledgerConnectImage} />
+          <Image
+            source={useAssetFromTheme(
+              ledgerConnectLightImage,
+              ledgerConnectDarkImage,
+            )}
+            style={styles.coverImage}
+          />
         </View>
         <View style={styles.textContainer}>
           <View style={styles.lookingForDeviceContainer}>
