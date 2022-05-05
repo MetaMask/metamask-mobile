@@ -44,6 +44,7 @@ import Device from '../../../../util/device';
 import SkeletonText from '../components/SkeletonText';
 import ListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
+import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -114,7 +115,11 @@ const AmountToBuy = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, { title: 'Amount to Buy' }, colors),
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: strings('fiat_on_ramp_aggregator.amount_to_buy') },
+        colors,
+      ),
     );
   }, [navigation, colors]);
 
@@ -459,8 +464,11 @@ const AmountToBuy = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    navigation.navigate('GetQuotes', { amount: amountNumber });
-  }, [amountNumber, navigation]);
+    navigation.navigate('GetQuotes', {
+      amount: amountNumber,
+      asset: selectedAsset,
+    });
+  }, [amountNumber, navigation, selectedAsset]);
 
   /**
    * * Derived values
@@ -567,7 +575,7 @@ const AmountToBuy = () => {
             </View>
             <View style={styles.row}>
               <AssetSelectorButton
-                label={'You want to buy'}
+                label={strings('fiat_on_ramp_aggregator.want_to_buy')}
                 icon={
                   <TokenIcon
                     medium
@@ -583,7 +591,7 @@ const AmountToBuy = () => {
             <View style={styles.row}>
               <AmountInput
                 highlighted={amountFocused}
-                label={'Amount'}
+                label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
                 amount={displayAmount}
                 currencyCode={currentFiatCurrency?.symbol}
@@ -614,7 +622,7 @@ const AmountToBuy = () => {
               onPress={handleGetQuotePress}
               disabled={amountNumber <= 0}
             >
-              Get Quotes
+              {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
           </View>
         </ScreenLayout.Content>
@@ -645,7 +653,7 @@ const AmountToBuy = () => {
         />
         <ScreenLayout.Content>
           <StyledButton type="confirm" onPress={handleKeypadDone}>
-            Done
+            {strings('fiat_on_ramp_aggregator.done')}
           </StyledButton>
         </ScreenLayout.Content>
       </Animated.View>
@@ -655,6 +663,7 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         description={strings(
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
+          { network: NETWORKS_NAMES[selectedChainId] },
         )}
         tokens={tokens}
         onItemPress={handleAssetPress}

@@ -32,7 +32,10 @@ const Region = () => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: 'Region', showBack: false },
+        {
+          title: strings('fiat_on_ramp_aggregator.region.buy_crypto_tokens'),
+          showBack: false,
+        },
         colors,
       ),
     );
@@ -98,9 +101,7 @@ const Region = () => {
     <ScreenLayout>
       <ScreenLayout.Header
         title={strings('fiat_on_ramp_aggregator.region.your_region')}
-        description={strings(
-          'fiat_on_ramp_aggregator.region.subtitle_description',
-        )}
+        description={strings('fiat_on_ramp_aggregator.region.description')}
       />
       <RegionAlert
         isVisible={showAlert}
@@ -140,8 +141,10 @@ const Region = () => {
         </ScreenLayout.Content>
         <RegionModal
           isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.title')}
-          description={strings('fiat_on_ramp_aggregator.region.description')}
+          title={strings('fiat_on_ramp_aggregator.region.select_region_title')}
+          description={strings(
+            'fiat_on_ramp_aggregator.region.select_country_registered',
+          )}
           data={data}
           dismiss={hideRegionModal}
           onRegionPress={handleRegionPress}
@@ -155,7 +158,7 @@ const Region = () => {
               onPress={handleOnPress}
               disabled={!updatedRegion}
             >
-              {strings('swaps.continue')}
+              {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>
           </View>
         </ScreenLayout.Content>

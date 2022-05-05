@@ -49,7 +49,15 @@ const PaymentMethod = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, { title: 'Payment Method' }, colors),
+      getFiatOnRampAggNavbar(
+        navigation,
+        {
+          title: strings(
+            'fiat_on_ramp_aggregator.payment_method.payment_method',
+          ),
+        },
+        colors,
+      ),
     );
   }, [navigation, colors]);
 
@@ -131,10 +139,14 @@ const PaymentMethod = () => {
                   '/payments/apple-pay',
                   '/payments/debit-credit-card',
                 ].includes(id)}
-                onPress={() => setSelectedPaymentMethodId(id)}
+                onPress={
+                  id === selectedPaymentMethodId
+                    ? undefined
+                    : () => setSelectedPaymentMethodId(id)
+                }
                 amountTier={amountTier}
                 paymentType={getPaymentMethodIcon(id)}
-                idRequired={false}
+                idRequired={id !== '/payments/apple-pay'}
               />
             </View>
           ))}
@@ -144,8 +156,12 @@ const PaymentMethod = () => {
         <ScreenLayout.Content>
           <View style={styles.row}>
             <Text small grey centered>
-              Apple cash lorem ipsum sed ut perspiciatis unde omnis iste natus
-              error sit voluptatem sed ut perspiciatis
+              {selectedPaymentMethodId === '/payments/apple-pay' &&
+                strings(
+                  'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
+                )}
+              {selectedPaymentMethodId === '/payments/debit-credit-card' &&
+                strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
             </Text>
           </View>
           <View style={styles.row}>
@@ -155,7 +171,7 @@ const PaymentMethod = () => {
               disabled={!selectedPaymentMethodId}
             >
               {strings(
-                'fiat_on_ramp_aggregator.paymentMethod.continue_to_amount',
+                'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
               )}
             </StyledButton>
           </View>

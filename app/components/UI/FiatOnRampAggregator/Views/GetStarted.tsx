@@ -69,7 +69,10 @@ const GetStarted: React.FC = () => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: 'Get Started', showBack: false },
+        {
+          title: strings('fiat_on_ramp_aggregator.onboarding.what_to_expect'),
+          showBack: false,
+        },
         colors,
       ),
     );

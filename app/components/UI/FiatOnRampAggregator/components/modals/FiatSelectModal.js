@@ -157,7 +157,7 @@ function FiatSelectModal({
     () => (
       <View style={styles.emptyList}>
         <Text>
-          {strings('fiat_on_ramp_aggregator.no_tokens_result', {
+          {strings('fiat_on_ramp_aggregator.no_currency_match', {
             searchString,
           })}
         </Text>

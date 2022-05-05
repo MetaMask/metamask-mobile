@@ -62,31 +62,31 @@ const createStyles = (colors: any) =>
 const renderDescription = (description: TimeDescriptions | string) => {
   switch (description) {
     case TimeDescriptions.instant: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.instant');
+      return strings('fiat_on_ramp_aggregator.payment_method.instant');
     }
     case TimeDescriptions.less_than: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.less_than');
+      return strings('fiat_on_ramp_aggregator.payment_method.less_than');
     }
     case TimeDescriptions.separator: {
       return '-';
     }
     case TimeDescriptions.minutes: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.minutes');
+      return strings('fiat_on_ramp_aggregator.payment_method.minutes');
     }
     case TimeDescriptions.minute: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.minute');
+      return strings('fiat_on_ramp_aggregator.payment_method.minute');
     }
     case TimeDescriptions.hours: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.hours');
+      return strings('fiat_on_ramp_aggregator.payment_method.hours');
     }
     case TimeDescriptions.hour: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.hour');
+      return strings('fiat_on_ramp_aggregator.payment_method.hour');
     }
     case TimeDescriptions.business_days: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.business_days');
+      return strings('fiat_on_ramp_aggregator.payment_method.business_days');
     }
     case TimeDescriptions.business_day: {
-      return strings('fiat_on_ramp_aggregator.paymentMethod.business_day');
+      return strings('fiat_on_ramp_aggregator.payment_method.business_day');
     }
     default: {
       return description;
@@ -97,9 +97,9 @@ const renderTime = (time: number[]) =>
   timeToDescription(time).map(renderDescription).join(' ');
 
 const tierDescriptions = [
-  strings('fiat_on_ramp_aggregator.paymentMethod.lowest_limit'),
-  strings('fiat_on_ramp_aggregator.paymentMethod.medium_limit'),
-  strings('fiat_on_ramp_aggregator.paymentMethod.highest_limit'),
+  strings('fiat_on_ramp_aggregator.payment_method.lowest_limit'),
+  strings('fiat_on_ramp_aggregator.payment_method.medium_limit'),
+  strings('fiat_on_ramp_aggregator.payment_method.highest_limit'),
 ];
 const renderTiers = (tiers: number[]) => {
   const threshold = tiers[1] / tierDescriptions.length;
@@ -114,7 +114,6 @@ const PaymentOption: React.FC<Props> = ({
   time,
   cardImage,
   amountTier,
-  idRequired,
   paymentType,
   onPress,
   highlighted,
@@ -135,11 +134,6 @@ const PaymentOption: React.FC<Props> = ({
               {title}
             </Text>
           </ListItem.Title>
-          <Text small grey>
-            {idRequired
-              ? strings('fiat_on_ramp_aggregator.paymentMethod.id_required')
-              : strings('fiat_on_ramp_aggregator.paymentMethod.no_id_required')}
-          </Text>
         </ListItem.Body>
         <ListItem.Amounts>
           <ListItem.Amount>

@@ -9,6 +9,8 @@ import PaymentOption from './PaymentOption';
 
 import { useTheme } from '../../../../util/theme';
 import { getPaymentMethodIcon } from '../utils';
+import Text from '../../../Base/Text';
+import { strings } from '../../../../../locales/i18n';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -90,10 +92,20 @@ function PaymentMethodModal({
                         onPress={() => handleOnPressItemCallback(id)}
                         amountTier={amountTier}
                         paymentType={getPaymentMethodIcon(id)}
-                        idRequired={false}
                       />
                     </View>
                   ))}
+
+                  <Text small grey centered>
+                    {selectedPaymentMethod === '/payments/apple-pay' &&
+                      strings(
+                        'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
+                      )}
+                    {selectedPaymentMethod === '/payments/debit-credit-card' &&
+                      strings(
+                        'fiat_on_ramp_aggregator.payment_method.card_fees',
+                      )}
+                  </Text>
                 </ScreenLayout.Content>
               </View>
             </ScrollView>

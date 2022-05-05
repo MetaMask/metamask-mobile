@@ -33,9 +33,13 @@ const CheckoutWebView = () => {
   const uri = params?.buyURL;
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, { title: 'Checkout' }, colors),
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: params.provider.name },
+        colors,
+      ),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, params.provider.name]);
 
   const addTokenToTokensController = async (token) => {
     if (!token) return;
