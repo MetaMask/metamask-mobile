@@ -28,165 +28,168 @@ const MEMO = 'Test adding ENS';
 const PASSWORD = '12345678';
 
 describe('Addressbook Tests', () => {
-	beforeEach(() => {
-		jest.setTimeout(150000);
-	});
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
 
-	it('should create new wallet', async () => {
-		await OnboardingCarouselView.isVisible();
-		await OnboardingCarouselView.tapOnGetStartedButton();
+  it('should create new wallet', async () => {
+    await OnboardingCarouselView.isVisible();
+    await OnboardingCarouselView.tapOnGetStartedButton();
 
-		await OnboardingView.isVisible();
-		await OnboardingView.tapCreateWallet();
+    await OnboardingView.isVisible();
+    await OnboardingView.tapCreateWallet();
 
-		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+    await MetaMetricsOptIn.isVisible();
+    await MetaMetricsOptIn.tapAgreeButton();
 
-		await CreatePasswordView.isVisible();
-		await CreatePasswordView.enterPassword(PASSWORD);
-		await CreatePasswordView.reEnterPassword(PASSWORD);
-		await CreatePasswordView.tapIUnderstandCheckBox();
-		await CreatePasswordView.tapCreatePasswordButton();
-	});
+    await CreatePasswordView.isVisible();
+    await CreatePasswordView.enterPassword(PASSWORD);
+    await CreatePasswordView.reEnterPassword(PASSWORD);
+    await CreatePasswordView.tapIUnderstandCheckBox();
+    await CreatePasswordView.tapCreatePasswordButton();
+  });
 
-	it('Should skip backup check', async () => {
-		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
-		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+  it('Should skip backup check', async () => {
+    // Check that we are on the Secure your wallet screen
+    await ProtectYourWalletView.isVisible();
+    await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
-		await WalletView.isVisible();
-	});
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await WalletView.isVisible();
+  });
 
-	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness on bitrise.
-		await TestHelpers.delay(1000);
-		try {
-			await OnboardingWizardModal.isVisible();
-			await OnboardingWizardModal.tapNoThanksButton();
-			await OnboardingWizardModal.isNotVisible();
-		} catch {
-			//
-		}
-	});
+  it('should dismiss the onboarding wizard', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(1000);
+    try {
+      await OnboardingWizardModal.isVisible();
+      await OnboardingWizardModal.tapNoThanksButton();
+      await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
 
-	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-		await TestHelpers.delay(1000);
+  it('should dismiss the protect your wallet modal', async () => {
+    await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
+    await TestHelpers.delay(1000);
 
-		await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
 
-		await WalletView.isVisible();
-	});
+    await WalletView.isVisible();
+  });
 
-	it('should go to send view', async () => {
-		// Open Drawer
-		await WalletView.tapDrawerButton();
+  it('should go to send view', async () => {
+    // Open Drawer
+    await WalletView.tapDrawerButton();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSendButton();
-		// Make sure view with my accounts visible
-		await SendView.isTransferBetweenMyAccountsButtonVisible();
-	});
+    await DrawerView.isVisible();
+    await DrawerView.tapSendButton();
+    // Make sure view with my accounts visible
+    await SendView.isTransferBetweenMyAccountsButtonVisible();
+  });
 
-	it('should input a valid address to send to', async () => {
-		await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
-		await SendView.incorrectAddressErrorMessageIsVisible();
-		await SendView.removeAddress();
-		await SendView.inputAddress(MYTH_ADDRESS);
-		await SendView.noEthWarningMessageIsVisible();
-	});
+  it('should show invalid address error message', async () => {
+    await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
+    await SendView.incorrectAddressErrorMessageIsVisible();
+    await SendView.removeAddress();
+  });
 
-	it('should add a new address to address book via send flow', async () => {
-		await SendView.tapAddAddressToAddressBook();
+  it('should input a valid address to send to', async () => {
+    await SendView.inputAddress(MYTH_ADDRESS);
+    await SendView.noEthWarningMessageIsVisible();
+  });
 
-		await AddAddressModal.isVisible();
-		await AddAddressModal.typeInAlias('Myth');
-		await AddAddressModal.tapSaveButton();
+  it('should add a new address to address book via send flow', async () => {
+    await SendView.tapAddAddressToAddressBook();
 
-		await SendView.removeAddress();
-		await SendView.isSavedAliasVisible('Myth'); // Check that the new account is on the address list
-	});
+    await AddAddressModal.isVisible();
+    await AddAddressModal.typeInAlias('Myth');
+    await AddAddressModal.tapSaveButton();
 
-	it('should go to settings then select contacts', async () => {
-		await SendView.tapcancelButton();
+    await SendView.removeAddress();
+    await SendView.isSavedAliasVisible('Myth'); // Check that the new account is on the address list
+  });
 
-		// Check that we are on the wallet screen
-		await WalletView.isVisible();
-		await WalletView.tapDrawerButton();
+  it('should go to settings then select contacts', async () => {
+    await SendView.tapcancelButton();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSettings();
+    // Check that we are on the wallet screen
+    await WalletView.isVisible();
+    await WalletView.tapDrawerButton();
 
-		await SettingsView.tapContacts();
+    await DrawerView.isVisible();
+    await DrawerView.tapSettings();
 
-		await ContactsView.isVisible();
-		await ContactsView.isContactAliasVisible('Myth');
-	});
+    await SettingsView.tapContacts();
 
-	it('should add an address via the contacts view', async () => {
-		await ContactsView.tapAddContactButton();
+    await ContactsView.isVisible();
+    await ContactsView.isContactAliasVisible('Myth');
+  });
 
-		await AddContactView.isVisible();
-		await AddContactView.typeInName('Ibrahim');
+  it('should add an address via the contacts view', async () => {
+    await ContactsView.tapAddContactButton();
 
-		// Input invalid address
-		await AddContactView.typeInAddress(INVALID_ADDRESS);
-		await AddContactView.isErrorMessageVisible();
-		await AddContactView.isErrorMessageTextCorrect();
+    await AddContactView.isVisible();
+    await AddContactView.typeInName('Ibrahim');
 
-		await AddContactView.clearAddressInputBox();
-		await AddContactView.typeInAddress('ibrahim.team.mask.eth');
-		await AddContactView.typeInMemo(MEMO);
-		await AddContactView.tapAddContactButton();
+    // Input invalid address
+    await AddContactView.typeInAddress(INVALID_ADDRESS);
+    await AddContactView.isErrorMessageVisible();
+    await AddContactView.isErrorMessageTextCorrect();
 
-		await ContactsView.isVisible(); // Check that we are on the contacts screen
-		await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
-	});
+    await AddContactView.clearAddressInputBox();
+    await AddContactView.typeInAddress('ibrahim.team.mask.eth');
+    await AddContactView.typeInMemo(MEMO);
+    await AddContactView.tapAddContactButton();
 
-	it('should edit a contact', async () => {
-		await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
+    await ContactsView.isVisible(); // Check that we are on the contacts screen
+    await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
+  });
 
-		await AddContactView.tapEditButton();
-		await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
-		await AddContactView.tapEditContactCTA();
+  it('should edit a contact', async () => {
+    await ContactsView.tapOnAlias('Myth'); // Tap on Myth address
 
-		// because tapping edit contact is slow to load on bitrise
-		try {
-			await ContactsView.isVisible();
-		} catch {
-			await AddContactView.tapEditContactCTA();
-			await ContactsView.isVisible();
-		}
-		await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
-		await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
-	});
+    await AddContactView.tapEditButton();
+    await AddContactView.typeInName('Moon'); // Change name from Myth to Moon
+    await AddContactView.tapEditContactCTA();
 
-	it('should remove a contact', async () => {
-		// Tap on Moon address
-		await ContactsView.tapOnAlias('Moon'); // Tap on Myth address
-		// Tap on edit
-		await AddContactView.tapEditButton();
-		await AddContactView.tapDeleteContactCTA();
+    // because tapping edit contact is slow to load on bitrise
+    try {
+      await ContactsView.isVisible();
+    } catch {
+      await AddContactView.tapEditContactCTA();
+      await ContactsView.isVisible();
+    }
+    await ContactsView.isContactAliasVisible('Moon'); // Check that Ibrahim address is saved in the address book
+    await ContactsView.isContactAliasNotVisible('Myth'); // Ensure Myth is not visible
+  });
 
-		await ContactsView.isContactAliasNotVisible('Moon');
-	});
+  it('should remove a contact', async () => {
+    // Tap on Moon address
+    await ContactsView.tapOnAlias('Moon'); // Tap on Myth address
+    // Tap on edit
+    await AddContactView.tapEditButton();
+    await AddContactView.tapDeleteContactCTA();
 
-	it('should go back to send flow to validate newly added address is displayed', async () => {
-		// tap on the back arrow
-		await AddContactView.tapBackButton();
-		await SettingsView.tapCloseButton();
+    await ContactsView.isContactAliasNotVisible('Moon');
+  });
 
-		await WalletView.isVisible();
-		await WalletView.tapDrawerButton();
+  it('should go back to send flow to validate newly added address is displayed', async () => {
+    // tap on the back arrow
+    await AddContactView.tapBackButton();
+    await SettingsView.tapCloseButton();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSendButton();
+    await WalletView.isVisible();
+    await WalletView.tapDrawerButton();
 
-		await SendView.isSavedAliasVisible('Ibrahim');
-	});
+    await DrawerView.isVisible();
+    await DrawerView.tapSendButton();
+
+    await SendView.isSavedAliasVisible('Ibrahim');
+  });
 });

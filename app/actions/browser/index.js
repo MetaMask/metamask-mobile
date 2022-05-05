@@ -6,21 +6,21 @@
  * @param {string} website.name - The website name
  */
 export function addToHistory({ url, name }) {
-	return {
-		type: 'ADD_TO_BROWSER_HISTORY',
-		url,
-		name,
-	};
+  return {
+    type: 'ADD_TO_BROWSER_HISTORY',
+    url,
+    name,
+  };
 }
 
 /**
  * Clears the entire browser history
  */
 export function clearHistory() {
-	return {
-		type: 'CLEAR_BROWSER_HISTORY',
-		id: Date.now(),
-	};
+  return {
+    type: 'CLEAR_BROWSER_HISTORY',
+    id: Date.now(),
+  };
 }
 
 /**
@@ -29,19 +29,19 @@ export function clearHistory() {
  * @param {string} url - The website's url
  */
 export function addToWhitelist(url) {
-	return {
-		type: 'ADD_TO_BROWSER_WHITELIST',
-		url,
-	};
+  return {
+    type: 'ADD_TO_BROWSER_WHITELIST',
+    url,
+  };
 }
 
 /**
  * Closes all the opened tabs
  */
 export function closeAllTabs() {
-	return {
-		type: 'CLOSE_ALL_TABS',
-	};
+  return {
+    type: 'CLOSE_ALL_TABS',
+  };
 }
 
 /**
@@ -50,11 +50,11 @@ export function closeAllTabs() {
  * @param {string} url - The website's url
  */
 export function createNewTab(url) {
-	return {
-		type: 'CREATE_NEW_TAB',
-		url,
-		id: Date.now(),
-	};
+  return {
+    type: 'CREATE_NEW_TAB',
+    url,
+    id: Date.now(),
+  };
 }
 
 /**
@@ -63,10 +63,10 @@ export function createNewTab(url) {
  * @param {number} id - The Tab ID
  */
 export function closeTab(id) {
-	return {
-		type: 'CLOSE_TAB',
-		id,
-	};
+  return {
+    type: 'CLOSE_TAB',
+    id,
+  };
 }
 
 /**
@@ -75,10 +75,10 @@ export function closeTab(id) {
  * @param {number} id - The Tab ID
  */
 export function setActiveTab(id) {
-	return {
-		type: 'SET_ACTIVE_TAB',
-		id,
-	};
+  return {
+    type: 'SET_ACTIVE_TAB',
+    id,
+  };
 }
 
 /**
@@ -88,9 +88,9 @@ export function setActiveTab(id) {
  * @param {string} url - The website's url
  */
 export function updateTab(id, data) {
-	return {
-		type: 'UPDATE_TAB',
-		id,
-		data,
-	};
+  return {
+    type: 'UPDATE_TAB',
+    id,
+    data,
+  };
 }
