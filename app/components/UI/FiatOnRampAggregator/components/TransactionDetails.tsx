@@ -76,7 +76,7 @@ const createStyles = (colors: any) =>
 
 interface PropsStage {
   stage: string;
-  paymentType: string;
+  paymentType?: string;
 }
 
 const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
