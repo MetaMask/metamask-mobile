@@ -50,6 +50,7 @@ const AccountDetails = (props: IAccountDetailsProps) => {
   const styles = createStyle(colors);
   const navigation = useNavigation();
   const { item, provider } = props;
+  const defaultTicker = 'ETH';
 
   const toEtherscan = (address: string) => {
     const accountLink = getEtherscanAddressUrl(provider.type, address);
@@ -71,7 +72,7 @@ const AccountDetails = (props: IAccountDetailsProps) => {
           type={'short'}
         />
         <Text style={styles.information}>
-          {renderFromWei(item.balance)} {provider.ticker || 'ETH'}
+          {renderFromWei(item.balance)} {provider.ticker || defaultTicker}
         </Text>
       </View>
       <Icon
