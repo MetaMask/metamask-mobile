@@ -58,45 +58,52 @@ function ApprovalTransactionEditionModal({
     [],
   );
 
-  const onSetApprovalAmount = useCallback(() => {
-    try {
-      const newApprovalTransaction = generateTxWithNewTokenAllowance(
-        spendLimitUnlimitedSelected
-          ? approvalTransactionAmount
-          : approvalCustomValue,
+  const generateApprovalTransaction = useCallback(
+    (originalTransaction) => {
+      const tokenAllowance = spendLimitUnlimitedSelected
+        ? approvalTransactionAmount
+        : approvalCustomValue;
+      if (!tokenAllowance) return originalTransaction;
+      return generateTxWithNewTokenAllowance(
+        tokenAllowance,
         sourceToken.decimals,
         swapsUtils.getSwapsContractAddress(chainId),
-        approvalTransaction,
+        originalTransaction,
       );
+    },
+    [
+      approvalCustomValue,
+      approvalTransactionAmount,
+      chainId,
+      sourceToken.decimals,
+      spendLimitUnlimitedSelected,
+    ],
+  );
+
+  const onSetApprovalAmount = useCallback(() => {
+    try {
+      const newApprovalTransaction =
+        generateApprovalTransaction(approvalTransaction);
       setApprovalTransaction(newApprovalTransaction);
       onCancelEditQuoteTransactions();
     } catch (err) {
       Logger.log('Failed to setTransactionObject', err);
     }
   }, [
-    setApprovalTransaction,
-    spendLimitUnlimitedSelected,
-    approvalTransactionAmount,
-    approvalCustomValue,
+    generateApprovalTransaction,
     approvalTransaction,
-    sourceToken,
-    chainId,
+    setApprovalTransaction,
     onCancelEditQuoteTransactions,
   ]);
 
   useEffect(() => {
-    const approvalTx = spendLimitUnlimitedSelected
-      ? originalApprovalTransaction
-      : generateTxWithNewTokenAllowance(
-          approvalCustomValue,
-          sourceToken.decimals,
-          swapsUtils.getSwapsContractAddress(chainId),
-          originalApprovalTransaction,
-        );
-    setApprovalTransaction(approvalTx);
-    if (approvalTx) {
+    const newApprovalTransaction = generateApprovalTransaction(
+      originalApprovalTransaction,
+    );
+    setApprovalTransaction(newApprovalTransaction);
+    if (originalApprovalTransaction.data) {
       const approvalTransactionAmount = decodeApproveData(
-        approvalTx.data,
+        originalApprovalTransaction.data,
       ).encodedAmount;
       const amountDec = hexToBN(approvalTransactionAmount).toString(10);
       setApprovalTransactionAmount(
@@ -104,12 +111,10 @@ function ApprovalTransactionEditionModal({
       );
     }
   }, [
+    generateApprovalTransaction,
     originalApprovalTransaction,
     sourceToken.decimals,
     setApprovalTransaction,
-    spendLimitUnlimitedSelected,
-    approvalCustomValue,
-    chainId,
   ]);
 
   return (
