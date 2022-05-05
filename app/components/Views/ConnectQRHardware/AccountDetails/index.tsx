@@ -10,75 +10,79 @@ import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../../UI/EthereumAddress';
 
 interface IAccountDetailsProps {
-	item: any;
-	provider: {
-		ticker: string;
-		type: string;
-	};
+  item: any;
+  provider: {
+    ticker: string;
+    type: string;
+  };
 }
 
 const createStyle = (colors: any) =>
-	StyleSheet.create({
-		rowContainer: {
-			flex: 1,
-			height: 65,
-			flexDirection: 'row',
-			justifyContent: 'space-between',
-			paddingLeft: Device.isIphoneX() ? 20 : 10,
-		},
-		accountDetails: {
-			justifyContent: 'flex-start',
-		},
-		linkIcon: {
-			height: '100%',
-			fontSize: 36,
-			textAlignVertical: 'center',
-		},
-		index: {
-			fontSize: 20,
-			color: colors.text.default,
-			...fontStyles.normal,
-		},
-		information: {
-			color: colors.text.alternative,
-			...fontStyles.normal,
-		},
-	});
+  StyleSheet.create({
+    rowContainer: {
+      flex: 1,
+      height: 65,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingLeft: Device.isIphoneX() ? 20 : 10,
+    },
+    accountDetails: {
+      justifyContent: 'flex-start',
+    },
+    linkIcon: {
+      height: '100%',
+      fontSize: 36,
+      textAlignVertical: 'center',
+    },
+    index: {
+      fontSize: 20,
+      color: colors.text.default,
+      ...fontStyles.normal,
+    },
+    information: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+    },
+  });
 
 const AccountDetails = (props: IAccountDetailsProps) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyle(colors);
-	const navigation = useNavigation();
-	const { item, provider } = props;
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyle(colors);
+  const navigation = useNavigation();
+  const { item, provider } = props;
 
-	const toEtherscan = (address: string) => {
-		const accountLink = getEtherscanAddressUrl(provider.type, address);
-		navigation.navigate('Webview', {
-			screen: 'SimpleWebview',
-			params: {
-				url: accountLink,
-			},
-		});
-	};
+  const toEtherscan = (address: string) => {
+    const accountLink = getEtherscanAddressUrl(provider.type, address);
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: accountLink,
+      },
+    });
+  };
 
-	return (
-		<View style={styles.rowContainer}>
-			<View style={styles.accountDetails}>
-				<Text style={styles.index}>{item.index}</Text>
-				<EthereumAddress style={styles.information} address={item.address} type={'short'} />
-				<Text style={styles.information}>
-					{renderFromWei(item.balance)} {provider.ticker || 'ETH'}
-				</Text>
-			</View>
-			<Icon
-				size={18}
-				name={'external-link'}
-				onPress={() => toEtherscan(item.address)}
-				style={styles.linkIcon}
-				color={colors.text.default}
-			/>
-		</View>
-	);
+  return (
+    <View style={styles.rowContainer}>
+      <View style={styles.accountDetails}>
+        <Text style={styles.index}>{item.index}</Text>
+        <EthereumAddress
+          style={styles.information}
+          address={item.address}
+          type={'short'}
+        />
+        <Text style={styles.information}>
+          {renderFromWei(item.balance)} {provider.ticker || 'ETH'}
+        </Text>
+      </View>
+      <Icon
+        size={18}
+        name={'external-link'}
+        onPress={() => toEtherscan(item.address)}
+        style={styles.linkIcon}
+        color={colors.text.default}
+      />
+    </View>
+  );
 };
 
 export default AccountDetails;
