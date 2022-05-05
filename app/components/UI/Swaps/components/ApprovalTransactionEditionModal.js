@@ -7,7 +7,11 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { swapsUtils } from '@metamask/swaps-controller';
 
 import EditPermission from '../../ApproveTransactionReview/EditPermission';
-import { fromTokenMinimalUnitString, hexToBN } from '../../../../util/number';
+import {
+  fromTokenMinimalUnitString,
+  hexToBN,
+  isNumber,
+} from '../../../../util/number';
 import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
@@ -53,6 +57,7 @@ function ApprovalTransactionEditionModal({
     () => setSpendLimitUnlimitedSelected(true),
     [],
   );
+
   const onPressSpendLimitCustomSelected = useCallback(
     () => setSpendLimitUnlimitedSelected(false),
     [],
@@ -63,7 +68,8 @@ function ApprovalTransactionEditionModal({
       const tokenAllowance = spendLimitUnlimitedSelected
         ? approvalTransactionAmount
         : approvalCustomValue;
-      if (!tokenAllowance) return originalTransaction;
+      if (!tokenAllowance || !isNumber(tokenAllowance))
+        return originalTransaction;
       return generateTxWithNewTokenAllowance(
         tokenAllowance,
         sourceToken.decimals,
@@ -71,13 +77,8 @@ function ApprovalTransactionEditionModal({
         originalTransaction,
       );
     },
-    [
-      approvalCustomValue,
-      approvalTransactionAmount,
-      chainId,
-      sourceToken.decimals,
-      spendLimitUnlimitedSelected,
-    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [approvalCustomValue, spendLimitUnlimitedSelected],
   );
 
   const onSetApprovalAmount = useCallback(() => {

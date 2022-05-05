@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
@@ -7,6 +7,7 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
+import { isNumber } from '../../../../util/number';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
@@ -114,15 +115,21 @@ function EditPermission({
     spendLimitUnlimitedSelected,
     spendLimitCustomValue,
   });
+  const [displayErrorMsg, setDisplayErrorMsg] = useState(false);
+  const [disableBtn, setDisableBtn] = useState(false);
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const displayErrorMessage = useMemo(
-    () =>
+  useEffect(() => {
+    setDisplayErrorMsg(
       !spendLimitUnlimitedSelected &&
-      Number(minimumSpendLimit) > spendLimitCustomValue,
-    [spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit],
-  );
+        Number(minimumSpendLimit) > spendLimitCustomValue,
+    );
+  }, [minimumSpendLimit, spendLimitCustomValue, spendLimitUnlimitedSelected]);
+
+  useEffect(() => {
+    setDisableBtn(!isNumber(spendLimitCustomValue) || displayErrorMsg);
+  }, [spendLimitCustomValue, displayErrorMsg]);
 
   const onSetApprovalAmount = useCallback(() => {
     if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
@@ -246,7 +253,7 @@ function EditPermission({
               returnKeyType={'done'}
               keyboardAppearance={themeAppearance}
             />
-            {displayErrorMessage && (
+            {displayErrorMsg && (
               <View style={styles.errorMessageWrapper}>
                 <ErrorMessage
                   errorMessage={strings(
@@ -262,7 +269,7 @@ function EditPermission({
         </View>
       </View>
       <StyledButton
-        disabled={displayErrorMessage}
+        disabled={disableBtn}
         type="confirm"
         onPress={onSetApprovalAmount}
       >

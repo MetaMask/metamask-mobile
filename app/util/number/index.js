@@ -343,6 +343,16 @@ export function isDecimal(value) {
 }
 
 /**
+ * Determines if a string is a valid number
+ *
+ * @param {*} str - Number string
+ * @returns {boolean} - True if the string  is a valid number
+ */
+export function isNumber(str) {
+  return /^(\d+(\.\d+)?)$/.test(str);
+}
+
+/**
  * Creates a BN object from a string
  *
  * @param {string} value - Some numeric value represented as a string
