@@ -51,6 +51,12 @@ const createStyles = (colors: any) =>
       width: 68,
       height: 68,
     },
+    coverImage: {
+      resizeMode: 'cover',
+      width: Device.getDeviceWidth() * 0.6,
+      height: 64,
+      overflow: 'visible',
+    },
     connectLedgerText: {
       ...(fontStyles.normal as TextStyle),
       fontSize: 24,
@@ -202,6 +208,7 @@ const LedgerConnect = () => {
               ledgerConnectLightImage,
               ledgerConnectDarkImage,
             )}
+            style={styles.coverImage}
           />
         </View>
         <View style={styles.textContainer}>
