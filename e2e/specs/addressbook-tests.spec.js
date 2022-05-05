@@ -93,10 +93,13 @@ describe('Addressbook Tests', () => {
 		await SendView.isTransferBetweenMyAccountsButtonVisible();
 	});
 
-	it('should input a valid address to send to', async () => {
+	it('should show invalid address error message', async () => {
 		await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
 		await SendView.incorrectAddressErrorMessageIsVisible();
 		await SendView.removeAddress();
+	});
+
+	it('should input a valid address to send to', async () => {
 		await SendView.inputAddress(MYTH_ADDRESS);
 		await SendView.noEthWarningMessageIsVisible();
 	});

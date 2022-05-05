@@ -18,7 +18,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { renderFiat } from '../../../util/number';
-import { renderAccountName } from '../../../util/address';
+import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { doENSReverseLookup, isDefaultAccountName } from '../../../util/ENSUtils';
 import { isSwapsAllowed } from '../Swaps/utils';
@@ -60,6 +60,27 @@ const createStyles = (colors) =>
 		},
 		labelInput: {
 			marginBottom: Device.isAndroid() ? -10 : 0,
+		},
+		labelWrapper: {
+			flexDirection: 'row',
+		},
+		tag: {
+			flexDirection: 'row',
+			alignItems: 'center',
+			marginTop: 2,
+			padding: 4,
+			paddingHorizontal: 8,
+			borderWidth: 1,
+			borderColor: colors.text.default,
+			height: 28,
+			borderRadius: 14,
+		},
+		tagText: {
+			fontSize: 12,
+			...fontStyles.bold,
+			minWidth: 32,
+			textAlign: 'center',
+			color: colors.text.default,
 		},
 		addressWrapper: {
 			backgroundColor: colors.primary.muted,
@@ -314,6 +335,8 @@ class AccountOverview extends PureComponent {
 		if (!address) return null;
 		const { accountLabelEditable, accountLabel, ens } = this.state;
 
+		const isQRHardwareWalletAccount = isQRHardwareAccount(address);
+
 		return (
 			<View style={baseStyles.flexGrow} ref={this.scrollViewContainer} collapsable={false}>
 				<ScrollView
@@ -359,21 +382,30 @@ class AccountOverview extends PureComponent {
 									keyboardAppearance={themeAppearance}
 								/>
 							) : (
-								<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
-									<Text
-										style={[
-											styles.label,
-											styles.onboardingWizardLabel,
-											onboardingWizard
-												? { borderColor: colors.primary.default }
-												: { borderColor: colors.background.default },
-										]}
-										numberOfLines={1}
-										testID={'edit-account-label'}
-									>
-										{isDefaultAccountName(name) && ens ? ens : name}
-									</Text>
-								</TouchableOpacity>
+								<View style={styles.labelWrapper}>
+									<TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+										<Text
+											style={[
+												styles.label,
+												styles.onboardingWizardLabel,
+												{
+													borderColor: onboardingWizard
+														? colors.primary.default
+														: colors.background.default,
+												},
+											]}
+											numberOfLines={1}
+											testID={'edit-account-label'}
+										>
+											{isDefaultAccountName(name) && ens ? ens : name}
+										</Text>
+									</TouchableOpacity>
+									{isQRHardwareWalletAccount && (
+										<View style={styles.tag}>
+											<Text style={styles.tagText}>{strings('transaction.hardware')}</Text>
+										</View>
+									)}
+								</View>
 							)}
 						</View>
 						<Text style={styles.amountFiat}>{fiatBalance}</Text>

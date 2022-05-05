@@ -1,10 +1,13 @@
 import TestHelpers from '../../helpers';
 
-const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
-const CREATE_PASSWORD_INPUT_BOX_ID = 'input-password';
-const CONFIRM_PASSWORD_INPUT_BOX_ID = 'input-password-confirm';
-const IOS_I_UNDERSTAND_BUTTON_ID = 'password-understand-box';
-const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
+import {
+	CREATE_PASSWORD_CONTAINER_ID,
+	CREATE_PASSWORD_INPUT_BOX_ID,
+	CONFIRM_PASSWORD_INPUT_BOX_ID,
+	IOS_I_UNDERSTAND_BUTTON_ID,
+	ANDROID_I_UNDERSTAND_BUTTON_ID,
+} from '../../../app/constants/test-ids';
+
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
 const REMEMBER_ME_ID = 'remember-me-toggle';
 

@@ -205,7 +205,9 @@ class Asset extends PureComponent {
 
 		const { chainId, transactions } = this.props;
 		if (transactions.length) {
-			const sortedTransactions = sortTransactions(transactions);
+			const sortedTransactions = sortTransactions(transactions).filter(
+				(tx, index, self) => self.findIndex((_tx) => _tx.id === tx.id) === index
+			);
 			const filteredTransactions = sortedTransactions.filter((tx) => {
 				const filterResult = this.filter(tx);
 				if (filterResult) {

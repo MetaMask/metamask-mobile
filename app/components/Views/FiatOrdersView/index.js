@@ -16,6 +16,7 @@ const createStyles = (colors) =>
 	StyleSheet.create({
 		wrapper: {
 			flex: 1,
+			backgroundColor: colors.background.default,
 		},
 		row: {
 			borderBottomWidth: StyleSheet.hairlineWidth,

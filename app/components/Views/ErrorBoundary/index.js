@@ -8,8 +8,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { colors as themeColors } from '@metamask/design-tokens';
-import { useAssetFromTheme } from '../../../util/theme';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 // eslint-disable-next-line import/no-commonjs
 const metamaskErrorImage = require('../../../images/metamask-error.png');
@@ -70,7 +69,6 @@ const createStyles = (colors) =>
 			color: colors.primary.default,
 			textAlign: 'center',
 			...fontStyles.normal,
-			fontWeight: '500',
 		},
 		textContainer: {
 			marginTop: 24,
@@ -95,7 +93,7 @@ const createStyles = (colors) =>
 	});
 
 const Fallback = (props) => {
-	const colors = useAssetFromTheme(themeColors.light, themeColors.dark);
+	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
 	return (
@@ -213,7 +211,11 @@ class ErrorBoundary extends Component {
 
 	render() {
 		return this.state.backupSeedphrase ? (
-			<RevealPrivateCredential privateCredentialName={'seed_phrase'} cancel={this.cancelExportSeedphrase} />
+			<RevealPrivateCredential
+				navBarDisabled
+				privateCredentialName={'seed_phrase'}
+				cancel={this.cancelExportSeedphrase}
+			/>
 		) : this.state.error ? (
 			<Fallback
 				errorMessage={this.getErrorMessage()}
