@@ -17,7 +17,7 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
-import { BROWSER_URL_MODAL } from '../../Nav/navigationKeys';
+import Routes from '../../../constants/navigation/Routes';
 
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -25,7 +25,7 @@ export interface BrowserUrlParams {
 }
 
 export const createBrowserUrlModalNavDetails =
-  createNavigationDetails<BrowserUrlParams>(BROWSER_URL_MODAL);
+  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER_URL_MODAL);
 
 const BrowserUrlModal = () => {
   const { onUrlInputSubmit, url } = useParams<BrowserUrlParams>();

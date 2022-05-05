@@ -75,7 +75,7 @@ import {
   onboardNetworkAction,
   networkSwitched,
 } from '../../../actions/onboardNetwork';
-import { BROWSER_TAB_HOME } from '../../Nav/navigationKeys';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -713,7 +713,7 @@ class DrawerView extends PureComponent {
   };
 
   goToBrowser = () => {
-    this.props.navigation.navigate(BROWSER_TAB_HOME);
+    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME);
     this.hideDrawer();
     this.trackOpenBrowserEvent();
     this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
