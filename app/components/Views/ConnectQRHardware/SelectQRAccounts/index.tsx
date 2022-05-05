@@ -97,6 +97,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 	const styles = createStyle(colors);
 	const navigation = useNavigation();
 	const provider = useSelector((state: any) => state.engine.backgroundState.NetworkController.provider);
+	const defaultTicker = 'ETH';
 
 	const toEtherscan = (address: string) => {
 		const accountLink = getEtherscanAddressUrl(provider.type, address);
@@ -128,7 +129,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
 						<Text style={styles.number}>{item.index}</Text>
 						<EthereumAddress address={item.address} style={styles.address} type={'short'} />
 						<Text style={styles.address}>
-							{renderFromWei(item.balance)} {provider.ticker}
+							{renderFromWei(item.balance)} {provider.ticker || defaultTicker}
 						</Text>
 						<Icon
 							size={18}
