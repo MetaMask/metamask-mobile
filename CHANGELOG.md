@@ -13,7 +13,6 @@
 - [#4114](https://github.com/MetaMask/metamask-mobile/pull/4114): [FEAT] Add the "Hold to Reveal" button before revealing an account’s private key
 - [#4151](https://github.com/MetaMask/metamask-mobile/pull/4151): Revert credit card support
 - [#3942](https://github.com/MetaMask/metamask-mobile/pull/3942): [FIX] Add custom token
-- [#4133](https://github.com/MetaMask/metamask-mobile/pull/4133): 5.0.1
 - [#4089](https://github.com/MetaMask/metamask-mobile/pull/4089): Fix/2830 enter many names
 - [#4115](https://github.com/MetaMask/metamask-mobile/pull/4115): Upgrade controllers to 28.0.0
 - [#4136](https://github.com/MetaMask/metamask-mobile/pull/4136): Feature/update create release pr
@@ -23,13 +22,13 @@
 - [#4127](https://github.com/MetaMask/metamask-mobile/pull/4127): bump actions/checkout to v3
 - [#4124](https://github.com/MetaMask/metamask-mobile/pull/4124): remove async vuln from resolutions and skip instead
 - [#4113](https://github.com/MetaMask/metamask-mobile/pull/4113): [FIX] Add ticker to SelectQRAccounts
-- [#4102](https://github.com/MetaMask/metamask-mobile/pull/4102): 5.0.0
 - [#3980](https://github.com/MetaMask/metamask-mobile/pull/3980): Patch network specific asset modal (Token detection)
 - [#4106](https://github.com/MetaMask/metamask-mobile/pull/4106): bump detox version
 - [#4068](https://github.com/MetaMask/metamask-mobile/pull/4068): Update `crowdin/github-action`
 - [#4062](https://github.com/MetaMask/metamask-mobile/pull/4062): Remove design token patch
 - [#4056](https://github.com/MetaMask/metamask-mobile/pull/4056): Update controllers patch
-- [#4054](https://github.com/MetaMask/metamask-mobile/pull/4054): Fix CHANGELOG
+- [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [trivial] - Update react-native-webview+11.13.0.patch
+- [4135](https://github.com/MetaMask/metamask-mobile/pull/4135): browser improvement 
 
 ## 5.0.1 - April 20, 2022
 - [FIX] iOS Hotfix - Add LinkPresentation library
