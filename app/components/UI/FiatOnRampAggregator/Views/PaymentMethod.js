@@ -146,7 +146,6 @@ const PaymentMethod = () => {
                 }
                 amountTier={amountTier}
                 paymentType={getPaymentMethodIcon(id)}
-                idRequired={id !== '/payments/apple-pay'}
               />
             </View>
           ))}

@@ -25,7 +25,6 @@ interface Props {
   cardImage?: boolean;
   time: number[];
   amountTier: number[];
-  idRequired?: boolean;
   paymentType: Icon;
   paymentNetworks: [string];
   onPress?: () => any;
