@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
+import compareVersions from 'compare-versions';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -53,7 +54,6 @@ import SearchApi from 'react-native-search-api';
 import Analytics from '../../../core/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { versionGreaterOrEqualThan } from '../../../util/general';
 import { toggleNetworkModal } from '../../../actions/modals';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -357,9 +357,10 @@ export const BrowserTab = (props) => {
         const webviewVersion =
           await systemUtils.getCurrentWebViewPackageVersionName();
         setSafeAndroidWebviewVersion(
-          versionGreaterOrEqualThan(
+          compareVersions.compare(
             webviewVersion,
             MIN_ANDROID_SYSTEM_WEBVIEW_VERSION,
+            '>=',
           ),
         );
       }
