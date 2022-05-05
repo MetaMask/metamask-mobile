@@ -132,6 +132,7 @@ class ContactForm extends PureComponent {
     address: undefined,
     addressError: undefined,
     toEnsName: undefined,
+    toEnsAddress: undefined,
     addressReady: false,
     mode: this.props.route.params?.mode ?? ADD,
     memo: undefined,
@@ -218,9 +219,9 @@ class ContactForm extends PureComponent {
     return;
   };
 
-  onChangeAddress = async (address) => {
+  validateAddress = async (address) => {
     const { network } = this.props;
-    let addressError, toEnsName;
+    let addressError, toEnsName, toEnsAddress;
     let addressReady = false;
     if (isValidAddress(address)) {
       addressError = this.checkIfAlreadySaved(address);
@@ -230,7 +231,7 @@ class ContactForm extends PureComponent {
       if (resolvedAddress) {
         const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
         toEnsName = address;
-        address = resolvedAddress;
+        toEnsAddress = resolvedAddress;
         addressError = this.checkIfAlreadySaved(checksummedResolvedAddress);
         addressReady = true;
       } else {
@@ -239,7 +240,12 @@ class ContactForm extends PureComponent {
     } else if (address.length >= 42) {
       addressError = strings('transaction.invalid_address');
     }
-    this.setState({ address, addressError, toEnsName, addressReady });
+    this.setState({ addressError, toEnsName, addressReady, toEnsAddress });
+  };
+
+  onChangeAddress = (address) => {
+    this.validateAddress(address);
+    this.setState({ address });
   };
 
   onChangeMemo = (memo) => {
@@ -257,11 +263,23 @@ class ContactForm extends PureComponent {
   };
 
   saveContact = () => {
-    const { name, address, memo } = this.state;
+    const { name, address, memo, toEnsAddress } = this.state;
     const { network, navigation } = this.props;
     const { AddressBookController } = Engine.context;
     if (!name || !address) return;
-    AddressBookController.set(toChecksumAddress(address), name, network, memo);
+    toEnsAddress
+      ? AddressBookController.set(
+          toChecksumAddress(toEnsAddress),
+          name,
+          network,
+          memo,
+        )
+      : AddressBookController.set(
+          toChecksumAddress(address),
+          name,
+          network,
+          memo,
+        );
     navigation.pop();
   };
 
@@ -298,6 +316,7 @@ class ContactForm extends PureComponent {
       memo,
       editable,
       inputWidth,
+      toEnsAddress,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -352,9 +371,9 @@ class ContactForm extends PureComponent {
                   testID={'contact-address-input'}
                   keyboardAppearance={themeAppearance}
                 />
-                {toEnsName && (
+                {toEnsName && toEnsAddress && (
                   <Text style={styles.resolvedInput}>
-                    {renderShortAddress(address)}
+                    {renderShortAddress(toEnsAddress)}
                   </Text>
                 )}
               </View>
