@@ -4,7 +4,7 @@ exports[`AnimatedSpinner should render correctly 1`] = `
 <View
   style={
     Object {
-      "borderColor": "#037DD6",
+      "borderColor": "#F2F4F6",
       "borderRadius": 64,
       "borderWidth": 3.5,
       "height": 36,
