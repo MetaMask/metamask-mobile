@@ -218,7 +218,10 @@ const GetQuotes = () => {
           setPollingCyclesLeft((cycles) => cycles - 1);
           // we never fetch data if we run out of remaining polling cycles
           setShowProviderInfo(false);
-          pollingCyclesLeft > 0 && fetchQuotes();
+          if (pollingCyclesLeft > 0) {
+            setProviderId(null);
+            fetchQuotes();
+          }
         }
 
         return newRemainingTime > 0
@@ -255,12 +258,17 @@ const GetQuotes = () => {
     if (pollingCyclesLeft < 0 || ErrorFetchingQuotes) {
       setIsInPolling(false);
       setShowProviderInfo(false);
+      setProviderId(null);
     }
   }, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
   useEffect(() => {
     navigation.setOptions(
-      getFiatOnRampAggNavbar(navigation, { title: 'Get Quotes' }, colors),
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
+        colors,
+      ),
     );
   }, [navigation, colors]);
 
@@ -269,7 +277,7 @@ const GetQuotes = () => {
     setShouldFinishAnimation(true);
   }, [isFetchingQuotes]);
 
-  const handleOnPress = useCallback((quote) => {
+  const handleOnQuotePress = useCallback((quote) => {
     setProviderId(quote.provider.id);
   }, []);
 
@@ -357,7 +365,7 @@ const GetQuotes = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <LoadingAnimation
-            title="Fetching Quotes"
+            title={strings('fiat_on_ramp_aggregator.fetching_quotes')}
             finish={shouldFinishAnimation}
             onAnimationEnd={() => setIsLoading(false)}
           />
@@ -370,9 +378,10 @@ const GetQuotes = () => {
     <ScreenLayout>
       <ScreenLayout.Header>
         {isInPolling && <QuotesPolling />}
-        <Text centered>
-          Buy ETH from one of our trusted providers. You’ll be securely taken to
-          their portal without leaving the MetaMask app.
+        <Text centered grey>
+          {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
+            ticker: params?.asset?.symbol || '',
+          })}
         </Text>
       </ScreenLayout.Header>
       <InfoAlert
@@ -404,6 +413,7 @@ const GetQuotes = () => {
           <ScreenLayout.Content>
             {filteredQuotes.length <= 0 ? (
               <Text black center>
+                {/* TODO: remove this case and render error page */}
                 No providers available!
               </Text>
             ) : isFetchingQuotes && isInPolling ? (
@@ -416,7 +426,7 @@ const GetQuotes = () => {
                 <View key={quote.provider.id} style={styles.row}>
                   <Quote
                     quote={quote}
-                    onPress={() => handleOnPress(quote)}
+                    onPress={() => handleOnQuotePress(quote)}
                     onPressBuy={() => handleOnPressBuy(quote)}
                     highlighted={quote.provider.id === providerId}
                     showInfo={() => handleInfoPress(quote)}

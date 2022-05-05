@@ -30,14 +30,10 @@ const applePayButtonStylesDark = StyleSheet.create({
   applePayButton: { backgroundColor: importedColors.white },
 });
 
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const ApplePayLogoLight = require('../../../../images/ApplePayLogo-light.png');
 const ApplePayLogoDark = require('../../../../images/ApplePayLogo-dark.png');
-/* eslint-enable import/no-commonjs */
-/* eslint-enable @typescript-eslint/no-var-requires */
-/* eslint-enable @typescript-eslint/no-require-imports */
+/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 const ApplePay = ({ disabled }: { disabled?: boolean }) => {
   const applePayLogo = useAssetFromTheme(ApplePayLogoLight, ApplePayLogoDark);

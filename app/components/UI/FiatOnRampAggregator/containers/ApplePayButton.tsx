@@ -26,7 +26,6 @@ const ApplePayButton = ({
   ];
   const lockTime = useSelector((state: any) => state.settings.lockTime);
 
-  // const setLockTime = useCallback((time) => dispatch(setLockTime(time)), [dispatch]);
   const addOrder = useCallback(
     (order) => dispatch(addFiatOrder(order)),
     [dispatch],

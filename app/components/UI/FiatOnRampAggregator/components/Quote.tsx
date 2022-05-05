@@ -112,7 +112,9 @@ const Quote: React.FC<Props> = ({
 
       <ListItem.Content>
         <ListItem.Body>
-          <Text small>Price {fiatCode}</Text>
+          <Text small>
+            {strings('fiat_on_ramp_aggregator.price')} {fiatCode}
+          </Text>
         </ListItem.Body>
         <ListItem.Amounts>
           <Text small right>
@@ -124,7 +126,7 @@ const Quote: React.FC<Props> = ({
       <ListItem.Content>
         <ListItem.Body>
           <Text black small>
-            Total Fees
+            {strings('fiat_on_ramp_aggregator.total_fees')}
           </Text>
         </ListItem.Body>
         <ListItem.Amounts>
@@ -137,7 +139,7 @@ const Quote: React.FC<Props> = ({
       <ListItem.Content>
         <ListItem.Body>
           <Text grey small style={styles.fee}>
-            Processing fee
+            {strings('fiat_on_ramp_aggregator.processing_fee')}
           </Text>
         </ListItem.Body>
         <ListItem.Amounts>
@@ -150,7 +152,7 @@ const Quote: React.FC<Props> = ({
       <ListItem.Content>
         <ListItem.Body>
           <Text grey small style={styles.fee}>
-            Network fee
+            {strings('fiat_on_ramp_aggregator.network_fee')}
           </Text>
         </ListItem.Body>
         <ListItem.Amounts>
@@ -164,7 +166,7 @@ const Quote: React.FC<Props> = ({
       <ListItem.Content>
         <ListItem.Body>
           <Text black small>
-            Total
+            {strings('fiat_on_ramp_aggregator.total')}
           </Text>
         </ListItem.Body>
         <ListItem.Amounts>
@@ -179,11 +181,13 @@ const Quote: React.FC<Props> = ({
           {quote.paymentMethod?.isApplePay ? (
             <ApplePayButton
               quote={quote}
-              label={strings('fiat_on_ramp.buy_with')}
+              label={strings('fiat_on_ramp_aggregator.pay_with')}
             />
           ) : (
             <StyledButton type={'blue'} onPress={onPressBuy}>
-              Buy with {provider.name}
+              {strings('fiat_on_ramp_aggregator.buy_with', {
+                provider: provider.name,
+              })}
             </StyledButton>
           )}
         </View>

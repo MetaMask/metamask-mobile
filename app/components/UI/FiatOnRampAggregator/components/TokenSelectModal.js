@@ -12,7 +12,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import { connect } from 'react-redux';
 import Device from '../../../../util/device';
 import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
@@ -152,7 +151,6 @@ function TokenSelectModal({
             </ListItem.Body>
             <ListItem.Amounts>
               <ListItem.Amount>
-                {/* TODO: Make a component for networks labels with respective colors */}
                 <View style={styles.networkLabel}>
                   <Text bold upper style={styles.networkLabelText}>
                     {CHAIN_ID_NETWORKS[item.network?.chainId] ||
@@ -178,7 +176,9 @@ function TokenSelectModal({
   const renderEmptyList = useMemo(
     () => (
       <View style={styles.emptyList}>
-        <Text>{strings('swaps.no_tokens_result', { searchString })}</Text>
+        <Text>
+          {strings('fiat_on_ramp_aggregator.no_tokens_match', { searchString })}
+        </Text>
       </View>
     ),
     [searchString, styles.emptyList],
@@ -273,14 +273,4 @@ TokenSelectModal.propTypes = {
   excludeAddresses: PropTypes.arrayOf(PropTypes.string),
 };
 
-const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-});
-
-export default connect(mapStateToProps)(TokenSelectModal);
+export default TokenSelectModal;

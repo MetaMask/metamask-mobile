@@ -115,7 +115,7 @@ const Header: React.FC<IPropsHeader> = ({
         </Text>
       )}
       {description && (
-        <Text style={descriptionStyle} centered>
+        <Text style={descriptionStyle} centered grey>
           {description}
         </Text>
       )}
@@ -141,12 +141,7 @@ const Content: React.FC<IPropsContent> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <View
-      style={
-        grow ? [styles.content, styles.grow, style] : [styles.content, style]
-      }
-      {...props}
-    />
+    <View style={[styles.content, grow && styles.grow, style]} {...props} />
   );
 };
 
