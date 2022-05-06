@@ -234,6 +234,7 @@ export function useSDKMethod<T extends keyof RegionsService>(
     async (...customParams: Parameters<RegionsService[T]> | []) => {
       try {
         setIsFetching(true);
+        setData(null);
         if (sdk) {
           // @ts-expect-error spreading params error
           const sdkMethod = (...a) => sdk[method](...a);

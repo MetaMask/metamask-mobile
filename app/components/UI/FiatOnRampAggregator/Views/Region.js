@@ -15,6 +15,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
 import SkeletonText from '../components/SkeletonText';
+import ErrorView from '../components/ErrorView';
 
 const Region = () => {
   const navigation = useNavigation();
@@ -27,7 +28,9 @@ const Region = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] =
     useState({});
-  const [{ data, isFetching, error }] = useSDKMethod('getCountries');
+  const [{ data, isFetching, error }, queryGetCountries] =
+    useSDKMethod('getCountries');
+
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
@@ -71,7 +74,7 @@ const Region = () => {
     }
   }, [updatedRegion, setSelectedRegion]);
 
-  if (isFetching || !data) {
+  if (isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -91,7 +94,12 @@ const Region = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <Text>{error}</Text>
+          <ErrorView
+            description={error}
+            ctaOnPress={() => {
+              queryGetCountries();
+            }}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
