@@ -261,7 +261,15 @@ class AddressList extends PureComponent {
 		const colors = this.context.colors || mockTheme.colors;
 		const styles = createStyles(colors);
 
+		const addressName = (address) =>
+			Object.values(networkAddressBook).find(
+				(addressBook) => addressBook.address.toLowerCase() === address.toLowerCase()
+			)?.name ||
+			Object.values(identities).find((addressBook) => addressBook.address.toLowerCase() === address.toLowerCase())
+				?.name;
+
 		if (!recents.length || inputSearch) return;
+
 		return (
 			<>
 				{LabelElement(styles, strings('address_book.recents'), this.state.checkingForSmartContracts, true)}
@@ -271,7 +279,7 @@ class AddressList extends PureComponent {
 						<AddressElement
 							key={index}
 							address={address}
-							name={identities[address]?.name || networkAddressBook[address]?.name}
+							name={addressName(address)}
 							onAccountPress={onAccountPress}
 							onAccountLongPress={onAccountLongPress}
 						/>
