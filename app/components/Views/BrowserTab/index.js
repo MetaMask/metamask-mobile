@@ -1314,21 +1314,15 @@ export const BrowserTab = (props) => {
 
   const handleOnFileDownload = useCallback(
     async ({ nativeEvent: { downloadUrl } }) => {
-      const onDownloadFinished = () => {
-        const { current } = webviewRef;
-        current && current.stopLoading();
-        changeUrl('', 'end-promise');
-        setProgress(1);
-      };
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
-        onDownloadFinished();
+        reload();
       } else {
         Alert.alert(strings('download_files.error'));
-        onDownloadFinished();
+        reload();
       }
     },
-    [],
+    [reload],
   );
 
   /**
