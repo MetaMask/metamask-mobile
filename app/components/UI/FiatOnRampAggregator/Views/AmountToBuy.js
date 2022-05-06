@@ -525,6 +525,11 @@ const AmountToBuy = () => {
   );
 
   useEffect(() => {
+    if (!errorInAmountToBuy) {
+      setRetryMethod(null);
+      return;
+    }
+
     if (errorSdkCryptoCurrencies) {
       setRetryMethod(() => queryGetCryptoCurrencies);
     } else if (errorCurrentPaymentMethod) {
@@ -543,6 +548,7 @@ const AmountToBuy = () => {
     errorCurrentPaymentMethod,
     errorDefaultFiatCurrency,
     errorFiatCurrencies,
+    errorInAmountToBuy,
     errorPaymentMethods,
     errorSdkCryptoCurrencies,
     queryDefaultFiatCurrency,

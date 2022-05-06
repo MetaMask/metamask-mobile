@@ -58,7 +58,7 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }) {
         <View style={styles.row}>
           <MaterialCommunityIcons
             name="close-circle-outline"
-            style={[styles.errorIcon]}
+            style={styles.errorIcon}
           />
         </View>
 
@@ -75,7 +75,7 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }) {
         </View>
 
         {ctaOnPress && (
-          <View style={[styles.ctaContainer]}>
+          <View style={styles.ctaContainer}>
             <StyledButton type="confirm" onPress={ctaOnPressCallback}>
               {ctaLabel || strings('fiat_on_ramp_aggregator.try_again')}
             </StyledButton>
