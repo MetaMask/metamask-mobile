@@ -33,7 +33,6 @@ import PaymentMethodModal from '../components/PaymentMethodModal';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
-import WebviewError from '../../WebviewError';
 import { NATIVE_ADDRESS } from '../constants';
 import { getPaymentMethodIcon } from '../utils';
 
@@ -45,6 +44,7 @@ import SkeletonText from '../components/SkeletonText';
 import ListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
+import ErrorView from '../components/ErrorView';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -90,6 +90,8 @@ const AmountToBuy = () => {
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
   const [tokens, setTokens] = useState([]);
+  const [error, setError] = useState(null);
+  const [retryMethod, setRetryMethod] = useState(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const [
@@ -151,6 +153,7 @@ const AmountToBuy = () => {
 
   const [
     { data: countries, isFetching: isFetchingCountries, error: errorCountries },
+    queryGetCountries,
   ] = useSDKMethod('getCountries');
 
   const [
@@ -168,6 +171,7 @@ const AmountToBuy = () => {
       error: errorFiatCurrencies,
       isFetching: isFetchingFiatCurrencies,
     },
+    queryGetFiatCurrencies,
   ] = useSDKMethod(
     'getFiatCurrencies',
     selectedRegion?.id,
@@ -180,6 +184,7 @@ const AmountToBuy = () => {
       error: errorSdkCryptoCurrencies,
       isFetching: isFetchingSdkCryptoCurrencies,
     },
+    queryGetCryptoCurrencies,
   ] = useSDKMethod(
     'getCryptoCurrencies',
     selectedRegion?.id,
@@ -193,6 +198,7 @@ const AmountToBuy = () => {
       error: errorPaymentMethods,
       isFetching: isFetchingPaymentMethods,
     },
+    queryGetPaymentMethods,
   ] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
   const [
@@ -201,6 +207,7 @@ const AmountToBuy = () => {
       error: errorCurrentPaymentMethod,
       isFetching: isFetchingCurrentPaymentMethod,
     },
+    queryGetPaymentMethod,
   ] = useSDKMethod(
     'getPaymentMethod',
     selectedRegion?.id,
@@ -497,6 +504,59 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
+  const errorInAmountToBuy = useMemo(
+    () =>
+      errorSdkCryptoCurrencies ||
+      errorCurrentPaymentMethod ||
+      errorPaymentMethods ||
+      errorFiatCurrencies ||
+      errorDefaultFiatCurrency ||
+      errorCountries,
+    [
+      errorCountries,
+      errorCurrentPaymentMethod,
+      errorDefaultFiatCurrency,
+      errorFiatCurrencies,
+      errorPaymentMethods,
+      errorSdkCryptoCurrencies,
+    ],
+  );
+
+  useEffect(() => {
+    if (errorSdkCryptoCurrencies) {
+      setRetryMethod(() => queryGetCryptoCurrencies);
+    } else if (errorCurrentPaymentMethod) {
+      setRetryMethod(() => queryGetPaymentMethod);
+    } else if (errorPaymentMethods) {
+      setRetryMethod(() => queryGetPaymentMethods);
+    } else if (errorFiatCurrencies) {
+      setRetryMethod(() => queryGetFiatCurrencies);
+    } else if (errorDefaultFiatCurrency) {
+      setRetryMethod(() => queryDefaultFiatCurrency);
+    } else if (errorCountries) {
+      setRetryMethod(() => queryGetCountries);
+    }
+  }, [
+    errorCountries,
+    errorCurrentPaymentMethod,
+    errorDefaultFiatCurrency,
+    errorFiatCurrencies,
+    errorPaymentMethods,
+    errorSdkCryptoCurrencies,
+    queryDefaultFiatCurrency,
+    queryGetCountries,
+    queryGetCryptoCurrencies,
+    queryGetFiatCurrencies,
+    queryGetPaymentMethod,
+    queryGetPaymentMethods,
+  ]);
+
+  useEffect(() => {
+    if (errorInAmountToBuy) {
+      setError(errorInAmountToBuy);
+    }
+  }, [errorInAmountToBuy]);
+
   if (
     isFetchingSdkCryptoCurrencies ||
     isFetchingCurrentPaymentMethod ||
@@ -541,21 +601,13 @@ const AmountToBuy = () => {
     );
   }
 
-  if (
-    errorSdkCryptoCurrencies ||
-    errorCurrentPaymentMethod ||
-    errorPaymentMethods ||
-    errorFiatCurrencies ||
-    errorDefaultFiatCurrency ||
-    errorCountries
-  ) {
+  if (error) {
     return (
-      <WebviewError
-        error={{
-          description: errorSdkCryptoCurrencies || errorCurrentPaymentMethod,
-        }}
-        onReload={() => navigation.navigate('AmountToBuy')}
-      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={retryMethod} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 

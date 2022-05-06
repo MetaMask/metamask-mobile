@@ -19,6 +19,7 @@ interface Style {
   header: ViewStyle;
   body: ViewStyle;
   grow: ViewStyle;
+  description: ViewStyle;
 }
 
 const createStyles = (colors: any) =>
@@ -42,6 +43,9 @@ const createStyles = (colors: any) =>
     },
     body: {
       flex: 1,
+    },
+    description: {
+      marginHorizontal: 20,
     },
   });
 
@@ -115,7 +119,7 @@ const Header: React.FC<IPropsHeader> = ({
         </Text>
       )}
       {description && (
-        <Text style={descriptionStyle} centered grey>
+        <Text style={[descriptionStyle, styles.description]} centered grey>
           {description}
         </Text>
       )}
