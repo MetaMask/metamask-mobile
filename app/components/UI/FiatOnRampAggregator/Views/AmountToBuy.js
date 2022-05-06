@@ -336,7 +336,7 @@ const AmountToBuy = () => {
   }));
 
   useEffect(() => {
-    keypadOffset.value = amountFocused ? 30 : keyboardHeight.current + 30;
+    keypadOffset.value = amountFocused ? 40 : keyboardHeight.current + 40;
   }, [amountFocused, keyboardHeight, keypadOffset]);
 
   /**
