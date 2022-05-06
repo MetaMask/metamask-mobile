@@ -12,7 +12,7 @@ describe('BaseAvatar', () => {
       height: '100%',
     };
     const wrapper = shallow(
-      <BaseAvatar size={AvatarSize.ExtraLarge}>
+      <BaseAvatar size={AvatarSize.Xl}>
         <Image source={{ uri: toDataUrl(stubAddress) }} style={blockieStyles} />
       </BaseAvatar>,
     );

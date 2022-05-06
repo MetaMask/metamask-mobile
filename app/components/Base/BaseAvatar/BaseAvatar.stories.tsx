@@ -26,7 +26,7 @@ storiesOf('Base / BaseAvatar', module)
   .add('Simple', () => {
     const stubAddress = '0x310ff9e227946749ca32aC146215F352183F556b';
     const sizes = getStrippedEnum(AvatarSize);
-    const sizeSelector = select('Size', sizes, AvatarSize.Medium.toString());
+    const sizeSelector = select('Size', sizes, AvatarSize.Md.toString());
 
     return (
       <BaseAvatar size={Number(sizeSelector)}>

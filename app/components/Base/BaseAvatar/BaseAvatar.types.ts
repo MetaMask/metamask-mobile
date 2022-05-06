@@ -1,10 +1,11 @@
 import { ViewProps, ViewStyle } from 'react-native';
 
 export enum AvatarSize {
-  Small = 24,
-  Medium = 32,
-  Large = 40,
-  ExtraLarge = 48,
+  Xs = 16,
+  Sm = 24,
+  Md = 32,
+  Lg = 40,
+  Xl = 48,
 }
 
 export interface BaseAvatarProps extends ViewProps {
