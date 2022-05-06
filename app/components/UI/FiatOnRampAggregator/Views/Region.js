@@ -74,7 +74,7 @@ const Region = () => {
     }
   }, [updatedRegion, setSelectedRegion]);
 
-  if (isFetching) {
+  if (isFetching || !data) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -94,12 +94,7 @@ const Region = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView
-            description={error}
-            ctaOnPress={() => {
-              queryGetCountries();
-            }}
-          />
+          <ErrorView description={error} ctaOnPress={queryGetCountries} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
