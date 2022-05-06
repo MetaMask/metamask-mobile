@@ -27,6 +27,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import ErrorView from '../components/ErrorView';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -295,6 +296,15 @@ const GetQuotes = () => {
     [navigation],
   );
 
+  const handleFetchQuotes = useCallback(() => {
+    setIsLoading(true);
+    setFirstFetchCompleted(false);
+    setIsInPolling(true);
+    setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
+    setRemainingTime(appConfig.POLLING_INTERVAL);
+    fetchQuotes();
+  }, [appConfig.POLLING_CYCLES, appConfig.POLLING_INTERVAL, fetchQuotes]);
+
   const QuotesPolling = () => (
     <View style={styles.timerWrapper}>
       {isFetchingQuotes ? (
@@ -344,14 +354,7 @@ const GetQuotes = () => {
           <StyledButton
             type="blue"
             containerStyle={styles.ctaButton}
-            onPress={() => {
-              setIsLoading(true);
-              setFirstFetchCompleted(false);
-              setIsInPolling(true);
-              setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
-              setRemainingTime(appConfig.POLLING_INTERVAL);
-              fetchQuotes();
-            }}
+            onPress={handleFetchQuotes}
           >
             {strings('fiat_on_ramp_aggregator.get_new_quotes')}
           </StyledButton>
@@ -371,6 +374,27 @@ const GetQuotes = () => {
           />
         </ScreenLayout.Body>
       </ScreenLayout>
+    );
+  }
+
+  // Error while FetchingQuotes
+  if (ErrorFetchingQuotes) {
+    return (
+      <ErrorView
+        description={ErrorFetchingQuotes}
+        ctaOnPress={handleFetchQuotes}
+      />
+    );
+  }
+
+  // No providers available
+  if (filteredQuotes.length <= 0) {
+    return (
+      <ErrorView
+        title="No providers available!"
+        description={'Try to increase or reduce the amount you want to buy!'}
+        ctaOnPress={() => navigation.goBack()}
+      />
     );
   }
 
@@ -411,12 +435,7 @@ const GetQuotes = () => {
         <Animated.View style={[styles.topBorder, animatedStyles]} />
         <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
           <ScreenLayout.Content>
-            {filteredQuotes.length <= 0 ? (
-              <Text black center>
-                {/* TODO: remove this case and render error page */}
-                No providers available!
-              </Text>
-            ) : isFetchingQuotes && isInPolling ? (
+            {isFetchingQuotes && isInPolling ? (
               <>
                 <SkeletonQuote />
                 <SkeletonQuote />
