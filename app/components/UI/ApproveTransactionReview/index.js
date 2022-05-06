@@ -61,7 +61,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import withQRHardwareAwareness from '../QRHardware/QRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const { hexToBN } = util;

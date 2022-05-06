@@ -54,7 +54,7 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
-import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
+import withQRHardwareAwareness from '../../UI/QRHardware/QRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 

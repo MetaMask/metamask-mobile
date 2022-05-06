@@ -37,7 +37,7 @@ import ActionView from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import withQRHardwareAwareness from '../QRHardware/QRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 
 const createStyles = (colors) =>

@@ -43,7 +43,7 @@ import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import withQRHardwareAwareness from '../QRHardware/QRHardwareAwareness';
 
 const createStyles = (colors) =>
   StyleSheet.create({
