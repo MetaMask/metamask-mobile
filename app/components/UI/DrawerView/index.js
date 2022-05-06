@@ -729,8 +729,8 @@ class DrawerView extends PureComponent {
     !showNetworkOnboarding && this.toggleNetworksModal();
     onboardNetworkAction(
       sanitizeUrl(networkUrl) ||
-      sanitizeUrl(switchedNetworkUrl) ||
-      this.state.networkUrl,
+        sanitizeUrl(switchedNetworkUrl) ||
+        this.state.networkUrl,
     );
     networkSwitched({ networkUrl: '', networkStatus: false });
     if (!manualClose) {
@@ -930,7 +930,7 @@ class DrawerView extends PureComponent {
 
   onConnectHardware = () => {
     this.toggleAccountsModal();
-    this.props.navigation.navigate('ConnectHardwareWallet');
+    this.props.navigation.navigate('ConnectHardwareWalletFlow');
     this.hideDrawer();
   };
 
@@ -1387,7 +1387,7 @@ class DrawerView extends PureComponent {
                           style={[
                             styles.menuItem,
                             item.routeNames &&
-                              item.routeNames.includes(currentRoute)
+                            item.routeNames.includes(currentRoute)
                               ? styles.selectedRoute
                               : null,
                           ]}
@@ -1408,7 +1408,7 @@ class DrawerView extends PureComponent {
                               styles.menuItemName,
                               !item.icon ? styles.noIcon : null,
                               item.routeNames &&
-                                item.routeNames.includes(currentRoute)
+                              item.routeNames.includes(currentRoute)
                                 ? styles.selectedName
                                 : null,
                             ]}
@@ -1443,10 +1443,10 @@ class DrawerView extends PureComponent {
           backdropOpacity={1}
         >
           {showModal ||
-            networkOnboarding.showNetworkOnboarding ||
-            (currentRoute === 'WalletView' &&
-              switchedNetwork.networkStatus &&
-              checkIfCustomNetworkExists.length === 0) ? (
+          networkOnboarding.showNetworkOnboarding ||
+          (currentRoute === 'WalletView' &&
+            switchedNetwork.networkStatus &&
+            checkIfCustomNetworkExists.length === 0) ? (
             <NetworkInfo
               onClose={this.onInfoNetworksModalClose}
               type={networkType || networkOnboarding.networkType}

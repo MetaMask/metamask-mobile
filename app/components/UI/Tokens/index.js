@@ -187,11 +187,6 @@ class Tokens extends PureComponent {
         >
           <Text style={styles.addText}>{strings('wallet.add_tokens')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => this.props.navigation.navigate('LedgerConnectFlow')}
-        >
-          <Text> navigate to ledger screen </Text>
-        </TouchableOpacity>
       </View>
     );
   };

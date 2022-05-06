@@ -49,7 +49,6 @@ const createStyles = (colors: Colors) =>
     buttonsContainer: {
       flex: 1,
       flexDirection: 'column',
-      // alignItems: 'flex-end',
       justifyContent: 'flex-end',
     },
     buttonStyle: {

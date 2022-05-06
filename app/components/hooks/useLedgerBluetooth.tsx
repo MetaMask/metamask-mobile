@@ -26,6 +26,7 @@ type LedgerLogicToRunType = (transport: BluetoothTransport) => Promise<void>;
 
 interface UseLedgerBluetoothHook {
   isSendingLedgerCommands: boolean;
+  isAppLaunchConfirmationNeeded: boolean;
   ledgerLogicToRun: (func: LedgerLogicToRunType) => Promise<void>;
   error?: LedgerCommunicationErrors;
   cleanupBluetoothConnection: () => void;
@@ -41,6 +42,9 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
   // This is to track if we are expecting code to run or connection operational
   const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
+    useState<boolean>(false);
+
+  const [isAppLaunchConfirmationNeeded, setIsAppLaunchConfirmationNeeded] =
     useState<boolean>(false);
 
   const transportRef = useRef<BluetoothTransport>();
@@ -79,9 +83,8 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
     if (!transportRef.current && deviceId) {
       try {
         transportRef.current = await BluetoothTransport.open(deviceId);
-        transportRef.current?.on('disconnect', () => {
+        transportRef.current?.on('disconnect', (e) => {
           transportRef.current = undefined;
-
           // Restart connection if more code is to be run
           if (
             workflowSteps.current.length > 0 &&
@@ -91,7 +94,6 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
             restartConnectionState.current.restartCount += 1;
 
             const funcAfterDisconnect = workflowSteps.current.pop();
-
             if (!funcAfterDisconnect) {
               return setLedgerError(LedgerCommunicationErrors.UnknownError);
             }
@@ -132,6 +134,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       if (appName === 'BOLOS') {
         // Open Ethereum App
         try {
+          setIsAppLaunchConfirmationNeeded(true);
           await KeyringController.openEthereumApp();
         } catch (e: any) {
           if (e.name === 'TransportStatusError') {
@@ -155,6 +158,8 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
             strings('ledger.ethereum_app_open_error'),
             LedgerCommunicationErrors.FailedToOpenApp,
           );
+        } finally {
+          setIsAppLaunchConfirmationNeeded(false);
         }
 
         workflowSteps.current.push(processLedgerWorkflow);
@@ -202,6 +207,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
   return {
     isSendingLedgerCommands,
+    isAppLaunchConfirmationNeeded,
     ledgerLogicToRun: async (func) => {
       // Reset error
       setLedgerError(undefined);

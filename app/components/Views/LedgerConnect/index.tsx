@@ -30,6 +30,7 @@ import {
   closeLedgerDeviceErrorModal,
   openLedgerDeviceErrorModal,
 } from '../../../actions/modals';
+import { showSimpleNotification } from '../../../actions/notification';
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
@@ -110,6 +111,7 @@ const LedgerConnect = () => {
 
   const {
     isSendingLedgerCommands,
+    isAppLaunchConfirmationNeeded,
     ledgerLogicToRun,
     error: ledgerError,
   } = useLedgerBluetooth(selectedDevice?.id);
@@ -143,12 +145,6 @@ const LedgerConnect = () => {
   useEffect(() => {
     if (ledgerError) {
       switch (ledgerError) {
-        case LedgerCommunicationErrors.LedgerDisconnected:
-          handleErrorWithRetry(
-            strings('ledger.bluetooth_connection_failed'),
-            strings('ledger.bluetooth_connection_failed_message'),
-          );
-          break;
         case LedgerCommunicationErrors.FailedToOpenApp:
           handleErrorWithRetry(
             strings('ledger.failed_to_open_eth_app'),
@@ -178,11 +174,20 @@ const LedgerConnect = () => {
           );
           break;
         case LedgerCommunicationErrors.UnknownError:
+        case LedgerCommunicationErrors.LedgerDisconnected:
         default:
-          handleErrorWithRetry(
-            strings('ledger.unknown_error'),
-            strings('ledger.unknown_error_message'),
+          dispatch(
+            showSimpleNotification({
+              autodismiss: false,
+              title: strings('ledger.toast_bluetooth_connection_error_title'),
+              description: strings(
+                'ledger.toast_bluetooth_connection_error_subtitle',
+              ),
+              id: 'ledger_bluetooth_disconnect_toast_message',
+              status: 'error',
+            }),
           );
+          navigation.navigate('SelectHardwareWallet');
           break;
       }
     }
@@ -214,33 +219,49 @@ const LedgerConnect = () => {
         <View style={styles.textContainer}>
           <View style={styles.lookingForDeviceContainer}>
             <Text style={styles.lookingForDeviceText} bold>
-              {strings('ledger.looking_for_device')}
+              {!isAppLaunchConfirmationNeeded
+                ? strings('ledger.looking_for_device')
+                : strings('ledger.open_eth_app')}
             </Text>
             {!selectedDevice && (
               <ActivityIndicator style={styles.activityIndicatorStyle} />
             )}
           </View>
-          <Text style={styles.instructionsText}>
-            {strings('ledger.ledger_reminder_message')}
-          </Text>
-          <Text style={styles.ledgerInstructionText}>
-            {strings('ledger.ledger_reminder_message_step_one')}
-          </Text>
-          <Text style={styles.ledgerInstructionText}>
-            {strings('ledger.ledger_reminder_message_step_two')}
-          </Text>
-          <Text style={styles.ledgerInstructionText}>
-            {strings('ledger.ledger_reminder_message_step_three')}
-          </Text>
-          <Text style={styles.howToInstallEthAppText} bold big link>
-            {strings('ledger.how_to_install_eth_app')}
-          </Text>
+          {!isAppLaunchConfirmationNeeded ? (
+            <>
+              <Text style={styles.instructionsText}>
+                {strings('ledger.ledger_reminder_message')}
+              </Text>
+              <Text style={styles.ledgerInstructionText}>
+                {strings('ledger.ledger_reminder_message_step_one')}
+              </Text>
+              <Text style={styles.ledgerInstructionText}>
+                {strings('ledger.ledger_reminder_message_step_two')}
+              </Text>
+              <Text style={styles.ledgerInstructionText}>
+                {strings('ledger.ledger_reminder_message_step_three')}
+              </Text>
+              <Text style={styles.howToInstallEthAppText} bold big link>
+                {strings('ledger.how_to_install_eth_app')}
+              </Text>
+            </>
+          ) : (
+            <Text>
+              {strings('ledger.open_eth_app_message_one')}{' '}
+              <Text bold>{strings('ledger.open_eth_app_message_two')} </Text>
+            </Text>
+          )}
         </View>
         <View style={styles.bodyContainer}>
-          <Scan
-            onDeviceSelected={(ledgerDevice) => setSelectedDevice(ledgerDevice)}
-          />
-          {selectedDevice && (
+          {!isAppLaunchConfirmationNeeded && (
+            <Scan
+              onDeviceSelected={(ledgerDevice) =>
+                setSelectedDevice(ledgerDevice)
+              }
+            />
+          )}
+
+          {selectedDevice && !isAppLaunchConfirmationNeeded && (
             <View style={styles.buttonContainer}>
               <StyledButton
                 type="confirm"

@@ -213,7 +213,7 @@ const Scan = ({
                 onPress: async () => {
                   Platform.OS === 'ios'
                     ? Linking.openURL('App-Prefs:Bluetooth')
-                    : Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS');
+                    : Linking.openSettings();
                 },
               },
             }),

@@ -55,9 +55,10 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
+import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
+import LedgerConnect from '../../Views/LedgerConnect';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
-import LedgerConnect from '../../Views/LedgerConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Text from '../../Base/Text';
 
@@ -523,6 +524,7 @@ const MainNavigator = () => (
       component={ImportPrivateKeyView}
     />
     <Stack.Screen name="LedgerConnectFlow" component={LedgerConnectFlow} />
+    <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     <Stack.Screen
       name="ConnectHardwareWalletFlow"
       component={ConnectHardwareWalletFlow}

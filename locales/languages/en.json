@@ -154,7 +154,7 @@
     "looking_for_device": "Looking for device",
     "ledger_reminder_message": "Please make sure your Ledger Nano X is:",
     "ledger_reminder_message_step_one": "1. Unlocked",
-    "ledger_reminder_message_step_two": "2. The Ethereum app is installed and open",
+    "ledger_reminder_message_step_two": "2. The Ethereum app is installed",
     "ledger_reminder_message_step_three": "3. Bluetooth is enabled",
     "available_devices": "Available devices",
     "retry": "Retry",
@@ -166,7 +166,13 @@
     "unknown_error": "Unexpected error occurred.",
     "unknown_error_message": "An unexpected error occured. Please try again.",
     "error_occured": "An error occured",
-    "how_to_install_eth_app": "How to install the Ethereum app on a ledger device"
+    "how_to_install_eth_app": "How to install the Ethereum app on a ledger device",
+    "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
+    "open_eth_app": "Please open the Ethereum app",
+    "open_eth_app_message_one": "We’ve detected you have the Ethereum app installed but it’s not open, please ",
+    "open_eth_app_message_two": "press the two buttons on the device to accept the prompt to open the Ethereum app to continue.",
+    "toast_bluetooth_connection_error_title": "Oops, something went wrong :/",
+    "toast_bluetooth_connection_error_subtitle": "Ledger has not been connected"
   },
   "login": {
     "title": "Welcome Back!",
