@@ -92,7 +92,6 @@ const AmountToBuy = () => {
   const [amountNumber, setAmountNumber] = useState(0);
   const [tokens, setTokens] = useState([]);
   const [error, setError] = useState(null);
-  const [retryMethod, setRetryMethod] = useState(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const [
@@ -524,24 +523,23 @@ const AmountToBuy = () => {
     ],
   );
 
-  useEffect(() => {
+  const retryMethod = useCallback(() => {
     if (!errorInAmountToBuy) {
-      setRetryMethod(null);
-      return;
+      return null;
     }
 
     if (errorSdkCryptoCurrencies) {
-      setRetryMethod(() => queryGetCryptoCurrencies);
+      return queryGetCryptoCurrencies();
     } else if (errorCurrentPaymentMethod) {
-      setRetryMethod(() => queryGetPaymentMethod);
+      return queryGetPaymentMethod();
     } else if (errorPaymentMethods) {
-      setRetryMethod(() => queryGetPaymentMethods);
+      return queryGetPaymentMethods();
     } else if (errorFiatCurrencies) {
-      setRetryMethod(() => queryGetFiatCurrencies);
+      return queryGetFiatCurrencies();
     } else if (errorDefaultFiatCurrency) {
-      setRetryMethod(() => queryDefaultFiatCurrency);
+      return queryDefaultFiatCurrency();
     } else if (errorCountries) {
-      setRetryMethod(() => queryGetCountries);
+      return queryGetCountries();
     }
   }, [
     errorCountries,
