@@ -13,22 +13,28 @@ const AccountAvatar = ({
   accountAddress,
   size,
   style,
-}: AccountAvatarProps) => (
-  <BaseAvatar size={size} style={style}>
-    {
+}: AccountAvatarProps) => {
+  const imageStyle = {
+    flex: 1,
+  };
+
+  return (
+    <BaseAvatar size={size} style={style}>
       {
-        [AccountAvatarType.JazzIcon]: (
-          <JazzIcon size={size} address={accountAddress} />
-        ),
-        [AccountAvatarType.Blockies]: (
-          <Image
-            source={{ uri: toDataUrl(accountAddress) }}
-            style={{ flex: 1 }}
-          />
-        ),
-      }[type]
-    }
-  </BaseAvatar>
-);
+        {
+          [AccountAvatarType.JazzIcon]: (
+            <JazzIcon size={size} address={accountAddress} />
+          ),
+          [AccountAvatarType.Blockies]: (
+            <Image
+              source={{ uri: toDataUrl(accountAddress) }}
+              style={imageStyle}
+            />
+          ),
+        }[type]
+      }
+    </BaseAvatar>
+  );
+};
 
 export default AccountAvatar;
