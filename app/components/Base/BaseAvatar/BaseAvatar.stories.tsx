@@ -9,7 +9,8 @@ import { Image } from 'react-native';
 import { toDataUrl } from '../../../util/blockies';
 
 // TODO: make sense of all this messy code
-const getStrippedEnum = <T,>(collection: T) => {
+// eslint-disable-next-line import/prefer-default-export
+export const getStrippedEnum = <T,>(collection: T) => {
   const allValues = Object.values(collection);
   const halfCollectionLength = allValues.length / 2;
   return allValues.reduce((accumulator, value, index) => {
@@ -27,9 +28,10 @@ storiesOf('Base / BaseAvatar', module)
     const stubAddress = '0x310ff9e227946749ca32aC146215F352183F556b';
     const sizes = getStrippedEnum(AvatarSize);
     const sizeSelector = select('Size', sizes, AvatarSize.Md.toString());
+    const sizeAsNumber = Number(sizeSelector);
 
     return (
-      <BaseAvatar size={Number(sizeSelector)}>
+      <BaseAvatar size={sizeAsNumber}>
         <Image
           source={{ uri: toDataUrl(stubAddress) }}
           // eslint-disable-next-line react-native/no-inline-styles
