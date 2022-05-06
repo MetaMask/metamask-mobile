@@ -207,6 +207,15 @@ const AmountToBuy = () => {
     selectedPaymentMethodId,
   );
 
+  const [{ data: limits, error: errorLimits, isFetching: isFetchingLimits }] =
+    useSDKMethod(
+      'getLimits',
+      selectedRegion?.id,
+      selectedPaymentMethodId,
+      selectedAsset?.id ? selectedAsset.id : '/currencies/crypto/1/eth',
+      selectedFiatCurrencyId,
+    );
+
   /**
    * * Defaults and validation of selected values
    */
@@ -503,7 +512,8 @@ const AmountToBuy = () => {
     isFetchingPaymentMethods ||
     isFetchingFiatCurrencies ||
     isFetchingDefaultFiatCurrency ||
-    isFetchingCountries
+    isFetchingCountries ||
+    isFetchingLimits
   ) {
     return (
       <ScreenLayout>
@@ -547,7 +557,8 @@ const AmountToBuy = () => {
     errorPaymentMethods ||
     errorFiatCurrencies ||
     errorDefaultFiatCurrency ||
-    errorCountries
+    errorCountries ||
+    errorLimits
   ) {
     return (
       <WebviewError
@@ -634,17 +645,10 @@ const AmountToBuy = () => {
       >
         <QuickAmounts
           onAmountPress={handleQuickAmountPress}
-          amounts={
-            currentFiatCurrency?.id === '/currencies/fiat/usd'
-              ? [
-                  { value: 100, label: '$100' },
-                  { value: 200, label: '$200' },
-                  { value: 300, label: '$300' },
-                  { value: 400, label: '$400' },
-                  // eslint-disable-next-line no-mixed-spaces-and-tabs
-                ]
-              : []
-          }
+          amounts={limits?.quickAmounts.map((limit) => ({
+            value: limit,
+            label: currentFiatCurrency?.denomSymbol + limit.toString(),
+          }))}
         />
         <Keypad
           value={amount}
