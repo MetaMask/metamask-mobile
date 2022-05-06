@@ -8,7 +8,6 @@ import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useFiatOnRampSDK, SDK } from '../sdk';
-import WebviewError from '../../WebviewError';
 import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import Engine from '../../../../core/Engine';
@@ -21,9 +20,12 @@ import {
 } from '../orderProcessor/aggregator';
 import NotificationManager from '../../../../core/NotificationManager';
 import { getNotificationDetails } from '../../FiatOrders';
+import ScreenLayout from '../components/ScreenLayout';
+import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId } = useFiatOnRampSDK();
+  const { selectedAddress, selectedChainId, sdkError } = useFiatOnRampSDK();
   const dispatch = useDispatch();
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
@@ -115,15 +117,29 @@ const CheckoutWebView = () => {
     }
   };
 
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting description={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (error) {
     return (
-      <WebviewError
-        error={{ description: error }}
-        onReload={() => {
-          setKey((key) => key + 1);
-          setError('');
-        }}
-      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            description={error}
+            ctaOnPress={() => {
+              setKey((key) => key + 1);
+              setError('');
+            }}
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 

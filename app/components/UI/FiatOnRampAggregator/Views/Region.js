@@ -16,12 +16,17 @@ import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
 import SkeletonText from '../components/SkeletonText';
 import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const Region = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { selectedRegion, setSelectedRegion, setSelectedFiatCurrencyId } =
-    useFiatOnRampSDK();
+  const {
+    selectedRegion,
+    setSelectedRegion,
+    setSelectedFiatCurrencyId,
+    sdkError,
+  } = useFiatOnRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
     useModalHandler(false);
 
@@ -74,6 +79,16 @@ const Region = () => {
     }
   }, [updatedRegion, setSelectedRegion]);
 
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting description={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (isFetching || !data) {
     return (
       <ScreenLayout>
@@ -90,6 +105,7 @@ const Region = () => {
       </ScreenLayout>
     );
   }
+
   if (error) {
     return (
       <ScreenLayout>

@@ -119,7 +119,7 @@ const Header: React.FC<IPropsHeader> = ({
         </Text>
       )}
       {description && (
-        <Text style={[descriptionStyle, styles.description]} centered grey>
+        <Text style={[styles.description, descriptionStyle]} centered grey>
           {description}
         </Text>
       )}

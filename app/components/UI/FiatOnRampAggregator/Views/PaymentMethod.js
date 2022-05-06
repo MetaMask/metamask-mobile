@@ -16,6 +16,7 @@ import SkeletonText from '../components/SkeletonText';
 import ListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const styles = StyleSheet.create({
   row: {
@@ -65,6 +66,7 @@ const PaymentMethod = () => {
     selectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
+    sdkError,
   } = useFiatOnRampSDK();
 
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
@@ -99,6 +101,16 @@ const PaymentMethod = () => {
   const handleContinueToAmount = useCallback(() => {
     navigation.navigate('AmountToBuy');
   }, [navigation]);
+
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting description={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
   if (isFetching) {
     return (

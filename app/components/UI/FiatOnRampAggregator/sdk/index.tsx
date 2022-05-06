@@ -34,7 +34,7 @@ interface IFiatOnRampSDKConfig {
 
 export interface IFiatOnRampSDK {
   sdk: RegionsService | undefined;
-  sdkError?: Error;
+  sdkError?: string | null;
 
   selectedRegion: any;
   setSelectedRegion: (region: any) => void;
@@ -86,7 +86,7 @@ export const FiatOnRampSDKProvider = ({
   ...props
 }: IProviderProps<IFiatOnRampSDK>) => {
   const [sdkModule, setSdkModule] = useState<RegionsService>();
-  const [sdkError, setSdkError] = useState<Error>();
+  const [sdkError, setSdkError] = useState<string | null>();
 
   useEffect(() => {
     (async () => {
@@ -94,7 +94,7 @@ export const FiatOnRampSDKProvider = ({
         const sdk = await SDK.regions();
         setSdkModule(sdk);
       } catch (error) {
-        setSdkError(error as Error);
+        setSdkError((error as Error).message);
       }
     })();
   }, []);

@@ -28,6 +28,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -155,6 +156,7 @@ const GetQuotes = () => {
     selectedAddress,
     selectedFiatCurrencyId,
     appConfig,
+    sdkError,
   } = useFiatOnRampSDK();
 
   const { colors } = useTheme();
@@ -333,6 +335,16 @@ const GetQuotes = () => {
     </View>
   );
 
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting description={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (pollingCyclesLeft < 0) {
     return (
       <ScreenView contentContainerStyle={styles.screen}>
@@ -391,8 +403,10 @@ const GetQuotes = () => {
   if (filteredQuotes.length <= 0) {
     return (
       <ErrorView
-        title="No providers available!"
-        description={'Try to increase or reduce the amount you want to buy!'}
+        title={strings('fiat_on_ramp_aggregator.no_providers_available')}
+        description={strings(
+          'fiat_on_ramp_aggregator.try_different_amount_to_buy_input',
+        )}
         ctaOnPress={() => navigation.goBack()}
       />
     );

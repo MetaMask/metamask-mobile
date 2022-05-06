@@ -45,6 +45,7 @@ import ListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
 import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -138,6 +139,7 @@ const AmountToBuy = () => {
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedChainId,
+    sdkError,
   } = useFiatOnRampSDK();
 
   /**
@@ -556,6 +558,16 @@ const AmountToBuy = () => {
       setError(errorInAmountToBuy);
     }
   }, [errorInAmountToBuy]);
+
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting description={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
   if (
     isFetchingSdkCryptoCurrencies ||

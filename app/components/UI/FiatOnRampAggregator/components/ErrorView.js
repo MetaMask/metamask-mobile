@@ -2,15 +2,11 @@ import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
-import Device from '../../../../util/device';
 import Title from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
-
-const IS_NARROW = Device.getDeviceWidth() <= 320;
-const STAGE_SIZE = IS_NARROW ? 240 : 260;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -23,10 +19,9 @@ const createStyles = (colors) =>
     content: {
       width: '100%',
       paddingHorizontal: 60,
+      marginTop: -100,
     },
     ctaContainer: {
-      width: STAGE_SIZE,
-      height: STAGE_SIZE,
       marginTop: 30,
     },
     row: {
@@ -79,13 +74,13 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }) {
           </Text>
         </View>
 
-        <View style={[styles.ctaContainer]}>
-          {ctaOnPress && (
+        {ctaOnPress && (
+          <View style={[styles.ctaContainer]}>
             <StyledButton type="confirm" onPress={ctaOnPressCallback}>
               {ctaLabel || strings('fiat_on_ramp_aggregator.try_again')}
             </StyledButton>
-          )}
-        </View>
+          </View>
+        )}
       </View>
     </View>
   );
