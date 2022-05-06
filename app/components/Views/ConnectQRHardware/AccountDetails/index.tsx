@@ -10,11 +10,11 @@ import { fontStyles } from '../../../../styles/common';
 import EthereumAddress from '../../../UI/EthereumAddress';
 
 interface IAccountDetailsProps {
-  item: any;
-  provider: {
-    ticker: string;
-    type: string;
-  };
+  index: number;
+  address: string;
+  balance: string;
+  ticker: string;
+  networkType: string;
 }
 
 const createStyle = (colors: any) =>
@@ -49,11 +49,11 @@ const AccountDetails = (props: IAccountDetailsProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
   const navigation = useNavigation();
-  const { item, provider } = props;
+  const { index, address, balance, networkType, ticker } = props;
   const defaultTicker = 'ETH';
 
-  const toEtherscan = (address: string) => {
-    const accountLink = getEtherscanAddressUrl(provider.type, address);
+  const toEtherscan = () => {
+    const accountLink = getEtherscanAddressUrl(networkType, address);
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -65,20 +65,20 @@ const AccountDetails = (props: IAccountDetailsProps) => {
   return (
     <View style={styles.rowContainer}>
       <View style={styles.accountDetails}>
-        <Text style={styles.index}>{item.index}</Text>
+        <Text style={styles.index}>{index}</Text>
         <EthereumAddress
           style={styles.information}
-          address={item.address}
+          address={address}
           type={'short'}
         />
         <Text style={styles.information}>
-          {renderFromWei(item.balance)} {provider.ticker || defaultTicker}
+          {renderFromWei(balance)} {ticker || defaultTicker}
         </Text>
       </View>
       <Icon
         size={18}
         name={'external-link'}
-        onPress={() => toEtherscan(item.address)}
+        onPress={() => toEtherscan()}
         style={styles.linkIcon}
         color={colors.text.default}
       />
@@ -86,4 +86,4 @@ const AccountDetails = (props: IAccountDetailsProps) => {
   );
 };
 
-export default AccountDetails;
+export default React.memo(AccountDetails);

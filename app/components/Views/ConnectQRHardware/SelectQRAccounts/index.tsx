@@ -123,7 +123,13 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
               onTintColor={colors.primary.default}
               testID={'skip-backup-check'}
             />
-            <AccountDetails item={item} provider={provider} />
+            <AccountDetails
+              index={item.index}
+              address={item.address}
+              balance={item.balance}
+              networkType={provider.type}
+              ticker={provider.ticker}
+            />
           </View>
         )}
       />
