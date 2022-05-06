@@ -1,5 +1,4 @@
 import Clipboard from '@react-native-clipboard/clipboard';
-import { failedSeedPhraseRequirements, isValidMnemonic } from '../util/validators';
 import Device from '../util/device';
 
 const EXPIRE_TIME_MS = 60000;
@@ -22,10 +21,10 @@ const ClipboardManager = {
 			}
 			this.expireTime = setTimeout(async () => {
 				const string = await this.getString();
+
 				if (!string) return;
-				if (!failedSeedPhraseRequirements(string) && isValidMnemonic(string)) {
-					await Clipboard.clearString();
-				}
+
+				await Clipboard.clearString();
 			}, EXPIRE_TIME_MS);
 		}
 	},
