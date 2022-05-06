@@ -213,7 +213,7 @@ const AmountToBuy = () => {
       selectedRegion?.id,
       selectedPaymentMethodId,
       selectedAsset?.id || '',
-      selectedFiatCurrencyId,
+      selectedFiatCurrencyId || '',
     );
 
   /**
