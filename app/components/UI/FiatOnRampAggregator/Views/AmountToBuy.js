@@ -212,7 +212,7 @@ const AmountToBuy = () => {
       'getLimits',
       selectedRegion?.id,
       selectedPaymentMethodId,
-      selectedAsset?.id ? selectedAsset.id : '/currencies/crypto/1/eth',
+      selectedAsset?.id || '', //? selectedAsset.id : '/currencies/crypto/1/eth',
       selectedFiatCurrencyId,
     );
 
