@@ -10,11 +10,14 @@ import { strings } from '../../../../../locales/i18n';
  * @param {string} description The error description (Required)
  *
  */
-function ErrorViewWithReporting({ description }) {
+function ErrorViewWithReporting({ error }) {
   const navigation = useNavigation();
   return (
     <ErrorView
-      description={description}
+      description={
+        error?.message ||
+        strings('fiat_on_ramp_aggregator.something_went_wrong')
+      }
       title={strings('fiat_on_ramp_aggregator.something_went_wrong')}
       ctaLabel={strings('fiat_on_ramp_aggregator.report_this_issue')}
       ctaOnPress={() => {
@@ -26,7 +29,7 @@ function ErrorViewWithReporting({ description }) {
 }
 
 ErrorViewWithReporting.propTypes = {
-  description: PropTypes.string.isRequired,
+  error: PropTypes.string.isRequired,
 };
 
 export default ErrorViewWithReporting;

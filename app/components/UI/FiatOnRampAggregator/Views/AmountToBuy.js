@@ -569,7 +569,7 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting description={sdkError} />
+          <ErrorViewWithReporting error={sdkError} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
