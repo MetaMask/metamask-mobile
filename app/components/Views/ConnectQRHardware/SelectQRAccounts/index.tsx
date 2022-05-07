@@ -158,7 +158,6 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
               index={item.index}
               address={item.address}
               balance={item.balance}
-              networkType={provider.type}
               ticker={provider.ticker}
               toBlockExplorer={toBlockExplorer}
             />

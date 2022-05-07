@@ -12,7 +12,6 @@ interface IAccountDetailsProps {
   address: string;
   balance: string;
   ticker: string;
-  networkType: string;
   toBlockExplorer: (address: string) => void;
 }
 
