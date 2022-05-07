@@ -1,12 +1,14 @@
-const wdio = require('webdriverio');
-const assert = require('assert');
+import wdio from 'webdriverio'
+import assert from 'assert'
 
-// const GET_STARTED_BUTTON = $('#onboarding-get-started-button');
-// const ONBOARDING_CAROUSEL = $('#onboarding-carousel-screen');
 
-class OnboardingPages {
+export default class OnboardingPages {
+    constructor(){
+        this.ONBOARDING_CAROUSEL = $('#onboarding-carousel-screen');
+        this.GET_STARTED_BUTTON_ID = $('onboarding-get-started-button');
 
-    get ONBOARDING_CAROUSEL() { return $('#onboarding-carousel-screen'); }
+
+    }
     // get GET_STARTED_BUTTON() { return $('#onboarding-get-started-button'); }
 
     async verifyWelcomeScreen() {
@@ -15,5 +17,8 @@ class OnboardingPages {
         assert (await this.ONBOARDING_CAROUSEL).waitForExist();
         // console.log(`Welcome screen test is ${(await this.GET_STARTED_BUTTON).getText()}`);
     }
+
+    async tapGetStartedButton(){
+        await this.GET_STARTED_BUTTON_ID.click();
+    }
 }
-module.exports = new OnboardingPages();
