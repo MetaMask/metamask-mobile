@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,13 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
 import { IAccount } from '../types';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
+import { getEtherscanAddressUrl } from '../../../../util/etherscan';
+import { findBlockExplorerForRpc } from '../../../../util/networks';
 import Device from '../../../../util/device';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import AccountDetails from '../AccountDetails';
@@ -94,8 +98,35 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
   } = props;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
+  const navigation = useNavigation();
   const provider = useSelector(
     (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
+
+  const toBlockExplorer = useCallback(
+    (address: string) => {
+      const { type, rpcTarget } = provider;
+      let accountLink: string;
+      if (type === RPC) {
+        const blockExplorer =
+          findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+          NO_RPC_BLOCK_EXPLORER;
+        accountLink = `${blockExplorer}/address/${address}`;
+      } else {
+        accountLink = getEtherscanAddressUrl(type, address);
+      }
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: accountLink,
+        },
+      });
+    },
+    [frequentRpcList, navigation, provider],
   );
 
   return (
@@ -129,6 +160,7 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
               balance={item.balance}
               networkType={provider.type}
               ticker={provider.ticker}
+              toBlockExplorer={toBlockExplorer}
             />
           </View>
         )}

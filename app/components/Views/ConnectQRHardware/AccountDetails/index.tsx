@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/EvilIcons';
 import Device from '../../../../util/device';
-import { getEtherscanAddressUrl } from '../../../../util/etherscan';
 import { renderFromWei } from '../../../../util/number';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import { fontStyles } from '../../../../styles/common';
@@ -15,6 +13,7 @@ interface IAccountDetailsProps {
   balance: string;
   ticker: string;
   networkType: string;
+  toBlockExplorer: (address: string) => void;
 }
 
 const createStyle = (colors: any) =>
@@ -48,19 +47,8 @@ const createStyle = (colors: any) =>
 const AccountDetails = (props: IAccountDetailsProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
-  const navigation = useNavigation();
-  const { index, address, balance, networkType, ticker } = props;
+  const { index, address, balance, ticker, toBlockExplorer } = props;
   const defaultTicker = 'ETH';
-
-  const toEtherscan = () => {
-    const accountLink = getEtherscanAddressUrl(networkType, address);
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: accountLink,
-      },
-    });
-  };
 
   return (
     <View style={styles.rowContainer}>
@@ -78,7 +66,7 @@ const AccountDetails = (props: IAccountDetailsProps) => {
       <Icon
         size={18}
         name={'external-link'}
-        onPress={() => toEtherscan()}
+        onPress={() => toBlockExplorer(address)}
         style={styles.linkIcon}
         color={colors.text.default}
       />
