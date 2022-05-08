@@ -67,10 +67,9 @@ import {
   CHANGE_PASSWORD_BUTTON_ID,
   REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../constants/test-ids';
+import { LEARN_MORE_URL } from '../../../../constants/urls';
 
 const isIos = Device.isIos();
-const LEARN_MORE_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
 
 const createStyles = (colors) =>
   StyleSheet.create({
