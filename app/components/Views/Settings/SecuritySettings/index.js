@@ -307,6 +307,7 @@ class Settings extends PureComponent {
     biometryType: false,
     browserHistoryModalVisible: false,
     cookiesModalVisible: false,
+    deleteMetricsModalVisible: false,
     analyticsEnabled: false,
     passcodeChoice: false,
     showHint: false,
@@ -1167,6 +1168,60 @@ class Settings extends PureComponent {
     );
   };
 
+  renderDeleteMetaMetricsDataSection = () => {
+    const { deleteMetricsModalVisible } = this.state;
+    const { styles } = this.getStyles();
+    return (
+      <>
+        <View style={styles.setting}>
+          <Text style={styles.title}>
+            {strings('app_settings.delete_metrics_title')}
+          </Text>
+          <Text style={styles.desc}>
+            {strings('app_settings.delete_metrics_description')}
+          </Text>
+          <StyledButton
+            type="normal"
+            onPress={() =>
+              this.setState({
+                deleteMetricsModalVisible:
+                  !this.state.deleteMetricsModalVisible,
+              })
+            }
+            containerStyle={styles.confirm}
+          >
+            {strings('app_settings.delete_metrics_button')}
+          </StyledButton>
+        </View>
+        <ActionModal
+          modalVisible={deleteMetricsModalVisible}
+          confirmText={strings('app_settings.clear')}
+          cancelText={strings('app_settings.reset_account_cancel_button')}
+          onCancelPress={() =>
+            this.setState({
+              deleteMetricsModalVisible: !this.state.deleteMetricsModalVisible,
+            })
+          }
+          onRequestClose={() =>
+            this.setState({
+              deleteMetricsModalVisible: !this.state.deleteMetricsModalVisible,
+            })
+          }
+          onConfirmPress={this.deleteMetaMetricsData}
+        >
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>
+              {strings('app_settings.delete_metrics_confirm_modal_title')}
+            </Text>
+            <Text style={styles.modalText}>
+              {strings('app_settings.delete_metrics_confirm_modal_description')}
+            </Text>
+          </View>
+        </ActionModal>
+      </>
+    );
+  };
+
   render = () => {
     const { biometryType, biometryChoice, loading } = this.state;
     const { styles } = this.getStyles();
@@ -1202,6 +1257,7 @@ class Settings extends PureComponent {
           {this.renderClearCookiesSection()}
           {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
+          {this.renderDeleteMetaMetricsDataSection()}
           {this.renderThirdPartySection()}
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
