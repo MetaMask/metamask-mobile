@@ -19,6 +19,8 @@ const USER_PROFILE_PROPERTY = {
   AUTHENTICATION_TYPE: 'Authentication Type',
 };
 
+const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
+
 /**
  * Class to handle analytics through the app
  */
@@ -110,6 +112,29 @@ class Analytics {
       }
     } else {
       Logger.log(`Analytics '${name}' -`, event, params, value, info);
+    }
+  }
+
+  async _createDataDeletionTask(userId, compliance) {
+    const action = 'data-retrieval';
+    const mockToken = '';
+    const endpoint = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/?token=<${mockToken}>`;
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          distinct_ids: [userId],
+          compliance_type: compliance,
+        }),
+      });
+      // eslint-disable-next-line no-console
+      console.log(response);
+    } catch {
+      return false;
     }
   }
 
@@ -313,6 +338,10 @@ class Analytics {
       anonymously,
     });
   };
+
+  createDataDeletionTask(mixpanelUserId, compliance = 'GDPR') {
+    this._createDataDeletionTask(mixpanelUserId, compliance);
+  }
 }
 
 let instance;
@@ -366,5 +395,10 @@ export default {
     } catch (e) {
       // Do nothing
     }
+  },
+  createDataDeletionTask(mixpanelUserId, compliance) {
+    return (
+      instance && instance.createDataDeletionTask(mixpanelUserId, compliance)
+    );
   },
 };
