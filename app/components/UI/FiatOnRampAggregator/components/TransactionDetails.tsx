@@ -338,7 +338,8 @@ const TransactionDetails: React.FC<Props> = ({
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
               <Text black small>
-                {currency} {strings('send.amount')}
+                {currency}{' '}
+                {strings('fiat_on_ramp_aggregator.transaction.amount')}
               </Text>
             </ListItem.Body>
             <ListItem.Amount>
@@ -409,7 +410,9 @@ const TransactionDetails: React.FC<Props> = ({
               {strings('fiat_on_ramp_aggregator.transaction.etherscan')}{' '}
               {explorer.isValid
                 ? explorer.name
-                : strings('swaps.a_block_explorer')}
+                : strings(
+                    'fiat_on_ramp_aggregator.transaction.a_block_explorer',
+                  )}
             </Text>
           </TouchableOpacity>
         )}
