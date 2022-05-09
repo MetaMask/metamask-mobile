@@ -1601,7 +1601,9 @@
     "transaction": {
       "details_main": "Transaction Details",
       "successful": "Transaction Successful!",
-      "successful_description": "Your ETH is now available in your account",
+      "your": "Your",
+      "available_in_account": "is now available in your account",
+      "crypto": "crypto",
       "failed": "Transaction Failed",
       "failed_description": "Something went wrong and we are unable to process your payment. Please try again.",
       "processing": "Processing Transaction",
@@ -1610,7 +1612,7 @@
       "details": "Transaction details",
       "via": "via",
       "purchase_amount": "Purchase Amount Total",
-      "etherscan": "View full details on Etherscan",
+      "etherscan": "View full details on",
       "another_purchase": "Make another purchase",
       "questions": "Questions?",
       "contact": "Contact",
@@ -1620,7 +1622,9 @@
       "payment_method": "Payment Method",
       "token_amount": "Token Amount",
       "exchange_rate": "Exchange Rate",
-      "total_fees": "Total Fees"
+      "total_fees": "Total Fees",
+      "amount": "Amount",
+      "a_block_explorer": "a block explorer"
     }
   },
   "swaps": {

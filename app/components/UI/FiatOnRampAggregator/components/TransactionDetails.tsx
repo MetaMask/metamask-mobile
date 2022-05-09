@@ -40,6 +40,14 @@ const createStyles = (colors: any) =>
     listItems: {
       paddingVertical: 4,
     },
+    seperationBottom: {
+      paddingVertical: 4,
+      paddingBottom: 18,
+    },
+    seperationTop: {
+      paddingVertical: 4,
+      paddingTop: 18,
+    },
     transactionIdFlex: {
       flex: 1,
     },
@@ -77,9 +85,14 @@ const createStyles = (colors: any) =>
 interface PropsStage {
   stage: string;
   paymentType?: string;
+  cryptocurrency?: string;
 }
 
-const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
+const Stage: React.FC<PropsStage> = ({
+  stage,
+  paymentType,
+  cryptocurrency,
+}: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   switch (stage) {
@@ -95,8 +108,11 @@ const Stage: React.FC<PropsStage> = ({ stage, paymentType }: PropsStage) => {
             {strings('fiat_on_ramp_aggregator.transaction.successful')}
           </Text>
           <Text small centered style={styles.stageMessage}>
+            {strings('fiat_on_ramp_aggregator.transaction.your')}{' '}
+            {cryptocurrency ||
+              strings('fiat_on_ramp_aggregator.transaction.crypto')}{' '}
             {strings(
-              'fiat_on_ramp_aggregator.transaction.successful_description',
+              'fiat_on_ramp_aggregator.transaction.available_in_account',
             )}
           </Text>
         </>
@@ -194,7 +210,11 @@ const TransactionDetails: React.FC<Props> = ({
   return (
     <View>
       <View style={styles.stage}>
-        <Stage stage={state} paymentType={data?.paymentMethod?.name} />
+        <Stage
+          stage={state}
+          paymentType={data?.paymentMethod?.name}
+          cryptocurrency={cryptocurrency}
+        />
       </View>
       <Text centered primary style={styles.tokenAmount}>
         {data &&
@@ -244,25 +264,30 @@ const TransactionDetails: React.FC<Props> = ({
               </Text>
             </ListItem.Amount>
           </ListItem.Content>
-          <ListItem.Content style={styles.listItems}>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.transaction.payment_method')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amount>
-              <Text small bold primary>
-                {data?.paymentMethod?.name}
-              </Text>
-            </ListItem.Amount>
-          </ListItem.Content>
-          {order.provider && data && (
+          {data?.paymentMethod?.name && (
+            <ListItem.Content style={styles.listItems}>
+              <ListItem.Body>
+                <Text black small>
+                  {strings(
+                    'fiat_on_ramp_aggregator.transaction.payment_method',
+                  )}
+                </Text>
+              </ListItem.Body>
+              <ListItem.Amount>
+                <Text small bold primary>
+                  {data?.paymentMethod?.name}
+                </Text>
+              </ListItem.Amount>
+            </ListItem.Content>
+          )}
+          {order.provider && data?.paymentMethod?.name && (
             <Text small style={styles.provider}>
               {strings('fiat_on_ramp_aggregator.transaction.via')}{' '}
               {getProviderName(order.provider, data)}
             </Text>
           )}
-          <ListItem.Content style={styles.listItems}>
+
+          <ListItem.Content style={styles.seperationTop}>
             <ListItem.Body>
               <Text black small>
                 {strings('fiat_on_ramp_aggregator.transaction.token_amount')}
@@ -285,28 +310,7 @@ const TransactionDetails: React.FC<Props> = ({
               )}
             </ListItem.Amount>
           </ListItem.Content>
-          <ListItem.Content style={styles.listItems}>
-            <ListItem.Body>
-              <Text black small>
-                {currency} {strings('send.amount')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amount>
-              {data?.fiatCurrency?.decimals && amountOut && currency ? (
-                <Text small bold primary>
-                  {currencySymbol}
-                  {renderFiat(
-                    amountOut,
-                    currency,
-                    data?.fiatCurrency?.decimals,
-                  )}
-                </Text>
-              ) : (
-                <Text>...</Text>
-              )}
-            </ListItem.Amount>
-          </ListItem.Content>
-          <ListItem.Content style={styles.listItems}>
+          <ListItem.Content style={styles.seperationBottom}>
             <ListItem.Body>
               <Text black small>
                 {strings('fiat_on_ramp_aggregator.transaction.exchange_rate')}
@@ -321,6 +325,29 @@ const TransactionDetails: React.FC<Props> = ({
                   1 {order.cryptocurrency} @{' '}
                   {renderFiat(
                     exchangeRate,
+                    currency,
+                    data?.fiatCurrency?.decimals,
+                  )}
+                </Text>
+              ) : (
+                <Text>...</Text>
+              )}
+            </ListItem.Amount>
+          </ListItem.Content>
+
+          <ListItem.Content style={styles.listItems}>
+            <ListItem.Body>
+              <Text black small>
+                {currency}{' '}
+                {strings('fiat_on_ramp_aggregator.transaction.amount')}
+              </Text>
+            </ListItem.Body>
+            <ListItem.Amount>
+              {data?.fiatCurrency?.decimals && amountOut && currency ? (
+                <Text small bold primary>
+                  {currencySymbol}
+                  {renderFiat(
+                    amountOut,
                     currency,
                     data?.fiatCurrency?.decimals,
                   )}
@@ -380,7 +407,12 @@ const TransactionDetails: React.FC<Props> = ({
             onPress={() => handleLinkPress(explorer.tx(txHash))}
           >
             <Text blue small centered style={styles.link}>
-              {strings('fiat_on_ramp_aggregator.transaction.etherscan')}
+              {strings('fiat_on_ramp_aggregator.transaction.etherscan')}{' '}
+              {explorer.isValid
+                ? explorer.name
+                : strings(
+                    'fiat_on_ramp_aggregator.transaction.a_block_explorer',
+                  )}
             </Text>
           </TouchableOpacity>
         )}
