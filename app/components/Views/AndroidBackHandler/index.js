@@ -6,46 +6,49 @@ import { BackHandler, InteractionManager } from 'react-native';
  * PureComponent that handles android hardware back button
  */
 export default class AndroidBackHandler extends PureComponent {
-	static propTypes = {
-		/**
-		 * react-navigation object used to switch between screens
-		 */
-		navigation: PropTypes.object,
-		/**
-		 * Custom callback to call on back press event
-		 */
-		customBackPress: PropTypes.func,
-	};
+  static propTypes = {
+    /**
+     * react-navigation object used to switch between screens
+     */
+    navigation: PropTypes.object,
+    /**
+     * Custom callback to call on back press event
+     */
+    customBackPress: PropTypes.func,
+  };
 
-	pressed = false;
+  pressed = false;
 
-	componentDidMount() {
-		InteractionManager.runAfterInteractions(() => {
-			BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
-		});
-	}
+  componentDidMount() {
+    InteractionManager.runAfterInteractions(() => {
+      BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+    });
+  }
 
-	componentWillUnmount() {
-		InteractionManager.runAfterInteractions(() => {
-			BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
-		});
-	}
+  componentWillUnmount() {
+    InteractionManager.runAfterInteractions(() => {
+      BackHandler.removeEventListener(
+        'hardwareBackPress',
+        this.handleBackPress,
+      );
+    });
+  }
 
-	handleBackPress = () => {
-		const { navigation, customBackPress } = this.props;
+  handleBackPress = () => {
+    const { navigation, customBackPress } = this.props;
 
-		if (!this.pressed) {
-			this.pressed = true;
-			if (customBackPress) {
-				customBackPress();
-			} else {
-				navigation && navigation.goBack();
-			}
-			setTimeout(() => (this.pressed = false), 300);
-		}
-	};
+    if (!this.pressed) {
+      this.pressed = true;
+      if (customBackPress) {
+        customBackPress();
+      } else {
+        navigation && navigation.goBack();
+      }
+      setTimeout(() => (this.pressed = false), 300);
+    }
+  };
 
-	render() {
-		return null;
-	}
+  render() {
+    return null;
+  }
 }
