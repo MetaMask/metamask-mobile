@@ -1577,6 +1577,8 @@
     "total": "Total",
     "pay_with": "Pay with",
     "buy_with": "Buy with {{provider}}",
+    "minimum": "Minimum deposit is",
+    "maximum": "Maximum deposit is",
     "try_again": "Try again",
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",

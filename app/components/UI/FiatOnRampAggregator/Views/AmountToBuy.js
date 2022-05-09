@@ -513,6 +513,20 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
+  const amountIsBelowMinimum = useMemo(
+    () => amountNumber !== 0 && amountNumber < limits?.minAmount,
+    [amountNumber, limits?.minAmount],
+  );
+
+  const amountIsAboveMaximum = useMemo(
+    () => amountNumber !== 0 && amountNumber > limits?.maxAmount,
+    [amountNumber, limits?.maxAmount],
+  );
+
+  const amountIsValid = useMemo(
+    () => !amountIsBelowMinimum && !amountIsAboveMaximum,
+    [amountIsBelowMinimum, amountIsAboveMaximum],
+  );
   const retryMethod = useCallback(() => {
     if (!error) {
       return null;
@@ -666,25 +680,23 @@ const AmountToBuy = () => {
                 label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
                 amount={displayAmount}
-                highlightedError={
-                  amountNumber !== 0 &&
-                  (amountNumber > limits.maxAmount ||
-                    amountNumber < limits.minAmount)
-                }
+                highlightedError={amountIsBelowMinimum || amountIsAboveMaximum}
                 currencyCode={currentFiatCurrency?.symbol}
                 onPress={onAmountInputPress}
                 onCurrencyPress={handleFiatSelectorPress}
               />
             </View>
-            {limits.minAmount > amountNumber && amountNumber !== 0 && (
+            {amountIsBelowMinimum && (
               <Text red small>
-                Minimum deposit is {currentFiatCurrency?.denomSymbol}
+                {strings('fiat_on_ramp_aggregator.minimum')}{' '}
+                {currentFiatCurrency?.denomSymbol}
                 {limits.minAmount}
               </Text>
             )}
-            {limits.maxAmount < amountNumber && (
+            {amountIsAboveMaximum && (
               <Text red small>
-                Maximum deposit is {currentFiatCurrency?.denomSymbol}
+                {strings('fiat_on_ramp_aggregator.maximum')}{' '}
+                {currentFiatCurrency?.denomSymbol}
                 {limits.maxAmount}
               </Text>
             )}
@@ -709,7 +721,7 @@ const AmountToBuy = () => {
             <StyledButton
               type="confirm"
               onPress={handleGetQuotePress}
-              disabled={amountNumber <= 0}
+              disabled={!amountIsValid}
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
@@ -734,13 +746,7 @@ const AmountToBuy = () => {
           currency={currentFiatCurrency?.symbol}
         />
         <ScreenLayout.Content>
-          <StyledButton
-            type="confirm"
-            onPress={handleKeypadDone}
-            disabled={
-              amountNumber < limits.minAmount || amountNumber > limits.maxAmount
-            }
-          >
+          <StyledButton type="confirm" onPress={handleKeypadDone}>
             {strings('fiat_on_ramp_aggregator.done')}
           </StyledButton>
         </ScreenLayout.Content>

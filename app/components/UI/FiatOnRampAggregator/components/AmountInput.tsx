@@ -43,29 +43,17 @@ const AmountInput: React.FC<Props> = ({
   <Box label={label} onPress={onPress} highlighted={highlighted}>
     <ListItem.Content>
       <ListItem.Body>
-        {highlightedError ? (
-          <Text
-            red
-            bold
-            style={styles.amount}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {currencySymbol || ''}
-            {amount}
-          </Text>
-        ) : (
-          <Text
-            black
-            bold
-            style={styles.amount}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {currencySymbol || ''}
-            {amount}
-          </Text>
-        )}
+        <Text
+          black={!highlightedError}
+          red={highlightedError}
+          bold
+          style={styles.amount}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {currencySymbol || ''}
+          {amount}
+        </Text>
       </ListItem.Body>
       <ListItem.Amounts style={styles.chevron}>
         <TouchableOpacity
