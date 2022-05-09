@@ -2,16 +2,15 @@
 import React from 'react';
 import { View } from 'react-native';
 import useStyles from '../../hooks/useStyles';
-import { BaseAvatarProps, BaseAvatarStyleSheet } from './BaseAvatar.types';
+import { BaseAvatarProps } from './BaseAvatar.types';
 import stylesheet from './BaseAvatar.styles';
 
 const BaseAvatar: React.FC<BaseAvatarProps> = ({ size, style, children }) => {
-  const styles = useStyles<BaseAvatarProps, BaseAvatarStyleSheet>(stylesheet, {
+  const styles = useStyles(stylesheet, {
     size,
-    style,
   });
 
-  return <View style={styles.container}>{children}</View>;
+  return <View style={[styles.container, style]}>{children}</View>;
 };
 
 export default BaseAvatar;

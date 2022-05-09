@@ -1,4 +1,4 @@
-import { ViewProps, ViewStyle } from 'react-native';
+import { ViewProps } from 'react-native';
 
 export enum AvatarSize {
   Xs = 16,
@@ -10,10 +10,6 @@ export enum AvatarSize {
 
 export interface BaseAvatarProps extends ViewProps {
   size: AvatarSize;
-  //TODO: remove any annotation
-  style?: any;
 }
 
-export interface BaseAvatarStyleSheet {
-  container: ViewStyle;
-}
+export type BaseAvatarStyleSheetVars = Pick<BaseAvatarProps, 'size'>;

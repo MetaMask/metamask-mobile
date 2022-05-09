@@ -1,13 +1,14 @@
-import { BaseAvatarProps } from './BaseAvatar.types';
+import { StyleSheet } from 'react-native';
+import { BaseAvatarStyleSheetVars } from './BaseAvatar.types';
 
-const stylesheet = ({ size, style }: BaseAvatarProps) => ({
-  container: {
-    height: size,
-    width: size,
-    borderRadius: size / 2,
-    overflow: 'hidden',
-  },
-  ...style,
-});
+const createStyleSheet = ({ size }: BaseAvatarStyleSheetVars) =>
+  StyleSheet.create({
+    container: {
+      height: size,
+      width: size,
+      borderRadius: size / 2,
+      overflow: 'hidden',
+    },
+  });
 
-export default stylesheet;
+export default createStyleSheet;

@@ -1,10 +1,6 @@
-import { useTheme } from '@react-navigation/native';
 import { useMemo } from 'react';
-
-type UseStylesType = <ParamsType, StyleSheetType>(
-  createStyles: (params: ParamsType) => StyleSheetType,
-  params: ParamsType,
-) => StyleSheetType;
+import { Theme } from 'app/util/theme/models';
+import { useAppThemeFromContext } from 'app/util/theme';
 
 /**
  * useStyles, a custom hook that memoizes the stylesheet object with the supplied parameters
@@ -12,11 +8,14 @@ type UseStylesType = <ParamsType, StyleSheetType>(
  * @param params parameters that are used inside the stylesheet
  * @returns memoized stylesheet object
  */
-const useStyles: UseStylesType = (createStyles, params) => {
-  const theme = useTheme();
+const useStyles = <K, T>(
+  createStyles: (vars: T, theme: Theme) => K,
+  styleVars: T,
+) => {
+  const appTheme = useAppThemeFromContext();
   return useMemo(
-    () => createStyles({ theme, ...params }),
-    [createStyles, params, theme],
+    () => createStyles(styleVars, appTheme),
+    [createStyles, styleVars, appTheme],
   );
 };
 
