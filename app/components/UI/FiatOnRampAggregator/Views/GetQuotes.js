@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ScreenLayout from '../components/ScreenLayout';
@@ -95,13 +96,19 @@ const createStyles = (colors) =>
     ctaButton: {
       marginBottom: 30,
     },
+    withoutTopPadding: {
+      paddingTop: 0,
+    },
+    withoutTopMargin: {
+      marginTop: 0,
+    },
   });
 
-const SkeletonQuote = () => {
+const SkeletonQuote = ({ style }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <Box style={styles.row}>
+    <Box style={[styles.row, style]}>
       <ListItem.Content>
         <ListItem.Body>
           <ListItem.Title>
@@ -138,6 +145,10 @@ const SkeletonQuote = () => {
       </ListItem.Content>
     </Box>
   );
+};
+
+SkeletonQuote.propTypes = {
+  style: PropTypes.any,
 };
 
 const LINK = {
@@ -448,28 +459,30 @@ const GetQuotes = () => {
       <ScreenLayout.Body>
         <Animated.View style={[styles.topBorder, animatedStyles]} />
         <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
-          <ScreenLayout.Content>
+          <ScreenLayout.Content style={styles.withoutTopPadding}>
             {isFetchingQuotes && isInPolling ? (
               <>
-                <SkeletonQuote />
+                <SkeletonQuote style={styles.withoutTopMargin} />
                 <SkeletonQuote />
               </>
             ) : (
-              filteredQuotes
-                .sort(sortByAmountOut)
-                .map((quote, _index, list) => (
-                  <View key={quote.provider.id} style={styles.row}>
-                    <Quote
-                      quote={quote}
-                      onPress={() => handleOnQuotePress(quote)}
-                      onPressBuy={() => handleOnPressBuy(quote)}
-                      highlighted={
-                        quote.provider.id === providerId || list.length === 1
-                      }
-                      showInfo={() => handleInfoPress(quote)}
-                    />
-                  </View>
-                ))
+              filteredQuotes.sort(sortByAmountOut).map((quote, index) => (
+                <View
+                  key={quote.provider.id}
+                  style={[styles.row, index === 0 && styles.withoutTopMargin]}
+                >
+                  <Quote
+                    quote={quote}
+                    onPress={() => handleOnQuotePress(quote)}
+                    onPressBuy={() => handleOnPressBuy(quote)}
+                    highlighted={
+                      quote.provider.id === providerId ||
+                      filteredQuotes.length === 1
+                    }
+                    showInfo={() => handleInfoPress(quote)}
+                  />
+                </View>
+              ))
             )}
           </ScreenLayout.Content>
         </Animated.ScrollView>
