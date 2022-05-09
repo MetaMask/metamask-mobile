@@ -3,7 +3,6 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import Box from './Box';
 import BaseListItem from '../../../Base/ListItem';
 import CustomText from '../../../Base/Text';
-
 import CurrencyChevron from './CurrencyChevron';
 
 // TODO: Convert into typescript and correctly type optionals
@@ -26,6 +25,7 @@ interface Props {
   amount: string;
   currencyCode: string;
   highlighted?: boolean;
+  highlightedError?: boolean;
   onPress?: () => any;
   onCurrencyPress?: () => any;
 }
@@ -36,22 +36,36 @@ const AmountInput: React.FC<Props> = ({
   amount,
   currencyCode,
   highlighted,
+  highlightedError,
   onPress,
   onCurrencyPress,
 }: Props) => (
   <Box label={label} onPress={onPress} highlighted={highlighted}>
     <ListItem.Content>
       <ListItem.Body>
-        <Text
-          black
-          bold
-          style={styles.amount}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-        >
-          {currencySymbol || ''}
-          {amount}
-        </Text>
+        {highlightedError ? (
+          <Text
+            red
+            bold
+            style={styles.amount}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {currencySymbol || ''}
+            {amount}
+          </Text>
+        ) : (
+          <Text
+            black
+            bold
+            style={styles.amount}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {currencySymbol || ''}
+            {amount}
+          </Text>
+        )}
       </ListItem.Body>
       <ListItem.Amounts style={styles.chevron}>
         <TouchableOpacity

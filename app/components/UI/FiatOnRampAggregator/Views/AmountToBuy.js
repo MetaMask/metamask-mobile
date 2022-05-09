@@ -666,11 +666,28 @@ const AmountToBuy = () => {
                 label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
                 amount={displayAmount}
+                highlightedError={
+                  amountNumber !== 0 &&
+                  (amountNumber > limits.maxAmount ||
+                    amountNumber < limits.minAmount)
+                }
                 currencyCode={currentFiatCurrency?.symbol}
                 onPress={onAmountInputPress}
                 onCurrencyPress={handleFiatSelectorPress}
               />
             </View>
+            {limits.minAmount > amountNumber && amountNumber !== 0 && (
+              <Text red small>
+                Minimum deposit is {currentFiatCurrency?.denomSymbol}
+                {limits.minAmount}
+              </Text>
+            )}
+            {limits.maxAmount < amountNumber && (
+              <Text red small>
+                Maximum deposit is {currentFiatCurrency?.denomSymbol}
+                {limits.maxAmount}
+              </Text>
+            )}
           </ScreenLayout.Content>
         </Pressable>
       </ScreenLayout.Body>
