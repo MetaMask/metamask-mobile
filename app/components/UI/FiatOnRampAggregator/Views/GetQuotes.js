@@ -455,17 +455,21 @@ const GetQuotes = () => {
                 <SkeletonQuote />
               </>
             ) : (
-              filteredQuotes.sort(sortByAmountOut).map((quote) => (
-                <View key={quote.provider.id} style={styles.row}>
-                  <Quote
-                    quote={quote}
-                    onPress={() => handleOnQuotePress(quote)}
-                    onPressBuy={() => handleOnPressBuy(quote)}
-                    highlighted={quote.provider.id === providerId}
-                    showInfo={() => handleInfoPress(quote)}
-                  />
-                </View>
-              ))
+              filteredQuotes
+                .sort(sortByAmountOut)
+                .map((quote, _index, list) => (
+                  <View key={quote.provider.id} style={styles.row}>
+                    <Quote
+                      quote={quote}
+                      onPress={() => handleOnQuotePress(quote)}
+                      onPressBuy={() => handleOnPressBuy(quote)}
+                      highlighted={
+                        quote.provider.id === providerId || list.length === 1
+                      }
+                      showInfo={() => handleInfoPress(quote)}
+                    />
+                  </View>
+                ))
             )}
           </ScreenLayout.Content>
         </Animated.ScrollView>
