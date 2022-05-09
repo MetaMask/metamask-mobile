@@ -6,24 +6,24 @@ import configureMockStore from 'redux-mock-store';
 const mockStore = configureMockStore();
 
 describe('App', () => {
-	it('should render correctly when logged in', () => {
-		const initialState = {
-			user: {
-				loggedIn: true,
-			},
-			engine: {
-				backgroundState: {
-					PreferencesController: {
-						selectedAddress: 'akjdjkasdjkdsk',
-					},
-				},
-			},
-		};
+  it('should render correctly when logged in', () => {
+    const initialState = {
+      user: {
+        loggedIn: true,
+      },
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            selectedAddress: 'akjdjkasdjkdsk',
+          },
+        },
+      },
+    };
 
-		const wrapper = shallow(<App />, {
-			context: { store: mockStore(initialState) },
-		});
-		expect(wrapper).toMatchSnapshot();
-		expect(wrapper).toMatchSnapshot();
-	});
+    const wrapper = shallow(<App />, {
+      context: { store: mockStore(initialState) },
+    });
+    expect(wrapper).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
+  });
 });

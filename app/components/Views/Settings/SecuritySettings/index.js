@@ -241,8 +241,8 @@ class Settings extends PureComponent {
      */
     passwordSet: PropTypes.func,
     /**
-    	/* navigation object required to push new views
-    	*/
+    /* navigation object required to push new views
+    */
     navigation: PropTypes.object,
     /**
      * Map of hostnames with approved account access
