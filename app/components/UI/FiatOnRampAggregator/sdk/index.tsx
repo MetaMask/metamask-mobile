@@ -74,9 +74,9 @@ export const SDK = OnRampSdk.create(
 );
 
 const appConfig = {
-  POLLING_INTERVAL: 15000,
+  POLLING_INTERVAL: 20000,
   POLLING_INTERVAL_HIGHLIGHT: 10000,
-  POLLING_CYCLES: 2,
+  POLLING_CYCLES: 3,
 };
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
