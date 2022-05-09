@@ -23,6 +23,7 @@ import { getNotificationDetails } from '../../FiatOrders';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import { strings } from '../../../../../locales/i18n';
 
 const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError } = useFiatOnRampSDK();
@@ -149,6 +150,16 @@ const CheckoutWebView = () => {
         <WebView
           key={key}
           source={{ uri }}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            if (nativeEvent.url === uri) {
+              const webviewHttpError = strings(
+                'fiat_on_ramp_aggregator.webview_received_error',
+                { code: nativeEvent.statusCode },
+              );
+              setError(webviewHttpError);
+            }
+          }}
           allowInlineMediaPlayback
           enableApplePay
           mediaPlaybackRequiresUserAction={false}

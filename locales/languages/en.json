@@ -1583,6 +1583,7 @@
     "report_this_issue": "Report this issue",
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
+    "webview_received_error": "WebView received error status code: {{code}}",
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",
