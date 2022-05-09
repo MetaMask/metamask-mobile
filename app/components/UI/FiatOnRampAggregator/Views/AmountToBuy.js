@@ -33,7 +33,6 @@ import PaymentMethodModal from '../components/PaymentMethodModal';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
-import WebviewError from '../../WebviewError';
 import { NATIVE_ADDRESS } from '../constants';
 import { getPaymentMethodIcon } from '../utils';
 
@@ -45,6 +44,8 @@ import SkeletonText from '../components/SkeletonText';
 import ListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
+import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -90,6 +91,7 @@ const AmountToBuy = () => {
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
   const [tokens, setTokens] = useState([]);
+  const [error, setError] = useState(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const [
@@ -136,6 +138,7 @@ const AmountToBuy = () => {
     selectedFiatCurrencyId,
     setSelectedFiatCurrencyId,
     selectedChainId,
+    sdkError,
   } = useFiatOnRampSDK();
 
   /**
@@ -151,6 +154,7 @@ const AmountToBuy = () => {
 
   const [
     { data: countries, isFetching: isFetchingCountries, error: errorCountries },
+    queryGetCountries,
   ] = useSDKMethod('getCountries');
 
   const [
@@ -168,6 +172,7 @@ const AmountToBuy = () => {
       error: errorFiatCurrencies,
       isFetching: isFetchingFiatCurrencies,
     },
+    queryGetFiatCurrencies,
   ] = useSDKMethod(
     'getFiatCurrencies',
     selectedRegion?.id,
@@ -180,6 +185,7 @@ const AmountToBuy = () => {
       error: errorSdkCryptoCurrencies,
       isFetching: isFetchingSdkCryptoCurrencies,
     },
+    queryGetCryptoCurrencies,
   ] = useSDKMethod(
     'getCryptoCurrencies',
     selectedRegion?.id,
@@ -193,6 +199,7 @@ const AmountToBuy = () => {
       error: errorPaymentMethods,
       isFetching: isFetchingPaymentMethods,
     },
+    queryGetPaymentMethods,
   ] = useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
   const [
@@ -201,20 +208,20 @@ const AmountToBuy = () => {
       error: errorCurrentPaymentMethod,
       isFetching: isFetchingCurrentPaymentMethod,
     },
+    queryGetPaymentMethod,
   ] = useSDKMethod(
     'getPaymentMethod',
     selectedRegion?.id,
     selectedPaymentMethodId,
   );
 
-  const [{ data: limits, error: errorLimits, isFetching: isFetchingLimits }] =
-    useSDKMethod(
-      'getLimits',
-      selectedRegion?.id,
-      selectedPaymentMethodId,
-      selectedAsset?.id || '',
-      selectedFiatCurrencyId || '',
-    );
+  const [{ data: limits, isFetching: isFetchingLimits }] = useSDKMethod(
+    'getLimits',
+    selectedRegion?.id,
+    selectedPaymentMethodId,
+    selectedAsset?.id || '',
+    selectedFiatCurrencyId || '',
+  );
 
   /**
    * * Defaults and validation of selected values
@@ -506,6 +513,69 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
+  const retryMethod = useCallback(() => {
+    if (!error) {
+      return null;
+    }
+
+    if (errorSdkCryptoCurrencies) {
+      return queryGetCryptoCurrencies();
+    } else if (errorCurrentPaymentMethod) {
+      return queryGetPaymentMethod();
+    } else if (errorPaymentMethods) {
+      return queryGetPaymentMethods();
+    } else if (errorFiatCurrencies) {
+      return queryGetFiatCurrencies();
+    } else if (errorDefaultFiatCurrency) {
+      return queryDefaultFiatCurrency();
+    } else if (errorCountries) {
+      return queryGetCountries();
+    }
+  }, [
+    error,
+    errorCountries,
+    errorCurrentPaymentMethod,
+    errorDefaultFiatCurrency,
+    errorFiatCurrencies,
+    errorPaymentMethods,
+    errorSdkCryptoCurrencies,
+    queryDefaultFiatCurrency,
+    queryGetCountries,
+    queryGetCryptoCurrencies,
+    queryGetFiatCurrencies,
+    queryGetPaymentMethod,
+    queryGetPaymentMethods,
+  ]);
+
+  useEffect(() => {
+    setError(
+      (errorSdkCryptoCurrencies ||
+        errorCurrentPaymentMethod ||
+        errorPaymentMethods ||
+        errorFiatCurrencies ||
+        errorDefaultFiatCurrency ||
+        errorCountries) ??
+        null,
+    );
+  }, [
+    errorCountries,
+    errorCurrentPaymentMethod,
+    errorDefaultFiatCurrency,
+    errorFiatCurrencies,
+    errorPaymentMethods,
+    errorSdkCryptoCurrencies,
+  ]);
+
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting error={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (
     isFetchingSdkCryptoCurrencies ||
     isFetchingCurrentPaymentMethod ||
@@ -551,22 +621,13 @@ const AmountToBuy = () => {
     );
   }
 
-  if (
-    errorSdkCryptoCurrencies ||
-    errorCurrentPaymentMethod ||
-    errorPaymentMethods ||
-    errorFiatCurrencies ||
-    errorDefaultFiatCurrency ||
-    errorCountries ||
-    errorLimits
-  ) {
+  if (error) {
     return (
-      <WebviewError
-        error={{
-          description: errorSdkCryptoCurrencies || errorCurrentPaymentMethod,
-        }}
-        onReload={() => navigation.navigate('AmountToBuy')}
-      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={retryMethod} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 

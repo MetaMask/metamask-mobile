@@ -15,19 +15,27 @@ import { strings } from '../../../../../locales/i18n';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import RegionAlert from '../components/RegionAlert';
 import SkeletonText from '../components/SkeletonText';
+import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const Region = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { selectedRegion, setSelectedRegion, setSelectedFiatCurrencyId } =
-    useFiatOnRampSDK();
+  const {
+    selectedRegion,
+    setSelectedRegion,
+    setSelectedFiatCurrencyId,
+    sdkError,
+  } = useFiatOnRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
     useModalHandler(false);
 
   const [showAlert, setShowAlert] = useState(false);
   const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] =
     useState({});
-  const [{ data, isFetching, error }] = useSDKMethod('getCountries');
+  const [{ data, isFetching, error }, queryGetCountries] =
+    useSDKMethod('getCountries');
+
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
@@ -71,6 +79,16 @@ const Region = () => {
     }
   }, [updatedRegion, setSelectedRegion]);
 
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting error={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (isFetching || !data) {
     return (
       <ScreenLayout>
@@ -87,11 +105,12 @@ const Region = () => {
       </ScreenLayout>
     );
   }
+
   if (error) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <Text>{error}</Text>
+          <ErrorView description={error} ctaOnPress={queryGetCountries} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );

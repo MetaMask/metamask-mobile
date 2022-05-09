@@ -7,7 +7,6 @@ import PaymentOption from '../components/PaymentOption';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import { strings } from '../../../../../locales/i18n';
 import StyledButton from '../../StyledButton';
-import WebviewError from '../../../UI/WebviewError';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { getPaymentMethodIcon } from '../utils';
@@ -16,6 +15,8 @@ import SkeletonBox from '../components/SkeletonBox';
 import SkeletonText from '../components/SkeletonText';
 import ListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
+import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 
 const styles = StyleSheet.create({
   row: {
@@ -65,12 +66,11 @@ const PaymentMethod = () => {
     selectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
+    sdkError,
   } = useFiatOnRampSDK();
 
-  const [{ data: paymentMethods, isFetching, error }] = useSDKMethod(
-    'getPaymentMethods',
-    selectedRegion?.id,
-  );
+  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
+    useSDKMethod('getPaymentMethods', selectedRegion?.id);
 
   const filteredPaymentMethods = useMemo(() => {
     if (paymentMethods) {
@@ -102,6 +102,16 @@ const PaymentMethod = () => {
     navigation.navigate('AmountToBuy');
   }, [navigation]);
 
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting error={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (isFetching) {
     return (
       <ScreenLayout>
@@ -118,10 +128,11 @@ const PaymentMethod = () => {
 
   if (error) {
     return (
-      <WebviewError
-        error={{ description: error }}
-        onReload={() => navigation.navigate('PaymentMethod')}
-      />
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={queryGetPaymentMethods} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
     );
   }
 

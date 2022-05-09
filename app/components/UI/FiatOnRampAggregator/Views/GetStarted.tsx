@@ -11,10 +11,12 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useFiatOnRampSDK } from '../sdk';
+import ErrorViewWithReportingJS from '../components/ErrorViewWithReporting';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
 const ListItem = ListItemJS as any;
+const ErrorViewWithReporting = ErrorViewWithReportingJS as any;
 
 const styles = StyleSheet.create({
   listItem: {
@@ -61,7 +63,7 @@ const whatToExpectList = [
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const { getStarted, setGetStarted } = useFiatOnRampSDK();
+  const { getStarted, setGetStarted, sdkError } = useFiatOnRampSDK();
 
   const { colors } = useTheme();
 
@@ -91,6 +93,16 @@ const GetStarted: React.FC = () => {
       });
     }
   }, [getStarted, navigation]);
+
+  if (sdkError) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorViewWithReporting error={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <ScreenLayout>

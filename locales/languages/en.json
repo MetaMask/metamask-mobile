@@ -1577,6 +1577,12 @@
     "total": "Total",
     "pay_with": "Pay with",
     "buy_with": "Buy with {{provider}}",
+    "try_again": "Try again",
+    "error": "Error",
+    "something_went_wrong": "Oops, something went wrong",
+    "report_this_issue": "Report this issue",
+    "no_providers_available": "No providers available",
+    "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",
