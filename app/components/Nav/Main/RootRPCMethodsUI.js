@@ -777,8 +777,7 @@ const RootRPCMethodsUI = (props) => {
       );
       WalletConnect.hub.removeAllListeners();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handlePendingApprovals, onUnapprovedMessage]);
 
   return (
     <React.Fragment>
