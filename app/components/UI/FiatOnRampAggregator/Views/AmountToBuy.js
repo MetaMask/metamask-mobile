@@ -505,26 +505,8 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
-  const errorInAmountToBuy = useMemo(
-    () =>
-      errorSdkCryptoCurrencies ||
-      errorCurrentPaymentMethod ||
-      errorPaymentMethods ||
-      errorFiatCurrencies ||
-      errorDefaultFiatCurrency ||
-      errorCountries,
-    [
-      errorCountries,
-      errorCurrentPaymentMethod,
-      errorDefaultFiatCurrency,
-      errorFiatCurrencies,
-      errorPaymentMethods,
-      errorSdkCryptoCurrencies,
-    ],
-  );
-
   const retryMethod = useCallback(() => {
-    if (!errorInAmountToBuy) {
+    if (!error) {
       return null;
     }
 
@@ -542,11 +524,11 @@ const AmountToBuy = () => {
       return queryGetCountries();
     }
   }, [
+    error,
     errorCountries,
     errorCurrentPaymentMethod,
     errorDefaultFiatCurrency,
     errorFiatCurrencies,
-    errorInAmountToBuy,
     errorPaymentMethods,
     errorSdkCryptoCurrencies,
     queryDefaultFiatCurrency,
@@ -558,10 +540,23 @@ const AmountToBuy = () => {
   ]);
 
   useEffect(() => {
-    if (errorInAmountToBuy) {
-      setError(errorInAmountToBuy);
-    }
-  }, [errorInAmountToBuy]);
+    setError(
+      (errorSdkCryptoCurrencies ||
+        errorCurrentPaymentMethod ||
+        errorPaymentMethods ||
+        errorFiatCurrencies ||
+        errorDefaultFiatCurrency ||
+        errorCountries) ??
+        null,
+    );
+  }, [
+    errorCountries,
+    errorCurrentPaymentMethod,
+    errorDefaultFiatCurrency,
+    errorFiatCurrencies,
+    errorPaymentMethods,
+    errorSdkCryptoCurrencies,
+  ]);
 
   if (sdkError) {
     return (
