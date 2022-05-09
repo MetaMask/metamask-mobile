@@ -89,6 +89,13 @@ jest.mock('../core/Engine', () => ({
 
 jest.mock('react-native-keychain', () => ({
   getSupportedBiometryType: () => Promise.resolve('FaceId'),
+  BIOMETRY_TYPE: {
+    TOUCH_ID: 'TouchID',
+    FACE_ID: 'FaceID',
+    FINGERPRINT: 'Fingerprint',
+    FACE: 'Face',
+    IRIS: 'Iris',
+  },
 }));
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({

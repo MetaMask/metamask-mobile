@@ -137,24 +137,4 @@ describe('Authentication', () => {
     await Authentication.storePassword('1234', AUTHENTICATION_TYPE.UNKNOWN);
     expect(methodCalled).toBeTruthy();
   });
-
-  // it('should return set a password using BIOMETRIC', async () => {
-  // 	let methodCalled = false;
-  // 	SecureKeychain.resetGenericPassword = jest.fn().mockReturnValue((methodCalled = true));
-  // 	await AuthenticationService.storePassword('1234', AUTHENTICATION_TYPE.BIOMETRIC);
-  // 	expect(methodCalled).toBeTruthy();
-  // });
-
-  // it('should successfully complete userEntryAuth', async () => {
-  // 	// Create new wallet
-  // 	await AuthenticationService.newWalletAndKeyChain('test1234', {
-  // 		type: AUTHENTICATION_TYPE.PASSWORD,
-  // 		biometryType: undefined,
-  // 	});
-  // 	await AuthenticationService.userEntryAuth(
-  // 		'test',
-  // 		{ type: AUTHENTICATION_TYPE.PASSWORD, biometryType: undefined },
-  // 		'0x000'
-  // 	);
-  // });
 });
