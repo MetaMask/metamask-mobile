@@ -3,10 +3,10 @@ import React from 'react';
 import { View } from 'react-native';
 import useStyles from '../../hooks/useStyles';
 import { BaseAvatarProps } from './BaseAvatar.types';
-import stylesheet from './BaseAvatar.styles';
+import createStyleSheet from './BaseAvatar.styles';
 
 const BaseAvatar: React.FC<BaseAvatarProps> = ({ size, style, children }) => {
-  const styles = useStyles(stylesheet, {
+  const styles = useStyles(createStyleSheet, {
     size,
   });
 
