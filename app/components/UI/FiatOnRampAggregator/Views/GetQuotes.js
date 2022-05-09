@@ -41,10 +41,6 @@ const createStyles = (colors) =>
       width: '100%',
       backgroundColor: colors.border.default,
     },
-    firstRow: {
-      marginTop: 0,
-      marginBottom: 8,
-    },
     timerWrapper: {
       backgroundColor: colors.background.alternative,
       borderRadius: 20,
