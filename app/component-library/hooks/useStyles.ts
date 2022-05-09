@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { Theme } from 'app/util/theme/models';
-import { useAppThemeFromContext } from 'app/util/theme';
+import { Theme } from '../../util/theme/models';
+import { useAppThemeFromContext } from '../../util/theme';
 
 /**
  * useStyles, a custom hook that memoizes the stylesheet object with the supplied parameters
