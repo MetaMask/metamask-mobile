@@ -734,7 +734,13 @@ const AmountToBuy = () => {
           currency={currentFiatCurrency?.symbol}
         />
         <ScreenLayout.Content>
-          <StyledButton type="confirm" onPress={handleKeypadDone}>
+          <StyledButton
+            type="confirm"
+            onPress={handleKeypadDone}
+            disabled={
+              amountNumber < limits.minAmount || amountNumber > limits.maxAmount
+            }
+          >
             {strings('fiat_on_ramp_aggregator.done')}
           </StyledButton>
         </ScreenLayout.Content>
