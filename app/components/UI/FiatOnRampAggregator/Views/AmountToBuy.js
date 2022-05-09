@@ -680,7 +680,7 @@ const AmountToBuy = () => {
                 label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
                 amount={displayAmount}
-                highlightedError={amountIsBelowMinimum || amountIsAboveMaximum}
+                highlightedError={!amountIsValid}
                 currencyCode={currentFiatCurrency?.symbol}
                 onPress={onAmountInputPress}
                 onCurrencyPress={handleFiatSelectorPress}
