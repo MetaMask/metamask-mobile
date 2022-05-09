@@ -1,14 +1,17 @@
 import { StyleSheet } from 'react-native';
 import { BaseAvatarStyleSheetVars } from './BaseAvatar.types';
 
-const createStyleSheet = ({ size }: BaseAvatarStyleSheetVars) =>
-  StyleSheet.create({
+const createStyleSheet = ({ size }: BaseAvatarStyleSheetVars) => {
+  const sizeAsNum = Number(size);
+
+  return StyleSheet.create({
     container: {
-      height: size,
-      width: size,
-      borderRadius: size / 2,
+      height: sizeAsNum,
+      width: sizeAsNum,
+      borderRadius: sizeAsNum / 2,
       overflow: 'hidden',
     },
   });
+};
 
 export default createStyleSheet;
