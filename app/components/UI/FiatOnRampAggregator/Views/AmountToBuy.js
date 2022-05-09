@@ -513,6 +513,20 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
+  const amountIsBelowMinimum = useMemo(
+    () => amountNumber !== 0 && amountNumber < limits?.minAmount,
+    [amountNumber, limits?.minAmount],
+  );
+
+  const amountIsAboveMaximum = useMemo(
+    () => amountNumber !== 0 && amountNumber > limits?.maxAmount,
+    [amountNumber, limits?.maxAmount],
+  );
+
+  const amountIsValid = useMemo(
+    () => !amountIsBelowMinimum && !amountIsAboveMaximum,
+    [amountIsBelowMinimum, amountIsAboveMaximum],
+  );
   const retryMethod = useCallback(() => {
     if (!error) {
       return null;
@@ -666,11 +680,26 @@ const AmountToBuy = () => {
                 label={strings('fiat_on_ramp_aggregator.amount')}
                 currencySymbol={currentFiatCurrency?.denomSymbol}
                 amount={displayAmount}
+                highlightedError={!amountIsValid}
                 currencyCode={currentFiatCurrency?.symbol}
                 onPress={onAmountInputPress}
                 onCurrencyPress={handleFiatSelectorPress}
               />
             </View>
+            {amountIsBelowMinimum && (
+              <Text red small>
+                {strings('fiat_on_ramp_aggregator.minimum')}{' '}
+                {currentFiatCurrency?.denomSymbol}
+                {limits.minAmount}
+              </Text>
+            )}
+            {amountIsAboveMaximum && (
+              <Text red small>
+                {strings('fiat_on_ramp_aggregator.maximum')}{' '}
+                {currentFiatCurrency?.denomSymbol}
+                {limits.maxAmount}
+              </Text>
+            )}
           </ScreenLayout.Content>
         </Pressable>
       </ScreenLayout.Body>
@@ -692,7 +721,7 @@ const AmountToBuy = () => {
             <StyledButton
               type="confirm"
               onPress={handleGetQuotePress}
-              disabled={amountNumber <= 0}
+              disabled={!amountIsValid}
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
