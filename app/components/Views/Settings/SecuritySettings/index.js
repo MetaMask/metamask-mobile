@@ -41,8 +41,6 @@ import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
 import {
   EXISTING_USER,
-  BIOMETRY_CHOICE,
-  PASSCODE_CHOICE,
   TRUE,
   PASSCODE_DISABLED,
   BIOMETRY_CHOICE_DISABLED,
@@ -214,6 +212,9 @@ Heading.propTypes = {
   ]),
   first: PropTypes.bool,
 };
+
+const PASSCODE_CHOICE_STRING = 'passcodeChoice';
+const BIOMETRY_CHOICE_STRING = 'biometryChoice';
 
 /**
  * Main view for app configurations
@@ -449,11 +450,11 @@ class Settings extends PureComponent {
   isMainnet = () => this.props.type === MAINNET;
 
   onSignInWithPasscode = async (enabled) => {
-    await this.setPassword(enabled, PASSCODE_CHOICE);
+    await this.setPassword(enabled, PASSCODE_CHOICE_STRING);
   };
 
   onSingInWithBiometrics = async (enabled) => {
-    await this.setPassword(enabled, BIOMETRY_CHOICE);
+    await this.setPassword(enabled, BIOMETRY_CHOICE_STRING);
   };
 
   storeCredentials = async (password, enabled, type) => {
@@ -467,9 +468,9 @@ class Settings extends PureComponent {
 
       if (!enabled) {
         this.setState({ [type]: false, loading: false });
-        if (type === PASSCODE_CHOICE) {
+        if (type === PASSCODE_CHOICE_STRING) {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
-        } else if (type === BIOMETRY_CHOICE) {
+        } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
         }
 
@@ -478,9 +479,9 @@ class Settings extends PureComponent {
 
       try {
         let authType;
-        if (type === BIOMETRY_CHOICE) {
+        if (type === BIOMETRY_CHOICE_STRING) {
           authType = AUTHENTICATION_TYPE.BIOMETRIC;
-        } else if (type === PASSCODE_CHOICE) {
+        } else if (type === PASSCODE_CHOICE_STRING) {
           authType = AUTHENTICATION_TYPE.PASSCODE;
         } else {
           authType = AUTHENTICATION_TYPE.PASSWORD;
