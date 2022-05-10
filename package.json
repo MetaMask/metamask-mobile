@@ -92,7 +92,9 @@
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
     "**/plist": "3.0.5",
-    "**/minimist": "1.2.6"
+    "**/minimist": "1.2.6",
+    "@metamask/**/cross-fetch": "2.2.6",
+    "react-native-gesture-handler/**/cross-fetch": "3.1.5"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",

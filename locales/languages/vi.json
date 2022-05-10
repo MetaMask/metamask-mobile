@@ -1458,7 +1458,7 @@
     "no_countries_result": "Không có quốc gia hỗ trợ nào khớp \"{{searchString}}\"",
     "wyre_loading_rates": " ",
     "fast_no_registration": "Nhanh chóng - Không cần đăng ký",
-    "debit_credit_card_required": "Thẻ tín dụng hoặc ghi nợ. Không hỗ trợ Apple Cash.",
+    "debit_credit_card_required": "Thẻ tín dụng hoặc thẻ ghi nợ. Không hỗ trợ Apple Cash.",
     "select_card_country": "Chọn quốc gia nơi đăng ký thẻ của bạn (không phải nơi bạn đang sống).",
     "search_country": "Tìm quốc gia",
     "wyre_countries": "Hơn 55 quốc gia, phí và hạn mức khác nhau",
