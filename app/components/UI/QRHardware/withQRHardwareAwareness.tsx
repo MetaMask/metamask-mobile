@@ -31,10 +31,11 @@ const withQRHardwareAwareness = (
 
     componentDidMount() {
       const { KeyringController } = Engine.context as any;
-      KeyringController.getQRKeyringState().then((store: any) => {
-        this.keyringState = store;
-        this.keyringState.subscribe(this.subscribeKeyringState);
-      });
+      if (KeyringController.isUnlocked())
+        KeyringController.getQRKeyringState().then((store: any) => {
+          this.keyringState = store;
+          this.keyringState.subscribe(this.subscribeKeyringState);
+        });
     }
 
     componentWillUnmount() {

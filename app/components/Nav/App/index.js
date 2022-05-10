@@ -164,7 +164,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
         }
 
         //Cancel auth if the existing user has not been set
-        if (existingUser == null) setAuthCancelled(true);
+        if (existingUser === null) setAuthCancelled(true);
       } catch (error) {
         await Authentication.logout(false);
         trackErrorAsAnalytics(
@@ -254,12 +254,12 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    async function checkExsiting() {
+    async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser ? 'OnboardingRootNav' : 'Login';
       setRoute(route);
     }
-    checkExsiting();
+    checkExisting();
   }, [userLoggedIn, authCancelled]);
 
   useEffect(() => {
