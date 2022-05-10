@@ -721,7 +721,7 @@ const AmountToBuy = () => {
             <StyledButton
               type="confirm"
               onPress={handleGetQuotePress}
-              disabled={!amountIsValid}
+              disabled={!amountIsValid || amountNumber <= 0}
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
@@ -735,10 +735,12 @@ const AmountToBuy = () => {
       >
         <QuickAmounts
           onAmountPress={handleQuickAmountPress}
-          amounts={limits?.quickAmounts.map((limit) => ({
-            value: limit,
-            label: currentFiatCurrency?.denomSymbol + limit.toString(),
-          }))}
+          amounts={
+            limits?.quickAmounts.map((limit) => ({
+              value: limit,
+              label: currentFiatCurrency?.denomSymbol + limit.toString(),
+            })) || []
+          }
         />
         <Keypad
           value={amount}
