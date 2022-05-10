@@ -8,12 +8,12 @@ import { Theme } from '../../util/theme/models';
  *
  * @param styleSheet Return value of useStyles hook.
  * @param vars Variables of styleSheet function.
- * @returns
+ * @returns StyleSheet object.
  */
 export const useStyles = <R, V>(
   styleSheet: (params: { theme: Theme; vars: V }) => R,
   vars: V,
-) => {
+): R => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(
     () => styleSheet({ theme, vars }),
