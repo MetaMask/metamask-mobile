@@ -198,9 +198,9 @@ function EditPermission({
               {strings('spend_limit_edition.requested_by')}
               <Text style={fontStyles.bold}>{` ${host}`}</Text>
             </Text>
-            <Text
-              style={[styles.optionText, styles.textBlack]}
-            >{`${originalApproveAmount} ${tokenSymbol}`}</Text>
+            <Text style={[styles.optionText, styles.textBlack]}>{`${Number(
+              originalApproveAmount,
+            ).toLocaleString()} ${tokenSymbol}`}</Text>
           </View>
         </View>
 

@@ -85,6 +85,12 @@ const createStyles = (colors) =>
       lineHeight: 20,
       paddingHorizontal: 16,
     },
+    tokenAccess: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      fontSize: 14,
+      textAlign: 'center',
+    },
     editPermissionText: {
       ...fontStyles.bold,
       color: colors.primary.default,
@@ -323,6 +329,7 @@ class ApproveTransactionReview extends PureComponent {
     editPermissionVisible: false,
     host: undefined,
     originalApproveAmount: undefined,
+    customSpendAmount: null,
     tokenSymbol: undefined,
     spendLimitUnlimitedSelected: true,
     spendLimitCustomValue: undefined,
@@ -531,6 +538,14 @@ class ApproveTransactionReview extends PureComponent {
         transaction,
       );
 
+      const { encodedAmount } = decodeApproveData(newApprovalTransaction.data);
+
+      const approveAmount = fromTokenMinimalUnit(
+        hexToBN(encodedAmount),
+        token.decimals,
+      );
+
+      this.setState({ customSpendAmount: approveAmount });
       setTransactionObject({
         ...newApprovalTransaction,
         transaction: {
@@ -626,7 +641,13 @@ class ApproveTransactionReview extends PureComponent {
   toggleDisplay = () => this.props.onUpdateContractNickname();
 
   renderDetails = () => {
-    const { host, tokenSymbol, spenderAddress } = this.state;
+    const {
+      host,
+      tokenSymbol,
+      spenderAddress,
+      originalApproveAmount,
+      customSpendAmount,
+    } = this.state;
     const {
       primaryCurrency,
       gasError,
@@ -676,6 +697,13 @@ class ApproveTransactionReview extends PureComponent {
               }`,
               { tokenSymbol },
             )}
+          </Text>
+          <Text reset style={styles.tokenAccess}>
+            <Text bold>{strings('spend_limit_edition.access_up_to')} </Text>
+            {customSpendAmount
+              ? Number(customSpendAmount).toLocaleString()
+              : Number(originalApproveAmount).toLocaleString()}{' '}
+            {tokenSymbol}
           </Text>
           <TouchableOpacity
             style={styles.actionTouchable}

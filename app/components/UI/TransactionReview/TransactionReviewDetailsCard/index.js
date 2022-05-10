@@ -154,7 +154,7 @@ export default class TransactionReviewDetailsCard extends Component {
               {strings('spend_limit_edition.allowance')}
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
-              {allowance} {tokenSymbol}
+              {Number(allowance).toLocaleString()} {tokenSymbol}
             </Text>
           </View>
         </View>
