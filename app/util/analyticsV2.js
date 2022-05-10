@@ -111,6 +111,8 @@ export const ANALYTICS_EVENTS_V2 = {
 	CONNECT_HARDWARE_WALLET_SUCCESS: generateOpt('Connected Account with hardware wallet'),
 	QR_HARDWARE_TRANSACTION_CANCELED: generateOpt('User canceled QR hardware transaction'),
 	HARDWARE_WALLET_ERROR: generateOpt('Hardware wallet error'),
+	// TOKENS
+	TOKEN_DETECTED: generateOpt('Token Detected'),
 };
 
 /**
