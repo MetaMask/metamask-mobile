@@ -7,17 +7,17 @@ import { Theme } from '../../util/theme/models';
  * Hook that handles both passing style sheet variables into style sheet and memoization.
  *
  * @param styleSheet Return value of useStyles hook.
- * @param styleSheetVars Variables of styleSheet function.
+ * @param vars Variables of styleSheet function.
  * @returns
  */
 export const useStyles = <R, V>(
-  styleSheet: (theme: Theme, vars: V) => R,
-  styleSheetVars: V,
+  styleSheet: (params: { theme: Theme; vars: V }) => R,
+  vars: V,
 ) => {
-  const appTheme = useAppThemeFromContext();
+  const theme = useAppThemeFromContext();
   const styles = useMemo(
-    () => styleSheet(appTheme, styleSheetVars),
-    [styleSheet, appTheme, styleSheetVars],
+    () => styleSheet({ theme, vars }),
+    [styleSheet, theme, vars],
   );
   return styles;
 };
