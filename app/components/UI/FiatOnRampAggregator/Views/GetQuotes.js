@@ -100,7 +100,7 @@ const createStyles = (colors) =>
     },
   });
 
-const SkeletonQuote = ({ style }) => {
+const SkeletonQuote = ({ collapsed, style }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
@@ -115,36 +115,41 @@ const SkeletonQuote = ({ style }) => {
           <SkeletonText medium />
         </ListItem.Amounts>
       </ListItem.Content>
-      <ListItem.Content>
-        <ListItem.Body>
-          <SkeletonText thin />
-        </ListItem.Body>
-        <ListItem.Amounts>
-          <SkeletonText thin spacingVertical small />
-        </ListItem.Amounts>
-      </ListItem.Content>
-      <ListItem.Content>
-        <ListItem.Body>
-          <SkeletonText thin />
-        </ListItem.Body>
-        <ListItem.Amounts>
-          <SkeletonText thin small />
-        </ListItem.Amounts>
-      </ListItem.Content>
-      <ListItem.Content>
-        <ListItem.Body>
-          <SkeletonText thin />
-        </ListItem.Body>
-        <ListItem.Amounts>
-          <SkeletonText thin spacingVertical small />
-        </ListItem.Amounts>
-      </ListItem.Content>
+      {!collapsed && (
+        <>
+          <ListItem.Content>
+            <ListItem.Body>
+              <SkeletonText thin />
+            </ListItem.Body>
+            <ListItem.Amounts>
+              <SkeletonText thin spacingVertical small />
+            </ListItem.Amounts>
+          </ListItem.Content>
+          <ListItem.Content>
+            <ListItem.Body>
+              <SkeletonText thin />
+            </ListItem.Body>
+            <ListItem.Amounts>
+              <SkeletonText thin small />
+            </ListItem.Amounts>
+          </ListItem.Content>
+          <ListItem.Content>
+            <ListItem.Body>
+              <SkeletonText thin />
+            </ListItem.Body>
+            <ListItem.Amounts>
+              <SkeletonText thin spacingVertical small />
+            </ListItem.Amounts>
+          </ListItem.Content>
+        </>
+      )}
     </Box>
   );
 };
 
 SkeletonQuote.propTypes = {
   style: PropTypes.any,
+  collapsed: PropTypes.bool,
 };
 
 const LINK = {
@@ -214,7 +219,7 @@ const GetQuotes = () => {
   );
 
   const filteredQuotes = useMemo(
-    () => (quotes || []).filter(({ error }) => !error),
+    () => (quotes || []).filter(({ error }) => !error).sort(sortByAmountOut),
     [quotes],
   );
 
@@ -286,6 +291,12 @@ const GetQuotes = () => {
     if (isFetchingQuotes) return;
     setShouldFinishAnimation(true);
   }, [isFetchingQuotes]);
+
+  useEffect(() => {
+    if (filteredQuotes && filteredQuotes.length > 0) {
+      setProviderId(filteredQuotes[0].provider?.id);
+    }
+  }, [filteredQuotes]);
 
   const handleOnQuotePress = useCallback((quote) => {
     setProviderId(quote.provider.id);
@@ -459,10 +470,11 @@ const GetQuotes = () => {
             {isFetchingQuotes && isInPolling ? (
               <>
                 <SkeletonQuote style={styles.withoutTopMargin} />
-                <SkeletonQuote />
+                <SkeletonQuote collapsed />
+                <SkeletonQuote collapsed />
               </>
             ) : (
-              filteredQuotes.sort(sortByAmountOut).map((quote, index) => (
+              filteredQuotes.map((quote, index) => (
                 <View
                   key={quote.provider.id}
                   style={[styles.row, index === 0 && styles.withoutTopMargin]}
@@ -471,10 +483,7 @@ const GetQuotes = () => {
                     quote={quote}
                     onPress={() => handleOnQuotePress(quote)}
                     onPressBuy={() => handleOnPressBuy(quote)}
-                    highlighted={
-                      quote.provider.id === providerId ||
-                      filteredQuotes.length === 1
-                    }
+                    highlighted={quote.provider.id === providerId}
                     showInfo={() => handleInfoPress(quote)}
                   />
                 </View>

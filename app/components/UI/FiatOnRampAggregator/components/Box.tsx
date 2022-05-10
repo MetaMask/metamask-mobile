@@ -35,6 +35,7 @@ interface Props {
   label?: string;
   style?: StyleProp<ViewStyle>;
   thin?: boolean;
+  activeOpacity?: number;
   onPress?: () => any;
 }
 
@@ -44,6 +45,7 @@ const Box: React.FC<Props> = ({
   style,
   thin,
   onPress,
+  activeOpacity,
   ...props
 }: Props) => {
   const { colors } = useTheme();
@@ -55,7 +57,11 @@ const Box: React.FC<Props> = ({
           {label}
         </Text>
       )}
-      <TouchableOpacity disabled={!onPress} onPress={onPress}>
+      <TouchableOpacity
+        disabled={!onPress}
+        onPress={onPress}
+        activeOpacity={activeOpacity}
+      >
         <View
           style={[
             styles.wrapper,
