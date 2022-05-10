@@ -170,23 +170,20 @@ const RegionModal: React.FC<Props> = ({
   );
 
   const handleOnRegionPressCallback = useCallback(
-    (region) => {
+    (region: Region) => {
       if (region.states) {
         setActiveView(RegionViewType.STATE);
         setRegionInTransit(region);
-        setCurrentData(region.states);
+        setCurrentData(region.states as Region[]);
         setSearchString('');
       } else if (region.unsupported) {
         setUnsupportedRegion(region);
         setShowAlert(true);
       } else {
-        onRegionPress({
-          ...region,
-          currency: region.currency || regionInTransit.currency,
-        });
+        onRegionPress(region);
       }
     },
-    [onRegionPress, regionInTransit.currency],
+    [onRegionPress],
   );
 
   const renderRegionItem = useCallback(
