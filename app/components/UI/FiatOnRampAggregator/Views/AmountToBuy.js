@@ -513,14 +513,16 @@ const AmountToBuy = () => {
     return amount;
   }, [amount, amountFocused, amountNumber]);
 
+  const amountIsZero = useMemo(() => amountNumber === 0, [amountNumber]);
+
   const amountIsBelowMinimum = useMemo(
-    () => amountNumber !== 0 && amountNumber < limits?.minAmount,
-    [amountNumber, limits?.minAmount],
+    () => !amountIsZero && amountNumber < limits?.minAmount,
+    [amountIsZero, amountNumber, limits?.minAmount],
   );
 
   const amountIsAboveMaximum = useMemo(
-    () => amountNumber !== 0 && amountNumber > limits?.maxAmount,
-    [amountNumber, limits?.maxAmount],
+    () => !amountIsZero && amountNumber > limits?.maxAmount,
+    [amountIsZero, amountNumber, limits?.maxAmount],
   );
 
   const amountIsValid = useMemo(
@@ -721,7 +723,7 @@ const AmountToBuy = () => {
             <StyledButton
               type="confirm"
               onPress={handleGetQuotePress}
-              disabled={!amountIsValid || amountNumber <= 0}
+              disabled={!amountIsValid || amountIsZero}
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </StyledButton>
