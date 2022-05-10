@@ -665,7 +665,7 @@ Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   selectedAddress:
-    state.engine.backgroundState?.PreferencesController?.selectedAddress,
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   userLoggedIn: state.user.userLoggedIn,
 });
 
