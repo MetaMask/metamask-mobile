@@ -4,8 +4,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import KeypadComponent from '../../../Base/Keypad';
 import { useTheme } from '../../../../util/theme';
 import { colors as importedColors } from '../../../../styles/common';
+import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     keypad: {
       paddingHorizontal: 24,
@@ -43,10 +44,23 @@ interface Props {
   /**
    * Custom style for container
    */
-  style: ViewStyle;
+  style?: ViewStyle;
 }
 
-const Keypad: React.FC<Props> = ({ style, ...props }: Props) => {
+const Keypad = ({
+  style,
+  ...props
+}: Props &
+  Omit<
+    React.ComponentProps<typeof KeypadComponent>,
+    | 'digitButtonStyle'
+    | 'digitTextStyle'
+    | 'periodButtonStyle'
+    | 'periodTextStyle'
+    | 'deleteButtonStyle'
+    | 'deleteIcon'
+    | 'style'
+  >) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (

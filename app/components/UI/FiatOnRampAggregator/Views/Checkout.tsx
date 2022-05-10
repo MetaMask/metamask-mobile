@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import qs from 'query-string';
+import { parseUrl } from 'query-string';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewNavigation } from 'react-native-webview';
+import { QuoteResponse, CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useFiatOnRampSDK, SDK } from '../sdk';
 import { NETWORK_NATIVE_SYMBOL } from '../../../../constants/on-ramp';
+
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
 import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
@@ -31,7 +33,8 @@ const CheckoutWebView = () => {
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
-  const { params } = useRoute();
+  // @ts-expect-error useRoute params error
+  const { params }: { params: QuoteResponse } = useRoute();
   const { colors } = useTheme();
   const uri = params?.buyURL;
   useEffect(() => {
@@ -44,7 +47,7 @@ const CheckoutWebView = () => {
     );
   }, [navigation, colors, params.provider.name]);
 
-  const addTokenToTokensController = async (token) => {
+  const addTokenToTokensController = async (token: CryptoCurrency) => {
     if (!token) return;
 
     const { address, symbol, decimals, network } = token;
@@ -57,10 +60,11 @@ const CheckoutWebView = () => {
       return;
     }
 
+    // @ts-expect-error Engine context typing
     const { TokensController } = Engine.context;
 
     if (
-      !TokensController.state.tokens.includes((t) =>
+      !TokensController.state.tokens.includes((t: any) =>
         toLowerCaseEquals(t.address, address),
       )
     ) {
@@ -79,7 +83,7 @@ const CheckoutWebView = () => {
     dispatch(protectWalletModalVisible());
   }, [dispatch]);
 
-  const handleNavigationStateChange = async (navState) => {
+  const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (navState?.url.startsWith(callbackBaseUrl)) {
       try {
         const orders = await SDK.orders();
@@ -97,22 +101,26 @@ const CheckoutWebView = () => {
         // add the order to the redux global store
         handleAddFiatOrder(transformedOrder);
         // register the token automatically
+
         await addTokenToTokensController(
-          transformedOrder?.data?.cryptoCurrency,
+          (transformedOrder as any)?.data?.cryptoCurrency,
         );
+
         // prompt user to protect his/her wallet
         handleDispatchUserWalletProtection();
         // close the checkout webview
+        // @ts-expect-error navigation prop mismatch
         navigation.dangerouslyGetParent()?.pop();
         NotificationManager.showSimpleNotification(
-          getNotificationDetails(transformedOrder),
+          getNotificationDetails(transformedOrder as any),
         );
-      } catch (error) {
-        const parsedUrl = qs.parseUrl(navState?.url);
+      } catch (navStateError) {
+        const parsedUrl = parseUrl(navState?.url);
         if (Object.keys(parsedUrl.query).length === 0) {
+          // @ts-expect-error navigation prop mismatch
           navigation.dangerouslyGetParent()?.pop();
         } else {
-          setError(error?.message);
+          setError((navStateError as Error)?.message);
         }
       }
     }
@@ -135,7 +143,7 @@ const CheckoutWebView = () => {
           <ErrorView
             description={error}
             ctaOnPress={() => {
-              setKey((key) => key + 1);
+              setKey((prevKey) => prevKey + 1);
               setError('');
             }}
           />
@@ -170,7 +178,7 @@ const CheckoutWebView = () => {
   }
 };
 
-CheckoutWebView.navigationOptions = ({ route }) => ({
+CheckoutWebView.navigationOptions = ({ route }: { route: any }) => ({
   title: route?.params?.providerName,
 });
 

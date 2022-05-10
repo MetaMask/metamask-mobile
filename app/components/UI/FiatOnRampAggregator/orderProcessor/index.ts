@@ -5,7 +5,7 @@ import { processMoonPayOrder } from '../../FiatOrders/orderProcessor/moonpay';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from './aggregator';
 
-function processOrder(order) {
+function processOrder(order: any) {
   switch (order.provider) {
     case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
       return processWyreApplePayOrder(order);

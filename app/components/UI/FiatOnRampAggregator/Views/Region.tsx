@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Text from '../../../Base/Text';
-import ListItem from '../../../Base/ListItem';
+import BaseText from '../../../Base/Text';
+import BaseListItem from '../../../Base/ListItem';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import ScreenLayout from '../components/ScreenLayout';
 import Box from '../components/Box';
@@ -17,8 +17,13 @@ import RegionAlert from '../components/RegionAlert';
 import SkeletonText from '../components/SkeletonText';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import { Region } from '../types';
 
-const Region = () => {
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+const ListItem = BaseListItem as any;
+
+const RegionView = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const {
@@ -32,7 +37,7 @@ const Region = () => {
 
   const [showAlert, setShowAlert] = useState(false);
   const [selectedUnsupportedLocation, setSelectedUnsupportedLocation] =
-    useState({});
+    useState<Region | Record<string, never>>({});
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
 
@@ -64,15 +69,19 @@ const Region = () => {
 
   const updatedRegion = useMemo(() => {
     if (!selectedRegion || !data) return null;
-    const allRegions = data.reduce(
-      (acc, region) => [...acc, region, ...(region.states || [])],
+    const allRegions: Region[] = data.reduce(
+      (acc: Region[], region: Region) => [
+        ...acc,
+        region,
+        ...((region.states as Region[]) || []),
+      ],
       [],
     );
     return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
   }, [data, selectedRegion]);
 
   useEffect(() => {
-    if (updatedRegion && updatedRegion.unsupported) {
+    if (updatedRegion?.unsupported) {
       setShowAlert(true);
       setSelectedUnsupportedLocation(updatedRegion);
       setSelectedRegion(null);
@@ -132,7 +141,7 @@ const Region = () => {
       />
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          <TouchableOpacity onPress={showRegionModal}>
+          <TouchableOpacity onPress={showRegionModal as () => void}>
             <Box>
               <ListItem.Content>
                 <ListItem.Body>
@@ -165,7 +174,7 @@ const Region = () => {
             'fiat_on_ramp_aggregator.region.select_country_registered',
           )}
           data={data}
-          dismiss={hideRegionModal}
+          dismiss={hideRegionModal as () => void}
           onRegionPress={handleRegionPress}
         />
       </ScreenLayout.Body>
@@ -186,4 +195,4 @@ const Region = () => {
   );
 };
 
-export default Region;
+export default RegionView;

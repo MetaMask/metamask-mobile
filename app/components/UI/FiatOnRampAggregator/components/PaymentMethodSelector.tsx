@@ -6,11 +6,12 @@ import { useTheme } from '../../../../util/theme';
 
 import ListItemBase from '../../../Base/ListItem';
 import TextBase from '../../../Base/Text';
+import { Colors } from '../../../../util/theme/models';
 
 const ListItem = ListItemBase as any;
 const Text = TextBase as any;
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     chevron: {
       marginLeft: 10,
@@ -23,7 +24,7 @@ interface IProps {
   label?: string;
   icon?: ReactNode;
   highlighted?: boolean;
-  onPress?: () => void;
+  onPress?: () => any;
 }
 
 const PaymentMethodSelector: React.FC<IProps> = ({

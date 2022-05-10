@@ -15,8 +15,8 @@ import { useNavigation } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
-import Text from '../../../Base/Text';
-import SelectorButton from '../../../Base/SelectorButton';
+import BaseText from '../../../Base/Text';
+import BaseSelectorButton from '../../../Base/SelectorButton';
 import StyledButton from '../../StyledButton';
 
 import ScreenLayout from '../components/ScreenLayout';
@@ -41,13 +41,20 @@ import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import SkeletonText from '../components/SkeletonText';
-import ListItem from '../../../Base/ListItem';
+import BaseListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import { Colors } from '../../../../util/theme/models';
+import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 
-const createStyles = (colors) =>
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+const ListItem = BaseListItem as any;
+const SelectorButton = BaseSelectorButton as any;
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     viewContainer: {
       flex: 1,
@@ -90,8 +97,8 @@ const AmountToBuy = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [tokens, setTokens] = useState([]);
-  const [error, setError] = useState(null);
+  const [tokens, setTokens] = useState<CryptoCurrency[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const [
@@ -495,9 +502,8 @@ const AmountToBuy = () => {
    */
   const currentFiatCurrency = useMemo(() => {
     const currency =
-      fiatCurrencies?.find?.(
-        (currency) => currency.id === selectedFiatCurrencyId,
-      ) || defaultFiatCurrency;
+      fiatCurrencies?.find?.((curr) => curr.id === selectedFiatCurrencyId) ||
+      defaultFiatCurrency;
     return currency;
   }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
 
@@ -514,13 +520,13 @@ const AmountToBuy = () => {
   }, [amount, amountFocused, amountNumber]);
 
   const amountIsBelowMinimum = useMemo(
-    () => amountNumber !== 0 && amountNumber < limits?.minAmount,
-    [amountNumber, limits?.minAmount],
+    () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
+    [amountNumber, limits],
   );
 
   const amountIsAboveMaximum = useMemo(
-    () => amountNumber !== 0 && amountNumber > limits?.maxAmount,
-    [amountNumber, limits?.maxAmount],
+    () => amountNumber !== 0 && limits && amountNumber > limits.maxAmount,
+    [amountNumber, limits],
   );
 
   const amountIsValid = useMemo(
@@ -669,8 +675,8 @@ const AmountToBuy = () => {
                     symbol={selectedAsset?.symbol}
                   />
                 }
-                assetSymbol={selectedAsset?.symbol}
-                assetName={selectedAsset?.name}
+                assetSymbol={selectedAsset?.symbol ?? ''}
+                assetName={selectedAsset?.name ?? ''}
                 onPress={handleAssetSelectorPress}
               />
             </View>
@@ -690,14 +696,14 @@ const AmountToBuy = () => {
               <Text red small>
                 {strings('fiat_on_ramp_aggregator.minimum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
-                {limits.minAmount}
+                {limits?.minAmount}
               </Text>
             )}
             {amountIsAboveMaximum && (
               <Text red small>
                 {strings('fiat_on_ramp_aggregator.maximum')}{' '}
                 {currentFiatCurrency?.denomSymbol}
-                {limits.maxAmount}
+                {limits?.maxAmount}
               </Text>
             )}
           </ScreenLayout.Content>
@@ -715,7 +721,7 @@ const AmountToBuy = () => {
               />
             }
             name={currentPaymentMethod?.name}
-            onPress={showPaymentMethodsModal}
+            onPress={showPaymentMethodsModal as () => void}
           />
           <View style={[styles.row, styles.cta]}>
             <StyledButton
@@ -736,6 +742,7 @@ const AmountToBuy = () => {
         <QuickAmounts
           onAmountPress={handleQuickAmountPress}
           amounts={
+            // @ts-expect-error quick amounts is not in limits interface
             limits?.quickAmounts.map((limit) => ({
               value: limit,
               label: currentFiatCurrency?.denomSymbol + limit.toString(),
@@ -755,7 +762,7 @@ const AmountToBuy = () => {
       </Animated.View>
       <TokenSelectModal
         isVisible={isTokenSelectorModalVisible}
-        dismiss={toggleTokenSelectorModal}
+        dismiss={toggleTokenSelectorModal as () => void}
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         description={strings(
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
@@ -766,14 +773,14 @@ const AmountToBuy = () => {
       />
       <FiatSelectModal
         isVisible={isFiatSelectorModalVisible}
-        dismiss={toggleFiatSelectorModal}
+        dismiss={toggleFiatSelectorModal as () => void}
         title={strings('fiat_on_ramp_aggregator.select_region_currency')}
         currencies={fiatCurrencies}
         onItemPress={handleCurrencyPress}
       />
       <PaymentMethodModal
         isVisible={isPaymentMethodModalVisible}
-        dismiss={hidePaymentMethodModal}
+        dismiss={hidePaymentMethodModal as () => void}
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
         paymentMethods={filteredPaymentMethods}
         selectedPaymentMethod={selectedPaymentMethodId}
@@ -784,7 +791,7 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.region.title')}
         description={strings('fiat_on_ramp_aggregator.region.description')}
         data={countries}
-        dismiss={hideRegionModal}
+        dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
       />
     </ScreenLayout>

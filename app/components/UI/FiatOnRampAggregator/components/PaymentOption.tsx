@@ -9,6 +9,7 @@ import PaymentIcon, { Icon } from './PaymentIcon';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
 import { useTheme } from '../../../../util/theme';
+import { Colors } from '../../../../util/theme/models';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const visa = require('./images/visa.png');
@@ -26,12 +27,11 @@ interface Props {
   time: number[];
   amountTier: number[];
   paymentType: Icon;
-  paymentNetworks: [string];
   onPress?: () => any;
   highlighted?: boolean;
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     iconWrapper: {
       width: 38,

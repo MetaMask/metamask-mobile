@@ -6,8 +6,9 @@ import {
   Image,
   Linking,
 } from 'react-native';
-import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
+import { OrderStatusEnum } from '@consensys/on-ramp-sdk/dist/API';
+import Box from './Box';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
@@ -20,14 +21,13 @@ import {
 } from '../../../../util/number';
 import { getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
+import Spinner from '../../AnimatedSpinner';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/transactionFailed.png');
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
-
 const ListItem = BaseListItem as any;
-import Spinner from '../../AnimatedSpinner';
-import { SDK_ORDER_STATUS } from '../orderProcessor/aggregator';
+
 const createStyles = (colors: any) =>
   StyleSheet.create({
     stage: {
@@ -96,7 +96,7 @@ const Stage: React.FC<PropsStage> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   switch (stage) {
-    case SDK_ORDER_STATUS.Completed: {
+    case OrderStatusEnum.Completed: {
       return (
         <>
           <Feather
@@ -118,8 +118,8 @@ const Stage: React.FC<PropsStage> = ({
         </>
       );
     }
-    case SDK_ORDER_STATUS.Cancelled:
-    case SDK_ORDER_STATUS.Failed: {
+    case OrderStatusEnum.Cancelled:
+    case OrderStatusEnum.Failed: {
       return (
         <>
           <Image source={failedIcon} />
@@ -134,7 +134,8 @@ const Stage: React.FC<PropsStage> = ({
         </>
       );
     }
-    case SDK_ORDER_STATUS.Pending:
+    case OrderStatusEnum.Pending:
+    case OrderStatusEnum.Unknown:
     default: {
       return (
         <>
@@ -402,7 +403,7 @@ const TransactionDetails: React.FC<Props> = ({
             )}
           </ListItem.Amount>
         </ListItem.Content>
-        {order.state === SDK_ORDER_STATUS.Completed && txHash && (
+        {order.state === OrderStatusEnum.Completed && txHash && (
           <TouchableOpacity
             onPress={() => handleLinkPress(explorer.tx(txHash))}
           >

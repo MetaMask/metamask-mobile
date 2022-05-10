@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
 import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
-import { useSelector, connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -19,9 +19,16 @@ const styles = StyleSheet.create({
   },
 });
 
-const TransactionDetails = ({ route, provider, frequentRpcList }) => {
-  const orderById = useSelector(makeOrderIdSelector(route.params.orderId));
-  const order = orderById;
+const TransactionDetails = ({ route }: { route: any }) => {
+  const provider = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
+
+  const order = useSelector(makeOrderIdSelector(route.params.orderId));
 
   const { colors } = useTheme();
   const navigation = useNavigation();
@@ -40,6 +47,7 @@ const TransactionDetails = ({ route, provider, frequentRpcList }) => {
   }, [colors, navigation]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
+    // @ts-expect-error navigation prop mismatch
     navigation.replace('PaymentMethod');
   }, [navigation]);
 
@@ -79,19 +87,6 @@ TransactionDetails.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  /**
-   * Current Network provider
-   */
-  provider: PropTypes.object,
-  /**
-   * Frequent RPC list from PreferencesController
-   */
-  frequentRpcList: PropTypes.array,
 };
 
-const mapStateToProps = (state) => ({
-  provider: state.engine.backgroundState.NetworkController.provider,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
-});
-export default connect(mapStateToProps)(TransactionDetails);
+export default TransactionDetails;

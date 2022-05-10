@@ -4,37 +4,43 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
+import { Order } from '@consensys/on-ramp-sdk';
+import { OrderStatusEnum } from '@consensys/on-ramp-sdk/dist/API';
 
-//* Helpers
-// TODO: replace this with order status types imported from SDK
-export const SDK_ORDER_STATUS = {
-  Pending: 'PENDING',
-  Failed: 'FAILED',
-  Completed: 'COMPLETED',
-  Cancelled: 'CANCELLED',
-};
 /**
  * Transforms an AggregatorOrder state into a FiatOrder state
  * @param {AGGREGATOR_ORDER_STATES} aggregatorOrderState
  */
-const aggregatorOrderStateToFiatOrderState = (aggregatorOrderState) => {
+const aggregatorOrderStateToFiatOrderState = (
+  aggregatorOrderState: Order['status'],
+) => {
   switch (aggregatorOrderState) {
-    case SDK_ORDER_STATUS.Completed: {
+    case OrderStatusEnum.Completed: {
       return FIAT_ORDER_STATES.COMPLETED;
     }
-    case SDK_ORDER_STATUS.Failed: {
+    case OrderStatusEnum.Failed: {
       return FIAT_ORDER_STATES.FAILED;
     }
-    case SDK_ORDER_STATUS.Cancelled: {
+    case OrderStatusEnum.Cancelled: {
       return FIAT_ORDER_STATES.CANCELLED;
     }
+    case OrderStatusEnum.Pending:
+    case OrderStatusEnum.Unknown:
     default: {
       return FIAT_ORDER_STATES.PENDING;
     }
   }
 };
 
-export const aggregatorInitialFiatOrder = (initialOrder) => ({
+interface InitialAggregatorOrder {
+  id: string;
+  account: string;
+  network: number;
+}
+
+export const aggregatorInitialFiatOrder = (
+  initialOrder: InitialAggregatorOrder,
+) => ({
   ...initialOrder,
   state: FIAT_ORDER_STATES.PENDING,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
@@ -47,7 +53,7 @@ export const aggregatorInitialFiatOrder = (initialOrder) => ({
   data: null,
 });
 
-const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
+const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   id: aggregatorOrder.id,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
   createdAt: aggregatorOrder.createdAt,
@@ -70,7 +76,9 @@ const aggregatorOrderToFiatOrder = (aggregatorOrder) => ({
  * @param {FiatOrder} order Order coming from the state
  * @returns {FiatOrder} Fiat order to update in the state
  */
-export async function processAggregatorOrder(order) {
+export async function processAggregatorOrder(
+  order: ReturnType<typeof aggregatorOrderToFiatOrder> | InitialAggregatorOrder,
+) {
   try {
     const orders = await SDK.orders();
     const updatedOrder = await orders.getOrder(order.id, order.account);
@@ -84,7 +92,7 @@ export async function processAggregatorOrder(order) {
       ...aggregatorOrderToFiatOrder(updatedOrder),
     };
   } catch (error) {
-    Logger.error(error, {
+    Logger.error(error as Error, {
       message: 'FiatOrders::AggregatorProcessor error while processing order',
       order,
     });
