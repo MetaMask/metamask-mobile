@@ -171,7 +171,11 @@ const AmountToBuy = () => {
       isFetching: isFetchingDefaultFiatCurrency,
     },
     queryDefaultFiatCurrency,
-  ] = useSDKMethod('getDefaultFiatCurrency', selectedRegion?.id);
+  ] = useSDKMethod(
+    'getDefaultFiatCurrency',
+    selectedRegion?.id,
+    selectedPaymentMethodId,
+  );
 
   const [
     {
@@ -417,7 +421,10 @@ const AmountToBuy = () => {
          * Selected fiat currency is default, we will fetch
          * and select new region default fiat currency
          */
-        const newRegionCurrency = await queryDefaultFiatCurrency(region.id);
+        const newRegionCurrency = await queryDefaultFiatCurrency(
+          region.id,
+          selectedPaymentMethodId,
+        );
         setSelectedFiatCurrencyId(newRegionCurrency?.id);
       }
     },
@@ -426,6 +433,7 @@ const AmountToBuy = () => {
       hideRegionModal,
       queryDefaultFiatCurrency,
       selectedFiatCurrencyId,
+      selectedPaymentMethodId,
       setSelectedFiatCurrencyId,
       setSelectedRegion,
     ],

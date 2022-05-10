@@ -247,6 +247,7 @@ export function useSDKMethod<T extends keyof RegionsService>(
           const response = await sdkMethod(
             ...(customParams.length > 0 ? customParams : params),
           );
+          // @ts-expect-error response type error
           setData(response);
           return response;
         }
