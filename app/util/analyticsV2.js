@@ -113,6 +113,7 @@ export const ANALYTICS_EVENTS_V2 = {
 	HARDWARE_WALLET_ERROR: generateOpt('Hardware wallet error'),
 	// TOKENS
 	TOKEN_DETECTED: generateOpt('Token Detected'),
+	TOKEN_IMPORT_CLICKED: generateOpt('Token Import Clicked'),
 };
 
 /**

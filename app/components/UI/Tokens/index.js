@@ -19,6 +19,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
 	StyleSheet.create({
@@ -268,7 +269,17 @@ class Tokens extends PureComponent {
 	};
 
 	showDetectedTokens = () => {
+		const { NetworkController } = Engine.context;
+		const { detectedTokens } = this.props;
 		this.props.navigation.navigate('DetectedTokens');
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CLICKED, {
+				source: 'detected',
+				chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
+				tokens: detectedTokens.map((token) => `${token.symbol} - ${token.address}`),
+			});
+			this.setState({ isAddTokenEnabled: true });
+		});
 	};
 
 	renderTokensDetectedSection = () => {
@@ -311,10 +322,14 @@ class Tokens extends PureComponent {
 	}
 
 	goToAddToken = () => {
+		const { NetworkController } = Engine.context;
 		this.setState({ isAddTokenEnabled: false });
 		this.props.navigation.push('AddAsset', { assetType: 'token' });
 		InteractionManager.runAfterInteractions(() => {
-			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_TOKENS);
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CLICKED, {
+				source: 'manual',
+				chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
+			});
 			this.setState({ isAddTokenEnabled: true });
 		});
 	};
