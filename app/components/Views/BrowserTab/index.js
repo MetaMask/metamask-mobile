@@ -622,7 +622,8 @@ export const BrowserTab = (props) => {
       // Remove all Engine listeners
       Engine.context.TokensController.hub.removeAllListeners();
     };
-  }, [go, props.approvedHosts, props.initialUrl]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (Device.isAndroid()) {

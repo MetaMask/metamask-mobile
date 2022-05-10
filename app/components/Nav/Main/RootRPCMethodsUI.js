@@ -759,6 +759,14 @@ const RootRPCMethodsUI = (props) => {
       handlePendingApprovals,
     );
 
+    Engine.context.TokensController.hub.on(
+      'pendingSuggestedAsset',
+      (suggestedAssetMeta) => {
+        setSuggestedAssetMeta(suggestedAssetMeta);
+        setWatchAsset(true);
+      },
+    );
+
     return function cleanup() {
       Engine.context.PersonalMessageManager.hub.removeAllListeners();
       Engine.context.TypedMessageManager.hub.removeAllListeners();
@@ -771,14 +779,6 @@ const RootRPCMethodsUI = (props) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  Engine.context.TokensController.hub.on(
-    'pendingSuggestedAsset',
-    (suggestedAssetMeta) => {
-      setSuggestedAssetMeta(suggestedAssetMeta);
-      setWatchAsset(true);
-    },
-  );
 
   return (
     <React.Fragment>
