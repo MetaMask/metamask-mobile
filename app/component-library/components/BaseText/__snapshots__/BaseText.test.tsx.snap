@@ -3,10 +3,15 @@
 exports[`BaseText should render correctly 1`] = `
 <Text
   style={
-    Array [
-      Object {},
-      undefined,
-    ]
+    Object {
+      "fontFamily": "Euclid Circular B",
+      "fontSize": 16,
+      "fontWeight": "400",
+      "letterSpacing": 0,
+      "lineHeight": 24,
+    }
   }
-/>
+>
+  I'm Text!
+</Text>
 `;
