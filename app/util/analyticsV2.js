@@ -99,8 +99,6 @@ export const ANALYTICS_EVENTS_V2 = {
 	BROWSER_RELOAD: generateOpt('Reload Browser'),
 	BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
 	// SETTINGS
-	SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
-	SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
 	REVEAL_SRP_INITIATED: generateOpt(`Reveal SRP Initiated`),
 	// REVEAL_SRP
 	REVEAL_SRP_CANCELLED: generateOpt(`Reveal SRP Cancelled`),

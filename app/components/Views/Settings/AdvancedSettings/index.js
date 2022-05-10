@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View, InteractionManager } from 'react-native';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Switch, Text, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { util as controllerUtils } from '@metamask/controllers';
@@ -22,7 +22,6 @@ import SelectComponent from '../../../UI/SelectComponent';
 import { timeoutFetch } from '../../../../util/general';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 
 const HASH_TO_TEST = 'Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a';
 const HASH_STRING = 'Hello from IPFS Gateway Checker';
@@ -264,16 +263,8 @@ class AdvancedSettings extends PureComponent {
 	};
 
 	toggleTokenDetection = (detectionStatus) => {
-		const { chainId } = this.props;
 		const { PreferencesController } = Engine.context;
-		const eventOn = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_ON;
-		const eventOff = AnalyticsV2.ANALYTICS_EVENTS.SETTINGS_TOKEN_DETECTION_OFF;
 		PreferencesController.setUseTokenDetection(detectionStatus);
-		InteractionManager.runAfterInteractions(() => {
-			AnalyticsV2.trackEvent(detectionStatus ? eventOn : eventOff, {
-				chain_id: chainId,
-			});
-		});
 	};
 
 	renderTokenDetectionSection = () => {
