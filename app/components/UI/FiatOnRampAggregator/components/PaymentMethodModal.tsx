@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
 
@@ -9,10 +8,15 @@ import PaymentOption from './PaymentOption';
 
 import { useTheme } from '../../../../util/theme';
 import { getPaymentMethodIcon } from '../utils';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import { strings } from '../../../../../locales/i18n';
+import { Colors } from '../../../../util/theme/models';
+import { Payment } from '@consensys/on-ramp-sdk';
 
-const createStyles = (colors) =>
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -36,6 +40,15 @@ const createStyles = (colors) =>
     },
   });
 
+interface Props {
+  isVisible: boolean;
+  dismiss: () => void;
+  title?: string;
+  onItemPress: (paymentMethodId?: Payment['id']) => void;
+  paymentMethods?: Payment[] | null;
+  selectedPaymentMethod: Payment['id'];
+}
+
 function PaymentMethodModal({
   isVisible,
   dismiss,
@@ -43,7 +56,7 @@ function PaymentMethodModal({
   onItemPress,
   paymentMethods,
   selectedPaymentMethod,
-}) {
+}: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -115,14 +128,5 @@ function PaymentMethodModal({
     </Modal>
   );
 }
-
-PaymentMethodModal.propTypes = {
-  isVisible: PropTypes.bool,
-  dismiss: PropTypes.func,
-  title: PropTypes.string,
-  onItemPress: PropTypes.func,
-  paymentMethods: PropTypes.array,
-  selectedPaymentMethod: PropTypes.string,
-};
 
 export default PaymentMethodModal;

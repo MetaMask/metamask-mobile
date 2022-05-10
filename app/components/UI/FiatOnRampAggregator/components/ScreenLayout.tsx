@@ -8,6 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
+import { Colors } from '../../../../util/theme/models';
 import TextJS from '../../../Base/Text';
 
 const Text = TextJS as any;
@@ -22,7 +23,7 @@ interface Style {
   description: ViewStyle;
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create<Style>({
     wrapper: {
       flex: 1,

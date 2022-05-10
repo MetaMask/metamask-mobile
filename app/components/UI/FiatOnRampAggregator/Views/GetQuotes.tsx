@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -8,7 +13,7 @@ import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 import LoadingAnimation from '../components/LoadingAnimation';
 import Quote from '../components/Quote';
 import { strings } from '../../../../../locales/i18n';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import useInterval from '../../../hooks/useInterval';
 import ScreenView from '../../FiatOrders/components/ScreenView';
 import StyledButton from '../../StyledButton';
@@ -18,7 +23,7 @@ import { useTheme } from '../../../../util/theme';
 import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import InfoAlert from '../components/InfoAlert';
 import SkeletonText from '../components/SkeletonText';
-import ListItem from '../../../Base/ListItem';
+import BaseListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 
 import Animated, {
@@ -30,8 +35,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import { Colors } from '../../../../util/theme/models';
+import { QuoteResponse, Provider } from '@consensys/on-ramp-sdk';
 
-const createStyles = (colors) =>
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+const ListItem = BaseListItem as any;
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     row: {
       marginVertical: 8,
@@ -100,7 +111,13 @@ const createStyles = (colors) =>
     },
   });
 
-const SkeletonQuote = ({ collapsed, style }) => {
+const SkeletonQuote = ({
+  collapsed,
+  style,
+}: {
+  collapsed?: boolean;
+  style?: StyleProp<ViewStyle>;
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
@@ -147,18 +164,18 @@ const SkeletonQuote = ({ collapsed, style }) => {
   );
 };
 
-SkeletonQuote.propTypes = {
-  style: PropTypes.any,
-  collapsed: PropTypes.bool,
-};
-
 const LINK = {
   HOMEPAGE: 'Homepage',
   PRIVACY_POLICY: 'Privacy Policy',
   SUPPORT: 'Support',
 };
 
-const sortByAmountOut = (a, b) => b.amountOut - a.amountOut;
+const sortByAmountOut = (a: QuoteResponse, b: QuoteResponse) => {
+  if (a.amountOut && b.amountOut) {
+    return b.amountOut - a.amountOut;
+  }
+  return 0;
+};
 
 const GetQuotes = () => {
   const {
@@ -187,8 +204,9 @@ const GetQuotes = () => {
     appConfig.POLLING_INTERVAL,
   );
   const [showProviderInfo, setShowProviderInfo] = useState(false);
-  const [selectedProviderInfo, setSelectedProviderInfo] = useState(null);
-  const [providerId, setProviderId] = useState(null);
+  const [selectedProviderInfo, setSelectedProviderInfo] =
+    useState<Provider | null>(null);
+  const [providerId, setProviderId] = useState<string | null>(null);
 
   const scrollOffsetY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -211,9 +229,10 @@ const GetQuotes = () => {
     'getQuotes',
     selectedRegion?.id,
     selectedPaymentMethodId,
-    selectedAsset?.id,
-    selectedFiatCurrencyId,
-    params.amount,
+    selectedAsset?.id || '',
+    selectedFiatCurrencyId || '',
+    // @ts-expect-error useRoute params
+    params?.amount,
     selectedAddress,
     callbackBaseUrl,
   );
@@ -226,8 +245,8 @@ const GetQuotes = () => {
   // we only activate this interval polling once the first fetch of quotes is successfull
   useInterval(
     () => {
-      setRemainingTime((remainingTime) => {
-        const newRemainingTime = Number(remainingTime - 1000);
+      setRemainingTime((prevRemainingTime) => {
+        const newRemainingTime = Number(prevRemainingTime - 1000);
 
         if (newRemainingTime <= 0) {
           setPollingCyclesLeft((cycles) => cycles - 1);
@@ -436,6 +455,7 @@ const GetQuotes = () => {
         {isInPolling && <QuotesPolling />}
         <Text centered grey>
           {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
+            // @ts-expect-error params useRute type
             ticker: params?.asset?.symbol || '',
           })}
         </Text>

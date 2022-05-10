@@ -1,13 +1,14 @@
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
-
+import { Colors } from '../../../../util/theme/models';
 import CustomText from '../../../Base/Text';
+
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 
 const INSET = 25;
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     content: {
       backgroundColor: colors.background.alternative,

@@ -10,6 +10,7 @@ import CustomTitle from '../../../Base/Title';
 import RemoteImage from '../../../Base/RemoteImage';
 import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+import { Colors } from '../../../../util/theme/models';
 
 type Logos = QuoteResponse['provider']['logos'];
 
@@ -18,7 +19,7 @@ const Title = CustomTitle as any;
 
 const LOGO_SIZE = 1;
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     box: {
       backgroundColor: colors.background.default,

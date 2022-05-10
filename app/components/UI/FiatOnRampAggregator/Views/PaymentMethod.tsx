@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentOption from '../components/PaymentOption';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
@@ -13,10 +13,14 @@ import { getPaymentMethodIcon } from '../utils';
 import Device from '../../../../util/device';
 import SkeletonBox from '../components/SkeletonBox';
 import SkeletonText from '../components/SkeletonText';
-import ListItem from '../../../Base/ListItem';
+import BaseListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+const ListItem = BaseListItem as any;
 
 const styles = StyleSheet.create({
   row: {

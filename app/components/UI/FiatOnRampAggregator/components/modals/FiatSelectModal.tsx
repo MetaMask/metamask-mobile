@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
 import {
   StyleSheet,
   TextInput,
@@ -7,24 +6,29 @@ import {
   TouchableOpacity,
   View,
   TouchableWithoutFeedback,
+  FlatList,
 } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Fuse from 'fuse.js';
-import Device from '../../../../util/device';
-import { strings } from '../../../../../locales/i18n';
-import { fontStyles } from '../../../../styles/common';
-import ScreenLayout from './ScreenLayout';
+import Device from '../../../../../util/device';
+import { strings } from '../../../../../../locales/i18n';
+import { fontStyles } from '../../../../../styles/common';
+import ScreenLayout from '../ScreenLayout';
 
-import Text from '../../../Base/Text';
-import ListItem from '../../../Base/ListItem';
-import ModalDragger from '../../../Base/ModalDragger';
-import TokenIcon from '../../Swaps/components/TokenIcon';
-import { CHAIN_ID_NETWORKS } from '../constants';
-import { useTheme } from '../../../../util/theme';
+import BaseText from '../../../../Base/Text';
+import BaseListItem from '../../../../Base/ListItem';
+import ModalDragger from '../../../../Base/ModalDragger';
+import { useTheme } from '../../../../../util/theme';
+import { Colors } from '../../../../../util/theme/models';
+import { FiatCurrency } from '@consensys/on-ramp-sdk';
 
-const createStyles = (colors) =>
+const MAX_TOKENS_RESULTS = 20;
+
+const Text = BaseText as any;
+const ListItem = BaseListItem as any;
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -67,53 +71,58 @@ const createStyles = (colors) =>
       marginVertical: 10,
       marginHorizontal: 30,
     },
-    networkLabel: {
-      backgroundColor: colors.text.alternative,
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 5,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-    networkLabelText: {
-      fontSize: 12,
-      color: colors.background.default,
-    },
     listItem: {
       paddingHorizontal: 24,
+      paddingVertical: 24,
+    },
+    separator: {
+      height: 1,
+      width: '100%',
+      backgroundColor: colors.border.muted,
     },
   });
 
-const MAX_TOKENS_RESULTS = 20;
+const Separator = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return <View style={styles.separator} />;
+};
 
-function TokenSelectModal({
+interface Props {
+  isVisible: boolean;
+  dismiss: () => void;
+  title?: string;
+  description?: string;
+  currencies?: FiatCurrency[] | null;
+  onItemPress: (currency: any) => void;
+  excludeIds?: FiatCurrency['id'][];
+}
+function FiatSelectModal({
   isVisible,
   dismiss,
   title,
   description,
-  tokens,
+  currencies,
   onItemPress,
-  excludeAddresses = [],
-}) {
+  excludeIds = [],
+}: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const searchInput = useRef(null);
-  const list = useRef();
+  const searchInput = useRef<TextInput>(null);
+  const list = useRef<FlatList<FiatCurrency>>(null);
   const [searchString, setSearchString] = useState('');
 
   const excludedAddresses = useMemo(
-    () =>
-      excludeAddresses.filter(Boolean).map((address) => address.toLowerCase()),
-    [excludeAddresses],
+    () => excludeIds.filter(Boolean).map((id) => id.toLowerCase()),
+    [excludeIds],
   );
 
   const filteredTokens = useMemo(
     () =>
-      tokens?.filter(
-        (token) => !excludedAddresses.includes(token.address?.toLowerCase()),
-      ),
-    [excludedAddresses, tokens],
+      currencies?.filter(
+        (currency) => !excludedAddresses.includes(currency.id?.toLowerCase()),
+      ) ?? [],
+    [currencies, excludedAddresses],
   );
 
   const tokenFuse = useMemo(
@@ -125,7 +134,7 @@ function TokenSelectModal({
         distance: 100,
         maxPatternLength: 32,
         minMatchCharLength: 1,
-        keys: ['symbol', 'address', 'name'],
+        keys: ['symbol', 'name'],
       }),
     [filteredTokens],
   );
@@ -138,37 +147,19 @@ function TokenSelectModal({
   );
 
   const renderItem = useCallback(
-    ({ item }) => (
+    ({ item }: { item: FiatCurrency }) => (
       <TouchableOpacity onPress={() => onItemPress(item)}>
         <ListItem style={styles.listItem}>
           <ListItem.Content>
-            <ListItem.Icon>
-              <TokenIcon medium icon={item.logo} symbol={item.symbol} />
-            </ListItem.Icon>
             <ListItem.Body>
-              <ListItem.Title bold>{item.symbol}</ListItem.Title>
-              {item.name && <Text grey>{item.name}</Text>}
+              <ListItem.Title>{item.name}</ListItem.Title>
+              <Text grey>{item.symbol}</Text>
             </ListItem.Body>
-            <ListItem.Amounts>
-              <ListItem.Amount>
-                <View style={styles.networkLabel}>
-                  <Text bold upper style={styles.networkLabelText}>
-                    {CHAIN_ID_NETWORKS[item.network?.chainId] ||
-                      item.network?.chainId}
-                  </Text>
-                </View>
-              </ListItem.Amount>
-            </ListItem.Amounts>
           </ListItem.Content>
         </ListItem>
       </TouchableOpacity>
     ),
-    [
-      onItemPress,
-      styles.listItem,
-      styles.networkLabel,
-      styles.networkLabelText,
-    ],
+    [onItemPress, styles.listItem],
   );
 
   const handleSearchPress = () => searchInput?.current?.focus();
@@ -177,7 +168,9 @@ function TokenSelectModal({
     () => (
       <View style={styles.emptyList}>
         <Text>
-          {strings('fiat_on_ramp_aggregator.no_tokens_match', { searchString })}
+          {strings('fiat_on_ramp_aggregator.no_currency_match', {
+            searchString,
+          })}
         </Text>
       </View>
     ),
@@ -186,7 +179,9 @@ function TokenSelectModal({
 
   const handleSearchTextChange = useCallback((text) => {
     setSearchString(text);
-    if (list.current) list.current.scrollToOffset({ animated: false, y: 0 });
+    if (list.current) {
+      list.current.scrollToOffset({ animated: false, offset: 0 });
+    }
   }, []);
 
   const handleClearSearch = useCallback(() => {
@@ -223,7 +218,7 @@ function TokenSelectModal({
                   ref={searchInput}
                   style={styles.input}
                   placeholder={strings(
-                    'fiat_on_ramp_aggregator.search_by_cryptocurrency',
+                    'fiat_on_ramp_aggregator.search_by_currency',
                   )}
                   placeholderTextColor={colors.text.muted}
                   value={searchString}
@@ -252,8 +247,11 @@ function TokenSelectModal({
                 keyboardShouldPersistTaps="always"
                 data={tokenSearchResults}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item: FiatCurrency) => item.id}
                 ListEmptyComponent={renderEmptyList}
+                ItemSeparatorComponent={Separator}
+                ListFooterComponent={Separator}
+                ListHeaderComponent={Separator}
               />
             </View>
           </ScreenLayout.Body>
@@ -263,14 +261,4 @@ function TokenSelectModal({
   );
 }
 
-TokenSelectModal.propTypes = {
-  isVisible: PropTypes.bool,
-  dismiss: PropTypes.func,
-  title: PropTypes.string,
-  description: PropTypes.string,
-  tokens: PropTypes.arrayOf(PropTypes.object),
-  onItemPress: PropTypes.func,
-  excludeAddresses: PropTypes.arrayOf(PropTypes.string),
-};
-
-export default TokenSelectModal;
+export default FiatSelectModal;

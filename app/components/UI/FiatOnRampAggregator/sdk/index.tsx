@@ -12,6 +12,7 @@ import {
   Environment,
   Context,
   RegionsService,
+  CryptoCurrency,
 } from '@consensys/on-ramp-sdk';
 
 import Logger from '../../../../util/Logger';
@@ -42,11 +43,11 @@ export interface IFiatOnRampSDK {
   selectedPaymentMethodId: string;
   setSelectedPaymentMethodId: (paymentMethodId: string) => void;
 
-  selectedAsset: string | null;
-  setSelectedAsset: (asset: string) => void;
+  selectedAsset: CryptoCurrency | null;
+  setSelectedAsset: (asset: CryptoCurrency) => void;
 
   selectedFiatCurrencyId: string | null;
-  setSelectedFiatCurrencyId: (currencyId: string) => void;
+  setSelectedFiatCurrencyId: (currencyId: string | null) => void;
 
   getStarted: boolean;
   setGetStarted: (getStartedFlag: boolean) => void;
@@ -217,13 +218,19 @@ export function useSDKMethod<T extends keyof RegionsService>(
   config: T | config<T>,
   ...params: Parameters<RegionsService[T]>
 ): [
-  { data: any; error: string | null; isFetching: boolean },
+  {
+    data: Awaited<ReturnType<RegionsService[T]>> | null;
+    error: string | null;
+    isFetching: boolean;
+  },
   (
     ...customParams: Parameters<RegionsService[T]> | []
   ) => Promise<any> | ReturnType<RegionsService[T]>,
 ] {
   const { sdk }: { sdk: RegionsService } = useFiatOnRampSDK() as any;
-  const [data, setData] = useState<any | null>(null);
+  const [data, setData] = useState<Awaited<
+    ReturnType<RegionsService[T]>
+  > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(true);
   const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);

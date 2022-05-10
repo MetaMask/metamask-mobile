@@ -1,11 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
-import PropTypes from 'prop-types';
 import Device from '../../../../../util/device';
-import Title from '../../../../Base/Title';
-import Fox from '../../../Fox';
+import BaseTitle from '../../../../Base/Title';
+import FoxComponent from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
 import { useTheme } from '../../../../../util/theme';
+import { Colors } from '../../../../../util/theme/models';
+
+// TODO: Convert into typescript and correctly type
+const Title = BaseTitle as any;
+const Fox = FoxComponent as any;
 
 const ANIM_MULTIPLIER = 0.67;
 const START_DURATION = 1000 * ANIM_MULTIPLIER;
@@ -16,7 +20,7 @@ const IS_NARROW = Device.getDeviceWidth() <= 320;
 const STAGE_SIZE = IS_NARROW ? 240 : 260;
 const FINALIZING_PERCENTAGE = 80;
 
-const createStyles = (colors) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     screen: {
       flex: 1,
@@ -47,7 +51,7 @@ const createStyles = (colors) =>
     },
   });
 
-const customStyle = (colors) => `
+const customStyle = (colors: Colors) => `
 	body {
 		background-color: ${colors.background.default};
 	}
@@ -73,7 +77,17 @@ const customStyle = (colors) => `
 	}
 `;
 
-function LoadingAnimation({ title, finish, onAnimationEnd }) {
+interface Props {
+  title: string;
+  finish: boolean;
+  onAnimationEnd?: () => any;
+}
+
+function LoadingAnimation({
+  title,
+  finish,
+  onAnimationEnd,
+}: Props): React.ReactElement<Props> {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
@@ -150,20 +164,5 @@ function LoadingAnimation({ title, finish, onAnimationEnd }) {
     </View>
   );
 }
-
-LoadingAnimation.propTypes = {
-  /**
-   * Wether to execute the "Finalizing" animation after the main sequence
-   */
-  finish: PropTypes.bool,
-  /**
-   * Function callback executed once both the main sequence and the finalizing animation ends
-   */
-  onAnimationEnd: PropTypes.func,
-  /**
-   * Title string
-   */
-  title: PropTypes.string,
-};
 
 export default LoadingAnimation;

@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
 });
 
 interface Props {
-  currency: string;
+  currency?: string;
 }
 
 const CurrencyChevron = ({ currency, ...props }: Props) => (

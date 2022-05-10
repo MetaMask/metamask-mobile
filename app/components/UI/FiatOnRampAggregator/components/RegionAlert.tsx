@@ -5,9 +5,12 @@ import CustomText from '../../../Base/Text';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Box from '../components/Box';
 import { useTheme } from '../../../../util/theme';
+import { Colors } from '../../../../util/theme/models';
+
+// TODO: Convert into typescript and correctly type
 const Text = CustomText as any;
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     box: {
       backgroundColor: colors.background.default,

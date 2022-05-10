@@ -7,11 +7,12 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
+import { Colors } from '../../../../util/theme/models';
 import CustomText from '../../../Base/Text';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       padding: 16,

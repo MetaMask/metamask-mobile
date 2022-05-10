@@ -6,6 +6,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 interface iconParams {
   iconType: Icon;
   style?: StyleProp<TextStyle>;
+  name?: string;
   size: number;
 }
 
@@ -15,10 +16,14 @@ export enum Icon {
   Bank = 'bank',
 }
 
-const PaymentIcon: React.FC<iconParams> = ({
+const PaymentIcon = ({
   iconType,
+  name: _name,
   ...props
-}: iconParams) => {
+}: iconParams &
+  Omit<React.ComponentProps<typeof FontAwesome>, 'name'> &
+  Omit<React.ComponentProps<typeof MaterialsCommunityIcons>, 'name'> &
+  Omit<React.ComponentProps<typeof MaterialsIcons>, 'name'>) => {
   switch (iconType) {
     case Icon.Apple: {
       return <FontAwesome name={Icon.Apple} {...props} />;

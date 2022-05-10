@@ -21,6 +21,8 @@ import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import { useTheme } from '../../../../util/theme';
 import RegionAlert from './RegionAlert';
+import { Colors } from '../../../../util/theme/models';
+import { Region } from '../types';
 
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -32,15 +34,7 @@ enum RegionViewType {
   STATE = 'STATE',
 }
 
-interface Region {
-  id: string;
-  name: string;
-  emoji: string;
-  currency: string;
-  states?: [Region];
-}
-
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -124,9 +118,8 @@ interface Props {
   title?: string;
   description?: string;
   dismiss?: () => any;
-  data: Region[];
+  data?: Region[] | null;
   onRegionPress: (region: Region) => any;
-  unsetRegion: () => void;
 }
 
 const RegionModal: React.FC<Props> = ({
@@ -142,7 +135,7 @@ const RegionModal: React.FC<Props> = ({
   const searchInput = useRef<TextInput>(null);
   const list = useRef<FlatList<Region>>(null);
   const [searchString, setSearchString] = useState('');
-  const [currentData, setCurrentData] = useState(data);
+  const [currentData, setCurrentData] = useState(data || []);
 
   // local state variable to set the active view (countries vs. regions)
   const [activeView, setActiveView] = useState(RegionViewType.COUNTRY);
@@ -241,7 +234,7 @@ const RegionModal: React.FC<Props> = ({
 
   const handleRegionBackButton = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
-    setCurrentData(data);
+    setCurrentData(data || []);
     setSearchString('');
   }, [data]);
 
@@ -267,7 +260,7 @@ const RegionModal: React.FC<Props> = ({
   const onModalHide = useCallback(() => {
     setActiveView(RegionViewType.COUNTRY);
     setRegionInTransit({});
-    setCurrentData(data);
+    setCurrentData(data || []);
     setSearchString('');
   }, [data]);
 

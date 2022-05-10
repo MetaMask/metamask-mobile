@@ -23,7 +23,7 @@ interface Props {
   label?: string;
   currencySymbol?: string;
   amount: string;
-  currencyCode: string;
+  currencyCode?: string;
   highlighted?: boolean;
   highlightedError?: boolean;
   onPress?: () => any;

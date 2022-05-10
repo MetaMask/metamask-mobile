@@ -2,13 +2,18 @@ import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
-import Title from '../../../Base/Title';
+import BaseTitle from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';
-import Text from '../../../Base/Text';
+import BaseText from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors) =>
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+const Title = BaseTitle as any;
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     screen: {
       flex: 1,
@@ -35,6 +40,13 @@ const createStyles = (colors) =>
     },
   });
 
+interface Props {
+  description: string;
+  title?: string;
+  ctaLabel?: string;
+  ctaOnPress?: () => any;
+}
+
 /**
  * ErrorView is a functional general-purpose UI component responsible to show error details in Fiat On-Ramp
  *
@@ -44,12 +56,12 @@ const createStyles = (colors) =>
  * @param {func} ctaOnPress: The optional callback to be invoked when pressing the CTA button (Optional)
  *
  */
-function ErrorView({ description, title, ctaLabel, ctaOnPress }) {
+function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const ctaOnPressCallback = useCallback(() => {
-    ctaOnPress();
+    ctaOnPress?.();
   }, [ctaOnPress]);
 
   return (

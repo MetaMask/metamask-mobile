@@ -5,8 +5,16 @@ import {
   TouchableOpacity,
   LayoutChangeEvent,
 } from 'react-native';
-import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
+import { QuoteResponse } from '@consensys/on-ramp-sdk';
+import Box from './Box';
 import CustomText from '../../../Base/Text';
 import CustomTitle from '../../../Base/Title';
 import BaseListItem from '../../../Base/ListItem';
@@ -18,23 +26,17 @@ import {
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import ApplePayButton from '../containers/ApplePayButton';
-import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from 'react-native-reanimated';
+
+import { Colors } from '../../../../util/theme/models';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const Title = CustomTitle as any;
 const ListItem = BaseListItem as any;
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     fee: {
       marginLeft: 8,

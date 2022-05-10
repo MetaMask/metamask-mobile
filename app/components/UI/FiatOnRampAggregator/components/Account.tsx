@@ -1,13 +1,17 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import EthereumAddress from '../../EthereumAddress';
-import Identicon from '../../Identicon';
-import Text from '../../../Base/Text';
+import JSIdenticon from '../../Identicon';
+import BaseText from '../../../Base/Text';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../util/theme';
+import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors) =>
+// TODO: Convert into typescript and correctly type
+const Text = BaseText as any;
+const Identicon = JSIdenticon as any;
+
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     selector: {
       flexShrink: 1,
@@ -28,9 +32,18 @@ const createStyles = (colors) =>
       flexShrink: 1,
     },
   });
-const Account = ({ selectedAddress, identities }) => {
+
+const Account = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
+  const identities = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.identities,
+  );
   return (
     <View style={styles.container}>
       <Identicon diameter={15} address={selectedAddress} />
@@ -42,15 +55,4 @@ const Account = ({ selectedAddress, identities }) => {
   );
 };
 
-Account.propTypes = {
-  selectedAddress: PropTypes.string.isRequired,
-  identities: PropTypes.object.isRequired,
-};
-
-const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-});
-
-export default connect(mapStateToProps)(Account);
+export default Account;

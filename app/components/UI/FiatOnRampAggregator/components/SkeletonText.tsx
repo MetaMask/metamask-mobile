@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../../../../util/theme';
+import { Colors } from '../../../../util/theme/models';
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
       padding: 14,
