@@ -308,7 +308,7 @@ class AccountOverview extends PureComponent {
   };
 
   onBuy = () => {
-    this.props.navigation.navigate('FiatOnRamp');
+    this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
       AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
@@ -460,13 +460,14 @@ class AccountOverview extends PureComponent {
                 onPress={this.onReceive}
                 label={strings('asset_overview.receive_button')}
               />
-              {allowedToBuy(chainId) && (
-                <AssetActionButton
-                  icon="buy"
-                  onPress={this.onBuy}
-                  label={strings('asset_overview.buy_button')}
-                />
-              )}
+              {AppConstants.FIAT_ON_RAMP_AGGREGATOR.ACTIVE &&
+                allowedToBuy(chainId) && (
+                  <AssetActionButton
+                    icon="buy"
+                    onPress={this.onBuy}
+                    label={strings('asset_overview.buy_button')}
+                  />
+                )}
               <AssetActionButton
                 testID={'token-send-button'}
                 icon="send"
