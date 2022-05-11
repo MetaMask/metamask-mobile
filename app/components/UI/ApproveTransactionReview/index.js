@@ -86,10 +86,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
     },
     tokenAccess: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontSize: 14,
-      textAlign: 'center',
+      alignItems: 'center',
     },
     editPermissionText: {
       ...fontStyles.bold,
@@ -698,13 +695,14 @@ class ApproveTransactionReview extends PureComponent {
               { tokenSymbol },
             )}
           </Text>
-          <Text reset style={styles.tokenAccess}>
-            <Text bold>{strings('spend_limit_edition.access_up_to')} </Text>
-            {customSpendAmount
+          <View style={styles.tokenAccess}>
+            <Text bold>{` ${strings('spend_limit_edition.access_up_to')} `}
+              <Text>{customSpendAmount
               ? Number(customSpendAmount).toLocaleString()
-              : Number(originalApproveAmount).toLocaleString()}{' '}
-            {tokenSymbol}
-          </Text>
+              : Number(originalApproveAmount)} {tokenSymbol}</Text>
+            </Text>
+            
+          </View>
           <TouchableOpacity
             style={styles.actionTouchable}
             onPress={this.toggleEditPermission}

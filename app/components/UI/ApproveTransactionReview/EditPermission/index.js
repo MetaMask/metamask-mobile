@@ -200,7 +200,7 @@ function EditPermission({
             </Text>
             <Text style={[styles.optionText, styles.textBlack]}>{`${Number(
               originalApproveAmount,
-            ).toLocaleString()} ${tokenSymbol}`}</Text>
+            )} ${tokenSymbol}`}</Text>
           </View>
         </View>
 
