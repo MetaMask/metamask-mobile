@@ -1,5 +1,5 @@
-import React, { useRef, useState, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList } from 'react-native';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
+import { StyleSheet, View, Text, FlatList, InteractionManager } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -68,6 +68,11 @@ const DetectedTokens = () => {
 	const { colors } = useAppThemeFromContext() || mockTheme;
 	const styles = createStyles(colors);
 
+	const detectedTokensForAnalytics = useMemo(
+		() => detectedTokens.map((token) => `${token.symbol} - ${token.address}`),
+		[detectedTokens]
+	);
+
 	const dismissModalAndTriggerAction = useCallback(
 		(ignoreAllTokens?: boolean) => {
 			const { TokensController } = Engine.context as any;
@@ -120,9 +125,20 @@ const DetectedTokens = () => {
 	);
 
 	const triggerIgnoreAllTokens = () => {
+		const { NetworkController } = Engine.context as any;
+
 		navigation.navigate('DetectedTokensConfirmation', {
 			onConfirm: () => dismissModalAndTriggerAction(true),
 		});
+		InteractionManager.runAfterInteractions(() =>
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
+				location: 'token_detection',
+				token_standard: 'ERC20',
+				asset_type: 'token',
+				tokens: detectedTokensForAnalytics,
+				chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
+			})
+		);
 	};
 
 	const triggerImportTokens = async () => {
@@ -197,7 +213,7 @@ const DetectedTokens = () => {
 		}
 		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CANCELED, {
 			source: 'detected',
-			tokens: detectedTokens.map((token) => `${token.symbol} - ${token.address}`),
+			tokens: detectedTokensForAnalytics,
 			chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
 		});
 	};
