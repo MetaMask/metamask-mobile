@@ -169,7 +169,6 @@ const createStyles = (colors) =>
 const AddressName = ({ toAddressName, confusableCollection = [] }) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-
   if (confusableCollection.length) {
     const texts = toAddressName.split('').map((char, index) => {
       // if text has a confusable highlight it red
@@ -223,6 +222,7 @@ export const AddressTo = (props) => {
     confusableCollection,
     displayExclamation,
     isConfirmScreen = false,
+    isFromAddressBook = false,
   } = props;
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -254,7 +254,8 @@ export const AddressTo = (props) => {
             )}
             <View style={styles.toInputWrapper}>
               <View style={[styles.address, styles.checkAddress]}>
-                {isENS(toAddressName) && (
+                {(isENS(toAddressName) ||
+                  toAddressName?.substring(0, 2) !== '0x') && (
                   <AddressName
                     toAddressName={toAddressName}
                     confusableCollection={confusableCollection}
@@ -375,7 +376,41 @@ export const AddressTo = (props) => {
               </View>
             )}
             <View style={styles.addressReadyWrapper}>
-              {isENS(toAddressName) ? (
+              {isFromAddressBook ? (
+                <View style={styles.toInputWrapper}>
+                  <View style={[styles.address, styles.checkAddress]}>
+                    <AddressName
+                      toAddressName={toAddressName}
+                      confusableCollection={confusableCollection}
+                    />
+
+                    <View style={styles.addressWrapper}>
+                      <Text
+                        style={
+                          isENS(toAddressName)
+                            ? styles.textBalance
+                            : styles.textAddress
+                        }
+                        numberOfLines={1}
+                      >
+                        {renderShortAddress(toSelectedAddress)}
+                      </Text>
+                      <View
+                        style={
+                          (styles.checkIconWrapper,
+                          isENS(toAddressName) ? {} : { paddingTop: 2 })
+                        }
+                      >
+                        <AntIcon
+                          name="check"
+                          color={colors.success.default}
+                          size={15}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ) : isENS(toAddressName) ? (
                 <TextInput
                   ref={inputRef}
                   autoCapitalize="none"
@@ -399,7 +434,7 @@ export const AddressTo = (props) => {
                   {renderSlightlyLongAddress(toSelectedAddress, 4, 9)}
                 </Text>
               )}
-              {!!onClear && (
+              {!!onClear && !isFromAddressBook && (
                 <AntIcon
                   name="checkcircle"
                   color={colors.success.default}
@@ -495,6 +530,10 @@ AddressTo.propTypes = {
    * Confirm screen confirmation
    */
   isConfirmScreen: PropTypes.bool,
+  /**
+   * Returns if it selected from address book
+   */
+  isFromAddressBook: PropTypes.bool,
 };
 
 export const AddressFrom = (props) => {
