@@ -1,39 +1,19 @@
 import { StyleProp, TextProps, TextStyle } from 'react-native';
+import { BaseTextProps } from '../BaseText/BaseText.types';
 
 /**
- * BaseText component variants.
+ * Link component props.
  */
-export enum BaseTextVariant {
-  sDisplayMD = 'sDisplayMD',
-  sHeadingLG = 'sHeadingLG',
-  sHeadingMD = 'sHeadingMD',
-  sHeadingSMRegular = 'sHeadingSMRegular',
-  sHeadingSM = 'sHeadingSM',
-  sBodyMD = 'sBodyMD',
-  sBodyMDBold = 'sBodyMDBold',
-  sBodySM = 'sBodySM',
-  sBodySMBold = 'sBodySMBold',
-  sBodyXS = 'sBodyXS',
-  lDisplayMD = 'lDisplayMD',
-  lHeadingLG = 'lHeadingLG',
-  lHeadingMD = 'lHeadingMD',
-  lHeadingSMRegular = 'lHeadingSMRegular',
-  lHeadingSM = 'lHeadingSM',
-  lBodyMD = 'lBodyMD',
-  lBodyMDBold = 'lBodyMDBold',
-  lBodySM = 'lBodySM',
-  lBodySMBold = 'lBodySMBold',
-  lBodyXS = 'lBodyXS',
-}
-
-/**
- * BaseText component props.
- */
-export interface BaseTextProps extends TextProps {
+export interface LinkProps extends TextProps {
   /**
    * Enum to select between Typography variants.
    */
-  variant: BaseTextVariant;
+  variant?: BaseTextProps['variant'];
+  /**
+  /**
+   * Function to trigger when pressing the link.
+   */
+  onPress: () => void;
   /**
    * Escape hatch for applying extra styles. Only use if absolutely necessary.
    */
@@ -45,13 +25,13 @@ export interface BaseTextProps extends TextProps {
 }
 
 /**
- * BaseText component style sheet.
+ * Link component style sheet.
  */
-export interface BaseTextStyleSheet {
+export interface LinkStyleSheet {
   base: TextStyle;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type BaseTextStyleSheetVars = Pick<BaseTextProps, 'variant' | 'style'>;
+export type LinkStyleSheetVars = Pick<LinkProps, 'style'>;

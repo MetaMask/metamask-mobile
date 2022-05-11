@@ -1,9 +1,9 @@
 import { StyleSheet, TextStyle } from 'react-native';
-import { BaseTextStyleSheet, BaseTextStyleSheetVars } from './BaseText.types';
+import { LinkStyleSheet, LinkStyleSheetVars } from './Link.types';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for BaseText component.
+ * Style sheet function for Link component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -12,12 +12,16 @@ import { Theme } from '../../../util/theme/models';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: BaseTextStyleSheetVars;
-}): BaseTextStyleSheet => {
+  vars: LinkStyleSheetVars;
+}): LinkStyleSheet => {
   const { theme, vars } = params;
-  const { variant, style } = vars;
+  const { style } = vars;
   return StyleSheet.create({
-    base: Object.assign(theme.typography[variant], style) as TextStyle,
+    base: Object.assign(
+      {},
+      { color: theme.colors.primary.default } as TextStyle,
+      style,
+    ) as TextStyle,
   });
 };
 

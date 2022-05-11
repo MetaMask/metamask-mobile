@@ -1,12 +1,20 @@
+/* eslint-disable no-console */
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import BaseText, { BaseTextVariant } from './';
+import Link from './';
+import BaseText, { BaseTextVariant } from '../BaseText';
 
-storiesOf('Component Library / BaseText', module)
+storiesOf('Component Library / Link', module)
   .addDecorator((getStory) => getStory())
-  .add('Small Display MD', () => (
-    <BaseText variant={BaseTextVariant.sDisplayMD}>{`I'm Text!`}</BaseText>
+  .add('Default', () => (
+    <Link onPress={() => console.log("I'm clicked!")}>{`I'm a Link!`}</Link>
   ))
-  .add('Small Body MD', () => (
-    <BaseText variant={BaseTextVariant.sBodyMD}>{`I'm Text!`}</BaseText>
+  .add('Nested within BaseText', () => (
+    <BaseText variant={BaseTextVariant.lBodyMDBold}>
+      {`Need to learn more? `}
+      <Link
+        variant={BaseTextVariant.lBodyMDBold}
+        onPress={() => console.log("I'm clicked!")}
+      >{`Click Here!`}</Link>
+    </BaseText>
   ));

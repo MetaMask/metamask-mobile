@@ -1,12 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import BaseText, { BaseTextVariant } from './';
+import Link from './';
 
-describe('BaseText', () => {
+describe('Link', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <BaseText variant={BaseTextVariant.lBodyMD}>{`I'm Text!`}</BaseText>,
-    );
+    const wrapper = shallow(<Link onPress={jest.fn}>{`I'm a Link!`}</Link>);
     expect(wrapper).toMatchSnapshot();
   });
 });

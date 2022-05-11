@@ -1,2 +1,1 @@
-export { default } from './BaseText';
-export { BaseTextVariant } from './BaseText.types';
+export { default } from './Link';

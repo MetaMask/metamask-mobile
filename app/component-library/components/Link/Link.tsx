@@ -1,22 +1,29 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { Text } from 'react-native';
 import { useStyles } from '../../hooks';
-import styleSheet from './BaseText.styles';
-import { BaseTextProps } from './BaseText.types';
+import styleSheet from './Link.styles';
+import { LinkProps } from './Link.types';
+import BaseText, { BaseTextVariant } from '../BaseText';
 
-const BaseText: React.FC<BaseTextProps> = ({
-  variant,
+const Link: React.FC<LinkProps> = ({
+  onPress,
   style,
   children,
+  variant = BaseTextVariant.sBodyMD,
   ...props
 }) => {
-  const styles = useStyles(styleSheet, { variant, style });
+  const styles = useStyles(styleSheet, { style });
   return (
-    <Text {...props} style={styles.base}>
+    <BaseText
+      onPress={onPress}
+      suppressHighlighting
+      variant={variant}
+      style={styles.base}
+      {...props}
+    >
       {children}
-    </Text>
+    </BaseText>
   );
 };
 
-export default BaseText;
+export default Link;
