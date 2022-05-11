@@ -64,7 +64,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
-const HOMEPAGE_HOST = 'localhost:3001';
+const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const ANIMATION_TIMING = 300;
@@ -378,12 +378,12 @@ export const BrowserTab = (props) => {
   /**
    * Inject home page scripts to get the favourites and set analytics key
    */
-  const injectHomePageScripts = async () => {
+  const injectHomePageScripts = async (bookmarks) => {
     const { current } = webviewRef;
     const analyticsEnabled = Analytics.getEnabled();
     const disctinctId = await Analytics.getDistinctId();
     const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
+			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};
 			window.__mmSearchEngine = "${props.searchEngine}";
 			window.__mmMetametrics = ${analyticsEnabled};
 			window.__mmDistinctId = "${disctinctId}";

@@ -53,7 +53,7 @@ interface RPCMethodsMiddleParameters {
   tabId: string;
   // For WalletConnect
   isWalletConnect: boolean;
-  injectHomePageScripts: () => void;
+  injectHomePageScripts: (bookmarks?: []) => void;
 }
 
 export const checkActiveAccountAndChainId = ({
@@ -548,6 +548,12 @@ export const getRpcMethodMiddleware = ({
                 const bookmark = { url: req.params[0] };
 
                 store.dispatch(removeBookmark(bookmark));
+
+                const { bookmarks: updatedBookmarks } = store.getState();
+
+                if (isHomepage()) {
+                  injectHomePageScripts(updatedBookmarks);
+                }
 
                 res.result = {
                   favorites: bookmarks,
