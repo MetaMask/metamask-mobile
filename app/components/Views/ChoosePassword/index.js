@@ -26,7 +26,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import passcodeType from '../../../util/auth';
+import { passcodeType } from '../../../util/auth';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -296,6 +296,7 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     //Setup UI to handle Biometric
+
     const { type } = await Authentication.getType();
     const previouslyDisabled = await AsyncStorage.getItem(
       BIOMETRY_CHOICE_DISABLED,
@@ -303,6 +304,7 @@ class ChoosePassword extends PureComponent {
     const passcodePreviouslyDisabled = await AsyncStorage.getItem(
       PASSCODE_DISABLED,
     );
+
     if (type === AUTHENTICATION_TYPE.BIOMETRIC)
       this.setState({
         biometryType: type,

@@ -51,6 +51,7 @@ import {
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
+import { passcodeType } from '../../../util/auth';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -357,7 +358,7 @@ class ResetPassword extends PureComponent {
       });
     else if (authType.type === AUTHENTICATION_TYPE.PASSCODE)
       this.setState({
-        biometryType: authType.type,
+        biometryType: passcodeType(authType.type),
         biometryChoice: !(
           passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
         ),

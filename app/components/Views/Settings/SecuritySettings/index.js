@@ -472,6 +472,7 @@ class Settings extends PureComponent {
           await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         } else if (type === BIOMETRY_CHOICE_STRING) {
           await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
+          await AsyncStorage.setItem(PASSCODE_DISABLED, TRUE);
         }
 
         return;

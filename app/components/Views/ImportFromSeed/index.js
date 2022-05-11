@@ -28,7 +28,7 @@ import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
-import passcodeType from '../../../util/auth';
+import { passcodeType } from '../../../util/auth';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
