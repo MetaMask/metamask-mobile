@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     alignSelf: 'flex-start',
-    fontSize: 24,
+    fontSize: 28,
     marginTop: 1,
     textAlign: 'center',
   },
@@ -44,7 +44,11 @@ const styles = StyleSheet.create({
   getStartedImage: {
     width: DEVICE_WIDTH - IMG_PADDING,
     height: 250,
-    marginTop: 40,
+    marginTop: 30,
+  },
+  ctaWrapper: {
+    marginBottom: 30,
+    marginTop: 20,
   },
 });
 
@@ -153,9 +157,11 @@ const GetStarted: React.FC = () => {
 
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <StyledButton type={'confirm'} onPress={handleOnPress}>
-            {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
-          </StyledButton>
+          <View style={styles.ctaWrapper}>
+            <StyledButton type={'confirm'} onPress={handleOnPress}>
+              {strings('fiat_on_ramp_aggregator.onboarding.get_started')}
+            </StyledButton>
+          </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>
