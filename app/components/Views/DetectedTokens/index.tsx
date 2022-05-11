@@ -13,6 +13,8 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors: any) =>
 	StyleSheet.create({
@@ -188,8 +190,20 @@ const DetectedTokens = () => {
 		</View>
 	);
 
+	const trackCancelWithoutAction = (hasPendingAction: boolean) => {
+		const { NetworkController } = Engine.context as any;
+		if (hasPendingAction) {
+			return;
+		}
+		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CANCELED, {
+			source: 'detected',
+			tokens: detectedTokens.map((token) => `${token.symbol} - ${token.address}`),
+			chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
+		});
+	};
+
 	return (
-		<ReusableModal ref={modalRef} style={styles.screen}>
+		<ReusableModal ref={modalRef} style={styles.screen} onDismiss={trackCancelWithoutAction}>
 			<View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
 				<View style={styles.notch} />
 				{renderHeader()}

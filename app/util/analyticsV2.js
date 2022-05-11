@@ -114,6 +114,7 @@ export const ANALYTICS_EVENTS_V2 = {
 	// TOKENS
 	TOKEN_DETECTED: generateOpt('Token Detected'),
 	TOKEN_IMPORT_CLICKED: generateOpt('Token Import Clicked'),
+	TOKEN_IMPORT_CANCELED: generateOpt('Token Import Canceled'),
 };
 
 /**
