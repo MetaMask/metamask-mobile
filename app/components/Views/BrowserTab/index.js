@@ -615,9 +615,6 @@ export const BrowserTab = (props) => {
     // Specify how to clean up after this effect:
     return function cleanup() {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-
-      // Remove all Engine listeners
-      Engine.context.TokensController.hub.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
