@@ -107,9 +107,24 @@ const DetectedTokens = () => {
 			}
 
 			modalRef.current?.dismissModal(async () => {
+				const { NetworkController } = Engine.context as any;
+
 				try {
-					tokensToIgnore && (await TokensController.ignoreTokens(tokensToIgnore));
-					tokensToImport && (await TokensController.importTokens(tokensToImport));
+					tokensToIgnore.length > 0 && (await TokensController.ignoreTokens(tokensToIgnore));
+					if (tokensToImport.length > 0) {
+						await TokensController.importTokens(tokensToImport);
+						InteractionManager.runAfterInteractions(() =>
+							tokensToImport.forEach(({ address, symbol }) =>
+								AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED, {
+									token_address: address,
+									token_symbol: symbol,
+									network_name: NetworkController?.state?.provider?.type,
+									chain_id: getDecimalChainId(NetworkController?.state?.provider?.chainId),
+									source: 'detected',
+								})
+							)
+						);
+					}
 					NotificationManager.showSimpleNotification({
 						status: `simple_notification`,
 						duration: 5000,
