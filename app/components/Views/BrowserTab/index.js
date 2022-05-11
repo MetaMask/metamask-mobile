@@ -995,7 +995,7 @@ export const BrowserTab = (props) => {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
     backgroundBridges.current = [];
     const origin = new URL(nativeEvent.url).origin;
-    initializeBackgroundBridge(origin);
+    initializeBackgroundBridge(origin, true);
   };
 
   /**
