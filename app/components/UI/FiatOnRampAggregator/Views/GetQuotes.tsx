@@ -437,7 +437,7 @@ const GetQuotes = () => {
   }
 
   // No providers available
-  if (filteredQuotes.length <= 0) {
+  if (filteredQuotes.length === 0) {
     return (
       <ErrorView
         title={strings('fiat_on_ramp_aggregator.no_providers_available')}
