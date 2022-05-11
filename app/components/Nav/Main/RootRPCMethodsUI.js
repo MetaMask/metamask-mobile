@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
@@ -23,12 +23,12 @@ import WalletConnect from '../../../core/WalletConnect';
 import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
-  APPROVE_FUNCTION_SIGNATURE,
-  decodeApproveData,
   getTokenValueParam,
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
+  isApproveTransaction,
+  isSwapTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -57,6 +57,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import { Mutex } from 'async-mutex';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -67,6 +68,7 @@ const styles = StyleSheet.create({
   },
 });
 const RootRPCMethodsUI = (props) => {
+  const swapMutex = useMemo(() => new Mutex(), []);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [signMessageParams, setSignMessageParams] = useState({ data: '' });
@@ -222,9 +224,34 @@ const RootRPCMethodsUI = (props) => {
     [props.selectedAddress, props.swapsTransactions],
   );
 
+  const cancelNextSwapTransaction = useCallback(
+    async (transactionMeta) => {
+      if (!isApproveTransaction(transactionMeta)) return;
+      const { TransactionController } = Engine.context;
+      const {
+        state: { transactions },
+      } = TransactionController;
+      const currentIndex = transactions.findIndex(
+        ({ id }) => id === transactionMeta.id,
+      );
+      if (currentIndex < 0) return;
+      const nextTransaction = transactions[currentIndex + 1];
+      if (!nextTransaction) return;
+      if (!isSwapTransaction(nextTransaction, props.chainId)) return;
+      await TransactionController.cancelTransaction(nextTransaction.id);
+    },
+    [props.chainId],
+  );
+
   const autoSign = useCallback(
     async (transactionMeta) => {
+      const releaseLock = await swapMutex.acquire();
       const { TransactionController, KeyringController } = Engine.context;
+      const transaction = TransactionController.state.transactions.find(
+        ({ id }) => id === transactionMeta.id,
+      );
+      // if transaction is undefined, it means the transaction has already been canceled.
+      if (!transaction) return;
       try {
         TransactionController.hub.once(
           `${transactionMeta.id}:finished`,
@@ -265,9 +292,11 @@ const RootRPCMethodsUI = (props) => {
             AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
           );
         }
+        await cancelNextSwapTransaction(transactionMeta);
       }
+      releaseLock();
     },
-    [props.swapsTransactions, trackSwaps],
+    [cancelNextSwapTransaction, props.swapsTransactions, swapMutex, trackSwaps],
   );
 
   const onUnapprovedTransaction = useCallback(
@@ -275,19 +304,8 @@ const RootRPCMethodsUI = (props) => {
       if (transactionMeta.origin === TransactionTypes.MMM) return;
 
       const to = transactionMeta.transaction.to?.toLowerCase();
-      const { data } = transactionMeta.transaction;
 
-      // if approval data includes metaswap contract
-      // if destination address is metaswap contract
-      if (
-        transactionMeta.origin === process.env.MM_FOX_CODE &&
-        to &&
-        (swapsUtils.isValidContractAddress(props.chainId, to) ||
-          (data &&
-            data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-            decodeApproveData(data).spenderAddress?.toLowerCase() ===
-              swapsUtils.getSwapsContractAddress(props.chainId)))
-      ) {
+      if (isSwapTransaction(transactionMeta, props.chainId)) {
         autoSign(transactionMeta);
       } else {
         const {
@@ -360,7 +378,7 @@ const RootRPCMethodsUI = (props) => {
           });
         }
 
-        if (data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE) {
+        if (isApproveTransaction(transactionMeta)) {
           toggleApproveModal();
         } else {
           toggleDappTransactionModal();
@@ -368,14 +386,14 @@ const RootRPCMethodsUI = (props) => {
       }
     },
     [
-      props.tokens,
       props.chainId,
-      setEtherTransaction,
+      props.tokens,
+      autoSign,
       setTransactionObject,
+      tokenList,
+      setEtherTransaction,
       toggleApproveModal,
       toggleDappTransactionModal,
-      autoSign,
-      tokenList,
     ],
   );
 

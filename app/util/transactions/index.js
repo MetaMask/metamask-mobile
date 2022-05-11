@@ -79,6 +79,7 @@ export const TRANSACTION_TYPES = {
 const MULTIPLIER_HEX = 16;
 
 const { getSwapsContractAddress } = swapsUtils;
+
 /**
  * Utility class with the single responsibility
  * of caching CollectibleAddresses
@@ -1406,4 +1407,28 @@ export const minimumTokenAllowance = (tokenDecimals) => {
   return Math.pow(10, -1 * tokenDecimals)
     .toFixed(tokenDecimals)
     .toString(10);
+};
+
+export const isSwapTransaction = (transactionMeta, chainId) => {
+  const to = transactionMeta.transaction.to?.toLowerCase();
+  const { data } = transactionMeta.transaction;
+
+  // if approval data includes metaswap contract
+  // if destination address is metaswap contract
+  return (
+    transactionMeta.origin === process.env.MM_FOX_CODE &&
+    to &&
+    (swapsUtils.isValidContractAddress(chainId, to) ||
+      (data &&
+        data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+        decodeApproveData(data).spenderAddress?.toLowerCase() ===
+          swapsUtils.getSwapsContractAddress(chainId)))
+  );
+};
+
+export const isApproveTransaction = (transactionMeta) => {
+  const {
+    transaction: { data },
+  } = transactionMeta;
+  return data && data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE;
 };
