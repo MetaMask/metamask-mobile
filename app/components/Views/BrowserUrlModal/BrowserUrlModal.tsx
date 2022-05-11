@@ -18,6 +18,7 @@ import {
   useParams,
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
+import Device from '../../../util/device';
 
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -52,10 +53,12 @@ const BrowserUrlModal = () => {
     inputRef.current?.focus?.();
     // Needed to manually selectTextOnFocus on iOS
     // https://github.com/facebook/react-native/issues/30585
-    if (inputRef.current && autocompleteValue) {
-      inputRef.current.setNativeProps({
-        selection: { start: 0, end: autocompleteValue.length },
-      });
+    if (Device.isIos()) {
+      if (inputRef.current && autocompleteValue) {
+        inputRef.current.setNativeProps({
+          selection: { start: 0, end: autocompleteValue.length },
+        });
+      }
     }
   });
 
