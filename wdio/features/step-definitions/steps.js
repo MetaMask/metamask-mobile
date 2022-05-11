@@ -10,7 +10,7 @@ When(/^I tap to open MetaMask mobile app/, async () => {
     // await driver.launchApp();
     // await driver.switchContext('NATIVE_APP');
     // await OnboardingPages.verifyWelcomeScreen();
-    // await driver.pause(15000);
+    await driver.pause(15000);
 });
 
 Then(/^MetaMask animated loading logo is displayed/, async () => {
