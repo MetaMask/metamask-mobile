@@ -9,12 +9,12 @@ const mockStore = configureMockStore();
 const store = mockStore({});
 
 describe('UrlAutocomplete', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<UrlAutocomplete network={ROPSTEN} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <UrlAutocomplete network={ROPSTEN} />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

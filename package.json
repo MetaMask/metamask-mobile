@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.0.1",
+  "version": "5.1.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -36,7 +36,7 @@
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:unit": "jest ./app/",
+    "test:unit": "jest ./app/ ./locales/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
@@ -50,12 +50,6 @@
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "singleQuote": true,
-    "tabWidth": 4,
-    "useTabs": true
   },
   "husky": {
     "hooks": {
@@ -98,7 +92,9 @@
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
     "**/plist": "3.0.5",
-    "**/minimist": "1.2.6"
+    "**/minimist": "1.2.6",
+    "@metamask/**/cross-fetch": "2.2.6",
+    "react-native-gesture-handler/**/cross-fetch": "3.1.5"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",

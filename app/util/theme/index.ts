@@ -22,78 +22,92 @@ export const ThemeContext = React.createContext<any>(undefined);
  * @param dark Dark asset
  * @returns
  */
-export const getAssetFromTheme = (appTheme: AppThemeKey, osColorScheme: ColorSchemeName, light: any, dark: any) => {
-	let asset = light;
-	switch (appTheme) {
-		case AppThemeKey.light:
-			asset = light;
-			break;
-		case AppThemeKey.dark:
-			asset = dark;
-			break;
-		case AppThemeKey.os:
-			asset = osColorScheme === 'dark' ? dark : light;
-			break;
-		default:
-			asset = light;
-	}
-	return asset;
+export const getAssetFromTheme = (
+  appTheme: AppThemeKey,
+  osColorScheme: ColorSchemeName,
+  light: any,
+  dark: any,
+) => {
+  let asset = light;
+  switch (appTheme) {
+    case AppThemeKey.light:
+      asset = light;
+      break;
+    case AppThemeKey.dark:
+      asset = dark;
+      break;
+    case AppThemeKey.os:
+      asset = osColorScheme === 'dark' ? dark : light;
+      break;
+    default:
+      asset = light;
+  }
+  return asset;
 };
 
 /* eslint-disable  import/prefer-default-export */
 export const useAppTheme = (): Theme => {
-	const osThemeName = useColorScheme();
-	const appTheme: AppThemeKey = useSelector((state: any) => state.user.appTheme);
-	const themeAppearance = getAssetFromTheme(appTheme, osThemeName, AppThemeKey.light, AppThemeKey.dark);
-	let colors: Colors;
+  const osThemeName = useColorScheme();
+  const appTheme: AppThemeKey = useSelector(
+    (state: any) => state.user.appTheme,
+  );
+  const themeAppearance = getAssetFromTheme(
+    appTheme,
+    osThemeName,
+    AppThemeKey.light,
+    AppThemeKey.dark,
+  );
+  let colors: Colors;
 
-	const setDarkStatusBar = () => {
-		StatusBar.setBarStyle('light-content', true);
-		Device.isAndroid() && StatusBar.setBackgroundColor(colorTheme.dark.background.default);
-	};
+  const setDarkStatusBar = () => {
+    StatusBar.setBarStyle('light-content', true);
+    Device.isAndroid() &&
+      StatusBar.setBackgroundColor(colorTheme.dark.background.default);
+  };
 
-	const setLightStatusBar = () => {
-		StatusBar.setBarStyle('dark-content', true);
-		Device.isAndroid() && StatusBar.setBackgroundColor(colorTheme.light.background.default);
-	};
+  const setLightStatusBar = () => {
+    StatusBar.setBarStyle('dark-content', true);
+    Device.isAndroid() &&
+      StatusBar.setBackgroundColor(colorTheme.light.background.default);
+  };
 
-	switch (appTheme) {
-		/* eslint-disable no-fallthrough */
-		case AppThemeKey.os: {
-			if (osThemeName === AppThemeKey.light) {
-				colors = colorTheme.light;
-				setLightStatusBar();
-				break;
-			} else if (osThemeName === AppThemeKey.dark) {
-				colors = colorTheme.dark;
-				setDarkStatusBar();
-				break;
-			} else {
-				// Cover cases where OS returns undefined
-				colors = colorTheme.light;
-				setLightStatusBar();
-			}
-		}
-		case AppThemeKey.light:
-			colors = colorTheme.light;
-			setLightStatusBar();
-			break;
-		case AppThemeKey.dark:
-			colors = colorTheme.dark;
-			setDarkStatusBar();
-			break;
-		default:
-			// Default uses light theme
-			colors = colorTheme.light;
-			setLightStatusBar();
-	}
+  switch (appTheme) {
+    /* eslint-disable no-fallthrough */
+    case AppThemeKey.os: {
+      if (osThemeName === AppThemeKey.light) {
+        colors = colorTheme.light;
+        setLightStatusBar();
+        break;
+      } else if (osThemeName === AppThemeKey.dark) {
+        colors = colorTheme.dark;
+        setDarkStatusBar();
+        break;
+      } else {
+        // Cover cases where OS returns undefined
+        colors = colorTheme.light;
+        setLightStatusBar();
+      }
+    }
+    case AppThemeKey.light:
+      colors = colorTheme.light;
+      setLightStatusBar();
+      break;
+    case AppThemeKey.dark:
+      colors = colorTheme.dark;
+      setDarkStatusBar();
+      break;
+    default:
+      // Default uses light theme
+      colors = colorTheme.light;
+      setLightStatusBar();
+  }
 
-	return { colors, themeAppearance };
+  return { colors, themeAppearance };
 };
 
 export const useAppThemeFromContext = (): Theme => {
-	const theme = useContext<Theme>(ThemeContext);
-	return theme;
+  const theme = useContext<Theme>(ThemeContext);
+  return theme;
 };
 
 /**
@@ -104,9 +118,9 @@ export const useAppThemeFromContext = (): Theme => {
  * @returns Asset based on theme
  */
 export const useAssetFromTheme = (light: any, dark: any) => {
-	const osColorScheme = useColorScheme();
-	const appTheme = useSelector((state: any) => state.user.appTheme);
-	const asset = getAssetFromTheme(appTheme, osColorScheme, light, dark);
+  const osColorScheme = useColorScheme();
+  const appTheme = useSelector((state: any) => state.user.appTheme);
+  const asset = getAssetFromTheme(appTheme, osColorScheme, light, dark);
 
-	return asset;
+  return asset;
 };

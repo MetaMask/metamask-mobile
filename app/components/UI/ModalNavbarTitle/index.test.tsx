@@ -3,10 +3,10 @@ import { shallow } from 'enzyme';
 import ModalNavbarTitle from './';
 
 describe('ModalNavbarTitle', () => {
-	it('should render correctly', () => {
-		const title = 'Test';
+  it('should render correctly', () => {
+    const title = 'Test';
 
-		const wrapper = shallow(<ModalNavbarTitle title={title} />);
-		expect(wrapper).toMatchSnapshot();
-	});
+    const wrapper = shallow(<ModalNavbarTitle title={title} />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });
