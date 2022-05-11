@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseText from '../../../Base/Text';
@@ -22,6 +22,12 @@ import { Region } from '../types';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
+
+const styles = StyleSheet.create({
+  flexZero: {
+    flex: 0,
+  },
+});
 
 const RegionView = () => {
   const navigation = useNavigation();
@@ -156,7 +162,7 @@ const RegionView = () => {
                     </Text>
                   )}
                 </ListItem.Body>
-                <ListItem.Amounts>
+                <ListItem.Amounts style={styles.flexZero}>
                   <FontAwesome
                     name="caret-down"
                     size={15}
