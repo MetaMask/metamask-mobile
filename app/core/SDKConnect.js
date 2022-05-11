@@ -1,15 +1,13 @@
-import { store } from '../store';
+//import { store } from '../store';
 import BackgroundBridge from './BackgroundBridge';
-import RemoteCommunication from './RemoteCommunication';
+import RemoteCommunication from '@metamask/sdk-communication-layer';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
-import { approveHost } from '../actions/privacy';
+//import { approveHost } from '../actions/privacy';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import Engine from './Engine';
 import { WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WalletDevice } from '@metamask/controllers';
-import WebRTC from './RemoteCommunication/WebRTC';
-import Socket from './RemoteCommunication/Socket';
 
 import {
 	RTCPeerConnection,
@@ -46,22 +44,38 @@ const METHODS_TO_REDIRECT = {
 	wallet_switchEthereumChain: true,
 };
 
+// Temporary hosts for now, persistance will be worked on for future versions
+const approvedHosts = {};
+
+const approveHost = (host) => {
+	approvedHosts[host] = true;
+};
+
+const removeHost = (host) => {
+	delete approvedHosts[host];
+};
+
 class Connection {
 	channelId = null;
 	RemoteConn = null;
 	requestsToRedirect = {};
 	origin = null;
+	host = null;
 
 	constructor({ id, otherPublicKey, commLayer, origin }) {
 		this.origin = origin;
-		const CommLayer = commLayer === 'webrtc' ? WebRTC : Socket;
 		this.channelId = id;
 
-		this.RemoteConn = new RemoteCommunication({ CommLayer, otherPublicKey, webRTCLib: webrtc });
+		this.RemoteConn = new RemoteCommunication({ commLayer, otherPublicKey, webRTCLib: webrtc });
 
 		this.requestsToRedirect = [];
 
 		this.sendMessage = this.sendMessage.bind(this);
+
+		this.RemoteConn.on('clients_disconnected', () => {
+			removeHost(this.host);
+			this.backgroundBridge?.onDisconnect?.();
+		});
 
 		this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
 			this.backgroundBridge = new BackgroundBridge({
@@ -69,14 +83,16 @@ class Connection {
 				url: originatorInfo?.url,
 				isRemoteConn: true,
 				sendMessage: this.sendMessage,
-				getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
-					getRpcMethodMiddleware({
-						hostname: `SDK:${this.channelId}:` + hostname,
+				getRpcMethodMiddleware: ({ hostname, getProviderState }) => {
+					this.host = `SDK:${this.channelId}:` + hostname;
+
+					return getRpcMethodMiddleware({
+						hostname: this.host,
 						getProviderState,
 						navigation: null, //props.navigation,
-						getApprovedHosts: () => store.getState().privacy.approvedHosts,
+						getApprovedHosts: () => approvedHosts,
 						setApprovedHosts: () => null,
-						approveHost: (hostname) => store.dispatch(approveHost(hostname)), //props.approveHost,
+						approveHost: (hostname) => approveHost(hostname), //props.approveHost,
 						// Website info
 						url: { current: originatorInfo?.url },
 						title: { current: originatorInfo?.title },
@@ -91,7 +107,8 @@ class Connection {
 						wizardScrollAdjusted: () => null,
 						tabId: false,
 						isWalletConnect: false,
-					}),
+					});
+				},
 				isMainFrame: true,
 			});
 
