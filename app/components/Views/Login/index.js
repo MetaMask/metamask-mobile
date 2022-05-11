@@ -195,7 +195,7 @@ const DELETE = 'delete';
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
-  'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
+  'Error: Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
 const isTextDelete = (text) => tlc(text) === DELETE;
 
