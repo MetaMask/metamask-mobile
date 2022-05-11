@@ -226,7 +226,7 @@ const AmountToBuy = () => {
     selectedPaymentMethodId,
   );
 
-  const [{ data: limits, isFetching: isFetchingLimits }] = useSDKMethod(
+  const [{ data: limits }] = useSDKMethod(
     'getLimits',
     selectedRegion?.id,
     selectedPaymentMethodId,
@@ -610,8 +610,7 @@ const AmountToBuy = () => {
     isFetchingPaymentMethods ||
     isFetchingFiatCurrencies ||
     isFetchingDefaultFiatCurrency ||
-    isFetchingCountries ||
-    isFetchingLimits
+    isFetchingCountries
   ) {
     return (
       <ScreenLayout>
