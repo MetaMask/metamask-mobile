@@ -10,4 +10,4 @@ export const BSC = 'bsc';
 export const POLYGON = 'polygon';
 export const AVALANCHE = 'avalanche';
 export const CELO = 'celo';
-export const fantom = 'fantom';
+export const FANTOM = 'fantom';

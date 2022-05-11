@@ -494,7 +494,7 @@ class TransactionReviewInformation extends PureComponent {
     onCancelPress && onCancelPress();
   };
 
-  gotoFaucet = () => {
+  goToFaucet = () => {
     const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
@@ -608,10 +608,10 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const is_test_net = isTestNet(network);
+    const isTestNetwork = isTestNet(network);
 
-    const errorPress = is_test_net ? this.gotoFaucet : this.buyEth;
-    const errorLinkText = is_test_net
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 

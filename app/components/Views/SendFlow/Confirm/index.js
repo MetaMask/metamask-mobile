@@ -1300,7 +1300,7 @@ class Confirm extends PureComponent {
     });
   };
 
-  gotoFaucet = () => {
+  goToFaucet = () => {
     // browser view is not available in this navigation stack */
     InteractionManager.runAfterInteractions(() => {
       this.props.navigation.navigate('BrowserTabHome', {
@@ -1419,9 +1419,9 @@ class Confirm extends PureComponent {
         <AdressToComponent />
       );
 
-    const is_test_net = isTestNet(network);
-    const errorPress = is_test_net ? this.gotoFaucet : this.buyEth;
-    const errorLinkText = is_test_net
+    const isTestNetwork = isTestNet(network);
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
     const { EIP1559TransactionData } = this.state;
@@ -1546,11 +1546,11 @@ class Confirm extends PureComponent {
             <View style={styles.errorWrapper}>
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{errorMessage}</Text>
-                {over && (
+                {over ? (
                   <Text style={[styles.error, styles.underline]}>
                     {errorLinkText}
                   </Text>
-                )}
+                ) : null}
               </TouchableOpacity>
             </View>
           )}

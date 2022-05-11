@@ -155,10 +155,10 @@ export const isTestNet = (networkId) => {
   const networkName = getNetworkName(networkId);
 
   if (
-    networkName === 'ropsten' ||
-    networkName === 'ropsten' ||
-    networkName === 'kovan' ||
-    networkName === 'rinkeby'
+    networkName === ROPSTEN ||
+    networkName === GOERLI ||
+    networkName === KOVAN ||
+    networkName === RINKEBY
   ) {
     return true;
   }

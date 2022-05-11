@@ -644,11 +644,11 @@ class ApproveTransactionReview extends PureComponent {
       transactionConfirmed,
     } = this.props;
     const styles = this.getStyles();
-    const is_test_net = isTestNet(network);
+    const isTestNetwork = isTestNet(network);
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const errorPress = is_test_net ? this.gotoFaucet : this.buyEth;
-    const errorLinkText = is_test_net
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 
@@ -877,7 +877,7 @@ class ApproveTransactionReview extends PureComponent {
     onConfirm && onConfirm();
   };
 
-  gotoFaucet = () => {
+  goToFaucet = () => {
     const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
