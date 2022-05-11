@@ -696,12 +696,16 @@ class ApproveTransactionReview extends PureComponent {
             )}
           </Text>
           <View style={styles.tokenAccess}>
-            <Text bold>{` ${strings('spend_limit_edition.access_up_to')} `}
-              <Text>{customSpendAmount
-              ? Number(customSpendAmount).toLocaleString()
-              : Number(originalApproveAmount)} {tokenSymbol}</Text>
+            <Text bold>
+              {` ${strings('spend_limit_edition.access_up_to')} `}
+              <Text>
+                {` ${
+                  customSpendAmount
+                    ? Number(customSpendAmount).toLocaleString()
+                    : Number(originalApproveAmount)
+                } ${tokenSymbol}`}
+              </Text>
             </Text>
-            
           </View>
           <TouchableOpacity
             style={styles.actionTouchable}
