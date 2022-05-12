@@ -460,14 +460,13 @@ class AccountOverview extends PureComponent {
                 onPress={this.onReceive}
                 label={strings('asset_overview.receive_button')}
               />
-              {AppConstants.FIAT_ON_RAMP_AGGREGATOR.ACTIVE &&
-                allowedToBuy(chainId) && (
-                  <AssetActionButton
-                    icon="buy"
-                    onPress={this.onBuy}
-                    label={strings('asset_overview.buy_button')}
-                  />
-                )}
+              {allowedToBuy(chainId) && (
+                <AssetActionButton
+                  icon="buy"
+                  onPress={this.onBuy}
+                  label={strings('asset_overview.buy_button')}
+                />
+              )}
               <AssetActionButton
                 testID={'token-send-button'}
                 icon="send"
