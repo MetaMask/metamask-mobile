@@ -44,6 +44,8 @@ const PaymentTypeIcon: React.FC<Props> = ({ id, style }: Props) => {
     case '/payments/bank-account': {
       return <Image source={ach} style={style} />;
     }
+    case '/payments/apple-pay':
+    case '/payments/debit-credit-card':
     default:
       return (
         <>
