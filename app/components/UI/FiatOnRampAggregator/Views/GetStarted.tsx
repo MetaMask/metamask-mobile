@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { StyleSheet, Image, View, Dimensions } from 'react-native';
+import { StyleSheet, Image, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import TextJS from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
@@ -73,6 +73,15 @@ const GetStarted: React.FC = () => {
     navigation.navigate('Region');
     setGetStarted(true);
   }, [navigation, setGetStarted]);
+
+  useEffect(() => {
+    if (getStarted) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Region_hasStarted' }],
+      });
+    }
+  }, [getStarted, navigation]);
 
   if (sdkError) {
     return (
