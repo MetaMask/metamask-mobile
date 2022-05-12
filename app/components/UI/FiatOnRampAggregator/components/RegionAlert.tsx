@@ -16,6 +16,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       paddingHorizontal: 20,
       paddingBottom: 20,
+      borderWidth: 0,
     },
     cancel: {
       alignSelf: 'flex-end',
@@ -42,8 +43,8 @@ interface Props {
   dismiss?: () => any;
 }
 
-// TODO: add link to support article
-const SUPPORT_URL = 'https://metamask.io/';
+const SUPPORT_URL =
+  'https://metamask.zendesk.com/hc/en-us/articles/4863623238683-My-country-region-isn-t-supported-for-MetaMask-on-ramps';
 
 const RegionAlert: React.FC<Props> = ({
   isVisible,
