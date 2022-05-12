@@ -505,6 +505,14 @@ const AmountToBuy = () => {
    * * Derived values
    */
 
+  const isFetching =
+    isFetchingSdkCryptoCurrencies ||
+    isFetchingCurrentPaymentMethod ||
+    isFetchingPaymentMethods ||
+    isFetchingFiatCurrencies ||
+    isFetchingDefaultFiatCurrency ||
+    isFetchingCountries;
+
   /**
    * Get the fiat currency object by id
    */
@@ -604,14 +612,17 @@ const AmountToBuy = () => {
     );
   }
 
-  if (
-    isFetchingSdkCryptoCurrencies ||
-    isFetchingCurrentPaymentMethod ||
-    isFetchingPaymentMethods ||
-    isFetchingFiatCurrencies ||
-    isFetchingDefaultFiatCurrency ||
-    isFetchingCountries
-  ) {
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={retryMethod} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -643,16 +654,6 @@ const AmountToBuy = () => {
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={retryMethod} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );

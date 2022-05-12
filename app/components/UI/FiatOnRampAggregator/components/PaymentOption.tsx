@@ -2,30 +2,14 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
-import { Image } from 'react-native-animatable';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import PaymentIcon, { Icon } from './PaymentIcon';
 import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
-import { useAssetFromTheme, useTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const VisaLight = require('./images/Visa-regular.png');
-const VisaDark = require('./images/Visa.png');
-const MastercardLight = require('./images/Mastercard-regular.png');
-const MastercardDark = require('./images/Mastercard.png');
-const SepaLight = require('./images/SEPABankTransfer-regular.png');
-const SepaDark = require('./images/SEPABankTransfer.png');
-const AchLight = require('./images/ACHBankTransfer-regular.png');
-const AchDark = require('./images/ACHBankTransfer.png');
-const GbpLight = require('./images/GBPBankTransfer-regular.png');
-const GbpDark = require('./images/GBPBankTransfer.png');
-const UpiLight = require('./images/UPI-regular.png');
-const UpiDark = require('./images/UPI.png');
-
-/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+import PaymentTypeIcon from './PaymentTypeIcon';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -128,12 +112,7 @@ const PaymentOption: React.FC<Props> = ({
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const visa = useAssetFromTheme(VisaLight, VisaDark);
-  const sepa = useAssetFromTheme(SepaLight, SepaDark);
-  const mastercard = useAssetFromTheme(MastercardLight, MastercardDark);
-  const ach = useAssetFromTheme(AchLight, AchDark);
-  const gbp = useAssetFromTheme(GbpLight, GbpDark);
-  const upi = useAssetFromTheme(UpiLight, UpiDark);
+
   return (
     <Box onPress={onPress} highlighted={highlighted}>
       <ListItem.Content>
@@ -152,26 +131,7 @@ const PaymentOption: React.FC<Props> = ({
         <ListItem.Amounts>
           <ListItem.Amount>
             <View style={styles.cardIcons}>
-              {(id === '/payments/apple-pay' ||
-                id === '/payments/debit-credit-card') && (
-                <>
-                  <Image source={visa} style={styles.cardIcon} />
-                  <Image source={mastercard} style={styles.cardIcon} />
-                </>
-              )}
-              {id === '/payments/gbp-bank-transfer' && (
-                <Image source={gbp} style={styles.cardIcon} />
-              )}
-              {id === '/payments/sepa-bank-transfer' && (
-                <Image source={sepa} style={styles.cardIcon} />
-              )}
-              {(id === '/payments/ach-bank-transfer' ||
-                id === '/payments/bank-account') && (
-                <Image source={ach} style={styles.cardIcon} />
-              )}
-              {id === '/payments/upi' && (
-                <Image source={upi} style={styles.cardIcon} />
-              )}
+              <PaymentTypeIcon id={id} style={styles.cardIcon} />
             </View>
           </ListItem.Amount>
         </ListItem.Amounts>
