@@ -48,6 +48,7 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { Colors } from '../../../../util/theme/models';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -495,7 +496,7 @@ const AmountToBuy = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    navigation.navigate('GetQuotes', {
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES, {
       amount: amountNumber,
       asset: selectedAsset,
     });
