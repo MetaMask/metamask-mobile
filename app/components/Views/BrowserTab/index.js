@@ -2,13 +2,10 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Text,
   StyleSheet,
-  TextInput,
   View,
   TouchableWithoutFeedback,
   Alert,
-  TouchableOpacity,
   Linking,
-  Keyboard,
   BackHandler,
   InteractionManager,
 } from 'react-native';
@@ -41,7 +38,6 @@ import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import Modal from 'react-native-modal';
-import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import WebviewError from '../../UI/WebviewError';
 import { approveHost } from '../../../actions/privacy';
 import { addBookmark } from '../../../actions/bookmarks';
@@ -57,17 +53,16 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import { isEmulatorSync } from 'react-native-device-info';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import downloadFile from '../../../util/browser/downloadFile';
+import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
-
-const ANIMATION_TIMING = 300;
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -225,16 +220,13 @@ export const BrowserTab = (props) => {
   const [progress, setProgress] = useState(0);
   const [initialUrl, setInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [autocompleteValue, setAutocompleteValue] = useState('');
   const [error, setError] = useState(null);
-  const [showUrlModal, setShowUrlModal] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
 
   const webviewRef = useRef(null);
-  const inputRef = useRef(null);
 
   const url = useRef('');
   const title = useRef('');
@@ -244,7 +236,7 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
 
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
   /**
@@ -286,22 +278,6 @@ export const BrowserTab = (props) => {
     }
     return url;
   };
-
-  /**
-   * Shows or hides the url input modal.
-   * When opened it sets the current website url on the input.
-   */
-  const toggleUrlModal = useCallback(
-    ({ urlInput = null } = {}) => {
-      const goingToShow = !showUrlModal;
-      const urlToShow = getMaskedUrl(urlInput || url.current);
-
-      if (goingToShow && urlToShow) setAutocompleteValue(urlToShow);
-
-      setShowUrlModal(goingToShow);
-    },
-    [showUrlModal],
-  );
 
   /**
    * Checks if it is a ENS website
@@ -371,47 +347,7 @@ export const BrowserTab = (props) => {
         params: [selectedAddress],
       });
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, props.approvedHosts, props.selectedAddress]);
-
-  const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
-    const newBridge = new BackgroundBridge({
-      webview: webviewRef,
-      url: urlBridge,
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
-        getRpcMethodMiddleware({
-          hostname,
-          getProviderState,
-          navigation: props.navigation,
-          getApprovedHosts,
-          setApprovedHosts,
-          approveHost: props.approveHost,
-          // Website info
-          url,
-          title,
-          icon,
-          // Bookmarks
-          isHomepage,
-          // Show autocomplete
-          fromHomepage,
-          setAutocompleteValue,
-          setShowUrlModal,
-          // Wizard
-          wizardScrollAdjusted,
-          tabId: props.id,
-        }),
-      isMainFrame,
-    });
-    backgroundBridges.current.push(newBridge);
-  };
-
-  /**
-	 * Disabling iframes for now
-	const onFrameLoadStarted = url => {
-		url && initializeBackgroundBridge(url, false);
-	};
-	*/
+  }, [notifyAllConnections, props, props.approvedHosts, props.selectedAddress]);
 
   /**
    * Dismiss the text selection on the current website
@@ -643,47 +579,8 @@ export const BrowserTab = (props) => {
       dismissTextSelectionIfNeeded();
       props.newTab(url);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dismissTextSelectionIfNeeded, toggleOptionsIfNeeded],
+    [dismissTextSelectionIfNeeded, props, toggleOptionsIfNeeded],
   );
-
-  /**
-   * Hide url input modal
-   */
-  const hideUrlModal = useCallback(() => {
-    setShowUrlModal(false);
-
-    if (isHomepage()) {
-      const { current } = webviewRef;
-      const blur = `document.getElementsByClassName('autocomplete-input')[0].blur();`;
-      current && current.injectJavaScript(blur);
-    }
-  }, [isHomepage]);
-
-  /**
-   * Handle keyboard hide
-   */
-  const keyboardDidHide = useCallback(() => {
-    if (!isTabActive() || isEmulatorSync()) return false;
-    if (!fromHomepage.current) {
-      if (showUrlModal) {
-        hideUrlModal();
-      }
-    }
-  }, [hideUrlModal, isTabActive, showUrlModal]);
-
-  /**
-   * Set keyboard listeners
-   */
-  useEffect(() => {
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      keyboardDidHide,
-    );
-    return function cleanup() {
-      keyboardDidHideListener.remove();
-    };
-  }, [keyboardDidHide]);
 
   /**
    * Reload current page
@@ -718,29 +615,9 @@ export const BrowserTab = (props) => {
     // Specify how to clean up after this effect:
     return function cleanup() {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-
-      // Remove all Engine listeners
-      Engine.context.TokensController.hub.removeAllListeners();
     };
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  /**
-   * Enable the header to toggle the url modal and update other header data
-   */
-  useEffect(() => {
-    if (props.activeTab === props.id) {
-      props.navigation.setParams({
-        showUrlModal: toggleUrlModal,
-        url: getMaskedUrl(url.current),
-        icon: icon.current,
-        error,
-      });
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error, props.activeTab, props.id, toggleUrlModal]);
 
   useEffect(() => {
     if (Device.isAndroid()) {
@@ -788,9 +665,7 @@ export const BrowserTab = (props) => {
         handleAndroidBackPress,
       );
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goBack, isTabActive]);
+  }, [goBack, isTabActive, props.navigation]);
 
   /**
    * Handles state changes for when the url changes
@@ -898,12 +773,12 @@ export const BrowserTab = (props) => {
     </Modal>
   );
 
-  const trackEventSearchUsed = () => {
+  const trackEventSearchUsed = useCallback(() => {
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
       option_chosen: 'Search on URL',
       number_of_tabs: undefined,
     });
-  };
+  }, []);
 
   /**
    * Stops normal loading when it's ens, instead call go to be properly set up
@@ -914,42 +789,6 @@ export const BrowserTab = (props) => {
       return false;
     }
     return true;
-  };
-
-  /**
-   * Website started to load
-   */
-  const onLoadStart = async ({ nativeEvent }) => {
-    const { hostname } = new URL(nativeEvent.url);
-
-    if (nativeEvent.url !== url.current) {
-      changeAddressBar({ ...nativeEvent });
-    }
-
-    if (!isAllowedUrl(hostname)) {
-      return handleNotAllowedUrl(nativeEvent.url);
-    }
-    webviewUrlPostMessagePromiseResolve.current = null;
-    setError(false);
-
-    changeUrl(nativeEvent);
-
-    //For Android url on the navigation bar should only update upon load.
-    if (Device.isAndroid()) {
-      changeAddressBar(nativeEvent);
-    }
-
-    icon.current = null;
-    if (isHomepage(nativeEvent.url)) {
-      injectHomePageScripts();
-    }
-
-    // Reset the previous bridges
-    backgroundBridges.current.length &&
-      backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-    backgroundBridges.current = [];
-    const origin = new URL(nativeEvent.url).origin;
-    initializeBackgroundBridge(origin, true);
   };
 
   /**
@@ -1046,6 +885,135 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Handle url input submit
+   */
+  const onUrlInputSubmit = useCallback(
+    async (inputValue = undefined) => {
+      trackEventSearchUsed();
+      if (!inputValue) {
+        return;
+      }
+      const { defaultProtocol, searchEngine } = props;
+      const sanitizedInput = onUrlSubmit(
+        inputValue,
+        searchEngine,
+        defaultProtocol,
+      );
+      await go(sanitizedInput);
+    },
+    /* we do not want to depend on the props object
+		- since we are changing it here, this would give us a circular dependency and infinite re renders
+		*/
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  /**
+   * Shows or hides the url input modal.
+   * When opened it sets the current website url on the input.
+   */
+  const toggleUrlModal = useCallback(
+    (shouldClearInput = false) => {
+      const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
+      props.navigation.navigate(
+        ...createBrowserUrlModalNavDetails({
+          url: urlToShow,
+          onUrlInputSubmit,
+        }),
+      );
+    },
+    /* we do not want to depend on the props.navigation object
+		- since we are changing it here, this would give us a circular dependency and infinite re renders
+		*/
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onUrlInputSubmit],
+  );
+
+  const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
+    const newBridge = new BackgroundBridge({
+      webview: webviewRef,
+      url: urlBridge,
+      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+        getRpcMethodMiddleware({
+          hostname,
+          getProviderState,
+          navigation: props.navigation,
+          getApprovedHosts,
+          setApprovedHosts,
+          approveHost: props.approveHost,
+          // Website info
+          url,
+          title,
+          icon,
+          // Bookmarks
+          isHomepage,
+          // Show autocomplete
+          fromHomepage,
+          toggleUrlModal,
+          // Wizard
+          wizardScrollAdjusted,
+          tabId: props.id,
+        }),
+      isMainFrame,
+    });
+    backgroundBridges.current.push(newBridge);
+  };
+
+  /**
+   * Website started to load
+   */
+  const onLoadStart = async ({ nativeEvent }) => {
+    const { hostname } = new URL(nativeEvent.url);
+
+    if (nativeEvent.url !== url.current) {
+      changeAddressBar({ ...nativeEvent });
+    }
+
+    if (!isAllowedUrl(hostname)) {
+      return handleNotAllowedUrl(nativeEvent.url);
+    }
+    webviewUrlPostMessagePromiseResolve.current = null;
+    setError(false);
+
+    changeUrl(nativeEvent, 'start');
+
+    //For Android url on the navigation bar should only update upon load.
+    if (Device.isAndroid()) {
+      changeAddressBar(nativeEvent);
+    }
+
+    icon.current = null;
+    if (isHomepage(nativeEvent.url)) {
+      injectHomePageScripts();
+    }
+
+    // Reset the previous bridges
+    backgroundBridges.current.length &&
+      backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
+    backgroundBridges.current = [];
+    const origin = new URL(nativeEvent.url).origin;
+    initializeBackgroundBridge(origin, true);
+  };
+
+  /**
+   * Enable the header to toggle the url modal and update other header data
+   */
+  useEffect(() => {
+    if (props.activeTab === props.id) {
+      props.navigation.setParams({
+        showUrlModal: toggleUrlModal,
+        url: getMaskedUrl(url.current),
+        icon: icon.current,
+        error,
+      });
+    }
+    /* we do not want to depend on the entire props object
+		- since we are changing it here, this would give us a circular dependency and infinite re renders
+		*/
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error, props.activeTab, props.id, toggleUrlModal]);
+
+  /**
    * Render the progress bar
    */
   const renderProgressBar = () => (
@@ -1053,118 +1021,6 @@ export const BrowserTab = (props) => {
       <WebviewProgressBar progress={progress} />
     </View>
   );
-
-  /**
-   * When url input changes
-   */
-  const onURLChange = (inputValue) => {
-    setAutocompleteValue(inputValue);
-  };
-
-  /**
-   * Handle url input submit
-   */
-  const onUrlInputSubmit = async (input = null) => {
-    const inputValue =
-      (typeof input === 'string' && input) || autocompleteValue;
-    trackEventSearchUsed();
-    if (!inputValue) {
-      toggleUrlModal();
-      return;
-    }
-    const { defaultProtocol, searchEngine } = props;
-    const sanitizedInput = onUrlSubmit(
-      inputValue,
-      searchEngine,
-      defaultProtocol,
-    );
-    await go(sanitizedInput);
-    toggleUrlModal();
-  };
-
-  /** Clear search input and focus */
-  const clearSearchInput = () => {
-    setAutocompleteValue('');
-    inputRef.current?.focus?.();
-  };
-
-  /**
-   * Render url input modal
-   */
-  const renderUrlModal = () => {
-    if (showUrlModal && inputRef) {
-      setTimeout(() => {
-        const { current } = inputRef;
-        if (current && !current.isFocused()) {
-          current.focus();
-        }
-      }, ANIMATION_TIMING);
-    }
-
-    return (
-      <Modal
-        isVisible={showUrlModal}
-        style={styles.urlModal}
-        onBackdropPress={toggleUrlModal}
-        onBackButtonPress={toggleUrlModal}
-        animationIn="slideInDown"
-        animationOut="slideOutUp"
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-        animationInTiming={ANIMATION_TIMING}
-        animationOutTiming={ANIMATION_TIMING}
-        useNativeDriver
-      >
-        <View style={styles.urlModalContent} testID={'url-modal'}>
-          <View style={styles.searchWrapper}>
-            <TextInput
-              keyboardType="web-search"
-              ref={inputRef}
-              autoCapitalize="none"
-              autoCorrect={false}
-              testID={'url-input'}
-              onChangeText={onURLChange}
-              onSubmitEditing={onUrlInputSubmit}
-              placeholder={strings('autocomplete.placeholder')}
-              placeholderTextColor={colors.text.muted}
-              returnKeyType="go"
-              style={styles.urlInput}
-              value={autocompleteValue}
-              selectTextOnFocus
-              keyboardAppearance={themeAppearance}
-            />
-            {autocompleteValue ? (
-              <TouchableOpacity
-                onPress={clearSearchInput}
-                style={styles.clearButton}
-              >
-                <Icon
-                  name="times-circle"
-                  size={18}
-                  color={colors.icon.default}
-                  style={styles.clearIcon}
-                />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-          <TouchableOpacity
-            style={styles.cancelButton}
-            testID={'cancel-url-button'}
-            onPress={toggleUrlModal}
-          >
-            <Text style={styles.cancelButtonText}>
-              {strings('browser.cancel')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <UrlAutocomplete
-          onSubmit={onUrlInputSubmit}
-          input={autocompleteValue}
-          onDismiss={toggleUrlModal}
-        />
-      </Modal>
-    );
-  };
 
   /**
    * Handle error, for example, ssl certificate error
@@ -1456,6 +1312,19 @@ export const BrowserTab = (props) => {
     go(HOMEPAGE_HOST);
   };
 
+  const handleOnFileDownload = useCallback(
+    async ({ nativeEvent: { downloadUrl } }) => {
+      const downloadResponse = await downloadFile(downloadUrl);
+      if (downloadResponse) {
+        reload();
+      } else {
+        Alert.alert(strings('download_files.error'));
+        reload();
+      }
+    },
+    [reload],
+  );
+
   /**
    * Main render
    */
@@ -1489,12 +1358,12 @@ export const BrowserTab = (props) => {
               allowsInlineMediaPlayback
               useWebkit
               testID={'browser-webview'}
+              onFileDownload={handleOnFileDownload}
             />
           )}
         </View>
         {renderProgressBar()}
         {isTabActive() && renderPhishingModal()}
-        {isTabActive() && renderUrlModal()}
         {isTabActive() && renderOptions()}
         {isTabActive() && renderBottomBar()}
         {isTabActive() && renderOnboardingWizard()}
