@@ -2840,9 +2840,9 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/sdk-communication-layer@file:./metamask-sdk-communication-layer-v0.0.2.tgz":
-  version "0.0.2"
-  resolved "file:./metamask-sdk-communication-layer-v0.0.2.tgz#70323b0931a020ef12947c55d39f5db118bc3bed"
+"@metamask/sdk-communication-layer@file:./metamask-sdk-communication-layer-v0.0.3.tgz":
+  version "0.0.3"
+  resolved "file:./metamask-sdk-communication-layer-v0.0.3.tgz#6dc9acd4584da052886b3e30cdef968c5d7f61b4"
   dependencies:
     eventemitter2 "^6.4.5"
     socket.io-client "^4.4.1"
