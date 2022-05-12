@@ -4,6 +4,7 @@ exports[`BaseText should render correctly 1`] = `
 <Text
   style={
     Object {
+      "color": "#24272A",
       "fontFamily": "Euclid Circular B",
       "fontSize": 16,
       "fontWeight": "400",
