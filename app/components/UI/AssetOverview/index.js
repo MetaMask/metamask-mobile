@@ -40,6 +40,7 @@ import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -214,8 +215,8 @@ class AssetOverview extends PureComponent {
   };
 
   goToBrowserUrl(url) {
-    this.props.navigation.navigate('BrowserTabHome', {
-      screen: 'BrowserView',
+    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
+      screen: Routes.BROWSER_VIEW,
       params: {
         newTabUrl: url,
         timestamp: Date.now(),

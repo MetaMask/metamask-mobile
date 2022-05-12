@@ -45,8 +45,7 @@ interface RPCMethodsMiddleParameters {
   isHomepage: () => boolean;
   // Show autocomplete
   fromHomepage: { current: boolean };
-  setAutocompleteValue: (value: string) => void;
-  setShowUrlModal: (showUrlModal: boolean) => void;
+  toggleUrlModal: (shouldClearUrlInput: boolean) => void;
   // Wizard
   wizardScrollAdjusted: { current: boolean };
   // For the browser
@@ -126,8 +125,7 @@ export const getRpcMethodMiddleware = ({
   isHomepage,
   // Show autocomplete
   fromHomepage,
-  setAutocompleteValue,
-  setShowUrlModal,
+  toggleUrlModal,
   // Wizard
   wizardScrollAdjusted,
   // For the browser
@@ -576,8 +574,7 @@ export const getRpcMethodMiddleware = ({
           throw ethErrors.provider.unauthorized('Forbidden.');
         }
         fromHomepage.current = true;
-        setAutocompleteValue('');
-        setShowUrlModal(true);
+        toggleUrlModal(true);
 
         setTimeout(() => {
           fromHomepage.current = false;

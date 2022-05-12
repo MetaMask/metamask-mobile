@@ -66,10 +66,6 @@ const createStyles = (colors) =>
 class NavbarBrowserTitle extends PureComponent {
   static propTypes = {
     /**
-     * String representing the current url
-     */
-    url: PropTypes.string,
-    /**
      * Object representing the selected the selected network
      */
     network: PropTypes.object.isRequired,
@@ -96,7 +92,7 @@ class NavbarBrowserTitle extends PureComponent {
   };
 
   onTitlePress = () => {
-    this.props.route.params?.showUrlModal?.({ urlInput: this.props.url });
+    this.props.route.params?.showUrlModal?.();
   };
 
   getNetworkName(network) {
