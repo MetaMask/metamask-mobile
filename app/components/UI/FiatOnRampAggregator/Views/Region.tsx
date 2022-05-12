@@ -104,6 +104,16 @@ const RegionView = () => {
     );
   }
 
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={queryGetCountries} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (isFetching || !data) {
     return (
       <ScreenLayout>
@@ -116,16 +126,6 @@ const RegionView = () => {
               <SkeletonText thin medium />
             </Box>
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={queryGetCountries} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
