@@ -38,6 +38,7 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -498,7 +499,7 @@ class TransactionReviewInformation extends PureComponent {
     const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate('BrowserView', {
+      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
         newTabUrl: mmFaucetUrl,
         timestamp: Date.now(),
       });

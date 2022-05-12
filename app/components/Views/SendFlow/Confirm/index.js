@@ -82,6 +82,7 @@ import {
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1301,9 +1302,8 @@ class Confirm extends PureComponent {
   };
 
   goToFaucet = () => {
-    // browser view is not available in this navigation stack */
     InteractionManager.runAfterInteractions(() => {
-      this.props.navigation.navigate('BrowserTabHome', {
+      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
         newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
