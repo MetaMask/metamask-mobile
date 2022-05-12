@@ -1900,5 +1900,9 @@
     "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or"
+  },
+  "download_files": {
+	"error": "Failed to download attachment.",
+	"unknownError": "Unknown error occurred"
   }
 }
