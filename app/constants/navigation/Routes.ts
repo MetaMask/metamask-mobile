@@ -1,12 +1,12 @@
-interface INestedRoute {
+interface NestedRoute {
   ID: string;
   [key: string]: string;
 }
-interface IRoute {
-  [key: string]: string | INestedRoute;
+interface Route {
+  [key: string]: string | NestedRoute;
 }
 
-const Routes: IRoute = {
+const Routes: Route = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
