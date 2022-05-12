@@ -43,7 +43,6 @@ interface Props {
   dismiss?: () => any;
 }
 
-// TODO: add link to support article
 const SUPPORT_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/4863623238683-My-country-region-isn-t-supported-for-MetaMask-on-ramps';
 
