@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import BaseText from '../../../Base/Text';
@@ -18,10 +18,17 @@ import SkeletonText from '../components/SkeletonText';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { Region } from '../types';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
+
+const styles = StyleSheet.create({
+  flexZero: {
+    flex: 0,
+  },
+});
 
 const RegionView = () => {
   const navigation = useNavigation();
@@ -55,7 +62,7 @@ const RegionView = () => {
   }, [navigation, colors]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate('PaymentMethod');
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD);
   }, [navigation]);
 
   const handleRegionPress = useCallback(
@@ -98,6 +105,16 @@ const RegionView = () => {
     );
   }
 
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={queryGetCountries} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (isFetching || !data) {
     return (
       <ScreenLayout>
@@ -110,16 +127,6 @@ const RegionView = () => {
               <SkeletonText thin medium />
             </Box>
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={queryGetCountries} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -156,7 +163,7 @@ const RegionView = () => {
                     </Text>
                   )}
                 </ListItem.Body>
-                <ListItem.Amounts>
+                <ListItem.Amounts style={styles.flexZero}>
                   <FontAwesome
                     name="caret-down"
                     size={15}

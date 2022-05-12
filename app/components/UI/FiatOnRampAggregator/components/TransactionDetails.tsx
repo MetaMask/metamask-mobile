@@ -23,7 +23,7 @@ import { getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const failedIcon = require('./images/transactionFailed.png');
+const failedIcon = require('./images/TransactionIcon_Failed.png');
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -218,14 +218,20 @@ const TransactionDetails: React.FC<Props> = ({
         />
       </View>
       <Text centered primary style={styles.tokenAmount}>
-        {data &&
+        {data?.cryptoCurrency?.decimals &&
+        cryptoAmount &&
+        cryptoAmount !== 0 &&
+        cryptocurrency ? (
           renderFromTokenMinimalUnit(
             toTokenMinimalUnit(
               cryptoAmount,
               data?.cryptoCurrency?.decimals,
             ).toString(),
             data?.cryptoCurrency?.decimals,
-          )}{' '}
+          )
+        ) : (
+          <Text>...</Text>
+        )}{' '}
         {cryptocurrency}
       </Text>
       {data?.fiatCurrency?.decimals && currencySymbol ? (
@@ -287,7 +293,6 @@ const TransactionDetails: React.FC<Props> = ({
               {getProviderName(order.provider, data)}
             </Text>
           )}
-
           <ListItem.Content style={styles.seperationTop}>
             <ListItem.Body>
               <Text black small>
@@ -319,7 +324,7 @@ const TransactionDetails: React.FC<Props> = ({
             </ListItem.Body>
             <ListItem.Amount>
               {order.cryptocurrency &&
-              exchangeRate &&
+              isFinite(exchangeRate) &&
               currency &&
               data?.fiatCurrency?.decimals ? (
                 <Text small bold primary>

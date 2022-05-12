@@ -48,6 +48,7 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { Colors } from '../../../../util/theme/models';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -226,7 +227,7 @@ const AmountToBuy = () => {
     selectedPaymentMethodId,
   );
 
-  const [{ data: limits, isFetching: isFetchingLimits }] = useSDKMethod(
+  const [{ data: limits }] = useSDKMethod(
     'getLimits',
     selectedRegion?.id,
     selectedPaymentMethodId,
@@ -495,7 +496,7 @@ const AmountToBuy = () => {
    * * Get Quote handlers
    */
   const handleGetQuotePress = useCallback(() => {
-    navigation.navigate('GetQuotes', {
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES, {
       amount: amountNumber,
       asset: selectedAsset,
     });
@@ -504,6 +505,14 @@ const AmountToBuy = () => {
   /**
    * * Derived values
    */
+
+  const isFetching =
+    isFetchingSdkCryptoCurrencies ||
+    isFetchingCurrentPaymentMethod ||
+    isFetchingPaymentMethods ||
+    isFetchingFiatCurrencies ||
+    isFetchingDefaultFiatCurrency ||
+    isFetchingCountries;
 
   /**
    * Get the fiat currency object by id
@@ -604,15 +613,17 @@ const AmountToBuy = () => {
     );
   }
 
-  if (
-    isFetchingSdkCryptoCurrencies ||
-    isFetchingCurrentPaymentMethod ||
-    isFetchingPaymentMethods ||
-    isFetchingFiatCurrencies ||
-    isFetchingDefaultFiatCurrency ||
-    isFetchingCountries ||
-    isFetchingLimits
-  ) {
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={retryMethod} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (isFetching) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -644,16 +655,6 @@ const AmountToBuy = () => {
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={retryMethod} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );

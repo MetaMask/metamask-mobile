@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Box from './Box';
 import Feather from 'react-native-vector-icons/Feather';
-import { Image } from 'react-native-animatable';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import PaymentIcon, { Icon } from './PaymentIcon';
@@ -10,20 +9,14 @@ import { strings } from '../../../../../locales/i18n';
 import { TimeDescriptions, timeToDescription } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const visa = require('./images/visa.png');
-const sepa = require('./images/sepa.png');
-const mastercard = require('./images/mastercard.png');
-/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-
+import PaymentTypeIcon from './PaymentTypeIcon';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
 
 interface Props {
   title?: string;
-  cardImage?: boolean;
+  id?: string;
   time: number[];
   amountTier: number[];
   paymentType: Icon;
@@ -111,7 +104,7 @@ const renderTiers = (tiers: number[]) => {
 const PaymentOption: React.FC<Props> = ({
   title,
   time,
-  cardImage,
+  id,
   amountTier,
   paymentType,
   onPress,
@@ -119,6 +112,7 @@ const PaymentOption: React.FC<Props> = ({
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
   return (
     <Box onPress={onPress} highlighted={highlighted}>
       <ListItem.Content>
@@ -137,14 +131,7 @@ const PaymentOption: React.FC<Props> = ({
         <ListItem.Amounts>
           <ListItem.Amount>
             <View style={styles.cardIcons}>
-              {cardImage ? (
-                <>
-                  <Image source={visa} style={styles.cardIcon} />
-                  <Image source={mastercard} style={styles.cardIcon} />
-                </>
-              ) : (
-                <Image source={sepa} style={styles.cardIcon} />
-              )}
+              <PaymentTypeIcon id={id} style={styles.cardIcon} />
             </View>
           </ListItem.Amount>
         </ListItem.Amounts>

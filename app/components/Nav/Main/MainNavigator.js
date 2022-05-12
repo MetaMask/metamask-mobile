@@ -62,6 +62,8 @@ import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import TransactionDetails from '../../UI/FiatOnRampAggregator/Views/TransactionDetails';
+import BrowserUrlModal from '../../Views/BrowserUrlModal';
+import Routes from '../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -111,9 +113,20 @@ const WalletTabHome = () => (
   </Stack.Navigator>
 );
 
-const BrowserTabHome = () => (
-  <Stack.Navigator>
-    <Stack.Screen name="BrowserView" component={Browser} />
+const BrowserFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.BROWSER_VIEW}
+    mode={'modal'}
+    screenOptions={{
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+  >
+    <Stack.Screen name={Routes.BROWSER_VIEW} component={Browser} />
+    <Stack.Screen
+      name={Routes.BROWSER_URL_MODAL}
+      component={BrowserUrlModal}
+      options={{ animationEnabled: false, headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -142,8 +155,8 @@ const HomeTabs = () => {
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
-            name="BrowserTabHome"
-            component={BrowserTabHome}
+            name={Routes.BROWSER_TAB_HOME}
+            component={BrowserFlow}
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
@@ -393,45 +406,48 @@ const FiatOnRamp = () => (
 const FiatOnRampAggregator = () => (
   <FiatOnRampSDKProvider>
     <Stack.Navigator
-      initialRouteName="GetStarted"
+      initialRouteName={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
       screenOptions={GetStarted.screenOptions}
     >
       <Stack.Screen
-        name="GetStarted"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
         component={GetStarted}
         options={GetStarted.navigationOptions}
       />
       <Stack.Screen
-        name="PaymentMethod"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD}
         component={PaymentMethod}
         options={PaymentMethod.navigationOptions}
       />
       <Stack.Screen
-        name="AmountToBuy"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
         component={AmountToBuy}
         options={AmountToBuy.navigationOptions}
       />
       <Stack.Screen
-        name="GetQuotes"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES}
         component={GetQuotes}
         options={GetQuotes.navigationOptions}
       />
       <Stack.Screen
-        name="Checkout"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT}
         component={CheckoutWebView}
         options={CheckoutWebView.navigationOptions}
       />
       <Stack.Screen
-        name="Region"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
         component={Region}
         options={Region.navigationOptions}
       />
       <Stack.Screen
-        name="Region_hasStarted"
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
         options={{ ...Region.navigationOptions, animationEnabled: false }}
       />
-      <Stack.Screen name="TransactionDetails" component={TransactionDetails} />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.TRANSACTION_DETAILS}
+        component={TransactionDetails}
+      />
     </Stack.Navigator>
   </FiatOnRampSDKProvider>
 );
@@ -542,7 +558,7 @@ const MainNavigator = () => (
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
     <Stack.Screen
-      name="FiatOnRampAggregator"
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}
     />
     <Stack.Screen name="Swaps" component={Swaps} />

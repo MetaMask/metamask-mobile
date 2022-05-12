@@ -17,6 +17,7 @@ import BaseListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -103,7 +104,7 @@ const PaymentMethod = () => {
   ]);
 
   const handleContinueToAmount = useCallback(() => {
-    navigation.navigate('AmountToBuy');
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
   }, [navigation]);
 
   if (sdkError) {
@@ -111,6 +112,16 @@ const PaymentMethod = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorViewWithReporting error={sdkError} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={queryGetPaymentMethods} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -130,16 +141,6 @@ const PaymentMethod = () => {
     );
   }
 
-  if (error) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={queryGetPaymentMethods} />
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -150,10 +151,7 @@ const PaymentMethod = () => {
                 highlighted={id === selectedPaymentMethodId}
                 title={name}
                 time={delay}
-                cardImage={[
-                  '/payments/apple-pay',
-                  '/payments/debit-credit-card',
-                ].includes(id)}
+                id={id}
                 onPress={
                   id === selectedPaymentMethodId
                     ? undefined

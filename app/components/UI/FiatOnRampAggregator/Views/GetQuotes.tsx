@@ -109,6 +109,9 @@ const createStyles = (colors: Colors) =>
     withoutTopMargin: {
       marginTop: 0,
     },
+    withoutVerticalPadding: {
+      paddingVertical: 0,
+    },
   });
 
 const SkeletonQuote = ({
@@ -382,6 +385,16 @@ const GetQuotes = () => {
     );
   }
 
+  // Error while FetchingQuotes
+  if (ErrorFetchingQuotes) {
+    return (
+      <ErrorView
+        description={ErrorFetchingQuotes}
+        ctaOnPress={handleFetchQuotes}
+      />
+    );
+  }
+
   if (pollingCyclesLeft < 0) {
     return (
       <ScreenView contentContainerStyle={styles.screen}>
@@ -426,18 +439,8 @@ const GetQuotes = () => {
     );
   }
 
-  // Error while FetchingQuotes
-  if (ErrorFetchingQuotes) {
-    return (
-      <ErrorView
-        description={ErrorFetchingQuotes}
-        ctaOnPress={handleFetchQuotes}
-      />
-    );
-  }
-
   // No providers available
-  if (filteredQuotes.length <= 0) {
+  if (filteredQuotes.length === 0) {
     return (
       <ErrorView
         title={strings('fiat_on_ramp_aggregator.no_providers_available')}
@@ -453,12 +456,14 @@ const GetQuotes = () => {
     <ScreenLayout>
       <ScreenLayout.Header>
         {isInPolling && <QuotesPolling />}
-        <Text centered grey>
-          {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
-            // @ts-expect-error params useRute type
-            ticker: params?.asset?.symbol || '',
-          })}
-        </Text>
+        <ScreenLayout.Content style={styles.withoutVerticalPadding}>
+          <Text centered grey>
+            {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
+              // @ts-expect-error params useRute type
+              ticker: params?.asset?.symbol || '',
+            })}
+          </Text>
+        </ScreenLayout.Content>
       </ScreenLayout.Header>
       <InfoAlert
         isVisible={showProviderInfo}
