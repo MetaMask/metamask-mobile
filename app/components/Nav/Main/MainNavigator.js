@@ -558,7 +558,7 @@ const MainNavigator = () => (
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
     <Stack.Screen
-      name={Routes.FIAT_ON_RAMP_AGGREGATOR.INITIAL_ROUTE}
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
       component={FiatOnRampAggregator}
     />
     <Stack.Screen name="Swaps" component={Swaps} />

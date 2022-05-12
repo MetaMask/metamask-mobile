@@ -1,9 +1,17 @@
-const Routes = {
+interface INestedRoute {
+  ID: string;
+  [key: string]: string;
+}
+interface IRoute {
+  [key: string]: string | INestedRoute;
+}
+
+const Routes: IRoute = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   FIAT_ON_RAMP_AGGREGATOR: {
-    INITIAL_ROUTE: 'FiatOnRampAggregator',
+    ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
     AMOUNT_TO_BUY: 'AmountToBuy',
@@ -14,4 +22,5 @@ const Routes = {
     TRANSACTION_DETAILS: 'TransactionDetails',
   },
 };
+
 export default Routes;
