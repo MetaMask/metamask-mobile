@@ -5,6 +5,12 @@ import { useAssetFromTheme } from '../../../../util/theme';
 import BaseText from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 
+/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+const ApplePayLogoLight = require('../../../../images/ApplePayLogo-light.png');
+const ApplePayLogoDark = require('../../../../images/ApplePayLogo-dark.png');
+/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+
+// TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 
 const styles = StyleSheet.create({
@@ -29,11 +35,6 @@ const applePayButtonStylesDark = StyleSheet.create({
   applePayButtonText: { color: importedColors.black },
   applePayButton: { backgroundColor: importedColors.white },
 });
-
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const ApplePayLogoLight = require('../../../../images/ApplePayLogo-light.png');
-const ApplePayLogoDark = require('../../../../images/ApplePayLogo-dark.png');
-/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 const ApplePay = ({ disabled }: { disabled?: boolean }) => {
   const applePayLogo = useAssetFromTheme(ApplePayLogoLight, ApplePayLogoDark);
