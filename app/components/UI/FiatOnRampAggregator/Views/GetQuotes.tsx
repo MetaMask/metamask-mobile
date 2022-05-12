@@ -109,6 +109,9 @@ const createStyles = (colors: Colors) =>
     withoutTopMargin: {
       marginTop: 0,
     },
+    withoutVerticalPadding: {
+      paddingVertical: 0,
+    },
   });
 
 const SkeletonQuote = ({
@@ -453,12 +456,14 @@ const GetQuotes = () => {
     <ScreenLayout>
       <ScreenLayout.Header>
         {isInPolling && <QuotesPolling />}
-        <Text centered grey>
-          {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
-            // @ts-expect-error params useRute type
-            ticker: params?.asset?.symbol || '',
-          })}
-        </Text>
+        <ScreenLayout.Content style={styles.withoutVerticalPadding}>
+          <Text centered grey>
+            {strings('fiat_on_ramp_aggregator.buy_from_vetted', {
+              // @ts-expect-error params useRute type
+              ticker: params?.asset?.symbol || '',
+            })}
+          </Text>
+        </ScreenLayout.Content>
       </ScreenLayout.Header>
       <InfoAlert
         isVisible={showProviderInfo}
