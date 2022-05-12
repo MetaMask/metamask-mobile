@@ -227,6 +227,7 @@ class DeeplinkManager {
     const handled = () => (onHandled ? onHandled() : false);
 
     const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
+    const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
     switch (urlObj.protocol.replace(':', '')) {
       case PROTOCOLS.HTTP:
@@ -250,20 +251,33 @@ class DeeplinkManager {
             return;
           } else if (PREFIXES[action]) {
             const url = urlObj.href.replace(
-              `https://${MM_UNIVERSAL_LINK_HOST}/${action}/`,
+              `${DEEP_LINK_BASE}/${action}/`,
               PREFIXES[action],
             );
             // loops back to open the link with the right protocol
             this.parse(url, { browserCallBack });
           } else {
             // If it's our universal link or Apple store deep link don't open it in the browser
-
             if (
               (!action &&
-                urlObj.href === `https://${MM_UNIVERSAL_LINK_HOST}/`) ||
+                (urlObj.href === `${DEEP_LINK_BASE}/` ||
+                  urlObj.href === DEEP_LINK_BASE)) ||
               urlObj.href === MM_DEEP_ITMS_APP_LINK
             )
               return;
+
+            // Fix for Apple Store redirect even when app is installed
+            if (urlObj.href.startsWith(`${DEEP_LINK_BASE}/`)) {
+              this._handleBrowserUrl(
+                `${PROTOCOLS.HTTPS}://${urlObj.href.replace(
+                  `${DEEP_LINK_BASE}/`,
+                  '',
+                )}`,
+                browserCallBack,
+              );
+
+              return;
+            }
 
             // Normal links (same as dapp)
             this._handleBrowserUrl(urlObj.href, browserCallBack);
