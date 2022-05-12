@@ -631,6 +631,8 @@
     "seed_phrase_copied_time": "(stored for 1 minute)",
     "private_key_copied": "Private key temporarily copied to clipboard",
     "private_key_copied_time": "(stored for 1 minute)",
+    "private_key_copied_ios": "Private key temporarily copied to clipboard\n",
+    "private_key_copied_android": "Private key copied to clipboard\n",
     "warning_incorrect_password": "Incorrect password",
     "unknown_error": "Couldn't unlock your account. Please try again.",
     "hardware_error": "This is a hardware wallet account, you cannot export your private key.",
@@ -1898,5 +1900,9 @@
     "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or"
+  },
+  "download_files": {
+	"error": "Failed to download attachment.",
+	"unknownError": "Unknown error occurred"
   }
 }
