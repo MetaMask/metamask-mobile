@@ -19,6 +19,7 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
+import Routes from '../constants/navigation/Routes';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
@@ -189,8 +190,8 @@ class DeeplinkManager {
       if (callback) {
         callback(url);
       } else {
-        this.navigation.navigate('BrowserTabHome', {
-          screen: 'BrowserView',
+        this.navigation.navigate(Routes.BROWSER_TAB_HOME, {
+          screen: Routes.BROWSER_VIEW,
           params: {
             newTabUrl: url,
             timestamp: Date.now(),
