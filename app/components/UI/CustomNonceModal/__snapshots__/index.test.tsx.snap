@@ -253,7 +253,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
             style={
               Object {
                 "backgroundColor": "#FFD33D19",
-                "borderColor": "#FFD33D",
+                "borderColor": "#F66A0A",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "display": "flex",
@@ -266,7 +266,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           >
             <Icon
               allowFontScaling={false}
-              color="#FFD33D"
+              color="#F66A0A"
               name="exclamation-circle"
               size={16}
               style={
