@@ -55,6 +55,8 @@ import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import Drawer from '../../UI/Drawer';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
+import BrowserUrlModal from '../../Views/BrowserUrlModal';
+import Routes from '../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -104,9 +106,20 @@ const WalletTabHome = () => (
   </Stack.Navigator>
 );
 
-const BrowserTabHome = () => (
-  <Stack.Navigator>
-    <Stack.Screen name="BrowserView" component={Browser} />
+const BrowserFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.BROWSER_VIEW}
+    mode={'modal'}
+    screenOptions={{
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+  >
+    <Stack.Screen name={Routes.BROWSER_VIEW} component={Browser} />
+    <Stack.Screen
+      name={Routes.BROWSER_URL_MODAL}
+      component={BrowserUrlModal}
+      options={{ animationEnabled: false, headerShown: false }}
+    />
   </Stack.Navigator>
 );
 
@@ -135,8 +148,8 @@ const HomeTabs = () => {
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
-            name="BrowserTabHome"
-            component={BrowserTabHome}
+            name={Routes.BROWSER_TAB_HOME}
+            component={BrowserFlow}
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
