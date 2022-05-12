@@ -150,10 +150,7 @@ const PaymentMethod = () => {
                 highlighted={id === selectedPaymentMethodId}
                 title={name}
                 time={delay}
-                cardImage={[
-                  '/payments/apple-pay',
-                  '/payments/debit-credit-card',
-                ].includes(id)}
+                id={id}
                 onPress={
                   id === selectedPaymentMethodId
                     ? undefined

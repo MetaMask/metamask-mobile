@@ -98,10 +98,7 @@ function PaymentMethodModal({
                         highlighted={id === selectedPaymentMethod}
                         title={name}
                         time={delay}
-                        cardImage={[
-                          '/payments/apple-pay',
-                          '/payments/debit-credit-card',
-                        ].includes(id)}
+                        id={id}
                         onPress={() => handleOnPressItemCallback(id)}
                         amountTier={amountTier}
                         paymentType={getPaymentMethodIcon(id)}
