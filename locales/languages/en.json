@@ -1521,12 +1521,8 @@
   "fiat_on_ramp_aggregator": {
     "onboarding": {
       "what_to_expect": "What to Expect",
-      "save_time_money": "Save time & money ",
-      "save_time_money_description": "We save you time by searching for the best quote. And you dont have to pay gas twice",
-      "full_control_at_your_hands": "Full control at your hands",
-      "full_control_at_your_hands_description": "The crypto you buy is yours and yours only. Access everything web3 has to offer on your terms.",
-      "growing_collection_of_tokens": "A growing collection of tokens",
-      "growing_collection_of_tokens_description": "We're adding new token on more networks all the time. Check back often.",
+      "best_quotes": "Let us find the best quotes for you to get crypto directly into your wallet with no waiting period.",
+      "benefits": "Less gas fees to pay, and numerous networks, tokens, and payment methods supported.",
       "get_started": "Get started"
     },
     "payment_method": {
