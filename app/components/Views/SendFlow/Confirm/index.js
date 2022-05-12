@@ -1303,7 +1303,7 @@ class Confirm extends PureComponent {
 
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
-      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
+      this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
         newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
@@ -1542,10 +1542,10 @@ class Confirm extends PureComponent {
             />
           )}
 
-          {errorMessage && (
+          {true && (
             <View style={styles.errorWrapper}>
               <TouchableOpacity onPress={errorPress}>
-                <Text style={styles.error}>{errorMessage}</Text>
+                <Text style={styles.error}>{errorMessage}sadasd</Text>
                 {over ? (
                   <Text style={[styles.error, styles.underline]}>
                     {errorLinkText}
