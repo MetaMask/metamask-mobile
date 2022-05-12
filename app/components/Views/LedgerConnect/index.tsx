@@ -53,7 +53,7 @@ const createStyles = (colors: any) =>
       height: 68,
     },
     coverImage: {
-      resizeMode: 'cover',
+      resizeMode: 'contain',
       width: Device.getDeviceWidth() * 0.6,
       height: 64,
       overflow: 'visible',

@@ -60,6 +60,7 @@ const createStyles = (colors: any) =>
       flexDirection: 'column',
       justifyContent: 'flex-end',
       alignItems: 'center',
+      padding: 20,
     },
   });
 
@@ -98,8 +99,8 @@ const LedgerAccountInfo = () => {
       const ethValue = await AccountTrackerController.syncBalanceWithAddresses([
         account,
       ]);
-      const decimalETHValue = renderFromWei(ethValue[account].balance);
-      setAccountBalance(decimalETHValue.toString());
+      const decimalETHValue = renderFromWei(ethValue[account]?.balance);
+      setAccountBalance(decimalETHValue?.toString() ?? 0);
     }
   };
 
