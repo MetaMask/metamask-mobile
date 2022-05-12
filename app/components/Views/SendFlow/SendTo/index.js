@@ -266,6 +266,7 @@ class SendFlow extends PureComponent {
     alias: undefined,
     confusableCollection: [],
     inputWidth: { width: '99%' },
+    isFromAddressBook: false,
   };
 
   updateNavBar = () => {
@@ -368,7 +369,8 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-      toEnsAddressResolved;
+      toEnsAddressResolved,
+      isFromAddressBook;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
     if (isValidAddress(toSelectedAddress)) {
       const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -391,6 +393,7 @@ class SendFlow extends PureComponent {
             networkAddressBook[checksummedToSelectedAddress].name) ||
           (identities[checksummedToSelectedAddress] &&
             identities[checksummedToSelectedAddress].name);
+        isFromAddressBook = true;
       } else {
         toAddressName = ens || toSelectedAddress;
         // If not in address book nor user accounts
@@ -430,13 +433,13 @@ class SendFlow extends PureComponent {
        * Check if it's smart contract address
        */
       /*
-      const smart = false; //
+			const smart = false; //
 
-      if (smart) {
-        addressError = strings('transaction.smartContractAddressWarning');
-        isOnlyWarning = true;
-      }
-      */
+			if (smart) {
+				addressError = strings('transaction.smartContractAddressWarning');
+				isOnlyWarning = true;
+			}
+			*/
     } else if (isENS(toSelectedAddress)) {
       toEnsName = toSelectedAddress;
       confusableCollection = collectConfusables(toEnsName);
@@ -468,6 +471,7 @@ class SendFlow extends PureComponent {
       isOnlyWarning,
       confusableCollection,
       toEnsAddressResolved,
+      isFromAddressBook,
     });
   };
 
@@ -504,14 +508,18 @@ class SendFlow extends PureComponent {
 
   onSaveToAddressBook = () => {
     const { network } = this.props;
-    const { toSelectedAddress, alias } = this.state;
+    const { toSelectedAddress, alias, toEnsAddressResolved } = this.state;
     const { AddressBookController } = Engine.context;
-    AddressBookController.set(toSelectedAddress, alias, network);
+    const toAddress = toEnsAddressResolved || toSelectedAddress;
+    AddressBookController.set(toAddress, alias, network);
     this.toggleAddToAddressBookModal();
+
     this.setState({
       toSelectedAddressName: alias,
       addToAddressToAddressBook: false,
       alias: undefined,
+      isFromAddressBook: true,
+      toSelectedAddress: toAddress,
     });
   };
 
@@ -700,6 +708,7 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
+      isFromAddressBook,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -749,6 +758,7 @@ class SendFlow extends PureComponent {
             confusableCollection={
               (!existingContact && confusableCollection) || []
             }
+            isFromAddressBook={isFromAddressBook}
           />
         </View>
 

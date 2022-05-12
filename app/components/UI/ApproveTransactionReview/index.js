@@ -63,6 +63,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import Routes from '../../../constants/navigation/Routes';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -887,7 +888,7 @@ class ApproveTransactionReview extends PureComponent {
     const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate('BrowserView', {
+      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
         newTabUrl: mmFaucetUrl,
         timestamp: Date.now(),
       });
