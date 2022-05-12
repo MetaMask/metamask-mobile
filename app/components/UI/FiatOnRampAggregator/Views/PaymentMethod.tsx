@@ -116,6 +116,16 @@ const PaymentMethod = () => {
     );
   }
 
+  if (error) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView description={error} ctaOnPress={queryGetPaymentMethods} />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   if (isFetching) {
     return (
       <ScreenLayout>
@@ -125,16 +135,6 @@ const PaymentMethod = () => {
             <SkeletonPaymentOption />
             <SkeletonPaymentOption />
           </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={queryGetPaymentMethods} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );

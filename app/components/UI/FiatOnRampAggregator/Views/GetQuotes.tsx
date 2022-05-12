@@ -382,6 +382,16 @@ const GetQuotes = () => {
     );
   }
 
+  // Error while FetchingQuotes
+  if (ErrorFetchingQuotes) {
+    return (
+      <ErrorView
+        description={ErrorFetchingQuotes}
+        ctaOnPress={handleFetchQuotes}
+      />
+    );
+  }
+
   if (pollingCyclesLeft < 0) {
     return (
       <ScreenView contentContainerStyle={styles.screen}>
@@ -423,16 +433,6 @@ const GetQuotes = () => {
           />
         </ScreenLayout.Body>
       </ScreenLayout>
-    );
-  }
-
-  // Error while FetchingQuotes
-  if (ErrorFetchingQuotes) {
-    return (
-      <ErrorView
-        description={ErrorFetchingQuotes}
-        ctaOnPress={handleFetchQuotes}
-      />
     );
   }
 
