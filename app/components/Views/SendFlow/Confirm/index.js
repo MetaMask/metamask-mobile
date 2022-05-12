@@ -1542,10 +1542,10 @@ class Confirm extends PureComponent {
             />
           )}
 
-          {true && (
+          {errorMessage && (
             <View style={styles.errorWrapper}>
               <TouchableOpacity onPress={errorPress}>
-                <Text style={styles.error}>{errorMessage}sadasd</Text>
+                <Text style={styles.error}>{errorMessage}</Text>
                 {over ? (
                   <Text style={[styles.error, styles.underline]}>
                     {errorLinkText}
