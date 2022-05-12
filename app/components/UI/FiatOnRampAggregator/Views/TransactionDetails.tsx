@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { ScrollView } from 'react-native-gesture-handler';
+import Routes from '../../../../constants/navigation/Routes';
 
 const styles = StyleSheet.create({
   screenLayout: {
@@ -48,7 +49,7 @@ const TransactionDetails = ({ route }: { route: any }) => {
 
   const handleMakeAnotherPurchase = useCallback(() => {
     // @ts-expect-error navigation prop mismatch
-    navigation.replace('PaymentMethod');
+    navigation.replace(Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD);
   }, [navigation]);
 
   return (

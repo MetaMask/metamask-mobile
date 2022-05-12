@@ -18,6 +18,7 @@ import SkeletonText from '../components/SkeletonText';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { Region } from '../types';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -61,7 +62,7 @@ const RegionView = () => {
   }, [navigation, colors]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate('PaymentMethod');
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD);
   }, [navigation]);
 
   const handleRegionPress = useCallback(

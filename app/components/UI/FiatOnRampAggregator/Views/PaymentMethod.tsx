@@ -17,6 +17,7 @@ import BaseListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -103,7 +104,7 @@ const PaymentMethod = () => {
   ]);
 
   const handleContinueToAmount = useCallback(() => {
-    navigation.navigate('AmountToBuy');
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
   }, [navigation]);
 
   if (sdkError) {

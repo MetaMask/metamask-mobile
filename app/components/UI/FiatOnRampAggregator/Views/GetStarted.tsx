@@ -12,6 +12,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useFiatOnRampSDK } from '../sdk';
 import ErrorViewWithReportingJS from '../components/ErrorViewWithReporting';
+import Routes from '../../../../constants/navigation/Routes';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
@@ -81,7 +82,7 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate('Region');
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.REGION);
     setGetStarted(true);
   }, [navigation, setGetStarted]);
 
@@ -89,7 +90,7 @@ const GetStarted: React.FC = () => {
     if (getStarted) {
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Region_hasStarted' }],
+        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
       });
     }
   }, [getStarted, navigation]);
