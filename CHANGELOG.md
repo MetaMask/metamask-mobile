@@ -1,24 +1,12 @@
 # Changelog
 
 ## Current Main Branch
-- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): Fixes crashes on some Android devices when using the app in split screen
-- [#4281](https://github.com/MetaMask/metamask-mobile/pull/4281): Feature/4086 ps link component
-- [#4265](https://github.com/MetaMask/metamask-mobile/pull/4265): Feature/4073 ps text component
-- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [5.1.1] Download attachments in browser on iOS
-- [#4278](https://github.com/MetaMask/metamask-mobile/pull/4278): convert back to spaces
-- [#4176](https://github.com/MetaMask/metamask-mobile/pull/4176): 5.1.0
-- [#4249](https://github.com/MetaMask/metamask-mobile/pull/4249): patch cross-fetch instead of skipping
-- [#4211](https://github.com/MetaMask/metamask-mobile/pull/4211): New Crowdin translations by Github Action
-- [#4197](https://github.com/MetaMask/metamask-mobile/pull/4197): New Crowdin translations by Github Action
-- [#4174](https://github.com/MetaMask/metamask-mobile/pull/4174): Address now is in the checksum standard format
-- [#4193](https://github.com/MetaMask/metamask-mobile/pull/4193): jazzIcons default
-- [#4184](https://github.com/MetaMask/metamask-mobile/pull/4184): New Crowdin translations by Github Action
-- [#4157](https://github.com/MetaMask/metamask-mobile/pull/4157): Adjust language mapping
-- [#3804](https://github.com/MetaMask/metamask-mobile/pull/3804): New Crowdin translations by Github Action
-- [#4182](https://github.com/MetaMask/metamask-mobile/pull/4182): Standardize prettier configuration
-- [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [trivial] - Update react-native-webview+11.13.0.patch
-- [#4181](https://github.com/MetaMask/metamask-mobile/pull/4181): Fix/i os storage
-- [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): excluded audit because no available patch, does not seem to impact browser as we don't supprot cookies, controllers calls do not pass cookies
+
+## 5.1.1 - May 12, 2022
+- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX] Crashes on some Android devices when using the app in split screen
+- [#4281](https://github.com/MetaMask/metamask-mobile/pull/4281): [FEAT] 4086 ps link component
+- [#4265](https://github.com/MetaMask/metamask-mobile/pull/4265): [FEAT] 4073 ps text component
+- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FEAT] Download attachments in browser on iOS
 
 ## 5.1.0 - May 5, 2022
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
