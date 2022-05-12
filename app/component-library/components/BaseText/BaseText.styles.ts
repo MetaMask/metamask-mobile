@@ -17,7 +17,11 @@ const styleSheet = (params: {
   const { theme, vars } = params;
   const { variant, style } = vars;
   return StyleSheet.create({
-    base: Object.assign({}, theme.typography[variant], style) as TextStyle,
+    base: Object.assign(
+      { color: theme.colors.text.default },
+      theme.typography[variant],
+      style,
+    ) as TextStyle,
   });
 };
 
