@@ -1902,7 +1902,7 @@
     "or": "or"
   },
   "download_files": {
-	"error": "Failed to download attachment.",
-	"unknownError": "Unknown error occurred"
+    "error": "Failed to download attachment.",
+    "unknownError": "Unknown error occurred"
   }
 }
