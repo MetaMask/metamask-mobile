@@ -5,7 +5,6 @@
 
 function loadStories() {
   require('../app/components/Base/Alert.stories');
-  require('../app/components/Base/Keypad/Keypad.stories');
   require('../app/components/Base/ListItem.stories');
   require('../app/components/Base/Text.stories');
   require('../app/components/Base/Title.stories');
@@ -18,7 +17,6 @@ function loadStories() {
 
 const stories = [
   '../app/components/Base/Alert.stories',
-  '../app/components/Base/Keypad/Keypad.stories',
   '../app/components/Base/ListItem.stories',
   '../app/components/Base/Text.stories',
   '../app/components/Base/Title.stories',
