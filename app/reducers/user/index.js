@@ -13,6 +13,7 @@ const initialState = {
   isAuthChecked: false,
   initialScreen: '',
   appTheme: AppThemeKey.os,
+  isUsingRememberMe: false,
 };
 
 const userReducer = (state = initialState, action) => {
@@ -103,6 +104,11 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         appTheme: action.payload.theme,
+      };
+    case 'SET_IS_USING_REMEMBER_ME':
+      return {
+        ...state,
+        isUsingRememberMe: action.payload.isUsingRememberMe,
       };
     default:
       return state;
