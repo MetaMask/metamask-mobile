@@ -180,6 +180,7 @@ class RevealPrivateCredential extends PureComponent {
     password: '',
     warningIncorrectPassword: '',
     isModalVisible: false,
+    isAndroidSupportedVersion: true,
   };
 
   static propTypes = {
@@ -442,7 +443,8 @@ class RevealPrivateCredential extends PureComponent {
 
     const supportedAndroidVersion =
       Device.isAndroid() &&
-      Device.getDeviceOS() < AppConstants.LEAST_SUPPORTED_ANDROID_VERSION;
+      Device.getDeviceAPILevel() <
+        AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL;
 
     return (
       <ScrollableTabView
