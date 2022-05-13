@@ -52,6 +52,7 @@ interface RPCMethodsMiddleParameters {
   tabId: string;
   // For WalletConnect
   isWalletConnect: boolean;
+  injectHomePageScripts: (bookmarks?: []) => void;
 }
 
 export const checkActiveAccountAndChainId = ({
@@ -132,6 +133,7 @@ export const getRpcMethodMiddleware = ({
   tabId,
   // For WalletConnect
   isWalletConnect,
+  injectHomePageScripts,
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
@@ -545,6 +547,12 @@ export const getRpcMethodMiddleware = ({
 
                 store.dispatch(removeBookmark(bookmark));
 
+                const { bookmarks: updatedBookmarks } = store.getState();
+
+                if (isHomepage()) {
+                  injectHomePageScripts(updatedBookmarks);
+                }
+
                 res.result = {
                   favorites: bookmarks,
                 };
@@ -580,6 +588,13 @@ export const getRpcMethodMiddleware = ({
           fromHomepage.current = false;
         }, 1500);
 
+        res.result = true;
+      },
+
+      metamask_injectHomepageScripts: async () => {
+        if (isHomepage()) {
+          injectHomePageScripts();
+        }
         res.result = true;
       },
 
