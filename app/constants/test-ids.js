@@ -76,3 +76,6 @@ export const SELECTABLE_LIST_ITEM_OVERLAY_ID = 'selectable-list-item-overlay';
 export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
 export const STACKED_AVATARS_OVERFLOW_COUNTER =
   'stacked-avatar-overflow-counter';
+
+export const LOGIN_WITH_BIOMETRICS_SWITCH = 'login-with-biometrics-switch';
+export const LOGIN_WITH_REMEMBER_ME_SWITCH = 'login-with-remember-me-switch';

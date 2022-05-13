@@ -27,6 +27,7 @@ import {
   setPrivacyMode,
   setThirdPartyApiMode,
 } from '../../../../actions/privacy';
+import { setAllowLoginWithRememberMe } from '../../../../actions/security';
 import {
   fontStyles,
   colors as importedColors,
@@ -69,6 +70,7 @@ import {
 import { LEARN_MORE_URL } from '../../../../constants/urls';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
+import { SecurityOptionToggle } from './components';
 
 const isIos = Device.isIos();
 
@@ -300,6 +302,14 @@ class Settings extends PureComponent {
      * Type of network
      */
     type: PropTypes.string,
+    /**
+     * Indicates whether privacy mode is enabled
+     */
+    allowLoginWithRememberMe: PropTypes.bool,
+    /**
+     * Called to toggle privacy mode
+     */
+    setAllowLoginWithRememberMe: PropTypes.func,
   };
 
   state = {
@@ -543,6 +553,10 @@ class Settings extends PureComponent {
 
   togglePrivacy = (value) => {
     this.props.setPrivacyMode(value);
+  };
+
+  toggleRememberMe = (value) => {
+    this.props.setAllowLoginWithRememberMe(value);
   };
 
   toggleThirdPartyAPI = (value) => {
@@ -821,6 +835,15 @@ class Settings extends PureComponent {
       </View>
     );
   };
+
+  renderRememberMeOptionSection = () => (
+    <SecurityOptionToggle
+      title={strings(`remember_me.enable_remember_me`)}
+      description={strings(`remember_me.enable_remember_me_description`)}
+      value={this.props.allowLoginWithRememberMe}
+      onOptionUpdated={this.toggleRememberMe}
+    />
+  );
 
   renderDevicePasscodeSection = () => {
     const { styles, colors } = this.getStyles();
@@ -1194,6 +1217,7 @@ class Settings extends PureComponent {
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
           {biometryType && this.renderBiometricOptionsSection()}
+          {this.renderRememberMeOptionSection()}
           {biometryType &&
             !biometryChoice &&
             this.renderDevicePasscodeSection()}
@@ -1238,6 +1262,7 @@ const mapStateToProps = (state) => ({
   passwordHasBeenSet: state.user.passwordSet,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   type: state.engine.backgroundState.NetworkController.provider.type,
+  allowLoginWithRememberMe: state.security.allowLoginWithRememberMe,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1247,6 +1272,8 @@ const mapDispatchToProps = (dispatch) => ({
   setPrivacyMode: (enabled) => dispatch(setPrivacyMode(enabled)),
   setThirdPartyApiMode: (enabled) => dispatch(setThirdPartyApiMode(enabled)),
   passwordSet: () => dispatch(passwordSet()),
+  setAllowLoginWithRememberMe: (enabled) =>
+    dispatch(setAllowLoginWithRememberMe(enabled)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Settings);
