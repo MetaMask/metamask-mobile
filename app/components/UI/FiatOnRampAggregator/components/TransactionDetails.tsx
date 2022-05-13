@@ -86,12 +86,14 @@ interface PropsStage {
   stage: string;
   paymentType?: string;
   cryptocurrency?: string;
+  providerName?: string;
 }
 
 const Stage: React.FC<PropsStage> = ({
   stage,
   paymentType,
   cryptocurrency,
+  providerName,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -129,7 +131,11 @@ const Stage: React.FC<PropsStage> = ({
               : 'fiat_on_ramp.cancelled'}
           </Text>
           <Text small centered style={styles.stageMessage}>
-            {strings('fiat_on_ramp_aggregator.transaction.failed_description')}
+            {strings('fiat_on_ramp_aggregator.transaction.failed_description', {
+              provider:
+                providerName ||
+                strings('fiat_on_ramp_aggregator.transaction.the_provider'),
+            })}
           </Text>
         </>
       );
@@ -202,6 +208,7 @@ const TransactionDetails: React.FC<Props> = ({
   const date = toDateFormat(createdAt);
   const amountOut = Number(amount) - Number(cryptoFee);
   const exchangeRate = Number(amountOut) / Number(cryptoAmount);
+  const providerName = getProviderName(order.provider, data);
   const handleLinkPress = useCallback(async (url: string) => {
     const supported = await Linking.canOpenURL(url);
     if (supported) {
@@ -215,6 +222,7 @@ const TransactionDetails: React.FC<Props> = ({
           stage={state}
           paymentType={data?.paymentMethod?.name}
           cryptocurrency={cryptocurrency}
+          providerName={providerName}
         />
       </View>
       <Text centered primary style={styles.tokenAmount}>
@@ -290,7 +298,7 @@ const TransactionDetails: React.FC<Props> = ({
           {order.provider && data?.paymentMethod?.name && (
             <Text small style={styles.provider}>
               {strings('fiat_on_ramp_aggregator.transaction.via')}{' '}
-              {getProviderName(order.provider, data)}
+              {providerName}
             </Text>
           )}
           <ListItem.Content style={styles.seperationTop}>
@@ -432,7 +440,7 @@ const TransactionDetails: React.FC<Props> = ({
             {order.provider && data && (
               <Text small underline>
                 {strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
-                {getProviderName(order.provider, data)}{' '}
+                {providerName}{' '}
                 {strings('fiat_on_ramp_aggregator.transaction.support')}
               </Text>
             )}
