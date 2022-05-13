@@ -751,8 +751,7 @@ const AmountToBuy = () => {
         <QuickAmounts
           onAmountPress={handleQuickAmountPress}
           amounts={
-            // @ts-expect-error quick amounts is not in limits interface
-            limits?.quickAmounts.map((limit) => ({
+            limits?.quickAmounts?.map((limit) => ({
               value: limit,
               label: currentFiatCurrency?.denomSymbol + limit.toString(),
             })) || []
