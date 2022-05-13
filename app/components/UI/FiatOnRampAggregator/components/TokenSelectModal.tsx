@@ -73,7 +73,7 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: 30,
     },
     networkLabel: {
-      backgroundColor: colors.text.alternative,
+      backgroundColor: colors.icon.alternative,
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: 5,
