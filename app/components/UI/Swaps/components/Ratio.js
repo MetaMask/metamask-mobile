@@ -7,59 +7,76 @@ import Text from '../../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
-	StyleSheet.create({
-		infoIcon: {
-			fontSize: 12,
-			margin: 3,
-			color: colors.primary.default,
-		},
-	});
-function Ratio({ sourceAmount, sourceToken, destinationAmount, destinationToken, boldSymbol = false }) {
-	/* Get the ratio between the assets given the selected quote*/
-	const [ratioAsSource, setRatioAsSource] = useState(true);
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  StyleSheet.create({
+    infoIcon: {
+      fontSize: 12,
+      margin: 3,
+      color: colors.primary.default,
+    },
+  });
+function Ratio({
+  sourceAmount,
+  sourceToken,
+  destinationAmount,
+  destinationToken,
+  boldSymbol = false,
+}) {
+  /* Get the ratio between the assets given the selected quote*/
+  const [ratioAsSource, setRatioAsSource] = useState(true);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	const [numerator, denominator] = useMemo(() => {
-		const source = { ...sourceToken, amount: sourceAmount };
-		const destination = { ...destinationToken, amount: destinationAmount };
+  const [numerator, denominator] = useMemo(() => {
+    const source = { ...sourceToken, amount: sourceAmount };
+    const destination = { ...destinationToken, amount: destinationAmount };
 
-		return ratioAsSource ? [destination, source] : [source, destination];
-	}, [destinationAmount, destinationToken, ratioAsSource, sourceAmount, sourceToken]);
+    return ratioAsSource ? [destination, source] : [source, destination];
+  }, [
+    destinationAmount,
+    destinationToken,
+    ratioAsSource,
+    sourceAmount,
+    sourceToken,
+  ]);
 
-	const ratio = useRatio(numerator?.amount, numerator?.decimals, denominator?.amount, denominator?.decimals);
+  const ratio = useRatio(
+    numerator?.amount,
+    numerator?.decimals,
+    denominator?.amount,
+    denominator?.decimals,
+  );
 
-	const handleRatioSwitch = () => setRatioAsSource((isSource) => !isSource);
+  const handleRatioSwitch = () => setRatioAsSource((isSource) => !isSource);
 
-	return (
-		<TouchableOpacity onPress={handleRatioSwitch}>
-			<Text primary={boldSymbol}>
-				1{' '}
-				<Text reset bold={boldSymbol}>
-					{denominator?.symbol}
-				</Text>{' '}
-				= {ratio.toFormat(10)}{' '}
-				<Text reset bold={boldSymbol}>
-					{numerator?.symbol}
-				</Text>{' '}
-				<FA5Icon name="sync" style={styles.infoIcon} />
-			</Text>
-		</TouchableOpacity>
-	);
+  return (
+    <TouchableOpacity onPress={handleRatioSwitch}>
+      <Text primary={boldSymbol}>
+        1{' '}
+        <Text reset bold={boldSymbol}>
+          {denominator?.symbol}
+        </Text>{' '}
+        = {ratio.toFormat(10)}{' '}
+        <Text reset bold={boldSymbol}>
+          {numerator?.symbol}
+        </Text>{' '}
+        <FA5Icon name="sync" style={styles.infoIcon} />
+      </Text>
+    </TouchableOpacity>
+  );
 }
 
 Ratio.propTypes = {
-	sourceAmount: PropTypes.string,
-	sourceToken: PropTypes.shape({
-		symbol: PropTypes.string,
-		decimals: PropTypes.number,
-	}),
-	destinationAmount: PropTypes.string,
-	destinationToken: PropTypes.shape({
-		symbol: PropTypes.string,
-		decimals: PropTypes.number,
-	}),
-	boldSymbol: PropTypes.bool,
+  sourceAmount: PropTypes.string,
+  sourceToken: PropTypes.shape({
+    symbol: PropTypes.string,
+    decimals: PropTypes.number,
+  }),
+  destinationAmount: PropTypes.string,
+  destinationToken: PropTypes.shape({
+    symbol: PropTypes.string,
+    decimals: PropTypes.number,
+  }),
+  boldSymbol: PropTypes.bool,
 };
 
 export default Ratio;

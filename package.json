@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "4.4.0",
+  "version": "5.1.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -36,7 +36,7 @@
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:unit": "jest ./app/",
+    "test:unit": "jest ./app/ ./locales/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
@@ -50,12 +50,6 @@
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
     "create-release": "./scripts/set-versions.sh && yarn update-changelog"
-  },
-  "prettier": {
-    "printWidth": 120,
-    "singleQuote": true,
-    "tabWidth": 4,
-    "useTabs": true
   },
   "husky": {
     "hooks": {
@@ -98,7 +92,9 @@
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
     "**/plist": "3.0.5",
-    "**/minimist": "1.2.6"
+    "**/minimist": "1.2.6",
+    "@metamask/**/cross-fetch": "2.2.6",
+    "react-native-gesture-handler/**/cross-fetch": "3.1.5"
   },
   "dependencies": {
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
@@ -106,8 +102,8 @@
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.3.0",
     "@metamask/contract-metadata": "^1.30.0",
-    "@metamask/controllers": "27.1.1",
-    "@metamask/design-tokens": "^1.5.1",
+    "@metamask/controllers": "28.0.0",
+    "@metamask/design-tokens": "^1.6.5",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.6.0",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -131,7 +127,7 @@
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",
     "asyncstorage-down": "4.2.0",
-    "axios": "^0.25",
+    "axios": "^0.26.1",
     "babel-plugin-transform-inline-environment-variables": "0.4.3",
     "babel-plugin-transform-remove-console": "6.9.4",
     "base-64": "1.0.0",
@@ -223,7 +219,7 @@
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-search-api": "ombori/react-native-search-api#8/head",
     "react-native-sensors": "5.3.0",
-    "react-native-share": "^5.2.2",
+    "react-native-share": "7.3.7",
     "react-native-skeleton-placeholder": "^5.0.0",
     "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee",
     "react-native-step-indicator": "^1.0.3",
@@ -283,7 +279,7 @@
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.3",
     "concat-cli": "4.0.0",
-    "detox": "19.4.0",
+    "detox": "19.6.5",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
@@ -319,7 +315,8 @@
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [
-        "./app/components"
+        "./app/components",
+        "./app/component-library"
       ],
       "pattern": "**/*.stories.@(js|tsx)",
       "outputFile": "./storybook/storyLoader.js"
