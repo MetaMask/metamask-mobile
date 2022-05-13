@@ -475,26 +475,6 @@ class ImportFromSeed extends PureComponent {
         </View>
       );
     }
-
-    return (
-      <View style={styles.biometrics}>
-        <Text style={styles.biometryLabel}>
-          {strings(`choose_password.remember_me`)}
-        </Text>
-        <Switch
-          onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-          value={this.state.rememberMe}
-          style={styles.biometrySwitch}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          ios_backgroundColor={colors.border.muted}
-          testID={'remember-me-toggle'}
-        />
-      </View>
-    );
   };
 
   toggleShowHide = () => {

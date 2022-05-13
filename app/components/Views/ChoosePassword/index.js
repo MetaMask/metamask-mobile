@@ -563,7 +563,7 @@ class ChoosePassword extends PureComponent {
   };
 
   renderSwitch = () => {
-    const { biometryType, rememberMe, biometryChoice } = this.state;
+    const { biometryType, biometryChoice } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -588,25 +588,7 @@ class ChoosePassword extends PureComponent {
               />
             </View>
           </>
-        ) : (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`choose_password.remember_me`)}
-            </Text>
-            <Switch
-              onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-              value={rememberMe}
-              style={styles.biometrySwitch}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={importedColors.white}
-              ios_backgroundColor={colors.border.muted}
-              testID={'remember-me-toggle'}
-            />
-          </>
-        )}
+        ) : null}
       </View>
     );
   };
