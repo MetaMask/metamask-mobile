@@ -27,6 +27,9 @@ const initialState = {
       },
     },
   },
+  security: {
+    allowLoginWithRememberMe: true,
+  },
 };
 const store = mockStore(initialState);
 

@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
   KeyboardAvoidingView,
-  Switch,
   ActivityIndicator,
   Alert,
   Text,
@@ -14,7 +13,6 @@ import {
   Image,
   InteractionManager,
 } from 'react-native';
-// eslint-disable-next-line import/no-unresolved
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -28,11 +26,7 @@ import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
-import {
-  fontStyles,
-  baseStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -62,6 +56,7 @@ import {
   ANDROID_I_UNDERSTAND_BUTTON_ID,
   CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
 } from '../../../constants/test-ids';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -231,15 +226,12 @@ const createStyles = (colors) =>
       top: 0,
       right: 0,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
       color: colors.error.default,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     strength_good: {
       color: colors.primary.default,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     strength_strong: {
       color: colors.success.default,
     },
@@ -548,50 +540,16 @@ class ResetPassword extends PureComponent {
   };
 
   renderSwitch = () => {
-    const { biometryType, rememberMe, biometryChoice } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
+    const { biometryType } = this.state;
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
     return (
-      <View style={styles.biometrics}>
-        {biometryType ? (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
-            </Text>
-            <View>
-              <Switch
-                onValueChange={this.updateBiometryChoice} // eslint-disable-line react/jsx-no-bind
-                value={biometryChoice}
-                style={styles.biometrySwitch}
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={importedColors.white}
-                ios_backgroundColor={colors.border.muted}
-              />
-            </View>
-          </>
-        ) : (
-          <>
-            <Text style={styles.biometryLabel}>
-              {strings(`choose_password.remember_me`)}
-            </Text>
-            <Switch
-              onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-              value={rememberMe}
-              style={styles.biometrySwitch}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={importedColors.white}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </>
-        )}
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={biometryType}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 
