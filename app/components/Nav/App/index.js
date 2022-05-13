@@ -140,7 +140,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   const animation = useRef(null);
   const animationName = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
-  const locked = useRef(false);
+  const authOnLoadAuthLock = useRef(false);
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
@@ -158,9 +158,8 @@ const App = ({ selectedAddress, userLoggedIn }) => {
     const appTriggeredAuth = async () => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        if (existingUser && !locked.current && selectedAddress) {
+        if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
           await Authentication.appTriggeredAuth(selectedAddress);
-          locked.current = true;
         }
 
         //Cancel auth if the existing user has not been set
@@ -173,10 +172,12 @@ const App = ({ selectedAddress, userLoggedIn }) => {
           `Unlock attempts: 1`,
         );
         setAuthCancelled(true);
+      } finally {
+        authOnLoadAuthLock.current = true;
       }
     };
     appTriggeredAuth();
-  }, [locked, selectedAddress]);
+  }, [authOnLoadAuthLock, selectedAddress]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
