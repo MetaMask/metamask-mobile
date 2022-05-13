@@ -88,6 +88,8 @@ const InfoAlert: React.FC<Props> = ({
       propagateSwipe
       avoidKeyboard
       style={styles.modal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
     >
       <Box style={styles.box}>
         <TouchableOpacity

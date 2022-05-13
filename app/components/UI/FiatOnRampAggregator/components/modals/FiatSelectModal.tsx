@@ -200,6 +200,7 @@ function FiatSelectModal({
       avoidKeyboard
       onModalHide={() => setSearchString('')}
       backdropColor={colors.overlay.default}
+      backdropOpacity={1}
       style={styles.modal}
     >
       <SafeAreaView style={styles.modalView}>
