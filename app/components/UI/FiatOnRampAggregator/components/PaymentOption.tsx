@@ -35,7 +35,7 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
     },
     icon: {
-      color: colors.text.default,
+      color: colors.icon.default,
     },
     cardIcons: {
       flexDirection: 'row',
