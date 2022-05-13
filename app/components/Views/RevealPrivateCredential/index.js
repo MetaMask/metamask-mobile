@@ -438,13 +438,18 @@ class RevealPrivateCredential extends PureComponent {
   };
 
   renderTabView(privateCredentialName) {
-    const { clipboardPrivateCredential } = this.state;
+    const { clipboardPrivateCredential, isAndroidSupportedVersion } =
+      this.state;
     const { styles, colors, themeAppearance } = this.getStyles();
 
-    const supportedAndroidVersion =
-      Device.isAndroid() &&
-      Device.getDeviceAPILevel() <
-        AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL;
+    Device.isAndroid() &&
+      Device.getDeviceAPILevel().then((apiLevel) => {
+        if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
+          this.setState({
+            isAndroidSupportedVersion: false,
+          });
+        }
+      });
 
     return (
       <ScrollableTabView
@@ -470,7 +475,7 @@ class RevealPrivateCredential extends PureComponent {
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
             />
-            {!supportedAndroidVersion && (
+            {isAndroidSupportedVersion && (
               <TouchableOpacity
                 style={styles.privateCredentialAction}
                 onPress={() =>
