@@ -15009,10 +15009,10 @@ react-native-view-shot@^3.1.2:
   resolved "https://registry.yarnpkg.com/react-native-view-shot/-/react-native-view-shot-3.1.2.tgz#8c8e84c67a4bc8b603e697dbbd59dbc9b4f84825"
   integrity sha512-9u9fPtp6a52UMoZ/UCPrCjKZk8tnkI9To0Eh6yYnLKFEGkRZ7Chm6DqwDJbYJHeZrheCCopaD5oEOnRqhF4L2Q==
 
-react-native-webrtc@^1.98.0:
-  version "1.98.0"
-  resolved "https://registry.yarnpkg.com/react-native-webrtc/-/react-native-webrtc-1.98.0.tgz#79328e2c1294617487fe256e4393384d2fd46b99"
-  integrity sha512-EAaTybkLg7WXU6m75vck+3FPZcjyzSTz8wjm0qjDXWJEVXFSe8cI5AAzqfMEzWOw49LQagy3RayGZejQozvkeg==
+react-native-webrtc@^1.100.0:
+  version "1.100.0"
+  resolved "https://registry.yarnpkg.com/react-native-webrtc/-/react-native-webrtc-1.100.0.tgz#f81562dc46467fe75f9f96e98dbe311222e83abd"
+  integrity sha512-sBLl8Ihj3xfYn0NZJdDxelB/dZ422FWg/kcLdSw6Wk4eM3MeNW3iFwVsqg2dLzeDnuoQ06i7hOdtP7pGAiKsug==
   dependencies:
     base64-js "1.5.1"
     event-target-shim "6.0.2"
