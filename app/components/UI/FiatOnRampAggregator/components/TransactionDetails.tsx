@@ -7,7 +7,7 @@ import {
   Linking,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { OrderStatusEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';

@@ -4,8 +4,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
-import { Order } from '@consensys/on-ramp-sdk';
-import { OrderStatusEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 
 /**
  * Transforms an AggregatorOrder state into a FiatOrder state
