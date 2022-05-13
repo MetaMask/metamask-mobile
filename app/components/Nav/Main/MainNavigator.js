@@ -407,42 +407,35 @@ const FiatOnRampAggregator = () => (
   <FiatOnRampSDKProvider>
     <Stack.Navigator
       initialRouteName={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
-      screenOptions={GetStarted.screenOptions}
     >
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
         component={GetStarted}
-        options={GetStarted.navigationOptions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD}
         component={PaymentMethod}
-        options={PaymentMethod.navigationOptions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
         component={AmountToBuy}
-        options={AmountToBuy.navigationOptions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES}
         component={GetQuotes}
-        options={GetQuotes.navigationOptions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT}
         component={CheckoutWebView}
-        options={CheckoutWebView.navigationOptions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
         component={Region}
-        options={Region.navigationOptions}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
-        options={{ ...Region.navigationOptions, animationEnabled: false }}
+        options={{ animationEnabled: false }}
       />
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.TRANSACTION_DETAILS}

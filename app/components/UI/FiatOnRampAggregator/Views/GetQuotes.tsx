@@ -440,7 +440,7 @@ const GetQuotes = () => {
   }
 
   // No providers available
-  if (filteredQuotes.length === 0) {
+  if (!isFetchingQuotes && filteredQuotes.length === 0) {
     return (
       <ErrorView
         title={strings('fiat_on_ramp_aggregator.no_providers_available')}
@@ -520,9 +520,5 @@ const GetQuotes = () => {
     </ScreenLayout>
   );
 };
-
-GetQuotes.navigationOptions = () => ({
-  title: strings('fiat_on_ramp_aggregator.select_a_quote'),
-});
 
 export default GetQuotes;

@@ -73,7 +73,9 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: 30,
     },
     networkLabel: {
-      backgroundColor: colors.text.alternative,
+      backgroundColor: colors.background.alternative,
+      borderWidth: 1,
+      borderColor: colors.border.default,
       paddingHorizontal: 8,
       paddingVertical: 2,
       borderRadius: 5,
@@ -83,7 +85,7 @@ const createStyles = (colors: Colors) =>
     },
     networkLabelText: {
       fontSize: 12,
-      color: colors.background.default,
+      color: colors.text.default,
     },
     listItem: {
       paddingHorizontal: 24,

@@ -1,4 +1,3 @@
-import { Country } from '@consensys/on-ramp-sdk';
-import { State } from '@consensys/on-ramp-sdk/dist/API';
+import { Country, State } from '@consensys/on-ramp-sdk';
 
 export type Region = Country & State;

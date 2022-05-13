@@ -17,7 +17,7 @@ const createStyles = (colors: Colors) =>
     amount: {
       borderRadius: 999,
       borderWidth: 1,
-      borderColor: colors.border.muted,
+      borderColor: colors.border.default,
       marginRight: 5,
       minWidth: 78,
       padding: 7,
