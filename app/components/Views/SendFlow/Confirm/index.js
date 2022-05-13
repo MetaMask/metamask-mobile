@@ -932,11 +932,13 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       gasEstimateType,
+      chainId,
     } = this.props;
     const {
       EIP1559TransactionData,
       LegacyTransactionData,
       transactionConfirmed,
+      fromSelectedAddress,
     } = this.state;
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
@@ -974,9 +976,14 @@ class Confirm extends PureComponent {
         throw transactionMeta.error;
       }
       if (assetType === ERC721) {
-        await CollectiblesController.updateCollectible(selectedAsset, {
-          transactionId: transactionMeta.id,
-        });
+        await CollectiblesController.updateCollectible(
+          selectedAsset,
+          {
+            transactionId: transactionMeta.id,
+          },
+          fromSelectedAddress,
+          chainId,
+        );
       }
 
       InteractionManager.runAfterInteractions(() => {
@@ -1005,9 +1012,14 @@ class Confirm extends PureComponent {
       );
       Logger.error(error, 'error while trying to send transaction (Confirm)');
       if (assetType === ERC721) {
-        CollectiblesController.updateCollectible(selectedAsset, {
-          transactionId: undefined,
-        });
+        CollectiblesController.updateCollectible(
+          selectedAsset,
+          {
+            transactionId: undefined,
+          },
+          fromSelectedAddress,
+          chainId,
+        );
       }
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(

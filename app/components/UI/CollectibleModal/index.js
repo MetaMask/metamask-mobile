@@ -37,15 +37,16 @@ const styles = StyleSheet.create({
 const CollectibleModal = (props) => {
   const { route, navigation, newAssetTransaction } = props;
   const { CollectiblesController } = Engine.context;
-  const { contractName, collectible } = route.params;
+  const { contractName, collectible, selectedAddress, chainId } = route.params;
 
   const [mediaZIndex, setMediaZIndex] = useState(20);
   const [overviewZIndex, setOverviewZIndex] = useState(10);
-
   const collectibleUpdated =
     CollectiblesController.findCollectibleByAddressAndTokenId(
       collectible.address,
       collectible.tokenId,
+      selectedAddress,
+      chainId,
     )?.collectible;
 
   const onSend = useCallback(async () => {

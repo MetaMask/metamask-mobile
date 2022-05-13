@@ -104,9 +104,14 @@ const CollectibleContracts = ({
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
-      navigation.navigate('CollectiblesDetails', { collectible, contractName });
+      navigation.navigate('CollectiblesDetails', {
+        collectible,
+        contractName,
+        selectedAddress,
+        chainId,
+      });
     },
-    [navigation],
+    [navigation, selectedAddress, chainId],
   );
 
   /**

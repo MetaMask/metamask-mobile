@@ -172,6 +172,10 @@ class Transactions extends PureComponent {
      */
     thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
+    /**
+     * A string representing the network chainId
+     */
+    chainId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -435,10 +439,14 @@ class Transactions extends PureComponent {
 
   onCancelCompleted = () => {
     const { CollectiblesController } = Engine.context;
+    const { selectedAddress, chainId } = this.props;
     const cancelTxId = this.cancelTxId;
+
     const resetResult =
       CollectiblesController.resetCollectibleTransactionStatusByTransactionId(
         cancelTxId,
+        selectedAddress,
+        chainId,
       );
 
     if (!resetResult) {
