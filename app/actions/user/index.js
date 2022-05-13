@@ -104,3 +104,10 @@ export function checkedAuth(initialScreen) {
     },
   };
 }
+
+export function setIsUsingRememberMe(isUsingRememberMe) {
+  return {
+    type: 'SET_IS_USING_REMEMBER_ME',
+    payload: { isUsingRememberMe },
+  };
+}
