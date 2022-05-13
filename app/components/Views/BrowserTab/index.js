@@ -61,7 +61,7 @@ import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
-const HOMEPAGE_HOST = 'home.metamask.io';
+const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
 const createStyles = (colors) =>
@@ -426,25 +426,6 @@ export const BrowserTab = (props) => {
   };
 
   /**
-   * Inject home page scripts to get the favourites and set analytics key
-   */
-  const injectHomePageScripts = async () => {
-    const { current } = webviewRef;
-    if (!current) return;
-    const analyticsEnabled = Analytics.getEnabled();
-    const disctinctId = await Analytics.getDistinctId();
-    const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(props.bookmarks)};
-			window.__mmSearchEngine = "${props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.__mmDistinctId = "${disctinctId}";
-			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-		`;
-
-    current.injectJavaScript(homepageScripts);
-  };
-
-  /**
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = (urlToGo) => {
@@ -666,6 +647,31 @@ export const BrowserTab = (props) => {
       );
     };
   }, [goBack, isTabActive, props.navigation]);
+
+  /**
+   * Inject home page scripts to get the favourites and set analytics key
+   */
+  const injectHomePageScripts = async (bookmarks) => {
+    const { current } = webviewRef;
+    const analyticsEnabled = Analytics.getEnabled();
+    const disctinctId = await Analytics.getDistinctId();
+    const homepageScripts = `
+			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};
+			window.__mmSearchEngine = "${props.searchEngine}";
+			window.__mmMetametrics = ${analyticsEnabled};
+			window.__mmDistinctId = "${disctinctId}";
+			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+			(function () {
+				try {
+					window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
+				} catch (e) {
+					//Nothing to do
+				}
+			})()
+		`;
+
+    current.injectJavaScript(homepageScripts);
+  };
 
   /**
    * Handles state changes for when the url changes
