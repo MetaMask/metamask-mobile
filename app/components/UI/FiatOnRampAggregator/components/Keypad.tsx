@@ -73,7 +73,7 @@ const Keypad = ({
       periodTextStyle={styles.digitText}
       deleteButtonStyle={styles.periodButton}
       deleteIcon={
-        <Feather name="delete" size={24} color={colors.text.default} />
+        <Feather name="delete" size={24} color={colors.icon.default} />
       }
     />
   );
