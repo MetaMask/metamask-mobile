@@ -6,40 +6,40 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	user: {
-		passwordSet: true,
-		seedphraseBackedUp: false,
-	},
+  user: {
+    passwordSet: true,
+    seedphraseBackedUp: false,
+  },
 };
 const store = mockStore(initialState);
 
 describe('ManualBackupStep2', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<ManualBackupStep2
-					route={{
-						params: {
-							words: [
-								'abstract',
-								'accident',
-								'acoustic',
-								'announce',
-								'artefact',
-								'attitude',
-								'bachelor',
-								'broccoli',
-								'business',
-								'category',
-								'champion',
-								'cinnamon',
-							],
-							steps: ['one', 'two', 'three'],
-						},
-					}}
-				/>
-			</Provider>
-		);
-		expect(wrapper.dive()).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <ManualBackupStep2
+          route={{
+            params: {
+              words: [
+                'abstract',
+                'accident',
+                'acoustic',
+                'announce',
+                'artefact',
+                'attitude',
+                'bachelor',
+                'broccoli',
+                'business',
+                'category',
+                'champion',
+                'cinnamon',
+              ],
+              steps: ['one', 'two', 'three'],
+            },
+          }}
+        />
+      </Provider>,
+    );
+    expect(wrapper.dive()).toMatchSnapshot();
+  });
 });

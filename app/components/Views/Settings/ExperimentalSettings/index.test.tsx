@@ -8,27 +8,27 @@ import { NetworksChainId } from '@metamask/controllers';
 
 const mockStore = configureMockStore();
 const initialState = {
-	engine: {
-		backgroundState: {
-			PreferencesController: { useStaticTokenList: true },
-			NetworkController: {
-				provider: {
-					type: MAINNET,
-					chainId: NetworksChainId.mainnet,
-				},
-			},
-		},
-	},
+  engine: {
+    backgroundState: {
+      PreferencesController: { useStaticTokenList: true },
+      NetworkController: {
+        provider: {
+          type: MAINNET,
+          chainId: NetworksChainId.mainnet,
+        },
+      },
+    },
+  },
 };
 const store = mockStore(initialState);
 
 describe('ExperimentalSettings', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<ExperimentalSettings navigation={{}} route={{}} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <ExperimentalSettings navigation={{}} route={{}} />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

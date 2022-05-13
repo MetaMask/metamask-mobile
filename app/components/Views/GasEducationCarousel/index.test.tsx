@@ -8,12 +8,12 @@ const mockStore = configureMockStore();
 const store = mockStore({});
 
 describe('GasEducationCarousel', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<GasEducationCarousel navigation={{ getParam: () => false }} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <GasEducationCarousel navigation={{ getParam: () => false }} />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

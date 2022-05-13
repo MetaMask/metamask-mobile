@@ -12,143 +12,158 @@ import ReusableModal from '../ReusableModal';
 import Engine from '../../../core/Engine';
 
 const styles = StyleSheet.create({
-	bottomModal: {
-		justifyContent: 'flex-end',
-		margin: 0,
-	},
-	round: {
-		borderRadius: 12,
-	},
-	collectibleMediaWrapper: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		marginHorizontal: 16,
-		marginTop: Device.hasNotch() ? 36 : 16,
-		borderRadius: 12,
-		backgroundColor: importedColors.transparent,
-	},
+  bottomModal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  round: {
+    borderRadius: 12,
+  },
+  collectibleMediaWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    marginHorizontal: 16,
+    marginTop: Device.hasNotch() ? 36 : 16,
+    borderRadius: 12,
+    backgroundColor: importedColors.transparent,
+  },
 });
 
 /**
  * View that displays a specific collectible asset
  */
 const CollectibleModal = (props) => {
-	const { route, navigation, newAssetTransaction } = props;
-	const { CollectiblesController } = Engine.context;
-	const { contractName, collectible } = route.params;
+  const { route, navigation, newAssetTransaction } = props;
+  const { CollectiblesController } = Engine.context;
+  const { contractName, collectible } = route.params;
 
-	const [mediaZIndex, setMediaZIndex] = useState(20);
-	const [overviewZIndex, setOverviewZIndex] = useState(10);
+  const [mediaZIndex, setMediaZIndex] = useState(20);
+  const [overviewZIndex, setOverviewZIndex] = useState(10);
 
-	const collectibleUpdated = CollectiblesController.findCollectibleByAddressAndTokenId(
-		collectible.address,
-		collectible.tokenId
-	)?.collectible;
+  const collectibleUpdated =
+    CollectiblesController.findCollectibleByAddressAndTokenId(
+      collectible.address,
+      collectible.tokenId,
+    )?.collectible;
 
-	const onSend = useCallback(async () => {
-		newAssetTransaction({ contractName, ...collectible });
-		navigation.replace('SendFlowView');
-	}, [contractName, collectible, newAssetTransaction, navigation]);
+  const onSend = useCallback(async () => {
+    newAssetTransaction({ contractName, ...collectible });
+    navigation.replace('SendFlowView');
+  }, [contractName, collectible, newAssetTransaction, navigation]);
 
-	const onViewTransactionDetails = useCallback(() => {
-		navigation.navigate('TransactionsHome');
-	}, [navigation]);
+  const onViewTransactionDetails = useCallback(() => {
+    navigation.navigate('TransactionsHome');
+  }, [navigation]);
 
-	const isTradable = useCallback(() => {
-		// This might be deprecated
-		const lowerAddress = collectible.address.toLowerCase();
-		const tradable =
-			lowerAddress in collectiblesTransferInformation
-				? collectiblesTransferInformation[lowerAddress].tradable
-				: true;
+  const isTradable = useCallback(() => {
+    // This might be deprecated
+    const lowerAddress = collectible.address.toLowerCase();
+    const tradable =
+      lowerAddress in collectiblesTransferInformation
+        ? collectiblesTransferInformation[lowerAddress].tradable
+        : true;
 
-		return tradable && collectible.standard === 'ERC721';
-	}, [collectible]);
+    return tradable && collectible.standard === 'ERC721';
+  }, [collectible]);
 
-	const openLink = useCallback(
-		(url) => {
-			navigation.replace('Webview', { screen: 'SimpleWebview', params: { url } });
-		},
-		[navigation]
-	);
+  const openLink = useCallback(
+    (url) => {
+      navigation.replace('Webview', {
+        screen: 'SimpleWebview',
+        params: { url },
+      });
+    },
+    [navigation],
+  );
 
-	/**
-	 * Method that moves the collectible media up or down in the screen depending on
-	 * the animation status, to be able to interact with videos
-	 *
-	 * @param {boolean} moveUp
-	 */
-	const onCollectibleOverviewTranslation = (moveUp) => {
-		if (moveUp) {
-			setTimeout(() => {
-				setMediaZIndex(20);
-				setOverviewZIndex(10);
-			}, 250);
-		} else {
-			setMediaZIndex(0);
-			setOverviewZIndex(10);
-		}
-	};
+  /**
+   * Method that moves the collectible media up or down in the screen depending on
+   * the animation status, to be able to interact with videos
+   *
+   * @param {boolean} moveUp
+   */
+  const onCollectibleOverviewTranslation = (moveUp) => {
+    if (moveUp) {
+      setTimeout(() => {
+        setMediaZIndex(20);
+        setOverviewZIndex(10);
+      }, 250);
+    } else {
+      setMediaZIndex(0);
+      setOverviewZIndex(10);
+    }
+  };
 
-	const modalRef = useRef(null);
+  const modalRef = useRef(null);
 
-	return (
-		<ReusableModal ref={modalRef} style={styles.bottomModal}>
-			<>
-				<View style={[styles.collectibleMediaWrapper, { zIndex: mediaZIndex, elevation: mediaZIndex }]}>
-					<CollectibleMedia
-						onClose={() => modalRef.current.dismissModal()}
-						cover
-						renderAnimation
-						collectible={collectible}
-						style={styles.round}
-					/>
-				</View>
-				<View style={[baseStyles.flexStatic, { zIndex: overviewZIndex, elevation: overviewZIndex }]}>
-					<CollectibleOverview
-						navigation={navigation}
-						collectible={{ ...collectible, contractName }}
-						tradable={isTradable()}
-						onSend={onSend}
-						onViewTransactionDetails={onViewTransactionDetails}
-						openLink={openLink}
-						onTranslation={onCollectibleOverviewTranslation}
-						isTransacting={!!collectibleUpdated?.transactionId}
-					/>
-				</View>
-			</>
-		</ReusableModal>
-	);
+  return (
+    <ReusableModal ref={modalRef} style={styles.bottomModal}>
+      <>
+        <View
+          style={[
+            styles.collectibleMediaWrapper,
+            { zIndex: mediaZIndex, elevation: mediaZIndex },
+          ]}
+        >
+          <CollectibleMedia
+            onClose={() => modalRef.current.dismissModal()}
+            cover
+            renderAnimation
+            collectible={collectible}
+            style={styles.round}
+          />
+        </View>
+        <View
+          style={[
+            baseStyles.flexStatic,
+            { zIndex: overviewZIndex, elevation: overviewZIndex },
+          ]}
+        >
+          <CollectibleOverview
+            navigation={navigation}
+            collectible={{ ...collectible, contractName }}
+            tradable={isTradable()}
+            onSend={onSend}
+            onViewTransactionDetails={onViewTransactionDetails}
+            openLink={openLink}
+            onTranslation={onCollectibleOverviewTranslation}
+            isTransacting={!!collectibleUpdated?.transactionId}
+          />
+        </View>
+      </>
+    </ReusableModal>
+  );
 };
 
 CollectibleModal.propTypes = {
-	/**
-	/* navigation object required to access the props
-	/* passed by the parent component
-	*/
-	navigation: PropTypes.object,
-	/**
-	 * Route contains props passed when navigating
-	 */
-	route: PropTypes.object,
-	/**
-	 * Start transaction with asset
-	 */
-	newAssetTransaction: PropTypes.func,
-	/**
-	 * Collectible being viewed on the modal
-	 */
-	collectible: PropTypes.object,
-	/**
-	 * Contract name of the collectible
-	 */
-	contractName: PropTypes.string,
+  /**
+  /* navigation object required to access the props
+  /* passed by the parent component
+  */
+  navigation: PropTypes.object,
+  /**
+   * Route contains props passed when navigating
+   */
+  route: PropTypes.object,
+  /**
+   * Start transaction with asset
+   */
+  newAssetTransaction: PropTypes.func,
+  /**
+   * Collectible being viewed on the modal
+   */
+  collectible: PropTypes.object,
+  /**
+   * Contract name of the collectible
+   */
+  contractName: PropTypes.string,
 };
 
 const mapDispatchToProps = (dispatch) => ({
-	newAssetTransaction: (selectedAsset) => dispatch(newAssetTransaction(selectedAsset)),
+  newAssetTransaction: (selectedAsset) =>
+    dispatch(newAssetTransaction(selectedAsset)),
 });
 
 export default connect(null, mapDispatchToProps)(CollectibleModal);
