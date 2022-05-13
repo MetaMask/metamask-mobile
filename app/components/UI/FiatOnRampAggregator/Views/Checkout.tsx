@@ -178,8 +178,4 @@ const CheckoutWebView = () => {
   }
 };
 
-CheckoutWebView.navigationOptions = ({ route }: { route: any }) => ({
-  title: route?.params?.providerName,
-});
-
 export default CheckoutWebView;

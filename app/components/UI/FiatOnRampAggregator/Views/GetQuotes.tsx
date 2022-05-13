@@ -521,8 +521,4 @@ const GetQuotes = () => {
   );
 };
 
-GetQuotes.navigationOptions = () => ({
-  title: strings('fiat_on_ramp_aggregator.select_a_quote'),
-});
-
 export default GetQuotes;
