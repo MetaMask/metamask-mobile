@@ -132,7 +132,9 @@ const Stage: React.FC<PropsStage> = ({
           </Text>
           <Text small centered style={styles.stageMessage}>
             {strings('fiat_on_ramp_aggregator.transaction.failed_description', {
-              provider: providerName,
+              provider:
+                providerName ||
+                strings('fiat_on_ramp_aggregator.transaction.the_provider'),
             })}
           </Text>
         </>

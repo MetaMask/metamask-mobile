@@ -1607,6 +1607,7 @@
       "crypto": "crypto",
       "failed": "Transaction Failed",
       "failed_description": "Something went wrong, and {{provider}} was unable to complete your transaction. Please try again or with another provider.",
+      "the_provider": "the provider",
       "processing": "Processing Transaction",
       "processing_card_description": "Credit/Debit purchases typically take a few minutes",
       "processing_bank_description": "Bank transfers typically take a few business days",
