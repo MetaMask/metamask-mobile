@@ -94,6 +94,11 @@ const GetStarted: React.FC = () => {
     );
   }
 
+  if (getStarted) {
+    // Avoid flashing the original content when the user has already seen it
+    return <ScreenLayout />;
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
