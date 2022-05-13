@@ -87,6 +87,7 @@ import {
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1308,7 +1309,7 @@ class Confirm extends PureComponent {
   gotoFaucet = () => {
     const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
-      this.props.navigation.navigate('BrowserView', {
+      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
         newTabUrl: mmFaucetUrl,
         timestamp: Date.now(),
       });
