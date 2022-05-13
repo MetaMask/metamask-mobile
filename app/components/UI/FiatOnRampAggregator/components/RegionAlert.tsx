@@ -71,6 +71,8 @@ const RegionAlert: React.FC<Props> = ({
       swipeDirection="down"
       propagateSwipe
       avoidKeyboard
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
       style={styles.modal}
     >
       <Box style={styles.box}>

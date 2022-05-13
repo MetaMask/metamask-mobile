@@ -272,6 +272,7 @@ const RegionModal: React.FC<Props> = ({
       avoidKeyboard
       onModalHide={onModalHide}
       backdropColor={colors.overlay.default}
+      backdropOpacity={1}
       style={styles.modal}
     >
       <SafeAreaView style={styles.modalView}>
