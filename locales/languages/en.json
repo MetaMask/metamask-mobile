@@ -615,8 +615,8 @@
       "MetaMask Support will never request this."
     ],
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_modal": [
-      "Your Secret Recovery Phrase provides ",
+    "reveal_credential_modal": [
+      "Your {{credentialName}} provides ",
       "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
       "MetaMask Support will not request this, ",
       "but phishers might."
@@ -628,6 +628,8 @@
     "seed_phrase_copied_ios": "Secret Recovery Phrase temporarily copied to clipboard\n",
     "seed_phrase_copied_android": "Secret Recovery Phrase copied to clipboard",
     "seed_phrase_copied_time": "(stored for 1 minute)",
+    "private_key_copied_ios": "Private key temporarily copied to clipboard\n",
+    "private_key_copied_android": "Private key copied to clipboard\n",
     "private_key_copied": "Private key temporarily copied to clipboard",
     "private_key_copied_time": "(stored for 1 minute)",
     "warning_incorrect_password": "Incorrect password",
@@ -636,8 +638,11 @@
     "seed_warning": "This is your wallet's 12 word phrase. This phrase can be used to take control of all of your current and future accounts, including the ability to send away any of their funds. Keep this phrase stored safely, DO NOT share it with anyone.",
     "text": "TEXT",
     "qr_code": "QR CODE",
-    "hold_to_reveal_srp": "Hold to reveal SRP",
-    "keep_srp_safe": "Keep your SRP safe"
+    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
+    "keep_credential_safe": "Keep your {{credentialName}} safe",
+    "srp_abbreviation_text": "SRP",
+    "srp_text": "Secret Recovery Phrase",
+    "private_key_text": "Private Key"
   },
   "password_reset": {
     "password_title": "Password",
@@ -791,6 +796,8 @@
     "contains_zero_width": "contains zero width character",
     "dapp_suggested_gas": "This gas fee has been suggested by %{origin}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
     "dapp_suggested_eip1559_gas": "This gas fee has been suggested by %{origin}. Overriding this may cause a problem with your transaction. Please reach out to %{origin} if you have questions.",
+    "address_invalid": "Recipient address is invalid.",
+    "ens_not_found": "No address has been set for this name.",
     "unknown_qr_code": "Invalid QR code. Please retry.",
     "invalid_qr_code_sync": "Invalid QR code. Please scan the sync QR code of the hardware wallet.",
     "no_camera_permission": "Camera not authorized. Please give permission and retry",
