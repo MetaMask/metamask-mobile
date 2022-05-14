@@ -43,7 +43,9 @@ function useApplePay(quote: QuoteResponse) {
         throw new Error('Payment Request Failed: empty apple pay response');
       }
 
-      const purchaseResult = await quote.purchaseWithApplePay(paymentResponse);
+      const purchaseResult = await quote.purchaseWithApplePay(
+        paymentResponse.details,
+      );
 
       if (purchaseResult.success) {
         return purchaseResult.order;
