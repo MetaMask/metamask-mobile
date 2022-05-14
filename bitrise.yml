@@ -326,7 +326,7 @@ app:
           VERSION_NAME: 5.2.0
         - opts:
               is_expand: false
-          VERSION_NUMBER: 893
+          VERSION_NUMBER: 894
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
