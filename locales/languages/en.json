@@ -1587,7 +1587,7 @@
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",
-      "description": "The payment methods and tokens available to you are determined by our third party integrations and what methods and tokens are available to you may vary depending on your region and support by our integrations.",
+      "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
       "search_by_country": "Search by country",
       "search_by_state": "Search by state",
       "no_region_results": "No region matches",
