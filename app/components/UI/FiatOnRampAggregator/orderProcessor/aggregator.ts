@@ -52,7 +52,7 @@ export const aggregatorInitialFiatOrder = (
   data: null,
 });
 
-const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
+export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   id: aggregatorOrder.id,
   provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
   createdAt: aggregatorOrder.createdAt,
