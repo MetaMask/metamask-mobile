@@ -440,15 +440,15 @@ class Confirm extends PureComponent {
 
   handleConfusables = () => {
     const { identities = undefined, transactionState } = this.props;
-    const { transactionToName = undefined } = transactionState;
+    const { ensRecipient } = transactionState;
     const accountNames =
       (identities &&
         Object.keys(identities).map((hash) => identities[hash].name)) ||
       [];
-    const isOwnAccount = accountNames.includes(transactionToName);
-    if (transactionToName && !isOwnAccount) {
+    const isOwnAccount = accountNames.includes(ensRecipient);
+    if (ensRecipient && !isOwnAccount) {
       this.setState({
-        confusableCollection: collectConfusables(transactionToName),
+        confusableCollection: collectConfusables(ensRecipient),
       });
     }
   };
