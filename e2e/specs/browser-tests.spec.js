@@ -148,7 +148,7 @@ describe('Browser Tests', () => {
     await Browser.isVisible();
   });
 
-  it('should tap on Uniswap in saved favorites', async () => {
+  it('should tap on Uniswap in favorites', async () => {
     if (device.getPlatform() === 'ios') {
       // Tapping on favourite tap
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
