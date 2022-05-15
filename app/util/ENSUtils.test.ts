@@ -1,7 +1,8 @@
 import {
   isDefaultAccountName,
-  doENSReverseLookup
+  getEnsProvider
 } from './ENSUtils';
+
 import sinon from 'sinon';
 import Engine from '../core/Engine';
 
@@ -39,20 +40,30 @@ describe('ENSUtils', () => {
       expect(isDefaultAccountName(accountNameNotDefault)).toEqual(false);
     });
   });
-  describe('doENSReverseLookup', () => {
-    const accountNameDefaultOne = 'Account 1';
-    it.only('runs', () => {
-      const network = '1'
-      const address = ''
-      console.log('***1')
-      doENSReverseLookup(address, network)
-      expect(1).toEqual(2);
+
+  describe('getEnsProvider', () => {
+    let provider:any;
+
+    beforeEach(async function () {
+      provider = sinon.fake();
     });
-  });
-  describe('doENSLookup', () => {
-    const accountNameDefaultOne = 'Account 1';
-    it('', () => {
-      expect(isDefaultAccountName(accountNameDefaultOne)).toEqual(true);
+  
+    afterEach(function () {
+      sinon.restore();
+    });
+  
+    it('should return ensProvider if exists', () => {
+      const network = '1' // mainnet
+      const ensProvider = getEnsProvider(network, provider);
+      expect(ensProvider).not.toBeNull;
+      expect(ensProvider?._network.name).toEqual('homestead');
+      expect(ensProvider?._network.chainId).toEqual(1);
+      expect(ensProvider?._network.ensAddress).not.toBeNull;      
+    });
+
+    it('should not return ensProvider if not exist', () => {
+      const network = '10' // does not exist
+      expect(getEnsProvider(network, provider)).toBeNull;
     });
   });
 })
