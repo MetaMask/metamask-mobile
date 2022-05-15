@@ -51,7 +51,7 @@ class Port extends EventEmitter {
   };
 }
 
-class WalletConnectPort extends EvenqtEmitter {
+class WalletConnectPort extends EventEmitter {
   constructor(wcRequestActions) {
     super();
     this._wcRequestActions = wcRequestActions;
