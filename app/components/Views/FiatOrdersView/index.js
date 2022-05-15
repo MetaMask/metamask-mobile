@@ -10,6 +10,7 @@ import OrderDetails from './OrderDetails';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -34,11 +35,8 @@ function FiatOrdersView({ orders, ...props }) {
 
   const handleNavigateToTxDetails = useCallback(
     (orderId) => {
-      navigation.navigate('FiatOnRampAggregator', {
-        screen: 'TransactionDetails',
-        params: {
-          orderId,
-        },
+      navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS, {
+        orderId,
       });
     },
     [navigation],

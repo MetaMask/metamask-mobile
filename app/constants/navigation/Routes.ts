@@ -11,7 +11,7 @@ const Routes = {
     CHECKOUT: 'Checkout',
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
-    TRANSACTION_DETAILS: 'TransactionDetails',
+    ORDER_DETAILS: 'OrderDetails',
   },
 };
 
