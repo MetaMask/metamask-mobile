@@ -116,13 +116,9 @@ export function getNetworkTypeById(id) {
   throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
 }
 
-export function getEthersNetworkTypeById(id){
-  const networkType = getNetworkTypeById(id)
-  if(networkType === MAINNET){
-    return HOMESTEAD;
-  }else{
-    return networkType
-  }
+export function getEthersNetworkTypeById(id) {
+  const networkType = getNetworkTypeById(id);
+  return networkType === MAINNET ? HOMESTEAD : networkType;
 }
 
 export function getDefaultNetworkByChainId(chainId) {

@@ -1,23 +1,7 @@
-import {
-  isDefaultAccountName,
-  getEnsProvider
-} from './ENSUtils';
-
+import { isDefaultAccountName, getEnsProvider } from './ENSUtils';
 import sinon from 'sinon';
-import Engine from '../core/Engine';
 
 describe('ENSUtils', () => {
-  beforeEach(function () {
-    // currentChainId = '0x3';
-    // getCurrentChainId = () => currentChainId;
-    // onNetworkDidChange = sinon.spy();
-    // sinon.replace(Engine.context.NetworkController, "provider", sinon.fake());
-
-  });
-  afterEach(function () {
-    sinon.restore();
-  });
-  
   describe('isDefaultAccountName', () => {
     const accountNameDefaultOne = 'Account 1';
     it('should match RegEx if name "Account 1" has default pattern', () => {
@@ -42,28 +26,28 @@ describe('ENSUtils', () => {
   });
 
   describe('getEnsProvider', () => {
-    let provider:any;
+    let provider: any;
 
-    beforeEach(async function () {
+    beforeEach(async () => {
       provider = sinon.fake();
     });
-  
-    afterEach(function () {
+
+    afterEach(() => {
       sinon.restore();
     });
-  
+
     it('should return ensProvider if exists', () => {
-      const network = '1' // mainnet
+      const network = '1'; // mainnet
       const ensProvider = getEnsProvider(network, provider);
-      expect(ensProvider).not.toBeNull;
+      const ENS_ADDRESS = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e';
       expect(ensProvider?._network.name).toEqual('homestead');
       expect(ensProvider?._network.chainId).toEqual(1);
-      expect(ensProvider?._network.ensAddress).not.toBeNull;      
+      expect(ensProvider?._network.ensAddress).toEqual(ENS_ADDRESS);
     });
 
     it('should not return ensProvider if not exist', () => {
-      const network = '10' // does not exist
-      expect(getEnsProvider(network, provider)).toBeNull;
+      const network = '10'; // does not exist
+      expect(!!getEnsProvider(network, provider)).toEqual(false);
     });
   });
-})
+});

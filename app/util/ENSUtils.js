@@ -12,15 +12,15 @@ class ENSCache {
   static cache = {};
 }
 
-export function getEnsProvider(network, provider){
+export function getEnsProvider(network, provider) {
   const ensAddress = ensNetworkMap[network];
-  if(Boolean(ensAddress)){
-    const networkType = getEthersNetworkTypeById(network)
+  if (ensAddress) {
+    const networkType = getEthersNetworkTypeById(network);
     return new ethers.providers.Web3Provider(provider, {
       chainId: parseInt(network, 10),
       name: networkType,
-      ensAddress
-    });  
+      ensAddress,
+    });
   }
 }
 
@@ -30,11 +30,11 @@ export async function doENSReverseLookup(address, network) {
   if (cache) {
     return Promise.resolve(cache);
   }
-  const ensProvider = await getEnsProvider(network, provider)
+  const ensProvider = await getEnsProvider(network, provider);
   if (ensProvider) {
     try {
       const name = await ensProvider.lookupAddress(address);
-      const resolvedAddress = await ensProvider.resolveName(ensName);
+      const resolvedAddress = await ensProvider.resolveName(name);
       if (toLowerCaseEquals(address, resolvedAddress)) {
         ENSCache.cache[network + address] = name;
         return name;
@@ -46,7 +46,7 @@ export async function doENSReverseLookup(address, network) {
 
 export async function doENSLookup(ensName, network) {
   const { provider } = Engine.context.NetworkController;
-  const ensProvider = await getEnsProvider(address, network, provider)
+  const ensProvider = await getEnsProvider(network, provider);
   if (ensProvider) {
     try {
       const resolvedAddress = await ensProvider.resolveName(ensName);
