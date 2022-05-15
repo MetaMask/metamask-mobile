@@ -1,6 +1,7 @@
 import Engine from '../core/Engine';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
+import { ethers } from 'ethers';
 import { toLowerCaseEquals } from '../util/general';
 
 /**
@@ -17,12 +18,18 @@ export async function doENSReverseLookup(address, network) {
     return Promise.resolve(cache);
   }
 
-  const { provider } = Engine.context.NetworkController;
-
+  const { provider } = Engine.context.NetworkController; 
+  console.log('****doENSReverseLookup1', {address, network})
   const networkHasEnsSupport = Boolean(networkMap[network]);
-
+  console.log('****doENSReverseLookup2', {networkHasEnsSupport})
   if (networkHasEnsSupport) {
     this.ens = new ENS({ provider, network });
+    // provider = new ethers.providers.Web3Provider(global.ethereumProvider, {
+    //   chainId: parseInt(network, 10),
+    //   name: networkName,
+    //   ensAddress,
+    // });
+
     try {
       const name = await this.ens.reverse(address);
       const resolvedAddress = await this.ens.lookup(name);
