@@ -94,7 +94,7 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function getPaymentMethodIcon(id: string) {
+export function getPaymentMethodIcon(id: string | null) {
   switch (id) {
     case '/payments/apple-pay': {
       return Icon.Apple;
