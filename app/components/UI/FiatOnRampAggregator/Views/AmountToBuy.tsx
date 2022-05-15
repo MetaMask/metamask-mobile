@@ -157,7 +157,7 @@ const AmountToBuy = () => {
    * - getFiatCurrencies -> currencies
    * - getCryptoCurrencies -> sdkCryptoCurrencies
    * - paymentMethods -> getPaymentMethods
-   * - currentPaymentMethod -> getCurrentPaymentMethod
+   * - limits -> getLimits
    */
 
   const [
@@ -228,8 +228,8 @@ const AmountToBuy = () => {
 
   const filteredPaymentMethods = useMemo(() => {
     if (paymentMethods) {
-      return paymentMethods.filter((method) =>
-        Device.isAndroid() ? !method.isApplePay : true,
+      return paymentMethods.filter((paymentMethod) =>
+        Device.isAndroid() ? !paymentMethod.isApplePay : true,
       );
     }
     return null;
@@ -513,12 +513,13 @@ const AmountToBuy = () => {
     return currency;
   }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
 
-  const currentPaymentMethod = useMemo(() => {
-    const paymentMethod = filteredPaymentMethods?.find?.(
-      (method) => method.id === selectedPaymentMethodId,
-    );
-    return paymentMethod;
-  }, [filteredPaymentMethods, selectedPaymentMethodId]);
+  const currentPaymentMethod = useMemo(
+    () =>
+      filteredPaymentMethods?.find?.(
+        (method) => method.id === selectedPaymentMethodId,
+      ),
+    [filteredPaymentMethods, selectedPaymentMethodId],
+  );
 
   /**
    * Format the amount for display (iOS only)
