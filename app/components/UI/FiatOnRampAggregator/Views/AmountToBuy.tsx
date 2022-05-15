@@ -406,7 +406,6 @@ const AmountToBuy = () => {
       hideRegionModal();
       setAmount('0');
       setAmountNumber(0);
-      setSelectedRegion(region);
       if (selectedFiatCurrencyId === defaultFiatCurrency?.id) {
         /*
          * Selected fiat currency is default, we will fetch
@@ -418,6 +417,7 @@ const AmountToBuy = () => {
         );
         setSelectedFiatCurrencyId(newRegionCurrency?.id);
       }
+      setSelectedRegion(region);
     },
     [
       defaultFiatCurrency?.id,
