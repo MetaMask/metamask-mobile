@@ -19,7 +19,7 @@ exports[`Collectibles should render correctly 1`] = `
           ]
         }
         refreshing={false}
-        tintColor="#6A737D"
+        tintColor="#24272A"
       />
     }
   >
