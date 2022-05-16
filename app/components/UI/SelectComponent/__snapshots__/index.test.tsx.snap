@@ -43,7 +43,7 @@ exports[`SelectComponent should render correctly 1`] = `
         />
         <Icon
           allowFontScaling={false}
-          color="#6A737D"
+          color="#24272A"
           name="arrow-drop-down"
           size={24}
           style={
