@@ -18,11 +18,7 @@ export default class SendView {
     await TestHelpers.waitAndTap(NEXT_BUTTON_ID);
   }
   static async inputAddress(address) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(ADDRESS_INPUT_BOX_ID, address);
-    } else {
-      await TestHelpers.typeTextAndHideKeyboard(ADDRESS_INPUT_BOX_ID, address);
-    }
+    await TestHelpers.replaceTextInField(ADDRESS_INPUT_BOX_ID, address);
   }
 
   static async tapAndLongPress() {
