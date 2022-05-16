@@ -73,19 +73,19 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: 30,
     },
     networkLabel: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       borderWidth: 1,
       borderColor: colors.border.default,
       paddingHorizontal: 8,
       paddingVertical: 2,
-      borderRadius: 5,
+      borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
       flexDirection: 'row',
     },
     networkLabelText: {
       fontSize: 12,
-      color: colors.text.default,
+      color: colors.text.alternative,
     },
     listItem: {
       paddingHorizontal: 24,
@@ -168,7 +168,7 @@ function TokenSelectModal({
             <ListItem.Amounts>
               <ListItem.Amount>
                 <View style={styles.networkLabel}>
-                  <Text bold upper style={styles.networkLabelText}>
+                  <Text style={styles.networkLabelText}>
                     {NETWORKS_NAMES[
                       item.network?.chainId as keyof typeof NETWORKS_NAMES
                     ] || item.network?.chainId}
