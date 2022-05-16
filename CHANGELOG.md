@@ -7,8 +7,9 @@
 - [#4281](https://github.com/MetaMask/metamask-mobile/pull/4281): [FEAT] 4086 ps link component
 - [#4265](https://github.com/MetaMask/metamask-mobile/pull/4265): [FEAT] 4073 ps text component
 - [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FEAT] Download attachments in browser on iOS
-- [4193](https://github.com/MetaMask/metamask-mobile/pull/4193):  [FIX] jazzIcons default
 - [4174](https://github.com/MetaMask/metamask-mobile/pull/4174):  [IMPROVEMENT] Use checksum standard format
+- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Send flow confusables bug
+
 ## 5.1.0 - May 5, 2022
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
 - [#4159](https://github.com/MetaMask/metamask-mobile/pull/4159): [IMPROVEMENT] - iCloud Backup Restriction
