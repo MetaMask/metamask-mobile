@@ -1,6 +1,35 @@
 # Changelog
 
 ## Current Main Branch
+- [#3696](https://github.com/MetaMask/metamask-mobile/pull/3696): Fiat on Ramp Aggregator
+- [#4303](https://github.com/MetaMask/metamask-mobile/pull/4303): Add support for env variable for MM_HOMEPAGE
+- [#4331](https://github.com/MetaMask/metamask-mobile/pull/4331): [Detox]fix addressbook and browser test
+- [#4170](https://github.com/MetaMask/metamask-mobile/pull/4170): [5.2] Copy to clipboard for Android version 9 and below
+- [#4328](https://github.com/MetaMask/metamask-mobile/pull/4328): fix generate-static-assets
+- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): Fix confusables bug
+- [#4330](https://github.com/MetaMask/metamask-mobile/pull/4330): Revert "jazzIcons default (#4193)"
+- [#4317](https://github.com/MetaMask/metamask-mobile/pull/4317): PR Template - Add section for screenshots and recordings
+- [#4316](https://github.com/MetaMask/metamask-mobile/pull/4316): GIVEN, WHEN, THEN - Template Update
+- [#4167](https://github.com/MetaMask/metamask-mobile/pull/4167): [5.2][IMPROVEMENT] Adds support for 'dapp/' urls support on 'metamask://' and fixes DL opening to Apple Store
+- [#4175](https://github.com/MetaMask/metamask-mobile/pull/4175): [5.2][Fix] Favourites not showing when home button is pressed in browser tab menu
+- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): Fixes crashes on some Android devices when using the app in split screen
+- [#4281](https://github.com/MetaMask/metamask-mobile/pull/4281): Feature/4086 ps link component
+- [#4265](https://github.com/MetaMask/metamask-mobile/pull/4265): Feature/4073 ps text component
+- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [5.1.1] Download attachments in browser on iOS
+- [#4278](https://github.com/MetaMask/metamask-mobile/pull/4278): convert back to spaces
+- [#4176](https://github.com/MetaMask/metamask-mobile/pull/4176): 5.1.0
+- [#4249](https://github.com/MetaMask/metamask-mobile/pull/4249): patch cross-fetch instead of skipping
+- [#4211](https://github.com/MetaMask/metamask-mobile/pull/4211): New Crowdin translations by Github Action
+- [#4197](https://github.com/MetaMask/metamask-mobile/pull/4197): New Crowdin translations by Github Action
+- [#4174](https://github.com/MetaMask/metamask-mobile/pull/4174): Address now is in the checksum standard format
+- [#4193](https://github.com/MetaMask/metamask-mobile/pull/4193): jazzIcons default
+- [#4184](https://github.com/MetaMask/metamask-mobile/pull/4184): New Crowdin translations by Github Action
+- [#4157](https://github.com/MetaMask/metamask-mobile/pull/4157): Adjust language mapping
+- [#3804](https://github.com/MetaMask/metamask-mobile/pull/3804): New Crowdin translations by Github Action
+- [#4182](https://github.com/MetaMask/metamask-mobile/pull/4182): Standardize prettier configuration
+- [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [trivial] - Update react-native-webview+11.13.0.patch
+- [#4181](https://github.com/MetaMask/metamask-mobile/pull/4181): Fix/i os storage
+- [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): excluded audit because no available patch, does not seem to impact browser as we don't supprot cookies, controllers calls do not pass cookies
 
 ## 5.7.0 - Aug 25, 2022
 - [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
