@@ -12,278 +12,354 @@ import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
 import { getNetworkTypeById } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
-import { ACTIONS, ETH_ACTIONS, PROTOCOLS, PREFIXES } from '../constants/deeplinks';
+import {
+  ACTIONS,
+  ETH_ACTIONS,
+  PROTOCOLS,
+  PREFIXES,
+} from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
+import Routes from '../constants/navigation/Routes';
 
 class DeeplinkManager {
-	constructor({ navigation, frequentRpcList, dispatch }) {
-		this.navigation = navigation;
-		this.pendingDeeplink = null;
-		this.frequentRpcList = frequentRpcList;
-		this.dispatch = dispatch;
-	}
+  constructor({ navigation, frequentRpcList, dispatch }) {
+    this.navigation = navigation;
+    this.pendingDeeplink = null;
+    this.frequentRpcList = frequentRpcList;
+    this.dispatch = dispatch;
+  }
 
-	setDeeplink = (url) => (this.pendingDeeplink = url);
+  setDeeplink = (url) => (this.pendingDeeplink = url);
 
-	getPendingDeeplink = () => this.pendingDeeplink;
+  getPendingDeeplink = () => this.pendingDeeplink;
 
-	expireDeeplink = () => (this.pendingDeeplink = null);
+  expireDeeplink = () => (this.pendingDeeplink = null);
 
-	/**
-	 * Method in charge of changing network if is needed
-	 *
-	 * @param switchToChainId - Corresponding chain id for new network
-	 */
-	_handleNetworkSwitch = (switchToChainId) => {
-		const { NetworkController, CurrencyRateController } = Engine.context;
+  /**
+   * Method in charge of changing network if is needed
+   *
+   * @param switchToChainId - Corresponding chain id for new network
+   */
+  _handleNetworkSwitch = (switchToChainId) => {
+    const { NetworkController, CurrencyRateController } = Engine.context;
 
-		// If current network is the same as the one we want to switch to, do nothing
-		if (NetworkController?.state?.provider?.chainId === switchToChainId) {
-			return;
-		}
+    // If not specified, use the current network
+    if (!switchToChainId) {
+      return;
+    }
 
-		const rpc = this.frequentRpcList.find(({ chainId }) => chainId === switchToChainId);
+    // If current network is the same as the one we want to switch to, do nothing
+    if (
+      NetworkController?.state?.provider?.chainId === String(switchToChainId)
+    ) {
+      return;
+    }
 
-		if (rpc) {
-			const { rpcUrl, chainId, ticker, nickname } = rpc;
-			CurrencyRateController.setNativeCurrency(ticker);
-			NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
-			this.dispatch(
-				showAlert({
-					isVisible: true,
-					autodismiss: 5000,
-					content: 'clipboard-alert',
-					data: { msg: strings('send.warn_network_change') + nickname },
-				})
-			);
-			return;
-		}
+    const rpc = this.frequentRpcList.find(
+      ({ chainId }) => chainId === switchToChainId,
+    );
 
-		const networkType = getNetworkTypeById(switchToChainId);
+    if (rpc) {
+      const { rpcUrl, chainId, ticker, nickname } = rpc;
+      CurrencyRateController.setNativeCurrency(ticker);
+      NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+      this.dispatch(
+        showAlert({
+          isVisible: true,
+          autodismiss: 5000,
+          content: 'clipboard-alert',
+          data: { msg: strings('send.warn_network_change') + nickname },
+        }),
+      );
+      return;
+    }
 
-		if (networkType) {
-			CurrencyRateController.setNativeCurrency('ETH');
-			NetworkController.setProviderType(networkType);
-			this.dispatch(
-				showAlert({
-					isVisible: true,
-					autodismiss: 5000,
-					content: 'clipboard-alert',
-					data: { msg: strings('send.warn_network_change') + networkType },
-				})
-			);
-		}
-	};
+    const networkType = getNetworkTypeById(switchToChainId);
 
-	_approveTransaction = (ethUrl, origin) => {
-		const {
-			parameters: { address, uint256 },
-			target_address,
-			chain_id,
-		} = ethUrl;
-		const { TransactionController, PreferencesController, NetworkController } = Engine.context;
+    if (networkType) {
+      CurrencyRateController.setNativeCurrency('ETH');
+      NetworkController.setProviderType(networkType);
+      this.dispatch(
+        showAlert({
+          isVisible: true,
+          autodismiss: 5000,
+          content: 'clipboard-alert',
+          data: { msg: strings('send.warn_network_change') + networkType },
+        }),
+      );
+    }
+  };
 
-		if (chain_id) {
-			const newNetworkType = getNetworkTypeById(chain_id);
-			NetworkController.setProviderType(newNetworkType);
-		}
+  _approveTransaction = (ethUrl, origin) => {
+    const {
+      parameters: { address, uint256 },
+      target_address,
+      chain_id,
+    } = ethUrl;
+    const { TransactionController, PreferencesController, NetworkController } =
+      Engine.context;
 
-		const uint256Number = Number(uint256);
+    if (chain_id) {
+      const newNetworkType = getNetworkTypeById(chain_id);
+      NetworkController.setProviderType(newNetworkType);
+    }
 
-		if (Number.isNaN(uint256Number)) throw new Error('The parameter uint256 should be a number');
-		if (!Number.isInteger(uint256Number)) throw new Error('The parameter uint256 should be an integer');
+    const uint256Number = Number(uint256);
 
-		const value = uint256Number.toString(16);
+    if (Number.isNaN(uint256Number))
+      throw new Error('The parameter uint256 should be a number');
+    if (!Number.isInteger(uint256Number))
+      throw new Error('The parameter uint256 should be an integer');
 
-		const txParams = {
-			to: target_address.toString(),
-			from: PreferencesController.state.selectedAddress.toString(),
-			value: '0x0',
-			data: generateApproveData({ spender: address, value }),
-		};
+    const value = uint256Number.toString(16);
 
-		TransactionController.addTransaction(txParams, origin, WalletDevice.MM_MOBILE);
-	};
+    const txParams = {
+      to: target_address.toString(),
+      from: PreferencesController.state.selectedAddress.toString(),
+      value: '0x0',
+      data: generateApproveData({ spender: address, value }),
+    };
 
-	async _handleEthereumUrl(url, origin) {
-		let ethUrl = '';
-		try {
-			ethUrl = parse(url);
-		} catch (e) {
-			if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
-			return;
-		}
+    TransactionController.addTransaction(
+      txParams,
+      origin,
+      WalletDevice.MM_MOBILE,
+    );
+  };
 
-		const txMeta = { ...ethUrl, source: url };
+  async _handleEthereumUrl(url, origin) {
+    let ethUrl = '';
+    try {
+      ethUrl = parse(url);
+    } catch (e) {
+      if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
+      return;
+    }
 
-		try {
-			// Validate and switch network before performing any other action
-			this._handleNetworkSwitch(ethUrl.chain_id);
+    const txMeta = { ...ethUrl, source: url };
 
-			switch (ethUrl.function_name) {
-				case ETH_ACTIONS.TRANSFER: {
-					this.navigation.navigate('SendView', {
-						screen: 'Send',
-						params: { txMeta: { ...txMeta, action: 'send-token' } },
-					});
-					break;
-				}
-				case ETH_ACTIONS.APPROVE: {
-					this._approveTransaction(ethUrl, origin);
-					break;
-				}
-				default: {
-					if (ethUrl.parameters?.value) {
-						this.navigation.navigate('SendView', {
-							screen: 'Send',
-							params: { txMeta: { ...txMeta, action: 'send-eth' } },
-						});
-					} else {
-						this.navigation.navigate('SendFlowView', { screen: 'SendTo', params: { txMeta } });
-					}
-				}
-			}
-		} catch (e) {
-			let alertMessage;
-			switch (e.message) {
-				case NETWORK_ERROR_MISSING_NETWORK_ID:
-					alertMessage = strings('send.network_missing_id');
-					break;
-				default:
-					alertMessage = strings('send.network_not_found_description', { chain_id: ethUrl.chain_id });
-			}
-			Alert.alert(strings('send.network_not_found_title'), alertMessage);
-		}
-	}
+    try {
+      /**
+       * Validate and switch network before performing any other action
+       */
+      this._handleNetworkSwitch(ethUrl.chain_id);
 
-	_handleBrowserUrl(url, callback) {
-		InteractionManager.runAfterInteractions(() => {
-			if (callback) {
-				callback(url);
-			} else {
-				this.navigation.navigate('BrowserTabHome', {
-					screen: 'BrowserView',
-					params: {
-						newTabUrl: url,
-						timestamp: Date.now(),
-					},
-				});
-			}
-		});
-	}
+      switch (ethUrl.function_name) {
+        case ETH_ACTIONS.TRANSFER: {
+          this.navigation.navigate('SendView', {
+            screen: 'Send',
+            params: { txMeta: { ...txMeta, action: 'send-token' } },
+          });
+          break;
+        }
+        case ETH_ACTIONS.APPROVE: {
+          this._approveTransaction(ethUrl, origin);
+          break;
+        }
+        default: {
+          if (ethUrl.parameters?.value) {
+            this.navigation.navigate('SendView', {
+              screen: 'Send',
+              params: { txMeta: { ...txMeta, action: 'send-eth' } },
+            });
+          } else {
+            this.navigation.navigate('SendFlowView', {
+              screen: 'SendTo',
+              params: { txMeta },
+            });
+          }
+        }
+      }
+    } catch (e) {
+      let alertMessage;
+      switch (e.message) {
+        case NETWORK_ERROR_MISSING_NETWORK_ID:
+          alertMessage = strings('send.network_missing_id');
+          break;
+        default:
+          alertMessage = strings('send.network_not_found_description', {
+            chain_id: ethUrl.chain_id,
+          });
+      }
+      Alert.alert(strings('send.network_not_found_title'), alertMessage);
+    }
+  }
 
-	parse(url, { browserCallBack, origin, onHandled }) {
-		const urlObj = new URL(
-			url
-				.replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`, `${PROTOCOLS.DAPP}/`)
-				.replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`)
-		);
-		let params;
-		let wcCleanUrl;
+  _handleBrowserUrl(url, callback) {
+    InteractionManager.runAfterInteractions(() => {
+      if (callback) {
+        callback(url);
+      } else {
+        this.navigation.navigate(Routes.BROWSER_TAB_HOME, {
+          screen: Routes.BROWSER_VIEW,
+          params: {
+            newTabUrl: url,
+            timestamp: Date.now(),
+          },
+        });
+      }
+    });
+  }
 
-		if (urlObj.query.length) {
-			try {
-				params = qs.parse(urlObj.query.substring(1));
-			} catch (e) {
-				if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
-			}
-		}
+  parse(url, { browserCallBack, origin, onHandled }) {
+    const urlObj = new URL(
+      url
+        .replace(
+          `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`,
+          `${PROTOCOLS.DAPP}/`,
+        )
+        .replace(
+          `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`,
+          `${PROTOCOLS.DAPP}/`,
+        ),
+    );
+    let params;
+    let wcCleanUrl;
 
-		const handled = () => (onHandled ? onHandled() : false);
+    if (urlObj.query.length) {
+      try {
+        params = qs.parse(urlObj.query.substring(1));
+      } catch (e) {
+        if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
+      }
+    }
 
-		const { MM_UNIVERSAL_LINK_HOST } = AppConstants;
+    const handled = () => (onHandled ? onHandled() : false);
 
-		switch (urlObj.protocol.replace(':', '')) {
-			case PROTOCOLS.HTTP:
-			case PROTOCOLS.HTTPS:
-				// Universal links
-				handled();
+    const { MM_UNIVERSAL_LINK_HOST, MM_DEEP_ITMS_APP_LINK } = AppConstants;
+    const DEEP_LINK_BASE = `${PROTOCOLS.HTTPS}://${MM_UNIVERSAL_LINK_HOST}`;
 
-				if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
-					// action is the first part of the pathname
-					const action = urlObj.pathname.split('/')[1];
+    switch (urlObj.protocol.replace(':', '')) {
+      case PROTOCOLS.HTTP:
+      case PROTOCOLS.HTTPS:
+        // Universal links
+        handled();
 
-					if (action === ACTIONS.WC && params?.uri) {
-						WalletConnect.newSession(params.uri, params.redirectUrl, false, origin);
-					} else if (action === ACTIONS.WC) {
-						// This is called from WC just to open the app and it's not supposed to do anything
-						return;
-					} else if (PREFIXES[action]) {
-						const url = urlObj.href.replace(
-							`https://${MM_UNIVERSAL_LINK_HOST}/${action}/`,
-							PREFIXES[action]
-						);
-						// loops back to open the link with the right protocol
-						this.parse(url, { browserCallBack });
-					} else {
-						// If it's our universal link don't open it in the browser
-						if (!action && urlObj.href === `https://${MM_UNIVERSAL_LINK_HOST}/`) return;
+        if (urlObj.hostname === MM_UNIVERSAL_LINK_HOST) {
+          // action is the first part of the pathname
+          const action = urlObj.pathname.split('/')[1];
 
-						// Normal links (same as dapp)
-						this._handleBrowserUrl(urlObj.href, browserCallBack);
-					}
-				} else {
-					// Normal links (same as dapp)
-					this._handleBrowserUrl(urlObj.href, browserCallBack);
-				}
-				break;
+          if (action === ACTIONS.WC && params?.uri) {
+            WalletConnect.newSession(
+              params.uri,
+              params.redirectUrl,
+              false,
+              origin,
+            );
+          } else if (action === ACTIONS.WC) {
+            // This is called from WC just to open the app and it's not supposed to do anything
+            return;
+          } else if (PREFIXES[action]) {
+            const url = urlObj.href.replace(
+              `${DEEP_LINK_BASE}/${action}/`,
+              PREFIXES[action],
+            );
+            // loops back to open the link with the right protocol
+            this.parse(url, { browserCallBack });
+          } else {
+            // If it's our universal link or Apple store deep link don't open it in the browser
+            if (
+              (!action &&
+                (urlObj.href === `${DEEP_LINK_BASE}/` ||
+                  urlObj.href === DEEP_LINK_BASE)) ||
+              urlObj.href === MM_DEEP_ITMS_APP_LINK
+            )
+              return;
 
-			// walletconnect related deeplinks
-			// address, transactions, etc
-			case PROTOCOLS.WC:
-				handled();
+            // Fix for Apple Store redirect even when app is installed
+            if (urlObj.href.startsWith(`${DEEP_LINK_BASE}/`)) {
+              this._handleBrowserUrl(
+                `${PROTOCOLS.HTTPS}://${urlObj.href.replace(
+                  `${DEEP_LINK_BASE}/`,
+                  '',
+                )}`,
+                browserCallBack,
+              );
 
-				wcCleanUrl = url.replace('wc://wc?uri=', '');
-				if (!WalletConnect.isValidUri(wcCleanUrl)) return;
+              return;
+            }
 
-				WalletConnect.newSession(wcCleanUrl, params?.redirect, params?.autosign, origin);
-				break;
+            // Normal links (same as dapp)
+            this._handleBrowserUrl(urlObj.href, browserCallBack);
+          }
+        } else {
+          // Normal links (same as dapp)
+          this._handleBrowserUrl(urlObj.href, browserCallBack);
+        }
+        break;
 
-			case PROTOCOLS.ETHEREUM:
-				handled();
-				this._handleEthereumUrl(url, origin);
-				break;
+      // walletconnect related deeplinks
+      // address, transactions, etc
+      case PROTOCOLS.WC:
+        handled();
 
-			// Specific to the browser screen
-			// For ex. navigate to a specific dapp
-			case PROTOCOLS.DAPP:
-				// Enforce https
-				handled();
-				urlObj.set('protocol', 'https:');
-				this._handleBrowserUrl(urlObj.href, browserCallBack);
-				break;
+        wcCleanUrl = url.replace('wc://wc?uri=', '');
+        if (!WalletConnect.isValidUri(wcCleanUrl)) return;
 
-			// Specific to the MetaMask app
-			// For ex. go to settings
-			case PROTOCOLS.METAMASK:
-				handled();
-				if (url.startsWith('metamask://wc')) {
-					const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
-					const href = cleanUrlObj.href;
+        WalletConnect.newSession(
+          wcCleanUrl,
+          params?.redirect,
+          params?.autosign,
+          origin,
+        );
+        break;
 
-					if (!WalletConnect.isValidUri(href)) return;
+      case PROTOCOLS.ETHEREUM:
+        handled();
+        this._handleEthereumUrl(url, origin);
+        break;
 
-					WalletConnect.newSession(href, params?.redirect, params?.autosign, origin);
-				}
-				break;
-			default:
-				return false;
-		}
+      // Specific to the browser screen
+      // For ex. navigate to a specific dapp
+      case PROTOCOLS.DAPP:
+        // Enforce https
+        handled();
+        urlObj.set('protocol', 'https:');
+        this._handleBrowserUrl(urlObj.href, browserCallBack);
+        break;
 
-		return true;
-	}
+      // Specific to the MetaMask app
+      // For ex. go to settings
+      case PROTOCOLS.METAMASK:
+        handled();
+        if (url.startsWith('metamask://wc')) {
+          const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
+          const href = cleanUrlObj.href;
+
+          if (!WalletConnect.isValidUri(href)) return;
+
+          WalletConnect.newSession(
+            href,
+            params?.redirect,
+            params?.autosign,
+            origin,
+          );
+        } else if (url.startsWith('metamask://dapp/')) {
+          try {
+            this._handleBrowserUrl(urlObj.href.split('metamask://dapp/')[1]);
+          } catch (e) {
+            if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
+          }
+        }
+        break;
+      default:
+        return false;
+    }
+
+    return true;
+  }
 }
 
 let instance = null;
 
 const SharedDeeplinkManager = {
-	init: ({ navigation, frequentRpcList, dispatch }) => {
-		instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
-	},
-	parse: (url, args) => instance.parse(url, args),
-	setDeeplink: (url) => instance.setDeeplink(url),
-	getPendingDeeplink: () => instance.getPendingDeeplink(),
-	expireDeeplink: () => instance.expireDeeplink(),
+  init: ({ navigation, frequentRpcList, dispatch }) => {
+    instance = new DeeplinkManager({ navigation, frequentRpcList, dispatch });
+  },
+  parse: (url, args) => instance.parse(url, args),
+  setDeeplink: (url) => instance.setDeeplink(url),
+  getPendingDeeplink: () => instance.getPendingDeeplink(),
+  expireDeeplink: () => instance.expireDeeplink(),
 };
 
 export default SharedDeeplinkManager;

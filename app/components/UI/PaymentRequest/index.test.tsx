@@ -7,12 +7,12 @@ import configureMockStore from 'redux-mock-store';
 const mockStore = configureMockStore();
 const store = mockStore({});
 describe('PaymentRequest', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<PaymentRequest />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <PaymentRequest />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

@@ -7,68 +7,75 @@ import Text from '../Text';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
-	StyleSheet.create({
-		keypad: {
-			paddingHorizontal: 25,
-		},
-		keypadRow: {
-			flexDirection: 'row',
-			justifyContent: 'space-around',
-		},
-		keypadButton: {
-			paddingHorizontal: 20,
-			paddingVertical: Device.isMediumDevice() ? (Device.isIphone5() ? 4 : 8) : 12,
-			flex: 1,
-			justifyContent: 'center',
-			alignItems: 'center',
-		},
-		keypadButtonText: {
-			color: colors.text.default,
-			textAlign: 'center',
-			fontSize: 30,
-		},
-		deleteIcon: {
-			fontSize: 25,
-			marginTop: 5,
-		},
-	});
+  StyleSheet.create({
+    keypad: {
+      paddingHorizontal: 25,
+    },
+    keypadRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    keypadButton: {
+      paddingHorizontal: 20,
+      paddingVertical: Device.isMediumDevice()
+        ? Device.isIphone5()
+          ? 4
+          : 8
+        : 12,
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    keypadButtonText: {
+      color: colors.text.default,
+      textAlign: 'center',
+      fontSize: 30,
+    },
+    deleteIcon: {
+      fontSize: 25,
+      marginTop: 5,
+    },
+  });
 
 const KeypadContainer = (props) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return <View style={styles.keypad} {...props} />;
+  return <View style={styles.keypad} {...props} />;
 };
 const KeypadRow = (props) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return <View style={styles.keypadRow} {...props} />;
+  return <View style={styles.keypadRow} {...props} />;
 };
 const KeypadButton = ({ children, ...props }) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return (
-		<TouchableOpacity style={styles.keypadButton} {...props}>
-			<Text style={styles.keypadButtonText}>{children}</Text>
-		</TouchableOpacity>
-	);
+  return (
+    <TouchableOpacity style={styles.keypadButton} {...props}>
+      <Text style={styles.keypadButtonText}>{children}</Text>
+    </TouchableOpacity>
+  );
 };
 
 KeypadButton.propTypes = {
-	children: PropTypes.node,
+  children: PropTypes.node,
 };
 
 const KeypadDeleteButton = (props) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return (
-		<TouchableOpacity style={styles.keypadButton} {...props}>
-			<IonicIcon style={[styles.keypadButtonText, styles.deleteIcon]} name="md-arrow-back" />
-		</TouchableOpacity>
-	);
+  return (
+    <TouchableOpacity style={styles.keypadButton} {...props}>
+      <IonicIcon
+        style={[styles.keypadButtonText, styles.deleteIcon]}
+        name="md-arrow-back"
+      />
+    </TouchableOpacity>
+  );
 };
 
 const Keypad = KeypadContainer;

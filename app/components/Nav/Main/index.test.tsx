@@ -5,13 +5,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import Main from './';
 
 describe('Main', () => {
-	it('should render correctly', () => {
-		const MainAppContainer = () => (
-			<NavigationContainer>
-				<Main />
-			</NavigationContainer>
-		);
-		const wrapper = shallow(<MainAppContainer />);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const MainAppContainer = () => (
+      <NavigationContainer>
+        <Main />
+      </NavigationContainer>
+    );
+    const wrapper = shallow(<MainAppContainer />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });
