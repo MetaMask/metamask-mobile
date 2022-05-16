@@ -27,6 +27,7 @@ import {
   fiatOrdersPaymentMethodSelectorAgg,
   setFiatOrdersPaymentMethodAGG,
 } from '../../../../reducers/fiatOrders';
+import { Region } from '../types';
 interface IFiatOnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -37,11 +38,11 @@ export interface IFiatOnRampSDK {
   sdk: RegionsService | undefined;
   sdkError?: Error;
 
-  selectedRegion: any;
-  setSelectedRegion: (region: any) => void;
+  selectedRegion: Region | null;
+  setSelectedRegion: (region: Region | null) => void;
 
-  selectedPaymentMethodId: string;
-  setSelectedPaymentMethodId: (paymentMethodId: string) => void;
+  selectedPaymentMethodId: string | null;
+  setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
 
   selectedAsset: CryptoCurrency | null;
   setSelectedAsset: (asset: CryptoCurrency) => void;
@@ -104,14 +105,14 @@ export const FiatOnRampSDKProvider = ({
 
   const dispatch = useDispatch();
 
-  const INITIAL_SELECTED_REGION: string = useSelector(
+  const INITIAL_SELECTED_REGION: Region | null = useSelector(
     fiatOrdersRegionSelectorAgg,
   );
   const INITIAL_GET_STARTED: boolean = useSelector(fiatOrdersGetStartedAgg);
   const selectedAddress: string = useSelector(selectedAddressSelector);
   const selectedChainId: string = useSelector(chainIdSelector);
 
-  const INITIAL_PAYMENT_METHOD: string = useSelector(
+  const INITIAL_PAYMENT_METHOD: string | null = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
@@ -189,6 +190,11 @@ export const useFiatOnRampSDK = () => {
   return contextValue as IFiatOnRampSDK;
 };
 
+type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
+type PartialParameters<T> = T extends (...args: infer P) => any
+  ? NullifyOrPartial<P>
+  : never;
+
 interface config<T> {
   method: T;
   onMount?: boolean;
@@ -216,7 +222,7 @@ interface config<T> {
  */
 export function useSDKMethod<T extends keyof RegionsService>(
   config: T | config<T>,
-  ...params: Parameters<RegionsService[T]>
+  ...params: PartialParameters<RegionsService[T]>
 ): [
   {
     data: Awaited<ReturnType<RegionsService[T]>> | null;
@@ -224,7 +230,7 @@ export function useSDKMethod<T extends keyof RegionsService>(
     isFetching: boolean;
   },
   (
-    ...customParams: Parameters<RegionsService[T]> | []
+    ...customParams: PartialParameters<RegionsService[T]> | []
   ) => Promise<any> | ReturnType<RegionsService[T]>,
 ] {
   const { sdk }: { sdk: RegionsService } = useFiatOnRampSDK() as any;
@@ -238,15 +244,22 @@ export function useSDKMethod<T extends keyof RegionsService>(
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;
 
   const query = useCallback(
-    async (...customParams: Parameters<RegionsService[T]> | []) => {
+    async (...customParams: PartialParameters<RegionsService[T]> | []) => {
+      if (
+        (customParams.length > 0 && customParams.some((param) => !param)) ||
+        (customParams.length === 0 &&
+          params.length > 0 &&
+          params.some((param) => !param))
+      ) {
+        return;
+      }
       try {
         setIsFetching(true);
         setError(null);
         setData(null);
         if (sdk) {
-          // @ts-expect-error spreading params error
-          const sdkMethod = (...a) => sdk[method](...a);
-          const response = await sdkMethod(
+          const response = await sdk[method](
+            // @ts-expect-error spreading params error
             ...(customParams.length > 0 ? customParams : params),
           );
           // @ts-expect-error response type error
