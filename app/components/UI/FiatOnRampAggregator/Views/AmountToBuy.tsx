@@ -330,7 +330,7 @@ const AmountToBuy = () => {
       );
       if (foundPaymentMethod) {
         setSelectedPaymentMethodId(foundPaymentMethod.id);
-      } else if (!selectedPaymentMethodId) {
+      } else {
         setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
       }
     }
