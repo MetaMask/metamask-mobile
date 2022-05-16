@@ -135,13 +135,21 @@ class Connection {
               )
             ).result;
             this.sendMessage({
-              id: message.id,
-              result: hash,
+              data: {
+                id: message.id,
+                jsonrpc: '2.0',
+                result: hash,
+              },
+              name: 'metamask-provider',
             });
           } catch (error) {
             this.sendMessage({
-              id: message.id,
-              error,
+              data: {
+                error,
+                id: message.id,
+                jsonrpc: '2.0',
+              },
+              name: 'metamask-provider',
             });
           }
           return;
