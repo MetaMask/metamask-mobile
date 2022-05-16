@@ -30,10 +30,10 @@ const createStyles = (colors) =>
     icon: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginRight: 15,
     },
     body: {
       flex: 1,
-      marginLeft: 15,
     },
     amounts: {
       flex: 0.6,
