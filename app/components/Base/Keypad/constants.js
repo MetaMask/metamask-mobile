@@ -17,6 +17,16 @@ export const KEYS = {
 };
 
 export const CURRENCIES = {
+  native: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.' }),
+    symbol: null,
+  },
+  ARS: {
+    decimalSeparator: ',',
+    handler: createKeypadRule({ decimalSeparator: ',', decimals: 2 }),
+    symbol: '$',
+  },
   AUD: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
@@ -32,9 +42,24 @@ export const CURRENCIES = {
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
     symbol: '$',
   },
+  CHF: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: 'Fr',
+  },
   CLP: {
     decimalSeparator: null,
     handler: createKeypadRule({ decimalSeparator: null }),
+    symbol: '$',
+  },
+  CNY: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: '¥',
+  },
+  COP: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
     symbol: '$',
   },
   CZK: {
@@ -43,8 +68,8 @@ export const CURRENCIES = {
     symbol: 'Kč',
   },
   default: {
-    decimalSeparator: '.',
-    handler: createKeypadRule({ decimalSeparator: '.' }),
+    decimalSeparator: null,
+    handler: createKeypadRule({ decimalSeparator: null }),
     symbol: null,
   },
   DKK: {
@@ -67,9 +92,19 @@ export const CURRENCIES = {
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
     symbol: '$',
   },
-  ISK: {
+  ILS: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: '₪',
+  },
+  INR: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: 'Rs',
+  },
+  ISK: {
+    decimalSeparator: null,
+    handler: createKeypadRule({ decimalSeparator: null }),
     symbol: 'kr',
   },
   JPY: {
@@ -77,14 +112,24 @@ export const CURRENCIES = {
     handler: createKeypadRule({ decimalSeparator: null }),
     symbol: '¥',
   },
-  native: {
-    decimalSeparator: '.',
-    handler: createKeypadRule({ decimalSeparator: '.' }),
-    symbol: null,
+  KRW: {
+    decimalSeparator: null,
+    handler: createKeypadRule({ decimalSeparator: null }),
+    symbol: '₩',
   },
-  NOK: {
+  MXN: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: '$',
+  },
+  MYR: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: 'RM',
+  },
+  NOK: {
+    decimalSeparator: ',',
+    handler: createKeypadRule({ decimalSeparator: ',', decimals: 2 }),
     symbol: 'kr',
   },
   NZD: {
@@ -92,29 +137,44 @@ export const CURRENCIES = {
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
     symbol: '$',
   },
-  PLN: {
+  PHP: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: '₱',
+  },
+  PLN: {
+    decimalSeparator: ',',
+    handler: createKeypadRule({ decimalSeparator: ',', decimals: 2 }),
     symbol: 'zł',
+  },
+  SEK: {
+    decimalSeparator: ',',
+    handler: createKeypadRule({ decimalSeparator: ',', decimals: 2 }),
+    symbol: 'kr',
   },
   SGD: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
     symbol: '$',
   },
-  SEK: {
+  THB: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-    symbol: 'kr',
-  },
-  CHF: {
-    decimalSeparator: '.',
-    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
-    symbol: 'Fr',
+    symbol: '฿',
   },
   USD: {
     decimalSeparator: '.',
     handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
     symbol: '$',
+  },
+  VND: {
+    decimalSeparator: null,
+    handler: createKeypadRule({ decimalSeparator: null }),
+    symbol: '₫',
+  },
+  ZAR: {
+    decimalSeparator: '.',
+    handler: createKeypadRule({ decimalSeparator: '.', decimals: 2 }),
+    symbol: 'R',
   },
 };
