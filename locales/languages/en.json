@@ -1541,7 +1541,7 @@
       "medium_limit": "medium limit",
       "highest_limit": "highest limit",
       "apple_cash_not_supported": "Apple Cash is not supported.",
-      "card_fees": "Prices quoted are exclusive of any fees your card providers may charge. Credit card purchases may incur cash advance fees, for example. Please check with your provider to understand any fees they may charge you.",
+      "card_fees": "Check with your card provider to understand any fees they may charge you. For example, credit card purchases may incur cash advance fees.",
       "continue_to_amount": "Continue to amount"
     },
     "continue": "Continue",
@@ -1562,7 +1562,7 @@
     "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
     "search_by_currency": "Search for a currency",
-    "selected_payment_method": "Selected payment method",
+    "update_payment_method": "Update payment method",
     "select_payment_method": "Select payment method",
     "select_region_currency": "Select Region Currency",
     "no_tokens_match": "No tokens match “{{searchString}}”",
@@ -1584,6 +1584,7 @@
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
     "webview_received_error": "WebView received error status code: {{code}}",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}}",
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",

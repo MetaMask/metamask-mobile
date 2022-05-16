@@ -650,6 +650,24 @@ const AmountToBuy = () => {
     );
   }
 
+  if (!isFetching && !tokens) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            description={strings(
+              'fiat_on_ramp_aggregator.no_tokens_available',
+              {
+                network: NETWORKS_NAMES[selectedChainId],
+              },
+            )}
+            ctaOnPress={() => navigation.goBack()}
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -711,7 +729,7 @@ const AmountToBuy = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <PaymentMethodSelector
-            label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
+            label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
               <PaymentIcon
                 iconType={getPaymentMethodIcon(selectedPaymentMethodId)}
