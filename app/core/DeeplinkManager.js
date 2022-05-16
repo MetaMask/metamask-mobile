@@ -203,6 +203,8 @@ class DeeplinkManager {
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
+    // eslint-disable-next-line no-alert
+    alert(url);
     const urlObj = new URL(
       url
         .replace(
