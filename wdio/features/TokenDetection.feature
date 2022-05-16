@@ -40,6 +40,17 @@ Feature: Token Detection
             | Binance  |
             | Avalance |
 
+    Scenario: Import Wallet with token balances from multiple networks
+        Examples:
+            | wallet  | type      | nft     |
+            | address | extension | address |
+            | address | mobile    | address |
+            | address | keystone  |         |
+
+    Scenario: Create New Wallet
+    Send funds to this wallet and funds should be detected after received.
+
+
     @regression
     Scenario Outline: Autocomplete for Swaps
         Enhanced Token Detection setting no longer impacts token search on a network.
@@ -91,6 +102,7 @@ Feature: Token Detection
             | Simulator iOS 15.4   | enabled  | Avalance | AVAX        | ava  | AVAX  |       |               | light        |
             | Simulator Android 11 | enabled  | Avalance | AVAX        | xyz  |       |       |               | dark         |
             | Physical Android 12  | disabled | Avalance | AVAX        | dai  |       |       |               | light        |
+            | Physical Android 12  | disabled | Rinkeby  | ETH         | dai  |       |       |               | light        |
 
     @regression
     Scenario: Autocomplete for Request tokens
@@ -280,16 +292,16 @@ Feature: Token Detection
         Then Wallet view is displayed
         And <token> is not displayed
         Examples:
-            | chain    | native_token | token |
-            | Ethereum | ETH          | DAI   |
-            | Ethereum | ETH          | ETH   |
-            | Polygon  | MATIC        | USDT  |
-            | Polygon  | MATIC        | MATIC |
-            | Binance  | BNB          | USCD  |
-            | Binance  | BNB          | BNB   |
-            | Avalance | AVAX         | UST   |
-            | Avalance | AVAX         | AVAX  |
-            | Rinkeby  | ETH          | ETH   |
+            | chain    | native_token | token | language |
+            | Ethereum | ETH          | DAI   |          |
+            | Ethereum | ETH          | ETH   |          |
+            | Polygon  | MATIC        | USDT  |          |
+            | Polygon  | MATIC        | MATIC |          |
+            | Binance  | BNB          | USCD  |          |
+            | Binance  | BNB          | BNB   |          |
+            | Avalance | AVAX         | UST   |          |
+            | Avalance | AVAX         | AVAX  |          |
+            | Rinkeby  | ETH          | ETH   |          |
 
     Scenario: Hide Tokens replacing existing Remove Tokens
         Press and hold on a token in the Wallet view token list will
@@ -318,6 +330,7 @@ Feature: Token Detection
             | Binance  | BNB   |
             | Avalance | AVAX  |
 
+
     Scenario: Token Import Analytics
         Importing tokens will now be captured with analytics.
         Given I have MetaMask Mobile build "900" open on my device
@@ -327,6 +340,8 @@ Feature: Token Detection
         Then mixpanel analytics shows that a token has been imported on my device
         When I have Participate in MetaMetics disabled
         Then mixpanel analytics does not show that a token has been imported on my device
+
+    Scenario: Token Detection Translations
 
     @regression
     Scenario Outline: Regression Devices
