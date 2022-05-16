@@ -182,7 +182,7 @@ class AssetOverview extends PureComponent {
   };
 
   onBuy = () => {
-    this.props.navigation.navigate('FiatOnRamp');
+    this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
       AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
