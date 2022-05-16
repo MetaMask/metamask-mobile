@@ -328,6 +328,7 @@ const GetQuotes = () => {
 
   const handleOnPressBuy = useCallback(
     (quote) => {
+      setPollingCyclesLeft(-1);
       quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
     },
     [navigation],
