@@ -660,6 +660,19 @@ const AmountToBuy = () => {
     );
   }
 
+  if (!isFetching && !tokens) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ErrorView
+            description={strings('fiat_on_ramp_aggregator.no_tokens_available')}
+            ctaOnPress={retryMethod}
+          />
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
