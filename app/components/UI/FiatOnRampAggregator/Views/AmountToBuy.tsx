@@ -665,8 +665,13 @@ const AmountToBuy = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
-            description={strings('fiat_on_ramp_aggregator.no_tokens_available')}
-            ctaOnPress={retryMethod}
+            description={strings(
+              'fiat_on_ramp_aggregator.no_tokens_available',
+              {
+                network: NETWORKS_NAMES[selectedChainId],
+              },
+            )}
+            ctaOnPress={() => navigation.goBack()}
           />
         </ScreenLayout.Body>
       </ScreenLayout>
