@@ -721,7 +721,7 @@ const AmountToBuy = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <PaymentMethodSelector
-            label={strings('fiat_on_ramp_aggregator.selected_payment_method')}
+            label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
               <PaymentIcon
                 iconType={getPaymentMethodIcon(selectedPaymentMethodId)}

@@ -1541,7 +1541,7 @@
       "medium_limit": "medium limit",
       "highest_limit": "highest limit",
       "apple_cash_not_supported": "Apple Cash is not supported.",
-      "card_fees": "Prices quoted are exclusive of any fees your card providers may charge. Credit card purchases may incur cash advance fees, for example. Please check with your provider to understand any fees they may charge you.",
+      "card_fees": "Check with your card provider to understand any fees they may charge you. For example, credit card purchases may incur cash advance fees.",
       "continue_to_amount": "Continue to amount"
     },
     "continue": "Continue",
@@ -1562,7 +1562,7 @@
     "select_a_cryptocurrency_description": "Select from the list of tokens available on {{network}}.",
     "search_by_cryptocurrency": "Search by cryptocurrency",
     "search_by_currency": "Search for a currency",
-    "selected_payment_method": "Selected payment method",
+    "update_payment_method": "Update payment method",
     "select_payment_method": "Select payment method",
     "select_region_currency": "Select Region Currency",
     "no_tokens_match": "No tokens match “{{searchString}}”",
@@ -1587,7 +1587,7 @@
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",
-      "description": "The payment methods and tokens available to you are determined by our third party integrations and what methods and tokens are available to you may vary depending on your region and support by our integrations.",
+      "description": "The payment methods and tokens available to you are determined by our third-party integrations and may vary depending on your region and support by our integrations.",
       "search_by_country": "Search by country",
       "search_by_state": "Search by state",
       "no_region_results": "No region matches",
