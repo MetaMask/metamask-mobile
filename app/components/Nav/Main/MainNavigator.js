@@ -52,8 +52,16 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
+import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
+import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
+import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
+import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
+import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
+import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
+import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -123,8 +131,12 @@ const BrowserFlow = () => (
 );
 
 const TransactionsHome = () => (
-  <Stack.Navigator>
+  <Stack.Navigator mode="modal">
     <Stack.Screen name="TransactionsView" component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -395,6 +407,44 @@ const FiatOnRamp = () => (
   </Stack.Navigator>
 );
 
+const FiatOnRampAggregator = () => (
+  <FiatOnRampSDKProvider>
+    <Stack.Navigator
+      initialRouteName={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
+    >
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
+        component={GetStarted}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD}
+        component={PaymentMethod}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
+        component={AmountToBuy}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES}
+        component={GetQuotes}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT}
+        component={CheckoutWebView}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
+        component={Region}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
+        component={Region}
+        options={{ animationEnabled: false }}
+      />
+    </Stack.Navigator>
+  </FiatOnRampSDKProvider>
+);
+
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -500,6 +550,10 @@ const MainNavigator = () => (
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
+      component={FiatOnRampAggregator}
+    />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"
