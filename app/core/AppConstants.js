@@ -28,6 +28,7 @@ export default {
     SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
   HOMEPAGE_URL: 'https://home.metamask.io/',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
