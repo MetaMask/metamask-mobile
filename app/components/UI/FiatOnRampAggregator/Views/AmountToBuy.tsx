@@ -33,7 +33,6 @@ import PaymentMethodModal from '../components/PaymentMethodModal';
 import PaymentIcon from '../components/PaymentIcon';
 import FiatSelectModal from '../components/modals/FiatSelectModal';
 import RegionModal from '../components/RegionModal';
-import { NATIVE_ADDRESS } from '../constants';
 import { getPaymentMethodIcon } from '../utils';
 
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -43,7 +42,7 @@ import Device from '../../../../util/device';
 import SkeletonText from '../components/SkeletonText';
 import BaseListItem from '../../../Base/ListItem';
 import Box from '../components/Box';
-import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
+import { NATIVE_ADDRESS, NETWORKS_NAMES } from '../../../../constants/on-ramp';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { Colors } from '../../../../util/theme/models';
