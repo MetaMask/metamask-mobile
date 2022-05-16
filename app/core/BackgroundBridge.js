@@ -164,6 +164,14 @@ export class BackgroundBridge extends EventEmitter {
     Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
 
     this.on('update', this.onStateUpdate);
+
+    if (this.isRemoteConn) {
+      const memState = this.getState();
+      const publicState = this.getProviderNetworkState(memState);
+      const selectedAddress = memState.selectedAddress;
+      this.notifyChainChanged(publicState);
+      this.notifySelectedAddressChanged(selectedAddress);
+    }
   }
 
   setProviderAndBlockTracker({ provider, blockTracker }) {
@@ -230,6 +238,20 @@ export class BackgroundBridge extends EventEmitter {
     return result;
   }
 
+  notifyChainChanged(params) {
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.chainChanged,
+      params,
+    });
+  }
+
+  notifySelectedAddressChanged(selectedAddress) {
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.accountsChanged,
+      params: [selectedAddress],
+    });
+  }
+
   onStateUpdate(memState) {
     const provider = Engine.context.NetworkController.provider;
     const blockTracker = provider._blockTracker;
@@ -247,20 +269,14 @@ export class BackgroundBridge extends EventEmitter {
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.chainChanged,
-        params: publicState,
-      });
+      this.notifyChainChanged(publicState);
     }
 
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
       if (this.addressSent !== memState.selectedAddress) {
         this.addressSent = memState.selectedAddress;
-        this.sendNotification({
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: [memState.selectedAddress],
-        });
+        this.notifySelectedAddressChanged(memState.selectedAddress);
       }
     }
   }
