@@ -165,3 +165,5 @@ export const MOONPAY_NETWORK_PARAMETERS = {
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: ['avax_cchain', 'avax_cchain'],
   [NETWORKS_CHAIN_ID.CELO]: ['celo', 'celo,cusd'],
 };
+
+export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
