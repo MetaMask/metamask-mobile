@@ -10,21 +10,21 @@ import {
  * @property {string} id - Original id given by Provider. Orders are identified by (provider, id)
  * @property {FIAT_ORDER_PROVIDERS}  provider Fiat Provider
  * @property {number} createdAt Fiat amount
- * @property {string} amount Fiat amount
- * @property {string?} fee Fiat fee
- * @property {string?} cryptoAmount Crypto currency amount
- * @property {string?} cryptoFee Crypto currency fee
+ * @property {string|number} amount Fiat amount
+ * @property {string|number} [fee] Fiat fee
+ * @property {string|number} [cryptoAmount] Crypto currency amount
+ * @property {string|number} [cryptoFee] Crypto currency fee
  * @property {string} currency "USD"
  * @property {string} cryptocurrency "ETH"
- * @property {string|undefined} currencySymbol "$"
- * @property {string?} amountInUSD Fiat amount in USD
+ * @property {string} [currencySymbol] "$"
+ * @property {string} [amountInUSD] Fiat amount in USD
  * @property {FIAT_ORDER_STATES} state Order state
  * @property {string} account <account wallet address>
  * @property {string} network <network>
  * @property {?string} txHash <transaction hash | null>
- * @property {object} data original provider data
- * @property {object} data.order : Wyre order response
- * @property {object} data.transfer : Wyre transfer response
+ * @property {object|import('@consensys/on-ramp-sdk').Order} data original provider data
+ * @property {object} [data.order] : Wyre order response
+ * @property {object} [data.transfer] : Wyre transfer response
  */
 
 /** Action Creators */

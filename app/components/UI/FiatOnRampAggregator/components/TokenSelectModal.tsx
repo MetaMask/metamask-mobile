@@ -20,10 +20,10 @@ import BaseText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import TokenIcon from '../../Swaps/components/TokenIcon';
-import { CHAIN_ID_NETWORKS } from '../constants';
 import { useTheme } from '../../../../util/theme';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import { Colors } from '../../../../util/theme/models';
+import { NETWORKS_NAMES } from '../../../../constants/on-ramp';
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = BaseText as any;
@@ -169,9 +169,9 @@ function TokenSelectModal({
               <ListItem.Amount>
                 <View style={styles.networkLabel}>
                   <Text bold upper style={styles.networkLabelText}>
-                    {CHAIN_ID_NETWORKS[
-                      item.network.chainId as keyof typeof CHAIN_ID_NETWORKS
-                    ] || item.network.chainId}
+                    {NETWORKS_NAMES[
+                      item.network?.chainId as keyof typeof NETWORKS_NAMES
+                    ] || item.network?.chainId}
                   </Text>
                 </View>
               </ListItem.Amount>

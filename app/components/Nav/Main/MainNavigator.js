@@ -61,7 +61,7 @@ import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
-import TransactionDetails from '../../UI/FiatOnRampAggregator/Views/TransactionDetails';
+import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -131,8 +131,12 @@ const BrowserFlow = () => (
 );
 
 const TransactionsHome = () => (
-  <Stack.Navigator>
+  <Stack.Navigator mode="modal">
     <Stack.Screen name="TransactionsView" component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -436,10 +440,6 @@ const FiatOnRampAggregator = () => (
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
         options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.FIAT_ON_RAMP_AGGREGATOR.TRANSACTION_DETAILS}
-        component={TransactionDetails}
       />
     </Stack.Navigator>
   </FiatOnRampSDKProvider>

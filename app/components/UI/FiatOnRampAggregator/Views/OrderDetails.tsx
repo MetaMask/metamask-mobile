@@ -2,9 +2,8 @@ import React, { useCallback, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../../StyledButton';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import TransactionDetail from '../components/TransactionDetails';
-import PropTypes from 'prop-types';
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
 import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
@@ -20,7 +19,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const TransactionDetails = ({ route }: { route: any }) => {
+const OrderDetails = () => {
   const provider = useSelector(
     (state: any) => state.engine.backgroundState.NetworkController.provider,
   );
@@ -28,9 +27,9 @@ const TransactionDetails = ({ route }: { route: any }) => {
     (state: any) =>
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
-
-  const order = useSelector(makeOrderIdSelector(route.params.orderId));
-
+  const routes = useRoute();
+  // @ts-expect-error expect params error
+  const order = useSelector(makeOrderIdSelector(routes?.params?.orderId));
   const { colors } = useTheme();
   const navigation = useNavigation();
 
@@ -48,9 +47,13 @@ const TransactionDetails = ({ route }: { route: any }) => {
   }, [colors, navigation]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
-    // @ts-expect-error navigation prop mismatch
-    navigation.replace(Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD);
+    navigation.goBack();
+    navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
   }, [navigation]);
+
+  if (!order) {
+    return <ScreenLayout />;
+  }
 
   return (
     <ScreenLayout>
@@ -83,11 +86,4 @@ const TransactionDetails = ({ route }: { route: any }) => {
   );
 };
 
-TransactionDetails.propTypes = {
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: PropTypes.object,
-};
-
-export default TransactionDetails;
+export default OrderDetails;

@@ -6,26 +6,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import ScreenLayout from '../components/ScreenLayout';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
-import LoadingAnimation from '../components/LoadingAnimation';
-import Quote from '../components/Quote';
-import { strings } from '../../../../../locales/i18n';
-import BaseText from '../../../Base/Text';
-import useInterval from '../../../hooks/useInterval';
-import ScreenView from '../../FiatOrders/components/ScreenView';
-import StyledButton from '../../StyledButton';
-import Device from '../../../../util/device';
-import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useTheme } from '../../../../util/theme';
-import { callbackBaseUrl } from '../orderProcessor/aggregator';
-import InfoAlert from '../components/InfoAlert';
-import SkeletonText from '../components/SkeletonText';
-import BaseListItem from '../../../Base/ListItem';
-import Box from '../components/Box';
-
 import Animated, {
   Extrapolate,
   interpolate,
@@ -33,10 +14,30 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { QuoteResponse, Provider } from '@consensys/on-ramp-sdk';
+import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
+import ScreenLayout from '../components/ScreenLayout';
+import ScreenView from '../../FiatOrders/components/ScreenView';
+import LoadingAnimation from '../components/LoadingAnimation';
+import Quote from '../components/Quote';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import InfoAlert from '../components/InfoAlert';
+import SkeletonText from '../components/SkeletonText';
+import Box from '../components/Box';
+import BaseText from '../../../Base/Text';
+import StyledButton from '../../StyledButton';
+import BaseListItem from '../../../Base/ListItem';
+import { getFiatOnRampAggNavbar } from '../../Navbar';
+
+import { callbackBaseUrl } from '../orderProcessor/aggregator';
+import useInterval from '../../../hooks/useInterval';
+import { strings } from '../../../../../locales/i18n';
+import Device from '../../../../util/device';
+import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import { QuoteResponse, Provider } from '@consensys/on-ramp-sdk';
+import { PROVIDER_LINKS } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -167,12 +168,6 @@ const SkeletonQuote = ({
   );
 };
 
-const LINK = {
-  HOMEPAGE: 'Homepage',
-  PRIVACY_POLICY: 'Privacy Policy',
-  SUPPORT: 'Support',
-};
-
 const sortByAmountOut = (a: QuoteResponse, b: QuoteResponse) => {
   if (a.amountOut && b.amountOut) {
     return b.amountOut - a.amountOut;
@@ -232,8 +227,8 @@ const GetQuotes = () => {
     'getQuotes',
     selectedRegion?.id,
     selectedPaymentMethodId,
-    selectedAsset?.id || '',
-    selectedFiatCurrencyId || '',
+    selectedAsset?.id,
+    selectedFiatCurrencyId,
     // @ts-expect-error useRoute params
     params?.amount,
     selectedAddress,
@@ -474,17 +469,17 @@ const GetQuotes = () => {
         body={selectedProviderInfo?.description}
         providerWebsite={
           selectedProviderInfo?.links?.find(
-            (link) => link.name === LINK.HOMEPAGE,
+            (link) => link.name === PROVIDER_LINKS.HOMEPAGE,
           )?.url
         }
         providerPrivacyPolicy={
           selectedProviderInfo?.links?.find(
-            (link) => link.name === LINK.PRIVACY_POLICY,
+            (link) => link.name === PROVIDER_LINKS.PRIVACY_POLICY,
           )?.url
         }
         providerSupport={
           selectedProviderInfo?.links?.find(
-            (link) => link.name === LINK.SUPPORT,
+            (link) => link.name === PROVIDER_LINKS.SUPPORT,
           )?.url
         }
       />

@@ -1584,6 +1584,7 @@
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
     "webview_received_error": "WebView received error status code: {{code}}",
+    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}}",
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",
@@ -1607,6 +1608,7 @@
       "crypto": "crypto",
       "failed": "Transaction Failed",
       "failed_description": "Something went wrong, and {{provider}} was unable to complete your transaction. Please try again or with another provider.",
+      "the_provider": "the provider",
       "processing": "Processing Transaction",
       "processing_card_description": "Credit/Debit purchases typically take a few minutes",
       "processing_bank_description": "Bank transfers typically take a few business days",

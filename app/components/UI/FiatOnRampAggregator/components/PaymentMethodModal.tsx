@@ -46,7 +46,7 @@ interface Props {
   title?: string;
   onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
-  selectedPaymentMethod: Payment['id'];
+  selectedPaymentMethodId: Payment['id'] | null;
 }
 
 function PaymentMethodModal({
@@ -55,20 +55,20 @@ function PaymentMethodModal({
   title,
   onItemPress,
   paymentMethods,
-  selectedPaymentMethod,
+  selectedPaymentMethodId,
 }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const handleOnPressItemCallback = useCallback(
     (paymentMethodId) => {
-      if (selectedPaymentMethod !== paymentMethodId) {
+      if (selectedPaymentMethodId !== paymentMethodId) {
         onItemPress(paymentMethodId);
       } else {
         onItemPress();
       }
     },
-    [onItemPress, selectedPaymentMethod],
+    [onItemPress, selectedPaymentMethodId],
   );
 
   return (
@@ -96,7 +96,7 @@ function PaymentMethodModal({
                   {paymentMethods?.map(({ id, name, delay, amountTier }) => (
                     <View key={id} style={styles.row}>
                       <PaymentOption
-                        highlighted={id === selectedPaymentMethod}
+                        highlighted={id === selectedPaymentMethodId}
                         title={name}
                         time={delay}
                         id={id}
@@ -108,11 +108,12 @@ function PaymentMethodModal({
                   ))}
 
                   <Text small grey centered>
-                    {selectedPaymentMethod === '/payments/apple-pay' &&
+                    {selectedPaymentMethodId === '/payments/apple-pay' &&
                       strings(
                         'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                       )}
-                    {selectedPaymentMethod === '/payments/debit-credit-card' &&
+                    {selectedPaymentMethodId ===
+                      '/payments/debit-credit-card' &&
                       strings(
                         'fiat_on_ramp_aggregator.payment_method.card_fees',
                       )}
