@@ -202,8 +202,6 @@ class DeeplinkManager {
   }
 
   parse(url, { browserCallBack, origin, onHandled }) {
-    // eslint-disable-next-line no-alert
-    alert(url);
     const urlObj = new URL(
       url
         .replace(
@@ -312,7 +310,14 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith('metamask://wc')) {
+        if (url.startsWith('metamask://connect')) {
+          SDKConnect.connectToChannel({
+            id: params.channelId,
+            commLayer: params.comm,
+            origin,
+            otherPublicKey: params.pubkey,
+          });
+        } else if (url.startsWith('metamask://wc')) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
 
