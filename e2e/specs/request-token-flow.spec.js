@@ -21,100 +21,100 @@ const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const PASSWORD = '12345678';
 
 describe('Request Token Flow', () => {
-	beforeEach(() => {
-		jest.setTimeout(150000);
-	});
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
 
-	it('should create new wallet', async () => {
-		await OnboardingCarouselView.isVisible();
-		await OnboardingCarouselView.tapOnGetStartedButton();
+  it('should create new wallet', async () => {
+    await OnboardingCarouselView.isVisible();
+    await OnboardingCarouselView.tapOnGetStartedButton();
 
-		await OnboardingView.isVisible();
-		await OnboardingView.tapCreateWallet();
+    await OnboardingView.isVisible();
+    await OnboardingView.tapCreateWallet();
 
-		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+    await MetaMetricsOptIn.isVisible();
+    await MetaMetricsOptIn.tapAgreeButton();
 
-		await CreatePasswordView.isVisible();
-		await CreatePasswordView.enterPassword(PASSWORD);
-		await CreatePasswordView.reEnterPassword(PASSWORD);
-		await CreatePasswordView.tapIUnderstandCheckBox();
-		await CreatePasswordView.tapCreatePasswordButton();
-	});
+    await CreatePasswordView.isVisible();
+    await CreatePasswordView.enterPassword(PASSWORD);
+    await CreatePasswordView.reEnterPassword(PASSWORD);
+    await CreatePasswordView.tapIUnderstandCheckBox();
+    await CreatePasswordView.tapCreatePasswordButton();
+  });
 
-	it('Should skip backup check', async () => {
-		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
-		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+  it('Should skip backup check', async () => {
+    // Check that we are on the Secure your wallet screen
+    await ProtectYourWalletView.isVisible();
+    await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
-		await WalletView.isVisible();
-	});
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await WalletView.isVisible();
+  });
 
-	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness on bitrise.
-		await TestHelpers.delay(1000);
-		try {
-			await OnboardingWizardModal.isVisible();
-			await OnboardingWizardModal.tapNoThanksButton();
-			await OnboardingWizardModal.isNotVisible();
-		} catch {
-			//
-		}
-	});
+  it('should dismiss the onboarding wizard', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(1000);
+    try {
+      await OnboardingWizardModal.isVisible();
+      await OnboardingWizardModal.tapNoThanksButton();
+      await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
 
-	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-		await TestHelpers.delay(1000);
+  it('should dismiss the protect your wallet modal', async () => {
+    await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
+    await TestHelpers.delay(1000);
 
-		await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
 
-		await WalletView.isVisible();
-	});
+    await WalletView.isVisible();
+  });
 
-	it('should go to send view', async () => {
-		await WalletView.tapDrawerButton();
+  it('should go to send view', async () => {
+    await WalletView.tapDrawerButton();
 
-		await DrawerView.isVisible();
-		await DrawerView.tapOnAddFundsButton();
-		// Check that we see  the receive modal
-		await RequestPaymentModal.isVisible();
-	});
+    await DrawerView.isVisible();
+    await DrawerView.tapOnAddFundsButton();
+    // Check that we see  the receive modal
+    await RequestPaymentModal.isVisible();
+  });
 
-	it('should go to the request view', async () => {
-		await RequestPaymentModal.tapRequestPaymentButton();
-		await RequestPaymentView.tapETH();
+  it('should go to the request view', async () => {
+    await RequestPaymentModal.tapRequestPaymentButton();
+    await RequestPaymentView.tapETH();
 
-		await RequestPaymentView.isRequestTitleVisible();
+    await RequestPaymentView.isRequestTitleVisible();
 
-		await RequestPaymentView.tapBackButton();
+    await RequestPaymentView.tapBackButton();
 
-		await RequestPaymentView.isVisible();
-	});
+    await RequestPaymentView.isVisible();
+  });
 
-	it('should request DAI', async () => {
-		// Search by SAI contract address
-		await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-		await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
+  it('should request DAI', async () => {
+    // Search by SAI contract address
+    await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
+    await RequestPaymentView.isTokenVisibleInSearchResults('SAI');
 
-		await RequestPaymentView.searchForToken('DAI');
-		await RequestPaymentView.tapOnToken('DAI');
-		await RequestPaymentView.typeInTokenAmount(5.5);
+    await RequestPaymentView.searchForToken('DAI');
+    await RequestPaymentView.tapOnToken('DAI');
+    await RequestPaymentView.typeInTokenAmount(5.5);
 
-		await SendLinkView.isVisible();
-		// Tap on QR Code Button
-		await SendLinkView.tapQRCodeButton();
-		// Check that the QR code is visible
-		await SendLinkView.isQRModalVisible();
-		// Close QR Code
-		await SendLinkView.tapQRCodeCloseButton();
-		// Close view
-		await SendLinkView.tapCloseSendLinkButton();
-		// Ensure protect your wallet modal is visible
-		await ProtectYourWalletModal.isVisible();
-	});
+    await SendLinkView.isVisible();
+    // Tap on QR Code Button
+    await SendLinkView.tapQRCodeButton();
+    // Check that the QR code is visible
+    await SendLinkView.isQRModalVisible();
+    // Close QR Code
+    await SendLinkView.tapQRCodeCloseButton();
+    // Close view
+    await SendLinkView.tapCloseSendLinkButton();
+    // Ensure protect your wallet modal is visible
+    await ProtectYourWalletModal.isVisible();
+  });
 });

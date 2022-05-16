@@ -6,24 +6,24 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	settings: { showHexData: true },
-	engine: {
-		backgroundState: {
-			PreferencesController: {
-				ipfsGateway: 'https://ipfs.io/ipfs/',
-			},
-		},
-	},
+  settings: { showHexData: true },
+  engine: {
+    backgroundState: {
+      PreferencesController: {
+        ipfsGateway: 'https://ipfs.io/ipfs/',
+      },
+    },
+  },
 };
 const store = mockStore(initialState);
 
 describe('AdvancedSettings', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<AdvancedSettings />
-			</Provider>
-		);
-		expect(wrapper.dive()).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <AdvancedSettings />
+      </Provider>,
+    );
+    expect(wrapper.dive()).toMatchSnapshot();
+  });
 });

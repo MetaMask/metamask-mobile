@@ -8,59 +8,59 @@ import { formatAddress } from '../../../util/address';
  * or its ENS name when supports reverse lookup
  */
 class EthereumAddress extends PureComponent {
-	static propTypes = {
-		/**
-		 * Styles to be applied to the text component
-		 */
-		style: PropTypes.any,
-		/**
-		 * Address to be rendered and resolved
-		 */
-		address: PropTypes.string,
-		/**
-		 * Type of formatting for the address
-		 * can be "short" or "full"
-		 */
-		type: PropTypes.string,
-	};
+  static propTypes = {
+    /**
+     * Styles to be applied to the text component
+     */
+    style: PropTypes.any,
+    /**
+     * Address to be rendered and resolved
+     */
+    address: PropTypes.string,
+    /**
+     * Type of formatting for the address
+     * can be "short" or "full"
+     */
+    type: PropTypes.string,
+  };
 
-	ens = null;
-	constructor(props) {
-		super(props);
-		const { address, type } = props;
+  ens = null;
+  constructor(props) {
+    super(props);
+    const { address, type } = props;
 
-		this.state = {
-			ensName: null,
-			address: formatAddress(address, type),
-		};
-	}
+    this.state = {
+      ensName: null,
+      address: formatAddress(address, type),
+    };
+  }
 
-	componentDidUpdate(prevProps) {
-		if (this.props.address && prevProps.address !== this.props.address) {
-			requestAnimationFrame(() => {
-				this.formatAndResolveIfNeeded();
-			});
-		}
-	}
+  componentDidUpdate(prevProps) {
+    if (this.props.address && prevProps.address !== this.props.address) {
+      requestAnimationFrame(() => {
+        this.formatAndResolveIfNeeded();
+      });
+    }
+  }
 
-	formatAndResolveIfNeeded() {
-		const { address, type } = this.props;
-		const formattedAddress = formatAddress(address, type);
-		this.setState({ address: formattedAddress, ensName: null });
-	}
+  formatAndResolveIfNeeded() {
+    const { address, type } = this.props;
+    const formattedAddress = formatAddress(address, type);
+    this.setState({ address: formattedAddress, ensName: null });
+  }
 
-	render() {
-		return (
-			<Text style={this.props.style} numberOfLines={1}>
-				{this.state.address}
-			</Text>
-		);
-	}
+  render() {
+    return (
+      <Text style={this.props.style} numberOfLines={1}>
+        {this.state.address}
+      </Text>
+    );
+  }
 }
 
 EthereumAddress.defaultProps = {
-	style: null,
-	type: 'full',
+  style: null,
+  type: 'full',
 };
 
 export default EthereumAddress;
