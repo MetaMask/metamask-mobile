@@ -650,7 +650,7 @@ const AmountToBuy = () => {
     );
   }
 
-  if (!isFetching && !tokens) {
+  if (!isFetching && (!tokens || tokens.length === 0)) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
