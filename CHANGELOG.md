@@ -1,8 +1,9 @@
 # Changelog
 
 ## Current Main Branch
-
 ## 5.2.0 - May 16, 2022
+- [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
+- [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
 - [#3696](https://github.com/MetaMask/metamask-mobile/pull/3696): [FEATURE] Fiat on Ramp Aggregator
 - [#4303](https://github.com/MetaMask/metamask-mobile/pull/4303): [IMPROVEMENT] Add support for env variable for MM_HOMEPAGE
 - [#4331](https://github.com/MetaMask/metamask-mobile/pull/4331): [IMPROVEMENT] Fix addressbook and browser test
@@ -12,16 +13,10 @@
 - [#4316](https://github.com/MetaMask/metamask-mobile/pull/4316): [IMPROVEMENT] GIVEN, WHEN, THEN - Template Update
 - [#4167](https://github.com/MetaMask/metamask-mobile/pull/4167): [IMPROVEMENT] Adds support for 'dapp/' urls support on 'metamask://' and fixes DL opening to Apple Store
 - [#4175](https://github.com/MetaMask/metamask-mobile/pull/4175): [Fix] Favourites not showing when home button is pressed in browser tab menu
-- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX]Fixes crashes on some Android devices when using the app in split screen
-- [#4281](https://github.com/MetaMask/metamask-mobile/pull/4281): [IMPROVEMENT] ps link component
-- [#4265](https://github.com/MetaMask/metamask-mobile/pull/4265): [IMPROVEMENT] PS text component
-- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FIX] Download attachments in browser on iOS
 - [#4278](https://github.com/MetaMask/metamask-mobile/pull/4278): [IMPROVEMENT] Convert back to spaces
 - [#4249](https://github.com/MetaMask/metamask-mobile/pull/4249): [IMPROVEMENT] patch cross-fetch instead of skipping
 - [#4174](https://github.com/MetaMask/metamask-mobile/pull/4174): [IMPROVEMENT] Address now is in the checksum standard format
 - [#4182](https://github.com/MetaMask/metamask-mobile/pull/4182): [IMPROVEMENT] Standardize prettier configuration
-- [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [FIX] Update react-native-webview+11.13.0.patch
-- [#4181](https://github.com/MetaMask/metamask-mobile/pull/4181): [FIX] Fix iOS storage
 - [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): [FIX] excluded audit because no available patch
 
 ## 5.1.0 - May 5, 2022
