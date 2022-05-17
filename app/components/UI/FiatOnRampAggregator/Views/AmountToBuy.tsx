@@ -99,6 +99,7 @@ const AmountToBuy = () => {
   const [amountNumber, setAmountNumber] = useState(0);
   const [tokens, setTokens] = useState<CryptoCurrency[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isFetching, setIsFetching] = useState(true);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const [
@@ -495,12 +496,26 @@ const AmountToBuy = () => {
    * * Derived values
    */
 
-  const isFetching =
-    isFetchingSdkCryptoCurrencies ||
-    isFetchingPaymentMethods ||
-    isFetchingFiatCurrencies ||
-    isFetchingDefaultFiatCurrency ||
-    isFetchingCountries;
+  useEffect(() => {
+    const isFetchingData =
+      isFetchingSdkCryptoCurrencies ||
+      isFetchingPaymentMethods ||
+      isFetchingFiatCurrencies ||
+      isFetchingDefaultFiatCurrency ||
+      isFetchingCountries;
+
+    if (isFetchingData) {
+      setIsFetching(true);
+    } else {
+      setIsFetching(false);
+    }
+  }, [
+    isFetchingCountries,
+    isFetchingDefaultFiatCurrency,
+    isFetchingFiatCurrencies,
+    isFetchingPaymentMethods,
+    isFetchingSdkCryptoCurrencies,
+  ]);
 
   /**
    * Get the fiat currency object by id
@@ -659,11 +674,23 @@ const AmountToBuy = () => {
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
                 network: NETWORKS_NAMES[selectedChainId],
+                region: selectedRegion?.name,
               },
             )}
-            ctaOnPress={() => navigation.goBack()}
+            ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
+            ctaOnPress={() => {
+              toggleRegionModal();
+            }}
           />
         </ScreenLayout.Body>
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings('fiat_on_ramp_aggregator.region.description')}
+          data={countries}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
+        />
       </ScreenLayout>
     );
   }
