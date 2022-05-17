@@ -14,6 +14,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={true}
@@ -22,6 +23,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     noMargin={true}
     primary={true}
     red={false}
@@ -44,6 +46,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     New network added
   </Text>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -52,6 +55,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     noMargin={true}
     primary={true}
     red={false}
@@ -72,6 +76,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
     upper={false}
   >
     <Text
+      bigger={false}
       black={false}
       blue={false}
       bold={false}
@@ -80,6 +85,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       green={false}
       link={false}
       modal={false}
+      muted={false}
       primary={false}
       red={false}
       reset={false}
@@ -90,6 +96,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       upper={false}
     >
       <Text
+        bigger={false}
         black={false}
         blue={false}
         bold={true}
@@ -98,6 +105,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         green={false}
         link={false}
         modal={false}
+        muted={false}
         noMargin={true}
         primary={true}
         red={false}
@@ -111,6 +119,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         ""
       </Text>
       <Text
+        bigger={false}
         black={false}
         blue={false}
         bold={false}
@@ -119,6 +128,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
         green={false}
         link={false}
         modal={false}
+        muted={false}
         noMargin={true}
         primary={false}
         red={false}

@@ -140,18 +140,16 @@ describe('Browser Tests', () => {
     await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
   });
 
-  it('should go back home', async () => {
+  it('tap on home button', async () => {
     // Tap on home on bottom navbar
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(1000);
     await Browser.isVisible();
   });
-  it('should navigate to favorites', async () => {
-    if (device.getPlatform() === 'ios') {
-      await Browser.tapOptionsButton();
-      await Browser.tapOpenTabButton();
 
+  it('should tap on Uniswap in favorites', async () => {
+    if (device.getPlatform() === 'ios') {
       // Tapping on favourite tap
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
       await TestHelpers.delay(1500);
