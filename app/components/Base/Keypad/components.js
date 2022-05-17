@@ -1,6 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ViewPropTypes,
+} from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
 import Text from '../Text';
@@ -37,45 +42,71 @@ const createStyles = (colors) =>
     },
   });
 
-const KeypadContainer = (props) => {
+const KeypadContainer = ({ style, ...props }) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  return <View style={styles.keypad} {...props} />;
+  return <View style={[styles.keypad, style]} {...props} />;
 };
+
+KeypadContainer.propTypes = {
+  /**
+   * Custom style for digit buttons
+   */
+  style: ViewPropTypes.style,
+};
+
 const KeypadRow = (props) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
   return <View style={styles.keypadRow} {...props} />;
 };
-const KeypadButton = ({ children, ...props }) => {
+const KeypadButton = ({ style, textStyle, children, ...props }) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity style={styles.keypadButton} {...props}>
-      <Text style={styles.keypadButtonText}>{children}</Text>
+    <TouchableOpacity style={[styles.keypadButton, style]} {...props}>
+      <Text style={[styles.keypadButtonText, textStyle]}>{children}</Text>
     </TouchableOpacity>
   );
 };
 
 KeypadButton.propTypes = {
   children: PropTypes.node,
+  /**
+   * Custom style for digit buttons
+   */
+  style: ViewPropTypes.style,
+  /**
+   * Custom style for digit text
+   */
+  textStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
-const KeypadDeleteButton = (props) => {
+const KeypadDeleteButton = ({ style, icon, ...props }) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity style={styles.keypadButton} {...props}>
-      <IonicIcon
-        style={[styles.keypadButtonText, styles.deleteIcon]}
-        name="md-arrow-back"
-      />
+    <TouchableOpacity style={[styles.keypadButton, style]} {...props}>
+      {icon || (
+        <IonicIcon
+          style={[styles.keypadButtonText, styles.deleteIcon]}
+          name="md-arrow-back"
+        />
+      )}
     </TouchableOpacity>
   );
+};
+
+KeypadDeleteButton.propTypes = {
+  /**
+   * Custom style for digit buttons
+   */
+  style: ViewPropTypes.style,
+  icon: PropTypes.node,
 };
 
 const Keypad = KeypadContainer;

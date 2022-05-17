@@ -42,11 +42,11 @@ describe('renderSlightlyLongAddress', () => {
 describe('formatAddress', () => {
   const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
   it('should return address formatted for short type', () => {
-    const expectedValue = '0xc495...d272';
+    const expectedValue = '0xC495...D272';
     expect(formatAddress(mockAddress, 'short')).toBe(expectedValue);
   });
   it('should return address formatted for mid type', () => {
-    const expectedValue = '0xc4955c0d639d99699bfd7e...d272';
+    const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
     expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
   });
 });

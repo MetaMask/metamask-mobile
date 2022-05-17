@@ -616,11 +616,11 @@
     ],
     "private_key_warning_explanation": "请勿泄露此密钥。任何得到您的私钥的人都可以完全控制您的账户，包括转走所有资金。",
     "reveal_credential_modal": [
-      "Your {{credentialName}} provides ",
-      "full access to your account and funds.\n\nDo not share this with anyone.\n",
-      "full access to your wallet and funds.\n\nDo not share this with anyone.\n",
-      "MetaMask Support will not request this, ",
-      "but phishers might."
+      "您的 {{credentialName}} 提供 ",
+      "对您的账户和资金的完全访问权限。\n\n请勿与任何人分享。\n",
+      "对您的钱包和资金的完全访问权限。\n\n请勿与任何人分享。\n",
+      "MetaMask支持团队不会要求此项信息，",
+      "但网络钓鱼者可能会。"
     ],
     "seed_phrase": "您的助记词",
     "private_key": "您的私钥",
@@ -637,11 +637,11 @@
     "seed_warning": "这是您的钱包的 12 字助记词。此助记词可用来控制您当前和未来的所有账户，还能够转走其中的所有资金。请妥善保管此助记词，不要告诉任何人。",
     "text": "文本",
     "qr_code": "二维码",
-    "hold_to_reveal_credential": "Hold to reveal {{credentialName}}",
-    "keep_credential_safe": "Keep your {{credentialName}} safe",
-    "srp_abbreviation_text": "SRP",
-    "srp_text": "Secret Recovery Phrase",
-    "private_key_text": "Private Key"
+    "hold_to_reveal_credential": "按住以显示 {{credentialName}}",
+    "keep_credential_safe": "保护您的 {{credentialName}} 安全",
+    "srp_abbreviation_text": "助记词",
+    "srp_text": "助记词",
+    "private_key_text": "私钥"
   },
   "password_reset": {
     "password_title": "密码",
@@ -1458,7 +1458,7 @@
     "no_countries_result": "没有支持的国家／地区和“{{searchString}}”匹配",
     "wyre_loading_rates": " ",
     "fast_no_registration": "快速 - 无需注册",
-    "debit_credit_card_required": "Debit or Credit cards. Apple Cash is not supported.",
+    "debit_credit_card_required": "借记卡或信用卡。不支持Apple Cash。",
     "select_card_country": "选择您的卡所注册的国家／地区（而不是您所在地点）。",
     "search_country": "搜索一个国家／地区",
     "wyre_countries": "超过55个国家/地区，费用和限制各不相同",

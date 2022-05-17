@@ -1417,3 +1417,67 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     headerStyle: innerStyles.headerStyle,
   };
 }
+
+export function getFiatOnRampAggNavbar(
+  navigation,
+  { title, showBack = true } = {},
+  themeColors,
+) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerTitleStyle: {
+      fontSize: 20,
+      ...fontStyles.normal,
+      color: themeColors.text.default,
+      ...(!showBack && { textAlign: 'center' }),
+    },
+  });
+  const headerTitle = title ?? 'No title';
+
+  const leftActionText = strings('navigation.back');
+
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle,
+    headerLeft: () => {
+      if (!showBack) return <View />;
+
+      return Device.isAndroid() ? (
+        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+          <IonicIcon
+            name={'md-arrow-back'}
+            size={24}
+            style={innerStyles.headerIcon}
+          />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+          <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
+        </TouchableOpacity>
+      );
+    },
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+    headerTitleStyle: innerStyles.headerTitleStyle,
+  };
+}

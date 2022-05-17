@@ -2,14 +2,18 @@ import React, { useContext } from 'react';
 import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
 import { Colors, AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import { colors as colorTheme } from '@metamask/design-tokens';
+import { colors as colorTheme, typography } from '@metamask/design-tokens';
 import Device from '../device';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
  * TODO: Convert classes into functional components and remove contextType
  */
-export const mockTheme = { colors: colorTheme.light, themeAppearance: 'light' };
+export const mockTheme = {
+  colors: colorTheme.light,
+  themeAppearance: 'light',
+  typography,
+};
 
 export const ThemeContext = React.createContext<any>(undefined);
 
@@ -45,7 +49,6 @@ export const getAssetFromTheme = (
   return asset;
 };
 
-/* eslint-disable  import/prefer-default-export */
 export const useAppTheme = (): Theme => {
   const osThemeName = useColorScheme();
   const appTheme: AppThemeKey = useSelector(
@@ -102,11 +105,16 @@ export const useAppTheme = (): Theme => {
       setLightStatusBar();
   }
 
-  return { colors, themeAppearance };
+  return { colors, themeAppearance, typography };
 };
 
 export const useAppThemeFromContext = (): Theme => {
   const theme = useContext<Theme>(ThemeContext);
+  return theme;
+};
+
+export const useTheme = (): Theme => {
+  const theme = useAppThemeFromContext() || mockTheme;
   return theme;
 };
 
