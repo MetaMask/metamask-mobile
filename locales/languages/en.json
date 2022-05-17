@@ -583,7 +583,10 @@
     "delete_metrics_description": "This will delete all historical MetaMetrics data associated with your wallet. MetaMask does not collect any personally identifiable information (PII) and can not associate PII to any specific accounts. Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 7 days.",
     "delete_metrics_button": "Delete MetaMetrics data",
     "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
-    "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?"
+    "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
+    "delete_wallet_data_title": "Delete wallet data",
+    "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
+    "delete_wallet_data_button": "Delete wallet data"
   },
   "app_information": {
     "title": "Information",
