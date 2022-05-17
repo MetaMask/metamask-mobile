@@ -8,12 +8,12 @@ import { BaseAvatarSize } from './BaseAvatar.types';
 import { Image } from 'react-native';
 import { toDataUrl } from '../../../util/blockies';
 
-storiesOf('Base / BaseAvatar', module)
+storiesOf('Component Library / BaseAvatar', module)
   .addDecorator((getStory) => getStory())
   .add('Simple', () => {
     const stubAddress = '0x310ff9e227946749ca32aC146215F352183F556b';
     const sizeSelector = select('Size', BaseAvatarSize, BaseAvatarSize.Md);
-    const imageStyle = { width: '100%', height: '100%' };
+    const imageStyle = { flex: 1 };
 
     return (
       <BaseAvatar size={sizeSelector}>
