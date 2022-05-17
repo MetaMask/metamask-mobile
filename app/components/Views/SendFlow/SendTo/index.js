@@ -746,7 +746,7 @@ class SendFlow extends PureComponent {
             inputRef={this.addressToInputRef}
             highlighted={toInputHighlighted}
             addressToReady={toSelectedAddressReady}
-            toSelectedAddress={toSelectedAddress}
+            toSelectedAddress={toEnsAddressResolved || toSelectedAddress}
             toAddressName={toSelectedAddressName}
             onToSelectedAddressChange={this.onToSelectedAddressChange}
             onScan={this.onScan}
@@ -759,7 +759,6 @@ class SendFlow extends PureComponent {
               (!existingContact && confusableCollection) || []
             }
             isFromAddressBook={isFromAddressBook}
-            toEnsAddressResolved={toEnsAddressResolved}
           />
         </View>
 
