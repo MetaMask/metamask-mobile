@@ -431,12 +431,14 @@ const TransactionDetails: React.FC<Props> = ({
           </TouchableOpacity>
         )}
       </Box>
-      {data?.providerLink && (
+      {data?.providerOrderLink && (
         <View style={styles.contactDesc}>
           <Text small>
             {strings('fiat_on_ramp_aggregator.transaction.questions')}{' '}
           </Text>
-          <TouchableOpacity onPress={() => handleLinkPress(data?.providerLink)}>
+          <TouchableOpacity
+            onPress={() => handleLinkPress(data?.providerOrderLink)}
+          >
             {order.provider && data && (
               <Text small underline>
                 {strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
