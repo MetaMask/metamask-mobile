@@ -49,7 +49,6 @@ export const getAssetFromTheme = (
   return asset;
 };
 
-/* eslint-disable  import/prefer-default-export */
 export const useAppTheme = (): Theme => {
   const osThemeName = useColorScheme();
   const appTheme: AppThemeKey = useSelector(
@@ -111,6 +110,11 @@ export const useAppTheme = (): Theme => {
 
 export const useAppThemeFromContext = (): Theme => {
   const theme = useContext<Theme>(ThemeContext);
+  return theme;
+};
+
+export const useTheme = (): Theme => {
+  const theme = useAppThemeFromContext() || mockTheme;
   return theme;
 };
 
