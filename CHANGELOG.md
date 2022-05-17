@@ -1,7 +1,9 @@
 # Changelog
 
 ## Current Main Branch
-## 5.2.0 - May 16, 2022
+
+## 5.2.0 - May 17, 2022
+- [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): Bugfix/fix subtitle mapping
 - [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
 - [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
 - [#3696](https://github.com/MetaMask/metamask-mobile/pull/3696): [FEATURE] Fiat on Ramp Aggregator
