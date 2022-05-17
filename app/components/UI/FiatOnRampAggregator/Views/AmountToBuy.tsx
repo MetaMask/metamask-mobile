@@ -504,11 +504,7 @@ const AmountToBuy = () => {
       isFetchingDefaultFiatCurrency ||
       isFetchingCountries;
 
-    if (isFetchingData) {
-      setIsFetching(true);
-    } else {
-      setIsFetching(false);
-    }
+    setIsFetching(isFetchingData);
   }, [
     isFetchingCountries,
     isFetchingDefaultFiatCurrency,
@@ -678,9 +674,7 @@ const AmountToBuy = () => {
               },
             )}
             ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
-            ctaOnPress={() => {
-              toggleRegionModal();
-            }}
+            ctaOnPress={() => toggleRegionModal()}
           />
         </ScreenLayout.Body>
         <RegionModal
