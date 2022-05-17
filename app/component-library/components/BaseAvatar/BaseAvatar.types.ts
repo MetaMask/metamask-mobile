@@ -1,6 +1,6 @@
 import { ViewProps } from 'react-native';
 
-export enum AvatarSize {
+export enum BaseAvatarSize {
   Xs = '16',
   Sm = '24',
   Md = '32',
@@ -9,7 +9,7 @@ export enum AvatarSize {
 }
 
 export interface BaseAvatarProps extends ViewProps {
-  size: AvatarSize;
+  size: BaseAvatarSize;
 }
 
 export type BaseAvatarStyleSheetVars = Pick<BaseAvatarProps, 'size' | 'style'>;

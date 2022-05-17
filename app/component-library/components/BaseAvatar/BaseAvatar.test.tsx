@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import BaseAvatar, { AvatarSize } from '.';
+import BaseAvatar, { BaseAvatarSize } from '.';
 import { toDataUrl } from '../../../util/blockies';
 import { Image } from 'react-native';
 
@@ -12,7 +12,7 @@ describe('BaseAvatar', () => {
       height: '100%',
     };
     const wrapper = shallow(
-      <BaseAvatar size={AvatarSize.Xl}>
+      <BaseAvatar size={BaseAvatarSize.Xl}>
         <Image source={{ uri: toDataUrl(stubAddress) }} style={blockieStyles} />
       </BaseAvatar>,
     );
