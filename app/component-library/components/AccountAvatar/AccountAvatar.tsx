@@ -5,7 +5,7 @@ import { Image } from 'react-native';
 
 import JazzIcon from 'react-native-jazzicon';
 
-import BaseAvatar from '../../Base/BaseAvatar';
+import BaseAvatar from '../BaseAvatar';
 import { AccountAvatarProps, AccountAvatarType } from './AccountAvatar.types';
 
 const AccountAvatar = ({

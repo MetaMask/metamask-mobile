@@ -3,7 +3,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { text, select } from '@storybook/addon-knobs';
 
-import { AvatarSize } from '../../Base/BaseAvatar';
+import { BaseAvatarSize } from '../BaseAvatar';
 
 import AccountAvatar from './AccountAvatar';
 import { AccountAvatarType } from '.';
@@ -17,8 +17,8 @@ storiesOf(' UI / AccountAvatar', module)
     );
     const sizeSelector = select(
       'size',
-      Object.keys(AvatarSize).map((key) => `${key}`),
-      AvatarSize.Medium,
+      Object.keys(BaseAvatarSize).map((key) => `${key}`),
+      BaseAvatarSize.Md,
     );
     const typeSelector = select(
       'type',
@@ -29,7 +29,7 @@ storiesOf(' UI / AccountAvatar', module)
     return (
       // TODO: remove the type castings
       <AccountAvatar
-        size={sizeSelector as AvatarSize}
+        size={sizeSelector as BaseAvatarSize}
         type={typeSelector as AccountAvatarType}
         accountAddress={accountAddress}
       />
