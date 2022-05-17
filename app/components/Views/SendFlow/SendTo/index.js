@@ -51,6 +51,7 @@ import {
   ADD_ADDRESS_MODAL_CONTAINER_ID,
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
+import Routes from '../../../../constants/navigation/Routes';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -193,6 +194,10 @@ class SendFlow extends PureComponent {
      * Map representing the address book
      */
     addressBook: PropTypes.object,
+    /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
     /**
      * Network id
      */
@@ -661,12 +666,12 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate('FiatOnRampAggregator');
+    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
-        button_copy: 'Buy ETH',
+        button_copy: 'Buy Native Token',
+        chain_id_destination: this.props.chainId,
       });
     });
   };
@@ -885,6 +890,7 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   selectedAsset: state.transaction.selectedAsset,

@@ -22,6 +22,7 @@ import {
 import { getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
+import useAnalytics from '../hooks/useAnalytics';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 // TODO: Convert into typescript and correctly type optionals
@@ -203,6 +204,7 @@ const TransactionDetails: React.FC<Props> = ({
     cryptocurrency,
   } = order;
   const { colors } = useTheme();
+  const trackEvent = useAnalytics();
   const explorer = useBlockExplorer(provider, frequentRpcList);
   const styles = createStyles(colors);
   const date = toDateFormat(createdAt);
@@ -215,6 +217,31 @@ const TransactionDetails: React.FC<Props> = ({
       await Linking.openURL(url);
     }
   }, []);
+
+  const handleExplorerLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Order Details Screen',
+        text: 'Etherscan Transaction',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
+  const handleProviderLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Order Details Screen',
+        text: 'Provider Order Tracking',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
   return (
     <View>
       <View style={styles.stage}>
@@ -418,7 +445,7 @@ const TransactionDetails: React.FC<Props> = ({
         </ListItem.Content>
         {order.state === OrderStatusEnum.Completed && txHash && (
           <TouchableOpacity
-            onPress={() => handleLinkPress(explorer.tx(txHash))}
+            onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
           >
             <Text blue small centered style={styles.link}>
               {strings('fiat_on_ramp_aggregator.transaction.etherscan')}{' '}
@@ -436,7 +463,9 @@ const TransactionDetails: React.FC<Props> = ({
           <Text small>
             {strings('fiat_on_ramp_aggregator.transaction.questions')}{' '}
           </Text>
-          <TouchableOpacity onPress={() => handleLinkPress(data?.providerLink)}>
+          <TouchableOpacity
+            onPress={() => handleProviderLinkPress(data?.providerLink)}
+          >
             {order.provider && data && (
               <Text small underline>
                 {strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}

@@ -11,6 +11,7 @@ import RemoteImage from '../../../Base/RemoteImage';
 import { useAssetFromTheme, useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { Colors } from '../../../../util/theme/models';
+import useAnalytics from '../hooks/useAnalytics';
 
 type Logos = QuoteResponse['provider']['logos'];
 
@@ -70,6 +71,7 @@ const InfoAlert: React.FC<Props> = ({
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const trackEvent = useAnalytics();
 
   const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
@@ -79,6 +81,42 @@ const InfoAlert: React.FC<Props> = ({
       await Linking.openURL(url);
     }
   }, []);
+
+  const handleProviderHomepageLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Homepage',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
+  const handleProviderPrivacyPolicyLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Privacy Policy',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
+  const handleProviderSupportLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Support',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
 
   return (
     <Modal
@@ -121,7 +159,9 @@ const InfoAlert: React.FC<Props> = ({
           <View style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
           {Boolean(providerWebsite) && (
             <TouchableOpacity
-              onPress={() => handleLinkPress(providerWebsite as string)}
+              onPress={() =>
+                handleProviderHomepageLinkPress(providerWebsite as string)
+              }
             >
               <Text small link underline centered>
                 {providerWebsite}
@@ -130,7 +170,11 @@ const InfoAlert: React.FC<Props> = ({
           )}
           {Boolean(providerPrivacyPolicy) && (
             <TouchableOpacity
-              onPress={() => handleLinkPress(providerPrivacyPolicy as string)}
+              onPress={() =>
+                handleProviderPrivacyPolicyLinkPress(
+                  providerPrivacyPolicy as string,
+                )
+              }
             >
               <Text small link underline centered>
                 {strings('app_information.privacy_policy')}
@@ -139,7 +183,9 @@ const InfoAlert: React.FC<Props> = ({
           )}
           {Boolean(providerSupport) && (
             <TouchableOpacity
-              onPress={() => handleLinkPress(providerSupport as string)}
+              onPress={() =>
+                handleProviderSupportLinkPress(providerSupport as string)
+              }
             >
               <Text small link underline centered>
                 {providerName +
