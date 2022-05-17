@@ -98,6 +98,8 @@ const AmountToBuy = () => {
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
   const [tokens, setTokens] = useState<CryptoCurrency[]>([]);
+  const [tokensInitializationFinalized, setTokensInitializationFinalized] =
+    useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -248,6 +250,9 @@ const AmountToBuy = () => {
         (token) => Number(token.network?.chainId) === Number(selectedChainId),
       );
       setTokens(filteredTokens);
+      if (sdkCryptoCurrencies?.length) {
+        setTokensInitializationFinalized(true);
+      }
     }
   }, [
     sdkCryptoCurrencies,
@@ -650,7 +655,13 @@ const AmountToBuy = () => {
     );
   }
 
-  if (!isFetching && (!tokens || tokens.length === 0)) {
+  if (
+    !isFetching &&
+    !sdkError &&
+    !error &&
+    tokensInitializationFinalized &&
+    (!tokens || tokens.length === 0)
+  ) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
