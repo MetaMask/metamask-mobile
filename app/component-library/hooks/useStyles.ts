@@ -1,22 +1,23 @@
+/* eslint-disable import/prefer-default-export */
 import { useMemo } from 'react';
-import { Theme } from '../../util/theme/models';
 import { useAppThemeFromContext } from '../../util/theme';
+import { Theme } from '../../util/theme/models';
 
 /**
- * useStyles, a custom hook that memoizes the stylesheet object with the supplied parameters
- * @param createStyles function which creates a stylesheet
- * @param params parameters that are used inside the stylesheet
- * @returns memoized stylesheet object
+ * Hook that handles both passing style sheet variables into style sheet and memoization.
+ *
+ * @param styleSheet Return value of useStyles hook.
+ * @param vars Variables of styleSheet function.
+ * @returns StyleSheet object.
  */
-const useStyles = <K, T>(
-  createStyles: (vars: T, theme: Theme) => K,
-  styleVars: T,
-) => {
-  const appTheme = useAppThemeFromContext();
-  return useMemo(
-    () => createStyles(styleVars, appTheme),
-    [createStyles, styleVars, appTheme],
+export const useStyles = <R, V>(
+  styleSheet: (params: { theme: Theme; vars: V }) => R,
+  vars: V,
+): R => {
+  const theme = useAppThemeFromContext();
+  const styles = useMemo(
+    () => styleSheet({ theme, vars }),
+    [styleSheet, theme, vars],
   );
+  return styles;
 };
-
-export default useStyles;

@@ -113,13 +113,17 @@ class ReceiveRequest extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-    /* Triggers global alert
-    */
+		/* Triggers global alert
+		*/
     showAlert: PropTypes.func,
     /**
      * Network id
      */
     network: PropTypes.string,
+    /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
     /**
      * Native asset ticker
      */
@@ -176,7 +180,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
         AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
@@ -262,7 +266,7 @@ class ReceiveRequest extends PureComponent {
                   }}
                 >
                   <QRCode
-                    value={`ethereum:${this.props.selectedAddress}@${this.props.network}`}
+                    value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
                     size={Dimensions.get('window').width / 2}
                     color={colors.text.default}
                     backgroundColor={colors.background.default}
@@ -343,6 +347,7 @@ class ReceiveRequest extends PureComponent {
 ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   network: state.engine.backgroundState.NetworkController.network,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   selectedAddress:

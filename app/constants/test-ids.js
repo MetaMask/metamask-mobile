@@ -44,3 +44,5 @@ export const ANDROID_I_UNDERSTAND_BUTTON_ID = 'i-understand-text';
 
 export const IMPORT_PASSWORD_CONTAINER_ID = 'import-from-seed-screen';
 export const SECRET_RECOVERY_PHRASE_INPUT_BOX_ID = 'input-seed-phrase';
+
+export const BROWSER_URL_MODAL_ID = 'browser-url-modal';
