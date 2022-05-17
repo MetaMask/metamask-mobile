@@ -87,6 +87,7 @@ import {
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -439,15 +440,15 @@ class Confirm extends PureComponent {
 
   handleConfusables = () => {
     const { identities = undefined, transactionState } = this.props;
-    const { transactionToName = undefined } = transactionState;
+    const { ensRecipient } = transactionState;
     const accountNames =
       (identities &&
         Object.keys(identities).map((hash) => identities[hash].name)) ||
       [];
-    const isOwnAccount = accountNames.includes(transactionToName);
-    if (transactionToName && !isOwnAccount) {
+    const isOwnAccount = accountNames.includes(ensRecipient);
+    if (ensRecipient && !isOwnAccount) {
       this.setState({
-        confusableCollection: collectConfusables(transactionToName),
+        confusableCollection: collectConfusables(ensRecipient),
       });
     }
   };
@@ -1294,7 +1295,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1308,7 +1309,7 @@ class Confirm extends PureComponent {
   gotoFaucet = () => {
     const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
-      this.props.navigation.navigate('BrowserView', {
+      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
         newTabUrl: mmFaucetUrl,
         timestamp: Date.now(),
       });
