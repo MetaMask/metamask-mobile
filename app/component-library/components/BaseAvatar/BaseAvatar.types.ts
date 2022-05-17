@@ -12,4 +12,4 @@ export interface BaseAvatarProps extends ViewProps {
   size: AvatarSize;
 }
 
-export type BaseAvatarStyleSheetVars = Pick<BaseAvatarProps, 'size'>;
+export type BaseAvatarStyleSheetVars = Pick<BaseAvatarProps, 'size' | 'style'>;
