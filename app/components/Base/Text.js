@@ -40,11 +40,17 @@ const createStyles = (colors) =>
     primary: {
       color: colors.text.default,
     },
+    muted: {
+      color: colors.text.muted,
+    },
     small: {
       fontSize: 12,
     },
     big: {
       fontSize: 16,
+    },
+    bigger: {
+      fontSize: 18,
     },
     upper: {
       textTransform: 'uppercase',
@@ -88,8 +94,10 @@ const Text = ({
   red,
   orange,
   primary,
+  muted,
   small,
   big,
+  bigger,
   upper,
   modal,
   infoModal,
@@ -119,9 +127,11 @@ const Text = ({
         orange && style.orange,
         black && style.black,
         primary && style.primary,
+        muted && style.muted,
         disclaimer && [style.small, style.disclaimer],
         small && style.small,
         big && style.big,
+        bigger && style.bigger,
         upper && style.upper,
         modal && style.modal,
         infoModal && style.infoModal,
@@ -146,10 +156,12 @@ Text.defaultProps = {
   blue: false,
   red: false,
   primary: false,
+  muted: false,
   disclaimer: false,
   modal: false,
   small: false,
   big: undefined,
+  bigger: false,
   upper: false,
   link: false,
   strikethrough: false,
@@ -203,6 +215,10 @@ Text.propTypes = {
    */
   primary: PropTypes.bool,
   /**
+   * Makes text muted color
+   */
+  muted: PropTypes.bool,
+  /**
    * Makes text italic and tight
    * used in disclaimers
    */
@@ -225,6 +241,10 @@ Text.propTypes = {
    * Makes text big
    */
   big: PropTypes.bool,
+  /**
+   * Makes text even bigger
+   */
+  bigger: PropTypes.bool,
   /**
    * Makes text uppercase
    */

@@ -42,6 +42,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -179,12 +180,13 @@ class RevealPrivateCredential extends PureComponent {
     password: '',
     warningIncorrectPassword: '',
     isModalVisible: false,
+    isAndroidSupportedVersion: true,
   };
 
   static propTypes = {
     /**
-    /* navigation object required to push new views
-    */
+		/* navigation object required to push new views
+		*/
     navigation: PropTypes.object,
     /**
      * Action that shows the global alert
@@ -355,23 +357,13 @@ class RevealPrivateCredential extends PureComponent {
     const { clipboardPrivateCredential } = this.state;
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
-    const msg =
-      privateCredentialName === PRIVATE_KEY
-        ? `${strings(
-            `reveal_credential.${privateCredentialName}_copied`,
-          )}\n${strings(
-            `reveal_credential.${privateCredentialName}_copied_time`,
-          )}`
-        : // for SRP on Android it doesn't show clipboard time limit
-          `${strings(
-            `reveal_credential.${privateCredentialName}_copied_${Platform.OS}`,
-          )}${
-            Device.isIos()
-              ? strings(
-                  `reveal_credential.${privateCredentialName}_copied_time`,
-                )
-              : ''
-          }`;
+    const msg = `${strings(
+      `reveal_credential.${privateCredentialName}_copied_${Platform.OS}`,
+    )}${
+      Device.isIos()
+        ? strings(`reveal_credential.${privateCredentialName}_copied_time`)
+        : ''
+    }`;
 
     this.props.showAlert({
       isVisible: true,
@@ -436,8 +428,18 @@ class RevealPrivateCredential extends PureComponent {
   };
 
   renderTabView(privateCredentialName) {
-    const { clipboardPrivateCredential } = this.state;
+    const { clipboardPrivateCredential, isAndroidSupportedVersion } =
+      this.state;
     const { styles, colors, themeAppearance } = this.getStyles();
+
+    Device.isAndroid() &&
+      Device.getDeviceAPILevel().then((apiLevel) => {
+        if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
+          this.setState({
+            isAndroidSupportedVersion: false,
+          });
+        }
+      });
 
     return (
       <ScrollableTabView
@@ -463,17 +465,19 @@ class RevealPrivateCredential extends PureComponent {
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
             />
-            <TouchableOpacity
-              style={styles.privateCredentialAction}
-              onPress={() =>
-                this.copyPrivateCredentialToClipboard(privateCredentialName)
-              }
-              testID={'private-credential-touchable'}
-            >
-              <Text style={styles.blueText}>
-                {strings('reveal_credential.copy_to_clipboard')}
-              </Text>
-            </TouchableOpacity>
+            {isAndroidSupportedVersion && (
+              <TouchableOpacity
+                style={styles.privateCredentialAction}
+                onPress={() =>
+                  this.copyPrivateCredentialToClipboard(privateCredentialName)
+                }
+                testID={'private-credential-touchable'}
+              >
+                <Text style={styles.blueText}>
+                  {strings('reveal_credential.copy_to_clipboard')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
         <View
