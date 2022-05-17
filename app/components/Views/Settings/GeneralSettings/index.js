@@ -209,6 +209,7 @@ class Settings extends PureComponent {
     if (language === this.state.currentLanguage) return;
     setLocale(language);
     this.setState({ currentLanguage: language });
+    setTimeout(() => this.props.navigation.navigate('Home'), 100);
   };
 
   selectSearchEngine = (searchEngine) => {
