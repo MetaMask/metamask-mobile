@@ -257,7 +257,7 @@ class SendFlow extends PureComponent {
     fromSelectedAddress: this.props.selectedAddress,
     fromAccountName: this.props.identities[this.props.selectedAddress].name,
     fromAccountBalance: undefined,
-    toSelectedAddress: undefined,
+    toAccount: undefined,
     toSelectedAddressName: undefined,
     toSelectedAddressReady: false,
     toEnsName: undefined,
@@ -359,7 +359,7 @@ class SendFlow extends PureComponent {
     this.toggleFromAccountModal();
   };
 
-  validateAddress = async (toSelectedAddress) => {
+  validateAddress = async (toAccount) => {
     const { AssetsContractController } = Engine.context;
     const { addressBook, network, identities, providerType } = this.props;
     const networkAddressBook = addressBook[network] || {};
@@ -372,10 +372,10 @@ class SendFlow extends PureComponent {
       toEnsAddressResolved,
       isFromAddressBook;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
-    if (isValidAddress(toSelectedAddress)) {
-      const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
+    if (isValidAddress(toAccount)) {
+      const checksummedToSelectedAddress = toChecksumAddress(toAccount);
       toSelectedAddressReady = true;
-      const ens = await doENSReverseLookup(toSelectedAddress);
+      const ens = await doENSReverseLookup(toAccount);
       if (ens) {
         toAddressName = ens;
         if (
@@ -395,7 +395,7 @@ class SendFlow extends PureComponent {
             identities[checksummedToSelectedAddress].name);
         isFromAddressBook = true;
       } else {
-        toAddressName = ens || toSelectedAddress;
+        toAddressName = ens || toAccount;
         // If not in address book nor user accounts
         addToAddressToAddressBook = true;
       }
@@ -405,7 +405,7 @@ class SendFlow extends PureComponent {
       if (networkId === 1) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
-            toSelectedAddress,
+            toAccount,
           );
           if (symbol) {
             addressError = (
@@ -429,7 +429,7 @@ class SendFlow extends PureComponent {
       }
 
       /**
-       * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
+       * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toEnsAddressResolved || toAccount);
        * Check if it's smart contract address
        */
       /*
@@ -440,13 +440,13 @@ class SendFlow extends PureComponent {
 				isOnlyWarning = true;
 			}
 			*/
-    } else if (isENS(toSelectedAddress)) {
-      toEnsName = toSelectedAddress;
+    } else if (isENS(toAccount)) {
+      toEnsName = toAccount;
       confusableCollection = collectConfusables(toEnsName);
-      const resolvedAddress = await doENSLookup(toSelectedAddress, network);
+      const resolvedAddress = await doENSLookup(toAccount, network);
       if (resolvedAddress) {
         const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
-        toAddressName = toSelectedAddress;
+        toAddressName = toAccount;
         toEnsAddressResolved = resolvedAddress;
         toSelectedAddressReady = true;
         if (
@@ -458,7 +458,7 @@ class SendFlow extends PureComponent {
       } else {
         addressError = strings('transaction.could_not_resolve_ens');
       }
-    } else if (toSelectedAddress && toSelectedAddress.length >= 42) {
+    } else if (toAccount && toAccount.length >= 42) {
       addressError = strings('transaction.invalid_address');
     }
     this.setState({
@@ -475,23 +475,23 @@ class SendFlow extends PureComponent {
     });
   };
 
-  onToSelectedAddressChange = (toSelectedAddress) => {
-    this.validateAddress(toSelectedAddress);
+  onToSelectedAddressChange = (toAccount) => {
+    this.validateAddress(toAccount);
     this.setState({
-      toSelectedAddress,
+      toAccount,
     });
   };
 
   validateToAddress = async () => {
-    const { toSelectedAddress } = this.state;
+    const { toAccount } = this.state;
     const { network } = this.props;
     let addressError;
-    if (isENS(toSelectedAddress)) {
-      const resolvedAddress = await doENSLookup(toSelectedAddress, network);
+    if (isENS(toAccount)) {
+      const resolvedAddress = await doENSLookup(toAccount, network);
       if (!resolvedAddress) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
-    } else if (!isValidAddress(toSelectedAddress)) {
+    } else if (!isValidAddress(toAccount)) {
       addressError = strings('transaction.invalid_address');
     }
     this.setState({ addressError });
@@ -508,9 +508,9 @@ class SendFlow extends PureComponent {
 
   onSaveToAddressBook = () => {
     const { network } = this.props;
-    const { toSelectedAddress, alias, toEnsAddressResolved } = this.state;
+    const { toAccount, alias, toEnsAddressResolved } = this.state;
     const { AddressBookController } = Engine.context;
-    const toAddress = toEnsAddressResolved || toSelectedAddress;
+    const toAddress = toEnsAddressResolved || toAccount;
     AddressBookController.set(toAddress, alias, network);
     this.toggleAddToAddressBookModal();
 
@@ -519,7 +519,7 @@ class SendFlow extends PureComponent {
       addToAddressToAddressBook: false,
       alias: undefined,
       isFromAddressBook: true,
-      toSelectedAddress: toAddress,
+      toAccount: toAddress,
     });
   };
 
@@ -537,7 +537,7 @@ class SendFlow extends PureComponent {
     const { setRecipient, navigation, providerType, addRecent } = this.props;
     const {
       fromSelectedAddress,
-      toSelectedAddress,
+      toAccount,
       toEnsName,
       toSelectedAddressName,
       fromAccountName,
@@ -545,7 +545,7 @@ class SendFlow extends PureComponent {
     } = this.state;
     const addressError = await this.validateToAddress();
     if (addressError) return;
-    const toAddress = toEnsAddressResolved || toSelectedAddress;
+    const toAddress = toEnsAddressResolved || toAccount;
     addRecent(toAddress);
     setRecipient(
       fromSelectedAddress,
@@ -696,7 +696,7 @@ class SendFlow extends PureComponent {
       fromSelectedAddress,
       fromAccountName,
       fromAccountBalance,
-      toSelectedAddress,
+      toAccount,
       toSelectedAddressReady,
       toSelectedAddressName,
       addToAddressToAddressBook,
@@ -713,8 +713,7 @@ class SendFlow extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress =
-      toSelectedAddress && toChecksumAddress(toSelectedAddress);
+    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
     const existingContact =
       checksummedAddress &&
       addressBook[network] &&
@@ -746,7 +745,7 @@ class SendFlow extends PureComponent {
             inputRef={this.addressToInputRef}
             highlighted={toInputHighlighted}
             addressToReady={toSelectedAddressReady}
-            toSelectedAddress={toEnsAddressResolved || toSelectedAddress}
+            toSelectedAddress={toEnsAddressResolved || toAccount}
             toAddressName={toSelectedAddressName}
             onToSelectedAddressChange={this.onToSelectedAddressChange}
             onScan={this.onScan}
@@ -762,11 +761,11 @@ class SendFlow extends PureComponent {
           />
         </View>
 
-        {!toSelectedAddressReady && !!toSelectedAddress && (
+        {!toSelectedAddressReady && !!toAccount && (
           <View style={styles.warningContainer}>
             <WarningMessage
               warningMessage={
-                toSelectedAddress.substring(0, 2) === '0x'
+                toAccount.substring(0, 2) === '0x'
                   ? strings('transaction.address_invalid')
                   : strings('transaction.ens_not_found')
               }
@@ -776,7 +775,7 @@ class SendFlow extends PureComponent {
 
         {!toSelectedAddressReady ? (
           <AddressList
-            inputSearch={toSelectedAddress}
+            inputSearch={toAccount}
             onAccountPress={this.onToSelectedAddressChange}
             onAccountLongPress={dummy}
           />
