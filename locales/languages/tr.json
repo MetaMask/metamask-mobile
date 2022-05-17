@@ -1772,9 +1772,8 @@
     "not_found": "Ortam bulunamadı"
   },
   "secret_phrase_video_subtitle": {
-    "title": "EN CC",
-    "language": "tr",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
+    "title": "TR CC",
+    "language": "tr"
   },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Gelişmiş seçenekler",
