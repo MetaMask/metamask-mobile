@@ -10,6 +10,7 @@
 - [4174](https://github.com/MetaMask/metamask-mobile/pull/4174):  [IMPROVEMENT] Use checksum standard format
 - [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Send flow confusables bug
 - [#4315](https://github.com/MetaMask/metamask-mobile/pull/4315): [IMPROVEMENT] Make reveal SRP blur view dynamic
+- [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
 
 ## 5.1.0 - May 5, 2022
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
