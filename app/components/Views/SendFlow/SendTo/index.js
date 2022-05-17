@@ -691,8 +691,7 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker } = this.props;
-    const { addressBook, network } = this.props;
+    const { ticker, addressBook, network } = this.props;
     const {
       fromSelectedAddress,
       fromAccountName,
@@ -709,6 +708,7 @@ class SendFlow extends PureComponent {
       isOnlyWarning,
       confusableCollection,
       isFromAddressBook,
+      toEnsAddressResolved,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -759,6 +759,7 @@ class SendFlow extends PureComponent {
               (!existingContact && confusableCollection) || []
             }
             isFromAddressBook={isFromAddressBook}
+            toEnsAddressResolved={toEnsAddressResolved}
           />
         </View>
 

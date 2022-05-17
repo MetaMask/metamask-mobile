@@ -223,6 +223,7 @@ export const AddressTo = (props) => {
     displayExclamation,
     isConfirmScreen = false,
     isFromAddressBook = false,
+    toEnsAddressResolved = undefined,
   } = props;
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -362,7 +363,7 @@ export const AddressTo = (props) => {
         >
           <View style={styles.addressToInformation}>
             <Identicon
-              address={toSelectedAddress}
+              address={toEnsAddressResolved || toSelectedAddress}
               diameter={30}
               customStyle={styles.identIcon}
             />
@@ -534,6 +535,10 @@ AddressTo.propTypes = {
    * Returns if it selected from address book
    */
   isFromAddressBook: PropTypes.bool,
+  /**
+   * Returns the ENS address
+   */
+  toEnsAddressResolved: PropTypes.string,
 };
 
 export const AddressFrom = (props) => {
