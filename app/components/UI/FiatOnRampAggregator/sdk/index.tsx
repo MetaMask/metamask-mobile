@@ -57,6 +57,7 @@ export interface IFiatOnRampSDK {
   selectedChainId: string;
 
   appConfig: IFiatOnRampSDKConfig;
+  callbackBaseUrl: string;
 }
 
 interface IProviderProps<T> {
@@ -74,6 +75,10 @@ export const SDK = OnRampSdk.create(
     verbose: VERBOSE_SDK,
   },
 );
+
+export const callbackBaseUrl = isDevelopment
+  ? 'https://on-ramp-content.metaswap-dev.codefi.network/regions/fake-callback'
+  : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
 const appConfig = {
   POLLING_INTERVAL: 20000,
@@ -180,6 +185,7 @@ export const FiatOnRampSDKProvider = ({
     selectedChainId,
 
     appConfig,
+    callbackBaseUrl,
   };
 
   return <SDKContext.Provider value={value || contextValue} {...props} />;

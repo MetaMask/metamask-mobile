@@ -98,5 +98,3 @@ export async function processAggregatorOrder(
     return order;
   }
 }
-
-export const callbackBaseUrl = 'https://dummy.url.metamask.io';
