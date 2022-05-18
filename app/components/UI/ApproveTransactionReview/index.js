@@ -59,7 +59,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
-import {formatNumber} from '../../../util/formatNumber'
+import formatNumber from '../../../util/formatNumber';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
