@@ -22,8 +22,9 @@ const ApplePayButton = ({
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController.network,
+  const chainId = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.provider.chainId,
   );
   const [pay] = useApplePay(quote) as [() => Promise<Order | typeof ABORTED>];
   const lockTime = useSelector((state: any) => state.settings.lockTime);
@@ -46,7 +47,7 @@ const ApplePayButton = ({
         if (order) {
           const fiatOrder: FiatOrder = {
             ...aggregatorOrderToFiatOrder(order),
-            network,
+            network: chainId,
           };
           addOrder(fiatOrder);
           // @ts-expect-error pop is not defined
@@ -76,7 +77,7 @@ const ApplePayButton = ({
     addOrder,
     lockTime,
     navigation,
-    network,
+    chainId,
     pay,
     protectWalletModalVisible,
     quote.crypto?.symbol,
