@@ -99,11 +99,12 @@ const CheckoutWebView = () => {
             // Most likely the user clicked the X in Wyre widget
             // @ts-expect-error navigation prop mismatch
             navigation.dangerouslyGetParent()?.pop();
-          } else {
-            throw new Error(
-              `Order ID could not be retrieved. Callback was ${navState?.url}`,
-            );
+            return;
           }
+
+          throw new Error(
+            `Order ID could not be retrieved. Callback was ${navState?.url}`,
+          );
         }
 
         const transformedOrder = await processAggregatorOrder(
