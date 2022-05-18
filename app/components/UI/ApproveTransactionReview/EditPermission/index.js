@@ -9,6 +9,7 @@ import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import {formatNumber} from '../../../../util/formatNumber'
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -198,9 +199,7 @@ function EditPermission({
               {strings('spend_limit_edition.requested_by')}
               <Text style={fontStyles.bold}>{` ${host}`}</Text>
             </Text>
-            <Text style={[styles.optionText, styles.textBlack]}>{`${Number(
-              originalApproveAmount,
-            )} ${tokenSymbol}`}</Text>
+            <Text style={[styles.optionText, styles.textBlack]}>{`${formatNumber(originalApproveAmount)} ${tokenSymbol}`}</Text>
           </View>
         </View>
 
