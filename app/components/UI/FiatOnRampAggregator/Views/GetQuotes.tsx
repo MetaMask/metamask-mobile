@@ -31,7 +31,6 @@ import StyledButton from '../../StyledButton';
 import BaseListItem from '../../../Base/ListItem';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 
-import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import useInterval from '../../../hooks/useInterval';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
@@ -183,6 +182,7 @@ const GetQuotes = () => {
     selectedAddress,
     selectedFiatCurrencyId,
     appConfig,
+    callbackBaseUrl,
     sdkError,
   } = useFiatOnRampSDK();
 
