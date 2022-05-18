@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
-import { toDataUrl } from '../../../../app/util/blockies';
 import React from 'react';
 import { Image } from 'react-native';
-
 import JazzIcon from 'react-native-jazzicon';
 
+import { toDataUrl } from '../../../util/blockies';
+
 import BaseAvatar from '../BaseAvatar';
+import stylesheet from './AccountAvatar.styles';
 import { AccountAvatarProps, AccountAvatarType } from './AccountAvatar.types';
 
 const AccountAvatar = ({
@@ -13,28 +14,22 @@ const AccountAvatar = ({
   accountAddress,
   size,
   style,
-}: AccountAvatarProps) => {
-  const imageStyle = {
-    flex: 1,
-  };
-
-  return (
-    <BaseAvatar size={size} style={style}>
+}: AccountAvatarProps) => (
+  <BaseAvatar size={size} style={style}>
+    {
       {
-        {
-          [AccountAvatarType.JazzIcon]: (
-            <JazzIcon size={size} address={accountAddress} />
-          ),
-          [AccountAvatarType.Blockies]: (
-            <Image
-              source={{ uri: toDataUrl(accountAddress) }}
-              style={imageStyle}
-            />
-          ),
-        }[type]
-      }
-    </BaseAvatar>
-  );
-};
+        [AccountAvatarType.JazzIcon]: (
+          <JazzIcon size={Number(size)} address={accountAddress} />
+        ),
+        [AccountAvatarType.Blockies]: (
+          <Image
+            source={{ uri: toDataUrl(accountAddress) }}
+            style={stylesheet.imageStyle}
+          />
+        ),
+      }[type]
+    }
+  </BaseAvatar>
+);
 
 export default AccountAvatar;

@@ -1,4 +1,5 @@
 import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
+
 export enum AccountAvatarType {
   JazzIcon = 'JazzIcon',
   Blockies = 'Blockies',

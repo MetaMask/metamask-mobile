@@ -1,14 +1,31 @@
 # AccountAvatar
 
-The AccountAvatar is based on the BaseAvatar component and renders an avatar based on the users account address
+AccountAvatar is a component that renders an avatar based on the users account address. This component is based on the [BaseAvatar](../BaseAvatar) component.
 
-## Component API
+## Props
 
-### accountAddress
-The accountAddress prop takes an 42 character address and uses it either render a blockie or jazzicon.
+This component extends `BaseAvatarProps` from [BaseAvatar](../BaseAvatar) component 
 
-### size
-The size is inherited from the BaseAvatar component and accepts any enum from the AvatarSize enum
+### `size`
 
-### type
-The type prop accepts any enum from the AvatarTypeEnum
+Enum to select between size variants.
+
+| <span style="color:gray;font-size:14px">TYPE</span>   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :---------------------------------------------------- | :------------------------------------------------------ |
+| [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6)| Yes                                                     |
+
+### `type`
+
+Enum to select the avatar type between `JazzIcon` and `Blockies`
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [AccountAvatarType](./AccountAvatar.types.ts#L2)    | Yes                                                     |
+
+### `accountAddress`
+
+String property that takes the wallet address, a 42 character string.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| String                                              | Yes                                                     |

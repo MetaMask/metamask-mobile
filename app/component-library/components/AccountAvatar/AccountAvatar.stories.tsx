@@ -8,18 +8,14 @@ import { BaseAvatarSize } from '../BaseAvatar';
 import AccountAvatar from './AccountAvatar';
 import { AccountAvatarType } from '.';
 
-storiesOf(' UI / AccountAvatar', module)
+storiesOf(' Component Library / AccountAvatar', module)
   .addDecorator((getStory) => getStory())
-  .add('Simple', () => {
+  .add('Default', () => {
     const accountAddress = text(
       'accountAddress',
       '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092',
     );
-    const sizeSelector = select(
-      'size',
-      Object.keys(BaseAvatarSize).map((key) => `${key}`),
-      BaseAvatarSize.Md,
-    );
+    const sizeSelector = select('size', BaseAvatarSize, BaseAvatarSize.Md);
     const typeSelector = select(
       'type',
       AccountAvatarType,
@@ -27,10 +23,9 @@ storiesOf(' UI / AccountAvatar', module)
     );
 
     return (
-      // TODO: remove the type castings
       <AccountAvatar
-        size={sizeSelector as BaseAvatarSize}
-        type={typeSelector as AccountAvatarType}
+        size={sizeSelector}
+        type={typeSelector}
         accountAddress={accountAddress}
       />
     );
