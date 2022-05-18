@@ -97,7 +97,7 @@ const AmountToBuy = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [tokens, setTokens] = useState<CryptoCurrency[]>([]);
+  const [tokens, setTokens] = useState<CryptoCurrency[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
   const keyboardHeight = useRef(1000);
@@ -661,7 +661,7 @@ const AmountToBuy = () => {
     );
   }
 
-  if (!isFetching && (!tokens || tokens.length === 0)) {
+  if (!isFetching && tokens && tokens.length === 0) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -805,7 +805,7 @@ const AmountToBuy = () => {
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
           { network: NETWORKS_NAMES[selectedChainId] },
         )}
-        tokens={tokens}
+        tokens={tokens ?? []}
         onItemPress={handleAssetPress}
       />
       <FiatSelectModal
