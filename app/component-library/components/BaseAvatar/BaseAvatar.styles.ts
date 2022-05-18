@@ -21,7 +21,7 @@ const styleSheet = (params: { vars: BaseAvatarStyleSheetVars }) => {
         width: sizeAsNum,
         borderRadius: sizeAsNum / 2,
         overflow: 'hidden',
-      },
+      } as ViewStyle,
       style,
     ) as ViewStyle,
   });

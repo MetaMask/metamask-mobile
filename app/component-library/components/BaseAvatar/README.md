@@ -1,11 +1,15 @@
-# AccountAvatar
+# BaseAvatar
 
-The  BaseAvatar is a wrapper component responsible for enforcing dimensions and border radius.
+The BaseAvatar is a wrapper component responsible for enforcing dimensions and border radius for Avatar components.
 
-## Component API
+## Props
 
-### size
-The size prop accepts any enum from the AvatarSize enum.
+This component extends `ViewProps` from React Native's [View Component](https://reactnative.dev/docs/view).
 
-### style
-The style prop accepts any valid stylesheet object and it will override the default stylesheet.
+### `size`
+
+Enum to select between size variants.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [BaseAvatarSize](./BaseAvatar.types.ts#L6)          | Yes                                                     |
