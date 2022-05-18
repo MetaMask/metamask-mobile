@@ -99,7 +99,6 @@ const AmountToBuy = () => {
   const [amountNumber, setAmountNumber] = useState(0);
   const [tokens, setTokens] = useState<CryptoCurrency[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState(true);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
   const [
@@ -496,22 +495,12 @@ const AmountToBuy = () => {
    * * Derived values
    */
 
-  useEffect(() => {
-    const isFetchingData =
-      isFetchingSdkCryptoCurrencies ||
-      isFetchingPaymentMethods ||
-      isFetchingFiatCurrencies ||
-      isFetchingDefaultFiatCurrency ||
-      isFetchingCountries;
-
-    setIsFetching(isFetchingData);
-  }, [
-    isFetchingCountries,
-    isFetchingDefaultFiatCurrency,
-    isFetchingFiatCurrencies,
-    isFetchingPaymentMethods,
-    isFetchingSdkCryptoCurrencies,
-  ]);
+  const isFetching =
+    isFetchingSdkCryptoCurrencies ||
+    isFetchingPaymentMethods ||
+    isFetchingFiatCurrencies ||
+    isFetchingDefaultFiatCurrency ||
+    isFetchingCountries;
 
   /**
    * Get the fiat currency object by id
@@ -674,7 +663,7 @@ const AmountToBuy = () => {
               },
             )}
             ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
-            ctaOnPress={() => toggleRegionModal()}
+            ctaOnPress={toggleRegionModal as () => void}
           />
         </ScreenLayout.Body>
         <RegionModal
