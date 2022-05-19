@@ -34,7 +34,6 @@ import {
   toggleReceiveModal,
   toggleLedgerDeviceActionModal,
   toggleLedgerDeviceActionFailModal,
-  closeLedgerDeviceErrorModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -80,7 +79,6 @@ import {
 } from '../../../actions/onboardNetwork';
 import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
 import LedgerTransactionFailModal from '../LedgerModals/LedgerTransactionFailModal';
-import LedgerErrorModal from '../LedgerModals/LedgerErrorModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -374,10 +372,6 @@ class DrawerView extends PureComponent {
      */
     toggleLedgerDeviceActionFailModal: PropTypes.func,
     /**
-     * Action that toggles the Ledger's error modal
-     */
-    closeLedgerDeviceErrorModal: PropTypes.func,
-    /**
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
@@ -467,10 +461,6 @@ class DrawerView extends PureComponent {
      * Decides if Ledger's transaction modal is visible
      */
     ledgerDeviceActionModalVisible: PropTypes.bool,
-    /**
-     * Decides if Ledger's error modal is visible
-     */
-    ledgerDeviceActionErrorModalVisible: PropTypes.bool,
     /**
      * Decides if Ledger's failed transaction modal is visible
      */
@@ -690,16 +680,6 @@ class DrawerView extends PureComponent {
       this.props.toggleLedgerDeviceActionFailModal();
       this.ledgerModalFailTimer = setTimeout(() => {
         this.animatingLedgerDeviceActionFailModal = false;
-      }, 500);
-    }
-  };
-
-  closeLedgerDeviceErrorModal = async () => {
-    if (!this.animatingLedgerDeviceErrorModal) {
-      this.animatingLedgerDeviceErrorModal = true;
-      this.props.closeLedgerDeviceErrorModal();
-      this.ledgerErrorModalTimer = setTimeout(() => {
-        this.animatingLedgerDeviceErrorModal = false;
       }, 500);
     }
   };
@@ -1521,18 +1501,6 @@ class DrawerView extends PureComponent {
         >
           <LedgerTransactionFailModal />
         </Modal>
-        <Modal
-          isVisible={this.props.ledgerDeviceActionErrorModalVisible}
-          onBackdropPress={this.closeLedgerDeviceErrorModal}
-          onBackButtonPress={this.closeLedgerDeviceErrorModal}
-          onSwipeComplete={this.closeLedgerDeviceErrorModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          backdropColor={colors.overlay.default}
-          style={styles.bottomModal}
-        >
-          <LedgerErrorModal />
-        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1579,8 +1547,6 @@ const mapStateToProps = (state) => ({
   ledgerDeviceActionModalVisible: state.modals.ledgerDeviceActionModalVisible,
   ledgerDeviceActionModalFailVisible:
     state.modals.ledgerDeviceActionModalFailVisible,
-  ledgerDeviceActionErrorModalVisible:
-    state.modals.ledgerDeviceActionErrorModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -1603,7 +1569,6 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(toggleLedgerDeviceActionModal()),
   toggleLedgerDeviceActionFailModal: () =>
     dispatch(toggleLedgerDeviceActionFailModal()),
-  closeLedgerDeviceErrorModal: () => dispatch(closeLedgerDeviceErrorModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>

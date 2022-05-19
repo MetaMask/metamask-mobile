@@ -1,12 +1,8 @@
-import React, { useMemo } from 'react';
-import {
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires */
+import React, { FC, useMemo } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import {
   mockTheme,
   useAppThemeFromContext,
@@ -16,16 +12,16 @@ import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
-import StyledButton from '../StyledButton';
-import { closeLedgerDeviceErrorModal } from '../../../actions/modals';
+import StyledButton from '../../UI/StyledButton';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
+      position: 'absolute',
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      minHeight: Device.getDeviceHeight(),
+      height: '100%',
     },
     contentWrapper: {
       flex: 1,
@@ -65,30 +61,30 @@ const createStyles = (colors: Colors) =>
 const ledgerConnectErrorDarkImage = require('../../../images/ledger-connect-error-dark.png');
 const ledgerConnectErrorLightImage = require('../../../images/ledger-connect-error-light.png');
 
-const LedgerErrorModal = () => {
+export interface LedgerConnectionErrorProps {
+  errorTitle: string;
+  errorSubtitle: string;
+  primaryButtonConfig?: {
+    title: string;
+    onPress: () => void;
+  };
+  secondaryButtonConfig?: {
+    title: string;
+    onPress: () => void;
+  };
+}
+
+const LedgerConnectionError: FC<LedgerConnectionErrorProps> = ({
+  errorTitle,
+  errorSubtitle,
+  primaryButtonConfig,
+  secondaryButtonConfig,
+}) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const dispatch = useDispatch();
-  const {
-    errorTitle,
-    errorSubtitle,
-    primaryButtonConfig,
-    secondaryButtonConfig,
-  } = useSelector(
-    (state: RootStateOrAny) => state.modals.ledgerDeviceActionMetadata,
-  );
-
-  const onClosePress = () => {
-    dispatch(closeLedgerDeviceErrorModal());
-  };
 
   return (
-    <SafeAreaView style={styles.wrapper}>
-      <TouchableOpacity style={styles.closeButton} onPress={onClosePress}>
-        <Text bold big>
-          X
-        </Text>
-      </TouchableOpacity>
+    <View style={styles.wrapper}>
       <View style={styles.contentWrapper}>
         <Image
           source={useAssetFromTheme(
@@ -124,8 +120,8 @@ const LedgerErrorModal = () => {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
-export default LedgerErrorModal;
+export default LedgerConnectionError;

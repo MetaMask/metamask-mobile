@@ -8,7 +8,6 @@ const initialState = {
   approveModalVisible: false,
   ledgerDeviceActionModalVisible: false,
   ledgerDeviceActionModalFailVisible: false,
-  ledgerDeviceActionErrorModalVisible: false,
   ledgerDeviceActionMetadata: {},
 };
 
@@ -71,20 +70,6 @@ const modalsReducer = (state = initialState, action) => {
         ...state,
         ledgerDeviceActionModalFailVisible:
           !state.ledgerDeviceActionModalFailVisible,
-      };
-    case 'CLOSE_LEDGER_DEVICE_ERROR_MODAL':
-      return {
-        ...state,
-        ledgerDeviceActionErrorModalVisible: false,
-      };
-    case 'OPEN_LEDGER_DEVICE_ERROR_MODAL':
-      return {
-        ...state,
-        ledgerDeviceActionErrorModalVisible: true,
-        ledgerDeviceActionMetadata: {
-          ...state.ledgerDeviceActionMetadata,
-          ...action.params,
-        },
       };
     default:
       return state;

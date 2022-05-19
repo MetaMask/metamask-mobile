@@ -26,11 +26,10 @@ import useLedgerBluetooth, {
   LedgerCommunicationErrors,
 } from '../../hooks/useLedgerBluetooth';
 import { useDispatch } from 'react-redux';
-import {
-  closeLedgerDeviceErrorModal,
-  openLedgerDeviceErrorModal,
-} from '../../../actions/modals';
 import { showSimpleNotification } from '../../../actions/notification';
+import LedgerConnectionError, {
+  LedgerConnectionErrorProps,
+} from './LedgerConnectionError';
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
@@ -40,6 +39,7 @@ const ledgerConnectDarkImage = require('../../../images/ledger-connect-dark.png'
 const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
+      position: 'relative',
       flex: 1,
       backgroundColor: colors.background.default,
       alignItems: 'center',
@@ -107,6 +107,7 @@ const LedgerConnect = () => {
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
+  const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const dispatch = useDispatch();
 
   const {
@@ -116,30 +117,29 @@ const LedgerConnect = () => {
     error: ledgerError,
   } = useLedgerBluetooth(selectedDevice?.id);
 
-  const connectLedger = (shouldNavigateToWallet = false) =>
+  const connectLedger = () =>
     ledgerLogicToRun(async () => {
       const defaultLedgerAccount =
         await KeyringController.unlockLedgerDefaultAccount();
       await AccountTrackerController.syncBalanceWithAddresses([
         defaultLedgerAccount,
       ]);
-      shouldNavigateToWallet && navigation.navigate('WalletView');
+
+      navigation.navigate('WalletView');
     });
 
   const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
-    dispatch(
-      openLedgerDeviceErrorModal({
-        errorTitle,
-        errorSubtitle,
-        primaryButtonConfig: {
-          title: strings('ledger.retry'),
-          onPress: () => {
-            dispatch(closeLedgerDeviceErrorModal());
-            connectLedger(true);
-          },
+    setErrorDetails({
+      errorTitle,
+      errorSubtitle,
+      primaryButtonConfig: {
+        title: strings('ledger.retry'),
+        onPress: () => {
+          setErrorDetails(undefined);
+          connectLedger();
         },
-      }),
-    );
+      },
+    });
   };
 
   useEffect(() => {
@@ -164,8 +164,7 @@ const LedgerConnect = () => {
           );
           break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
-          // TODO: CHANGE Location to hardware wallet selector when it's ready
-          navigation.navigate('WalletView');
+          navigation.navigate('SelectHardwareWallet');
           break;
         case LedgerCommunicationErrors.LedgerIsLocked:
           handleErrorWithRetry(
@@ -258,14 +257,14 @@ const LedgerConnect = () => {
               onDeviceSelected={(ledgerDevice) =>
                 setSelectedDevice(ledgerDevice)
               }
+              onScanningErrorStateChanged={(error) => setErrorDetails(error)}
             />
           )}
-
           {selectedDevice && !isAppLaunchConfirmationNeeded && (
             <View style={styles.buttonContainer}>
               <StyledButton
                 type="confirm"
-                onPress={() => connectLedger(true)}
+                onPress={connectLedger}
                 testID={'add-network-button'}
                 disabled={isSendingLedgerCommands}
               >
@@ -281,6 +280,7 @@ const LedgerConnect = () => {
           )}
         </View>
       </View>
+      {errorDetail ? <LedgerConnectionError {...errorDetail} /> : null}
     </SafeAreaView>
   );
 };
