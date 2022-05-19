@@ -589,23 +589,27 @@ class RevealPrivateCredential extends PureComponent {
     return (
       <Text style={styles.normalText}>
         {strings('reveal_credential.seed_phrase_explanation')[0]}
-        <TouchableOpacity onPress={() => Linking.openURL(SRP_URL)}>
-          <Text style={[styles.blueText, styles.link]}>
-            {strings('reveal_credential.seed_phrase_explanation')[1]}
-          </Text>
-        </TouchableOpacity>
+
+        <Text
+          style={[styles.blueText, styles.link]}
+          onPress={() => Linking.openURL(SRP_URL)}
+        >
+          {strings('reveal_credential.seed_phrase_explanation')[1]}
+        </Text>
+
         {strings('reveal_credential.seed_phrase_explanation')[2]}
         <Text style={styles.boldText}>
           {strings('reveal_credential.seed_phrase_explanation')[3]}
         </Text>
         {strings('reveal_credential.seed_phrase_explanation')[4]}
-        <TouchableOpacity
+
+        <Text
+          style={[styles.blueText, styles.link]}
           onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
         >
-          <Text style={[styles.blueText, styles.link]}>
-            {strings('reveal_credential.seed_phrase_explanation')[5]}
-          </Text>
-        </TouchableOpacity>
+          {strings('reveal_credential.seed_phrase_explanation')[5]}
+        </Text>
+
         {strings('reveal_credential.seed_phrase_explanation')[6]}
         <Text style={styles.boldText}>
           {strings('reveal_credential.seed_phrase_explanation')[7]}

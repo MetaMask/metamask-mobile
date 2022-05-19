@@ -599,13 +599,13 @@
     "done": "Terminé",
     "confirm": "Suivant",
     "seed_phrase_explanation": [
-      "La",
+      "La ",
       "phrase secrète de récupération (PSR)",
-      "donne",
+      " donne ",
       "un accès complet à votre portefeuille, vos fonds et vos comptes.\n\n",
-      "MetaMask est un",
+      "MetaMask est un ",
       "portefeuille non dépositaire",
-      "Cela signifie que",
+      ". Cela signifie que ",
       "vous êtes le responsable exclusif de votre PSR."
     ],
     "private_key_explanation": "Conservez-la dans un endroit sûr et secret.",
