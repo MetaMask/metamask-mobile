@@ -1,8 +1,10 @@
-import { NativeModules, Platform } from 'react-native';
+// import { NativeModules, Platform } from 'react-native';
 
-const isAndroid = Platform.OS === 'android';
+// const isAndroid = Platform.OS === 'android';
 
 export default {
-  forbid: isAndroid ? NativeModules.PreventScreenshot.forbid : () => true,
-  allow: isAndroid ? NativeModules.PreventScreenshot.allow : () => true,
+  // forbid: isAndroid ? NativeModules.PreventScreenshot.forbid : () => true,
+  // allow: isAndroid ? NativeModules.PreventScreenshot.allow : () => true,
+  forbid: true,
+  allow: true,
 };
