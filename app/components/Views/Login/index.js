@@ -10,8 +10,6 @@ import {
   StyleSheet,
   Image,
   InteractionManager,
-  TouchableWithoutFeedback,
-  Keyboard,
   BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -29,6 +27,8 @@ import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
+import DeleteWalletConfirmationModal from '../../UI/DeleteWalletConfirmationModal';
+import DeleteWalletWarningModal from '../../UI/DeleteWalletWarningModal';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import {
@@ -41,16 +41,12 @@ import {
 } from '../../../constants/storage';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { tlc, toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
-  DELETE_WALLET_CONTAINER_ID,
-  DELETE_WALLET_INPUT_BOX_ID,
   LOGIN_PASSWORD_ERROR,
   RESET_WALLET_ID,
 } from '../../../constants/test-ids';
@@ -539,7 +535,7 @@ class Login extends PureComponent {
           value={this.state.rememberMe}
           style={styles.biometrySwitch}
           trackColor={{
-            true: colors.primary.default,
+            true: colors.primary.defauslt,
             false: colors.border.muted,
           }}
           thumbColor={importedColors.white}
@@ -585,75 +581,19 @@ class Login extends PureComponent {
 
     return (
       <ErrorBoundary view="Login">
-        <WarningExistingUserModal
-          warningModalVisible={this.state.warningModalVisible}
-          cancelText={strings('login.i_understand')}
+        <DeleteWalletWarningModal
+          modalVisible={this.state.warningModalVisible}
           onCancelPress={this.onCancelPress}
           onRequestClose={this.toggleWarningModal}
           onConfirmPress={this.toggleWarningModal}
-        >
-          <View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>
-            <Icon
-              style={styles.warningIcon}
-              size={46}
-              color={colors.error.default}
-              name="exclamation-triangle"
-            />
-            <Text style={[styles.heading, styles.red]}>
-              {strings('login.are_you_sure')}
-            </Text>
-            <Text style={styles.warningText}>
-              <Text>{strings('login.your_current_wallet')}</Text>
-              <Text style={styles.bold}>{strings('login.removed_from')}</Text>
-              <Text>{strings('login.this_action')}</Text>
-            </Text>
-            <Text style={[styles.warningText, styles.noMarginBottom]}>
-              <Text>{strings('login.you_can_only')}</Text>
-              <Text style={styles.bold}>
-                {strings('login.recovery_phrase')}
-              </Text>
-              <Text>{strings('login.metamask_does_not')}</Text>
-            </Text>
-          </View>
-        </WarningExistingUserModal>
-
-        <WarningExistingUserModal
-          warningModalVisible={this.state.deleteModalVisible}
-          cancelText={strings('login.delete_my')}
-          cancelButtonDisabled={this.state.disableDelete}
+        />
+        <DeleteWalletConfirmationModal
+          modalVisible={this.state.deleteModalVisible}
+          showDeleteWarning={this.state.showDeleteWarning}
           onCancelPress={this.submitDelete}
           onRequestClose={this.toggleDeleteModal}
           onConfirmPress={this.toggleDeleteModal}
-          onSubmitEditing={this.submitDelete}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.areYouSure}>
-              <Text style={[styles.heading, styles.delete]}>
-                {strings('login.type_delete', { [DELETE]: DELETE })}
-              </Text>
-              <OutlinedTextField
-                style={styles.input}
-                testID={DELETE_WALLET_INPUT_BOX_ID}
-                autoFocus
-                returnKeyType={'done'}
-                onChangeText={this.checkDelete}
-                autoCapitalize="none"
-                value={this.state.deleteText}
-                baseColor={colors.border.default}
-                tintColor={colors.primary.default}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.submitDelete}
-                keyboardAppearance={themeAppearance}
-              />
-              {this.state.showDeleteWarning && (
-                <Text style={styles.deleteWarningMsg}>
-                  {strings('login.cant_proceed')}
-                </Text>
-              )}
-            </View>
-          </TouchableWithoutFeedback>
-        </WarningExistingUserModal>
-
+        />
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}
