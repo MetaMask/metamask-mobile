@@ -418,8 +418,8 @@ function PaymentMethodApplePay({
 
   const handleQuickAmountPress = useCallback((amount) => setAmount(amount), []);
   const handleKeypadChange = useCallback(
-    (value, key) => {
-      if (isOverMaximum && ![KEYS.BACK, KEYS.INITIAL].includes(key)) {
+    ({ value, pressedKey }) => {
+      if (isOverMaximum && ![KEYS.BACK, KEYS.INITIAL].includes(pressedKey)) {
         return;
       }
       if (value === amount) {

@@ -12,6 +12,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
 
 const INDICATOR_HEIGHT = 10;
 const DRAWER_WIDTH = 315;
@@ -71,8 +72,8 @@ const Step5 = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(6);
     drawerRef?.current?.dismissDrawer?.();
     navigation &&
-      navigation.navigate('BrowserTabHome', {
-        screen: 'BrowserView',
+      navigation.navigate(Routes.BROWSER_TAB_HOME, {
+        screen: Routes.BROWSER_VIEW,
       });
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED,
