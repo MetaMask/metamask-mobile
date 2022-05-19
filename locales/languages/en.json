@@ -1586,6 +1586,7 @@
     "webview_received_error": "WebView received error status code: {{code}}",
     "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
     "try_different_region": "Try a different region",
+    "return_home": "Return to Home Screen",
     "region": {
       "buy_crypto_tokens": "Buy Crypto Tokens",
       "title": "Select your Region",
