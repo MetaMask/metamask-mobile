@@ -18,7 +18,7 @@ interface IDeleteWalletConfirmationModalProps {
   submitDeleteWallet: () => null;
 }
 
-const DELETE = 'delete';
+const DELETE_KEYWORD = 'delete';
 
 const DeleteWalletConfirmationModal = ({
   modalVisible,
@@ -34,7 +34,7 @@ const DeleteWalletConfirmationModal = ({
   const [deleteText, setDeleteText] = useState<string>('');
   const [disableButton, setDisableButton] = useState<boolean>(false);
 
-  const isTextDelete = (text: string) => tlc(text) === DELETE;
+  const isTextDelete = (text: string) => tlc(text) === DELETE_KEYWORD;
 
   const checkDelete = (text: string) => {
     setDeleteText(text);
@@ -53,7 +53,7 @@ const DeleteWalletConfirmationModal = ({
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.areYouSure}>
           <Text style={[styles.heading, styles.delete]}>
-            {strings('login.type_delete', { [DELETE]: DELETE })}
+            {strings('login.type_delete', { [DELETE_KEYWORD]: DELETE_KEYWORD })}
           </Text>
           <OutlinedTextField
             style={styles.input}
