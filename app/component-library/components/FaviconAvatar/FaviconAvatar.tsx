@@ -2,7 +2,7 @@
 import React from 'react';
 import { Image } from 'react-native';
 
-import BaseAvatar from '../../../component-library/components/BaseAvatar';
+import BaseAvatar from '../BaseAvatar';
 import { FaviconAvatarProps } from './FaviconAvatar.types';
 import styles from './Favicon.styles';
 

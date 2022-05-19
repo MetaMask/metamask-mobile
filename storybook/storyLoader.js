@@ -15,7 +15,7 @@ function loadStories() {
   require('../app/component-library/components/Link/Link.stories');
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
-  require('../app/components/UI/FaviconAvatar/FaviconAvatar.stories');
+  require('../app/component-library/components/FaviconAvatar/FaviconAvatar.stories');
 }
 
 const stories = [
@@ -30,7 +30,7 @@ const stories = [
   '../app/component-library/components/Link/Link.stories',
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
-  '../app/components/UI/FaviconAvatar/FaviconAvatar.stories',
+  '../app/component-library/components/FaviconAvatar/FaviconAvatar.stories',
 ];
 
 module.exports = {
