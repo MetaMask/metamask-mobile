@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import StyledButton from '../StyledButton';
 import ActionModal from '../ActionModal';
@@ -7,13 +7,13 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 
 interface ISettingsButtonSectionProps {
   sectionTitle: string;
-  sectionDescription: string;
   sectionButtonText: string;
   modalTitleText: string;
   modalDescriptionText: string;
   modalConfirmButtonText: string;
   modalCancelButtonText: string;
   modalOnConfirm: () => null;
+  descriptionText: ReactNode;
 }
 
 const createStyles = (colors: any) =>
@@ -63,13 +63,13 @@ const createStyles = (colors: any) =>
 
 const SettingsButtonSection = ({
   sectionTitle,
-  sectionDescription,
   sectionButtonText,
   modalTitleText,
   modalDescriptionText,
   modalConfirmButtonText,
   modalCancelButtonText,
   modalOnConfirm,
+  descriptionText,
 }: ISettingsButtonSectionProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
@@ -81,7 +81,7 @@ const SettingsButtonSection = ({
     <>
       <View style={styles.setting}>
         <Text style={styles.title}>{sectionTitle}</Text>
-        <Text style={styles.desc}>{sectionDescription}</Text>
+        <Text style={styles.desc}>{descriptionText}</Text>
         <StyledButton
           type="normal"
           onPress={updateShowModalState}
