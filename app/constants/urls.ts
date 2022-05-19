@@ -8,6 +8,9 @@ export const KEEP_SRP_SAFE_URL =
 export const LEARN_MORE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
 
+// Policies
+export const CONSENSYS_PRIVACY_POLICY = '';
+
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
