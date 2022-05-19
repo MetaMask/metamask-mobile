@@ -86,6 +86,14 @@ const CheckoutWebView = () => {
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (navState?.url.startsWith(callbackBaseUrl)) {
       try {
+        const parsedUrl = parseUrl(navState?.url);
+        if (Object.keys(parsedUrl.query).length === 0) {
+          // There was no query params in the URL to parse
+          // Most likely the user clicked the X in Wyre widget
+          // @ts-expect-error navigation prop mismatch
+          navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
         const orders = await SDK.orders();
         const orderId = await orders.getOrderIdFromCallback(
           params?.provider.id,
@@ -93,15 +101,6 @@ const CheckoutWebView = () => {
         );
 
         if (!orderId) {
-          const parsedUrl = parseUrl(navState?.url);
-          if (Object.keys(parsedUrl.query).length === 0) {
-            // There was no query params in the URL to parse
-            // Most likely the user clicked the X in Wyre widget
-            // @ts-expect-error navigation prop mismatch
-            navigation.dangerouslyGetParent()?.pop();
-            return;
-          }
-
           throw new Error(
             `Order ID could not be retrieved. Callback was ${navState?.url}`,
           );
