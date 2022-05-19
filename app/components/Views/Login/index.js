@@ -535,7 +535,7 @@ class Login extends PureComponent {
           value={this.state.rememberMe}
           style={styles.biometrySwitch}
           trackColor={{
-            true: colors.primary.defauslt,
+            true: colors.primary.default,
             false: colors.border.muted,
           }}
           thumbColor={importedColors.white}
