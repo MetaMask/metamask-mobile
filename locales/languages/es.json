@@ -599,13 +599,13 @@
     "done": "Hecho",
     "confirm": "Siguiente",
     "seed_phrase_explanation": [
-      "La ",
+      "La",
       "Frase secreta de recuperación (SRP)",
-      " otorga ",
+      "otorga",
       "acceso completo a su billetera, fondos y cuentas.\n\n",
-      "MetaMask es una ",
+      "MetaMask es una",
       "billetera no custodiada",
-      ". Eso significa que, ",
+      "Eso significa que,",
       "usted es el dueño de su SRP."
     ],
     "private_key_explanation": "Guárdela en un lugar seguro y secreto.",

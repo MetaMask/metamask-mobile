@@ -599,13 +599,13 @@
     "done": "Fertig",
     "confirm": "Weiter",
     "seed_phrase_explanation": [
-      "Die ",
+      "Die",
       "Geheime Wiederherstellungsphrase (Englisch: Secret Recovery Phrase, SRP)",
-      " gibt ",
+      "gibt",
       "vollen Zugriff auf Ihr Wallet, Ihr Guthaben und Ihre Konten.\n\n",
-      "MetaMask ist ein ",
+      "MetaMask ist ein",
       "verwaltungsloses Wallet",
-      ". Das bedeutet, ",
+      ". Das bedeutet,",
       "dass Sie der Besitzer Ihrer SRP sind."
     ],
     "private_key_explanation": "Speichern Sie diese an einem sicheren und geheimen Ort.",
