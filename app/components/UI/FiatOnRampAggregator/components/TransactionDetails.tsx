@@ -81,6 +81,9 @@ const createStyles = (colors: any) =>
       alignSelf: 'center',
       paddingTop: 15,
     },
+    flexZero: {
+      flex: 0,
+    },
   });
 
 interface PropsStage {
@@ -265,11 +268,11 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.id')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount style={styles.transactionIdFlex}>
-              <Text small bold primary right>
+            <ListItem.Amounts style={styles.transactionIdFlex}>
+              <Text small bold primary right selectable>
                 {orderData?.providerOrderId}
               </Text>
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
@@ -277,11 +280,11 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.date_and_time')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts>
               <Text small bold primary>
                 {date}
               </Text>
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           {orderData?.paymentMethod?.name && (
             <ListItem.Content style={styles.listItems}>
@@ -292,11 +295,11 @@ const TransactionDetails: React.FC<Props> = ({
                   )}
                 </Text>
               </ListItem.Body>
-              <ListItem.Amount>
+              <ListItem.Amounts>
                 <Text small bold primary>
                   {orderData?.paymentMethod?.name}
                 </Text>
-              </ListItem.Amount>
+              </ListItem.Amounts>
             </ListItem.Content>
           )}
           {order.provider && orderData?.paymentMethod?.name && (
@@ -311,7 +314,7 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.token_amount')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts>
               {cryptoAmount && orderData?.cryptoCurrency?.decimals ? (
                 <Text small bold primary>
                   {renderFromTokenMinimalUnit(
@@ -326,7 +329,7 @@ const TransactionDetails: React.FC<Props> = ({
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           <ListItem.Content style={styles.seperationBottom}>
             <ListItem.Body>
@@ -334,7 +337,7 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.exchange_rate')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts style={styles.flexZero}>
               {order.cryptocurrency &&
               isFinite(exchangeRate) &&
               currency &&
@@ -350,7 +353,7 @@ const TransactionDetails: React.FC<Props> = ({
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
 
           <ListItem.Content style={styles.listItems}>
@@ -360,7 +363,7 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.amount')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts>
               {orderData?.fiatCurrency?.decimals && amountOut && currency ? (
                 <Text small bold primary>
                   {currencySymbol}
@@ -373,7 +376,7 @@ const TransactionDetails: React.FC<Props> = ({
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
@@ -381,7 +384,7 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.total_fees')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts>
               {cryptoFee && currency && orderData?.fiatCurrency?.decimals ? (
                 <Text small bold primary>
                   {currencySymbol}
@@ -394,7 +397,7 @@ const TransactionDetails: React.FC<Props> = ({
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
         </View>
 
@@ -406,7 +409,7 @@ const TransactionDetails: React.FC<Props> = ({
               {strings('fiat_on_ramp_aggregator.transaction.purchase_amount')}
             </Text>
           </ListItem.Body>
-          <ListItem.Amount>
+          <ListItem.Amounts>
             {currencySymbol &&
             amount &&
             currency &&
@@ -422,7 +425,7 @@ const TransactionDetails: React.FC<Props> = ({
             ) : (
               <Text>...</Text>
             )}
-          </ListItem.Amount>
+          </ListItem.Amounts>
         </ListItem.Content>
         {order.state === OrderStatusEnum.Completed && txHash && (
           <TouchableOpacity
