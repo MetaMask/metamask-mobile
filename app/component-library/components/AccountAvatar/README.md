@@ -1,22 +1,22 @@
 # AccountAvatar
 
-AccountAvatar is a component that renders an avatar based on the users account address. This component is based on the [BaseAvatar](../BaseAvatar) component.
+AccountAvatar is a component that renders an avatar based on the users account address. This component is based on the [BaseAvatar](../BaseAvatar/BaseAvatar.tsx) component.
 
 ## Props
 
-This component extends `BaseAvatarProps` from [BaseAvatar](../BaseAvatar) component 
+This component extends [BaseAvatarProps](../BaseAvatar/BaseAvatar.types.ts#L17) from `BaseAvatar` component.
 
 ### `size`
 
 Enum to select between size variants.
 
-| <span style="color:gray;font-size:14px">TYPE</span>   | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :---------------------------------------------------- | :------------------------------------------------------ |
-| [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6)| Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6) | Yes                                                     |
 
 ### `type`
 
-Enum to select the avatar type between `JazzIcon` and `Blockies`
+Enum to select the avatar type between `JazzIcon` and `Blockies`.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -24,7 +24,7 @@ Enum to select the avatar type between `JazzIcon` and `Blockies`
 
 ### `accountAddress`
 
-String property that takes the wallet address, a 42 character string.
+An Ethereum wallet address.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |

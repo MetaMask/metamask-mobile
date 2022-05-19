@@ -1,12 +1,8 @@
 import React from 'react';
-
 import { storiesOf } from '@storybook/react-native';
 import { text, select } from '@storybook/addon-knobs';
-
 import { BaseAvatarSize } from '../BaseAvatar';
-
-import AccountAvatar from './AccountAvatar';
-import { AccountAvatarType } from '.';
+import AccountAvatar, { AccountAvatarType } from '.';
 
 storiesOf(' Component Library / AccountAvatar', module)
   .addDecorator((getStory) => getStory())

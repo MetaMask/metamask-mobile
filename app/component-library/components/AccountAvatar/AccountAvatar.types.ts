@@ -1,17 +1,23 @@
 import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
 
+/**
+ * AccountAvatar variants.
+ */
 export enum AccountAvatarType {
   JazzIcon = 'JazzIcon',
   Blockies = 'Blockies',
 }
 
+/**
+ * AccountAvatar component props.
+ */
 export interface AccountAvatarProps extends BaseAvatarProps {
   /**
-   * type: Account Avatar can be JazzIcon or Blockies
+   * Enum to select the avatar type between `JazzIcon` and `Blockies`.
    */
   type: AccountAvatarType;
   /**
-   * The accountAddress prop takes an 42 character address and uses it either render a blockie or jazzicon.
+   * An Ethereum wallet address.
    */
   accountAddress: string;
 }
