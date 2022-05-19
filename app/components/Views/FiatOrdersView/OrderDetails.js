@@ -53,7 +53,7 @@ function OrderDetails({ order: { ...order }, closeModal }) {
               {strings('fiat_on_ramp.from')}
             </DetailsModal.SectionTitle>
             <Text small primary>
-              {getProviderName(order.provider)}
+              {getProviderName(order.provider, order.data)}
             </Text>
           </DetailsModal.Column>
           <DetailsModal.Column end>
