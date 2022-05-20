@@ -8,6 +8,7 @@ import Minimizer from 'react-native-minimizer';
 import Engine from './Engine';
 import { WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WalletDevice } from '@metamask/controllers';
+import BackgroundTimer from 'react-native-background-timer';
 
 import {
   RTCPeerConnection,
@@ -82,6 +83,10 @@ class Connection {
     });
 
     this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
+      BackgroundTimer.runBackgroundTimer(() => {
+        this.sendMessage('ping');
+      }, 3000);
+
       this.backgroundBridge = new BackgroundBridge({
         webview: null,
         url: originatorInfo?.url,
