@@ -364,6 +364,8 @@ class SendFlow extends PureComponent {
    * @returns
    */
   getAddressNameFromBookOrIdentities = (toSelectedAddress) => {
+    if (!toSelectedAddress) return;
+
     const { addressBook, network, identities } = this.props;
     const networkAddressBook = addressBook[network] || {};
 
@@ -493,6 +495,7 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toSelectedAddress) => {
+    //undefined
     const addressName =
       this.getAddressNameFromBookOrIdentities(toSelectedAddress);
 
@@ -508,7 +511,7 @@ class SendFlow extends PureComponent {
         toSelectedAddressName: addressName,
       });
     } else {
-      this.validateAddressOrENSFromInput(toSelectedAddress);
+      this.validateAddressOrENSFromInput(toSelectedAddress); //undefined
       /**
        * Because validateAddressOrENSFromInput is asynchronous function
        * we are setting the state here synchronously, so it does not block the UI
