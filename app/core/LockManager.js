@@ -1,7 +1,7 @@
 import { AppState } from 'react-native';
-import SecureKeychain from './SecureKeychain';
-import BackgroundTimer from 'react-native-background-timer';
-import Engine from '../core/Engine';
+//import SecureKeychain from './SecureKeychain';
+//import BackgroundTimer from 'react-native-background-timer';
+//import Engine from '../core/Engine';
 import Logger from '../util/Logger';
 
 export default class LockManager {
@@ -17,6 +17,7 @@ export default class LockManager {
   }
 
   handleAppStateChange = async (nextAppState) => {
+    /*
     // Don't auto-lock
     if (this.lockTime === -1) {
       return;
@@ -43,6 +44,7 @@ export default class LockManager {
     }
 
     this.appState = nextAppState;
+    */
   };
 
   setLockedError = (error) => {
@@ -55,19 +57,19 @@ export default class LockManager {
   };
 
   lockApp = async () => {
-    if (!SecureKeychain.getInstance().isAuthenticating) {
+    /*    if (!SecureKeychain.getInstance().isAuthenticating) {
       const { KeyringController } = Engine.context;
       try {
         // await SecureKeychain.resetGenericPassword();
-        await KeyringController.setLocked();
-        this.gotoLockScreen();
+        // await KeyringController.setLocked();
+        // this.gotoLockScreen();
       } catch (e) {
-        this.setLockedError(e);
+        // this.setLockedError(e);
       }
     } else if (this.lockTimer) {
       BackgroundTimer.clearTimeout(this.lockTimer);
       this.lockTimer = null;
-    }
+    }*/
   };
 
   stopListening() {
