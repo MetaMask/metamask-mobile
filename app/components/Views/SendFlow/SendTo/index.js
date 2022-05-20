@@ -495,7 +495,6 @@ class SendFlow extends PureComponent {
   };
 
   onToSelectedAddressChange = (toSelectedAddress) => {
-    //undefined
     const addressName =
       this.getAddressNameFromBookOrIdentities(toSelectedAddress);
 
@@ -511,7 +510,7 @@ class SendFlow extends PureComponent {
         toSelectedAddressName: addressName,
       });
     } else {
-      this.validateAddressOrENSFromInput(toSelectedAddress); //undefined
+      this.validateAddressOrENSFromInput(toSelectedAddress);
       /**
        * Because validateAddressOrENSFromInput is asynchronous function
        * we are setting the state here synchronously, so it does not block the UI
