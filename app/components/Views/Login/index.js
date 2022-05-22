@@ -27,8 +27,6 @@ import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
-import DeleteWalletConfirmationModal from '../../UI/DeleteWalletConfirmationModal';
-import DeleteWalletWarningModal from '../../UI/DeleteWalletWarningModal';
 import { recreateVaultWithSamePassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import {
@@ -39,10 +37,11 @@ import {
   ORIGINAL,
   EXISTING_USER,
 } from '../../../constants/storage';
+import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { tlc, toLowerCaseEquals } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -189,13 +188,11 @@ const createStyles = (colors) =>
     },
   });
 
-const DELETE = 'delete';
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
-const isTextDelete = (text) => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -424,67 +421,11 @@ class Login extends PureComponent {
     this.onLogin();
   };
 
-  delete = async () => {
-    const { KeyringController } = Engine.context;
-    try {
-      await Engine.resetState();
-      await KeyringController.createNewVaultAndKeychain(`${Date.now()}`);
-      await KeyringController.setLocked();
-      this.deleteExistingUser();
-    } catch (error) {
-      Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);
-    }
-  };
-
-  deleteExistingUser = async () => {
-    try {
-      await AsyncStorage.removeItem(EXISTING_USER);
-      // We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
-      this.props.navigation?.reset({
-        routes: [
-          {
-            name: 'OnboardingRootNav',
-            state: {
-              routes: [
-                {
-                  name: 'OnboardingNav',
-                  params: { screen: 'Onboarding', params: { delete: true } },
-                },
-              ],
-            },
-          },
-        ],
-      });
-    } catch (error) {
-      Logger.log(
-        error,
-        `Failed to remove key: ${EXISTING_USER} from AsyncStorage`,
-      );
-    }
-  };
-
-  toggleWarningModal = () =>
-    this.setState((state) => ({
-      warningModalVisible: !state.warningModalVisible,
-    }));
-
-  toggleDeleteModal = () =>
-    this.setState((state) => ({
-      deleteModalVisible: !state.deleteModalVisible,
-    }));
-
-  checkDelete = (text) => {
-    this.setState({
-      deleteText: text,
-      showDeleteWarning: false,
-      disableDelete: !isTextDelete(text),
+  toggleWarningModal = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.DELETE_WALLET, {
+      navigateOnboardingRoot: this.navigateOnboardingRoot,
     });
-  };
-
-  submitDelete = () => {
-    const { deleteText } = this.state;
-    this.setState({ showDeleteWarning: !isTextDelete(deleteText) });
-    if (isTextDelete(deleteText)) this.delete();
   };
 
   updateBiometryChoice = async (biometryChoice) => {
@@ -581,19 +522,6 @@ class Login extends PureComponent {
 
     return (
       <ErrorBoundary view="Login">
-        <DeleteWalletWarningModal
-          modalVisible={this.state.warningModalVisible}
-          onCancelPress={this.onCancelPress}
-          onRequestClose={this.toggleWarningModal}
-          onConfirmPress={this.toggleWarningModal}
-        />
-        <DeleteWalletConfirmationModal
-          modalVisible={this.state.deleteModalVisible}
-          showDeleteWarning={this.state.showDeleteWarning}
-          onCancelPress={this.submitDelete}
-          onRequestClose={this.toggleDeleteModal}
-          onConfirmPress={this.toggleDeleteModal}
-        />
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}
