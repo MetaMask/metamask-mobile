@@ -7,6 +7,10 @@ const breakPoint = Device.getDeviceHeight() < 700;
 
 export const createStyles = (colors: any) =>
   StyleSheet.create({
+    bottomModal: {
+      justifyContent: 'flex-end',
+      margin: 0,
+    },
     areYouSure: {
       width: '100%',
       padding: breakPoint ? 16 : 24,
@@ -40,5 +44,21 @@ export const createStyles = (colors: any) =>
     },
     bold: {
       ...fontStyles.bold,
+    },
+    delete: {
+      marginBottom: 20,
+    },
+    input: {
+      ...fontStyles.normal,
+      fontSize: 16,
+      paddingTop: 2,
+      color: colors.text.default,
+    },
+    deleteWarningMsg: {
+      ...fontStyles.normal,
+      fontSize: 16,
+      lineHeight: 20,
+      marginTop: 10,
+      color: colors.error.default,
     },
   });
