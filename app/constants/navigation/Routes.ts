@@ -13,6 +13,12 @@ const Routes = {
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
   },
+  MODAL: {
+    DELETE_WALLET: 'DeleteWalletModal',
+  },
+  ONBOARDING: {
+    ROOT: 'Onboarding',
+  },
 };
 
 export default Routes;
