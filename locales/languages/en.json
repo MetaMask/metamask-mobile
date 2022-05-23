@@ -599,13 +599,13 @@
     "done": "Done",
     "confirm": "Next",
     "seed_phrase_explanation": [
-      "The ",
+      "The",
       "Secret Recovery Phrase (SRP)",
-      " gives ",
+      "gives",
       "full access to your wallet, funds and accounts.\n\n",
-      "MetaMask is a ",
-      "non-custodial wallet",
-      ". That means, ",
+      "MetaMask is a",
+      "non-custodial wallet.",
+      "That means,",
       "you are the owner of your SRP."
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
