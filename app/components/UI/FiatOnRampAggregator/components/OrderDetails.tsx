@@ -111,14 +111,14 @@ const Stage: React.FC<PropsStage> = ({
             color={colors.success.default}
           />
           <Text bold big primary centered style={styles.stageDescription}>
-            {strings('fiat_on_ramp_aggregator.transaction.successful')}
+            {strings('fiat_on_ramp_aggregator.order_details.successful')}
           </Text>
           <Text small centered style={styles.stageMessage}>
-            {strings('fiat_on_ramp_aggregator.transaction.your')}{' '}
+            {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
             {cryptocurrency ||
-              strings('fiat_on_ramp_aggregator.transaction.crypto')}{' '}
+              strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
             {strings(
-              'fiat_on_ramp_aggregator.transaction.available_in_account',
+              'fiat_on_ramp_aggregator.order_details.available_in_account',
             )}
           </Text>
         </>
@@ -131,15 +131,18 @@ const Stage: React.FC<PropsStage> = ({
           <Image source={failedIcon} />
           <Text bold big primary centered style={styles.stageDescription}>
             {stage === 'FAILED'
-              ? strings('fiat_on_ramp_aggregator.transaction.failed')
+              ? strings('fiat_on_ramp_aggregator.order_details.failed')
               : 'fiat_on_ramp.cancelled'}
           </Text>
           <Text small centered style={styles.stageMessage}>
-            {strings('fiat_on_ramp_aggregator.transaction.failed_description', {
-              provider:
-                providerName ||
-                strings('fiat_on_ramp_aggregator.transaction.the_provider'),
-            })}
+            {strings(
+              'fiat_on_ramp_aggregator.order_details.failed_description',
+              {
+                provider:
+                  providerName ||
+                  strings('fiat_on_ramp_aggregator.order_details.the_provider'),
+              },
+            )}
           </Text>
         </>
       );
@@ -152,19 +155,19 @@ const Stage: React.FC<PropsStage> = ({
           <Spinner />
           <Text bold big primary centered style={styles.stageDescription}>
             {stage === 'PENDING'
-              ? strings('fiat_on_ramp_aggregator.transaction.processing')
+              ? strings('fiat_on_ramp_aggregator.order_details.processing')
               : strings('transaction.submitted')}
           </Text>
           {!paymentType?.includes('Credit') ? (
             <Text small centered style={styles.stageMessage}>
               {strings(
-                'fiat_on_ramp_aggregator.transaction.processing_bank_description',
+                'fiat_on_ramp_aggregator.order_details.processing_bank_description',
               )}
             </Text>
           ) : (
             <Text small centered style={styles.stageMessage}>
               {strings(
-                'fiat_on_ramp_aggregator.transaction.processing_card_description',
+                'fiat_on_ramp_aggregator.order_details.processing_card_description',
               )}
             </Text>
           )}
@@ -189,7 +192,7 @@ interface Props {
   frequentRpcList: any;
 }
 
-const TransactionDetails: React.FC<Props> = ({
+const OrderDetails: React.FC<Props> = ({
   order,
   provider,
   frequentRpcList,
@@ -259,13 +262,13 @@ const TransactionDetails: React.FC<Props> = ({
       )}
       <Box>
         <Text bold primary style={styles.transactionTitle}>
-          {strings('fiat_on_ramp_aggregator.transaction.details')}
+          {strings('fiat_on_ramp_aggregator.order_details.details')}
         </Text>
         <View>
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body style={styles.transactionIdFlex}>
               <Text black small>
-                {strings('fiat_on_ramp_aggregator.transaction.id')}
+                {strings('fiat_on_ramp_aggregator.order_details.id')}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts style={styles.transactionIdFlex}>
@@ -277,7 +280,7 @@ const TransactionDetails: React.FC<Props> = ({
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
               <Text black small>
-                {strings('fiat_on_ramp_aggregator.transaction.date_and_time')}
+                {strings('fiat_on_ramp_aggregator.order_details.date_and_time')}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts>
@@ -291,7 +294,7 @@ const TransactionDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.transaction.payment_method',
+                    'fiat_on_ramp_aggregator.order_details.payment_method',
                   )}
                 </Text>
               </ListItem.Body>
@@ -304,14 +307,14 @@ const TransactionDetails: React.FC<Props> = ({
           )}
           {order.provider && orderData?.paymentMethod?.name && (
             <Text small style={styles.provider}>
-              {strings('fiat_on_ramp_aggregator.transaction.via')}{' '}
+              {strings('fiat_on_ramp_aggregator.order_details.via')}{' '}
               {providerName}
             </Text>
           )}
           <ListItem.Content style={styles.seperationTop}>
             <ListItem.Body>
               <Text black small>
-                {strings('fiat_on_ramp_aggregator.transaction.token_amount')}
+                {strings('fiat_on_ramp_aggregator.order_details.token_amount')}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts>
@@ -334,7 +337,7 @@ const TransactionDetails: React.FC<Props> = ({
           <ListItem.Content style={styles.seperationBottom}>
             <ListItem.Body>
               <Text black small>
-                {strings('fiat_on_ramp_aggregator.transaction.exchange_rate')}
+                {strings('fiat_on_ramp_aggregator.order_details.exchange_rate')}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts style={styles.flexZero}>
@@ -360,7 +363,7 @@ const TransactionDetails: React.FC<Props> = ({
             <ListItem.Body>
               <Text black small>
                 {currency}{' '}
-                {strings('fiat_on_ramp_aggregator.transaction.amount')}
+                {strings('fiat_on_ramp_aggregator.order_details.amount')}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts>
@@ -381,7 +384,7 @@ const TransactionDetails: React.FC<Props> = ({
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
               <Text black small>
-                {strings('fiat_on_ramp_aggregator.transaction.total_fees')}
+                {strings('fiat_on_ramp_aggregator.order_details.total_fees')}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts>
@@ -406,7 +409,7 @@ const TransactionDetails: React.FC<Props> = ({
         <ListItem.Content style={styles.listItems}>
           <ListItem.Body>
             <Text black small>
-              {strings('fiat_on_ramp_aggregator.transaction.purchase_amount')}
+              {strings('fiat_on_ramp_aggregator.order_details.purchase_amount')}
             </Text>
           </ListItem.Body>
           <ListItem.Amounts>
@@ -432,11 +435,11 @@ const TransactionDetails: React.FC<Props> = ({
             onPress={() => handleLinkPress(explorer.tx(txHash))}
           >
             <Text blue small centered style={styles.link}>
-              {strings('fiat_on_ramp_aggregator.transaction.etherscan')}{' '}
+              {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
               {explorer.isValid
                 ? explorer.name
                 : strings(
-                    'fiat_on_ramp_aggregator.transaction.a_block_explorer',
+                    'fiat_on_ramp_aggregator.order_details.a_block_explorer',
                   )}
             </Text>
           </TouchableOpacity>
@@ -445,16 +448,16 @@ const TransactionDetails: React.FC<Props> = ({
       {orderData?.providerOrderLink && (
         <View style={styles.contactDesc}>
           <Text small>
-            {strings('fiat_on_ramp_aggregator.transaction.questions')}{' '}
+            {strings('fiat_on_ramp_aggregator.order_details.questions')}{' '}
           </Text>
           <TouchableOpacity
             onPress={() => handleLinkPress(orderData?.providerOrderLink)}
           >
             {order.provider && data && (
               <Text small underline>
-                {strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
+                {strings('fiat_on_ramp_aggregator.order_details.contact')}{' '}
                 {providerName}{' '}
-                {strings('fiat_on_ramp_aggregator.transaction.support')}
+                {strings('fiat_on_ramp_aggregator.order_details.support')}
               </Text>
             )}
           </TouchableOpacity>
@@ -464,4 +467,4 @@ const TransactionDetails: React.FC<Props> = ({
   );
 };
 
-export default TransactionDetails;
+export default OrderDetails;
