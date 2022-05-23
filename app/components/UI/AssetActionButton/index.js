@@ -127,7 +127,7 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
       </View>
       <Text centered style={styles.buttonText} numberOfLines={1}>
         {label.size > maxStringLength
-          ? `${label[(0, maxStringLength - 3)]}...`
+          ? `${label.substring(0, maxStringLength - 3)}...`
           : label}
       </Text>
     </TouchableOpacity>
