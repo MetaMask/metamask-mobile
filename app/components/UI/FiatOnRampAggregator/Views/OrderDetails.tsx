@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../../StyledButton';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import TransactionDetail from '../components/TransactionDetails';
+import OrderDetail from '../components/OrderDetails';
 import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
 import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
@@ -44,7 +44,7 @@ const OrderDetails = () => {
       getFiatOnRampAggNavbar(
         navigation,
         {
-          title: strings('fiat_on_ramp_aggregator.transaction.details_main'),
+          title: strings('fiat_on_ramp_aggregator.order_details.details_main'),
           showBack: false,
         },
         colors,
@@ -82,7 +82,7 @@ const OrderDetails = () => {
         </ScreenLayout.Header>
         <ScreenLayout.Body>
           <ScreenLayout.Content style={styles.screenLayout}>
-            <TransactionDetail
+            <OrderDetail
               order={order}
               provider={provider}
               frequentRpcList={frequentRpcList}
@@ -94,7 +94,7 @@ const OrderDetails = () => {
             <View>
               <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
                 {strings(
-                  'fiat_on_ramp_aggregator.transaction.another_purchase',
+                  'fiat_on_ramp_aggregator.order_details.another_purchase',
                 )}
               </StyledButton>
             </View>
