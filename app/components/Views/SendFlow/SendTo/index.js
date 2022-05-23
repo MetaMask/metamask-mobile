@@ -407,7 +407,7 @@ class SendFlow extends PureComponent {
         !identities[checksummedToSelectedAddress]
       ) {
         toAddressName = toSelectedAddress;
-        // If not in address book nor user accounts
+        // If not in the addressBook nor user accounts
         addToAddressToAddressBook = true;
       }
 
