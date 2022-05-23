@@ -32,7 +32,6 @@ const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
     useFiatOnRampSDK();
   const dispatch = useDispatch();
-  const { selectedAddress, selectedChainId, sdkError } = useFiatOnRampSDK();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
