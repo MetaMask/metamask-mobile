@@ -360,8 +360,8 @@ class SendFlow extends PureComponent {
   };
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
-   * @param {*} toSelectedAddress - Represents the value of what user writes on toAddress input
-   * @returns
+   * @param {String} toSelectedAddress - Represents the value of what user writes on toAddress input
+   * @returns {string | null} - String cointaining the address or null if it's not on the address book or identities
    */
   getAddressNameFromBookOrIdentities = (toSelectedAddress) => {
     if (!toSelectedAddress) return;
@@ -369,21 +369,13 @@ class SendFlow extends PureComponent {
     const { addressBook, network, identities } = this.props;
     const networkAddressBook = addressBook[network] || {};
 
-    const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
+    const checksummedAddress = toChecksumAddress(toSelectedAddress);
 
-    if (
-      networkAddressBook[checksummedToSelectedAddress] ||
-      identities[checksummedToSelectedAddress]
-    ) {
-      return (
-        (networkAddressBook[checksummedToSelectedAddress] &&
-          networkAddressBook[checksummedToSelectedAddress].name) ||
-        (identities[checksummedToSelectedAddress] &&
-          identities[checksummedToSelectedAddress].name)
-      );
-    }
-
-    return null;
+    return networkAddressBook[checksummedAddress]
+      ? networkAddressBook[checksummedAddress].name
+      : identities[checksummedAddress]
+      ? identities[checksummedAddress].name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toSelectedAddress) => {
