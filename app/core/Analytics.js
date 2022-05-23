@@ -115,26 +115,31 @@ class Analytics {
     }
   }
 
-  async _createDataDeletionTask(userId, compliance) {
-    const action = 'data-retrieval';
-    const mockToken = '';
-    const endpoint = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/?token=<${mockToken}>`;
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          distinct_ids: [userId],
-          compliance_type: compliance,
-        }),
-      });
-      // eslint-disable-next-line no-console
-      console.log(response);
-    } catch {
-      return false;
+  async _createDataDeletionTask(compliance) {
+    const distinctId = await this.getDistinctId();
+    if (!__DEV__) {
+      const action = 'data-retrieval';
+      const token = process.env.MM_MIXPANEL_TOKEN;
+      const endpoint = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/?token=<${token}>`;
+      try {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            distinct_ids: [distinctId],
+            compliance_type: compliance,
+          }),
+        });
+      } catch {
+        return false;
+      }
+    } else {
+      Logger.log(
+        `Analytics Deletion Task Created for ${distinctId} following ${compliance}`,
+      );
     }
   }
 
@@ -339,8 +344,13 @@ class Analytics {
     });
   };
 
-  createDataDeletionTask(mixpanelUserId, compliance = 'GDPR') {
-    this._createDataDeletionTask(mixpanelUserId, compliance);
+  /**
+   * Creates a deletion task to delete all data, including events and user profile data, for the user specified by mixpanelUserId
+   *
+   * @param {string} compliance - CCPA or GDPR compliance
+   */
+  createDataDeletionTask(compliance = 'GDPR') {
+    this._createDataDeletionTask(compliance);
   }
 }
 

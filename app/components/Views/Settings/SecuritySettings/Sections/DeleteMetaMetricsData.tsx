@@ -1,5 +1,6 @@
 import React from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import Analytics from '../../../../../core/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,7 +29,7 @@ const DeleteMetaMetricsData = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const deleteMetaMetrics = () => null;
+  const deleteMetaMetrics = async () => Analytics.createDataDeletionTask();
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
