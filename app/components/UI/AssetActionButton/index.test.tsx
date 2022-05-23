@@ -13,9 +13,9 @@ describe('AssetActionButtons', () => {
     expect(wrapper).toMatchSnapshot();
   });
   it('should render type receive correctly', () => {
-    const wrapper = shallow(
-      <AssetActionButton icon="receive" label={mockText} />,
-    );
+    // String with more than 10 characters
+    const text = 'receive receive';
+    const wrapper = shallow(<AssetActionButton icon="receive" label={text} />);
     expect(wrapper).toMatchSnapshot();
   });
   it('should render type add correctly', () => {
