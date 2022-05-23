@@ -236,7 +236,9 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     async function checkExsiting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      const route = !existingUser ? 'OnboardingRootNav' : 'Login';
+      const route = !existingUser
+        ? Routes.ONBOARDING.ROOT_NAV
+        : Routes.ONBOARDING.LOGIN_FLOW;
       setRoute(route);
       if (!existingUser) {
         triggerCheckedAuth();
@@ -320,24 +322,24 @@ const App = ({ userLoggedIn }) => {
   };
 
   const LoginFlow = () => (
-    <Stack.Navigator route={route} initialRouteName={route}>
+    <Stack.Navigator
+      initialRouteName={Routes.ONBOARDING.LOGIN_FLOW}
+      mode={'modal'}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: importedColors.transparent },
+      }}
+    >
       <Stack.Screen
-        name="Login"
+        name={Routes.ONBOARDING.LOGIN}
         component={Login}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="OnboardingRootNav"
-        component={OnboardingRootNav}
-        options={{ headerShown: false }}
+        name={Routes.MODAL.DELETE_WALLET}
+        component={DeleteWalletModal}
+        options={{ animationEnabled: false }}
       />
-      {userLoggedIn && (
-        <Stack.Screen
-          name="HomeNav"
-          component={Main}
-          options={{ headerShown: false }}
-        />
-      )}
     </Stack.Navigator>
   );
 
@@ -355,20 +357,24 @@ const App = ({ userLoggedIn }) => {
             triggerSetCurrentRoute(currentRoute);
           }}
         >
-          <Stack.Navigator
-            initialRouteName={'LoginFlow'}
-            mode={'modal'}
-            screenOptions={{
-              headerShown: false,
-              cardStyle: { backgroundColor: importedColors.transparent },
-            }}
-          >
-            <Stack.Screen name={'LoginFlow'} component={LoginFlow} />
+          <Stack.Navigator route={route} initialRouteName={route}>
             <Stack.Screen
-              name={Routes.MODAL.DELETE_WALLET}
-              component={DeleteWalletModal}
-              options={{ animationEnabled: false }}
+              name={Routes.ONBOARDING.LOGIN_FLOW}
+              component={LoginFlow}
+              options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="OnboardingRootNav"
+              component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
+            {userLoggedIn && (
+              <Stack.Screen
+                name="HomeNav"
+                component={Main}
+                options={{ headerShown: false }}
+              />
+            )}
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}
