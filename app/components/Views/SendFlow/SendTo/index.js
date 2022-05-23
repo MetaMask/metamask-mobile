@@ -492,7 +492,7 @@ class SendFlow extends PureComponent {
 
     /**
      * If the address is from addressBook or identities
-     * we do not need to validate since it was already validated before
+     * then validation is not necessary since it was already validated
      */
     if (addressName) {
       this.setState({
