@@ -738,7 +738,7 @@ class DrawerView extends PureComponent {
   };
 
   logOut = () => {
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN_FLOW);
     this.props.logOut();
   };
 

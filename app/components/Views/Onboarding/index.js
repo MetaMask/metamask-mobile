@@ -45,6 +45,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
+import Routes from '../../../constants/navigation/Routes';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -266,7 +267,7 @@ class Onboarding extends PureComponent {
   }
 
   logOut = () => {
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN_FLOW);
     this.props.logOut();
   };
 

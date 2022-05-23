@@ -17,7 +17,10 @@ const Routes = {
     DELETE_WALLET: 'DeleteWalletModal',
   },
   ONBOARDING: {
-    ROOT: 'Onboarding',
+    ROOT_NAV: 'OnboardingRootNav',
+    ONBOARDING: 'Onboarding',
+    LOGIN: 'Login',
+    LOGIN_FLOW: 'LoginFlow',
   },
 };
 
