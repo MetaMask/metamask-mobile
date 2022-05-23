@@ -16,7 +16,6 @@ import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import {
-  callbackBaseUrl,
   processAggregatorOrder,
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
@@ -28,7 +27,8 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { strings } from '../../../../../locales/i18n';
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId, sdkError } = useFiatOnRampSDK();
+  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
+    useFiatOnRampSDK();
   const dispatch = useDispatch();
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
@@ -86,16 +86,31 @@ const CheckoutWebView = () => {
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (navState?.url.startsWith(callbackBaseUrl)) {
       try {
+        const parsedUrl = parseUrl(navState?.url);
+        if (Object.keys(parsedUrl.query).length === 0) {
+          // There was no query params in the URL to parse
+          // Most likely the user clicked the X in Wyre widget
+          // @ts-expect-error navigation prop mismatch
+          navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
         const orders = await SDK.orders();
         const orderId = await orders.getOrderIdFromCallback(
           params?.provider.id,
           navState?.url,
         );
+
+        if (!orderId) {
+          throw new Error(
+            `Order ID could not be retrieved. Callback was ${navState?.url}`,
+          );
+        }
+
         const transformedOrder = await processAggregatorOrder(
           aggregatorInitialFiatOrder({
             id: orderId,
             account: selectedAddress,
-            network: Number(selectedChainId),
+            network: selectedChainId,
           }),
         );
         // add the order to the redux global store
@@ -115,13 +130,7 @@ const CheckoutWebView = () => {
           getNotificationDetails(transformedOrder as any),
         );
       } catch (navStateError) {
-        const parsedUrl = parseUrl(navState?.url);
-        if (Object.keys(parsedUrl.query).length === 0) {
-          // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
-        } else {
-          setError((navStateError as Error)?.message);
-        }
+        setError((navStateError as Error)?.message);
       }
     }
   };
@@ -160,7 +169,10 @@ const CheckoutWebView = () => {
           source={{ uri }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            if (nativeEvent.url === uri) {
+            if (
+              nativeEvent.url === uri ||
+              nativeEvent.url.startsWith(callbackBaseUrl)
+            ) {
               const webviewHttpError = strings(
                 'fiat_on_ramp_aggregator.webview_received_error',
                 { code: nativeEvent.statusCode },
