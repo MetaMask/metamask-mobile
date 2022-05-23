@@ -7,7 +7,7 @@ import {
   Linking,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import Box from './Box';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
@@ -22,6 +22,7 @@ import {
 import { getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
+import { FiatOrder } from '../../FiatOrders';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 // TODO: Convert into typescript and correctly type optionals
@@ -79,6 +80,9 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignSelf: 'center',
       paddingTop: 15,
+    },
+    flexZero: {
+      flex: 0,
     },
   });
 
@@ -174,7 +178,7 @@ interface Props {
   /**
    * Object that represents the current route info like params passed to it
    */
-  order: any;
+  order: FiatOrder;
   /**
    * Current Network provider
    */
@@ -215,37 +219,40 @@ const TransactionDetails: React.FC<Props> = ({
       await Linking.openURL(url);
     }
   }, []);
+
+  const orderData = data as Order;
+
   return (
     <View>
       <View style={styles.stage}>
         <Stage
           stage={state}
-          paymentType={data?.paymentMethod?.name}
+          paymentType={orderData?.paymentMethod?.name}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
         />
       </View>
       <Text centered primary style={styles.tokenAmount}>
-        {data?.cryptoCurrency?.decimals &&
+        {orderData?.cryptoCurrency?.decimals &&
         cryptoAmount &&
         cryptoAmount !== 0 &&
         cryptocurrency ? (
           renderFromTokenMinimalUnit(
             toTokenMinimalUnit(
               cryptoAmount,
-              data?.cryptoCurrency?.decimals,
+              orderData?.cryptoCurrency?.decimals,
             ).toString(),
-            data?.cryptoCurrency?.decimals,
+            orderData?.cryptoCurrency?.decimals,
           )
         ) : (
           <Text>...</Text>
         )}{' '}
         {cryptocurrency}
       </Text>
-      {data?.fiatCurrency?.decimals && currencySymbol ? (
+      {orderData?.fiatCurrency?.decimals && currencySymbol ? (
         <Text centered small style={styles.fiatColor}>
           {currencySymbol}
-          {renderFiat(amountOut, currency, data?.fiatCurrency?.decimals)}
+          {renderFiat(amountOut, currency, orderData?.fiatCurrency?.decimals)}
         </Text>
       ) : (
         <Text>...</Text>
@@ -261,11 +268,11 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.id')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount style={styles.transactionIdFlex}>
-              <Text small bold primary right>
-                {data?.providerOrderId}
+            <ListItem.Amounts style={styles.transactionIdFlex}>
+              <Text small bold primary right selectable>
+                {orderData?.providerOrderId}
               </Text>
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
@@ -273,13 +280,13 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.date_and_time')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts>
               <Text small bold primary>
                 {date}
               </Text>
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
-          {data?.paymentMethod?.name && (
+          {orderData?.paymentMethod?.name && (
             <ListItem.Content style={styles.listItems}>
               <ListItem.Body>
                 <Text black small>
@@ -288,14 +295,14 @@ const TransactionDetails: React.FC<Props> = ({
                   )}
                 </Text>
               </ListItem.Body>
-              <ListItem.Amount>
+              <ListItem.Amounts>
                 <Text small bold primary>
-                  {data?.paymentMethod?.name}
+                  {orderData?.paymentMethod?.name}
                 </Text>
-              </ListItem.Amount>
+              </ListItem.Amounts>
             </ListItem.Content>
           )}
-          {order.provider && data?.paymentMethod?.name && (
+          {order.provider && orderData?.paymentMethod?.name && (
             <Text small style={styles.provider}>
               {strings('fiat_on_ramp_aggregator.transaction.via')}{' '}
               {providerName}
@@ -307,22 +314,22 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.token_amount')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
-              {cryptoAmount && data?.cryptoCurrency?.decimals ? (
+            <ListItem.Amounts>
+              {cryptoAmount && orderData?.cryptoCurrency?.decimals ? (
                 <Text small bold primary>
                   {renderFromTokenMinimalUnit(
                     toTokenMinimalUnit(
                       cryptoAmount,
-                      data?.cryptoCurrency?.decimals,
+                      orderData?.cryptoCurrency?.decimals,
                     ).toString(),
-                    data?.cryptoCurrency?.decimals,
+                    orderData?.cryptoCurrency?.decimals,
                   )}{' '}
                   {cryptocurrency}
                 </Text>
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           <ListItem.Content style={styles.seperationBottom}>
             <ListItem.Body>
@@ -330,23 +337,23 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.exchange_rate')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
+            <ListItem.Amounts style={styles.flexZero}>
               {order.cryptocurrency &&
               isFinite(exchangeRate) &&
               currency &&
-              data?.fiatCurrency?.decimals ? (
+              orderData?.fiatCurrency?.decimals ? (
                 <Text small bold primary>
                   1 {order.cryptocurrency} @{' '}
                   {renderFiat(
                     exchangeRate,
                     currency,
-                    data?.fiatCurrency?.decimals,
+                    orderData?.fiatCurrency?.decimals,
                   )}
                 </Text>
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
 
           <ListItem.Content style={styles.listItems}>
@@ -356,20 +363,20 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.amount')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
-              {data?.fiatCurrency?.decimals && amountOut && currency ? (
+            <ListItem.Amounts>
+              {orderData?.fiatCurrency?.decimals && amountOut && currency ? (
                 <Text small bold primary>
                   {currencySymbol}
                   {renderFiat(
                     amountOut,
                     currency,
-                    data?.fiatCurrency?.decimals,
+                    orderData?.fiatCurrency?.decimals,
                   )}
                 </Text>
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
           <ListItem.Content style={styles.listItems}>
             <ListItem.Body>
@@ -377,20 +384,20 @@ const TransactionDetails: React.FC<Props> = ({
                 {strings('fiat_on_ramp_aggregator.transaction.total_fees')}
               </Text>
             </ListItem.Body>
-            <ListItem.Amount>
-              {cryptoFee && currency && data?.fiatCurrency?.decimals ? (
+            <ListItem.Amounts>
+              {cryptoFee && currency && orderData?.fiatCurrency?.decimals ? (
                 <Text small bold primary>
                   {currencySymbol}
                   {renderFiat(
-                    cryptoFee,
+                    cryptoFee as number,
                     currency,
-                    data?.fiatCurrency?.decimals,
+                    orderData?.fiatCurrency?.decimals,
                   )}
                 </Text>
               ) : (
                 <Text>...</Text>
               )}
-            </ListItem.Amount>
+            </ListItem.Amounts>
           </ListItem.Content>
         </View>
 
@@ -402,19 +409,23 @@ const TransactionDetails: React.FC<Props> = ({
               {strings('fiat_on_ramp_aggregator.transaction.purchase_amount')}
             </Text>
           </ListItem.Body>
-          <ListItem.Amount>
+          <ListItem.Amounts>
             {currencySymbol &&
             amount &&
             currency &&
-            data?.fiatCurrency?.decimals ? (
+            orderData?.fiatCurrency?.decimals ? (
               <Text small bold primary>
                 {currencySymbol}
-                {renderFiat(amount, currency, data?.fiatCurrency?.decimals)}
+                {renderFiat(
+                  amount as number,
+                  currency,
+                  orderData?.fiatCurrency?.decimals,
+                )}
               </Text>
             ) : (
               <Text>...</Text>
             )}
-          </ListItem.Amount>
+          </ListItem.Amounts>
         </ListItem.Content>
         {order.state === OrderStatusEnum.Completed && txHash && (
           <TouchableOpacity
@@ -431,12 +442,14 @@ const TransactionDetails: React.FC<Props> = ({
           </TouchableOpacity>
         )}
       </Box>
-      {data?.providerLink && (
+      {orderData?.providerOrderLink && (
         <View style={styles.contactDesc}>
           <Text small>
             {strings('fiat_on_ramp_aggregator.transaction.questions')}{' '}
           </Text>
-          <TouchableOpacity onPress={() => handleLinkPress(data?.providerLink)}>
+          <TouchableOpacity
+            onPress={() => handleLinkPress(orderData?.providerOrderLink)}
+          >
             {order.provider && data && (
               <Text small underline>
                 {strings('fiat_on_ramp_aggregator.transaction.contact')}{' '}
