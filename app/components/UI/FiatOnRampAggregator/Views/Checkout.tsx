@@ -16,7 +16,6 @@ import Engine from '../../../../core/Engine';
 import { toLowerCaseEquals } from '../../../../util/general';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import {
-  callbackBaseUrl,
   processAggregatorOrder,
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
@@ -30,6 +29,8 @@ import useAnalytics from '../hooks/useAnalytics';
 import { hexToBN } from '../../../../util/number';
 
 const CheckoutWebView = () => {
+  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
+    useFiatOnRampSDK();
   const dispatch = useDispatch();
   const { selectedAddress, selectedChainId, sdkError } = useFiatOnRampSDK();
   const trackEvent = useAnalytics();
@@ -104,16 +105,31 @@ const CheckoutWebView = () => {
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (navState?.url.startsWith(callbackBaseUrl)) {
       try {
+        const parsedUrl = parseUrl(navState?.url);
+        if (Object.keys(parsedUrl.query).length === 0) {
+          // There was no query params in the URL to parse
+          // Most likely the user clicked the X in Wyre widget
+          // @ts-expect-error navigation prop mismatch
+          navigation.dangerouslyGetParent()?.pop();
+          return;
+        }
         const orders = await SDK.orders();
         const orderId = await orders.getOrderIdFromCallback(
           params?.provider.id,
           navState?.url,
         );
+
+        if (!orderId) {
+          throw new Error(
+            `Order ID could not be retrieved. Callback was ${navState?.url}`,
+          );
+        }
+
         const transformedOrder = await processAggregatorOrder(
           aggregatorInitialFiatOrder({
             id: orderId,
             account: selectedAddress,
-            network: Number(selectedChainId),
+            network: selectedChainId,
           }),
         );
         // add the order to the redux global store
@@ -141,13 +157,7 @@ const CheckoutWebView = () => {
             : undefined,
         });
       } catch (navStateError) {
-        const parsedUrl = parseUrl(navState?.url);
-        if (Object.keys(parsedUrl.query).length === 0) {
-          // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
-        } else {
-          setError((navStateError as Error)?.message);
-        }
+        setError((navStateError as Error)?.message);
       }
     }
   };
