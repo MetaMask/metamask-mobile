@@ -360,8 +360,8 @@ class SendFlow extends PureComponent {
   };
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
-   * @param {String} toSelectedAddress - Represents the value of what user writes on toAddress input
-   * @returns {string | null} - String cointaining the address or null if it's not on the address book or identities
+   * @param {String} toSelectedAddress - Address input
+   * @returns {String | null} - Address or null if toSelectedAddress is not in the addressBook or identities array
    */
   getAddressNameFromBookOrIdentities = (toSelectedAddress) => {
     if (!toSelectedAddress) return;
