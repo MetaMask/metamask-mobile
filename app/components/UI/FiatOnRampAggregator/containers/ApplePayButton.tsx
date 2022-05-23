@@ -24,6 +24,16 @@ const ApplePayButton = ({
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const trackEvent = useAnalytics();
+  const accounts = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
+
+  const selectedAddress = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.selectedAddress,
+  );
   const chainId = useSelector(
     (state: any) =>
       state.engine.backgroundState.NetworkController.provider.chainId,
@@ -60,7 +70,7 @@ const ApplePayButton = ({
           );
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             provider_onramp: (fiatOrder?.data as Order)?.provider?.name,
-            chain_id_destination: network,
+            chain_id_destination: chainId,
             is_apple_pay: true,
             has_zero_native_balance: accounts[selectedAddress]?.balance
               ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
