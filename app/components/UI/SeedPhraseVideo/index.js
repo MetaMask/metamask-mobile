@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { Suspense } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { TextTrackType } from 'react-native-video';
 import scaling from '../../../util/scaling';
@@ -27,8 +27,6 @@ const styles = StyleSheet.create({
 });
 
 const SeedPhraseVideo = ({ style, onClose }) => {
-  const [showVideo, setShowVideo] = useState(false);
-
   const subtitleSourceTracks = [
     {
       index: 0,
@@ -40,24 +38,15 @@ const SeedPhraseVideo = ({ style, onClose }) => {
   ];
 
   return (
-    <View style={styles.videoContainer}>
-      {showVideo ? (
-        <MediaPlayer
-          onClose={onClose}
-          uri={SRP_VIDEO}
-          style={[styles.mediaPlayer, style]}
-          textTracks={subtitleSourceTracks}
-          selectedTextTrack={{ type: 'index', value: 0 }}
-        />
-      ) : (
-        <TouchableOpacity
-          onPress={() => setShowVideo(true)}
-          style={styles.container}
-        >
-          <Text>Touch to watch video</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    <Suspense style={styles.videoContainer} fallback={<View />}>
+      <MediaPlayer
+        onClose={onClose}
+        uri={SRP_VIDEO}
+        style={[styles.mediaPlayer, style]}
+        textTracks={subtitleSourceTracks}
+        selectedTextTrack={{ type: 'index', value: 0 }}
+      />
+    </Suspense>
   );
 };
 
