@@ -81,6 +81,10 @@ const SettingsButtonSection = ({
 
   const updateShowModalState = () => setModalVisible(!modalVisible);
   const onButtonPress = () => (onPress ? onPress() : updateShowModalState());
+  const onModalConfirmPress = () => {
+    modalOnConfirm?.();
+    setModalVisible(!modalVisible);
+  };
 
   return (
     <>
@@ -102,7 +106,7 @@ const SettingsButtonSection = ({
           cancelText={modalCancelButtonText}
           onCancelPress={updateShowModalState}
           onRequestClose={updateShowModalState}
-          onConfirmPress={modalOnConfirm}
+          onConfirmPress={onModalConfirmPress}
         >
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>{modalTitleText}</Text>
