@@ -1611,7 +1611,7 @@
       "failed": "Order Failed",
       "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
       "the_provider": "the provider",
-      "processing": "Processing ORder",
+      "processing": "Processing Order",
       "processing_card_description": "Credit/Debit purchases typically take a few minutes",
       "processing_bank_description": "Bank transfers typically take a few business days",
       "details": "Order details",
