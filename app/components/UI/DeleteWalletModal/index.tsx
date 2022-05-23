@@ -48,13 +48,13 @@ const DeleteWalletModal = () => {
     navigation.reset({
       routes: [
         {
-          name: 'OnboardingRootNav',
+          name: Routes.ONBOARDING.ROOT_NAV,
           state: {
             routes: [
               {
                 name: 'OnboardingNav',
                 params: {
-                  screen: Routes.ONBOARDING.ROOT,
+                  screen: Routes.ONBOARDING.ONBOARDING,
                   params: { delete: true },
                 },
               },
@@ -65,11 +65,11 @@ const DeleteWalletModal = () => {
     });
   };
 
-  const deleteWallet = () => {
-    resetWalletState();
-    deleteUser();
-    navigateOnboardingRoot();
+  const deleteWallet = async () => {
+    await resetWalletState();
+    await deleteUser();
     triggerClose();
+    navigateOnboardingRoot();
   };
 
   return (
