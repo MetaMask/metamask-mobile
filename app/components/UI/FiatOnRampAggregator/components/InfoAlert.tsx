@@ -111,6 +111,42 @@ const InfoAlert: React.FC<Props> = ({
     [trackEvent],
   );
 
+  const handleProviderHomepageLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Homepage',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
+  const handleProviderPrivacyPolicyLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Privacy Policy',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
+  const handleProviderSupportLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Support',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
   return (
     <Modal
       isVisible={isVisible}
