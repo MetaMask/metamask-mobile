@@ -38,7 +38,7 @@ export default class Logger {
   /**
    * console.error wrapper
    *
-   * @param {Error} error - error to be logged
+   * @param {Error|string|object} error - error to be logged
    * @param {string|object} extra - Extra error info
    * @returns - void
    */

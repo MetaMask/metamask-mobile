@@ -206,7 +206,7 @@ class WalletConnect {
     });
 
     /**
-     *  Subscribe to disconnect
+     *	Subscribe to disconnect
      */
     this.walletConnector.on('disconnect', (error) => {
       if (error) {
@@ -323,8 +323,7 @@ class WalletConnect {
           isHomepage: false,
           // Show autocomplete
           fromHomepage: false,
-          setAutocompleteValue: () => null,
-          setShowUrlModal: () => null,
+          toggleUrlModal: () => null,
           // Wizard
           wizardScrollAdjusted: () => null,
           tabId: false,
