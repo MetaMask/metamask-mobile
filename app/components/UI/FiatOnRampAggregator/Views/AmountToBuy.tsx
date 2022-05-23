@@ -97,7 +97,7 @@ const AmountToBuy = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [tokens, setTokens] = useState<CryptoCurrency[]>([]);
+  const [tokens, setTokens] = useState<CryptoCurrency[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -353,7 +353,7 @@ const AmountToBuy = () => {
   }));
 
   useEffect(() => {
-    keypadOffset.value = amountFocused ? 40 : keyboardHeight.current + 40;
+    keypadOffset.value = amountFocused ? 40 : keyboardHeight.current + 80;
   }, [amountFocused, keyboardHeight, keypadOffset]);
 
   /**
@@ -650,7 +650,7 @@ const AmountToBuy = () => {
     );
   }
 
-  if (!isFetching && (!tokens || tokens.length === 0)) {
+  if (!isFetching && tokens && tokens.length === 0) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -659,11 +659,21 @@ const AmountToBuy = () => {
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
                 network: NETWORKS_NAMES[selectedChainId],
+                region: selectedRegion?.name,
               },
             )}
-            ctaOnPress={() => navigation.goBack()}
+            ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
+            ctaOnPress={toggleRegionModal as () => void}
           />
         </ScreenLayout.Body>
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings('fiat_on_ramp_aggregator.region.description')}
+          data={countries}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
+        />
       </ScreenLayout>
     );
   }
@@ -784,7 +794,7 @@ const AmountToBuy = () => {
           'fiat_on_ramp_aggregator.select_a_cryptocurrency_description',
           { network: NETWORKS_NAMES[selectedChainId] },
         )}
-        tokens={tokens}
+        tokens={tokens ?? []}
         onItemPress={handleAssetPress}
       />
       <FiatSelectModal

@@ -101,6 +101,10 @@ export const FiatOnRampSDKProvider = ({
         const sdk = await SDK.regions();
         setSdkModule(sdk);
       } catch (error) {
+        Logger.error(
+          error as Error,
+          `FiatOnRampSDKProvider SDK.regions() failed`,
+        );
         setSdkError(error as Error);
       }
     })();
