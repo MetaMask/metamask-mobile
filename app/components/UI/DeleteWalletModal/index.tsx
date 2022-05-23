@@ -1,5 +1,13 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TouchableWithoutFeedback,
+  Keyboard,
+  InteractionManager,
+  UIManager,
+  LayoutAnimation,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { OutlinedTextField } from 'react-native-material-textfield';
@@ -12,8 +20,9 @@ import {
   DELETE_WALLET_CONTAINER_ID,
   DELETE_WALLET_INPUT_BOX_ID,
 } from '../../../constants/test-ids';
-import { useTheme } from '../../../util/theme';
 import { tlc } from '../../../util/general';
+import { useTheme } from '../../../util/theme';
+import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 
 const DELETE_KEYWORD = 'delete';
@@ -31,6 +40,17 @@ const DeleteWalletModal = () => {
   const [showDeleteWarning] = useState<boolean>(false);
 
   const [resetWalletState, deleteUser] = useDeleteWallet();
+
+  useEffect(() => {
+    if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }, []);
+
+  const showConfirmModal = () => {
+    setShowConfirm(true);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  };
 
   const isTextDelete = (text: string) => tlc(text) === DELETE_KEYWORD;
 
@@ -66,10 +86,12 @@ const DeleteWalletModal = () => {
   };
 
   const deleteWallet = async () => {
+    triggerClose();
     await resetWalletState();
     await deleteUser();
-    triggerClose();
-    navigateOnboardingRoot();
+    InteractionManager.runAfterInteractions(() => {
+      navigateOnboardingRoot();
+    });
   };
 
   return (
@@ -116,7 +138,7 @@ const DeleteWalletModal = () => {
         <WarningExistingUserModal
           warningModalVisible
           cancelText={strings('login.i_understand')}
-          onCancelPress={() => setShowConfirm(true)}
+          onCancelPress={showConfirmModal}
           onRequestClose={() => null}
           onConfirmPress={triggerClose}
         >
