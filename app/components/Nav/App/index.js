@@ -27,7 +27,7 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { routingInstrumentation } from '../../../util/setupSentry';
+import { routingInstrumentation } from '../../../util/sentryUtils';
 import Analytics from '../../../core/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import {
