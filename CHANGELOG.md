@@ -3,9 +3,7 @@
 ## Current Main Branch
 
 ## 5.1.1 - May 12, 2022
-- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX] Crashes on some Android devices when using the app in split screen
-- [#4281](https://github.com/MetaMask/metamask-mobile/pull/4281): [FEAT] 4086 ps link component
-- [#4265](https://github.com/MetaMask/metamask-mobile/pull/4265): [FEAT] 4073 ps text component
+- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX] Crashes on Android devices when using the app in split screen
 - [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FEAT] Download attachments in browser on iOS
 - [4174](https://github.com/MetaMask/metamask-mobile/pull/4174):  [IMPROVEMENT] Use checksum standard format
 - [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Send flow confusables bug
