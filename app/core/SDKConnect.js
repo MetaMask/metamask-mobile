@@ -2,13 +2,13 @@
 import BackgroundBridge from './BackgroundBridge';
 import RemoteCommunication from '@metamask/sdk-communication-layer';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
+import BackgroundService from 'react-native-background-actions';
 //import { approveHost } from '../actions/privacy';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import Engine from './Engine';
 import { WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WalletDevice } from '@metamask/controllers';
-import BackgroundTimer from 'react-native-background-timer';
 
 import {
   RTCPeerConnection,
@@ -43,6 +43,20 @@ const METHODS_TO_REDIRECT = {
   wallet_watchAsset: true,
   wallet_addEthereumChain: true,
   wallet_switchEthereumChain: true,
+};
+
+const BACKGROUND_SERVICE_OPTIONS = {
+  taskName: 'MetaMask_SDK',
+  taskTitle: 'MetaMask SDK Keepalive',
+  taskDesc: 'MetaMask SDK Keepalive',
+  taskIcon: {
+    name: 'ic_launcher',
+    type: 'mipmap',
+  },
+  color: '#ff00ff',
+  parameters: {
+    delay: 1000,
+  },
 };
 
 // Temporary hosts for now, persistance will be worked on for future versions
@@ -83,9 +97,11 @@ class Connection {
     });
 
     this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
-      BackgroundTimer.runBackgroundTimer(() => {
-        this.sendMessage('ping');
-      }, 3000);
+      BackgroundService.start(() => {
+        setInterval(() => {
+          this.sendMessage('ping');
+        }, 10000);
+      }, BACKGROUND_SERVICE_OPTIONS);
 
       this.backgroundBridge = new BackgroundBridge({
         webview: null,

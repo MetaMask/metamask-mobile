@@ -7,6 +7,8 @@
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-sdk tools:overrideLibrary="com.tectiv3.aes" />
 
 	<application
@@ -118,6 +120,8 @@
 		<meta-data android:name="com.mixpanel.android.mpmetrics.MixpanelAPI.token" android:value="${MM_MIXPANEL_TOKEN}"	/>
 		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
 		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
+
+		<service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" />
 
 		<provider
 			android:name="androidx.core.content.FileProvider"
