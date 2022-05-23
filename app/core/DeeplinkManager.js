@@ -348,6 +348,15 @@ class DeeplinkManager {
             params?.autosign,
             origin,
           );
+        } else if (url.startsWith('metamask://dapp/')) {
+          try {
+            this._handleBrowserUrl(
+              urlObj.href.split('metamask://dapp/')[1],
+              browserCallBack,
+            );
+          } catch (e) {
+            if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
+          }
         }
 
         break;
