@@ -419,7 +419,7 @@ const AmountToBuy = () => {
   }));
 
   useEffect(() => {
-    keypadOffset.value = amountFocused ? 40 : keyboardHeight.current + 40;
+    keypadOffset.value = amountFocused ? 40 : keyboardHeight.current + 80;
   }, [amountFocused, keyboardHeight, keypadOffset]);
 
   /**
@@ -687,11 +687,21 @@ const AmountToBuy = () => {
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
                 network: NETWORKS_NAMES[selectedChainId],
+                region: selectedRegion?.name,
               },
             )}
-            ctaOnPress={() => navigation.goBack()}
+            ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
+            ctaOnPress={toggleRegionModal as () => void}
           />
         </ScreenLayout.Body>
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings('fiat_on_ramp_aggregator.region.description')}
+          data={countries}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
+        />
       </ScreenLayout>
     );
   }

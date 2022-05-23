@@ -196,7 +196,10 @@ const CheckoutWebView = () => {
           source={{ uri }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            if (nativeEvent.url === uri) {
+            if (
+              nativeEvent.url === uri ||
+              nativeEvent.url.startsWith(callbackBaseUrl)
+            ) {
               const webviewHttpError = strings(
                 'fiat_on_ramp_aggregator.webview_received_error',
                 { code: nativeEvent.statusCode },
