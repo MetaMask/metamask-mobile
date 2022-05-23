@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { TextTrackType } from 'react-native-video';
 import scaling from '../../../util/scaling';
 import { strings } from '../../../../locales/i18n';
+import { SRP_VIDEO } from '../../../constants/urls';
 
 const HEIGHT = scaling.scale(240);
 
@@ -16,13 +17,19 @@ const styles = StyleSheet.create({
   mediaPlayer: {
     height: HEIGHT,
   },
+  // eslint-disable-next-line react-native/no-color-literals
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'black',
+  },
 });
 
 const SeedPhraseVideo = ({ style, onClose }) => {
-  const video_source_uri =
-    'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/recovery-phrase.mp4?raw=true';
+  const [showVideo, setShowVideo] = useState(false);
 
-  const subtitle_source_tracks = [
+  const subtitleSourceTracks = [
     {
       index: 0,
       title: strings('secret_phrase_video_subtitle.title'),
@@ -34,13 +41,22 @@ const SeedPhraseVideo = ({ style, onClose }) => {
 
   return (
     <View style={styles.videoContainer}>
-      <MediaPlayer
-        onClose={onClose}
-        uri={video_source_uri}
-        style={[styles.mediaPlayer, style]}
-        textTracks={subtitle_source_tracks}
-        selectedTextTrack={{ type: 'index', value: 0 }}
-      />
+      {showVideo ? (
+        <MediaPlayer
+          onClose={onClose}
+          uri={SRP_VIDEO}
+          style={[styles.mediaPlayer, style]}
+          textTracks={subtitleSourceTracks}
+          selectedTextTrack={{ type: 'index', value: 0 }}
+        />
+      ) : (
+        <TouchableOpacity
+          onPress={() => setShowVideo(true)}
+          style={styles.container}
+        >
+          <Text>Touch to watch video</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

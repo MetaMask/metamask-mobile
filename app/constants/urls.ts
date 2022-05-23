@@ -5,6 +5,8 @@ export const NON_CUSTODIAL_WALLET_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/360059952212-MetaMask-is-a-non-custodial-wallet';
 export const KEEP_SRP_SAFE_URL =
   'https://metamask.zendesk.com/hc/en-us/articles/4407169552667-Scammers-and-Phishers-Rugpulls-and-airdrop-scams';
+export const SRP_VIDEO =
+  'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/recovery-phrase.mp4?raw=true';
 
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
