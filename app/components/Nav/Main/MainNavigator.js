@@ -60,6 +60,7 @@ import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuot
 import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
 import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
+import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
@@ -293,6 +294,11 @@ const SettingsModalStack = () => (
     <Stack.Screen
       name={'ThemeSettings'}
       component={ThemeSettings}
+      options={{ animationEnabled: false }}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.DELETE_WALLET}
+      component={DeleteWalletModal}
       options={{ animationEnabled: false }}
     />
   </Stack.Navigator>
