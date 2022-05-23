@@ -358,8 +358,27 @@ class SendFlow extends PureComponent {
     });
     this.toggleFromAccountModal();
   };
+  /**
+   * This returns the address name from the address book or user accounts if the selectedAddress exist there
+   * @param {String} toSelectedAddress - Address input
+   * @returns {String | null} - Address or null if toSelectedAddress is not in the addressBook or identities array
+   */
+  getAddressNameFromBookOrIdentities = (toSelectedAddress) => {
+    if (!toSelectedAddress) return;
 
-  validateAddress = async (toSelectedAddress) => {
+    const { addressBook, network, identities } = this.props;
+    const networkAddressBook = addressBook[network] || {};
+
+    const checksummedAddress = toChecksumAddress(toSelectedAddress);
+
+    return networkAddressBook[checksummedAddress]
+      ? networkAddressBook[checksummedAddress].name
+      : identities[checksummedAddress]
+      ? identities[checksummedAddress].name
+      : null;
+  };
+
+  validateAddressOrENSFromInput = async (toSelectedAddress) => {
     const { AssetsContractController } = Engine.context;
     const { addressBook, network, identities, providerType } = this.props;
     const networkAddressBook = addressBook[network] || {};
@@ -369,8 +388,7 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-      toEnsAddressResolved,
-      isFromAddressBook;
+      toEnsAddressResolved;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
     if (isValidAddress(toSelectedAddress)) {
       const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -385,18 +403,11 @@ class SendFlow extends PureComponent {
           addToAddressToAddressBook = true;
         }
       } else if (
-        networkAddressBook[checksummedToSelectedAddress] ||
-        identities[checksummedToSelectedAddress]
+        !networkAddressBook[checksummedToSelectedAddress] &&
+        !identities[checksummedToSelectedAddress]
       ) {
-        toAddressName =
-          (networkAddressBook[checksummedToSelectedAddress] &&
-            networkAddressBook[checksummedToSelectedAddress].name) ||
-          (identities[checksummedToSelectedAddress] &&
-            identities[checksummedToSelectedAddress].name);
-        isFromAddressBook = true;
-      } else {
-        toAddressName = ens || toSelectedAddress;
-        // If not in address book nor user accounts
+        toAddressName = toSelectedAddress;
+        // If not in the addressBook nor user accounts
         addToAddressToAddressBook = true;
       }
 
@@ -461,25 +472,46 @@ class SendFlow extends PureComponent {
     } else if (toSelectedAddress && toSelectedAddress.length >= 42) {
       addressError = strings('transaction.invalid_address');
     }
+
     this.setState({
       addressError,
       addToAddressToAddressBook,
       toSelectedAddressReady,
-      toSelectedAddressName: toAddressName,
       toEnsName,
+      toSelectedAddressName: toAddressName,
       errorContinue,
       isOnlyWarning,
       confusableCollection,
       toEnsAddressResolved,
-      isFromAddressBook,
     });
   };
 
   onToSelectedAddressChange = (toSelectedAddress) => {
-    this.validateAddress(toSelectedAddress);
-    this.setState({
-      toSelectedAddress,
-    });
+    const addressName =
+      this.getAddressNameFromBookOrIdentities(toSelectedAddress);
+
+    /**
+     * If the address is from addressBook or identities
+     * then validation is not necessary since it was already validated
+     */
+    if (addressName) {
+      this.setState({
+        toSelectedAddress,
+        toSelectedAddressReady: true,
+        isFromAddressBook: true,
+        toSelectedAddressName: addressName,
+      });
+    } else {
+      this.validateAddressOrENSFromInput(toSelectedAddress);
+      /**
+       * Because validateAddressOrENSFromInput is an asynchronous function
+       * we are setting the state here synchronously, so it does not block the UI
+       * */
+      this.setState({
+        toSelectedAddress,
+        isFromAddressBook: false,
+      });
+    }
   };
 
   validateToAddress = async () => {
