@@ -8,12 +8,14 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 interface ISettingsButtonSectionProps {
   sectionTitle: string;
   sectionButtonText: string;
-  modalTitleText: string;
-  modalDescriptionText: string;
-  modalConfirmButtonText: string;
-  modalCancelButtonText: string;
-  modalOnConfirm: () => null;
   descriptionText: ReactNode;
+  needsModal: boolean;
+  modalTitleText?: string;
+  modalDescriptionText?: string;
+  modalConfirmButtonText?: string;
+  modalCancelButtonText?: string;
+  onPress?: () => void;
+  modalOnConfirm?: () => void;
 }
 
 const createStyles = (colors: any) =>
@@ -64,18 +66,21 @@ const createStyles = (colors: any) =>
 const SettingsButtonSection = ({
   sectionTitle,
   sectionButtonText,
+  descriptionText,
+  needsModal,
   modalTitleText,
   modalDescriptionText,
   modalConfirmButtonText,
   modalCancelButtonText,
+  onPress,
   modalOnConfirm,
-  descriptionText,
 }: ISettingsButtonSectionProps) => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
   const updateShowModalState = () => setModalVisible(!modalVisible);
+  const onButtonPress = () => (onPress ? onPress() : updateShowModalState());
 
   return (
     <>
@@ -84,25 +89,27 @@ const SettingsButtonSection = ({
         <Text style={styles.desc}>{descriptionText}</Text>
         <StyledButton
           type="normal"
-          onPress={updateShowModalState}
+          onPress={onButtonPress}
           containerStyle={styles.confirmButton}
         >
           {sectionButtonText}
         </StyledButton>
       </View>
-      <ActionModal
-        modalVisible={modalVisible}
-        confirmText={modalConfirmButtonText}
-        cancelText={modalCancelButtonText}
-        onCancelPress={updateShowModalState}
-        onRequestClose={updateShowModalState}
-        onConfirmPress={modalOnConfirm}
-      >
-        <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>{modalTitleText}</Text>
-          <Text style={styles.modalText}>{modalDescriptionText}</Text>
-        </View>
-      </ActionModal>
+      {needsModal ? (
+        <ActionModal
+          modalVisible={modalVisible}
+          confirmText={modalConfirmButtonText}
+          cancelText={modalCancelButtonText}
+          onCancelPress={updateShowModalState}
+          onRequestClose={updateShowModalState}
+          onConfirmPress={modalOnConfirm}
+        >
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>{modalTitleText}</Text>
+            <Text style={styles.modalText}>{modalDescriptionText}</Text>
+          </View>
+        </ActionModal>
+      ) : null}
     </>
   );
 };
