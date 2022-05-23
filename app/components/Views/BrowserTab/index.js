@@ -499,7 +499,7 @@ export const BrowserTab = (props) => {
         ) {
           ensIgnoreList.push(hostname);
           return { url: fullUrl, reload: true };
-				}
+        }
         if (
           err?.message?.startsWith(
             'EnsIpfsResolver - no known ens-ipfs registry for chainId',

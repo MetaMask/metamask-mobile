@@ -31,10 +31,12 @@ export default async function resolveEnsToIpfsContentId({ provider, name }) {
   if (isEIP1577Compliant[0]) {
     const contentLookupResult = await Resolver.contenthash(hash);
     const rawContentHash = contentLookupResult[0];
-		// Detect empty contenthash to prevent error in decoding
-		if (hexValueIsEmpty(rawContentHash)) {
-			throw new Error(`EnsIpfsResolver - no contenthash found for name "${name}"`);
-		}
+    // Detect empty contenthash to prevent error in decoding
+    if (hexValueIsEmpty(rawContentHash)) {
+      throw new Error(
+        `EnsIpfsResolver - no contenthash found for name "${name}"`,
+      );
+    }
     const decodedContentHash = contentHash.decode(rawContentHash);
     const type = contentHash.getCodec(rawContentHash);
     return { type, hash: decodedContentHash };
