@@ -27,6 +27,7 @@ function ErrorViewWithReporting({
       title={strings('fiat_on_ramp_aggregator.something_went_wrong')}
       ctaLabel={strings('fiat_on_ramp_aggregator.return_home')}
       ctaOnPress={() => {
+        //TODO: implement a reporting mechanisim for the sdkError
         //TODO: implement a mechanisim for user to submit a support ticket
         // @ts-expect-error navigation prop mismatch
         navigation.dangerouslyGetParent()?.pop();
