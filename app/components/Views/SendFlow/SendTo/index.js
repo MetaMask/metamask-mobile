@@ -504,7 +504,7 @@ class SendFlow extends PureComponent {
     } else {
       this.validateAddressOrENSFromInput(toSelectedAddress);
       /**
-       * Because validateAddressOrENSFromInput is asynchronous function
+       * Because validateAddressOrENSFromInput is an asynchronous function
        * we are setting the state here synchronously, so it does not block the UI
        * */
       this.setState({
