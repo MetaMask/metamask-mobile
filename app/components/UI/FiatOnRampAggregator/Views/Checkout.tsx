@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { parseUrl } from 'query-string';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View } from 'react-native';
 import { WebView, WebViewNavigation } from 'react-native-webview';
-import { QuoteResponse, CryptoCurrency } from '@consensys/on-ramp-sdk';
+import { QuoteResponse, CryptoCurrency, Order } from '@consensys/on-ramp-sdk';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
@@ -20,32 +20,50 @@ import {
   aggregatorInitialFiatOrder,
 } from '../orderProcessor/aggregator';
 import NotificationManager from '../../../../core/NotificationManager';
-import { getNotificationDetails } from '../../FiatOrders';
+import { FiatOrder, getNotificationDetails } from '../../FiatOrders';
 import ScreenLayout from '../components/ScreenLayout';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { strings } from '../../../../../locales/i18n';
+import useAnalytics from '../hooks/useAnalytics';
+import { hexToBN } from '../../../../util/number';
 
 const CheckoutWebView = () => {
   const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
     useFiatOnRampSDK();
   const dispatch = useDispatch();
+  const trackEvent = useAnalytics();
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   // @ts-expect-error useRoute params error
   const { params }: { params: QuoteResponse } = useRoute();
   const { colors } = useTheme();
+  const accounts = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
+
   const uri = params?.buyURL;
+
+  const handleCancelPress = useCallback(() => {
+    trackEvent('ONRAMP_CANCELED', {
+      location: 'Provider Webview',
+      chain_id_destination: selectedChainId,
+      provider_onramp: params.provider.name,
+    });
+  }, [params.provider.name, selectedChainId, trackEvent]);
+
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
         { title: params.provider.name },
         colors,
+        handleCancelPress,
       ),
     );
-  }, [navigation, colors, params.provider.name]);
+  }, [navigation, colors, params.provider.name, handleCancelPress]);
 
   const addTokenToTokensController = async (token: CryptoCurrency) => {
     if (!token) return;
@@ -116,7 +134,6 @@ const CheckoutWebView = () => {
         // add the order to the redux global store
         handleAddFiatOrder(transformedOrder);
         // register the token automatically
-
         await addTokenToTokensController(
           (transformedOrder as any)?.data?.cryptoCurrency,
         );
@@ -129,6 +146,15 @@ const CheckoutWebView = () => {
         NotificationManager.showSimpleNotification(
           getNotificationDetails(transformedOrder as any),
         );
+        trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
+          provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.provider?.name,
+          chain_id_destination: selectedChainId,
+          is_apple_pay: false,
+          has_zero_native_balance: accounts[selectedAddress]?.balance
+            ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
+            : undefined,
+        });
       } catch (navStateError) {
         setError((navStateError as Error)?.message);
       }

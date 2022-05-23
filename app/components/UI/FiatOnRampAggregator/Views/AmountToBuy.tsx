@@ -48,6 +48,7 @@ import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import { Colors } from '../../../../util/theme/models';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../constants/navigation/Routes';
+import useAnalytics from '../hooks/useAnalytics';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -94,6 +95,7 @@ const AmountToBuy = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
@@ -121,16 +123,6 @@ const AmountToBuy = () => {
   ] = useModalHandler(false);
   const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
     useModalHandler(false);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getFiatOnRampAggNavbar(
-        navigation,
-        { title: strings('fiat_on_ramp_aggregator.amount_to_buy') },
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
 
   /**
    * Grab the current state of the SDK via the context.
@@ -342,6 +334,80 @@ const AmountToBuy = () => {
   ]);
 
   /**
+   * * Derived values
+   */
+
+  const isFetching =
+    isFetchingSdkCryptoCurrencies ||
+    isFetchingPaymentMethods ||
+    isFetchingFiatCurrencies ||
+    isFetchingDefaultFiatCurrency ||
+    isFetchingCountries;
+
+  /**
+   * Get the fiat currency object by id
+   */
+  const currentFiatCurrency = useMemo(() => {
+    const currency =
+      fiatCurrencies?.find?.((curr) => curr.id === selectedFiatCurrencyId) ||
+      defaultFiatCurrency;
+    return currency;
+  }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
+
+  const currentPaymentMethod = useMemo(
+    () =>
+      filteredPaymentMethods?.find?.(
+        (method) => method.id === selectedPaymentMethodId,
+      ),
+    [filteredPaymentMethods, selectedPaymentMethodId],
+  );
+
+  /**
+   * Format the amount for display (iOS only)
+   */
+  const displayAmount = useMemo(() => {
+    if (Device.isIos() && Intl && Intl?.NumberFormat) {
+      return amountFocused
+        ? amount
+        : new Intl.NumberFormat().format(amountNumber);
+    }
+    return amount;
+  }, [amount, amountFocused, amountNumber]);
+
+  const amountIsBelowMinimum = useMemo(
+    () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
+    [amountNumber, limits],
+  );
+
+  const amountIsAboveMaximum = useMemo(
+    () => amountNumber !== 0 && limits && amountNumber > limits.maxAmount,
+    [amountNumber, limits],
+  );
+
+  const amountIsValid = useMemo(
+    () => !amountIsBelowMinimum && !amountIsAboveMaximum,
+    [amountIsBelowMinimum, amountIsAboveMaximum],
+  );
+
+  const handleCancelPress = useCallback(() => {
+    trackEvent('ONRAMP_CANCELED', {
+      location: 'Amount to Buy Screen',
+      chain_id_destination: selectedChainId,
+    });
+  }, [selectedChainId, trackEvent]);
+
+  useEffect(() => {
+    navigation.setOptions(
+      getFiatOnRampAggNavbar(
+        navigation,
+        { title: strings('fiat_on_ramp_aggregator.amount_to_buy') },
+        colors,
+        handleCancelPress,
+      ),
+    );
+  }, [navigation, colors, handleCancelPress]);
+
+  /**
    * * Keypad style, handlers and effects
    */
   const keypadContainerStyle = useAnimatedStyle(() => ({
@@ -488,64 +554,26 @@ const AmountToBuy = () => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES, {
       amount: amountNumber,
       asset: selectedAsset,
+      fiatCurrency: currentFiatCurrency,
     });
-  }, [amountNumber, navigation, selectedAsset]);
+    trackEvent('ONRAMP_QUOTES_REQUESTED', {
+      currency_source: currentFiatCurrency?.symbol as string,
+      currency_destination: selectedAsset?.symbol as string,
+      payment_method_id: selectedPaymentMethodId as string,
+      chain_id_destination: selectedChainId,
+      amount: amountNumber,
+      location: 'Amount to Buy Screen',
+    });
+  }, [
+    amountNumber,
+    currentFiatCurrency,
+    navigation,
+    selectedAsset,
+    selectedChainId,
+    selectedPaymentMethodId,
+    trackEvent,
+  ]);
 
-  /**
-   * * Derived values
-   */
-
-  const isFetching =
-    isFetchingSdkCryptoCurrencies ||
-    isFetchingPaymentMethods ||
-    isFetchingFiatCurrencies ||
-    isFetchingDefaultFiatCurrency ||
-    isFetchingCountries;
-
-  /**
-   * Get the fiat currency object by id
-   */
-  const currentFiatCurrency = useMemo(() => {
-    const currency =
-      fiatCurrencies?.find?.((curr) => curr.id === selectedFiatCurrencyId) ||
-      defaultFiatCurrency;
-    return currency;
-  }, [fiatCurrencies, defaultFiatCurrency, selectedFiatCurrencyId]);
-
-  const currentPaymentMethod = useMemo(
-    () =>
-      filteredPaymentMethods?.find?.(
-        (method) => method.id === selectedPaymentMethodId,
-      ),
-    [filteredPaymentMethods, selectedPaymentMethodId],
-  );
-
-  /**
-   * Format the amount for display (iOS only)
-   */
-  const displayAmount = useMemo(() => {
-    if (Device.isIos() && Intl && Intl?.NumberFormat) {
-      return amountFocused
-        ? amount
-        : new Intl.NumberFormat().format(amountNumber);
-    }
-    return amount;
-  }, [amount, amountFocused, amountNumber]);
-
-  const amountIsBelowMinimum = useMemo(
-    () => amountNumber !== 0 && limits && amountNumber < limits.minAmount,
-    [amountNumber, limits],
-  );
-
-  const amountIsAboveMaximum = useMemo(
-    () => amountNumber !== 0 && limits && amountNumber > limits.maxAmount,
-    [amountNumber, limits],
-  );
-
-  const amountIsValid = useMemo(
-    () => !amountIsBelowMinimum && !amountIsAboveMaximum,
-    [amountIsBelowMinimum, amountIsAboveMaximum],
-  );
   const retryMethod = useCallback(() => {
     if (!error) {
       return null;
@@ -811,6 +839,7 @@ const AmountToBuy = () => {
         paymentMethods={filteredPaymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
         onItemPress={handleChangePaymentMethod}
+        location={'Amount to Buy Screen'}
       />
       <RegionModal
         isVisible={isRegionModalVisible}
@@ -819,6 +848,7 @@ const AmountToBuy = () => {
         data={countries}
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
+        location={'Amount to Buy Screen'}
       />
     </ScreenLayout>
   );

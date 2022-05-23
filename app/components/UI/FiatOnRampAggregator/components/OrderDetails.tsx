@@ -22,7 +22,9 @@ import {
 import { getProviderName } from '../../../../reducers/fiatOrders';
 import useBlockExplorer from '../../Swaps/utils/useBlockExplorer';
 import Spinner from '../../AnimatedSpinner';
+import useAnalytics from '../hooks/useAnalytics';
 import { FiatOrder } from '../../FiatOrders';
+import { PROVIDER_LINKS } from '../types';
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 // TODO: Convert into typescript and correctly type optionals
@@ -210,6 +212,7 @@ const OrderDetails: React.FC<Props> = ({
     cryptocurrency,
   } = order;
   const { colors } = useTheme();
+  const trackEvent = useAnalytics();
   const explorer = useBlockExplorer(provider, frequentRpcList);
   const styles = createStyles(colors);
   const date = toDateFormat(createdAt);
@@ -223,7 +226,35 @@ const OrderDetails: React.FC<Props> = ({
     }
   }, []);
 
+  const handleExplorerLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Order Details Screen',
+        text: 'Etherscan Transaction',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
+  const handleProviderLinkPress = useCallback(
+    (url: string) => {
+      handleLinkPress(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Order Details Screen',
+        text: 'Provider Order Tracking',
+        url_domain: url,
+      });
+    },
+    [handleLinkPress, trackEvent],
+  );
+
   const orderData = data as Order;
+
+  const supportLinkUrl = orderData?.provider?.links?.find(
+    (link) => link.name === PROVIDER_LINKS.SUPPORT,
+  )?.url;
 
   return (
     <View>
@@ -432,7 +463,7 @@ const OrderDetails: React.FC<Props> = ({
         </ListItem.Content>
         {order.state === OrderStatusEnum.Completed && txHash && (
           <TouchableOpacity
-            onPress={() => handleLinkPress(explorer.tx(txHash))}
+            onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
           >
             <Text blue small centered style={styles.link}>
               {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
@@ -445,13 +476,13 @@ const OrderDetails: React.FC<Props> = ({
           </TouchableOpacity>
         )}
       </Box>
-      {orderData?.providerOrderLink && (
+      {Boolean(supportLinkUrl) && (
         <View style={styles.contactDesc}>
           <Text small>
             {strings('fiat_on_ramp_aggregator.order_details.questions')}{' '}
           </Text>
           <TouchableOpacity
-            onPress={() => handleLinkPress(orderData?.providerOrderLink)}
+            onPress={() => handleProviderLinkPress(supportLinkUrl as string)}
           >
             {order.provider && data && (
               <Text small underline>
