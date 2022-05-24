@@ -190,7 +190,7 @@ const InfoAlert: React.FC<Props> = ({
               <Text small link underline centered>
                 {providerName +
                   ' ' +
-                  strings('fiat_on_ramp_aggregator.transaction.support')}
+                  strings('fiat_on_ramp_aggregator.order_details.support')}
               </Text>
             </TouchableOpacity>
           )}
