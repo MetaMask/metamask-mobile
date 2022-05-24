@@ -321,24 +321,18 @@ const App = ({ userLoggedIn }) => {
     return null;
   };
 
-  const LoginFlow = () => (
+  const RootModalFlow = () => (
     <Stack.Navigator
-      initialRouteName={Routes.ONBOARDING.LOGIN}
       mode={'modal'}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: importedColors.transparent },
+        animationEnabled: false,
       }}
     >
       <Stack.Screen
-        name={Routes.ONBOARDING.LOGIN}
-        component={Login}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
-        options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
   );
@@ -357,24 +351,33 @@ const App = ({ userLoggedIn }) => {
             triggerSetCurrentRoute(currentRoute);
           }}
         >
-          <Stack.Navigator route={route} initialRouteName={route}>
+          <Stack.Navigator
+            initialRouteName={route}
+            mode={'modal'}
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: importedColors.transparent },
+              animationEnabled: false,
+            }}
+          >
             <Stack.Screen
-              name={Routes.ONBOARDING.LOGIN}
-              component={LoginFlow}
+              name="Login"
+              component={Login}
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name={Routes.ONBOARDING.ROOT_NAV}
+              name="OnboardingRootNav"
               component={OnboardingRootNav}
               options={{ headerShown: false }}
             />
             {userLoggedIn && (
               <Stack.Screen
-                name={Routes.ONBOARDING.HOME_NAV}
+                name="HomeNav"
                 component={Main}
                 options={{ headerShown: false }}
               />
             )}
+            <Stack.Screen name={'RootModalFlow'} component={RootModalFlow} />
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}

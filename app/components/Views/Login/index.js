@@ -423,8 +423,8 @@ class Login extends PureComponent {
 
   toggleWarningModal = () => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.DELETE_WALLET, {
-      navigateOnboardingRoot: this.navigateOnboardingRoot,
+    navigation.navigate('RootModalFlow', {
+      screen: Routes.MODAL.DELETE_WALLET,
     });
   };
 
