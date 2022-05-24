@@ -23,6 +23,10 @@ interface Props {
    * Custom style to apply to image
    */
   customStyle?: StyleProp<ImageStyle>;
+  /**
+   * Token address
+   */
+  address?: string;
 }
 
 const createStyles = (colors: any) =>
@@ -32,6 +36,7 @@ const createStyles = (colors: any) =>
       height: 50,
       borderRadius: 25,
       overflow: 'hidden',
+      backgroundColor: colors.icon.muted,
     },
     placeholder: { backgroundColor: colors.background.alternative },
   });
@@ -57,6 +62,7 @@ const AssetIcon = memo((props: Props) => {
 
   return (
     <RemoteImage
+      address={props.address}
       fadeIn
       placeholderStyle={styles.placeholder}
       source={source}

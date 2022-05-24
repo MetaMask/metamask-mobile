@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { util as controllerUtils } from '@metamask/controllers';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
 import StyledButton from '../../../UI/StyledButton';
@@ -147,6 +148,14 @@ class AdvancedSettings extends PureComponent {
      * Entire redux state used to generate state logs
      */
     fullState: PropTypes.object,
+    /**
+     * ChainID of network
+     */
+    chainId: PropTypes.string,
+    /**
+     * Boolean that checks if token detection is enabled
+     */
+    isTokenDetectionEnabled: PropTypes.bool,
   };
 
   state = {
@@ -156,9 +165,15 @@ class AdvancedSettings extends PureComponent {
     gotAvailableGateways: false,
   };
 
+  getStyles = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+    return { styles, colors };
+  };
+
   updateNavBar = () => {
     const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const { colors } = this.getStyles();
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('app_settings.advanced_title'),
@@ -281,6 +296,43 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setIpfsGateway(ipfsGateway);
   };
 
+  toggleTokenDetection = (detectionStatus) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setUseTokenDetection(detectionStatus);
+  };
+
+  renderTokenDetectionSection = () => {
+    const { isTokenDetectionEnabled, chainId } = this.props;
+    const { styles, colors } = this.getStyles();
+    if (!controllerUtils.isTokenDetectionEnabledForNetwork(chainId)) {
+      return null;
+    }
+    return (
+      <View style={styles.setting} testID={'token-detection-section'}>
+        <Text style={styles.title}>
+          {strings('app_settings.token_detection_title')}
+        </Text>
+        <Text style={styles.desc}>
+          {strings('app_settings.token_detection_description')}
+        </Text>
+        <View style={styles.marginTop}>
+          <View style={styles.switch}>
+            <Switch
+              value={isTokenDetectionEnabled}
+              onValueChange={this.toggleTokenDetection}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={importedColors.white}
+              ios_backgroundColor={colors.border.muted}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   render = () => {
     const {
       showHexData,
@@ -290,8 +342,7 @@ class AdvancedSettings extends PureComponent {
       ipfsGateway,
     } = this.props;
     const { resetModalVisible, onlineIpfsGateways } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const { styles, colors } = this.getStyles();
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>
@@ -397,6 +448,7 @@ class AdvancedSettings extends PureComponent {
                 />
               </View>
             </View>
+            {this.renderTokenDetectionSection()}
             <View style={styles.setting}>
               <Text style={styles.title}>
                 {strings('app_settings.state_logs')}
@@ -426,6 +478,9 @@ const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
   fullState: state,
+  isTokenDetectionEnabled:
+    state.engine.backgroundState.PreferencesController.useTokenDetection,
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
 
 const mapDispatchToProps = (dispatch) => ({

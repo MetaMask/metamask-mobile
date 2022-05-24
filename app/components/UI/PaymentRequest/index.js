@@ -411,7 +411,7 @@ class PaymentRequest extends PureComponent {
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
-    if (chainId === '1') {
+    if (chainId === NetworksChainId.mainnet) {
       results = this.state.searchInputValue
         ? this.state.results
         : defaultAssets;
@@ -437,7 +437,7 @@ class PaymentRequest extends PureComponent {
             {strings('payment_request.choose_asset')}
           </Text>
         </View>
-        {chainId === '1' && (
+        {chainId === NetworksChainId.mainnet && (
           <View style={styles.searchWrapper}>
             <FeatherIcon
               name="search"
