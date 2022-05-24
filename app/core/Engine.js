@@ -78,7 +78,7 @@ class Engine {
         {
           ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
           useTokenDetection:
-            initialState?.PreferencesController?.useStaticTokenList ?? true,
+            initialState?.PreferencesController?.useTokenDetection ?? true,
           // TODO: Use previous value when preferences UI is available
           useCollectibleDetection: false,
           openSeaEnabled: false,
