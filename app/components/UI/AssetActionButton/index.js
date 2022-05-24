@@ -126,7 +126,7 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
         {icon && (typeof icon === 'string' ? getIcon(icon) : icon)}
       </View>
       <Text centered style={styles.buttonText} numberOfLines={1}>
-        {label.size > maxStringLength
+        {label.length > maxStringLength
           ? `${label.substring(0, maxStringLength - 3)}...`
           : label}
       </Text>

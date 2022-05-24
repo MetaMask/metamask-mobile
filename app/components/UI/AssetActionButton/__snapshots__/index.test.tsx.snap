@@ -301,7 +301,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     underline={false}
     upper={false}
   >
-    receive receive
+    receive...
   </Text>
 </TouchableOpacity>
 `;
