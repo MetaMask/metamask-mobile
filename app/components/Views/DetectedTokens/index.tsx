@@ -125,7 +125,7 @@ const DetectedTokens = () => {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
-            await TokensController.importTokens(tokensToImport);
+            await TokensController.addTokens(tokensToImport);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
                 AnalyticsV2.trackEvent(
