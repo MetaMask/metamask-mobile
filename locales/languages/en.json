@@ -578,7 +578,19 @@
     "theme_os": "System",
     "theme_light": "Light",
     "theme_dark": "Dark",
-    "network_exists": "This network has already been added."
+    "network_exists": "This network has already been added.",
+    "delete_metrics_title": "Delete MetaMetrics data",
+    "delete_metrics_description_part_one": "This will delete historical MetaMetrics data associated with your wallet.",
+    "delete_metrics_description_part_two": "MetaMetrics data is anonymized usage and diagnostic data.",
+    "delete_metrics_description_part_three": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 7 days. View the",
+    "delete_metrics_description_part_four": "No MetaMetrics data has been stored. View the",
+    "consensys_privacy_policy": "ConsenSys Privacy Policy.",
+    "delete_metrics_button": "Delete MetaMetrics data",
+    "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
+    "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
+    "delete_wallet_data_title": "Delete wallet data",
+    "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
+    "delete_wallet_data_button": "Delete wallet data"
   },
   "app_information": {
     "title": "Information",
