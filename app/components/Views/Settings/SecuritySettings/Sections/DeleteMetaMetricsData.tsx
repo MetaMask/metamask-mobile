@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Analytics from '../../../../../core/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
@@ -29,7 +29,24 @@ const DeleteMetaMetricsData = () => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const deleteMetaMetrics = async () => Analytics.createDataDeletionTask();
+  const [hasCollectedData, setHasCollectedData] = useState<boolean>(
+    Analytics.getEnabled(),
+  );
+
+  useEffect(() => {
+    if (!Analytics.getEnabled() && Analytics.getHasCollectedData()) {
+      setHasCollectedData(false);
+    }
+  }, []);
+
+  const deleteMetaMetrics = async () => {
+    try {
+      await Analytics.createDataDeletionTask();
+      setHasCollectedData(!Analytics.getEnabled());
+    } catch (error: any) {
+      // Handle error
+    }
+  };
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
@@ -40,23 +57,37 @@ const DeleteMetaMetricsData = () => {
         sectionTitle={strings('app_settings.delete_metrics_title')}
         sectionButtonText={strings('app_settings.delete_metrics_button')}
         descriptionText={
-          <>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_one')}
-            </Text>{' '}
-            <Text style={[styles.boldText]}>
-              {strings('app_settings.delete_metrics_description_part_two')}
-            </Text>{' '}
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_three')}
-            </Text>{' '}
-            <TouchableOpacity onPress={openPrivacyPolicy}>
-              <Text style={[styles.blueText]}>
-                {strings('app_settings.consensys_privacy_policy')}
-              </Text>
-            </TouchableOpacity>
-          </>
+          hasCollectedData ? (
+            <>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_one')}
+              </Text>{' '}
+              <Text style={[styles.boldText]}>
+                {strings('app_settings.delete_metrics_description_part_two')}
+              </Text>{' '}
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_three')}
+              </Text>{' '}
+              <TouchableOpacity onPress={openPrivacyPolicy}>
+                <Text style={[styles.blueText]}>
+                  {strings('app_settings.consensys_privacy_policy')}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_four')}
+              </Text>{' '}
+              <TouchableOpacity onPress={openPrivacyPolicy}>
+                <Text style={[styles.blueText]}>
+                  {strings('app_settings.consensys_privacy_policy')}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )
         }
+        buttonDisabled={!hasCollectedData}
         modalTitleText={strings(
           'app_settings.delete_metrics_confirm_modal_title',
         )}

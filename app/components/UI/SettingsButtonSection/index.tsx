@@ -10,6 +10,7 @@ interface ISettingsButtonSectionProps {
   sectionButtonText: string;
   descriptionText: ReactNode;
   needsModal: boolean;
+  buttonDisabled?: boolean;
   modalTitleText?: string;
   modalDescriptionText?: string;
   modalConfirmButtonText?: string;
@@ -68,6 +69,7 @@ const SettingsButtonSection = ({
   sectionButtonText,
   descriptionText,
   needsModal,
+  buttonDisabled,
   modalTitleText,
   modalDescriptionText,
   modalConfirmButtonText,
@@ -95,6 +97,7 @@ const SettingsButtonSection = ({
           type="normal"
           onPress={onButtonPress}
           containerStyle={styles.confirmButton}
+          disabled={buttonDisabled}
         >
           {sectionButtonText}
         </StyledButton>

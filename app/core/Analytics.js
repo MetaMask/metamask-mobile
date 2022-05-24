@@ -36,6 +36,11 @@ class Analytics {
   enabled;
 
   /**
+   * Whether the manager has collected data
+   */
+  dataCollected;
+
+  /**
    * Persist current Metrics OptIn flag in user preferences datastore
    */
   _storeMetricsOptInPreference = async () => {
@@ -93,6 +98,7 @@ class Analytics {
     const isAnalyticsPreferenceSelectedEvent =
       ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
+    if (!this.dataCollected) this.dataCollected = true;
     this._setUserProfileProperties();
     if (!__DEV__) {
       if (!anonymously) {
@@ -133,10 +139,12 @@ class Analytics {
             compliance_type: compliance,
           }),
         });
-      } catch {
-        return false;
+        this.dataCollected = false;
+      } catch (error) {
+        // Throw error
       }
     } else {
+      this.dataCollected = false;
       Logger.log(
         `Analytics Deletion Task Created for ${distinctId} following ${compliance}`,
       );
@@ -382,6 +390,9 @@ export default {
   },
   getDistinctId() {
     return instance && instance.getDistinctId();
+  },
+  getHasCollectedData() {
+    return instance && instance.dataCollected;
   },
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
