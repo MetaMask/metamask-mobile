@@ -238,7 +238,7 @@ const App = ({ userLoggedIn }) => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
-        : Routes.ONBOARDING.LOGIN_FLOW;
+        : Routes.ONBOARDING.LOGIN;
       setRoute(route);
       if (!existingUser) {
         triggerCheckedAuth();
@@ -323,7 +323,7 @@ const App = ({ userLoggedIn }) => {
 
   const LoginFlow = () => (
     <Stack.Navigator
-      initialRouteName={Routes.ONBOARDING.LOGIN_FLOW}
+      initialRouteName={Routes.ONBOARDING.LOGIN}
       mode={'modal'}
       screenOptions={{
         headerShown: false,
@@ -359,18 +359,18 @@ const App = ({ userLoggedIn }) => {
         >
           <Stack.Navigator route={route} initialRouteName={route}>
             <Stack.Screen
-              name={Routes.ONBOARDING.LOGIN_FLOW}
+              name={Routes.ONBOARDING.LOGIN}
               component={LoginFlow}
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="OnboardingRootNav"
+              name={Routes.ONBOARDING.ROOT_NAV}
               component={OnboardingRootNav}
               options={{ headerShown: false }}
             />
             {userLoggedIn && (
               <Stack.Screen
-                name="HomeNav"
+                name={Routes.ONBOARDING.HOME_NAV}
                 component={Main}
                 options={{ headerShown: false }}
               />

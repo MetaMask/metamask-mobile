@@ -267,7 +267,7 @@ class Onboarding extends PureComponent {
   }
 
   logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN_FLOW);
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
     this.props.logOut();
   };
 

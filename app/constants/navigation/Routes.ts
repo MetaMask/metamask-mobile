@@ -18,9 +18,9 @@ const Routes = {
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
+    HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
-    LOGIN_FLOW: 'LoginFlow',
   },
 };
 
