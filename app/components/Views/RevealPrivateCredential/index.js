@@ -42,6 +42,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -179,6 +180,7 @@ class RevealPrivateCredential extends PureComponent {
     password: '',
     warningIncorrectPassword: '',
     isModalVisible: false,
+    isAndroidSupportedVersion: true,
   };
 
   static propTypes = {
@@ -426,8 +428,18 @@ class RevealPrivateCredential extends PureComponent {
   };
 
   renderTabView(privateCredentialName) {
-    const { clipboardPrivateCredential } = this.state;
+    const { clipboardPrivateCredential, isAndroidSupportedVersion } =
+      this.state;
     const { styles, colors, themeAppearance } = this.getStyles();
+
+    Device.isAndroid() &&
+      Device.getDeviceAPILevel().then((apiLevel) => {
+        if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
+          this.setState({
+            isAndroidSupportedVersion: false,
+          });
+        }
+      });
 
     return (
       <ScrollableTabView
@@ -453,17 +465,19 @@ class RevealPrivateCredential extends PureComponent {
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
             />
-            <TouchableOpacity
-              style={styles.privateCredentialAction}
-              onPress={() =>
-                this.copyPrivateCredentialToClipboard(privateCredentialName)
-              }
-              testID={'private-credential-touchable'}
-            >
-              <Text style={styles.blueText}>
-                {strings('reveal_credential.copy_to_clipboard')}
-              </Text>
-            </TouchableOpacity>
+            {isAndroidSupportedVersion && (
+              <TouchableOpacity
+                style={styles.privateCredentialAction}
+                onPress={() =>
+                  this.copyPrivateCredentialToClipboard(privateCredentialName)
+                }
+                testID={'private-credential-touchable'}
+              >
+                <Text style={styles.blueText}>
+                  {strings('reveal_credential.copy_to_clipboard')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
         <View

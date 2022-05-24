@@ -47,7 +47,7 @@ const main = async () => {
     const isBlacklisted = blacklistedLogos[token.logo];
     await fs.appendFileSync(
       imageModulesPath,
-      `\n\t${isBlacklisted ? '//' : ''}'${
+      `\n  ${isBlacklisted ? '//' : ''}'${
         token.logo
       }': require('metamask/node_modules/@metamask/contract-metadata/images/${
         token.logo
