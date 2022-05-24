@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
@@ -27,6 +27,14 @@ const styles = StyleSheet.create({
 });
 
 const SeedPhraseVideo = ({ style, onClose }) => {
+  const [loadVideo, setLoadVideo] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoadVideo(true);
+    }, 500);
+  }, []);
+
   const subtitleSourceTracks = [
     {
       index: 0,
@@ -38,15 +46,17 @@ const SeedPhraseVideo = ({ style, onClose }) => {
   ];
 
   return (
-    <Suspense style={styles.videoContainer} fallback={<View />}>
-      <MediaPlayer
-        onClose={onClose}
-        uri={SRP_VIDEO}
-        style={[styles.mediaPlayer, style]}
-        textTracks={subtitleSourceTracks}
-        selectedTextTrack={{ type: 'index', value: 0 }}
-      />
-    </Suspense>
+    <View style={styles.videoContainer}>
+      {loadVideo ? (
+        <MediaPlayer
+          onClose={onClose}
+          uri={SRP_VIDEO}
+          style={[styles.mediaPlayer, style]}
+          textTracks={subtitleSourceTracks}
+          selectedTextTrack={{ type: 'index', value: 0 }}
+        />
+      ) : null}
+    </View>
   );
 };
 
