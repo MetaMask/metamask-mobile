@@ -11,7 +11,7 @@ const createStyles = (colors: any) =>
     fill: {
       flex: 1,
     },
-    screen: { alignItems: 'center', justifyContent: 'center' },
+    screen: { justifyContent: 'center' },
     modal: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
