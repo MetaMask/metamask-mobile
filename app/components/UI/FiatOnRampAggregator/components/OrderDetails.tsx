@@ -219,35 +219,29 @@ const OrderDetails: React.FC<Props> = ({
   const amountOut = Number(amount) - Number(cryptoFee);
   const exchangeRate = Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
-  const handleLinkPress = useCallback(async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    }
-  }, []);
 
   const handleExplorerLinkPress = useCallback(
     (url: string) => {
-      handleLinkPress(url);
+      Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Order Details Screen',
         text: 'Etherscan Transaction',
         url_domain: url,
       });
     },
-    [handleLinkPress, trackEvent],
+    [trackEvent],
   );
 
   const handleProviderLinkPress = useCallback(
     (url: string) => {
-      handleLinkPress(url);
+      Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Order Details Screen',
         text: 'Provider Order Tracking',
         url_domain: url,
       });
     },
-    [handleLinkPress, trackEvent],
+    [trackEvent],
   );
 
   const orderData = data as Order;

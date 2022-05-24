@@ -75,47 +75,40 @@ const InfoAlert: React.FC<Props> = ({
 
   const logoKey: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
-  const handleLinkPress = useCallback(async (url: string) => {
-    const supported = await Linking.canOpenURL(url);
-    if (supported) {
-      await Linking.openURL(url);
-    }
-  }, []);
-
   const handleProviderHomepageLinkPress = useCallback(
     (url: string) => {
-      handleLinkPress(url);
+      Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Quotes Screen',
         text: 'Provider Homepage',
         url_domain: url,
       });
     },
-    [handleLinkPress, trackEvent],
+    [trackEvent],
   );
 
   const handleProviderPrivacyPolicyLinkPress = useCallback(
     (url: string) => {
-      handleLinkPress(url);
+      Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Quotes Screen',
         text: 'Provider Privacy Policy',
         url_domain: url,
       });
     },
-    [handleLinkPress, trackEvent],
+    [trackEvent],
   );
 
   const handleProviderSupportLinkPress = useCallback(
     (url: string) => {
-      handleLinkPress(url);
+      Linking.openURL(url);
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Quotes Screen',
         text: 'Provider Support',
         url_domain: url,
       });
     },
-    [handleLinkPress, trackEvent],
+    [trackEvent],
   );
 
   return (
