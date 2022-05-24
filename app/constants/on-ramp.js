@@ -6,6 +6,8 @@ export const FIAT_ORDER_PROVIDERS = {
   WYRE_APPLE_PAY: 'WYRE_APPLE_PAY',
   TRANSAK: 'TRANSAK',
   MOONPAY: 'MOONPAY',
+  // The key for fiat on-ramp aggregator
+  AGGREGATOR: 'AGGREGATOR',
 };
 
 /**
@@ -41,12 +43,28 @@ export const PAYMENT_CATEGORY = {
 
 export const NETWORKS_CHAIN_ID = {
   MAINNET: '1',
+  OPTIMISM: '10',
   KOVAN: '42',
   BSC: '56',
   POLYGON: '137',
+  FANTOM: '250',
+  ARBITRUM: '42161',
   AVAXCCHAIN: '43114',
   CELO: '42220',
-  FANTOM: '250',
+  HARMONY: '1666600000',
+};
+
+export const NETWORKS_NAMES = {
+  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum',
+  [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
+  [NETWORKS_CHAIN_ID.KOVAN]: 'Kovan',
+  [NETWORKS_CHAIN_ID.BSC]: 'BNB Smart Chain',
+  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
+  [NETWORKS_CHAIN_ID.FANTOM]: 'Fantom',
+  [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
+  [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
+  [NETWORKS_CHAIN_ID.CELO]: 'Celo',
+  [NETWORKS_CHAIN_ID.HARMONY]: 'Harmony',
 };
 
 const TRANSAK_NETWORK_NAMES = {
@@ -147,3 +165,5 @@ export const MOONPAY_NETWORK_PARAMETERS = {
   [NETWORKS_CHAIN_ID.AVAXCCHAIN]: ['avax_cchain', 'avax_cchain'],
   [NETWORKS_CHAIN_ID.CELO]: ['celo', 'celo,cusd'],
 };
+
+export const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
