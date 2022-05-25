@@ -1,11 +1,6 @@
-import I18n from '../../../locales/i18n';
-import { TextTrackType } from 'react-native-video';
-
 export const baseUrl =
   'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
 export const subtitlePath = 'subtitles/secretPhrase/subtitles-';
-
-const language = I18n.locale.substr(0, 2);
 
 const subtitleMap: Record<string, string> = {
   es: 'es',
@@ -19,25 +14,15 @@ const subtitleMap: Record<string, string> = {
   vi: 'vi-vn',
 };
 
-export function getSubtitleUri(lang: string): string {
+export function getSubtitleUri(language: string): string {
   const path = `${baseUrl}${subtitlePath}`;
   const ext = '.vtt?raw=true';
   // eslint-disable-next-line no-prototype-builtins
-  if (subtitleMap.hasOwnProperty(lang)) {
-    return `${path}${subtitleMap[lang]}${ext}`;
+  if (subtitleMap.hasOwnProperty(language)) {
+    return `${path}${subtitleMap[language]}${ext}`;
   }
   // return english by default
   return `${path}en${ext}`;
 }
-
-export const subtitle_source_tracks = [
-  {
-    index: 0,
-    title: `${String(language).toUpperCase()} CC`,
-    language: `${language}`,
-    type: TextTrackType.VTT,
-    uri: getSubtitleUri(language),
-  },
-];
 
 export const video_source_uri = `${baseUrl}recovery-phrase.mp4?raw=true`;
