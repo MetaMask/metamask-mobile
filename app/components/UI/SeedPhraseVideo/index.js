@@ -52,7 +52,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
   const subtitle_source_tracks = [
     {
       index: 0,
-      title: `${language} CC`,
+      title: `${String(language).toUpperCase()} CC`,
       language: `${language}`,
       type: TextTrackType.VTT,
       uri: getSubtitleUri(),
