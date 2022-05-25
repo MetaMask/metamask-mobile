@@ -455,7 +455,7 @@ const Swaps = () => (
     <Stack.Screen
       name="SwapsQuotesView"
       component={SwapsQuotesView}
-      options={{ ...SwapsQuotesView.navigationOptions, gestureEnabled: false }}
+      options={SwapsQuotesView.navigationOptions}
     />
   </Stack.Navigator>
 );
