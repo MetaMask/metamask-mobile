@@ -19,9 +19,9 @@ import {
   PREFIXES,
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
-import Routes from '../constants/navigation/Routes';
 import SDKConnect from '../core/SDKConnect';
-
+import Routes from '../constants/navigation/Routes';
+import Minimizer from 'react-native-minimizer';
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
     this.navigation = navigation;
@@ -209,9 +209,10 @@ class DeeplinkManager {
           `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`,
           `${PROTOCOLS.DAPP}/`,
         )
+        .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`)
         .replace(
-          `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`,
-          `${PROTOCOLS.DAPP}/`,
+          `${PROTOCOLS.METAMASK}://${PROTOCOLS.DAPP}/`,
+          `${PROTOCOLS.DAPP}://`,
         ),
     );
     let params;
@@ -335,7 +336,16 @@ class DeeplinkManager {
       case PROTOCOLS.METAMASK:
         handled();
         if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-          Alert.alert(strings('dapp_connect.warning'));
+          if (params.redirect) {
+            Minimizer.goBack();
+          } else {
+            SDKConnect.connectToChannel({
+              id: params.channelId,
+              commLayer: params.comm,
+              origin,
+              otherPublicKey: params.pubkey,
+            });
+          }
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
@@ -348,15 +358,6 @@ class DeeplinkManager {
             params?.autosign,
             origin,
           );
-        } else if (url.startsWith('metamask://dapp/')) {
-          try {
-            this._handleBrowserUrl(
-              urlObj.href.split('metamask://dapp/')[1],
-              browserCallBack,
-            );
-          } catch (e) {
-            if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
-          }
         }
 
         break;
