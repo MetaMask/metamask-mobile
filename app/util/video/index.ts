@@ -39,3 +39,5 @@ export const subtitle_source_tracks = [
     uri: getSubtitleUri(language),
   },
 ];
+
+export const video_source_uri = `${baseUrl}recovery-phrase.mp4?raw=true`;
