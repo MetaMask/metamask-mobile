@@ -3,9 +3,9 @@ import { TextTrackType } from 'react-native-video';
 
 export const baseUrl =
   'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
+export const subtitlePath = 'subtitles/secretPhrase/subtitles-';
 
 const language = I18n.locale.substr(0, 2);
-const subtitlePath = 'subtitles/secretPhrase/subtitles-';
 
 const subtitleMap: Record<string, string> = {
   es: 'es',
