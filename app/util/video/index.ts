@@ -1,6 +1,8 @@
 export const baseUrl =
   'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
 export const subtitlePath = 'subtitles/secretPhrase/subtitles-';
+export const ext = '.vtt?raw=true';
+const path = `${baseUrl}${subtitlePath}`;
 
 const subtitleMap: Record<string, string> = {
   es: 'es',
@@ -15,8 +17,6 @@ const subtitleMap: Record<string, string> = {
 };
 
 export function getSubtitleUri(language: string): string {
-  const path = `${baseUrl}${subtitlePath}`;
-  const ext = '.vtt?raw=true';
   // eslint-disable-next-line no-prototype-builtins
   if (subtitleMap.hasOwnProperty(language)) {
     return `${path}${subtitleMap[language]}${ext}`;
