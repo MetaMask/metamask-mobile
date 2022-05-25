@@ -43,6 +43,7 @@ import Analytics from '../../../core/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
+import Routes from '../../../constants/navigation/Routes';
 
 import { strings } from '../../../../locales/i18n';
 import {
@@ -484,7 +485,7 @@ function SwapsAmountView({
       await TokensController.addToken(address, symbol, decimals);
     }
     return navigation.navigate(
-      'SwapsQuotesView',
+      Routes.SWAPS.QUOTES_VIEW,
       setQuotesNavigationsParams(
         sourceToken?.address,
         destinationToken?.address,

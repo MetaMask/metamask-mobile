@@ -205,7 +205,7 @@ class AssetOverview extends PureComponent {
 
   goToSwaps = () => {
     this.props.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+      screen: Routes.SWAPS.AMOUNT_VIEW,
       params: {
         sourceToken: this.props.asset.isETH
           ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS

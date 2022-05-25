@@ -45,6 +45,7 @@ import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -320,7 +321,7 @@ class AccountOverview extends PureComponent {
 
   goToSwaps = () =>
     this.props.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
+      screen: Routes.SWAPS.AMOUNT_VIEW,
       params: {
         sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       },

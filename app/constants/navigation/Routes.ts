@@ -13,6 +13,10 @@ const Routes = {
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
   },
+  SWAPS: {
+    AMOUNT_VIEW: 'SwapsAmountView',
+    QUOTES_VIEW: 'SwapsQuotesView',
+  },
 };
 
 export default Routes;

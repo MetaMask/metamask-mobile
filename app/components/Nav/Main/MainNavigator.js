@@ -448,12 +448,12 @@ const FiatOnRampAggregator = () => (
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
-      name="SwapsAmountView"
+      name={Routes.SWAPS.AMOUNT_VIEW}
       component={SwapsAmountView}
       options={SwapsAmountView.navigationOptions}
     />
     <Stack.Screen
-      name="SwapsQuotesView"
+      name={Routes.SWAPS.QUOTES_VIEW}
       component={SwapsQuotesView}
       options={SwapsQuotesView.navigationOptions}
     />
