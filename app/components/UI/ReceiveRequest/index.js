@@ -180,7 +180,7 @@ class ReceiveRequest extends PureComponent {
       );
     } else {
       toggleReceiveModal();
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
         AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {

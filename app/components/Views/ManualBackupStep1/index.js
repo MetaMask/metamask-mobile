@@ -77,15 +77,10 @@ const createStyles = (colors) =>
       paddingHorizontal: 6,
     },
     seedPhraseConcealerContainer: {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
+      flex: 1,
       borderRadius: 8,
     },
     seedPhraseConcealer: {
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
       backgroundColor: colors.overlay.alternative,
       alignItems: 'center',
       borderRadius: 8,
@@ -203,6 +198,7 @@ const createStyles = (colors) =>
       borderColor: colors.border.default,
       padding: 10,
       height: 40,
+      color: colors.text.default,
     },
     warningMessageText: {
       paddingVertical: 10,
@@ -362,34 +358,28 @@ class ManualBackupStep1 extends PureComponent {
     const blurType = this.getBlurType();
 
     return (
-      <React.Fragment>
-        <View style={styles.seedPhraseConcealerContainer}>
-          <BlurView
-            blurType={blurType}
-            blurAmount={5}
-            style={styles.blurView}
-          />
-          <View style={styles.seedPhraseConcealer}>
-            <FeatherIcons name="eye-off" size={24} style={styles.icon} />
-            <Text style={styles.reveal}>
-              {strings('manual_backup_step_1.reveal')}
-            </Text>
-            <Text style={styles.watching}>
-              {strings('manual_backup_step_1.watching')}
-            </Text>
-            <View style={styles.viewButtonWrapper}>
-              <StyledButton
-                type={'onOverlay'}
-                testID={'view-button'}
-                onPress={this.revealSeedPhrase}
-                containerStyle={styles.viewButtonContainer}
-              >
-                {strings('manual_backup_step_1.view')}
-              </StyledButton>
-            </View>
+      <View style={styles.seedPhraseConcealerContainer}>
+        <BlurView blurType={blurType} blurAmount={5} style={styles.blurView} />
+        <View style={styles.seedPhraseConcealer}>
+          <FeatherIcons name="eye-off" size={24} style={styles.icon} />
+          <Text style={styles.reveal}>
+            {strings('manual_backup_step_1.reveal')}
+          </Text>
+          <Text style={styles.watching}>
+            {strings('manual_backup_step_1.watching')}
+          </Text>
+          <View style={styles.viewButtonWrapper}>
+            <StyledButton
+              type={'onOverlay'}
+              testID={'view-button'}
+              onPress={this.revealSeedPhrase}
+              containerStyle={styles.viewButtonContainer}
+            >
+              {strings('manual_backup_step_1.view')}
+            </StyledButton>
           </View>
         </View>
-      </React.Fragment>
+      </View>
     );
   };
 
@@ -473,23 +463,28 @@ class ManualBackupStep1 extends PureComponent {
             </Text>
           </View>
           <View style={styles.seedPhraseWrapper}>
-            <View style={styles.wordColumn}>
-              {this.words.slice(0, half).map((word, i) => (
-                <View key={`word_${i}`} style={styles.wordWrapper}>
-                  <Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
+            {this.state.seedPhraseHidden ? (
+              this.renderSeedPhraseConcealer()
+            ) : (
+              <React.Fragment>
+                <View style={styles.wordColumn}>
+                  {this.words.slice(0, half).map((word, i) => (
+                    <View key={`word_${i}`} style={styles.wordWrapper}>
+                      <Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-            <View style={styles.wordColumn}>
-              {this.words.slice(-half).map((word, i) => (
-                <View key={`word_${i}`} style={styles.wordWrapper}>
-                  <Text style={styles.word}>{`${
-                    i + (half + 1)
-                  }. ${word}`}</Text>
+                <View style={styles.wordColumn}>
+                  {this.words.slice(-half).map((word, i) => (
+                    <View key={`word_${i}`} style={styles.wordWrapper}>
+                      <Text style={styles.word}>{`${
+                        i + (half + 1)
+                      }. ${word}`}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-            {this.state.seedPhraseHidden && this.renderSeedPhraseConcealer()}
+              </React.Fragment>
+            )}
           </View>
         </View>
       </ActionView>

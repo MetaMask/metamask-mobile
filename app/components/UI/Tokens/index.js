@@ -4,7 +4,6 @@ import {
   Alert,
   TouchableOpacity,
   StyleSheet,
-  Text,
   View,
   InteractionManager,
 } from 'react-native';
@@ -28,6 +27,7 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import Text from '../../Base/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -271,7 +271,7 @@ class Tokens extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate('FiatOnRamp');
+    this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
       AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
