@@ -283,7 +283,9 @@ class TransactionEditor extends PureComponent {
     const hasEIP1559Gas =
       Boolean(transaction.maxFeePerGas) &&
       Boolean(transaction.maxPriorityFeePerGas);
-    if (!hasGasLimit) this.handleGetGasLimit();
+
+    if (!hasGasPrice || !hasGasLimit)
+      this.handleGetGas(hasGasPrice, hasGasLimit);
 
     if (!hasGasPrice && !hasEIP1559Gas) {
       this.startPolling();
@@ -497,13 +499,32 @@ class TransactionEditor extends PureComponent {
   };
 
   /**
-   * Updates gas limit
+   * Updates gas price or/and gas limit
+   * @param {boolean} hasGasPrice - Indicates if the transaction have gas price
+   * @param {boolean} hasGasLimit - Indicates if the transaction have gas limit
    *
    */
-  handleGetGasLimit = async () => {
+  handleGetGas = async (hasGasPrice, hasGasLimit) => {
     if (!Object.keys(this.props.transaction.selectedAsset).length) return;
-    const { gas } = await this.estimateGas({});
-    this.props.setTransactionObject({ gas: hexToBN(gas) });
+    const { gasPrice, gas } = await this.estimateGas({});
+
+    if (!hasGasPrice && !hasGasLimit) {
+      this.props.setTransactionObject({
+        gasPrice: hexToBN(gasPrice),
+        gas: hexToBN(gas),
+      });
+      return;
+    }
+    if (!hasGasPrice) {
+      this.props.setTransactionObject({
+        gasPrice: hexToBN(gasPrice),
+      });
+      return;
+    }
+
+    this.props.setTransactionObject({
+      gas: hexToBN(gas),
+    });
   };
 
   /**
