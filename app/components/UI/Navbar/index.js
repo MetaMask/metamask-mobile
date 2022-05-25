@@ -1415,6 +1415,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
+    gestureEnabled: false,
   };
 }
 

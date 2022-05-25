@@ -684,10 +684,7 @@ function SwapsQuotesView({
   const handleAnimationEnd = useCallback(() => {
     setIsFirstLoad(false);
     if (!error?.key) {
-      navigation.setParams({
-        leftAction: strings('swaps.edit'),
-        gestureEnabled: false,
-      });
+      navigation.setParams({ leftAction: strings('swaps.edit') });
     }
   }, [error, navigation]);
 
