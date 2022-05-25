@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import MediaPlayer from '../../Views/MediaPlayer';
 import { TextTrackType } from 'react-native-video';
 import scaling from '../../../util/scaling';
-import { strings } from '../../../../locales/i18n';
+import I18n from '../../../../locales/i18n';
 
 const HEIGHT = scaling.scale(240);
 
@@ -19,16 +19,43 @@ const styles = StyleSheet.create({
 });
 
 const SeedPhraseVideo = ({ style, onClose }) => {
-  const video_source_uri =
-    'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/recovery-phrase.mp4?raw=true';
+  const language = I18n.locale.substr(0, 2);
+  const baseUrl =
+    'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
+  const subtitlePath = 'subtitles/secretPhrase/subtitles-';
+
+  const subtitleMap = {
+    es: 'es',
+    hi: 'hi-in',
+    id: 'id-id',
+    ja: 'ja-jp',
+    ko: 'ko-kr',
+    pt: 'pt-br',
+    ru: 'ru-ru',
+    tl: 'tl',
+    vi: 'vi-vn',
+  };
+
+  const video_source_uri = `${baseUrl}recovery-phrase.mp4?raw=true`;
+
+  const getSubtitleUri = () => {
+    const path = `${baseUrl}${subtitlePath}`;
+    const ext = '.vtt?raw=true';
+    // eslint-disable-next-line no-prototype-builtins
+    if (subtitleMap.hasOwnProperty(language)) {
+      return `${path}${subtitleMap[language]}${ext}`;
+    }
+    // return english by default
+    return `${path}en${ext}`;
+  };
 
   const subtitle_source_tracks = [
     {
       index: 0,
-      title: strings('secret_phrase_video_subtitle.title'),
-      language: strings('secret_phrase_video_subtitle.language'),
+      title: `${language} CC`,
+      language: `${language}`,
       type: TextTrackType.VTT,
-      uri: strings('secret_phrase_video_subtitle.uri'),
+      uri: getSubtitleUri(),
     },
   ];
 
