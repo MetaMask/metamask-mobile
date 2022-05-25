@@ -245,30 +245,6 @@ const OrderDetails: React.FC<Props> = ({
     [trackEvent],
   );
 
-  const handleExplorerLinkPress = useCallback(
-    (url: string) => {
-      handleLinkPress(url);
-      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
-        location: 'Order Details Screen',
-        text: 'Etherscan Transaction',
-        url_domain: url,
-      });
-    },
-    [handleLinkPress, trackEvent],
-  );
-
-  const handleProviderLinkPress = useCallback(
-    (url: string) => {
-      handleLinkPress(url);
-      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
-        location: 'Order Details Screen',
-        text: 'Provider Order Tracking',
-        url_domain: url,
-      });
-    },
-    [handleLinkPress, trackEvent],
-  );
-
   const orderData = data as Order;
 
   const supportLinkUrl = orderData?.provider?.links?.find(
