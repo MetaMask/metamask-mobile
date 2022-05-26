@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { Image } from 'react-native';
-
 import BaseAvatar from '../BaseAvatar';
 import { FaviconAvatarProps } from './FaviconAvatar.types';
-import styles from './Favicon.styles';
+import stylesheet from './Favicon.styles';
 
 const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
   imageUrl,
@@ -14,7 +13,7 @@ const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
   <BaseAvatar size={size} style={style}>
     <Image
       source={{ uri: imageUrl }}
-      style={styles.imageStyle}
+      style={stylesheet.imageStyle}
       resizeMode={'contain'}
     />
   </BaseAvatar>
