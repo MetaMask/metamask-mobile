@@ -208,10 +208,9 @@ class DeeplinkManager {
           `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTPS}://`,
           `${PROTOCOLS.DAPP}/`,
         )
-        .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`)
         .replace(
-          `${PROTOCOLS.METAMASK}://${PROTOCOLS.DAPP}/`,
-          `${PROTOCOLS.DAPP}://`,
+          `${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`,
+          `${PROTOCOLS.DAPP}/`,
         ),
     );
     let params;
