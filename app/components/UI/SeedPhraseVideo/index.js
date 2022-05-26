@@ -25,7 +25,7 @@ const SeedPhraseVideo = ({ style, onClose }) => {
     {
       index: 0,
       title: `${String(language).toUpperCase()} CC`,
-      language: `${language}`,
+      language,
       type: TextTrackType.VTT,
       uri: getSubtitleUri(language),
     },
