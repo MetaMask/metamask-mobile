@@ -47,6 +47,7 @@ import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import usePrevious from '../../hooks/usePrevious';
 import { colors as importedColors } from '../../../styles/common';
+import Snaps from './Snaps';
 
 const Stack = createStackNavigator();
 
@@ -283,6 +284,7 @@ const Main = (props) => {
         />
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
+        <Snaps />
       </View>
     </React.Fragment>
   );

@@ -42,6 +42,9 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
+import { EndowmentPermissions } from './AppPermissionConstants';
+import { SnapController } from '@metamask/snap-controllers';
+import MobileIframeExecutionService from './SnapMobileExecutionService';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -208,7 +211,50 @@ class Engine {
 
       const additionalKeyrings = [QRHardwareKeyring];
 
+      this.context.MobileIframeExecutionService =
+        new MobileIframeExecutionService({
+          messenger: this.controllerMessenger.getRestricted({
+            name: 'ExecutionService',
+          }),
+          // setupSnapProvider: this.setupSnapProvider.bind(this),
+        });
+
+      const snapControllerMessenger = this.controllerMessenger.getRestricted({
+        name: 'SnapController',
+        allowedEvents: [
+          'ExecutionService:unhandledError',
+          'ExecutionService:unresponsive',
+        ],
+        allowedActions: [
+          `PermissionController:getEndowments`,
+          `PermissionController:getPermissions`,
+          `PermissionController:hasPermission`,
+          `PermissionController:hasPermissions`,
+          `PermissionController:requestPermissions`,
+          `PermissionController:revokeAllPermissions`,
+          `PermissionController:revokePermissionForAllSubjects`,
+        ],
+      });
+
       const controllers = [
+        new SnapController({
+          endowmentPermissionNames: Object.values(EndowmentPermissions),
+          terminateAllSnaps: this.workerController.terminateAllSnaps.bind(
+            this.workerController,
+          ),
+          terminateSnap: this.workerController.terminateSnap.bind(
+            this.workerController,
+          ),
+          executeSnap: this.workerController.executeSnap.bind(
+            this.workerController,
+          ),
+          getRpcMessageHandler: this.workerController.getRpcMessageHandler.bind(
+            this.workerController,
+          ),
+          // closeAllConnections: this.removeAllConnections.bind(this),
+          state: initialState.SnapController,
+          messenger: snapControllerMessenger,
+        }),
         new KeyringController(
           {
             removeIdentity: preferencesController.removeIdentity.bind(
@@ -354,7 +400,7 @@ class Engine {
       this.context = controllers.reduce((context, controller) => {
         context[controller.name] = controller;
         return context;
-      }, {});
+      }, this.context);
 
       const {
         CollectiblesController: collectibles,
@@ -755,6 +801,7 @@ export default {
       NetworkController,
       PreferencesController,
       PhishingController,
+      SnapController,
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
@@ -787,6 +834,7 @@ export default {
       PersonalMessageManager,
       NetworkController,
       PhishingController,
+      SnapController,
       PreferencesController,
       TokenBalancesController,
       TokenRatesController,
