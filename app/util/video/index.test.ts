@@ -1,14 +1,14 @@
-import { baseUrl, subtitlePath, getSubtitleUri, ext } from '.';
+import { getSubtitleUri } from '.';
 
 describe('getSubtitleUri', () => {
   it('should return en by default', () => {
     expect(getSubtitleUri('lol')).toStrictEqual(
-      `${baseUrl}${subtitlePath}en${ext}`,
+      'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true',
     );
   });
   it('should return hi-in for hi', () => {
     expect(getSubtitleUri('hi')).toStrictEqual(
-      `${baseUrl}${subtitlePath}hi-in${ext}`,
+      'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-hi-in.vtt?raw=true',
     );
   });
 });

@@ -1,7 +1,7 @@
-export const baseUrl =
+const baseUrl =
   'https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/';
-export const subtitlePath = 'subtitles/secretPhrase/subtitles-';
-export const ext = '.vtt?raw=true';
+const subtitlePath = 'subtitles/secretPhrase/subtitles-';
+const ext = '.vtt?raw=true';
 const path = `${baseUrl}${subtitlePath}`;
 
 const subtitleMap: Record<string, string> = {
