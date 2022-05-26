@@ -104,15 +104,12 @@ export const getNetworkName = (id) =>
 export const isTestNet = (networkId) => {
   const networkName = getNetworkName(networkId);
 
-  if (
+  return (
     networkName === ROPSTEN ||
     networkName === GOERLI ||
     networkName === KOVAN ||
     networkName === RINKEBY
-  ) {
-    return true;
-  }
-  return false;
+  );
 };
 
 export function getNetworkTypeById(id) {

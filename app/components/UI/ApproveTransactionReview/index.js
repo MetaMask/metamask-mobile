@@ -879,11 +879,10 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   goToFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: mmFaucetUrl,
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });

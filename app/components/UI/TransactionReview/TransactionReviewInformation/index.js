@@ -39,6 +39,7 @@ import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../app/core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -496,11 +497,10 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   goToFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: mmFaucetUrl,
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });
