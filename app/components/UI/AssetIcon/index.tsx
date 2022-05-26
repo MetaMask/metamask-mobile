@@ -36,7 +36,6 @@ const createStyles = (colors: any) =>
       height: 50,
       borderRadius: 25,
       overflow: 'hidden',
-      backgroundColor: colors.icon.muted,
     },
     placeholder: { backgroundColor: colors.background.alternative },
   });

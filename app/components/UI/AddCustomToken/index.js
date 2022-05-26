@@ -286,7 +286,6 @@ export default class AddCustomToken extends PureComponent {
     return (
       <WarningMessage
         style={styles.tokenDetectionBanner}
-        testID={'add-asset-warning-message'}
         warningMessage={
           <>
             <Text style={styles.tokenDetectionDescription}>

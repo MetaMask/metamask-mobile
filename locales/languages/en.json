@@ -710,7 +710,7 @@
   "detected_tokens": {
     "title": "{{tokenCount}} new token found",
     "title_plural": "{{tokenCount}} new tokens found",
-    "import_cta": "Import",
+    "import_cta": "Import ({{tokenCount}})",
     "hide_cta": "Hide All",
     "token_address": "Token address: ",
     "token_lists": "Token lists: {{listNames}}",

@@ -2157,9 +2157,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@https://github.com/MetaMask/controllers.git#qa/feature/3157-token-detection-v2-controllers#4eb9ab6cac6718f9d25ad0ed40bb1594db95b2ec":
+"@metamask/controllers@https://github.com/MetaMask/controllers.git#qa/feature/3157-token-detection-v2-controllers#0f9970c6d8f26f121f58346e1be2ed840adef2f5":
   version "29.0.1"
-  resolved "https://github.com/MetaMask/controllers.git#4eb9ab6cac6718f9d25ad0ed40bb1594db95b2ec"
+  resolved "https://github.com/MetaMask/controllers.git#0f9970c6d8f26f121f58346e1be2ed840adef2f5"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"

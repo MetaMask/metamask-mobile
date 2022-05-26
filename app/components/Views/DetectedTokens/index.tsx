@@ -232,25 +232,32 @@ const DetectedTokens = () => {
     />
   );
 
-  const renderButtons = () => (
-    <View style={styles.buttonsContainer}>
-      <StyledButton
-        onPress={triggerIgnoreAllTokens}
-        containerStyle={styles.fill}
-        type={'normal'}
-      >
-        {strings('detected_tokens.hide_cta')}
-      </StyledButton>
-      <View style={styles.buttonDivider} />
-      <StyledButton
-        onPress={triggerImportTokens}
-        containerStyle={styles.fill}
-        type={'confirm'}
-      >
-        {strings('detected_tokens.import_cta')}
-      </StyledButton>
-    </View>
-  );
+  const renderButtons = () => {
+    const importTokenCount =
+      detectedTokens.length - Object.keys(ignoredTokens).length;
+    return (
+      <View style={styles.buttonsContainer}>
+        <StyledButton
+          onPress={triggerIgnoreAllTokens}
+          containerStyle={styles.fill}
+          type={'normal'}
+        >
+          {strings('detected_tokens.hide_cta')}
+        </StyledButton>
+        <View style={styles.buttonDivider} />
+        <StyledButton
+          onPress={triggerImportTokens}
+          containerStyle={styles.fill}
+          type={'confirm'}
+          disabled={importTokenCount <= 0}
+        >
+          {strings('detected_tokens.import_cta', {
+            tokenCount: importTokenCount,
+          })}
+        </StyledButton>
+      </View>
+    );
+  };
 
   const trackCancelWithoutAction = (hasPendingAction: boolean) => {
     const { NetworkController } = Engine.context as any;
