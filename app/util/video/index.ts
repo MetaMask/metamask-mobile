@@ -17,8 +17,7 @@ const subtitleMap: Record<string, string> = {
 };
 
 export function getSubtitleUri(language: string): string {
-  // eslint-disable-next-line no-prototype-builtins
-  if (subtitleMap.hasOwnProperty(language)) {
+  if (Object.prototype.hasOwnProperty.call(subtitleMap, language)) {
     return `${path}${subtitleMap[language]}${ext}`;
   }
   // return english by default
