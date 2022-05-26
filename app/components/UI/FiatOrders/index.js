@@ -36,7 +36,6 @@ export const allowedToBuy = (chainId) =>
     NETWORKS_CHAIN_ID.ARBITRUM,
     NETWORKS_CHAIN_ID.CELO,
     NETWORKS_CHAIN_ID.AVAXCCHAIN,
-    NETWORKS_CHAIN_ID.HARMONY,
   ].includes(chainId);
 
 const baseNotificationDetails = {
