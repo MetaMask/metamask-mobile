@@ -1142,12 +1142,12 @@ class Settings extends PureComponent {
           <Heading>{strings('app_settings.privacy_heading')}</Heading>
           {this.renderClearPrivacySection()}
           {this.renderClearBrowserHistorySection()}
+          <ClearCookiesSection />
           {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
           {this.renderThirdPartySection()}
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
-          <ClearCookiesSection />
           {this.isMainnet() && this.renderOpenSeaSettings()}
           {this.renderHint()}
         </View>
