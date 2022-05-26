@@ -25,6 +25,7 @@ import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { WalletDevice, util } from '@metamask/controllers/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+
 const { weiHexToGweiDec, isEIP1559Transaction } = util;
 
 const createStyles = (colors) =>
@@ -155,7 +156,11 @@ class TransactionElement extends PureComponent {
       assetSymbol: this.props.assetSymbol,
     });
     this.mounted = true;
-    this.mounted && this.setState({ transactionElement, transactionDetails });
+    this.mounted &&
+      this.setState({
+        transactionElement,
+        transactionDetails,
+      });
   };
 
   componentWillUnmount() {
@@ -280,10 +285,14 @@ class TransactionElement extends PureComponent {
     } = this.props;
     const { value, fiatValue = false, actionKey } = transactionElement;
     const renderNormalActions =
-      status === 'submitted' || (status === 'approved' && !isQRHardwareAccount);
+      status === 'submitted' ||
+      (status === 'approved' &&
+        !isQRHardwareAccount &&
+        !this.state.isAccountManagedByLedger);
     const renderUnsignedQRActions =
       status === 'approved' && isQRHardwareAccount;
     const accountImportTime = identities[selectedAddress]?.importTime;
+
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
@@ -408,6 +417,24 @@ class TransactionElement extends PureComponent {
         onPress={this.showSpeedUpModal}
       >
         {strings('transaction.speedup')}
+      </StyledButton>
+    );
+  };
+
+  renderLedgerSignButton = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+    return (
+      <StyledButton
+        type={'normal'}
+        containerStyle={[
+          styles.actionContainerStyle,
+          styles.speedupActionContainerStyle,
+        ]}
+        style={styles.actionStyle}
+        onPress={this.showLedgerSigningModal}
+      >
+        Sign with Ledger
       </StyledButton>
     );
   };

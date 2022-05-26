@@ -108,15 +108,19 @@ export async function importAccountFromPrivateKey(private_key) {
  * judge address is hardware account or not
  *
  * @param {String} address - String corresponding to an address
+ * @param {Array<KeyringTypes>} accountTypes - If it belongs to a specific hardware account type
  * @returns {Boolean} - Returns a boolean
  */
-export function isHardwareAccount(address) {
+export function isHardwareAccount(
+  address,
+  accountTypes = [KeyringTypes.qr, KeyringTypes.ledger],
+) {
   const addressToCheck = address.toLowerCase();
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   for (const keyring of keyrings) {
     if (
-      [KeyringTypes.qr, KeyringTypes.ledger].includes(keyring.type) &&
+      accountTypes.includes(keyring.type) &&
       keyring.accounts.findIndex(
         (account) => account.toLowerCase() === addressToCheck,
       ) >= 0

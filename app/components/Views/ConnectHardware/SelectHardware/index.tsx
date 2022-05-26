@@ -105,7 +105,12 @@ const SelectHardwareWallet = () => {
     if (accounts.length === 0) {
       navigation.navigate('LedgerConnectFlow');
     } else {
-      navigation.navigate('LedgerAccountInfo');
+      navigation.navigate('LedgerAccountInfo', {
+        screen: 'LedgerAccountInfo',
+        params: {
+          accounts,
+        },
+      });
     }
   };
 

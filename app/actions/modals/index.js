@@ -38,10 +38,11 @@ export function toggleApproveModal(show) {
   };
 }
 
-export const toggleLedgerDeviceActionModal = () => ({
-  type: 'TOGGLE_LEDGER_DEVICE_ACTION',
+export const openLedgerDeviceActionModal = (params) => ({
+  type: 'OPEN_LEDGER_DEVICE_ACTION',
+  params,
 });
 
-export const toggleLedgerDeviceActionFailModal = () => ({
-  type: 'TOGGLE_LEDGER_DEVICE_ACTION_FAIL',
+export const closeLedgerDeviceActionModal = () => ({
+  type: 'CLOSE_LEDGER_DEVICE_ACTION',
 });

@@ -36,6 +36,7 @@ import {
   WalletDevice,
   NetworksChainId,
   GAS_ESTIMATE_TYPES,
+  KeyringTypes,
 } from '@metamask/controllers';
 import {
   prepareTransaction,
@@ -84,9 +85,11 @@ import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
+  isHardwareAccount,
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { openLedgerDeviceActionModal } from '../../../../actions/modals';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -363,6 +366,10 @@ class Confirm extends PureComponent {
      * A string representing the network type
      */
     networkType: PropTypes.string,
+    /**
+     * Opens the Ledger confirmation Flow
+     */
+    openLedgerDeviceActionModal: PropTypes.func,
   };
 
   state = {
@@ -939,38 +946,57 @@ class Confirm extends PureComponent {
       transactionConfirmed,
     } = this.state;
     if (transactionConfirmed) return;
-    this.setState({ transactionConfirmed: true, stopUpdateGas: true });
-    try {
-      const transaction = this.prepareTransactionToSend();
-      let error;
-      if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-        error = this.validateAmount({
-          transaction,
-          total: EIP1559TransactionData.totalMaxHex,
-        });
-      } else {
-        error = this.validateAmount({
-          transaction,
-          total: LegacyTransactionData.totalHex,
-        });
-      }
-      this.setError(error);
-      if (error) {
-        this.setState({ transactionConfirmed: false, stopUpdateGas: true });
-        return;
-      }
 
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
-      await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
+    this.setState({ transactionConfirmed: true, stopUpdateGas: true });
+    const transaction = this.prepareTransactionToSend();
+    let error;
+
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      error = this.validateAmount({
+        transaction,
+        total: EIP1559TransactionData.totalMaxHex,
+      });
+    } else {
+      error = this.validateAmount({
+        transaction,
+        total: LegacyTransactionData.totalHex,
+      });
+    }
+
+    this.setError(error);
+
+    if (error) {
+      this.setState({ transactionConfirmed: false, stopUpdateGas: true });
+      return;
+    }
+
+    const { result, transactionMeta } =
+      await TransactionController.addTransaction(
+        transaction,
+        TransactionTypes.MMM,
+        WalletDevice.MM_MOBILE,
+      );
+    await KeyringController.resetQRKeyringState();
+
+    const finalizeConfirmation = async () => {
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {
+        if (transactionMeta?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+          AnalyticsV2.trackEvent(
+            AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          );
+        } else {
+          Alert.alert(
+            strings('transactions.transaction_error'),
+            error && error.message,
+            [{ text: 'OK' }],
+          );
+          Logger.error(
+            transactionMeta.error,
+            'error while trying to send transaction (Confirm)',
+          );
+        }
         throw transactionMeta.error;
       }
 
@@ -987,21 +1013,22 @@ class Confirm extends PureComponent {
         resetTransaction();
         navigation && navigation.dangerouslyGetParent()?.pop();
       });
-    } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        Alert.alert(
-          strings('transactions.transaction_error'),
-          error && error.message,
-          [{ text: 'OK' }],
-        );
-        Logger.error(error, 'error while trying to send transaction (Confirm)');
-      } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
-      }
+
+      this.setState({ transactionConfirmed: false });
+    };
+
+    if (isHardwareAccount(transaction.from, KeyringTypes.ledger)) {
+      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+      // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
+      this.props.openLedgerDeviceActionModal(
+        transactionMeta.id,
+        ledgerKeyring.deviceId,
+        finalizeConfirmation,
+      );
+    } else {
+      await TransactionController.approveTransaction(transactionMeta.id);
+      await finalizeConfirmation();
     }
-    this.setState({ transactionConfirmed: false });
   };
 
   getBalanceError = (balance) => {
@@ -1402,6 +1429,7 @@ class Confirm extends PureComponent {
     const displayExclamation =
       !existingContact && !!confusableCollection.length;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
+    const isLedgerAccount = isHardwareAccount(fromSelectedAddress);
 
     const AdressToComponent = () => (
       <AddressTo
@@ -1597,6 +1625,8 @@ class Confirm extends PureComponent {
               <ActivityIndicator size="small" color={colors.primary.inverse} />
             ) : isQRHardwareWalletDevice ? (
               strings('transaction.confirm_with_qr_hardware')
+            ) : isLedgerAccount ? (
+              strings('transaction.confirm_with_ledger_hardware')
             ) : (
               strings('transaction.send')
             )}
@@ -1655,6 +1685,8 @@ const mapDispatchToProps = (dispatch) => ({
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+  openLedgerDeviceActionModal: (txId, deviceId, onCompleteCallback) =>
+    dispatch(openLedgerDeviceActionModal(txId, deviceId, onCompleteCallback)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);

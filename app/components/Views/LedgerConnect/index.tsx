@@ -8,8 +8,9 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
+import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
@@ -25,11 +26,11 @@ import Scan from './Scan';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
 } from '../../hooks/useLedgerBluetooth';
-import { useDispatch } from 'react-redux';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
@@ -110,6 +111,12 @@ const LedgerConnect = () => {
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle('Whatever', navigation, true, colors),
+    );
+  }, [navigation, colors]);
+
   const {
     isSendingLedgerCommands,
     isAppLaunchConfirmationNeeded,
@@ -125,7 +132,7 @@ const LedgerConnect = () => {
         defaultLedgerAccount,
       ]);
 
-      navigation.navigate('WalletView');
+      navigation.dispatch(StackActions.popToTop());
     });
 
   const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
@@ -252,15 +259,15 @@ const LedgerConnect = () => {
           )}
         </View>
         <View style={styles.bodyContainer}>
-          {!isAppLaunchConfirmationNeeded && (
+          {!isAppLaunchConfirmationNeeded ? (
             <Scan
               onDeviceSelected={(ledgerDevice) =>
                 setSelectedDevice(ledgerDevice)
               }
               onScanningErrorStateChanged={(error) => setErrorDetails(error)}
             />
-          )}
-          {selectedDevice && !isAppLaunchConfirmationNeeded && (
+          ) : null}
+          {selectedDevice && !isAppLaunchConfirmationNeeded ? (
             <View style={styles.buttonContainer}>
               <StyledButton
                 type="confirm"
@@ -277,7 +284,7 @@ const LedgerConnect = () => {
                 )}
               </StyledButton>
             </View>
-          )}
+          ) : null}
         </View>
       </View>
       {errorDetail ? <LedgerConnectionError {...errorDetail} /> : null}

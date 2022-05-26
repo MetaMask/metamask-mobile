@@ -12,7 +12,7 @@ import useBluetoothPermissions, {
   BluetoothPermissionErrors,
 } from './hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
-import useBluetoothDevices from './hooks/useBluetothDevices';
+import useBluetoothDevices from './hooks/useBluetoothDevices';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -151,7 +151,7 @@ const Scan: FC<ScanProps> = ({
 
   return (
     <View style={styles.container}>
-      {displayDevices && (
+      {displayDevices ? (
         <View style={styles.picker}>
           <SelectComponent
             options={options}
@@ -163,7 +163,7 @@ const Scan: FC<ScanProps> = ({
             }}
           />
         </View>
-      )}
+      ) : null}
     </View>
   );
 };

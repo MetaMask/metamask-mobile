@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import Identicon from '../../Identicon';
-import { KeyringTypes } from '@metamask/controllers';
 import PropTypes from 'prop-types';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { fontStyles } from '../../../../styles/common';
@@ -11,6 +10,8 @@ import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { isHardwareKeyring } from '../../../../util/keyring-helpers';
+import { HD_KEY_TREE, LEDGER_DEVICE } from '../../../../constants/keyringTypes';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';
@@ -121,7 +122,8 @@ class AccountElement extends PureComponent {
   onLongPress = () => {
     const { onLongPress } = this.props;
     const { address, keyringType, index } = this.props.item;
-    onLongPress && onLongPress(address, keyringType !== 'HD Key Tree', index);
+    const isImported = keyringType !== HD_KEY_TREE;
+    onLongPress && onLongPress(address, isImported, index);
   };
 
   render() {
@@ -135,23 +137,30 @@ class AccountElement extends PureComponent {
       <Icon name="check-circle" size={30} color={colors.primary.default} />
     ) : null;
 
-    const keyRingLabel =
-      keyringType !== 'HD Key Tree' ? (
-        <View style={styles.keyringTypeLabelView}>
-          <View
-            style={[
-              styles.keyringTypeLabelWrapper,
-              keyringType === 'Ledger' && styles.hardwareKeyringLabelWrapper,
-            ]}
-          >
-            <Text numberOfLines={1} style={styles.keyringTypeLabelText}>
-              {keyringType === 'Imported' && strings('accounts.imported')}
-              {[KeyringTypes.ledger, KeyringTypes.qr].includes(keyringType) &&
-                strings('accounts.hardware')}
-            </Text>
-          </View>
+    let keyringLabelText = '';
+
+    if (isHardwareKeyring(keyringType)) {
+      keyringLabelText = strings('accounts.hardware');
+    }
+
+    if (keyringType === 'Imported') {
+      keyringLabelText = strings('accounts.imported');
+    }
+
+    const keyRingLabel = keyringLabelText ? (
+      <View style={styles.keyringTypeLabelView}>
+        <View
+          style={[
+            styles.keyringTypeLabelWrapper,
+            keyringType === LEDGER_DEVICE && styles.hardwareKeyringLabelWrapper,
+          ]}
+        >
+          <Text numberOfLines={1} style={styles.keyringTypeLabelText}>
+            {keyringLabelText}
+          </Text>
         </View>
-      ) : null;
+      </View>
+    ) : null;
 
     return (
       <View onStartShouldSetResponder={() => true}>

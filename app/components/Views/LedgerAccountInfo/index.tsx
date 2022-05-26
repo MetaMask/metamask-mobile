@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable import/no-commonjs */
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -14,9 +17,11 @@ import {
 } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import Text from '../../Base/Text';
-import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
+import Device from '../../../util/device';
 import { renderFromWei } from '../../../util/number';
+import { formatAddress } from '../../../util/address';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -34,10 +39,6 @@ const createStyles = (colors: any) =>
     },
     accountCountText: {
       fontSize: 24,
-    },
-    closeButtonWrapper: {
-      alignSelf: 'flex-end',
-      padding: 20,
     },
     accountsContainer: {
       flexDirection: 'row',
@@ -66,22 +67,38 @@ const createStyles = (colors: any) =>
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
-
 const etherscanDarkImage = require('../../../images/etherscan-dark.png');
 const etherscanLightImage = require('../../../images/etherscan-light.png');
 
 const LedgerAccountInfo = () => {
-  const { KeyringController, AccountTrackerController } = Engine.context;
   const navigation = useNavigation();
-  const [account, setAccount] = useState();
-  const [accountBalance, setAccountBalance] = useState<string>();
+  const [account, setAccount] = useState('');
+  const [accountBalance, setAccountBalance] = useState<string>('0');
   const { colors } = useAppThemeFromContext() ?? mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const ledgerThemedImage = useAssetFromTheme(
+    ledgerDeviceLightImage,
+    ledgerDeviceDarkImage,
+  );
+  const etherscanThemedImage = useAssetFromTheme(
+    etherscanLightImage,
+    etherscanDarkImage,
+  );
+  const { KeyringController, AccountTrackerController, NetworkController } =
+    Engine.context as any;
+  const ticker = NetworkController.provider.ticker || '';
+
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle('', navigation, true, colors),
+    );
+  }, [navigation, colors]);
 
   useEffect(() => {
     const getAccount = async () => {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
       const accounts = await ledgerKeyring.getAccounts();
+
       setAccount(accounts[0]);
     };
 
@@ -91,31 +108,28 @@ const LedgerAccountInfo = () => {
 
   const onForgetDevice = async () => {
     await KeyringController.forgetLedger();
-    navigation.navigate('SelectHardwareWallet');
+    navigation.goBack();
   };
 
-  const getEthAmountForAccount = async (account: string) => {
-    if (account) {
+  const getEthAmountForAccount = async (ledgerAccount: string) => {
+    if (ledgerAccount) {
       const ethValue = await AccountTrackerController.syncBalanceWithAddresses([
-        account,
+        ledgerAccount,
       ]);
-      const decimalETHValue = renderFromWei(ethValue[account]?.balance);
-      setAccountBalance(decimalETHValue?.toString() ?? 0);
-    }
-  };
 
-  const onClosePress = () => {
-    navigation.navigate('SelectHardwareWallet');
+      const decimalETHValue = renderFromWei(
+        ethValue[ledgerAccount]?.balance || 0,
+      );
+      setAccountBalance(decimalETHValue.toString());
+    }
   };
 
   useEffect(() => {
     if (account) {
       getEthAmountForAccount(account);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
-
-  const sliceAccountString = (account: string) =>
-    `${account?.slice(0, 5)}...${account?.slice(-5)}`;
 
   const onEtherscanPress = () => {
     navigation.navigate('Webview', {
@@ -128,20 +142,8 @@ const LedgerAccountInfo = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.closeButtonWrapper}>
-        <TouchableOpacity onPress={onClosePress}>
-          <Text big bold>
-            X
-          </Text>
-        </TouchableOpacity>
-      </View>
       <View style={styles.imageWrapper}>
-        <Image
-          source={useAssetFromTheme(
-            ledgerDeviceLightImage,
-            ledgerDeviceDarkImage,
-          )}
-        ></Image>
+        <Image source={ledgerThemedImage} />
       </View>
       <View style={styles.textWrapper}>
         <Text big style={styles.accountCountText}>
@@ -150,20 +152,16 @@ const LedgerAccountInfo = () => {
       </View>
       <View style={styles.accountsContainer}>
         <View style={styles.textContainer}>
-          {/* In the future, there will need to be a mapping, if MM/Ledger decide on supporting multiple accounts */}
           <Text big bold>
             1
           </Text>
-          <Text grey>{sliceAccountString(account)}</Text>
-          <Text>{`${accountBalance} ETH`}</Text>
+          <Text grey>{formatAddress(account, 'short')}</Text>
+          <Text>{`${accountBalance} ${ticker.toUpperCase()}`}</Text>
         </View>
         <View style={styles.etherscanContainer}>
           <TouchableOpacity onPress={onEtherscanPress}>
             <Image
-              source={useAssetFromTheme(
-                etherscanLightImage,
-                etherscanDarkImage,
-              )}
+              source={etherscanThemedImage}
               style={styles.etherscanImage}
             />
           </TouchableOpacity>
@@ -171,7 +169,7 @@ const LedgerAccountInfo = () => {
       </View>
       <View style={styles.forgetLedgerContainer}>
         <TouchableOpacity onPress={onForgetDevice}>
-          <Text blue> Forget Ledger</Text>
+          <Text blue>{strings('ledger.forget_device')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

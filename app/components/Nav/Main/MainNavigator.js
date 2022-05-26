@@ -73,12 +73,6 @@ const styles = StyleSheet.create({
   hidden: {
     opacity: 0,
   },
-  ledgerConnectHeaderButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    padding: 20,
-  },
 });
 /**
  * Navigator component that wraps
@@ -453,21 +447,7 @@ const SetPasswordFlow = () => (
 const LedgerConnectFlow = ({ navigation }) => (
   <Stack.Navigator
     screenOptions={{
-      headerLeft: null,
-      headerTitle: null,
-      // eslint-disable-next-line react/display-name
-      headerRight: () => (
-        <View>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('Home');
-            }}
-            style={styles.ledgerConnectHeaderButton}
-          >
-            <Text bold> X </Text>
-          </TouchableOpacity>
-        </View>
-      ),
+      headerShown: false,
     }}
     initialRouteName="LedgerConnect"
   >
@@ -482,6 +462,7 @@ const ConnectHardwareWalletFlow = () => (
       component={SelectHardwareWallet}
       options={SelectHardwareWallet.navigationOptions}
     />
+    <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
   </Stack.Navigator>
 );
 
@@ -524,7 +505,6 @@ const MainNavigator = () => (
       component={ImportPrivateKeyView}
     />
     <Stack.Screen name="LedgerConnectFlow" component={LedgerConnectFlow} />
-    <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
     <Stack.Screen
       name="ConnectHardwareWalletFlow"
       component={ConnectHardwareWalletFlow}

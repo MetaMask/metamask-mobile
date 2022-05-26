@@ -7,8 +7,7 @@ const initialState = {
   dappTransactionModalVisible: false,
   approveModalVisible: false,
   ledgerDeviceActionModalVisible: false,
-  ledgerDeviceActionModalFailVisible: false,
-  ledgerDeviceActionMetadata: {},
+  ledgerDeviceActionParams: {},
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -60,16 +59,20 @@ const modalsReducer = (state = initialState, action) => {
         ...state,
         approveModalVisible: !state.approveModalVisible,
       };
-    case 'TOGGLE_LEDGER_DEVICE_ACTION':
+    case 'OPEN_LEDGER_DEVICE_ACTION': {
       return {
         ...state,
-        ledgerDeviceActionModalVisible: !state.ledgerDeviceActionModalVisible,
+        ledgerDeviceActionModalVisible: true,
+        ledgerDeviceActionParams: {
+          ...state.ledgerDeviceActionParams,
+          ...action.params,
+        },
       };
-    case 'TOGGLE_LEDGER_DEVICE_ACTION_FAIL':
+    }
+    case 'CLOSE_LEDGER_DEVICE_ACTION':
       return {
         ...state,
-        ledgerDeviceActionModalFailVisible:
-          !state.ledgerDeviceActionModalFailVisible,
+        ledgerDeviceActionModalVisible: false,
       };
     default:
       return state;
