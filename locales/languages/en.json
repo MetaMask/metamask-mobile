@@ -737,6 +737,8 @@
     "insufficient": "Insufficient funds",
     "insufficient_amount": "You need {{amount}} more {{tokenSymbol}} to complete this transaction.",
     "buy_more_eth": "Buy more ETH",
+    "buy_more": "Buy more",
+    "go_to_faucet": "Go to faucet",
     "get_ether": "Get Ether for the {{networkName}} network.",
     "insufficient_tokens": "Insufficient {{token}}",
     "invalid_address": "Invalid address",
