@@ -1,8 +1,10 @@
 import CookieManager from '@react-native-cookies/cookies';
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { CLEAR_COOKIES_SECTION } from '../../../../../constants/test-ids';
 import { fontStyles } from '../../../../../styles/common';
+import Device from '../../../../../util/device';
 import Logger from '../../../../../util/Logger';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import ActionModal from '../../../../UI/ActionModal';
@@ -61,12 +63,12 @@ const ClearCookiesSection = () => {
 
   useEffect(() => {
     const run = async () => {
-      if (Platform.OS === 'android') {
+      if (Device.isAndroid()) {
         // CookieManager.getAll() is not supported on Android
         setHasCookies(true);
       }
 
-      if (Platform.OS === 'ios') {
+      if (Device.isIos()) {
         const useWebKit = true;
         const cookies = await CookieManager.getAll(useWebKit);
         setHasCookies(Object.keys(cookies).length > 0);
@@ -84,7 +86,7 @@ const ClearCookiesSection = () => {
     await CookieManager.clearAll(useWebKit);
     Logger.log('Browser cookies cleared');
 
-    if (Platform.OS === 'ios') {
+    if (Device.isIos()) {
       const cookies = await CookieManager.getAll(useWebKit);
       setHasCookies(Object.keys(cookies).length > 0);
     }
@@ -94,7 +96,7 @@ const ClearCookiesSection = () => {
 
   return (
     <>
-      <View style={styles.setting} testID={'clear-cookies-section'}>
+      <View style={styles.setting} testID={CLEAR_COOKIES_SECTION}>
         <Text style={styles.title}>
           {strings('app_settings.clear_browser_cookies_desc')}
         </Text>

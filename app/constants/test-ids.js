@@ -46,3 +46,4 @@ export const IMPORT_PASSWORD_CONTAINER_ID = 'import-from-seed-screen';
 export const SECRET_RECOVERY_PHRASE_INPUT_BOX_ID = 'input-seed-phrase';
 
 export const BROWSER_URL_MODAL_ID = 'browser-url-modal';
+export const CLEAR_COOKIES_SECTION = 'clear-cookies-section';
