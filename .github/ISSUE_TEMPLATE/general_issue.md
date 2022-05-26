@@ -18,9 +18,16 @@ Describe the task. What does this aim to solve?
 
 ### **Acceptance Criteria**
 
+-   Check with product on metrics
 -   Cases to satisfy
 -   XYZ should work
 -   Etc.
+
+Scenario: xxxx
+- GIVEN a user is in x state
+- WHEN a user does x
+- AND a user does x
+- THEN x should occur
 
 ### **References**
 

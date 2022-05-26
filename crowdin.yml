@@ -1,0 +1,16 @@
+"project_id_env": CROWDIN_PROJECT_ID
+"api_token_env": CROWDIN_PERSONAL_TOKEN
+"base_path" : "."
+
+"preserve_hierarchy": true
+
+files: [
+ {
+  "source" : "locales/languages/en.json",
+  "translation" : "/locales/languages/%two_letters_code%.json",
+ },
+ {
+   "source" : "app/videos/subtitles/secretPhrase/subtitles-en.vtt",
+   "translation" : "/app/videos/subtitles/secretPhrase/subtitles-%two_letters_code%.vtt",
+ }
+]

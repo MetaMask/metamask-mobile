@@ -29,7 +29,7 @@ exports[`PickComponent should render correctly 1`] = `
         style={
           Object {
             "backgroundColor": "#FFFFFF",
-            "borderColor": "#9fa6ae",
+            "borderColor": "#BBC0C5",
             "borderRadius": 6,
             "borderWidth": 2,
             "height": 12,
@@ -43,6 +43,7 @@ exports[`PickComponent should render correctly 1`] = `
       <Text
         style={
           Object {
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontWeight": "400",
           }
@@ -71,7 +72,7 @@ exports[`PickComponent should render correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#037dd6",
+            "backgroundColor": "#037DD6",
             "borderRadius": 6,
             "height": 12,
             "margin": 2,
@@ -84,6 +85,7 @@ exports[`PickComponent should render correctly 1`] = `
       <Text
         style={
           Object {
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontWeight": "400",
           }

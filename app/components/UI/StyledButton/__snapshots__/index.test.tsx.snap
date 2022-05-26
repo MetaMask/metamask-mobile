@@ -12,7 +12,7 @@ exports[`StyledButton should render correctly on Android the button with type ca
         },
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#848c96",
+          "borderColor": "#535A61",
           "borderWidth": 1,
         },
         null,
@@ -34,7 +34,7 @@ exports[`StyledButton should render correctly on Android the button with type co
           "padding": 15,
         },
         Object {
-          "backgroundColor": "#037dd6",
+          "backgroundColor": "#037DD6",
           "minHeight": 50,
         },
         null,
@@ -57,7 +57,7 @@ exports[`StyledButton should render correctly on Android the button with type no
         },
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#037dd6",
+          "borderColor": "#037DD6",
           "borderWidth": 1,
         },
         null,
@@ -79,7 +79,7 @@ exports[`StyledButton should render correctly on Android the button with type or
           "padding": 15,
         },
         Object {
-          "borderColor": "#f66a0a",
+          "borderColor": "#F66A0A",
           "borderWidth": 1,
         },
         null,
@@ -101,7 +101,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
       },
       Object {
         "backgroundColor": "#FFFFFF",
-        "borderColor": "#848c96",
+        "borderColor": "#535A61",
         "borderWidth": 1,
       },
       undefined,
@@ -117,7 +117,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "textAlign": "center",
       },
       Object {
-        "color": "#848c96",
+        "color": "#535A61",
       },
       undefined,
     ]
@@ -136,7 +136,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "padding": 15,
       },
       Object {
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "minHeight": 50,
       },
       undefined,
@@ -152,7 +152,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
         "textAlign": "center",
       },
       Object {
-        "color": "#FFFFFF",
+        "color": "#FCFCFC",
       },
       undefined,
     ]
@@ -172,7 +172,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
       },
       Object {
         "backgroundColor": "#FFFFFF",
-        "borderColor": "#037dd6",
+        "borderColor": "#037DD6",
         "borderWidth": 1,
       },
       undefined,
@@ -188,7 +188,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
         "textAlign": "center",
       },
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
       },
       undefined,
     ]
@@ -207,7 +207,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "padding": 15,
       },
       Object {
-        "borderColor": "#f66a0a",
+        "borderColor": "#F66A0A",
         "borderWidth": 1,
       },
       undefined,
@@ -223,7 +223,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
         "textAlign": "center",
       },
       Object {
-        "color": "#f66a0a",
+        "color": "#F66A0A",
       },
       undefined,
     ]

@@ -14,6 +14,10 @@ _Write a short description of the changes included in this pull request._
 * [ ] Tests are included if applicable
 * [ ] Any added code is fully documented
 
+**Screenshots/Recordings**
+
+_If applicable, add screenshots or recordings to visualize the changes_
+
 **Issue**
 
-Resolves #???
+Progresses #???

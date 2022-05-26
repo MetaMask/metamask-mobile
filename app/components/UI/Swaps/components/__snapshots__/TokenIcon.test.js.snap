@@ -5,6 +5,7 @@ exports[`TokenIcon component should Render correctly 1`] = `<EmptyIcon />`;
 exports[`TokenIcon component should Render correctly 2`] = `
 <RemoteImage
   fadeIn={true}
+  onError={[Function]}
   source={
     Object {
       "testUri": "../../../app/images/eth-logo.png",
@@ -29,6 +30,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
 exports[`TokenIcon component should Render correctly 3`] = `
 <EmptyIcon>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -37,6 +39,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={false}
     red={false}
     reset={false}
@@ -46,6 +49,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
     style={
       Array [
         Object {
+          "color": "#24272A",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
@@ -66,6 +70,7 @@ exports[`TokenIcon component should Render correctly 3`] = `
 exports[`TokenIcon component should Render correctly 4`] = `
 <RemoteImage
   fadeIn={true}
+  onError={[Function]}
   source={
     Object {
       "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
@@ -96,6 +101,7 @@ exports[`TokenIcon component should Render correctly 5`] = `
 exports[`TokenIcon component should Render correctly 6`] = `
 <RemoteImage
   fadeIn={true}
+  onError={[Function]}
   source={
     Object {
       "testUri": "../../../app/images/eth-logo.png",
@@ -126,6 +132,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
   medium={true}
 >
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -134,6 +141,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={false}
     red={false}
     reset={false}
@@ -143,11 +151,13 @@ exports[`TokenIcon component should Render correctly 7`] = `
     style={
       Array [
         Object {
+          "color": "#24272A",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
         },
         Object {
+          "color": "#24272A",
           "fontSize": 22,
         },
         undefined,
@@ -165,6 +175,7 @@ exports[`TokenIcon component should Render correctly 7`] = `
 exports[`TokenIcon component should Render correctly 8`] = `
 <RemoteImage
   fadeIn={true}
+  onError={[Function]}
   source={
     Object {
       "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",

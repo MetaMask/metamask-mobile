@@ -1,21 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TypedSign should render correctly 1`] = `
-<Connect(SignatureRequest)
+<Connect(TypedSign)
   currentPageInformation={
     Object {
       "title": "title",
       "url": "url",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  truncateMessage={false}
-  type="typedSign"
->
-  <View
-    onLayout={[Function]}
-    style={Array []}
-  />
-</Connect(SignatureRequest)>
+  messageParams={
+    Object {
+      "data": Object {
+        "name": "Message",
+        "type": "string",
+        "value": "Hi, Alice!",
+      },
+    }
+  }
+/>
 `;

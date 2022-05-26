@@ -138,7 +138,7 @@ def enableSeparateBuildPerCPUArchitecture = true
  * give correct results when using with locales other than en-US.  Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'org.webkit:android-jsc-intl:+'
 /**
  * Whether to enable the Hermes VM.
  *
@@ -160,8 +160,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 810
-		versionName "4.0.0"
+		versionCode 906
+		versionName "5.1.1"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -180,6 +180,10 @@ android {
 		]
 		missingDimensionStrategy 'react-native-camera', 'general'
 
+	}
+
+	packagingOptions {
+		exclude 'META-INF/DEPENDENCIES'
 	}
 
 	signingConfigs {
@@ -264,6 +268,7 @@ dependencies {
 	androidTestImplementation('com.wix:detox:+') { transitive = true }
 	androidTestImplementation 'junit:junit:4.12'
 	implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
+	implementation "com.android.installreferrer:installreferrer:2.2"
 
 	debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.fbjni'
@@ -277,7 +282,7 @@ dependencies {
     debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}") {
         exclude group:'com.facebook.flipper'
     }
-	
+
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")

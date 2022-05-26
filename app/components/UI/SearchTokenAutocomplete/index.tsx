@@ -1,6 +1,11 @@
 import React, { useCallback, useState } from 'react';
-import { View, StyleSheet, InteractionManager, Text, LayoutAnimation } from 'react-native';
-import { colors } from '../../../styles/common';
+import {
+  View,
+  StyleSheet,
+  InteractionManager,
+  Text,
+  LayoutAnimation,
+} from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
@@ -11,169 +16,204 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../constants/network';
+import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-	wrapper: {
-		backgroundColor: colors.white,
-		flex: 1,
-	},
-	tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20, paddingRight: 0 },
-	tokenDetectionDescription: { color: colors.black },
-	tokenDetectionLink: { color: colors.blue },
-	tokenDetectionIcon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    wrapper: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+    },
+    tokenDetectionBanner: {
+      marginHorizontal: 20,
+      marginTop: 20,
+      paddingRight: 0,
+    },
+    tokenDetectionDescription: { color: colors.text.default },
+    tokenDetectionLink: { color: colors.primary.default },
+    tokenDetectionIcon: {
+      paddingTop: 4,
+      paddingRight: 8,
+    },
+  });
 
 interface Props {
-	/**
+  /**
 	/* navigation object required to push new views
 	*/
-	navigation: any;
+  navigation: any;
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation }: Props) => {
-	const [searchResults, setSearchResults] = useState([]);
-	const [searchQuery, setSearchQuery] = useState('');
-	const [selectedAsset, setSelectedAsset] = useState({});
-	const [isSearchFocused, setIsSearchFocused] = useState(false);
-	const { address, symbol, decimals } = selectedAsset as any;
-	const isTokenDetectionEnabled = useSelector(
-		(state: any) => !state.engine.backgroundState.PreferencesController.useStaticTokenList
-	);
-	const isMainnet = useSelector(
-		(state: any) => state.engine.backgroundState.NetworkController.provider.type === MAINNET
-	);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAsset, setSelectedAsset] = useState({});
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const { address, symbol, decimals } = selectedAsset as any;
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	const setFocusState = useCallback(
-		(isFocused: boolean) => {
-			LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-			setIsSearchFocused(isFocused);
-		},
-		[setIsSearchFocused]
-	);
+  const isTokenDetectionEnabled = useSelector(
+    (state: any) =>
+      !state.engine.backgroundState.PreferencesController.useStaticTokenList,
+  );
+  const isMainnet = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.provider.type === MAINNET,
+  );
 
-	const getAnalyticsParams = useCallback(() => {
-		try {
-			const { NetworkController } = Engine.context as any;
-			const { chainId, type } = NetworkController?.state?.provider || {};
-			return {
-				token_address: address,
-				token_symbol: symbol,
-				network_name: type,
-				chain_id: chainId,
-				source: 'Add token dropdown',
-			};
-		} catch (error) {
-			return {};
-		}
-	}, [address, symbol]);
+  const setFocusState = useCallback(
+    (isFocused: boolean) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setIsSearchFocused(isFocused);
+    },
+    [setIsSearchFocused],
+  );
 
-	const cancelAddToken = useCallback(() => {
-		navigation.goBack();
-	}, [navigation]);
+  const getAnalyticsParams = useCallback(() => {
+    try {
+      const { NetworkController } = Engine.context as any;
+      const { chainId, type } = NetworkController?.state?.provider || {};
+      return {
+        token_address: address,
+        token_symbol: symbol,
+        network_name: type,
+        chain_id: chainId,
+        source: 'Add token dropdown',
+      };
+    } catch (error) {
+      return {};
+    }
+  }, [address, symbol]);
 
-	const handleSearch = useCallback(
-		(opts: any) => {
-			setSearchResults(opts.results);
-			setSearchQuery(opts.searchQuery);
-		},
-		[setSearchResults, setSearchQuery]
-	);
+  const cancelAddToken = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
-	const handleSelectAsset = useCallback(
-		(asset) => {
-			setSelectedAsset(asset);
-		},
-		[setSelectedAsset]
-	);
+  const handleSearch = useCallback(
+    (opts: any) => {
+      setSearchResults(opts.results);
+      setSearchQuery(opts.searchQuery);
+    },
+    [setSearchResults, setSearchQuery],
+  );
 
-	const addToken = useCallback(async () => {
-		const { TokensController } = Engine.context as any;
-		await TokensController.addToken(address, symbol, decimals);
+  const handleSelectAsset = useCallback(
+    (asset) => {
+      setSelectedAsset(asset);
+    },
+    [setSelectedAsset],
+  );
 
-		AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any, getAnalyticsParams());
+  const addToken = useCallback(async () => {
+    const { TokensController } = Engine.context as any;
+    await TokensController.addToken(address, symbol, decimals);
 
-		// Clear state before closing
-		setSearchResults([]);
-		setSearchQuery('');
-		setSelectedAsset({});
+    AnalyticsV2.trackEvent(
+      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
+      getAnalyticsParams(),
+    );
 
-		InteractionManager.runAfterInteractions(() => {
-			navigation.goBack();
-		});
-	}, [address, symbol, decimals, setSearchResults, setSearchQuery, setSelectedAsset, navigation, getAnalyticsParams]);
+    // Clear state before closing
+    setSearchResults([]);
+    setSearchQuery('');
+    setSelectedAsset({});
 
-	const renderTokenDetectionBanner = useCallback(() => {
-		if (isTokenDetectionEnabled || !isMainnet || isSearchFocused) {
-			return null;
-		}
-		return (
-			<Alert
-				type={AlertType.Info}
-				style={styles.tokenDetectionBanner}
-				renderIcon={() => (
-					<FontAwesome
-						style={styles.tokenDetectionIcon}
-						name={'exclamation-circle'}
-						color={colors.blue}
-						size={18}
-					/>
-				)}
-			>
-				<>
-					<Text style={styles.tokenDetectionDescription}>{strings('add_asset.token_detection_feature')}</Text>
-					<Text
-						suppressHighlighting
-						onPress={() => {
-							navigation.navigate('SettingsView', {
-								screen: 'ExperimentalSettings',
-								params: {
-									isFullScreenModal: true,
-								},
-							});
-						}}
-						style={styles.tokenDetectionLink}
-					>
-						{strings('add_asset.token_detection_link')}
-					</Text>
-				</>
-			</Alert>
-		);
-	}, [navigation, isSearchFocused, isTokenDetectionEnabled, isMainnet]);
+    InteractionManager.runAfterInteractions(() => {
+      navigation.goBack();
+    });
+  }, [
+    address,
+    symbol,
+    decimals,
+    setSearchResults,
+    setSearchQuery,
+    setSelectedAsset,
+    navigation,
+    getAnalyticsParams,
+  ]);
 
-	return (
-		<View style={styles.wrapper} testID={'search-token-screen'}>
-			<ActionView
-				cancelText={strings('add_asset.tokens.cancel_add_token')}
-				confirmText={strings('add_asset.tokens.add_token')}
-				onCancelPress={cancelAddToken}
-				onConfirmPress={addToken}
-				confirmDisabled={!(address && symbol && decimals)}
-			>
-				<View>
-					{renderTokenDetectionBanner()}
-					<AssetSearch
-						onSearch={handleSearch}
-						onFocus={() => {
-							setFocusState(true);
-						}}
-						onBlur={() => setFocusState(false)}
-					/>
-					<AssetList
-						searchResults={searchResults}
-						handleSelectAsset={handleSelectAsset}
-						selectedAsset={selectedAsset}
-						searchQuery={searchQuery}
-					/>
-				</View>
-			</ActionView>
-		</View>
-	);
+  const renderTokenDetectionBanner = useCallback(() => {
+    if (isTokenDetectionEnabled || !isMainnet || isSearchFocused) {
+      return null;
+    }
+    return (
+      <Alert
+        type={AlertType.Info}
+        style={styles.tokenDetectionBanner}
+        renderIcon={() => (
+          <FontAwesome
+            style={styles.tokenDetectionIcon}
+            name={'exclamation-circle'}
+            color={colors.primary.default}
+            size={18}
+          />
+        )}
+      >
+        <>
+          <Text style={styles.tokenDetectionDescription}>
+            {strings('add_asset.token_detection_feature')}
+          </Text>
+          <Text
+            suppressHighlighting
+            onPress={() => {
+              navigation.navigate('SettingsView', {
+                screen: 'SettingsFlow',
+                params: {
+                  screen: 'ExperimentalSettings',
+                  params: {
+                    isFullScreenModal: true,
+                  },
+                },
+              });
+            }}
+            style={styles.tokenDetectionLink}
+          >
+            {strings('add_asset.token_detection_link')}
+          </Text>
+        </>
+      </Alert>
+    );
+  }, [
+    navigation,
+    isSearchFocused,
+    isTokenDetectionEnabled,
+    isMainnet,
+    colors,
+    styles,
+  ]);
+
+  return (
+    <View style={styles.wrapper} testID={'search-token-screen'}>
+      <ActionView
+        cancelText={strings('add_asset.tokens.cancel_add_token')}
+        confirmText={strings('add_asset.tokens.add_token')}
+        onCancelPress={cancelAddToken}
+        onConfirmPress={addToken}
+        confirmDisabled={!(address && symbol && decimals)}
+      >
+        <View>
+          {renderTokenDetectionBanner()}
+          <AssetSearch
+            onSearch={handleSearch}
+            onFocus={() => {
+              setFocusState(true);
+            }}
+            onBlur={() => setFocusState(false)}
+          />
+          <AssetList
+            searchResults={searchResults}
+            handleSelectAsset={handleSelectAsset}
+            selectedAsset={selectedAsset}
+            searchQuery={searchQuery}
+          />
+        </View>
+      </ActionView>
+    </View>
+  );
 };
 
 export default SearchTokenAutocomplete;

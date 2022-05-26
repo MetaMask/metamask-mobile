@@ -9,6 +9,7 @@
 #import "RCTAnalytics.h"
 #import <Mixpanel/Mixpanel.h>
 #import <Mixpanel/MPTweakInline.h>
+#import <Mixpanel/MixpanelPeople.h>
 
 @implementation RCTAnalytics
 RCT_EXPORT_MODULE()
@@ -32,7 +33,7 @@ RCT_EXPORT_METHOD(trackEvent:(NSDictionary *)event)
 RCT_EXPORT_METHOD(trackEventAnonymously:(NSDictionary *)event)
 {
   NSString *const distinctId = [[Mixpanel sharedInstance] distinctId];
-  [[Mixpanel sharedInstance] identify:@"\"\""];
+  [[Mixpanel sharedInstance] identify:@"0x0000000000000000"];
   [[Mixpanel sharedInstance] track: [self getCategory:event] properties:[self getInfo:event]];
   [[Mixpanel sharedInstance] identify:distinctId];
 }
@@ -41,6 +42,12 @@ RCT_EXPORT_METHOD(trackEventAnonymously:(NSDictionary *)event)
 RCT_EXPORT_METHOD(peopleIdentify)
 {
   [[Mixpanel sharedInstance] identify:[[Mixpanel sharedInstance] distinctId]];
+}
+
+RCT_EXPORT_METHOD(setUserProfileProperty:(NSString *)propertyName to:(id)propertyValue)
+{
+  [[Mixpanel sharedInstance] identify:[[Mixpanel sharedInstance] distinctId]];
+  [[Mixpanel sharedInstance].people set:propertyName to:propertyValue];
 }
 
 RCT_REMAP_METHOD(getDistinctId,

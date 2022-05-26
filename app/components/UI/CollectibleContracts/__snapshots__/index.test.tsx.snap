@@ -26,7 +26,9 @@ exports[`CollectibleContracts should render correctly 1`] = `
     ]
   }
   favoriteCollectibles={Array []}
+  nftDetectionDismissed={true}
   removeFavoriteCollectible={[Function]}
   selectedAddress="0x1"
+  setNftDetectionDismissed={[Function]}
 />
 `;

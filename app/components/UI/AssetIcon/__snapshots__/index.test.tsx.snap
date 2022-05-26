@@ -5,7 +5,7 @@ exports[`AssetIcon should render correctly 1`] = `
   fadeIn={true}
   placeholderStyle={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#F2F4F6",
     }
   }
   source={
