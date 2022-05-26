@@ -410,9 +410,26 @@ const GetQuotes = () => {
     }
   }, [filteredQuotes]);
 
-  const handleOnQuotePress = useCallback(
-    (quote: QuoteResponse, index) => {
-      setProviderId(quote.provider.id);
+  const handleOnQuotePress = useCallback((quote: QuoteResponse) => {
+    setProviderId(quote.provider.id);
+  }, []);
+
+  const handleInfoPress = useCallback(
+    (quote) => {
+      if (quote?.provider) {
+        setSelectedProviderInfo(quote.provider);
+        setShowProviderInfo(true);
+        trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
+          provider_onramp: quote.provider.name,
+        });
+      }
+    },
+    [trackEvent],
+  );
+
+  const handleOnPressBuy = useCallback(
+    (quote, index) => {
+      quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
       const totalFee =
         (quote.networkFee || 0) +
         (quote.providerFee || 0) +
@@ -436,31 +453,12 @@ const GetQuotes = () => {
     [
       appConfig.POLLING_CYCLES,
       filteredQuotes.length,
+      navigation,
       params,
       pollingCyclesLeft,
       selectedChainId,
       trackEvent,
     ],
-  );
-
-  const handleInfoPress = useCallback(
-    (quote) => {
-      if (quote?.provider) {
-        setSelectedProviderInfo(quote.provider);
-        setShowProviderInfo(true);
-        trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
-          provider_onramp: quote.provider.name,
-        });
-      }
-    },
-    [trackEvent],
-  );
-
-  const handleOnPressBuy = useCallback(
-    (quote) => {
-      quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
-    },
-    [navigation],
   );
 
   const handleFetchQuotes = useCallback(() => {
@@ -647,8 +645,8 @@ const GetQuotes = () => {
                 >
                   <Quote
                     quote={quote}
-                    onPress={() => handleOnQuotePress(quote, index)}
-                    onPressBuy={() => handleOnPressBuy(quote)}
+                    onPress={() => handleOnQuotePress(quote)}
+                    onPressBuy={() => handleOnPressBuy(quote, index)}
                     highlighted={quote.provider.id === providerId}
                     showInfo={() => handleInfoPress(quote)}
                   />
