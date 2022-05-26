@@ -38,6 +38,7 @@ const createStyles = (colors) =>
     },
     buttonText: {
       marginTop: 8,
+      marginHorizontal: 3,
       color: colors.primary.default,
       fontSize: 14,
     },
@@ -59,6 +60,8 @@ const createStyles = (colors) =>
 function AssetActionButton({ onPress, icon, label, disabled }) {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+
+  const maxStringLength = 10;
 
   const getIcon = (type) => {
     switch (type) {
@@ -123,7 +126,9 @@ function AssetActionButton({ onPress, icon, label, disabled }) {
         {icon && (typeof icon === 'string' ? getIcon(icon) : icon)}
       </View>
       <Text centered style={styles.buttonText} numberOfLines={1}>
-        {label}
+        {label.length > maxStringLength
+          ? `${label.substring(0, maxStringLength - 3)}...`
+          : label}
       </Text>
     </TouchableOpacity>
   );
