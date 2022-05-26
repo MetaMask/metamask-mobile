@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..4463e27 100644
+index f743bbc..308bcc6 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -10,13 +10,14 @@ index f743bbc..4463e27 100644
  import android.content.pm.ActivityInfo;
  import android.content.pm.PackageManager;
  import android.graphics.Bitmap;
-@@ -24,12 +25,15 @@ import android.view.View;
+@@ -24,12 +25,16 @@ import android.view.View;
  import android.view.ViewGroup;
  import android.view.ViewGroup.LayoutParams;
  import android.view.WindowManager;
 +import android.view.inputmethod.InputMethodManager;
  import android.webkit.ConsoleMessage;
  import android.webkit.CookieManager;
++import android.webkit.CookieSyncManager;
  import android.webkit.DownloadListener;
  import android.webkit.GeolocationPermissions;
  import android.webkit.JavascriptInterface;
@@ -26,7 +27,7 @@ index f743bbc..4463e27 100644
  import android.webkit.SslErrorHandler;
  import android.webkit.PermissionRequest;
  import android.webkit.URLUtil;
-@@ -88,18 +92,40 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+@@ -88,18 +93,40 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
  import org.json.JSONException;
  import org.json.JSONObject;
  
@@ -67,7 +68,7 @@ index f743bbc..4463e27 100644
  /**
   * Manages instances of {@link WebView}
   * <p>
-@@ -137,13 +163,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -137,13 +164,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -88,7 +89,7 @@ index f743bbc..4463e27 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -158,11 +190,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -158,11 +191,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
  
@@ -97,20 +98,19 @@ index f743bbc..4463e27 100644
 +  protected static OkHttpClient httpClient;
 +
    public RNCWebViewManager() {
-     mWebViewConfig = new WebViewConfig() {
-       public void configWebView(WebView webView) {
-       }
-     };
-+
-+    httpClient = new OkHttpClient.Builder()
-+      .cookieJar(new CustomCookieJar())
+-    mWebViewConfig = new WebViewConfig() {
+-      public void configWebView(WebView webView) {
+-      }
+-    };
++    mWebViewConfig = webView -> httpClient = new OkHttpClient.Builder()
++      .cookieJar(new CustomCookieJar(webView))
 +      .followRedirects(false)
 +      .followSslRedirects(false)
 +      .build();
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -182,6 +224,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +220,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -118,7 +118,7 @@ index f743bbc..4463e27 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -247,9 +290,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -247,9 +286,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -215,7 +215,7 @@ index f743bbc..4463e27 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,13 +972,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +968,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -236,7 +236,7 @@ index f743bbc..4463e27 100644
 +    private boolean hasClosingHead = false;
 +
 +    private StringBuffer contentBuffer = new StringBuffer();
- 
++
 +    @SuppressLint("LongLogTag")
 +    private static Charset getCharset(String charsetName) {
 +        Charset cs = StandardCharsets.UTF_8;
@@ -247,7 +247,7 @@ index f743bbc..4463e27 100644
 +        } catch (UnsupportedCharsetException e) {
 +            Log.d(REACT_CLASS, "wrong charset: " + charsetName);
 +        }
-+
+ 
 +        return cs;
 +    }
 +
@@ -333,7 +333,7 @@ index f743bbc..4463e27 100644
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -872,9 +1105,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -872,9 +1101,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        super.onPageStarted(webView, url, favicon);
        mLastLoadFailed = false;
  
@@ -343,7 +343,7 @@ index f743bbc..4463e27 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1112,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1108,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -360,7 +360,7 @@ index f743bbc..4463e27 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -919,6 +1159,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1155,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
  
          return shouldOverride;
@@ -378,7 +378,7 @@ index f743bbc..4463e27 100644
        } else {
          FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
          progressChangedFilter.setWaitingForCommandLoadUrl(true);
-@@ -934,6 +1185,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,6 +1181,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -400,7 +400,7 @@ index f743bbc..4463e27 100644
        final String url = request.getUrl().toString();
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1713,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1709,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -414,7 +414,7 @@ index f743bbc..4463e27 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1748,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1744,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
@@ -457,47 +457,80 @@ index f743bbc..4463e27 100644
      @Override
      public void onHostResume() {
        // do nothing
-@@ -1737,3 +2046,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1737,3 +2042,75 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  }
 +
 +class CustomCookieJar implements CookieJar {
-+  private CookieManager cookieManager;
++  private CookieSyncManager mCookieSyncManager;
++  private static final boolean USES_LEGACY_STORE = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP;
 +
-+  public CustomCookieJar () {
-+    this.cookieManager = CookieManager.getInstance();
++  public CustomCookieJar (WebView webView) {
++    this.mCookieSyncManager = CookieSyncManager.createInstance(webView.getContext());
++  }
++
++  private CookieManager getCookieManager() throws Exception {
++    try {
++      CookieManager cookieManager = CookieManager.getInstance();
++      cookieManager.setAcceptCookie(true);
++      return cookieManager;
++    } catch (Exception e) {
++      throw new Exception(e);
++    }
 +  }
 +
 +  @Override
 +  public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-+    for (Cookie cookie : cookies) {
-+      this.cookieManager.setCookie(url.toString(), cookie.toString());
++    try {
++      CookieManager cookieManager = this.getCookieManager();
++
++      for (Cookie cookie : cookies) {
++        if (USES_LEGACY_STORE) {
++          cookieManager.setCookie(url.toString(), cookie.toString());
++          this.mCookieSyncManager.sync();
++        } else {
++          cookieManager.setCookie(url.toString(), cookie.toString(), new ValueCallback<Boolean>() {
++            @Override
++            public void onReceiveValue(Boolean value) { }
++          });
++          cookieManager.flush();
++        }
++      }
++    } catch (Exception e) {
++      e.printStackTrace();
 +    }
 +  }
 +
 +  @Override
 +  public List<Cookie> loadForRequest(HttpUrl url) {
-+    if (this.cookieManager.hasCookies()) {
-+      String response = this.cookieManager.getCookie(url.toString());
++    try {
++      CookieManager cookieManager = this.getCookieManager();
 +
-+      if (response == null) return new ArrayList<Cookie>();
++      if (cookieManager.hasCookies()) {
++        String response = cookieManager.getCookie(url.toString());
 +
-+      String[] cookies = response.split(";");
-+      List<Cookie> cookieList = new ArrayList<Cookie>();
++        if (response == null) return new ArrayList<Cookie>();
 +
-+      for(String cookieStr : cookies) {
-+        Cookie.Builder builder = new Cookie.Builder();
-+        String[] cookieKeyVal = cookieStr.split("=");
-+        builder.name(cookieKeyVal[0].trim());
-+        builder.value(cookieKeyVal[1].trim());
-+        builder.domain(url.host());
-+        cookieList.add(builder.build());
++        String[] cookies = response.split(";");
++        List<Cookie> cookieList = new ArrayList<Cookie>();
++
++        for (String cookieStr : cookies) {
++          Cookie.Builder builder = new Cookie.Builder();
++          String[] cookieKeyVal = cookieStr.split("=");
++          builder.name(cookieKeyVal[0].trim());
++          builder.value(cookieKeyVal[1].trim());
++          builder.domain(url.host());
++          cookieList.add(builder.build());
++        }
++
++        return cookieList;
 +      }
-+
-+      return cookieList;
++      return new ArrayList<Cookie>();
++    } catch (Exception e) {
++      e.printStackTrace();
++      return new ArrayList<Cookie>();
 +    }
-+    return new ArrayList<Cookie>();
 +  }
 +}
 \ No newline at end of file
