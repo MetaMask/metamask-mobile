@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,17 +6,19 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import CheckBox from '@react-native-community/checkbox';
-import { strings } from '../../../../../locales/i18n';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../../styles/common';
+import { strings } from '../../../../../locales/i18n';
 import { IAccount } from '../types';
-import { renderFromWei } from '../../../../util/number';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { getEtherscanAddressUrl } from '../../../../util/etherscan';
+import { findBlockExplorerForRpc } from '../../../../util/networks';
+import Device from '../../../../util/device';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
-import EthereumAddress from '../../../UI/EthereumAddress';
+import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
 
 interface ISelectQRAccountsProps {
@@ -32,6 +34,7 @@ interface ISelectQRAccountsProps {
 const createStyle = (colors: any) =>
   StyleSheet.create({
     container: {
+      flex: 1,
       width: '100%',
       paddingHorizontal: 32,
     },
@@ -44,33 +47,17 @@ const createStyle = (colors: any) =>
     },
     account: {
       flexDirection: 'row',
-      alignItems: 'center',
-      height: 36,
-      width: '100%',
-      paddingVertical: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
     },
     checkBox: {
-      marginRight: 8,
-    },
-    accountUnchecked: {
-      backgroundColor: colors.primary.muted,
-    },
-    accountChecked: {
-      backgroundColor: colors.primary.disabled,
+      backgroundColor: colors.background.default,
     },
     number: {
       ...fontStyles.normal,
       color: colors.text.default,
     },
-    address: {
-      marginLeft: 8,
-      fontSize: 15,
-      flexGrow: 1,
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
     pagination: {
-      marginTop: 16,
       alignSelf: 'flex-end',
       flexDirection: 'row',
       alignItems: 'center',
@@ -79,6 +66,7 @@ const createStyle = (colors: any) =>
       ...fontStyles.normal,
       fontSize: 18,
       color: colors.primary.default,
+      paddingHorizontal: 10,
     },
     paginationItem: {
       flexDirection: 'row',
@@ -87,13 +75,14 @@ const createStyle = (colors: any) =>
     },
     bottom: {
       alignItems: 'center',
-      marginTop: 150,
-      height: 100,
       justifyContent: 'space-between',
+      paddingTop: 70,
+      paddingBottom: Device.isIphoneX() ? 20 : 10,
     },
     button: {
       width: '100%',
-      padding: 12,
+      justifyContent: 'flex-end',
+      paddingTop: 15,
     },
   });
 
@@ -113,17 +102,32 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
   const provider = useSelector(
     (state: any) => state.engine.backgroundState.NetworkController.provider,
   );
-  const defaultTicker = 'ETH';
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
 
-  const toEtherscan = (address: string) => {
-    const accountLink = getEtherscanAddressUrl(provider.type, address);
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: accountLink,
-      },
-    });
-  };
+  const toBlockExplorer = useCallback(
+    (address: string) => {
+      const { type, rpcTarget } = provider;
+      let accountLink: string;
+      if (type === RPC) {
+        const blockExplorer =
+          findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+          NO_RPC_BLOCK_EXPLORER;
+        accountLink = `${blockExplorer}/address/${address}`;
+      } else {
+        accountLink = getEtherscanAddressUrl(type, address);
+      }
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: accountLink,
+        },
+      });
+    },
+    [frequentRpcList, navigation, provider],
+  );
 
   return (
     <View style={styles.container}>
@@ -145,22 +149,17 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
                 true: colors.primary.default,
                 false: colors.border.default,
               }}
+              onCheckColor={colors.background.default}
+              onFillColor={colors.primary.default}
+              onTintColor={colors.primary.default}
               testID={'skip-backup-check'}
             />
-            <Text style={styles.number}>{item.index}</Text>
-            <EthereumAddress
+            <AccountDetails
+              index={item.index}
               address={item.address}
-              style={styles.address}
-              type={'short'}
-            />
-            <Text style={styles.address}>
-              {renderFromWei(item.balance)} {provider.ticker || defaultTicker}
-            </Text>
-            <Icon
-              size={18}
-              name={'external-link'}
-              onPress={() => toEtherscan(item.address)}
-              color={colors.text.default}
+              balance={item.balance}
+              ticker={provider.ticker}
+              toBlockExplorer={toBlockExplorer}
             />
           </View>
         )}
@@ -179,7 +178,6 @@ const SelectQRAccounts = (props: ISelectQRAccountsProps) => {
           <Icon name={'chevron-right'} color={colors.primary.default} />
         </TouchableOpacity>
       </View>
-
       <View style={styles.bottom}>
         <StyledButton
           type={'confirm'}
