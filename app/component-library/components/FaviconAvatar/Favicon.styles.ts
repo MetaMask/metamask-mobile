@@ -1,9 +1,5 @@
-import { FavIconStylesheet } from './FaviconAvatar.types';
+import { StyleSheet } from 'react-native';
 
-const styles: FavIconStylesheet = {
-  image: {
-    flex: 1,
-  },
-};
+const styleSheet = StyleSheet.create({ imageStyle: { flex: 1 } });
 
-export default styles;
+export default styleSheet;

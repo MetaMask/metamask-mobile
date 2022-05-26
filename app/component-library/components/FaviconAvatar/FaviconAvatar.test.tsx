@@ -1,14 +1,14 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { AvatarSize } from '../../Base/BaseAvatar';
+import { BaseAvatarSize } from '../BaseAvatar';
 import FaviconAvatar from '.';
 
-describe('BaseAvatar', () => {
+describe('FaviconAvatar', () => {
   it('should match the snapshot', () => {
     const imageStub = 'image-stub';
     const wrapper = shallow(
-      <FaviconAvatar size={AvatarSize.Xl} imageUrl={imageStub} />,
+      <FaviconAvatar size={BaseAvatarSize.Xl} imageUrl={imageStub} />,
     );
     expect(wrapper).toMatchSnapshot();
   });

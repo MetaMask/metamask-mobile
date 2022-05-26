@@ -14,7 +14,7 @@ const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
   <BaseAvatar size={size} style={style}>
     <Image
       source={{ uri: imageUrl }}
-      style={styles.image}
+      style={styles.imageStyle}
       resizeMode={'contain'}
     />
   </BaseAvatar>
