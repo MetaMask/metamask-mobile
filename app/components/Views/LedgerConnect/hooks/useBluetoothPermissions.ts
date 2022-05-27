@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { check, PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import Device from '../../../../util/device';
@@ -50,7 +50,7 @@ const useBluetoothPermissions = () => {
   };
 
   // External permission changes must be picked up by the app by tracking the app state
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (
         appState.current.match(/inactive|background/) &&
