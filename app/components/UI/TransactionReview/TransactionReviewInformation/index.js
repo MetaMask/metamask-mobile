@@ -30,12 +30,7 @@ import {
 } from '../../../../util/transactions';
 import Analytics from '../../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import {
-  getNetworkName,
-  getNetworkNonce,
-  isMainNet,
-} from '../../../../util/networks';
-import { capitalize } from '../../../../util/general';
+import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
@@ -43,6 +38,8 @@ import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
+import AppConstants from '../../../../../app/core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -267,7 +264,7 @@ class TransactionReviewInformation extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -499,12 +496,11 @@ class TransactionReviewInformation extends PureComponent {
     onCancelPress && onCancelPress();
   };
 
-  gotoFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
+  goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate('BrowserView', {
-        newTabUrl: mmFaucetUrl,
+      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });
@@ -613,13 +609,12 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const is_main_net = isMainNet(network);
+    const isTestNetwork = isTestNet(network);
 
-    const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-    const networkName = capitalize(getNetworkName(network));
-    const errorLinkText = is_main_net
-      ? strings('transaction.buy_more_eth')
-      : strings('transaction.get_ether', { networkName });
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
+      ? strings('transaction.go_to_faucet')
+      : strings('transaction.buy_more');
 
     const showFeeMarket =
       !gasEstimateType ||
@@ -651,8 +646,7 @@ class TransactionReviewInformation extends PureComponent {
           <View style={styles.errorWrapper}>
             <TouchableOpacity onPress={errorPress}>
               <Text style={styles.error}>{error}</Text>
-              {/* only show buy more on mainnet */}
-              {over && is_main_net && (
+              {over && (
                 <Text style={[styles.error, styles.underline]}>
                   {errorLinkText}
                 </Text>

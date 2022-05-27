@@ -506,7 +506,7 @@ function SwapsAmountView({
 
   /* Keypad Handlers */
   const handleKeypadChange = useCallback(
-    (value) => {
+    ({ value }) => {
       if (value === amount) {
         return;
       }
@@ -827,7 +827,11 @@ function SwapsAmountView({
         pointerEvents={disabledView ? 'none' : 'auto'}
       >
         <AnimatableView ref={keypadViewRef}>
-          <Keypad onChange={handleKeypadChange} value={amount} />
+          <Keypad
+            onChange={handleKeypadChange}
+            value={amount}
+            currency="native"
+          />
         </AnimatableView>
         <View style={styles.buttonsContainer}>
           <View style={styles.column}>
