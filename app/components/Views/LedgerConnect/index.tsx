@@ -100,6 +100,9 @@ const createStyles = (colors: any) =>
     howToInstallEthAppText: {
       marginTop: Device.getDeviceHeight() * 0.025,
     },
+    openEthAppMessage: {
+      marginTop: Device.getDeviceHeight() * 0.025,
+    },
   });
 
 const LedgerConnect = () => {
@@ -252,8 +255,8 @@ const LedgerConnect = () => {
               </Text>
             </>
           ) : (
-            <Text>
-              {strings('ledger.open_eth_app_message_one')}{' '}
+            <Text style={styles.openEthAppMessage}>
+              <Text>{strings('ledger.open_eth_app_message_one')}</Text>
               <Text bold>{strings('ledger.open_eth_app_message_two')} </Text>
             </Text>
           )}
