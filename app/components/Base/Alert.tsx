@@ -32,7 +32,7 @@ interface Props {
   children?: ReactNode;
 }
 
-const createStyles = (colors: any) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     base: {
       paddingHorizontal: 12,
@@ -45,24 +45,24 @@ const createStyles = (colors: any) =>
       paddingVertical: 8,
     },
     info: {
-      backgroundColor: colors.primary.muted,
-      borderColor: colors.primary.default,
+      backgroundColor: theme.colors.primary.muted,
+      borderColor: theme.colors.primary.default,
     },
     warning: {
-      backgroundColor: colors.warning.muted,
-      borderColor: colors.warning.default,
+      backgroundColor: theme.colors.warning.muted,
+      borderColor: theme.colors.warning.default,
     },
     error: {
-      backgroundColor: colors.error.muted,
-      borderColor: colors.error.default,
+      backgroundColor: theme.colors.error.muted,
+      borderColor: theme.colors.error.default,
     },
     closeIcon: {
-      color: colors.text.default,
+      color: theme.colors.text.default,
     },
     baseTextStyle: { fontSize: 14, flex: 1, lineHeight: 17 },
-    textInfo: { color: colors.text.default },
-    textWarning: { color: colors.text.default },
-    textError: { color: colors.text.default },
+    textInfo: { color: theme.colors.text.default },
+    textWarning: { color: theme.colors.text.default },
+    textError: { color: theme.colors.text.default },
     textIconStyle: { marginRight: 12 },
     iconWrapper: {
       alignItems: 'center',
@@ -102,8 +102,8 @@ const Alert = ({
 }: Props) => {
   const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> =
     onPress ? TouchableOpacity : View;
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const { theme } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(theme);
 
   const [wrapperStyle, textStyle] = getAlertStyles(type, styles);
 
