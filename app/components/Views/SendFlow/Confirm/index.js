@@ -975,14 +975,26 @@ class Confirm extends PureComponent {
     await KeyringController.resetQRKeyringState();
 
     const finalizeConfirmation = async (confirmed) => {
-      if (confirmed === false) {
-        // Transaction was rejected by the user
+      const rejectTransaction = () => {
         this.setState({ transactionConfirmed: false });
         navigation && navigation.dangerouslyGetParent()?.popToTop();
-        return;
+      };
+
+      if (confirmed === false) {
+        // Transaction was rejected by the user
+        return rejectTransaction();
       }
 
-      await new Promise((resolve) => resolve(result));
+      try {
+        await new Promise((resolve) => resolve(result));
+      } catch (e) {
+        // This is the LedgerCode for device rejection
+        if (e.message.includes('0x6985')) {
+          return rejectTransaction();
+        }
+
+        throw e;
+      }
 
       if (transactionMeta.error) {
         if (transactionMeta?.message.startsWith(KEYSTONE_TX_CANCELED)) {
