@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 
@@ -94,7 +94,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const getSource = useCallback(() => {
+  const source = useMemo(() => {
     if (symbol === 'ETH') {
       return ethLogo;
     }
@@ -108,13 +108,12 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 
     return null;
   }, [symbol, icon]);
-  const source = getSource();
 
   if (source && !showFallback) {
     return (
       <RemoteImage
         fadeIn
-        source={getSource()}
+        source={source}
         onError={() => setShowFallback(true)}
         style={[
           styles.icon,

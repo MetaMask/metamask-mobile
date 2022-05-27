@@ -6,6 +6,8 @@ import NotificationManager from '../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
+/* eslint-disable import/no-namespace */
+import * as themeUtils from './theme';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -175,4 +177,9 @@ jest.mock('react-native-permissions', () => ({
     },
   },
   openSettings: jest.fn(),
+}));
+
+jest.mock('../util/theme', () => ({
+  ...themeUtils,
+  useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
