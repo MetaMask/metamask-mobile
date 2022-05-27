@@ -974,7 +974,14 @@ class Confirm extends PureComponent {
       );
     await KeyringController.resetQRKeyringState();
 
-    const finalizeConfirmation = async () => {
+    const finalizeConfirmation = async (confirmed) => {
+      if (confirmed === false) {
+        // Transaction was rejected by the user
+        this.setState({ transactionConfirmed: false });
+        navigation && navigation.dangerouslyGetParent()?.popToTop();
+        return;
+      }
+
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {
@@ -1016,14 +1023,14 @@ class Confirm extends PureComponent {
     if (isHardwareAccount(transaction.from, KeyringTypes.ledger)) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
       // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
-      this.props.openLedgerDeviceActionModal(
-        transactionMeta.id,
-        ledgerKeyring.deviceId,
-        finalizeConfirmation,
-      );
+      this.props.openLedgerDeviceActionModal({
+        transactionId: transactionMeta.id,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: finalizeConfirmation,
+      });
     } else {
       await TransactionController.approveTransaction(transactionMeta.id);
-      await finalizeConfirmation();
+      await finalizeConfirmation(true);
     }
   };
 
@@ -1677,8 +1684,8 @@ const mapDispatchToProps = (dispatch) => ({
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-  openLedgerDeviceActionModal: (txId, deviceId, onCompleteCallback) =>
-    dispatch(openLedgerDeviceActionModal(txId, deviceId, onCompleteCallback)),
+  openLedgerDeviceActionModal: (params) =>
+    dispatch(openLedgerDeviceActionModal(params)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);

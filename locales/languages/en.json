@@ -163,6 +163,8 @@
     "bluetooth_enabled_message": "Make sure Bluetooth is enabled",
     "device_unlocked_message": "Device is unlocked",
     "blind_signing_message": "Blind signing is enabled",
+    "ledger_disconnected": "Your device got disconnected",
+    "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
     "unknown_error": "Unexpected error occurred.",
     "unknown_error_message": "An unexpected error occured. Please try again.",
     "error_occured": "An error occured",

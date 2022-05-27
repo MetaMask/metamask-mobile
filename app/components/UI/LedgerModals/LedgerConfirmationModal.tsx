@@ -134,11 +134,9 @@ const LedgerConfirmationModal = () => {
     ledgerConnectErrorLightImage,
     ledgerConnectErrorDarkImage,
   );
-  const {
-    device: deviceId,
-    transaction: transactionId,
-    onConfirmationComplete,
-  } = useSelector((state: any) => state.modals.ledgerDeviceActionParams);
+  const { deviceId, transactionId, onConfirmationComplete } = useSelector(
+    (state: any) => state.modals.ledgerDeviceActionParams,
+  );
   const dispatch = useDispatch();
   const {
     isSendingLedgerCommands,
@@ -169,19 +167,19 @@ const LedgerConfirmationModal = () => {
       await TransactionController.approveTransaction(transactionId);
 
       // Wrap up the confirmation flow
-      // TODO: handle close of confirmation flow
       dispatch(closeLedgerDeviceActionModal());
-      onConfirmationComplete();
+      onConfirmationComplete(true);
     });
   };
 
   // In case of manual rejection
-  const onReject = async () => {
-    await TransactionController.cancelTransaction(transactionId);
-    // TODO: handle close of confirmation flow
+  const onReject = () => {
     dispatch(closeLedgerDeviceActionModal());
-    onConfirmationComplete();
+    onConfirmationComplete(false);
   };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => onReject, []);
 
   const onRetry = async () => {
     if (!hasBluetoothPermissions) {

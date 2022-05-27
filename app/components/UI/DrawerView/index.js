@@ -1215,11 +1215,6 @@ class DrawerView extends PureComponent {
       (item) => item.network === sanitizeUrl(switchedNetwork.networkUrl),
     );
 
-    console.log(
-      '>>>> ledgerDeviceActionModalVisible',
-      this.props.ledgerDeviceActionModalVisible,
-    );
-
     return (
       <View style={styles.wrapper} testID={'drawer-screen'}>
         <ScrollView>

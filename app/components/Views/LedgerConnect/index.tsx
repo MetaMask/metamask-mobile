@@ -113,7 +113,7 @@ const LedgerConnect = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getNavigationOptionsTitle('Whatever', navigation, true, colors),
+      getNavigationOptionsTitle('', navigation, true, colors),
     );
   }, [navigation, colors]);
 

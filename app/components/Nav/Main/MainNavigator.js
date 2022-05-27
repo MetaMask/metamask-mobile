@@ -507,12 +507,7 @@ const SetPasswordFlow = () => (
 );
 
 const LedgerConnectFlow = ({ navigation }) => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    initialRouteName="LedgerConnect"
-  >
+  <Stack.Navigator initialRouteName="LedgerConnect">
     <Stack.Screen name="LedgerConnect" component={LedgerConnect} />
   </Stack.Navigator>
 );
