@@ -55,6 +55,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import SDKConnect from '../../../core/SDKConnect';
 
 const Stack = createStackNavigator();
 /**
@@ -241,6 +242,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     const initAnalytics = async () => {
       await Analytics.init();
+      SDKConnect.init();
     };
 
     initAnalytics();
