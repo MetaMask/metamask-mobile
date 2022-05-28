@@ -1,6 +1,6 @@
 //import { store } from '../store';
 import BackgroundBridge from './BackgroundBridge';
-import RemoteCommunication from '@metamask/sdk-communication-layer';
+import RemoteCommunication from './RemoteCommunication';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 //import { approveHost } from '../actions/privacy';
 import AppConstants from './AppConstants';
@@ -19,6 +19,10 @@ import {
   mediaDevices,
   registerGlobals,
 } from 'react-native-webrtc';
+import AsyncStorage from '@react-native-community/async-storage';
+import { AppState } from 'react-native';
+
+//import BackgroundTimer from 'react-native-background-timer';
 
 const webrtc = {
   RTCPeerConnection,
@@ -44,15 +48,16 @@ const METHODS_TO_REDIRECT = {
   wallet_switchEthereumChain: true,
 };
 
+let connections = {};
+const connected = {};
+
 // Temporary hosts for now, persistance will be worked on for future versions
-const approvedHosts = {};
+let approvedHosts = {};
 
-const approveHost = (host) => {
-  approvedHosts[host] = true;
-};
+const approveHost = ({ host, hostname }) => {
+  approvedHosts[host] = hostname;
 
-const removeHost = (host) => {
-  delete approvedHosts[host];
+  AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify(approvedHosts));
 };
 
 class Connection {
@@ -62,14 +67,16 @@ class Connection {
   origin = null;
   host = null;
 
-  constructor({ id, otherPublicKey, commLayer, origin }) {
+  constructor({ id, otherPublicKey, commLayer, origin, reconnect }) {
     this.origin = origin;
     this.channelId = id;
+    this.host = `SDK:${this.channelId}`;
 
     this.RemoteConn = new RemoteCommunication({
       commLayer,
       otherPublicKey,
       webRTCLib: webrtc,
+      reconnect,
     });
 
     this.requestsToRedirect = [];
@@ -77,9 +84,14 @@ class Connection {
     this.sendMessage = this.sendMessage.bind(this);
 
     this.RemoteConn.on('clients_disconnected', () => {
-      removeHost(this.host);
-      this.backgroundBridge?.onDisconnect?.();
+      this.removeConnection();
     });
+
+    if (reconnect) {
+      this.RemoteConn.on('clients_waiting_to_join', (numberUsers) => {
+        this.removeConnection();
+      });
+    }
 
     this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
       this.backgroundBridge = new BackgroundBridge({
@@ -87,16 +99,15 @@ class Connection {
         url: originatorInfo?.url,
         isRemoteConn: true,
         sendMessage: this.sendMessage,
-        getRpcMethodMiddleware: ({ hostname, getProviderState }) => {
-          this.host = `SDK:${this.channelId}:` + hostname;
-
-          return getRpcMethodMiddleware({
+        getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+          getRpcMethodMiddleware({
             hostname: this.host,
             getProviderState,
             navigation: null, //props.navigation,
             getApprovedHosts: () => approvedHosts,
             setApprovedHosts: () => null,
-            approveHost: (hostname) => approveHost(hostname), //props.approveHost,
+            approveHost: (hostname) =>
+              approveHost({ host: this.host, hostname }), //props.approveHost,
             // Website info
             url: { current: originatorInfo?.url },
             title: { current: originatorInfo?.title },
@@ -111,8 +122,7 @@ class Connection {
             wizardScrollAdjusted: () => null,
             tabId: false,
             isWalletConnect: false,
-          });
-        },
+          }),
         isMainFrame: true,
       });
 
@@ -165,6 +175,21 @@ class Connection {
 
     this.RemoteConn.connectToChannel(id);
   }
+
+  disconnect() {
+    this.RemoteConn.disconnect();
+    this.backgroundBridge?.onDisconnect?.();
+  }
+
+  removeConnection() {
+    delete connected[this.channelId];
+    this.backgroundBridge?.onDisconnect?.();
+    delete connections[this.channelId];
+    delete approvedHosts[this.host];
+    AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify(approvedHosts));
+    AsyncStorage.setItem('sdkConnections', JSON.stringify(connections));
+  }
+
   sendMessage(msg) {
     this.RemoteConn.sendMessage(msg);
     if (!this.requestsToRedirect[msg?.data?.id]) return;
@@ -178,8 +203,80 @@ class Connection {
 }
 
 const SDKConnect = {
-  connectToChannel({ id, commLayer, otherPublicKey, origin }) {
-    new Connection({ id, commLayer, otherPublicKey, origin });
+  reconnected: false,
+  async connectToChannel({ id, commLayer, otherPublicKey, origin }) {
+    connected[id] = new Connection({
+      id,
+      commLayer,
+      otherPublicKey,
+      origin,
+    });
+    connections[id] = { id, commLayer, otherPublicKey, origin };
+    AsyncStorage.setItem('sdkConnections', JSON.stringify(connections));
+  },
+  async reconnect() {
+    if (this.reconnected) return;
+
+    const [connectionsStorage, approvedHostsStorage] = await Promise.all([
+      AsyncStorage.getItem('sdkConnections'),
+      AsyncStorage.getItem('sdkApprovedHosts'),
+    ]);
+
+    //console.log('----connections', connectionsStorage);
+
+    if (connectionsStorage) {
+      connections = JSON.parse(connectionsStorage);
+    }
+
+    if (approvedHostsStorage) {
+      approvedHosts = JSON.parse(approvedHostsStorage);
+    }
+
+    for (const id in connections) {
+      //console.log('----', connections[id]);
+      connected[id] = new Connection({
+        ...connections[id],
+        reconnect: true,
+      });
+    }
+    this.reconnected = true;
+  },
+  timeout: null,
+  paused: false,
+  handleAppState(appState) {
+    if (appState === 'active') {
+      clearTimeout(this.timeout);
+      if (this.paused) {
+        this.reconnected = false;
+        this.paused = false;
+        this.reconnect();
+      }
+    } else if (appState === 'background' && !this.paused) {
+      //BackgroundTimer.start();
+      this.timeout = setTimeout(() => {
+        if (this.paused) return;
+
+        for (const id in connected) {
+          //console.log('PAUSE');
+          connected[id].disconnect();
+          delete connected[id];
+        }
+        this.paused = true;
+      }, 10000);
+      //BackgroundTimer.stop();
+    }
+  },
+  async init() {
+    //console.log('INIT-----');
+
+    /*AsyncStorage.setItem('sdkConnections', JSON.stringify({}));
+    AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify({}));*/
+
+    this.handleAppState = this.handleAppState.bind(this);
+    AppState.removeEventListener('change', this.handleAppState);
+    AppState.addEventListener('change', this.handleAppState);
+
+    this.reconnect();
   },
 };
 

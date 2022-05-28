@@ -40,6 +40,7 @@ import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
+import SDKConnect from '../../../core/SDKConnect';
 
 const Stack = createStackNavigator();
 /**
@@ -225,6 +226,7 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     const initAnalytics = async () => {
       await Analytics.init();
+      SDKConnect.init();
     };
 
     initAnalytics();
