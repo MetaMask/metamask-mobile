@@ -6,6 +6,7 @@ interface RemoteCommunicationOptions {
   commLayer: string;
   otherPublicKey?: string;
   webRTCLib?: any;
+  reconnect?: any;
 }
 
 export enum CommunicationLayerPreference {
@@ -24,6 +25,9 @@ export default class RemoteCommunication extends EventEmitter2 {
   originatorInfo: any;
   walletInfo: any;
   paused: boolean;
+  CommLayer: typeof WebRTC | typeof Socket;
+  otherPublicKey: string;
+  webRTCLib: any;
 
   constructor({
     commLayer = 'socket',
@@ -74,7 +78,12 @@ export default class RemoteCommunication extends EventEmitter2 {
       }
       this.clean();
       this.commLayer.removeAllListeners();
-      this.setupCommLayer({ CommLayer, otherPublicKey, webRTCLib });
+      this.setupCommLayer({
+        CommLayer,
+        otherPublicKey,
+        webRTCLib,
+        reconnect: false,
+      });
       this.emit('clients_disconnected');
     });
 

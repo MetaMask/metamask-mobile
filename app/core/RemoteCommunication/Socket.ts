@@ -17,6 +17,7 @@ export default class Socket extends EventEmitter2 {
   keyExchange: KeyExchange;
 
   manualDisconnect = false;
+  reconnect: boolean;
 
   constructor({ otherPublicKey, reconnect }) {
     super();
@@ -35,7 +36,7 @@ export default class Socket extends EventEmitter2 {
     });
 
     this.socket.on('disconnect', () => {
-      if (manualDisconnect) return;
+      if (this.manualDisconnect) return;
       //console.log('Disconnect, Connecting to channel again', error);
       this.socket.disconnect();
       setTimeout(() => {
@@ -169,7 +170,7 @@ export default class Socket extends EventEmitter2 {
   }
 
   pause() {
-    manualDisconnect = true;
+    this.manualDisconnect = true;
     if (this.keyExchange.keysExchanged) {
       this.sendMessage({ type: 'pause' });
     }
@@ -177,7 +178,7 @@ export default class Socket extends EventEmitter2 {
   }
 
   resume() {
-    manualDisconnect = false;
+    this.manualDisconnect = false;
     if (this.keyExchange.keysExchanged) {
       this.reconnect = true;
       this.socket.connect();
