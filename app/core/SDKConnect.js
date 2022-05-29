@@ -176,9 +176,12 @@ class Connection {
     this.RemoteConn.connectToChannel(id);
   }
 
-  disconnect() {
-    this.RemoteConn.disconnect();
-    this.backgroundBridge?.onDisconnect?.();
+  pause() {
+    this.RemoteConn.pause();
+  }
+
+  resume() {
+    this.RemoteConn.resume();
   }
 
   removeConnection() {
@@ -222,8 +225,6 @@ const SDKConnect = {
       AsyncStorage.getItem('sdkApprovedHosts'),
     ]);
 
-    //console.log('----connections', connectionsStorage);
-
     if (connectionsStorage) {
       connections = JSON.parse(connectionsStorage);
     }
@@ -249,7 +250,9 @@ const SDKConnect = {
       if (this.paused) {
         this.reconnected = false;
         this.paused = false;
-        this.reconnect();
+        for (const id in connected) {
+          connected[id].resume();
+        }
       }
     } else if (appState === 'background' && !this.paused) {
       //BackgroundTimer.start();
@@ -257,9 +260,7 @@ const SDKConnect = {
         if (this.paused) return;
 
         for (const id in connected) {
-          //console.log('PAUSE');
-          //connected[id].disconnect();
-          delete connected[id];
+          connected[id].pause();
         }
         this.paused = true;
       }, 10000);
