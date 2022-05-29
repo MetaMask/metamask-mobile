@@ -332,7 +332,7 @@ class AccountOverview extends PureComponent {
       const ens = await doENSReverseLookup(account.address, network);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
-    } catch {}
+    } catch { }
   };
 
   render() {
