@@ -6,6 +6,7 @@ import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
+import Logger from '../../../../../util/Logger';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -44,7 +45,7 @@ const DeleteMetaMetricsData = () => {
       await Analytics.createDataDeletionTask();
       setHasCollectedData(!Analytics.getEnabled());
     } catch (error: any) {
-      // Handle error
+      Logger.log('Error deleteMetaMetrics -', error);
     }
   };
 
