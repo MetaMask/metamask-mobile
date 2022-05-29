@@ -8,7 +8,6 @@ export interface BluetoothDevice {
 }
 
 // Works with any Bluetooth Interface that provides a listen method
-//
 export interface BluetoothInterface {
   listen(
     observer: Observer<{

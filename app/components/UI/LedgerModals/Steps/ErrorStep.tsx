@@ -9,8 +9,8 @@ import { strings } from '../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../util/theme';
 import Device from '../../../../util/device';
 
-const ledgerConnectErrorDarkImage = require('../../../images/ledger-connect-error-dark.png');
-const ledgerConnectErrorLightImage = require('../../../images/ledger-connect-error-light.png');
+const ledgerConnectErrorDarkImage = require('../../../../images/ledger-connect-error-dark.png');
+const ledgerConnectErrorLightImage = require('../../../../images/ledger-connect-error-light.png');
 
 const createStyles = () =>
   StyleSheet.create({

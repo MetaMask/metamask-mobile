@@ -19,7 +19,6 @@ import Engine from '../../../core/Engine';
 import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import { renderFromWei } from '../../../util/number';
 import { formatAddress } from '../../../util/address';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
@@ -48,7 +47,8 @@ const createStyles = (colors: any) =>
     accountsContainer: {
       flexDirection: 'row',
       marginTop: 20,
-      marginHorizontal: Device.getDeviceWidth() * 0.085,
+      marginLeft: Device.getDeviceWidth() * 0.02,
+      marginRight: Device.getDeviceWidth() * 0.07,
     },
     textContainer: {
       flex: 0.7,
@@ -72,8 +72,6 @@ const createStyles = (colors: any) =>
 
 const ledgerDeviceDarkImage = require('../../../images/ledger-device-dark.png');
 const ledgerDeviceLightImage = require('../../../images/ledger-device-light.png');
-const etherscanDarkImage = require('../../../images/etherscan-dark.png');
-const etherscanLightImage = require('../../../images/etherscan-light.png');
 
 const LedgerAccountInfo = () => {
   const navigation = useNavigation();
@@ -84,10 +82,6 @@ const LedgerAccountInfo = () => {
   const ledgerThemedImage = useAssetFromTheme(
     ledgerDeviceLightImage,
     ledgerDeviceDarkImage,
-  );
-  const etherscanThemedImage = useAssetFromTheme(
-    etherscanLightImage,
-    etherscanDarkImage,
   );
   const { KeyringController, AccountTrackerController } = Engine.context as any;
   const provider = useSelector(
@@ -127,10 +121,7 @@ const LedgerAccountInfo = () => {
         ledgerAccount,
       ]);
 
-      const decimalETHValue = renderFromWei(
-        ethValue[ledgerAccount]?.balance || 0,
-      );
-      setAccountBalance(decimalETHValue.toString());
+      setAccountBalance(ethValue[ledgerAccount]?.balance);
     }
   };
 
@@ -176,15 +167,8 @@ const LedgerAccountInfo = () => {
         </Text>
       </View>
       <View style={styles.accountsContainer}>
-        <View style={styles.textContainer}>
-          <Text big bold>
-            1
-          </Text>
-          <Text grey>{formatAddress(account, 'short')}</Text>
-          <Text>{`${accountBalance} ${provider.ticker || 'ETH'}`}</Text>
-        </View>
         <AccountDetails
-          index={0}
+          index={1}
           address={account}
           balance={accountBalance}
           ticker={provider.ticker || 'ETH'}
