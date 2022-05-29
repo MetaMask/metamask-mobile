@@ -1,6 +1,5 @@
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, Platform, Linking } from 'react-native';
-import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { openSettings } from 'react-native-permissions';
 import { strings } from '../../../../locales/i18n';
 import SelectComponent from '../../UI/SelectComponent';
@@ -12,7 +11,9 @@ import useBluetoothPermissions, {
   BluetoothPermissionErrors,
 } from './hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
-import useBluetoothDevices from './hooks/useBluetoothDevices';
+import useBluetoothDevices, {
+  BluetoothDevice,
+} from './hooks/useBluetoothDevices';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -33,16 +34,13 @@ const createStyles = (colors: Colors) =>
   });
 
 interface ScanProps {
-  onDeviceSelected: (device: NanoDevice) => void;
+  onDeviceSelected: (device: BluetoothDevice | undefined) => void;
   onScanningErrorStateChanged: (
     error: LedgerConnectionErrorProps | undefined,
   ) => void;
 }
 
-const Scan: FC<ScanProps> = ({
-  onDeviceSelected,
-  onScanningErrorStateChanged,
-}) => {
+const Scan = ({ onDeviceSelected, onScanningErrorStateChanged }: ScanProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
@@ -138,7 +136,7 @@ const Scan: FC<ScanProps> = ({
   }, [deviceScanError, bluetoothPermissionError, bluetoothConnectionError]);
 
   const options = devices?.map(
-    ({ id, name, ...rest }: Partial<NanoDevice>) => ({
+    ({ id, name, ...rest }: Partial<BluetoothDevice>) => ({
       key: id,
       label: name,
       value: id,
@@ -168,4 +166,4 @@ const Scan: FC<ScanProps> = ({
   );
 };
 
-export default Scan;
+export default React.memo(Scan);

@@ -19,7 +19,10 @@ describe('Scan', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <Provider store={store}>
-        <Scan onDeviceSelected={jest.fn()} />
+        <Scan
+          onDeviceSelected={jest.fn()}
+          onScanningErrorStateChanged={jest.fn()}
+        />
       </Provider>,
     );
     expect(wrapper).toMatchSnapshot();

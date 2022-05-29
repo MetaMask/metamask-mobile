@@ -510,15 +510,17 @@ class DrawerView extends PureComponent {
     const styles = createStyles(colors);
 
     const keyringOfSelectedAddress = this.getKeyringForSelectedAddress();
-    let accountTypeLabel = '';
 
-    if (!keyringOfSelectedAddress) {
-      accountTypeLabel = strings('accounts.imported');
-    } else if (isHardwareKeyring(keyringOfSelectedAddress.type)) {
-      accountTypeLabel = strings('accounts.hardware');
-    }
+    const accountTypeLabel = () => {
+      if (!keyringOfSelectedAddress) {
+        return strings('accounts.imported');
+      } else if (isHardwareKeyring(keyringOfSelectedAddress.type)) {
+        return strings('accounts.hardware');
+      }
+      return null;
+    };
 
-    return accountTypeLabel ? (
+    return accountTypeLabel() ? (
       <View
         style={[
           styles.keyringTypeWrapper,
@@ -526,7 +528,7 @@ class DrawerView extends PureComponent {
         ]}
       >
         <Text numberOfLines={1} style={styles.keyringTypeText}>
-          {accountTypeLabel}
+          {accountTypeLabel()}
         </Text>
       </View>
     ) : null;

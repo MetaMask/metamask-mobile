@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable import/no-commonjs */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Image,
@@ -22,6 +22,11 @@ import Device from '../../../util/device';
 import { renderFromWei } from '../../../util/number';
 import { formatAddress } from '../../../util/address';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
+import { getEtherscanAddressUrl } from '../../../util/etherscan';
+import { findBlockExplorerForRpc } from '../../../util/networks';
+import { useSelector } from 'react-redux';
+import AccountDetails from '../ConnectHardware/ConnectQRHardware/AccountDetails';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -84,9 +89,14 @@ const LedgerAccountInfo = () => {
     etherscanLightImage,
     etherscanDarkImage,
   );
-  const { KeyringController, AccountTrackerController, NetworkController } =
-    Engine.context as any;
-  const ticker = NetworkController.provider.ticker || '';
+  const { KeyringController, AccountTrackerController } = Engine.context as any;
+  const provider = useSelector(
+    (state: any) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const frequentRpcList = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.PreferencesController.frequentRpcList,
+  );
 
   useEffect(() => {
     navigation.setOptions(
@@ -131,14 +141,29 @@ const LedgerAccountInfo = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account]);
 
-  const onEtherscanPress = () => {
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: `https://etherscan.io/address/${account}`,
-      },
-    });
-  };
+  const toBlockExplorer = useCallback(
+    (address: string) => {
+      const { type, rpcTarget } = provider;
+      let accountLink: string;
+
+      if (type === RPC) {
+        const blockExplorer =
+          findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+          NO_RPC_BLOCK_EXPLORER;
+        accountLink = `${blockExplorer}/address/${address}`;
+      } else {
+        accountLink = getEtherscanAddressUrl(type, address);
+      }
+
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: accountLink,
+        },
+      });
+    },
+    [frequentRpcList, navigation, provider],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -156,16 +181,15 @@ const LedgerAccountInfo = () => {
             1
           </Text>
           <Text grey>{formatAddress(account, 'short')}</Text>
-          <Text>{`${accountBalance} ${ticker.toUpperCase()}`}</Text>
+          <Text>{`${accountBalance} ${provider.ticker || 'ETH'}`}</Text>
         </View>
-        <View style={styles.etherscanContainer}>
-          <TouchableOpacity onPress={onEtherscanPress}>
-            <Image
-              source={etherscanThemedImage}
-              style={styles.etherscanImage}
-            />
-          </TouchableOpacity>
-        </View>
+        <AccountDetails
+          index={0}
+          address={account}
+          balance={accountBalance}
+          ticker={provider.ticker || 'ETH'}
+          toBlockExplorer={toBlockExplorer}
+        />
       </View>
       <View style={styles.forgetLedgerContainer}>
         <TouchableOpacity onPress={onForgetDevice}>
@@ -176,4 +200,4 @@ const LedgerAccountInfo = () => {
   );
 };
 
-export default LedgerAccountInfo;
+export default React.memo(LedgerAccountInfo);

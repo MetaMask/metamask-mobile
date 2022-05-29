@@ -2359,10 +2359,10 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.10.0.tgz#c012c1ecc1a0e53d50e6af381618dca5268461c1"
   integrity sha512-lLseUPEhSFUXYTKj6q7s2O3s2vW2ebgA11vMAlKodXGf5AFw4zUoEbTz9CoFOC9jS6xY4Qr8BmRnxP/odT4Uuw==
 
-"@ledgerhq/metamask-keyring@0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.3.0.tgz#98f68b7c62c04c3f15ef490f7672ebab75e76dc3"
-  integrity sha512-sgAdq51RaJULjFfnhDIej7DKSo5RxLJndXtEVdeQsTSt3nprUouWNDV6CIIoA5OdlYxm8CT2Y9gyecFRHfhEFw==
+"@ledgerhq/metamask-keyring@0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/metamask-keyring/-/metamask-keyring-0.3.1.tgz#2cb6f11468f25a9e79fb880b326b4b3e814bbd26"
+  integrity sha512-pHlctS16NSJLtkIb8k6pGs0k8pNIYISw3RAj1F8OPV1wdXsQyX8pRJxjGEUbCRXcseTUDPprOJtyLwAeKCpKNw==
   dependencies:
     "@ethereumjs/tx" "^3.5.0"
     "@ledgerhq/hw-app-eth" "^6.26.1"

@@ -1,7 +1,10 @@
-import { HD_KEY_TREE, LEDGER_DEVICE } from '../constants/keyringTypes';
+import {
+  QR_HARDWARE_WALLET_DEVICE,
+  LEDGER_DEVICE,
+} from '../constants/keyringTypes';
 
 export const isHardwareKeyring = (keyringType: string) => {
-  if ([HD_KEY_TREE, LEDGER_DEVICE].includes(keyringType)) {
+  if ([QR_HARDWARE_WALLET_DEVICE, LEDGER_DEVICE].includes(keyringType)) {
     return true;
   }
 

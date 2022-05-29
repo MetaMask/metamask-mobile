@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import React, { FC, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import {
   mockTheme,
@@ -74,12 +74,12 @@ export interface LedgerConnectionErrorProps {
   };
 }
 
-const LedgerConnectionError: FC<LedgerConnectionErrorProps> = ({
+const LedgerConnectionError = ({
   errorTitle,
   errorSubtitle,
   primaryButtonConfig,
   secondaryButtonConfig,
-}) => {
+}: LedgerConnectionErrorProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -124,4 +124,4 @@ const LedgerConnectionError: FC<LedgerConnectionErrorProps> = ({
   );
 };
 
-export default LedgerConnectionError;
+export default React.memo(LedgerConnectionError);

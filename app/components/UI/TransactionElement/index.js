@@ -434,7 +434,7 @@ class TransactionElement extends PureComponent {
         style={styles.actionStyle}
         onPress={this.showLedgerSigningModal}
       >
-        Sign with Ledger
+        {strings('ledger.sign_with_ledger')}
       </StyledButton>
     );
   };

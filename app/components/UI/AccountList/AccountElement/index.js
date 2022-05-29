@@ -137,17 +137,17 @@ class AccountElement extends PureComponent {
       <Icon name="check-circle" size={30} color={colors.primary.default} />
     ) : null;
 
-    let keyringLabelText = '';
+    const keyringLabelText = () => {
+      if (isHardwareKeyring(keyringType)) {
+        return strings('accounts.hardware');
+      } else if (keyringType === 'Imported') {
+        return strings('accounts.imported');
+      }
 
-    if (isHardwareKeyring(keyringType)) {
-      keyringLabelText = strings('accounts.hardware');
-    }
+      return null;
+    };
 
-    if (keyringType === 'Imported') {
-      keyringLabelText = strings('accounts.imported');
-    }
-
-    const keyRingLabel = keyringLabelText ? (
+    const keyRingLabel = keyringLabelText() ? (
       <View style={styles.keyringTypeLabelView}>
         <View
           style={[
@@ -156,7 +156,7 @@ class AccountElement extends PureComponent {
           ]}
         >
           <Text numberOfLines={1} style={styles.keyringTypeLabelText}>
-            {keyringLabelText}
+            {keyringLabelText()}
           </Text>
         </View>
       </View>

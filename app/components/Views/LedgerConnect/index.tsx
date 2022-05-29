@@ -292,4 +292,4 @@ const LedgerConnect = () => {
   );
 };
 
-export default LedgerConnect;
+export default React.memo(LedgerConnect);

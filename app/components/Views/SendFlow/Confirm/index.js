@@ -1032,7 +1032,7 @@ class Confirm extends PureComponent {
       this.setState({ transactionConfirmed: false });
     };
 
-    if (isHardwareAccount(transaction.from, KeyringTypes.ledger)) {
+    if (isHardwareAccount(transaction.from, [KeyringTypes.ledger])) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
       // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
       this.props.openLedgerDeviceActionModal({
@@ -1443,7 +1443,9 @@ class Confirm extends PureComponent {
     const displayExclamation =
       !existingContact && !!confusableCollection.length;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
-    const isLedgerAccount = isHardwareAccount(fromSelectedAddress);
+    const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
+      KeyringTypes.ledger,
+    ]);
 
     const AdressToComponent = () => (
       <AddressTo
