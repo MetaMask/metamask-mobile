@@ -17,7 +17,7 @@ export default class KeyExchange extends EventEmitter2 {
 
   secretKey = null;
 
-  commLayer: any;
+  CommLayer: any;
 
   myPublicKey: any;
 
@@ -25,12 +25,12 @@ export default class KeyExchange extends EventEmitter2 {
 
   step: string = KeySteps.NONE;
 
-  constructor({ commLayer, otherPublicKey, sendPublicKey }) {
+  constructor({ CommLayer, otherPublicKey, sendPublicKey }) {
     super();
 
     this.myECDH = new ECDH();
     this.myECDH.generateECDH();
-    this.commLayer = commLayer;
+    this.CommLayer = CommLayer;
     this.myPublicKey = this.myECDH.getPublicKey();
 
     if (otherPublicKey) {
@@ -38,7 +38,7 @@ export default class KeyExchange extends EventEmitter2 {
     }
     this.sendPublicKey = sendPublicKey;
 
-    this.commLayer.on('key_exchange', ({ message }) => {
+    this.CommLayer.on('key_exchange', ({ message }) => {
       if (this.keysExchanged) {
         return;
       }
@@ -50,7 +50,7 @@ export default class KeyExchange extends EventEmitter2 {
           this.onOtherPublicKey(message.pubkey);
         }
 
-        this.commLayer.sendMessage({
+        this.CommLayer.sendMessage({
           type: KeySteps.SYNACK,
           pubkey: this.myPublicKey,
         });
@@ -59,7 +59,7 @@ export default class KeyExchange extends EventEmitter2 {
 
         this.onOtherPublicKey(message.pubkey);
 
-        this.commLayer.sendMessage({ type: KeySteps.ACK });
+        this.CommLayer.sendMessage({ type: KeySteps.ACK });
         this.keysExchanged = true;
         this.emit('keys_exchanged');
       } else if (message.type === KeySteps.ACK) {
@@ -83,7 +83,7 @@ export default class KeyExchange extends EventEmitter2 {
     }
     this.checkStep(KeySteps.NONE);
     this.step = KeySteps.SYNACK;
-    this.commLayer.sendMessage({
+    this.CommLayer.sendMessage({
       type: KeySteps.SYN,
       pubkey: this.sendPublicKey ? this.myPublicKey : undefined,
     });

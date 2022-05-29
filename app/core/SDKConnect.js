@@ -263,6 +263,7 @@ const SDKConnect = {
         if (this.paused) return;
 
         for (const id in connected) {
+          //console.log('PAUSE------');
           connected[id].pause();
         }
         this.paused = true;
