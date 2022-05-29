@@ -258,7 +258,7 @@ const SDKConnect = {
 
         for (const id in connected) {
           //console.log('PAUSE');
-          connected[id].disconnect();
+          //connected[id].disconnect();
           delete connected[id];
         }
         this.paused = true;
