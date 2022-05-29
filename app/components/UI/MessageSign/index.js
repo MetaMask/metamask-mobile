@@ -151,6 +151,7 @@ class MessageSign extends PureComponent {
         AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
+      this.props.onConfirm();
     };
 
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
@@ -158,7 +159,6 @@ class MessageSign extends PureComponent {
     ]);
 
     if (isLedgerAccount) {
-      this.props.onConfirm();
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
       // Hand over process to Ledger Confirmation Modal
@@ -173,7 +173,6 @@ class MessageSign extends PureComponent {
         cleanMessageParams,
       );
       await finalizeConfirmation(true, rawSignature);
-      this.props.onConfirm();
     }
   };
 

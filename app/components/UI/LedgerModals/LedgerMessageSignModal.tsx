@@ -54,4 +54,4 @@ const LedgerMessageSignModal = () => {
   );
 };
 
-export default LedgerMessageSignModal;
+export default React.memo(LedgerMessageSignModal);

@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import {
-  StyleSheet,
-  Alert,
-  InteractionManager,
-  View,
-  Text,
-} from 'react-native';
+import { StyleSheet, Alert, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
@@ -395,7 +389,10 @@ const RootRPCMethodsUI = (props) => {
 
   const renderSigningModal = () => (
     <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.SIGN_MESSAGE}
+      isVisible={
+        showPendingApproval?.type === ApprovalTypes.SIGN_MESSAGE &&
+        !props.ledgerSignMessageModalVisible
+      }
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
