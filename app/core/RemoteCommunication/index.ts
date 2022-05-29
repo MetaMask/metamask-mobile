@@ -28,6 +28,7 @@ export default class RemoteCommunication extends EventEmitter2 {
     commLayer = 'socket',
     otherPublicKey,
     webRTCLib,
+    reconnect,
   }: RemoteCommunicationOptions) {
     super();
 
@@ -38,11 +39,11 @@ export default class RemoteCommunication extends EventEmitter2 {
     this.otherPublicKey = otherPublicKey;
     this.webRTCLib = webRTCLib;
 
-    this.setupCommLayer({ CommLayer, otherPublicKey, webRTCLib });
+    this.setupCommLayer({ CommLayer, otherPublicKey, webRTCLib, reconnect });
   }
 
-  setupCommLayer({ CommLayer, otherPublicKey, webRTCLib }) {
-    this.commLayer = new CommLayer({ otherPublicKey, webRTCLib });
+  setupCommLayer({ CommLayer, otherPublicKey, webRTCLib, reconnect }) {
+    this.commLayer = new CommLayer({ otherPublicKey, webRTCLib, reconnect });
 
     this.commLayer.on('message', ({ message }) => {
       this.onMessageCommLayer(message);
@@ -133,11 +134,11 @@ export default class RemoteCommunication extends EventEmitter2 {
     return { channelId, pubKey };
   }
 
-  disconnect() {
-    this.commLayer.disconnect();
-    this.clean();
-    this.removeAllListeners();
+  pause() {
+    this.commLayer.pause();
+  }
 
-    //this.emit('clients_disconnected');
+  resume() {
+    this.commLayer.resume();
   }
 }

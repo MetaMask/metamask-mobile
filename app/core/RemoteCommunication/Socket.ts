@@ -16,8 +16,10 @@ export default class Socket extends EventEmitter2 {
 
   keyExchange: KeyExchange;
 
-  constructor({ otherPublicKey }) {
+  constructor({ otherPublicKey, reconnect }) {
     super();
+
+    this.reconnect = reconnect;
 
     this.socket = io('https://lizard-positive-office.glitch.me', {});
 
@@ -41,6 +43,14 @@ export default class Socket extends EventEmitter2 {
       if (this.isOriginator) {
         this.keyExchange.start('socket');
       }
+      if (this.reconnect) {
+        if (this.keyExchange.keysExchanged) {
+          this.sendMessage({ type: 'ready' });
+        } else {
+          this.sendMessage({ type: 'key_handshake_start' });
+        }
+        this.reconnect = false;
+      }
     });
 
     this.socket.on(`channel_created-${channelId}`, (id) => {
@@ -48,7 +58,6 @@ export default class Socket extends EventEmitter2 {
     });
 
     this.socket.on(`clients_disconnected-${channelId}`, () => {
-      //console.log('error----------------', error); //ping timeout || transport error || transport close
       return;
       this.clientsConnected = false;
       this.emit('clients_disconnected');
@@ -127,9 +136,18 @@ export default class Socket extends EventEmitter2 {
     return { channelId, pubKey: this.keyExchange.myPublicKey };
   }
 
-  disconnect() {
-    if (this.keyExchange.keysExchanged) this.sendMessage({ type: 'pause' });
+  pause() {
+    if (this.keyExchange.keysExchanged) {
+      this.sendMessage({ type: 'pause' });
+    }
     this.socket.disconnect();
-    this.removeAllListeners();
+  }
+
+  resume() {
+    if (this.keyExchange.keysExchanged) {
+      this.reconnect = true;
+      this.socket.connect();
+      this.socket.emit('join_channel', this.channelId);
+    }
   }
 }
