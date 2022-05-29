@@ -121,7 +121,7 @@ const SimpleWebviewScreen = () => (
 
 const OnboardingRootNav = () => (
   <Stack.Navigator
-    initialRouteName={'OnboardingNav'}
+    initialRouteName={Routes.ONBOARDING.NAV}
     mode="modal"
     screenOptions={{ headerShown: false }}
   >
@@ -377,7 +377,10 @@ const App = ({ userLoggedIn }) => {
                 options={{ headerShown: false }}
               />
             )}
-            <Stack.Screen name={'RootModalFlow'} component={RootModalFlow} />
+            <Stack.Screen
+              name={Routes.MODAL.ROOT_MODAL_FLOW}
+              component={RootModalFlow}
+            />
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}

@@ -749,7 +749,7 @@ class DrawerView extends PureComponent {
     await KeyringController.setLocked();
     if (!passwordSet) {
       this.props.navigation.navigate('OnboardingRootNav', {
-        screen: 'OnboardingNav',
+        screen: Routes.ONBOARDING.NAV,
         params: { screen: 'Onboarding' },
       });
     } else {

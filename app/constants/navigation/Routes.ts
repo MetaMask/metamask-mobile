@@ -15,12 +15,14 @@ const Routes = {
   },
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
+    ROOT_MODAL_FLOW: 'RootModalFlow',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     HOME_NAV: 'HomeNav',
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
+    NAV: 'OnboardingNav',
   },
 };
 

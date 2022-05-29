@@ -158,7 +158,7 @@ class LockScreen extends PureComponent {
         this.logOut();
       } else {
         this.props.navigation.navigate('OnboardingRootNav', {
-          screen: 'OnboardingNav',
+          screen: Routes.ONBOARDING.NAV,
           params: { screen: 'Onboarding' },
         });
       }

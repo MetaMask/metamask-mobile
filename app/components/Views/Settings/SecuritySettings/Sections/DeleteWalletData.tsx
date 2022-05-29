@@ -9,7 +9,7 @@ const DeleteWalletData = () => {
   const navigation = useNavigation();
 
   const showDeleteWalletModal = () => {
-    navigation.navigate('RootModalFlow', {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
     });
   };
