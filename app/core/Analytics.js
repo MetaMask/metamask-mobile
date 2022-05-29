@@ -7,6 +7,8 @@ import DefaultPreference from 'react-native-default-preference';
 import Logger from '../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
 import { store } from '../store';
+import { MIXPANEL_ENDPOINT_BASE_URL } from '../constants/urls';
+
 const RCTAnalytics = NativeModules.Analytics;
 
 const USER_PROFILE_PROPERTY = {
@@ -18,8 +20,6 @@ const USER_PROFILE_PROPERTY = {
   OFF: 'OFF',
   AUTHENTICATION_TYPE: 'Authentication Type',
 };
-
-const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
 
 /**
  * Class to handle analytics through the app

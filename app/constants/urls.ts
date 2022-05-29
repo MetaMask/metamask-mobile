@@ -14,3 +14,6 @@ export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
+
+// MixPanel
+export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
