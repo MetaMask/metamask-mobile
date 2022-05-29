@@ -19,7 +19,7 @@ export default class Socket extends EventEmitter2 {
   constructor({ otherPublicKey }) {
     super();
 
-    this.socket = io('https://lizard-positive-office.glitch.me');
+    this.socket = io('https://lizard-positive-office.glitch.me', {});
 
     this.keyExchange = new KeyExchange({
       commLayer: this,
@@ -48,6 +48,8 @@ export default class Socket extends EventEmitter2 {
     });
 
     this.socket.on(`clients_disconnected-${channelId}`, () => {
+      //console.log('error----------------', error); //ping timeout || transport error || transport close
+      return;
       this.clientsConnected = false;
       this.emit('clients_disconnected');
     });
