@@ -66,6 +66,7 @@ class Connection {
   requestsToRedirect = {};
   origin = null;
   host = null;
+  isReady = null;
 
   constructor({ id, otherPublicKey, commLayer, origin, reconnect }) {
     this.origin = origin;
@@ -94,6 +95,7 @@ class Connection {
     }
 
     this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
+      if (this.isReady) return;
       this.backgroundBridge = new BackgroundBridge({
         webview: null,
         url: originatorInfo?.url,
@@ -171,6 +173,8 @@ class Connection {
           origin: 'sdk',
         });
       });
+
+      this.isReady = true;
     });
 
     this.RemoteConn.connectToChannel(id);
@@ -185,6 +189,7 @@ class Connection {
   }
 
   removeConnection() {
+    this.isReady = false;
     delete connected[this.channelId];
     this.backgroundBridge?.onDisconnect?.();
     delete connections[this.channelId];
@@ -234,7 +239,6 @@ const SDKConnect = {
     }
 
     for (const id in connections) {
-      //console.log('----', connections[id]);
       connected[id] = new Connection({
         ...connections[id],
         reconnect: true,
@@ -255,7 +259,6 @@ const SDKConnect = {
         }
       }
     } else if (appState === 'background' && !this.paused) {
-      //BackgroundTimer.start();
       this.timeout = setTimeout(() => {
         if (this.paused) return;
 
@@ -264,12 +267,9 @@ const SDKConnect = {
         }
         this.paused = true;
       }, 10000);
-      //BackgroundTimer.stop();
     }
   },
   async init() {
-    //console.log('INIT-----');
-
     /*AsyncStorage.setItem('sdkConnections', JSON.stringify({}));
     AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify({}));*/
 

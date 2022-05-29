@@ -76,6 +76,12 @@ export default class RemoteCommunication extends EventEmitter2 {
         //console.log('DISCONNECTING PAUSED');
         return;
       }
+
+      if (!this.isOriginator) {
+        this.paused = true;
+        return;
+      }
+
       this.clean();
       this.commLayer.removeAllListeners();
       this.setupCommLayer({
@@ -107,7 +113,6 @@ export default class RemoteCommunication extends EventEmitter2 {
 
   sendMessage(message) {
     if (this.paused) {
-      //console.log('REQUEST BUT PAUSED');
       this.once('clients_ready', () => {
         this.commLayer.sendMessage(message);
       });
@@ -143,7 +148,6 @@ export default class RemoteCommunication extends EventEmitter2 {
       this.paused = false;
       return;
     } else if (message.type === 'pause') {
-      //console.log('PAUSED');
       this.paused = true;
     } else if (message.type === 'ready') {
       this.paused = false;
