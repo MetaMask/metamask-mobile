@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { KeyringTypes } from '@metamask/controllers';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +15,7 @@ import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import Device from '../../../util/device';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { isHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
@@ -151,6 +153,10 @@ class SignatureRequest extends PureComponent {
     toggleExpandedMessage: PropTypes.func,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    /**
+     * A string that represents the selected address
+     */
+    selectedAddress: PropTypes.string,
   };
 
   /**
@@ -271,9 +277,14 @@ class SignatureRequest extends PureComponent {
   };
 
   renderSignatureRequest() {
-    const { showWarning, currentPageInformation, type } = this.props;
+    const { showWarning, currentPageInformation, type, selectedAddress } =
+      this.props;
     let expandedHeight;
     const styles = this.getStyles();
+
+    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+      KeyringTypes.ledger,
+    ]);
 
     if (Device.isMediumDevice()) {
       expandedHeight = styles.expandedHeight2;
@@ -287,7 +298,11 @@ class SignatureRequest extends PureComponent {
           cancelTestID={'request-signature-cancel-button'}
           confirmTestID={'request-signature-confirm-button'}
           cancelText={strings('signature_request.cancel')}
-          confirmText={strings('signature_request.sign')}
+          confirmText={
+            isLedgerAccount
+              ? strings('ledger.sign_with_ledger')
+              : strings('signature_request.sign')
+          }
           onCancelPress={this.onCancel}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"
@@ -345,6 +360,8 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  selectedAddress:
+    state.engine.backgroundState.PreferencesController.selectedAddress,
   networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 

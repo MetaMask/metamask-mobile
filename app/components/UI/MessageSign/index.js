@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
+import { KeyringTypes } from '@metamask/controllers';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -12,8 +13,12 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { openLedgerDeviceActionModal } from '../../../actions/modals';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -68,6 +73,10 @@ class MessageSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
+    /**
+     * Opens the Ledger confirmation Flow
+     */
+    openLedgerDeviceActionModal: PropTypes.func,
   };
 
   state = {
@@ -119,15 +128,46 @@ class MessageSign extends PureComponent {
   };
 
   signMessage = async () => {
-    const { messageParams } = this.props;
+    const { messageParams, selectedAddress } = this.props;
     const { KeyringController, MessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const cleanMessageParams = await MessageManager.approveMessage(
       messageParams,
     );
-    const rawSig = await KeyringController.signMessage(cleanMessageParams);
-    MessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+
+    const finalizeConfirmation = async (confirmed, rawSignature) => {
+      if (!confirmed) {
+        return this.rejectMessage();
+      }
+
+      MessageManager.setMessageStatusSigned(messageId, rawSignature);
+      this.showWalletConnectNotification(messageParams, true);
+
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
+        this.getAnalyticsParams(),
+      );
+      this.props.onConfirm();
+    };
+
+    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+      KeyringTypes.ledger,
+    ]);
+
+    if (isLedgerAccount) {
+      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+      this.props.openLedgerDeviceActionModal({
+        messageParams: cleanMessageParams,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: finalizeConfirmation,
+        type: 'signMessage',
+      });
+    } else {
+      const rawSignature = await KeyringController.signMessage(
+        cleanMessageParams,
+      );
+      await finalizeConfirmation(true, rawSignature);
+    }
   };
 
   rejectMessage = () => {
@@ -149,12 +189,8 @@ class MessageSign extends PureComponent {
 
   confirmSignature = async () => {
     try {
+      console.log('>>>> HERE');
       await this.signMessage();
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
-        this.getAnalyticsParams(),
-      );
-      this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
@@ -251,4 +287,9 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-export default connect(mapStateToProps)(MessageSign);
+const mapDispatchToProps = (dispatch) => ({
+  openLedgerDeviceActionModal: (params) =>
+    dispatch(openLedgerDeviceActionModal(params)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(MessageSign);

@@ -1039,6 +1039,7 @@ class Confirm extends PureComponent {
         transactionId: transactionMeta.id,
         deviceId: ledgerKeyring.deviceId,
         onConfirmationComplete: finalizeConfirmation,
+        type: 'signTransaction',
       });
     } else {
       await TransactionController.approveTransaction(transactionMeta.id);

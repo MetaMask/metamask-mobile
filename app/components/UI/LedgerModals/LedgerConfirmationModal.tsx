@@ -40,9 +40,14 @@ const LedgerConfirmationModal = () => {
   const { KeyringController, TransactionController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { deviceId, transactionId, onConfirmationComplete } = useSelector(
-    (state: any) => state.modals.ledgerDeviceActionParams,
-  );
+  const {
+    deviceId,
+    transactionId,
+    messageParams,
+    onConfirmationComplete,
+    version,
+    type,
+  } = useSelector((state: any) => state.modals.ledgerDeviceActionParams);
   const dispatch = useDispatch();
   const {
     isSendingLedgerCommands,
@@ -69,12 +74,33 @@ const LedgerConfirmationModal = () => {
       // Connection attempt
       await KeyringController.unlockLedgerDefaultAccount();
 
-      // This requires the user to confirm on the ledger device
-      await TransactionController.approveTransaction(transactionId);
+      let rawSignature;
+
+      if (type === 'signTransaction') {
+        // This requires the user to confirm on the ledger device
+        await TransactionController.approveTransaction(transactionId);
+      }
+
+      if (type === 'signMessage') {
+        rawSignature = await KeyringController.signMessage(messageParams);
+      }
+
+      if (type === 'signPersonalMessage') {
+        rawSignature = await KeyringController.signPersonalMessage(
+          messageParams,
+        );
+      }
+
+      if (type === 'signTypedMessage') {
+        rawSignature = await KeyringController.signTypedMessage(
+          messageParams,
+          version,
+        );
+      }
 
       // Wrap up the confirmation flow
+      onConfirmationComplete(true, rawSignature);
       dispatch(closeLedgerDeviceActionModal());
-      onConfirmationComplete(true);
     });
   };
 

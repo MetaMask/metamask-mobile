@@ -32,6 +32,7 @@ import {
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
+import { isHardwareAccount } from '../../../util/address';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
@@ -39,12 +40,13 @@ import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import LedgerConfirmationModal from '../../UI/LedgerModals/LedgerConfirmationModal';
 import {
   toggleDappTransactionModal,
   toggleApproveModal,
 } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
+import { util, KeyringTypes } from '@metamask/controllers';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
@@ -438,6 +440,42 @@ const RootRPCMethodsUI = (props) => {
     </Modal>
   );
 
+  const renderLedgerSigningModal = () => {
+    const {
+      ledgerDeviceActionModalVisible,
+      approveModalVisible,
+      dappTransactionModalVisible,
+      selectedAddress,
+    } = props;
+
+    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+      KeyringTypes.ledger,
+    ]);
+
+    const shouldRenderThisModal =
+      !showPendingApproval &&
+      !approveModalVisible &&
+      !dappTransactionModalVisible &&
+      isLedgerAccount;
+
+    shouldRenderThisModal && (
+      <Modal
+        isVisible={ledgerDeviceActionModalVisible}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        animationInTiming={600}
+        animationOutTiming={600}
+        swipeDirection={'down'}
+        propagateSwipe
+        backdropOpacity={1}
+      >
+        <LedgerConfirmationModal />
+      </Modal>
+    );
+  };
+
   const renderQRSigningModal = () => {
     const {
       isSigningQRObject,
@@ -791,6 +829,7 @@ const RootRPCMethodsUI = (props) => {
       {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderLedgerSigningModal()}
     </React.Fragment>
   );
 };
@@ -843,6 +882,7 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
+  ledgerDeviceActionModalVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -855,6 +895,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  ledgerDeviceActionModalVisible: state.modals.ledgerDeviceActionModalVisible,
 });
 
 const mapDispatchToProps = (dispatch) => ({
