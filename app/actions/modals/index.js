@@ -38,11 +38,20 @@ export function toggleApproveModal(show) {
   };
 }
 
-export const openLedgerDeviceActionModal = (params) => ({
-  type: 'OPEN_LEDGER_DEVICE_ACTION',
+export const openLedgerTransactionModal = (params) => ({
+  type: 'OPEN_LEDGER_TRANSACTION_ACTION',
   params,
 });
 
-export const closeLedgerDeviceActionModal = () => ({
-  type: 'CLOSE_LEDGER_DEVICE_ACTION',
+export const closeLedgerTransactionModal = () => ({
+  type: 'CLOSE_LEDGER_TRANSACTION_ACTION',
+});
+
+export const openLedgerSignModal = (params) => ({
+  type: 'OPEN_LEDGER_SIGN_ACTION',
+  params,
+});
+
+export const closeLedgerSignModal = () => ({
+  type: 'CLOSE_LEDGER_SIGN_ACTION',
 });

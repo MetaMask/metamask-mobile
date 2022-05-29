@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
@@ -11,7 +10,6 @@ import useLedgerBluetooth, {
   LedgerCommunicationErrors,
 } from '../../../components/hooks/useLedgerBluetooth';
 import Engine from '../../../core/Engine';
-import { closeLedgerDeviceActionModal } from '../../../actions/modals';
 import useBluetooth from '../../../components/Views/LedgerConnect/hooks/useBluetooth';
 import useBluetoothPermissions, {
   BluetoothPermissionErrors,
@@ -36,19 +34,20 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const LedgerConfirmationModal = () => {
-  const { KeyringController, TransactionController } = Engine.context as any;
+export interface LedgerConfirmationModalProps {
+  onConfirmation: () => Promise<void>;
+  onRejection: () => void;
+  deviceId: string;
+}
+
+const LedgerConfirmationModal = ({
+  onConfirmation,
+  onRejection,
+  deviceId,
+}: LedgerConfirmationModalProps) => {
+  const { KeyringController } = Engine.context as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const {
-    deviceId,
-    transactionId,
-    messageParams,
-    onConfirmationComplete,
-    version,
-    type,
-  } = useSelector((state: any) => state.modals.ledgerDeviceActionParams);
-  const dispatch = useDispatch();
   const {
     isSendingLedgerCommands,
     isAppLaunchConfirmationNeeded,
@@ -73,41 +72,13 @@ const LedgerConfirmationModal = () => {
     ledgerLogicToRun(async () => {
       // Connection attempt
       await KeyringController.unlockLedgerDefaultAccount();
-
-      let rawSignature;
-
-      if (type === 'signTransaction') {
-        // This requires the user to confirm on the ledger device
-        await TransactionController.approveTransaction(transactionId);
-      }
-
-      if (type === 'signMessage') {
-        rawSignature = await KeyringController.signMessage(messageParams);
-      }
-
-      if (type === 'signPersonalMessage') {
-        rawSignature = await KeyringController.signPersonalMessage(
-          messageParams,
-        );
-      }
-
-      if (type === 'signTypedMessage') {
-        rawSignature = await KeyringController.signTypedMessage(
-          messageParams,
-          version,
-        );
-      }
-
-      // Wrap up the confirmation flow
-      onConfirmationComplete(true, rawSignature);
-      dispatch(closeLedgerDeviceActionModal());
+      await onConfirmation();
     });
   };
 
   // In case of manual rejection
   const onReject = () => {
-    dispatch(closeLedgerDeviceActionModal());
-    onConfirmationComplete(false);
+    onRejection();
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps

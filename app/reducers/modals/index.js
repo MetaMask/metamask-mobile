@@ -6,8 +6,10 @@ const initialState = {
   receiveAsset: undefined,
   dappTransactionModalVisible: false,
   approveModalVisible: false,
-  ledgerDeviceActionModalVisible: false,
-  ledgerDeviceActionParams: {},
+  ledgerTransactionModalVisible: false,
+  ledgerSignMessageModalVisible: false,
+  ledgerTransactionActionParams: {},
+  ledgerSignMessageActionParams: {},
 };
 
 const modalsReducer = (state = initialState, action) => {
@@ -59,20 +61,35 @@ const modalsReducer = (state = initialState, action) => {
         ...state,
         approveModalVisible: !state.approveModalVisible,
       };
-    case 'OPEN_LEDGER_DEVICE_ACTION': {
+    case 'OPEN_LEDGER_TRANSACTION_ACTION': {
       return {
         ...state,
-        ledgerDeviceActionModalVisible: true,
-        ledgerDeviceActionParams: {
-          ...state.ledgerDeviceActionParams,
+        ledgerTransactionModalVisible: true,
+        ledgerTransactionActionParams: {
+          ...state.ledgerTransactionActionParams,
           ...action.params,
         },
       };
     }
-    case 'CLOSE_LEDGER_DEVICE_ACTION':
+    case 'CLOSE_LEDGER_TRANSACTION_ACTION':
       return {
         ...state,
-        ledgerDeviceActionModalVisible: false,
+        ledgerTransactionModalVisible: false,
+      };
+    case 'OPEN_LEDGER_SIGN_ACTION': {
+      return {
+        ...state,
+        ledgerSignMessageModalVisible: true,
+        ledgerSignMessageActionParams: {
+          ...state.ledgerSignMessageActionParams,
+          ...action.params,
+        },
+      };
+    }
+    case 'CLOSE_LEDGER_SIGN_ACTION':
+      return {
+        ...state,
+        ledgerSignMessageModalVisible: false,
       };
     default:
       return state;

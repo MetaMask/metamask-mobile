@@ -84,7 +84,7 @@ import {
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { openLedgerDeviceActionModal } from '../../../../actions/modals';
+import { openLedgerTransactionModal } from '../../../../actions/modals';
 import Routes from '../../../../constants/navigation/Routes';
 
 const EDIT = 'edit';
@@ -365,7 +365,7 @@ class Confirm extends PureComponent {
     /**
      * Opens the Ledger confirmation Flow
      */
-    openLedgerDeviceActionModal: PropTypes.func,
+    openLedgerTransactionModal: PropTypes.func,
   };
 
   state = {
@@ -1035,7 +1035,7 @@ class Confirm extends PureComponent {
     if (isHardwareAccount(transaction.from, [KeyringTypes.ledger])) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
       // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
-      this.props.openLedgerDeviceActionModal({
+      this.props.openLedgerTransactionModal({
         transactionId: transactionMeta.id,
         deviceId: ledgerKeyring.deviceId,
         onConfirmationComplete: finalizeConfirmation,
@@ -1699,8 +1699,8 @@ const mapDispatchToProps = (dispatch) => ({
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-  openLedgerDeviceActionModal: (params) =>
-    dispatch(openLedgerDeviceActionModal(params)),
+  openLedgerTransactionModal: (params) =>
+    dispatch(openLedgerTransactionModal(params)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);

@@ -18,7 +18,7 @@ import {
   isHardwareAccount,
 } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { openLedgerDeviceActionModal } from '../../../actions/modals';
+import { openLedgerSignModal } from '../../../actions/modals';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -76,7 +76,7 @@ class MessageSign extends PureComponent {
     /**
      * Opens the Ledger confirmation Flow
      */
-    openLedgerDeviceActionModal: PropTypes.func,
+    openLedgerSignModal: PropTypes.func,
   };
 
   state = {
@@ -162,7 +162,7 @@ class MessageSign extends PureComponent {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
       // Hand over process to Ledger Confirmation Modal
-      this.props.openLedgerDeviceActionModal({
+      this.props.openLedgerSignModal({
         messageParams: cleanMessageParams,
         deviceId: ledgerKeyring.deviceId,
         onConfirmationComplete: finalizeConfirmation,
@@ -294,8 +294,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  openLedgerDeviceActionModal: (params) =>
-    dispatch(openLedgerDeviceActionModal(params)),
+  openLedgerSignModal: (params) => dispatch(openLedgerSignModal(params)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(MessageSign);

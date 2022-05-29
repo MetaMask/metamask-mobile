@@ -32,7 +32,7 @@ import {
   toggleNetworkModal,
   toggleAccountsModal,
   toggleReceiveModal,
-  closeLedgerDeviceActionModal,
+  closeLedgerTransactionModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -76,7 +76,7 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import { isHardwareKeyring } from '../../../util/keyring-helpers';
-import LedgerConfirmationModal from '../LedgerModals/LedgerConfirmationModal';
+import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
 import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
@@ -365,7 +365,7 @@ class DrawerView extends PureComponent {
     /**
      * Action that closes the Ledger's transaction modal
      */
-    closeLedgerDeviceActionModal: PropTypes.func,
+    closeLedgerTransactionModal: PropTypes.func,
     /**
      * Action that shows the global alert
      */
@@ -455,7 +455,7 @@ class DrawerView extends PureComponent {
     /**
      * Decides if Ledger's transaction modal is visible
      */
-    ledgerDeviceActionModalVisible: PropTypes.bool,
+    ledgerTransactionModalVisible: PropTypes.bool,
   };
 
   constructor(props) {
@@ -687,10 +687,10 @@ class DrawerView extends PureComponent {
     }
   };
 
-  closeLedgerDeviceActionModal = async () => {
+  closeLedgerTransactionModal = async () => {
     if (!this.animatingLedgerDeviceActionModal) {
       this.animatingLedgerDeviceActionModal = true;
-      this.props.closeLedgerDeviceActionModal();
+      this.props.closeLedgerTransactionModal();
       this.ledgerModalTimer = setTimeout(() => {
         this.animatingLedgerDeviceActionModal = false;
       }, 500);
@@ -1445,17 +1445,17 @@ class DrawerView extends PureComponent {
           />
         </Modal>
         <Modal
-          isVisible={this.props.ledgerDeviceActionModalVisible}
+          isVisible={this.props.ledgerTransactionModalVisible}
           style={styles.bottomModal}
-          onBackdropPress={this.closeLedgerDeviceActionModal}
-          onBackButtonPress={this.closeLedgerDeviceActionModal}
-          onSwipeComplete={this.closeLedgerDeviceActionModal}
+          onBackdropPress={this.closeLedgerTransactionModal}
+          onBackButtonPress={this.closeLedgerTransactionModal}
+          onSwipeComplete={this.closeLedgerTransactionModal}
           swipeDirection={'down'}
           propagateSwipe
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <LedgerConfirmationModal />
+          <LedgerTransactionModal />
         </Modal>
         {this.renderOnboardingWizard()}
         <Modal
@@ -1500,7 +1500,7 @@ const mapStateToProps = (state) => ({
   networkModalVisible: state.modals.networkModalVisible,
   accountsModalVisible: state.modals.accountsModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
-  ledgerDeviceActionModalVisible: state.modals.ledgerDeviceActionModalVisible,
+  ledgerTransactionModalVisible: state.modals.ledgerTransactionModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
@@ -1520,7 +1520,7 @@ const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-  closeLedgerDeviceActionModal: () => dispatch(closeLedgerDeviceActionModal()),
+  closeLedgerTransactionModal: () => dispatch(closeLedgerTransactionModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

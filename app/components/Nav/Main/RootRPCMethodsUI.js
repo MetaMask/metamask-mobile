@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { StyleSheet, Alert, InteractionManager } from 'react-native';
+import {
+  StyleSheet,
+  Alert,
+  InteractionManager,
+  View,
+  Text,
+} from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
@@ -40,7 +46,7 @@ import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
-import LedgerConfirmationModal from '../../UI/LedgerModals/LedgerConfirmationModal';
+import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import {
   toggleDappTransactionModal,
   toggleApproveModal,
@@ -66,6 +72,7 @@ const styles = StyleSheet.create({
   bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
+    height: 600,
   },
 });
 const RootRPCMethodsUI = (props) => {
@@ -442,25 +449,23 @@ const RootRPCMethodsUI = (props) => {
 
   const renderLedgerSigningModal = () => {
     const {
-      ledgerDeviceActionModalVisible,
+      ledgerSignMessageModalVisible,
       approveModalVisible,
       dappTransactionModalVisible,
       selectedAddress,
     } = props;
-
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
       KeyringTypes.ledger,
     ]);
-
     const shouldRenderThisModal =
       !showPendingApproval &&
       !approveModalVisible &&
       !dappTransactionModalVisible &&
       isLedgerAccount;
 
-    shouldRenderThisModal && (
+    return shouldRenderThisModal ? (
       <Modal
-        isVisible={ledgerDeviceActionModalVisible}
+        isVisible={ledgerSignMessageModalVisible}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
@@ -470,11 +475,10 @@ const RootRPCMethodsUI = (props) => {
         swipeDirection={'down'}
         propagateSwipe
         backdropOpacity={1}
-        hideModalContentWhileAnimating
       >
-        <LedgerConfirmationModal />
+        <LedgerMessageSignModal />
       </Modal>
-    );
+    ) : null;
   };
 
   const renderQRSigningModal = () => {
@@ -821,7 +825,6 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
-      {renderLedgerSigningModal()}
       {renderSigningModal()}
       {renderWalletConnectSessionRequestModal()}
       {renderDappTransactionModal()}
@@ -831,6 +834,7 @@ const RootRPCMethodsUI = (props) => {
       {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderLedgerSigningModal()}
     </React.Fragment>
   );
 };
@@ -883,7 +887,10 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
-  ledgerDeviceActionModalVisible: PropTypes.bool,
+  /**
+   * Decides if the sign message modal should be displayed
+   */
+  ledgerSignMessageModalVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -896,7 +903,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
-  ledgerDeviceActionModalVisible: state.modals.ledgerDeviceActionModalVisible,
+  ledgerSignMessageModalVisible: state.modals.ledgerSignMessageModalVisible,
 });
 
 const mapDispatchToProps = (dispatch) => ({
