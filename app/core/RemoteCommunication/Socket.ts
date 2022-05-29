@@ -19,6 +19,7 @@ export default class Socket extends EventEmitter2 {
 
   manualDisconnect = false;
   reconnect: boolean;
+  commLayer: CommunicationLayerPreference;
 
   constructor({ otherPublicKey, reconnect, commLayer }) {
     super();
