@@ -470,6 +470,7 @@ const RootRPCMethodsUI = (props) => {
         swipeDirection={'down'}
         propagateSwipe
         backdropOpacity={1}
+        hideModalContentWhileAnimating
       >
         <LedgerConfirmationModal />
       </Modal>
@@ -820,6 +821,7 @@ const RootRPCMethodsUI = (props) => {
 
   return (
     <React.Fragment>
+      {renderLedgerSigningModal()}
       {renderSigningModal()}
       {renderWalletConnectSessionRequestModal()}
       {renderDappTransactionModal()}
@@ -829,7 +831,6 @@ const RootRPCMethodsUI = (props) => {
       {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
-      {renderLedgerSigningModal()}
     </React.Fragment>
   );
 };

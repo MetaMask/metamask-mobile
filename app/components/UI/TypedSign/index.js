@@ -150,6 +150,10 @@ class TypedSign extends PureComponent {
 
     const finalizeConfirmation = async (confirmed, rawSignature) => {
       if (!confirmed) {
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+          this.getAnalyticsParams(),
+        );
         return this.rejectMessage();
       }
 
@@ -160,7 +164,6 @@ class TypedSign extends PureComponent {
         AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
-      this.props.onConfirm();
     };
 
     const isLedgerAccount = isHardwareAccount(selectedAddress, [
@@ -168,7 +171,10 @@ class TypedSign extends PureComponent {
     ]);
 
     if (isLedgerAccount) {
+      this.props.onConfirm();
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+      // Hand over process to Ledger Confirmation Modal
       this.props.openLedgerDeviceActionModal({
         messageParams: cleanMessageParams,
         deviceId: ledgerKeyring.deviceId,
@@ -182,10 +188,8 @@ class TypedSign extends PureComponent {
         version,
       );
       await finalizeConfirmation(true, rawSignature);
+      this.props.onConfirm();
     }
-
-    TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
   };
 
   rejectMessage = () => {
