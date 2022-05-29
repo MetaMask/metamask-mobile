@@ -1,6 +1,7 @@
 import { EventEmitter2 } from 'eventemitter2';
 import io from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
+import { CommunicationLayerPreference } from '.';
 import KeyExchange from './KeyExchange';
 
 export default class Socket extends EventEmitter2 {
@@ -19,16 +20,18 @@ export default class Socket extends EventEmitter2 {
   manualDisconnect = false;
   reconnect: boolean;
 
-  constructor({ otherPublicKey, reconnect }) {
+  constructor({ otherPublicKey, reconnect, commLayer }) {
     super();
 
     this.reconnect = reconnect;
+    this.commLayer = commLayer;
 
     this.socket = io('https://lizard-positive-office.glitch.me');
 
     this.socket.on('error', () => {
       this.socket.disconnect();
       setTimeout(() => {
+        this.reconnect = true;
         this.socket = io('https://lizard-positive-office.glitch.me');
         this.socket.emit('join_channel', this.channelId);
       }, 2000);
@@ -45,7 +48,7 @@ export default class Socket extends EventEmitter2 {
     });
 
     this.keyExchange = new KeyExchange({
-      commLayer: this,
+      CommLayer: this,
       otherPublicKey,
       sendPublicKey: false,
     });
@@ -69,6 +72,11 @@ export default class Socket extends EventEmitter2 {
       if (this.reconnect) {
         if (this.keyExchange.keysExchanged) {
           this.sendMessage({ type: 'ready' });
+          if (this.commLayer === CommunicationLayerPreference.WEBRTC) {
+            this.emit('clients_ready', {
+              isOriginator: this.isOriginator,
+            });
+          }
         } else if (!this.isOriginator) {
           this.sendMessage({ type: 'key_handshake_start' });
         }
