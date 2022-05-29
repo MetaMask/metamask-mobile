@@ -16,12 +16,33 @@ export default class Socket extends EventEmitter2 {
 
   keyExchange: KeyExchange;
 
+  manualDisconnect = false;
+
   constructor({ otherPublicKey, reconnect }) {
     super();
 
     this.reconnect = reconnect;
 
-    this.socket = io('https://lizard-positive-office.glitch.me', {});
+    this.socket = io('https://lizard-positive-office.glitch.me');
+
+    this.socket.on('error', () => {
+      //console.log('Error, Connecting to channel again', error);
+      this.socket.disconnect();
+      setTimeout(() => {
+        this.socket = io('https://lizard-positive-office.glitch.me');
+        this.socket.emit('join_channel', this.channelId);
+      }, 2000);
+    });
+
+    this.socket.on('disconnect', () => {
+      if (manualDisconnect) return;
+      //console.log('Disconnect, Connecting to channel again', error);
+      this.socket.disconnect();
+      setTimeout(() => {
+        this.socket = io('https://lizard-positive-office.glitch.me');
+        this.connectToChannel(this.channelId);
+      }, 2000);
+    });
 
     this.keyExchange = new KeyExchange({
       commLayer: this,
@@ -41,6 +62,9 @@ export default class Socket extends EventEmitter2 {
       this.channelId = id;
       this.clientsConnected = true;
       if (this.isOriginator) {
+        if (this.keyExchange.keysExchanged) {
+          return;
+        }
         this.keyExchange.start(this.isOriginator);
       }
       if (this.reconnect) {
@@ -58,7 +82,7 @@ export default class Socket extends EventEmitter2 {
     });
 
     this.socket.on(`clients_disconnected-${channelId}`, () => {
-      return;
+      if (!this.isOriginator) return;
       this.clientsConnected = false;
       this.emit('clients_disconnected');
     });
@@ -69,6 +93,14 @@ export default class Socket extends EventEmitter2 {
       }
 
       this.checkSameId(id);
+
+      if (
+        this.isOriginator &&
+        this.keyExchange.keysExchanged &&
+        message?.type === 'key_handshake_start'
+      ) {
+        return this.keyExchange.start(this.isOriginator);
+      }
 
       if (!this.keyExchange.keysExchanged) {
         const messageReceived = message;
@@ -137,6 +169,7 @@ export default class Socket extends EventEmitter2 {
   }
 
   pause() {
+    manualDisconnect = true;
     if (this.keyExchange.keysExchanged) {
       this.sendMessage({ type: 'pause' });
     }
@@ -144,6 +177,7 @@ export default class Socket extends EventEmitter2 {
   }
 
   resume() {
+    manualDisconnect = false;
     if (this.keyExchange.keysExchanged) {
       this.reconnect = true;
       this.socket.connect();

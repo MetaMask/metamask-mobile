@@ -23,6 +23,7 @@ export default class RemoteCommunication extends EventEmitter2 {
   isOriginator: boolean;
   originatorInfo: any;
   walletInfo: any;
+  paused: boolean;
 
   constructor({
     commLayer = 'socket',
@@ -67,9 +68,13 @@ export default class RemoteCommunication extends EventEmitter2 {
     });
 
     this.commLayer.on('clients_disconnected', () => {
+      if (this.paused) {
+        //console.log('DISCONNECTING PAUSED');
+        return;
+      }
       this.clean();
       this.commLayer.removeAllListeners();
-      //this.commLayer.disconnect();
+      this.setupCommLayer({ CommLayer, otherPublicKey, webRTCLib });
       this.emit('clients_disconnected');
     });
 
@@ -92,7 +97,14 @@ export default class RemoteCommunication extends EventEmitter2 {
   }
 
   sendMessage(message) {
-    this.commLayer.sendMessage(message);
+    if (this.paused) {
+      //console.log('REQUEST BUT PAUSED');
+      this.once('clients_ready', () => {
+        this.commLayer.sendMessage(message);
+      });
+    } else {
+      this.commLayer.sendMessage(message);
+    }
   }
 
   onMessageCommLayer(message) {
@@ -110,6 +122,7 @@ export default class RemoteCommunication extends EventEmitter2 {
         isOriginator: this.isOriginator,
         originatorInfo: message.originatorInfo,
       });
+      this.paused = false;
       return;
     } else if (message.type === 'wallet_info') {
       this.walletInfo = message.walletInfo;
@@ -118,7 +131,17 @@ export default class RemoteCommunication extends EventEmitter2 {
         isOriginator: this.isOriginator,
         walletInfo: message.walletInfo,
       });
+      this.paused = false;
       return;
+    } else if (message.type === 'pause') {
+      //console.log('PAUSED');
+      this.paused = true;
+    } else if (message.type === 'ready') {
+      this.paused = false;
+      this.emit('clients_ready', {
+        isOriginator: this.isOriginator,
+        walletInfo: this.walletInfo,
+      });
     }
 
     this.emit('message', { message });
