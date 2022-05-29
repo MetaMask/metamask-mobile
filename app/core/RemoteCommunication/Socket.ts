@@ -41,7 +41,7 @@ export default class Socket extends EventEmitter2 {
       this.channelId = id;
       this.clientsConnected = true;
       if (this.isOriginator) {
-        this.keyExchange.start('socket');
+        this.keyExchange.start(this.isOriginator);
       }
       if (this.reconnect) {
         if (this.keyExchange.keysExchanged) {

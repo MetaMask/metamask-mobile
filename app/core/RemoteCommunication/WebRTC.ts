@@ -90,7 +90,7 @@ export default class WebRTC extends EventEmitter2 {
         this.clientsConnected = true;
 
         if (this.isOriginator) {
-          this.keyExchange.start('webrtc');
+          this.keyExchange.start(this.isOriginator);
         }
       };
 

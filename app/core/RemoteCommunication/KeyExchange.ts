@@ -49,6 +49,7 @@ export default class KeyExchange extends EventEmitter2 {
         if (this.sendPublicKey && message.pubkey && !this.otherPublicKey) {
           this.onOtherPublicKey(message.pubkey);
         }
+
         this.commLayer.sendMessage({
           type: KeySteps.SYNACK,
           pubkey: this.myPublicKey,
@@ -69,7 +70,17 @@ export default class KeyExchange extends EventEmitter2 {
     });
   }
 
-  start() {
+  clean() {
+    this.step = KeySteps.NONE;
+    this.secretKey = null;
+    this.keysExchanged = false;
+    this.otherPublicKey = null;
+  }
+
+  start(isOriginator: boolean) {
+    if (isOriginator) {
+      this.clean();
+    }
     this.checkStep(KeySteps.NONE);
     this.step = KeySteps.SYNACK;
     this.commLayer.sendMessage({
