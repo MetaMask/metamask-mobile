@@ -373,27 +373,29 @@ class SendFlow extends PureComponent {
       isFromAddressBook;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
     if (isValidHexAddress(toSelectedAddress, { mixedCaseUseChecksum: true })) {
+      const checksummedAddress = toChecksumAddress(toSelectedAddress);
       toSelectedAddressReady = true;
-      const ens = await doENSReverseLookup(toSelectedAddress);
+      const ens = await doENSReverseLookup(checksummedAddress);
       if (ens) {
         toAddressName = ens;
         if (
-          !networkAddressBook[toSelectedAddress] &&
-          !identities[toSelectedAddress]
+          !networkAddressBook[checksummedAddress] &&
+          !identities[checksummedAddress]
         ) {
           addToAddressToAddressBook = true;
         }
       } else if (
-        networkAddressBook[toSelectedAddress] ||
-        identities[toSelectedAddress]
+        networkAddressBook[checksummedAddress] ||
+        identities[checksummedAddress]
       ) {
         toAddressName =
-          (networkAddressBook[toSelectedAddress] &&
-            networkAddressBook[toSelectedAddress].name) ||
-          (identities[toSelectedAddress] && identities[toSelectedAddress].name);
+          (networkAddressBook[checksummedAddress] &&
+            networkAddressBook[checksummedAddress].name) ||
+          (identities[checksummedAddress] &&
+            identities[checksummedAddress].name);
         isFromAddressBook = true;
       } else {
-        toAddressName = ens || toSelectedAddress;
+        toAddressName = ens || checksummedAddress;
         // If not in address book nor user accounts
         addToAddressToAddressBook = true;
       }
@@ -403,7 +405,7 @@ class SendFlow extends PureComponent {
       if (networkId === 1) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
-            toSelectedAddress,
+            checksummedAddress,
           );
           if (symbol) {
             addressError = (
@@ -443,13 +445,13 @@ class SendFlow extends PureComponent {
       confusableCollection = collectConfusables(toEnsName);
       const resolvedAddress = await doENSLookup(toSelectedAddress, network);
       if (resolvedAddress) {
-        const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
+        const checksummedAddress = toChecksumAddress(resolvedAddress);
         toAddressName = toSelectedAddress;
         toEnsAddressResolved = resolvedAddress;
         toSelectedAddressReady = true;
         if (
-          !networkAddressBook[checksummedResolvedAddress] &&
-          !identities[checksummedResolvedAddress]
+          !networkAddressBook[checksummedAddress] &&
+          !identities[checksummedAddress]
         ) {
           addToAddressToAddressBook = true;
         }
