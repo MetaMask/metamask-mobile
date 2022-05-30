@@ -74,7 +74,7 @@ describe('isValidHexAddress', () => {
     ).toBe(false);
   });
 
-  it('should return false if the characters are mixed case and the checksum is valid', () => {
+  it('should return true if the characters are mixed case and the checksum is valid', () => {
     const upperCaseMockAddress = '0x87187657b35F461D0Ceec338d9b8E944a193aFE2';
     expect(
       isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
