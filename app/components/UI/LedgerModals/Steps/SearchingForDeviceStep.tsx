@@ -1,0 +1,92 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires */
+import React, { useMemo } from 'react';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import Text from '../../../Base/Text';
+import { strings } from '../../../../../locales/i18n';
+import { useAssetFromTheme } from '../../../../util/theme';
+
+const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
+const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
+
+const createStyles = () =>
+  StyleSheet.create({
+    modalTitle: {
+      marginTop: 30,
+    },
+    titleText: {
+      fontSize: 22,
+    },
+    ledgerImageStyle: {
+      resizeMode: 'cover',
+      width: 100,
+      height: 54,
+      overflow: 'visible',
+    },
+    lookingForDeviceTitle: {
+      flexDirection: 'row',
+      marginTop: 30,
+      alignItems: 'center',
+    },
+    activityIndicator: {
+      marginLeft: 20,
+    },
+    ledgerInstructionText: {
+      paddingLeft: 7,
+    },
+    instructionsWrapper: {
+      marginTop: 40,
+      flex: 1,
+    },
+    howToInstallEthAppText: {
+      marginTop: 40,
+      flex: 1,
+      flexWrap: 'wrap',
+      marginLeft: 20,
+      marginRight: 20,
+    },
+    lookingForDeviceContainer: {
+      flex: 1,
+      alignItems: 'center',
+    },
+  });
+
+const SearchingForDeviceStep = () => {
+  const styles = useMemo(() => createStyles(), []);
+  const ledgerImage = useAssetFromTheme(
+    ledgerConnectLightImage,
+    ledgerConnectDarkImage,
+  );
+
+  return (
+    <View style={styles.lookingForDeviceContainer}>
+      <Image source={ledgerImage} style={styles.ledgerImageStyle} />
+      <View style={styles.lookingForDeviceTitle}>
+        <Text bold big style={styles.titleText}>
+          {strings('ledger.looking_for_device')}
+        </Text>
+        <View style={styles.activityIndicator}>
+          <ActivityIndicator />
+        </View>
+      </View>
+      <View style={styles.instructionsWrapper}>
+        <Text>{strings('ledger.ledger_reminder_message')}</Text>
+        <Text style={styles.ledgerInstructionText}>
+          {strings('ledger.ledger_reminder_message_step_one')}
+        </Text>
+        <Text style={styles.ledgerInstructionText}>
+          {strings('ledger.ledger_reminder_message_step_two')}
+        </Text>
+        <Text style={styles.ledgerInstructionText}>
+          {strings('ledger.ledger_reminder_message_step_three')}
+        </Text>
+      </View>
+      <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>
+        {strings('ledger.how_to_install_eth_app')}
+      </Text>
+    </View>
+  );
+};
+
+export default React.memo(SearchingForDeviceStep);

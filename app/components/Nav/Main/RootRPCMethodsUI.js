@@ -32,6 +32,7 @@ import {
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
+import { isHardwareAccount } from '../../../util/address';
 import MessageSign from '../../UI/MessageSign';
 import Approve from '../../Views/ApproveView/Approve';
 import WatchAssetRequest from '../../UI/WatchAssetRequest';
@@ -39,12 +40,13 @@ import AccountApproval from '../../UI/AccountApproval';
 import TransactionTypes from '../../../core/TransactionTypes';
 import AddCustomNetwork from '../../UI/AddCustomNetwork';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
+import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import {
   toggleDappTransactionModal,
   toggleApproveModal,
 } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
+import { util, KeyringTypes } from '@metamask/controllers';
 import Analytics from '../../../core/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
@@ -64,6 +66,7 @@ const styles = StyleSheet.create({
   bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
+    height: 600,
   },
 });
 const RootRPCMethodsUI = (props) => {
@@ -386,7 +389,10 @@ const RootRPCMethodsUI = (props) => {
 
   const renderSigningModal = () => (
     <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.SIGN_MESSAGE}
+      isVisible={
+        showPendingApproval?.type === ApprovalTypes.SIGN_MESSAGE &&
+        !props.ledgerSignMessageModalVisible
+      }
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
@@ -437,6 +443,40 @@ const RootRPCMethodsUI = (props) => {
       )}
     </Modal>
   );
+
+  const renderLedgerSigningModal = () => {
+    const {
+      ledgerSignMessageModalVisible,
+      approveModalVisible,
+      dappTransactionModalVisible,
+      selectedAddress,
+    } = props;
+    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+      KeyringTypes.ledger,
+    ]);
+    const shouldRenderThisModal =
+      !showPendingApproval &&
+      !approveModalVisible &&
+      !dappTransactionModalVisible &&
+      isLedgerAccount;
+
+    return shouldRenderThisModal ? (
+      <Modal
+        isVisible={ledgerSignMessageModalVisible}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.bottomModal}
+        backdropColor={colors.overlay.default}
+        animationInTiming={600}
+        animationOutTiming={600}
+        swipeDirection={'down'}
+        propagateSwipe
+        backdropOpacity={1}
+      >
+        <LedgerMessageSignModal />
+      </Modal>
+    ) : null;
+  };
 
   const renderQRSigningModal = () => {
     const {
@@ -791,6 +831,7 @@ const RootRPCMethodsUI = (props) => {
       {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderLedgerSigningModal()}
     </React.Fragment>
   );
 };
@@ -843,6 +884,10 @@ RootRPCMethodsUI.propTypes = {
    * updates redux when network is switched
    */
   networkSwitched: PropTypes.func,
+  /**
+   * Decides if the sign message modal should be displayed
+   */
+  ledgerSignMessageModalVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -855,6 +900,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   providerType: state.engine.backgroundState.NetworkController.provider.type,
+  ledgerSignMessageModalVisible: state.modals.ledgerSignMessageModalVisible,
 });
 
 const mapDispatchToProps = (dispatch) => ({

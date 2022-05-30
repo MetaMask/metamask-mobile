@@ -36,6 +36,7 @@ import {
   WalletDevice,
   NetworksChainId,
   GAS_ESTIMATE_TYPES,
+  KeyringTypes,
 } from '@metamask/controllers';
 import {
   prepareTransaction,
@@ -79,9 +80,11 @@ import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
   isQRHardwareAccount,
+  isHardwareAccount,
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { openLedgerTransactionModal } from '../../../../actions/modals';
 import Routes from '../../../../constants/navigation/Routes';
 
 const EDIT = 'edit';
@@ -359,6 +362,10 @@ class Confirm extends PureComponent {
      * A string representing the network type
      */
     networkType: PropTypes.string,
+    /**
+     * Opens the Ledger confirmation Flow
+     */
+    openLedgerTransactionModal: PropTypes.func,
   };
 
   state = {
@@ -935,38 +942,76 @@ class Confirm extends PureComponent {
       transactionConfirmed,
     } = this.state;
     if (transactionConfirmed) return;
+
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
-    try {
-      const transaction = this.prepareTransactionToSend();
-      let error;
-      if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-        error = this.validateAmount({
-          transaction,
-          total: EIP1559TransactionData.totalMaxHex,
-        });
-      } else {
-        error = this.validateAmount({
-          transaction,
-          total: LegacyTransactionData.totalHex,
-        });
-      }
-      this.setError(error);
-      if (error) {
-        this.setState({ transactionConfirmed: false, stopUpdateGas: true });
-        return;
+    const transaction = this.prepareTransactionToSend();
+    let error;
+
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      error = this.validateAmount({
+        transaction,
+        total: EIP1559TransactionData.totalMaxHex,
+      });
+    } else {
+      error = this.validateAmount({
+        transaction,
+        total: LegacyTransactionData.totalHex,
+      });
+    }
+
+    this.setError(error);
+
+    if (error) {
+      this.setState({ transactionConfirmed: false, stopUpdateGas: true });
+      return;
+    }
+
+    const { result, transactionMeta } =
+      await TransactionController.addTransaction(
+        transaction,
+        TransactionTypes.MMM,
+        WalletDevice.MM_MOBILE,
+      );
+    await KeyringController.resetQRKeyringState();
+
+    const finalizeConfirmation = async (confirmed) => {
+      const rejectTransaction = () => {
+        this.setState({ transactionConfirmed: false });
+        navigation && navigation.dangerouslyGetParent()?.popToTop();
+      };
+
+      if (confirmed === false) {
+        // Transaction was rejected by the user
+        return rejectTransaction();
       }
 
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(
-          transaction,
-          TransactionTypes.MMM,
-          WalletDevice.MM_MOBILE,
-        );
-      await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transactionMeta.id);
-      await new Promise((resolve) => resolve(result));
+      try {
+        await new Promise((resolve) => resolve(result));
+      } catch (e) {
+        // This is the LedgerCode for device rejection
+        if (e.message.includes('0x6985')) {
+          return rejectTransaction();
+        }
+
+        throw e;
+      }
 
       if (transactionMeta.error) {
+        if (transactionMeta?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+          AnalyticsV2.trackEvent(
+            AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          );
+        } else {
+          Alert.alert(
+            strings('transactions.transaction_error'),
+            error && error.message,
+            [{ text: 'OK' }],
+          );
+          Logger.error(
+            transactionMeta.error,
+            'error while trying to send transaction (Confirm)',
+          );
+        }
         throw transactionMeta.error;
       }
 
@@ -983,21 +1028,23 @@ class Confirm extends PureComponent {
         resetTransaction();
         navigation && navigation.dangerouslyGetParent()?.pop();
       });
-    } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        Alert.alert(
-          strings('transactions.transaction_error'),
-          error && error.message,
-          [{ text: 'OK' }],
-        );
-        Logger.error(error, 'error while trying to send transaction (Confirm)');
-      } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
-      }
+
+      this.setState({ transactionConfirmed: false });
+    };
+
+    if (isHardwareAccount(transaction.from, [KeyringTypes.ledger])) {
+      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+      // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
+      this.props.openLedgerTransactionModal({
+        transactionId: transactionMeta.id,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: finalizeConfirmation,
+        type: 'signTransaction',
+      });
+    } else {
+      await TransactionController.approveTransaction(transactionMeta.id);
+      await finalizeConfirmation(true);
     }
-    this.setState({ transactionConfirmed: false });
   };
 
   getBalanceError = (balance) => {
@@ -1397,6 +1444,9 @@ class Confirm extends PureComponent {
     const displayExclamation =
       !existingContact && !!confusableCollection.length;
     const isQRHardwareWalletDevice = isQRHardwareAccount(fromSelectedAddress);
+    const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
+      KeyringTypes.ledger,
+    ]);
 
     const AdressToComponent = () => (
       <AddressTo
@@ -1589,6 +1639,8 @@ class Confirm extends PureComponent {
               <ActivityIndicator size="small" color={colors.primary.inverse} />
             ) : isQRHardwareWalletDevice ? (
               strings('transaction.confirm_with_qr_hardware')
+            ) : isLedgerAccount ? (
+              strings('transaction.confirm_with_ledger_hardware')
             ) : (
               strings('transaction.send')
             )}
@@ -1647,6 +1699,8 @@ const mapDispatchToProps = (dispatch) => ({
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
+  openLedgerTransactionModal: (params) =>
+    dispatch(openLedgerTransactionModal(params)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);

@@ -19,6 +19,7 @@ import {
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -80,6 +81,7 @@ const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
+  const { KeyringController } = Engine.context;
 
   useEffect(() => {
     navigation.setOptions(
@@ -96,9 +98,20 @@ const SelectHardwareWallet = () => {
     navigation.navigate('ConnectQRHardwareFlow');
   };
 
-  const navigateToConnectLedger = () => {
-    // eslint-disable-next-line no-console
-    console.log('navigateToConnectLedger');
+  const navigateToConnectLedger = async () => {
+    const ledgerKeyring = await KeyringController.getLedgerKeyring();
+    const accounts = await ledgerKeyring.getAccounts();
+
+    if (accounts.length === 0) {
+      navigation.navigate('LedgerConnectFlow');
+    } else {
+      navigation.navigate('LedgerAccountInfo', {
+        screen: 'LedgerAccountInfo',
+        params: {
+          accounts,
+        },
+      });
+    }
   };
 
   const renderHardwareButton = (image: any, onPress: any) => (

@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { connect } from 'react-redux';
+import { KeyringTypes } from '@metamask/controllers';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import SignatureRequest from '../SignatureRequest';
@@ -12,9 +13,13 @@ import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import URL from 'url-parse';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { openLedgerSignModal } from '../../../actions/modals';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -78,6 +83,10 @@ class TypedSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
+    /**
+     * Opens the Ledger confirmation Flow
+     */
+    openLedgerSignModal: PropTypes.func,
   };
 
   state = {
@@ -131,19 +140,56 @@ class TypedSign extends PureComponent {
   };
 
   signMessage = async () => {
-    const { messageParams } = this.props;
+    const { messageParams, selectedAddress } = this.props;
     const { KeyringController, TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
     const cleanMessageParams = await TypedMessageManager.approveMessage(
       messageParams,
     );
-    const rawSig = await KeyringController.signTypedMessage(
-      cleanMessageParams,
-      version,
-    );
-    TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+
+    const finalizeConfirmation = async (confirmed, rawSignature) => {
+      if (!confirmed) {
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
+          this.getAnalyticsParams(),
+        );
+        return this.rejectMessage();
+      }
+
+      TypedMessageManager.setMessageStatusSigned(messageId, rawSignature);
+      this.showWalletConnectNotification(messageParams, true);
+
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
+        this.getAnalyticsParams(),
+      );
+    };
+
+    const isLedgerAccount = isHardwareAccount(selectedAddress, [
+      KeyringTypes.ledger,
+    ]);
+
+    if (isLedgerAccount) {
+      this.props.onConfirm();
+      const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+      // Hand over process to Ledger Confirmation Modal
+      this.props.openLedgerSignModal({
+        messageParams: cleanMessageParams,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: finalizeConfirmation,
+        type: 'signTypedMessage',
+        version,
+      });
+    } else {
+      const rawSignature = await KeyringController.signTypedMessage(
+        cleanMessageParams,
+        version,
+      );
+      await finalizeConfirmation(true, rawSignature);
+      this.props.onConfirm();
+    }
   };
 
   rejectMessage = () => {
@@ -166,11 +212,6 @@ class TypedSign extends PureComponent {
   confirmSignature = async () => {
     try {
       await this.signMessage();
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_COMPLETED,
-        this.getAnalyticsParams(),
-      );
-      this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         AnalyticsV2.trackEvent(
@@ -303,4 +344,8 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-export default connect(mapStateToProps)(TypedSign);
+const mapDispatchToProps = (dispatch) => ({
+  openLedgerSignModal: (params) => dispatch(openLedgerSignModal(params)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(TypedSign);

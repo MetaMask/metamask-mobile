@@ -37,3 +37,21 @@ export function toggleApproveModal(show) {
     show,
   };
 }
+
+export const openLedgerTransactionModal = (params) => ({
+  type: 'OPEN_LEDGER_TRANSACTION_ACTION',
+  params,
+});
+
+export const closeLedgerTransactionModal = () => ({
+  type: 'CLOSE_LEDGER_TRANSACTION_ACTION',
+});
+
+export const openLedgerSignModal = (params) => ({
+  type: 'OPEN_LEDGER_SIGN_ACTION',
+  params,
+});
+
+export const closeLedgerSignModal = () => ({
+  type: 'CLOSE_LEDGER_SIGN_ACTION',
+});

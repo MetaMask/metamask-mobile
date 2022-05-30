@@ -277,23 +277,17 @@ class AccountList extends PureComponent {
     });
   };
 
-  isImported(allKeyrings, address) {
-    let ret = false;
+  getKeyringType(allKeyrings, address) {
+    const ret = 'Imported';
     for (const keyring of allKeyrings) {
       if (keyring.accounts.includes(address)) {
-        ret = keyring.type === KeyringTypes.simple;
-        break;
-      }
-    }
-
-    return ret;
-  }
-
-  isQRHardware(allKeyrings, address) {
-    let ret = false;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(address)) {
-        ret = keyring.type === KeyringTypes.qr;
+        if (
+          [KeyringTypes.hd, KeyringTypes.ledger, KeyringTypes.qr].includes(
+            keyring.type,
+          )
+        ) {
+          return keyring.type;
+        }
         break;
       }
     }
@@ -360,14 +354,11 @@ class AccountList extends PureComponent {
         const { name, address } = identity;
         const identityAddressChecksummed = toChecksumAddress(address);
         const isSelected = identityAddressChecksummed === selectedAddress;
-        const isImported = this.isImported(
+        const keyringType = this.getKeyringType(
           allKeyrings,
           identityAddressChecksummed,
         );
-        const isQRHardware = this.isQRHardware(
-          allKeyrings,
-          identityAddressChecksummed,
-        );
+
         let balance = 0x0;
         if (accounts[identityAddressChecksummed]) {
           balance = accounts[identityAddressChecksummed].balance;
@@ -380,8 +371,7 @@ class AccountList extends PureComponent {
           address: identityAddressChecksummed,
           balance,
           isSelected,
-          isImported,
-          isQRHardware,
+          keyringType,
           balanceError,
         };
       });
@@ -411,7 +401,6 @@ class AccountList extends PureComponent {
     const { enableAccountsAddition } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
     return (
       <SafeAreaView style={styles.wrapper} testID={'account-list'}>
         <View style={styles.titleWrapper}>

@@ -1,5 +1,8 @@
+/* eslint-disable react/prop-types */
+/** This is a JS file, we can't use types */
+
 import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -52,6 +55,8 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
+import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
+import LedgerConnect from '../../Views/LedgerConnect';
 import Drawer from '../../UI/Drawer';
 import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
 import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
@@ -501,6 +506,12 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+const LedgerConnectFlow = ({ navigation }) => (
+  <Stack.Navigator initialRouteName="LedgerConnect">
+    <Stack.Screen name="LedgerConnect" component={LedgerConnect} />
+  </Stack.Navigator>
+);
+
 const ConnectHardwareWalletFlow = () => (
   <Stack.Navigator name="ConnectHardwareWallet">
     <Stack.Screen
@@ -508,6 +519,7 @@ const ConnectHardwareWalletFlow = () => (
       component={SelectHardwareWallet}
       options={SelectHardwareWallet.navigationOptions}
     />
+    <Stack.Screen name="LedgerAccountInfo" component={LedgerAccountInfo} />
   </Stack.Navigator>
 );
 
@@ -549,6 +561,7 @@ const MainNavigator = () => (
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}
     />
+    <Stack.Screen name="LedgerConnectFlow" component={LedgerConnectFlow} />
     <Stack.Screen
       name="ConnectHardwareWalletFlow"
       component={ConnectHardwareWalletFlow}

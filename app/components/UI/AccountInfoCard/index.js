@@ -9,7 +9,10 @@ import { connect } from 'react-redux';
 import { renderAccountName, renderShortAddress } from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
-import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
+import {
+  QR_HARDWARE_WALLET_DEVICE,
+  LEDGER_DEVICE,
+} from '../../../constants/keyringTypes';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -126,7 +129,7 @@ class AccountInfoCard extends PureComponent {
     const { KeyringController } = Engine.context;
     const { selectedAddress } = this.props;
     KeyringController.getAccountKeyringType(selectedAddress).then((type) => {
-      if (type === QR_HARDWARE_WALLET_DEVICE) {
+      if ([QR_HARDWARE_WALLET_DEVICE, LEDGER_DEVICE].includes(type)) {
         this.setState({ isHardwareKeyring: true });
       }
     });

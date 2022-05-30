@@ -10,6 +10,8 @@ import { strings } from '../../../../../locales/i18n';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { isHardwareKeyring } from '../../../../util/keyring-helpers';
+import { HD_KEY_TREE, LEDGER_DEVICE } from '../../../../constants/keyringTypes';
 
 const EMPTY = '0x0';
 const BALANCE_KEY = 'balance';
@@ -52,7 +54,7 @@ const createStyles = (colors) =>
       color: colors.error.default,
       marginLeft: 4,
     },
-    importedView: {
+    keyringTypeLabelView: {
       flex: 0.5,
       alignItems: 'flex-start',
       marginTop: 2,
@@ -65,17 +67,21 @@ const createStyles = (colors) =>
       flex: 0.2,
       alignItems: 'flex-end',
     },
-    importedText: {
+    keyringTypeLabelText: {
       color: colors.text.alternative,
       fontSize: 10,
       ...fontStyles.bold,
     },
-    importedWrapper: {
+    keyringTypeLabelWrapper: {
+      width: 73,
       paddingHorizontal: 10,
       paddingVertical: 3,
       borderRadius: 10,
       borderWidth: 1,
       borderColor: colors.icon.default,
+    },
+    hardwareKeyringLabelWrapper: {
+      width: 80,
     },
   });
 
@@ -115,39 +121,46 @@ class AccountElement extends PureComponent {
 
   onLongPress = () => {
     const { onLongPress } = this.props;
-    const { address, isImported, index } = this.props.item;
+    const { address, keyringType, index } = this.props.item;
+    const isImported = keyringType !== HD_KEY_TREE;
     onLongPress && onLongPress(address, isImported, index);
   };
 
   render() {
     const { disabled, updatedBalanceFromStore, ticker } = this.props;
-    const {
-      address,
-      name,
-      ens,
-      isSelected,
-      isImported,
-      balanceError,
-      isQRHardware,
-    } = this.props.item;
+    const { address, name, ens, isSelected, keyringType, balanceError } =
+      this.props.item;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
     const selected = isSelected ? (
       <Icon name="check-circle" size={30} color={colors.primary.default} />
     ) : null;
-    const tag =
-      isImported || isQRHardware ? (
-        <View style={styles.importedView}>
-          <View style={styles.importedWrapper}>
-            <Text numberOfLines={1} style={styles.importedText}>
-              {strings(
-                isImported ? 'accounts.imported' : 'transaction.hardware',
-              )}
-            </Text>
-          </View>
+
+    const keyringLabelText = () => {
+      if (isHardwareKeyring(keyringType)) {
+        return strings('accounts.hardware');
+      } else if (keyringType === 'Imported') {
+        return strings('accounts.imported');
+      }
+
+      return null;
+    };
+
+    const keyRingLabel = keyringLabelText() ? (
+      <View style={styles.keyringTypeLabelView}>
+        <View
+          style={[
+            styles.keyringTypeLabelWrapper,
+            keyringType === LEDGER_DEVICE && styles.hardwareKeyringLabelWrapper,
+          ]}
+        >
+          <Text numberOfLines={1} style={styles.keyringTypeLabelText}>
+            {keyringLabelText()}
+          </Text>
         </View>
-      ) : null;
+      </View>
+    ) : null;
 
     return (
       <View onStartShouldSetResponder={() => true}>
@@ -177,7 +190,7 @@ class AccountElement extends PureComponent {
                 )}
               </View>
             </View>
-            {!!tag && tag}
+            {!!keyRingLabel && keyRingLabel}
             <View style={styles.selectedWrapper}>{selected}</View>
           </View>
         </TouchableOpacity>
