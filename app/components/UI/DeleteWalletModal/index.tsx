@@ -72,7 +72,7 @@ const DeleteWalletModal = () => {
           state: {
             routes: [
               {
-                name: 'OnboardingNav',
+                name: Routes.ONBOARDING.NAV,
                 params: {
                   screen: Routes.ONBOARDING.ONBOARDING,
                   params: { delete: true },
