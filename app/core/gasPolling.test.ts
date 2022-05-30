@@ -1,7 +1,7 @@
-import {startGasPolling} from './gasPolling'
+import { startGasPolling } from './gasPolling';
 
 describe('Gas Polling', () => {
-    it('should start gas polling', () => {
-        // TODO
-    })
-})
+  it('should start gas polling', () => {
+    // TODO
+  });
+});
