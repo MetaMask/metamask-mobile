@@ -18,7 +18,7 @@ import { connect } from 'react-redux';
 import { renderFromWei } from '../../../../util/number';
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
-import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import StyledButton from '../../../UI/StyledButton';
 import {
@@ -26,7 +26,7 @@ import {
   setRecipient,
   newAssetTransaction,
 } from '../../../../actions/transaction';
-import { isENS } from '../../../../util/address';
+import { isENS, isValidHexAddress } from '../../../../util/address';
 import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
@@ -372,27 +372,25 @@ class SendFlow extends PureComponent {
       toEnsAddressResolved,
       isFromAddressBook;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
-    if (isValidAddress(toSelectedAddress)) {
-      const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
+    if (isValidHexAddress(toSelectedAddress, { mixedCaseUseChecksum: true })) {
       toSelectedAddressReady = true;
       const ens = await doENSReverseLookup(toSelectedAddress);
       if (ens) {
         toAddressName = ens;
         if (
-          !networkAddressBook[checksummedToSelectedAddress] &&
-          !identities[checksummedToSelectedAddress]
+          !networkAddressBook[toSelectedAddress] &&
+          !identities[toSelectedAddress]
         ) {
           addToAddressToAddressBook = true;
         }
       } else if (
-        networkAddressBook[checksummedToSelectedAddress] ||
-        identities[checksummedToSelectedAddress]
+        networkAddressBook[toSelectedAddress] ||
+        identities[toSelectedAddress]
       ) {
         toAddressName =
-          (networkAddressBook[checksummedToSelectedAddress] &&
-            networkAddressBook[checksummedToSelectedAddress].name) ||
-          (identities[checksummedToSelectedAddress] &&
-            identities[checksummedToSelectedAddress].name);
+          (networkAddressBook[toSelectedAddress] &&
+            networkAddressBook[toSelectedAddress].name) ||
+          (identities[toSelectedAddress] && identities[toSelectedAddress].name);
         isFromAddressBook = true;
       } else {
         toAddressName = ens || toSelectedAddress;
@@ -491,7 +489,9 @@ class SendFlow extends PureComponent {
       if (!resolvedAddress) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
-    } else if (!isValidAddress(toSelectedAddress)) {
+    } else if (
+      !isValidHexAddress(toSelectedAddress, { mixedCaseUseChecksum: true })
+    ) {
       addressError = strings('transaction.invalid_address');
     }
     this.setState({ addressError });
