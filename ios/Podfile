@@ -42,7 +42,6 @@ target 'MetaMask' do
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
     :hermes_enabled => false
-		pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/Camera'
   )
 
   # Pods for MetaMask
