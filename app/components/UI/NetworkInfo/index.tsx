@@ -132,7 +132,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
-    controllerUtils.isTokenDetectionEnabledForNetwork(chainId);
+    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
 
   const isTokenDetectionEnabledForNetwork = useMemo(() => {
     if (isTokenDetectionSupported && isTokenDetectionEnabled) {

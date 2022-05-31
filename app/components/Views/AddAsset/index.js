@@ -127,7 +127,7 @@ class AddAsset extends PureComponent {
     } = this.props;
     const { dismissNftInfo } = this.state;
     const isTokenDetectionSupported =
-      controllerUtils.isTokenDetectionEnabledForNetwork(chainId);
+      controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 

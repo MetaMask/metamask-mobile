@@ -304,7 +304,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
-    if (!controllerUtils.isTokenDetectionEnabledForNetwork(chainId)) {
+    if (!controllerUtils.isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
     return (
