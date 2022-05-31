@@ -410,13 +410,14 @@ class PaymentRequest extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
-
+    console.log('test', chainId)
     if (chainId === '1') {
       results = this.state.searchInputValue
         ? this.state.results
         : defaultAssets;
     } else if (
-      Object.values(NetworksChainId).find((value) => value === chainId)
+      //Check to see if it is not a test net ticker symbol
+      Object.values(NetworksChainId).find((value) => value === chainId) && !(chainId > '1' && chainId < '6')
     ) {
       results = [defaultEth];
     } else {
