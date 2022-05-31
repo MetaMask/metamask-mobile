@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Scan should render correctly 1`] = `
-<Scan
+<Component
   onDeviceSelected={[MockFunction]}
+  onScanningErrorStateChanged={[MockFunction]}
 />
 `;

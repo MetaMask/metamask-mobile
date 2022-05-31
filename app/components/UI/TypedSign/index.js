@@ -19,7 +19,7 @@ import {
 } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { openLedgerSignModal } from '../../../actions/modals';
+import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -83,10 +83,6 @@ class TypedSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
-    /**
-     * Opens the Ledger confirmation Flow
-     */
-    openLedgerSignModal: PropTypes.func,
   };
 
   state = {
@@ -175,13 +171,15 @@ class TypedSign extends PureComponent {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
       // Hand over process to Ledger Confirmation Modal
-      this.props.openLedgerSignModal({
-        messageParams: cleanMessageParams,
-        deviceId: ledgerKeyring.deviceId,
-        onConfirmationComplete: finalizeConfirmation,
-        type: 'signTypedMessage',
-        version,
-      });
+      this.props.navigation.navigate(
+        ...createLedgerMessageSignModalNavDetails({
+          messageParams: cleanMessageParams,
+          deviceId: ledgerKeyring.deviceId,
+          onConfirmationComplete: finalizeConfirmation,
+          type: 'signTypedMessage',
+          version,
+        }),
+      );
     } else {
       const rawSignature = await KeyringController.signTypedMessage(
         cleanMessageParams,
@@ -344,8 +342,4 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  openLedgerSignModal: (params) => dispatch(openLedgerSignModal(params)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(TypedSign);
+export default connect(mapStateToProps)(TypedSign);
