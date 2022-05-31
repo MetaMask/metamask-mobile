@@ -147,7 +147,9 @@ class TransactionReviewData extends PureComponent {
           <View style={styles.scrollView}>
             <KeyboardAwareScrollView style={styles.scrollView}>
               <TouchableWithoutFeedback style={styles.scrollView}>
-                <Text style={styles.hexData}>{data}</Text>
+                <Text selectable style={styles.hexData}>
+                  {data}
+                </Text>
               </TouchableWithoutFeedback>
             </KeyboardAwareScrollView>
           </View>

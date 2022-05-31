@@ -2,6 +2,14 @@
 
 ## Current Main Branch
 
+## 5.1.1 - May 12, 2022
+- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX] Crashes on Android devices when using the app in split screen
+- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FEAT] Download attachments in browser on iOS
+- [4174](https://github.com/MetaMask/metamask-mobile/pull/4174):  [IMPROVEMENT] Use checksum standard format
+- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Send flow confusables bug
+- [#4315](https://github.com/MetaMask/metamask-mobile/pull/4315): [IMPROVEMENT] Make reveal SRP blur view dynamic
+- [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
+
 ## 5.1.0 - May 5, 2022
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
 - [#4159](https://github.com/MetaMask/metamask-mobile/pull/4159): [IMPROVEMENT] - iCloud Backup Restriction

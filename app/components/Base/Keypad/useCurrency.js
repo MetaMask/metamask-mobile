@@ -3,11 +3,15 @@ import { CURRENCIES } from './constants';
 
 function useCurrency(currency) {
   const currencyData = useMemo(() => {
-    if (!currency || !CURRENCIES[currency?.toUpperCase()]) {
+    if (!currency) {
       return CURRENCIES.default;
     }
 
-    return CURRENCIES[currency.toUpperCase()];
+    return (
+      CURRENCIES[currency] ||
+      CURRENCIES[currency.toUpperCase()] ||
+      CURRENCIES.default
+    );
   }, [currency]);
 
   const handler = currencyData.handler;
