@@ -959,6 +959,7 @@ export const BrowserTab = (props) => {
           // Wizard
           wizardScrollAdjusted,
           tabId: props.id,
+          injectHomePageScripts,
         }),
       isMainFrame,
     });
