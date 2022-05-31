@@ -1,5 +1,5 @@
 const initialState = {
-	events: [],
+  events: [],
 };
 
 /**
@@ -7,20 +7,20 @@ const initialState = {
  * decides to optin after finishing onboarding flow
  */
 const onboardingReducer = (state = initialState, action) => {
-	switch (action.type) {
-		case 'SAVE_EVENT':
-			return {
-				...state,
-				events: [...state.events, action.event],
-			};
-		case 'CLEAR_EVENTS':
-			return {
-				...state,
-				events: [],
-			};
-		default:
-			return state;
-	}
+  switch (action.type) {
+    case 'SAVE_EVENT':
+      return {
+        ...state,
+        events: [...state.events, action.event],
+      };
+    case 'CLEAR_EVENTS':
+      return {
+        ...state,
+        events: [],
+      };
+    default:
+      return state;
+  }
 };
 
 export default onboardingReducer;

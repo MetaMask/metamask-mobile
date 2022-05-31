@@ -6,52 +6,52 @@ import Text from '../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
-	StyleSheet.create({
-		customNonce: {
-			marginTop: 10,
-			marginHorizontal: 24,
-			borderWidth: 1,
-			borderColor: colors.border.default,
-			borderRadius: 8,
-			paddingVertical: 14,
-			paddingHorizontal: 16,
-			display: 'flex',
-			flexDirection: 'row',
-		},
-		nonceNumber: {
-			marginLeft: 'auto',
-		},
-	});
+  StyleSheet.create({
+    customNonce: {
+      marginTop: 10,
+      marginHorizontal: 24,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 8,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      display: 'flex',
+      flexDirection: 'row',
+    },
+    nonceNumber: {
+      marginLeft: 'auto',
+    },
+  });
 
 const CustomNonce = ({ nonce, onNonceEdit }) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return (
-		<TouchableOpacity style={styles.customNonce} onPress={onNonceEdit}>
-			<Text bold black>
-				{strings('transaction.custom_nonce')}
-			</Text>
-			<Text bold link>
-				{'  '}
-				{strings('transaction.edit')}
-			</Text>
-			<Text bold black style={styles.nonceNumber}>
-				{nonce}
-			</Text>
-		</TouchableOpacity>
-	);
+  return (
+    <TouchableOpacity style={styles.customNonce} onPress={onNonceEdit}>
+      <Text bold black>
+        {strings('transaction.custom_nonce')}
+      </Text>
+      <Text bold link>
+        {'  '}
+        {strings('transaction.edit')}
+      </Text>
+      <Text bold black style={styles.nonceNumber}>
+        {nonce}
+      </Text>
+    </TouchableOpacity>
+  );
 };
 
 CustomNonce.propTypes = {
-	/**
-	 * Current nonce
-	 */
-	nonce: PropTypes.number,
-	/**
-	 * Function called when editing nonce
-	 */
-	onNonceEdit: PropTypes.func,
+  /**
+   * Current nonce
+   */
+  nonce: PropTypes.number,
+  /**
+   * Function called when editing nonce
+   */
+  onNonceEdit: PropTypes.func,
 };
 
 export default CustomNonce;

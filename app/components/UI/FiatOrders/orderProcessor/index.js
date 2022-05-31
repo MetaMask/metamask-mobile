@@ -6,24 +6,24 @@ import Logger from '../../../../util/Logger';
 import { processSardineOrder } from './sardine';
 
 function processOrder(order) {
-	switch (order.provider) {
-		case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
-			return processWyreApplePayOrder(order);
-		}
-		case FIAT_ORDER_PROVIDERS.TRANSAK: {
-			return processTransakOrder(order);
-		}
-		case FIAT_ORDER_PROVIDERS.MOONPAY: {
-			return processMoonPayOrder(order);
-		}
-		case FIAT_ORDER_PROVIDERS.SARDINE: {
-			return processSardineOrder(order);
-		}
-		default: {
-			Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);
-			return order;
-		}
-	}
+  switch (order.provider) {
+    case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
+      return processWyreApplePayOrder(order);
+    }
+    case FIAT_ORDER_PROVIDERS.TRANSAK: {
+      return processTransakOrder(order);
+    }
+    case FIAT_ORDER_PROVIDERS.MOONPAY: {
+      return processMoonPayOrder(order);
+    }
+    case FIAT_ORDER_PROVIDERS.SARDINE: {
+      return processSardineOrder(order);
+    }
+    default: {
+      Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);
+      return order;
+    }
+  }
 }
 
 export default processOrder;
