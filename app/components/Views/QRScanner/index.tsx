@@ -13,10 +13,11 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { RNCamera } from 'react-native-camera';
-import { colors as importedColors } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { parse } from 'eth-url-parser';
+import { colors as importedColors } from '../../../styles/common';
 import { isValidAddress } from 'ethereumjs-util';
 import { strings } from '../../../../locales/i18n';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
@@ -26,7 +27,6 @@ import {
   isValidMnemonic,
 } from '../../../util/validators';
 import Engine from '../../../core/Engine';
-import { useSelector } from 'react-redux';
 
 // TODO: This file needs typings
 const styles = StyleSheet.create({
@@ -210,6 +210,18 @@ const QRScanner = ({ navigation, route }: Props) => {
     [end, onStartScan, onScanSuccess, navigation, currentChainId],
   );
 
+  const createTwoButtonAlert = () =>
+    Alert.alert('Alert Title', 'My Alert Msg', [
+      {
+        text: 'Cancel',
+        // eslint-disable-next-line no-console
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      // eslint-disable-next-line no-console
+      { text: 'OK', onPress: () => console.log('OK Pressed') },
+    ]);
+
   const onError = useCallback(
     (error) => {
       navigation.goBack();
@@ -225,6 +237,7 @@ const QRScanner = ({ navigation, route }: Props) => {
   const onStatusChange = useCallback(
     (event) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
+        createTwoButtonAlert();
         navigation.goBack();
       }
     },
