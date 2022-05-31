@@ -57,6 +57,12 @@ export default {
 		WYRE_MERCHANT_ID: 'merchant.io.metamask.wyre',
 		WYRE_MERCHANT_ID_TEST: 'merchant.io.metamask.wyre.test',
 		POLLING_FREQUENCY: 10000,
+
+		SARDINE_URL: 'https://crypto-mobile.dev.sardine.ai/', // TODO: change to prod URL
+		SARDINE_URL_STAGING: 'https://crypto-mobile.dev.sardine.ai/',
+		SARDINE_API_URL_PRODUCTION: 'https://stoplight.io/mocks/sardineai/crypto-on-ramp/45224227/', // TODO: change to sardine base api (prod)
+		SARDINE_API_URL_STAGING: 'https://stoplight.io/mocks/sardineai/crypto-on-ramp/45224227/', // TODO: change to sardine base api (dev)
+		SARDINE_REDIRECT_URL: 'about:blank',
 	},
 	DEEPLINKS: {
 		ORIGIN_DEEPLINK: 'deeplink',

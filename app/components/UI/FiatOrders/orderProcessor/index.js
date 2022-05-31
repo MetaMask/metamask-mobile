@@ -3,6 +3,7 @@ import { processWyreApplePayOrder } from './wyreApplePay';
 import { processTransakOrder } from './transak';
 import { processMoonPayOrder } from './moonpay';
 import Logger from '../../../../util/Logger';
+import { processSardineOrder } from './sardine';
 
 function processOrder(order) {
 	switch (order.provider) {
@@ -14,6 +15,9 @@ function processOrder(order) {
 		}
 		case FIAT_ORDER_PROVIDERS.MOONPAY: {
 			return processMoonPayOrder(order);
+		}
+		case FIAT_ORDER_PROVIDERS.SARDINE: {
+			return processSardineOrder(order);
 		}
 		default: {
 			Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);

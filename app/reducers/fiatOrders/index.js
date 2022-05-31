@@ -57,6 +57,9 @@ export const getProviderName = (provider) => {
 		case FIAT_ORDER_PROVIDERS.MOONPAY: {
 			return 'MoonPay';
 		}
+		case FIAT_ORDER_PROVIDERS.SARDINE: {
+			return 'Sardine';
+		}
 		default: {
 			return provider;
 		}

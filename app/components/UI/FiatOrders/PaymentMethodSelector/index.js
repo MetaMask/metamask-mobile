@@ -27,6 +27,8 @@ import WyreApplePayPaymentMethod from './wyreApplePay';
 import { setGasEducationCarouselSeen } from '../../../../actions/user';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import Device from '../../../../util/device';
+import { isSardineAllowedToBuy, useSardineFlowURL } from '../orderProcessor/sardine';
+import SardinePaymentMethod from './sardine';
 
 function PaymentMethodSelectorView({
 	selectedAddress,
@@ -38,6 +40,7 @@ function PaymentMethodSelectorView({
 }) {
 	const navigation = useNavigation();
 	const transakURL = useTransakFlowURL(selectedAddress, chainId);
+	const sardineURL = useSardineFlowURL(selectedAddress, chainId);
 	const getSignedMoonPayURL = useMoonPayFlowURL(selectedAddress, chainId);
 
 	const { colors } = useAppThemeFromContext() || mockTheme;
@@ -76,6 +79,32 @@ function PaymentMethodSelectorView({
 			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_APPLE_PAY);
 		});
 	}, [navigation, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
+
+	const onPressSardine = useCallback(() => {
+		const goToSardineFlow = () =>
+			navigation.navigate('SardineFlow', {
+				url: sardineURL,
+				title: strings('fiat_on_ramp.sardine_webview_title'),
+			});
+
+		if (!gasEducationCarouselSeen) {
+			navigation.navigate('GasEducationCarousel', {
+				navigateTo: goToSardineFlow,
+			});
+			setGasEducationCarouselSeen();
+		} else {
+			goToSardineFlow();
+		}
+
+		InteractionManager.runAfterInteractions(() => {
+			AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED, {
+				payment_rails: PAYMENT_RAILS.MULTIPLE,
+				payment_category: PAYMENT_CATEGORY.MULTIPLE,
+				'on-ramp_provider': FIAT_ORDER_PROVIDERS.SARDINE,
+			});
+			Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
+		});
+	}, [navigation, sardineURL, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
 
 	const onPressTransak = useCallback(() => {
 		const goToTransakFlow = () =>
@@ -143,12 +172,18 @@ function PaymentMethodSelectorView({
 			{Device.isIos() && isWyreAllowedToBuy(chainId) && (
 				<WyreApplePayPaymentMethod onPress={onPressWyreApplePay} />
 			)}
+			
 			{isTransakAllowedToBuy(chainId) && (
 				<TransakPaymentMethod onPress={onPressTransak} ticker={getTicker(ticker)} chainId={chainId} />
 			)}
 			{isMoonpayAllowedToBuy(chainId) && (
 				<MoonPayPaymentMethod onPress={onPressMoonPay} ticker={getTicker(ticker)} chainId={chainId} />
 			)}
+
+			{isSardineAllowedToBuy(chainId) && (
+				<SardinePaymentMethod onPress={onPressSardine} ticker={getTicker(ticker)} chainId={chainId} />
+			)}
+			
 		</ScreenView>
 	);
 }
