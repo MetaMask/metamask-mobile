@@ -1772,9 +1772,9 @@
     "not_found": "माध्यम नहीं मिला"
   },
   "secret_phrase_video_subtitle": {
-    "title": "EN CC",
-    "language": "en",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
+    "title": "HI CC",
+    "language": "hi",
+    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-hi-in.vtt?raw=true"
   },
   "edit_gas_fee_eip1559": {
     "advanced_options": "एडवांस विकल्प",

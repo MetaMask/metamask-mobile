@@ -138,7 +138,7 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
  * Converts some unit to token minimal unit
  *
  * @param {number|string|BN} tokenValue - Value to convert
- * @param {string} decimals - Unit to convert from, ether by default
+ * @param {number} decimals - Unit to convert from, ether by default
  * @returns {Object} - BN instance containing the new number
  */
 export function toTokenMinimalUnit(tokenValue, decimals) {

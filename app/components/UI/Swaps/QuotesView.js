@@ -1173,7 +1173,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
