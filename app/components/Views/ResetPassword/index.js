@@ -469,8 +469,13 @@ class ResetPassword extends PureComponent {
       );
     }
 
+    const qrKeyring = await KeyringController.getOrAddQRKeyring();
+    const serializedQRKeyring = await qrKeyring.serialize();
+
     // Recreate keyring with password given to this method
     await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
+
+    await KeyringController.restoreQRKeyring(serializedQRKeyring);
 
     // Get props to restore vault
     const hdKeyring = KeyringController.state.keyrings[0];
