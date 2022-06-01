@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import {
+  Alert,
+  Linking,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import Analytics from '../../../../../core/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
@@ -40,11 +46,24 @@ const DeleteMetaMetricsData = () => {
     }
   }, []);
 
+  const showDeleteTaskError = () => {
+    Alert.alert(
+      strings('app_settings.delete_metrics_error_title'),
+      strings('app_settings.delete_metrics_error_description'),
+      [
+        {
+          text: strings('app_settings.ok'),
+        },
+      ],
+    );
+  };
+
   const deleteMetaMetrics = async () => {
     try {
       await Analytics.createDataDeletionTask();
       setHasCollectedData(!Analytics.getEnabled());
     } catch (error: any) {
+      showDeleteTaskError();
       Logger.log('Error deleteMetaMetrics -', error);
     }
   };

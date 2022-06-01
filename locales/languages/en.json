@@ -590,7 +590,10 @@
     "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
     "delete_wallet_data_title": "Delete wallet data",
     "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
-    "delete_wallet_data_button": "Delete wallet data"
+    "delete_wallet_data_button": "Delete wallet data",
+    "delete_metrics_error_title": "We are unable to delete this data right now.",
+    "delete_metrics_error_description": "This request can't be completed right now due to analytics system server issue, please try again later.",
+    "ok": "OK"
   },
   "app_information": {
     "title": "Information",
