@@ -141,7 +141,7 @@ const QRScanner = ({ navigation, route }: Props) => {
           return;
         }
 
-        const { KeyringController } = Engine.context;
+        const { KeyringController } = Engine.context as any;
         const isUnlocked = KeyringController.isUnlocked();
 
         if (!isUnlocked) {
@@ -210,17 +210,16 @@ const QRScanner = ({ navigation, route }: Props) => {
     [end, onStartScan, onScanSuccess, navigation, currentChainId],
   );
 
-  const createTwoButtonAlert = () =>
-    Alert.alert('Alert Title', 'My Alert Msg', [
-      {
-        text: 'Cancel',
-        // eslint-disable-next-line no-console
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      // eslint-disable-next-line no-console
-      { text: 'OK', onPress: () => console.log('OK Pressed') },
-    ]);
+  const showCameraNotAuthorizedError = () =>
+    Alert.alert(
+      strings('qr_scanner.not_allowed_error_title'),
+      strings('qr_scanner.not_allowed_error_desc'),
+      [
+        {
+          text: strings('qr_scanner.ok'),
+        },
+      ],
+    );
 
   const onError = useCallback(
     (error) => {
@@ -237,7 +236,7 @@ const QRScanner = ({ navigation, route }: Props) => {
   const onStatusChange = useCallback(
     (event) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
-        createTwoButtonAlert();
+        showCameraNotAuthorizedError();
         navigation.goBack();
       }
     },
