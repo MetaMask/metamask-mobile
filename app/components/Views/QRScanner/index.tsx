@@ -210,7 +210,7 @@ const QRScanner = ({ navigation, route }: Props) => {
     [end, onStartScan, onScanSuccess, navigation, currentChainId],
   );
 
-  const showCameraNotAuthorizedError = () =>
+  const showCameraNotAuthorizedAlert = () =>
     Alert.alert(
       strings('qr_scanner.not_allowed_error_title'),
       strings('qr_scanner.not_allowed_error_desc'),
@@ -236,7 +236,7 @@ const QRScanner = ({ navigation, route }: Props) => {
   const onStatusChange = useCallback(
     (event) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
-        showCameraNotAuthorizedError();
+        showCameraNotAuthorizedAlert();
         navigation.goBack();
       }
     },

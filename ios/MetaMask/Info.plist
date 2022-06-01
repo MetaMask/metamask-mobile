@@ -20,8 +20,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>NSCameraUsageDescription</key>
-  <string>QR Reader</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
