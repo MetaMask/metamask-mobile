@@ -49,6 +49,18 @@ export const useDataStore = () => {
     (state: any) =>
       state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   );
+  const accounts = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.AccountTrackerController.accounts,
+  );
+  const contractBalances = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.TokenBalancesController.contractBalances,
+  );
+  const selectedAsset = useSelector(
+    (state: any) => state.transaction.selectedAsset,
+  );
+
   return {
     gasFeeEstimates,
     transactionState,
@@ -57,11 +69,13 @@ export const useDataStore = () => {
     conversionRate,
     currentCurrency,
     nativeCurrency,
+    accounts,
+    contractBalances,
+    selectedAsset,
   };
 };
 
 interface GetEIP1559TransactionDataProps {
-  transactionGas: string;
   gas: {
     maxWaitTimeEstimate: number;
     minWaitTimeEstimate: number;
@@ -69,26 +83,65 @@ interface GetEIP1559TransactionDataProps {
     suggestedMaxPriorityFeePerGas: string;
   };
   selectedOption: string;
-  gasFeeEstimates: any;
-  transactionState: any;
+  gasFeeEstimates: {
+    baseFeeTrend: string;
+    estimatedBaseFee: string;
+    high: {
+      maxWaitTimeEstimate: number;
+      minWaitTimeEstimate: number;
+      suggestedMaxFeePerGas: string;
+      suggestedMaxPriorityFeePerGas: string;
+    };
+    historicalBaseFeeRange: string[];
+    historicalPriorityFeeRange: string[];
+    latestPriorityFeeRange: string[];
+    low: {
+      maxWaitTimeEstimate: number;
+      minWaitTimeEstimate: number;
+      suggestedMaxFeePerGas: string;
+      suggestedMaxPriorityFeePerGas: string;
+    };
+    medium: {
+      maxWaitTimeEstimate: number;
+      minWaitTimeEstimate: number;
+      suggestedMaxFeePerGas: string;
+      suggestedMaxPriorityFeePerGas: string;
+    };
+    networkCongestion: number;
+    priorityFeeTrend: string;
+  };
+
+  transactionState: {
+    transaction: {
+      value: string;
+      data: undefined | string;
+    };
+    selector: {
+      address: string;
+      isETH: boolean;
+      logo: string;
+      name: string;
+      symbol: string;
+    };
+  };
   contractExchangeRates: any;
   conversionRate: number;
-  currentCurrency: 'usd' | string;
+  currentCurrency: string;
   nativeCurrency: string;
+  suggestedGasLimit: string;
 }
 
 interface LegacyProps {
   contractExchangeRates: any;
   conversionRate: number;
-  currentCurrency: 'usd' | string;
+  currentCurrency: string;
   transactionState: any;
-  ticker: 'ETH';
+  ticker: string;
   suggestedGasPrice: any;
   suggestedGasLimit: any;
 }
 
 export const getEIP1559TransactionData = ({
-  transactionGas,
   gas,
   selectedOption,
   gasFeeEstimates,
@@ -97,8 +150,8 @@ export const getEIP1559TransactionData = ({
   conversionRate,
   currentCurrency,
   nativeCurrency,
+  suggestedGasLimit,
 }: GetEIP1559TransactionDataProps) => {
-  const suggestedGasLimit = fromWei(transactionGas, 'wei');
   const parsedTransactionEIP1559 = parseTransactionEIP1559({
     contractExchangeRates,
     conversionRate,
@@ -139,7 +192,8 @@ export const getLegacyTransactionData = ({
 };
 
 export const useGasFeeEstimates = () => {
-  const [gasEstimateTypeChange, updateGasEstimateTypeChange] = useState('');
+  const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
+    useState<string>('');
 
   const {
     gasFeeEstimates,
@@ -167,8 +221,8 @@ export const useGasFeeEstimates = () => {
 
   if (gasEstimateTypeChange) {
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      const suggestedGasLimit = fromWei(transactionGas, 'wei');
       const EIP1559TransactionData = getEIP1559TransactionData({
-        transactionGas,
         gas: gasFeeEstimates[gasSelected],
         selectedOption: gasSelected,
         gasFeeEstimates,
@@ -177,6 +231,7 @@ export const useGasFeeEstimates = () => {
         conversionRate,
         currentCurrency,
         nativeCurrency,
+        suggestedGasLimit,
       });
       return EIP1559TransactionData;
     } else if (gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
