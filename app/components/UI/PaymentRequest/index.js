@@ -415,9 +415,11 @@ class PaymentRequest extends PureComponent {
       isTokenDetectionSupportedForNetwork(chainId);
 
     if (isTDSupportedForNetwork) {
-      results = this.state.searchInputValue
-        ? this.state.results
-        : defaultAssets;
+      const defaults =
+        chainId === NetworksChainId.mainnet
+          ? defaultAssets
+          : [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
+      results = this.state.searchInputValue ? this.state.results : defaults;
     } else if (
       Object.values(NetworksChainId).find((value) => value === chainId)
     ) {
