@@ -24,46 +24,30 @@ export const stopGasPolling = (token: string) => {
 };
 
 export const useDataStore = () => {
-  const gasFeeEstimates = useSelector(
+  const {
+    engine: {
+      backgroundState: {
+        GasFeeController: { gasEstimateType, gasFeeEstimates },
+        TokenRatesController: { contractExchangeRates },
+        CurrencyRateController: {
+          conversionRate,
+          currentCurrency,
+          nativeCurrency,
+        },
+        AccountTrackerController: { accounts },
+        TokenBalancesController: { contractBalances },
+      },
+    },
+    transaction,
+  } = useSelector(
     (state: any) =>
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   );
-  const transactionState = useSelector((state: any) => state.transaction);
-  const gasEstimateType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
-  );
-  const contractExchangeRates = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
-  const nativeCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  );
-  const accounts = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.AccountTrackerController.accounts,
-  );
-  const contractBalances = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
-  const selectedAsset = useSelector(
-    (state: any) => state.transaction.selectedAsset,
-  );
+  const selectedAsset = transaction.selectedAsset;
 
   return {
     gasFeeEstimates,
-    transactionState,
+    transactionState: transaction,
     gasEstimateType,
     contractExchangeRates,
     conversionRate,
@@ -111,19 +95,7 @@ interface GetEIP1559TransactionDataProps {
     priorityFeeTrend: string;
   };
 
-  transactionState: {
-    transaction: {
-      value: string;
-      data: undefined | string;
-    };
-    selector: {
-      address: string;
-      isETH: boolean;
-      logo: string;
-      name: string;
-      symbol: string;
-    };
-  };
+  transactionState: any;
   contractExchangeRates: any;
   conversionRate: number;
   currentCurrency: string;

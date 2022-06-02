@@ -1,7 +1,61 @@
 jest.useFakeTimers();
-import { getEIP1559TransactionData, startGasPolling } from './gasPolling';
 
-const mock = jest.fn();
+import Engine from './Engine';
+import {
+  startGasPolling,
+  getEIP1559TransactionData,
+  stopGasPolling,
+  useDataStore,
+} from './gasPolling';
+import { parseTransactionEIP1559 } from '../util/transactions';
+jest.mock('../util/transactions');
+const mockedParseTransactionEIP1559 =
+  parseTransactionEIP1559 as jest.MockedFunction<
+    typeof parseTransactionEIP1559
+  >;
+
+const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
+
+jest.mock('./Engine', () => ({
+  context: {
+    GasFeeController: {
+      gasFeeEstimates: {},
+      gasEstimateType: '',
+      getGasFeeEstimatesAndStartPolling: jest.fn(() => tokenValue),
+      stopPolling: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => ({
+    engine: {
+      backgroundState: {
+        GasFeeController: {
+          gasEstimateType: '',
+          gasFeeEstimates: [],
+        },
+        TokenRatesController: {
+          constractExchangeRates: [],
+        },
+        CurrencyRateController: {
+          conversionRate: 1,
+          currentCurrency: 'ETH',
+          nativeCurrency: 'WEI',
+        },
+        AccountTrackerController: {
+          accounts: [],
+        },
+        TokenBalancesController: {
+          contractBalances: [],
+        },
+      },
+    },
+    transaction: {
+      selectedAsset: '',
+    },
+  })),
+}));
 
 const suggestedGasLimit = '0x123';
 const gas = {
@@ -58,20 +112,22 @@ const transactionState = {
 
 describe('GasPolling', () => {
   const token = undefined;
-  const mockFn = jest.fn();
-  it('should call the start gas polling', () => {
-    mockFn.mockImplementation(startGasPolling);
-    mockFn(token);
-    expect(mockFn).toHaveBeenCalled();
+  const { GasFeeController }: any = Engine.context;
+  it('should call the start gas polling controller', async () => {
+    await startGasPolling(token);
+    expect(
+      GasFeeController.getGasFeeEstimatesAndStartPolling,
+    ).toHaveBeenCalled();
   });
 
   it('should return a token value when called', async () => {
-    mockFn.mockImplementation(startGasPolling);
-    mockFn(token);
-    const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf4';
-    const asyncMock = mockFn.mockResolvedValue(tokenValue);
-    const pollToken = await asyncMock();
+    const pollToken = await startGasPolling(token);
     expect(pollToken).toEqual(tokenValue);
+  });
+
+  it('should stop polling when stopGasPolling is called', async () => {
+    await stopGasPolling(tokenValue);
+    expect(GasFeeController.stopPolling).toHaveBeenCalled();
   });
 });
 
@@ -124,29 +180,20 @@ describe('GetEIP1559TransactionData', () => {
       totalMaxNative: '1.00005',
       totalMinConversion: '1844.4',
       totalMinHex: 'de0e3e3ba63bf07',
-      totalMinNative: '1.00005',
+      totalMinNative: '1.00006',
     };
 
-    mock.mockImplementation(getEIP1559TransactionData);
-    const result = mock(transactionData);
+    mockedParseTransactionEIP1559.mockReturnValue(expected);
+
+    const result = getEIP1559TransactionData(transactionData);
+    expect(mockedParseTransactionEIP1559).toHaveBeenCalled();
     expect(result).toEqual(expected);
   });
+});
 
-  it('check that getEIP1559TransactionData is called', () => {
-    const transactionData = {
-      suggestedGasLimit,
-      gas,
-      selectedOption,
-      gasFeeEstimates,
-      transactionState,
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      nativeCurrency,
-    };
-
-    mock.mockImplementation(getEIP1559TransactionData);
-    mock(transactionData);
-    expect(mock).toHaveBeenCalled();
+describe('useDataStore', () => {
+  it('should return the data store', () => {
+    const result = useDataStore();
+    expect(result.conversionRate).toEqual(1);
   });
 });
