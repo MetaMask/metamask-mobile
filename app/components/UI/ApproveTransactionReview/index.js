@@ -46,13 +46,8 @@ import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
-import {
-  getNetworkName,
-  isMainNet,
-  isMainnetByChainId,
-} from '../../../util/networks';
+import { isTestNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
-import { capitalize } from '../../../util/general';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
@@ -650,14 +645,13 @@ class ApproveTransactionReview extends PureComponent {
       transactionConfirmed,
     } = this.props;
     const styles = this.getStyles();
-    const is_main_net = isMainNet(network);
+    const isTestNetwork = isTestNet(network);
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-    const networkName = capitalize(getNetworkName(network));
-    const errorLinkText = is_main_net
-      ? strings('transaction.buy_more_eth')
-      : strings('transaction.get_ether', { networkName });
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
+      ? strings('transaction.go_to_faucet')
+      : strings('transaction.buy_more');
 
     const showFeeMarket =
       !gasEstimateType ||
@@ -792,8 +786,8 @@ class ApproveTransactionReview extends PureComponent {
                         <Text reset style={styles.error}>
                           {gasError}
                         </Text>
-                        {/* only show buy more on mainnet */}
-                        {over && is_main_net && (
+
+                        {over && (
                           <Text reset style={[styles.error, styles.underline]}>
                             {errorLinkText}
                           </Text>
@@ -884,12 +878,11 @@ class ApproveTransactionReview extends PureComponent {
     onConfirm && onConfirm();
   };
 
-  gotoFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
+  goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: mmFaucetUrl,
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });
@@ -927,7 +920,6 @@ class ApproveTransactionReview extends PureComponent {
   render = () => {
     const { viewDetails, editPermissionVisible } = this.state;
     const { isSigningQRObject } = this.props;
-
     return (
       <View>
         {viewDetails
