@@ -169,7 +169,7 @@ const AssetDetails = (props: Props) => {
         navigation.navigate('WalletView');
         InteractionManager.runAfterInteractions(async () => {
           try {
-            await TokensController.removeAndIgnoreToken(address);
+            await TokensController.ignoreTokens([address]);
             NotificationManager.showSimpleNotification({
               status: `simple_notification`,
               duration: 5000,

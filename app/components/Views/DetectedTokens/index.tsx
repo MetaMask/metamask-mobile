@@ -89,11 +89,11 @@ const DetectedTokens = () => {
       let title = '';
       let description = '';
       let errorMsg = '';
-      const tokensToIgnore: TokenType[] = [];
+      const tokensToIgnore: string[] = [];
       const tokensToImport = detectedTokens.filter((token) => {
         const isIgnored = ignoreAllTokens || ignoredTokens[token.address];
         if (isIgnored) {
-          tokensToIgnore.push(token);
+          tokensToIgnore.push(token.address);
         }
         return !isIgnored;
       });

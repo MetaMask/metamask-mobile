@@ -395,7 +395,7 @@ class Tokens extends PureComponent {
     const tokenAddress = this.tokenToRemove?.address;
     const symbol = this.tokenToRemove?.symbol;
     try {
-      await TokensController.removeAndIgnoreToken(tokenAddress);
+      await TokensController.ignoreTokens([tokenAddress]);
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

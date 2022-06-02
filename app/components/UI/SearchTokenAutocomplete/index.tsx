@@ -53,7 +53,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals } = selectedAsset as any;
+  const { address, symbol, decimals, image } = selectedAsset as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
@@ -113,7 +113,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals);
+    await TokensController.addToken(address, symbol, decimals, image);
 
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
@@ -140,6 +140,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     address,
     symbol,
     decimals,
+    image,
     setSearchResults,
     setSearchQuery,
     setSelectedAsset,
