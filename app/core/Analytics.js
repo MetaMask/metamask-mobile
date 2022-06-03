@@ -85,7 +85,9 @@ class Analytics {
     // Track token detection toggle
     RCTAnalytics.setUserProfileProperty(
       USER_PROFILE_PROPERTY.TOKEN_DETECTION,
-      preferencesController.useTokenDetection,
+      preferencesController.useTokenDetection
+        ? USER_PROFILE_PROPERTY.ON
+        : USER_PROFILE_PROPERTY.OFF,
     );
   };
 
