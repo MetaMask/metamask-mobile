@@ -94,7 +94,11 @@
     "**/plist": "3.0.5",
     "**/minimist": "1.2.6",
     "@metamask/**/cross-fetch": "2.2.6",
-    "react-native-gesture-handler/**/cross-fetch": "3.1.5"
+    "react-native-gesture-handler/**/cross-fetch": "3.1.5",
+    "@storybook/addon-actions/**/prismjs": "^1.27.0",
+    "@storybook/addon-actions/**/highlight.js": "^10.4.1",
+    "react-native-svg-asset-plugin/sharp": "^0.30.5",
+    "detox/**/moment": "^2.29.2"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "^1.0.2",
