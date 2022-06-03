@@ -582,7 +582,7 @@
     "delete_metrics_title": "Delete MetaMetrics data",
     "delete_metrics_description_part_one": "This will delete historical MetaMetrics data associated with your wallet.",
     "delete_metrics_description_part_two": "MetaMetrics data is anonymized usage and diagnostic data.",
-    "delete_metrics_description_part_three": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 7 days. View the",
+    "delete_metrics_description_part_three": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 60 days. View the",
     "delete_metrics_description_part_four": "No MetaMetrics data has been stored. View the",
     "consensys_privacy_policy": "ConsenSys Privacy Policy.",
     "delete_metrics_button": "Delete MetaMetrics data",
