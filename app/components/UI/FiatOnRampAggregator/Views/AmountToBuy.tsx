@@ -11,7 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
@@ -93,6 +93,7 @@ const createStyles = (colors: Colors) =>
 
 const AmountToBuy = () => {
   const navigation = useNavigation();
+  const { params } = useRoute();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
@@ -400,12 +401,17 @@ const AmountToBuy = () => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: strings('fiat_on_ramp_aggregator.amount_to_buy') },
+        {
+          title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
+          // @ts-expect-error navigation params error
+          showBack: params?.showBack,
+        },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+    // @ts-expect-error navigation params error
+  }, [navigation, colors, handleCancelPress, params?.showBack]);
 
   /**
    * * Keypad style, handlers and effects
