@@ -49,6 +49,7 @@ import { Colors } from '../../../../util/theme/models';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
+import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -217,6 +218,38 @@ const AmountToBuy = () => {
   /**
    * * Defaults and validation of selected values
    */
+
+  useEffect(() => {
+    if (
+      selectedRegion &&
+      !isFetchingCountries &&
+      !errorCountries &&
+      countries
+    ) {
+      const allRegions: Region[] = countries.reduce(
+        (acc: Region[], region: Region) => [
+          ...acc,
+          region,
+          ...((region.states as Region[]) || []),
+        ],
+        [],
+      );
+      const selectedRegionFromAPI =
+        allRegions.find((region) => region.id === selectedRegion.id) ?? null;
+
+      if (!selectedRegionFromAPI || selectedRegionFromAPI.unsupported) {
+        navigation.reset({
+          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+        });
+      }
+    }
+  }, [
+    countries,
+    errorCountries,
+    isFetchingCountries,
+    navigation,
+    selectedRegion,
+  ]);
 
   const filteredPaymentMethods = useMemo(() => {
     if (paymentMethods) {
