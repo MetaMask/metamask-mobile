@@ -7,18 +7,17 @@ import { NetworkAvatarProps } from './NetworkAvatar.types';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import stylesheet from './NetworkAvatar.styles';
 import { useStyles } from '../../../component-library/hooks';
-import ethLogo from '../../../images/eth-logo.png';
 
 type NetworkImageByChainId = {
   [key in NetworksChainId]: {
     letter: string;
-    image?: eitn;
+    image?: ImageSourcePropType;
   };
 };
 
 const networkImageByChainId: NetworkImageByChainId = {
   [NetworksChainId.mainnet]: {
-    image: ethLogo, // eslint-disable-line
+    image: require('../../../images/eth-logo.png'), // eslint-disable-line
     letter: 'M',
   },
   [NetworksChainId.kovan]: {
@@ -50,16 +49,14 @@ const networkImageByChainId: NetworkImageByChainId = {
 const NetworkAvatar = ({ size, style, chainId }: NetworkAvatarProps) => {
   const { letter, image } = networkImageByChainId[chainId];
 
-  // TODO: remove the empty object as the stylesheet var
+  // TODO: remove the empty object which represents the stylesheet var
   const styles = useStyles(stylesheet, {});
 
   // We define the text size based on the avatar size, as described on the design system
   const textVariant =
     size === BaseAvatarSize.Sm || size === BaseAvatarSize.Xs
-      ? BaseTextVariant.sBodyMD
+      ? BaseTextVariant.lBodySM
       : BaseTextVariant.lBodyMD;
-
-  console.log(image);
 
   return (
     <BaseAvatar size={size} style={style}>
@@ -67,7 +64,7 @@ const NetworkAvatar = ({ size, style, chainId }: NetworkAvatarProps) => {
         <Image source={image} style={styles.imageStyle} />
       ) : (
         <View style={styles.networkPlaceholderContainer}>
-          <BaseText adjustsFontSizeToFit variant={textVariant}>
+          <BaseText variant={textVariant}>
             {letter}
           </BaseText>
         </View>

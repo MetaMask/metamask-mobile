@@ -13,6 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     imageStyle: {
       flex: 1,
+      width: 'auto',
     },
     networkPlaceholderContainer: {
       flex: 1,
