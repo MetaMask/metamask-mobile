@@ -19,7 +19,6 @@ import Engine from '../../../core/Engine';
 import Text from '../../Base/Text';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import { formatAddress } from '../../../util/address';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 import { getEtherscanAddressUrl } from '../../../util/etherscan';

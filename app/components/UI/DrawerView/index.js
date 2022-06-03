@@ -552,8 +552,8 @@ class DrawerView extends PureComponent {
           'LockScreen',
         ].includes(route)
       ) {
-        // eslint-disable-next-line react/no-did-update-set-state
         this.state.showProtectWalletModal &&
+          // eslint-disable-next-line react/no-did-update-set-state
           this.setState({ showProtectWalletModal: false });
         return;
       }

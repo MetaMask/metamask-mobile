@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { check, PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import Device from '../../../../util/device';
