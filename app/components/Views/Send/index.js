@@ -95,8 +95,8 @@ class Send extends PureComponent {
      */
     transaction: PropTypes.object.isRequired,
     /**
-    /* Triggers global alert
-    */
+		/* Triggers global alert
+		*/
     showAlert: PropTypes.func,
     /**
      * Map representing the address book
@@ -119,12 +119,12 @@ class Send extends PureComponent {
      */
     contractBalances: PropTypes.object,
     /**
-    /* Hides or shows dApp transaction modal
-    */
+		/* Hides or shows dApp transaction modal
+		*/
     toggleDappTransactionModal: PropTypes.func,
     /**
-    /* dApp transaction modal visible or not
-    */
+		/* dApp transaction modal visible or not
+		*/
     dappTransactionModalVisible: PropTypes.bool,
     /**
      * List of tokens from TokenListController
@@ -362,14 +362,6 @@ class Send extends PureComponent {
       }
       // TODO: We should add here support for sending tokens
       // or calling smart contract functions
-    }
-    if (!newTxMeta.gas || !newTxMeta.gasPrice) {
-      const { gas, gasPrice } =
-        await Engine.context.TransactionController.estimateGas(
-          this.props.transaction,
-        );
-      newTxMeta.gas = toBN(gas);
-      newTxMeta.gasPrice = toBN(gasPrice);
     }
 
     if (!newTxMeta.value) {
