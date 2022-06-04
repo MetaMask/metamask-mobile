@@ -8,9 +8,11 @@ import {
   Linking,
   BackHandler,
   InteractionManager,
+  NativeModules,
 } from 'react-native';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
+import compareVersions from 'compare-versions';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -63,6 +65,8 @@ import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlMo
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
+
+const MIN_ANDROID_SYSTEM_WEBVIEW_VERSION = '83.0.4103.106';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -225,6 +229,8 @@ export const BrowserTab = (props) => {
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
+  const [safeAndroidWebviewVersion, setSafeAndroidWebviewVersion] =
+    useState(true);
 
   const webviewRef = useRef(null);
 
@@ -319,6 +325,24 @@ export const BrowserTab = (props) => {
     },
     [props.privacyMode],
   );
+
+  useEffect(() => {
+    const getSystemWebviewVersion = async () => {
+      if (Device.isAndroid()) {
+        const systemUtils = NativeModules.SystemUtils;
+        const webviewVersion =
+          await systemUtils.getCurrentWebViewPackageVersionName();
+        setSafeAndroidWebviewVersion(
+          compareVersions.compare(
+            webviewVersion,
+            MIN_ANDROID_SYSTEM_WEBVIEW_VERSION,
+            '>=',
+          ),
+        );
+      }
+    };
+    getSystemWebviewVersion();
+  }, []);
 
   /**
    * Manage hosts that were approved to connect with the user accounts
@@ -1341,6 +1365,7 @@ export const BrowserTab = (props) => {
         style={[styles.wrapper, !isTabActive() && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
+        {!safeAndroidWebviewVersion && <Text>Not a safe version</Text>}
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
@@ -1351,6 +1376,7 @@ export const BrowserTab = (props) => {
               )}
               source={{ uri: initialUrl }}
               injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+              setSupportMultipleWindows
               style={styles.webview}
               onLoadStart={onLoadStart}
               onLoad={onLoad}
