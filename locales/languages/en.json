@@ -2014,5 +2014,10 @@
   "download_files": {
     "error": "Failed to download attachment.",
     "unknownError": "Unknown error occurred"
+  },
+  "toast": {
+    "showWarningToast": {
+      "remind_me_later": "Remind me later"
+    }
   }
 }
