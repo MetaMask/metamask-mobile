@@ -17,20 +17,20 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
     baseToastContainer: {
-      backgroundColor: theme.colors.warning.muted,
       width: WIDTH,
       minHeight: HEIGHT,
       borderColor: theme.colors.warning.default,
       borderWidth: 1,
       borderRadius: BORDER_RADIUS,
       marginHorizontal: 10,
-      paddingHorizontal: 10,
-      paddingVertical: 10,
-      elevation: 2,
+      backgroundColor: theme.colors.warning.inverse,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.1,
     },
     baseToastWrapper: {
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      backgroundColor: theme.colors.warning.muted,
       flexDirection: 'row',
     },
     warningToastIconContainer: {
