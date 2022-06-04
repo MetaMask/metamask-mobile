@@ -40,6 +40,7 @@ import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
+import Toast from '../../../component-library/components/Toast';
 
 const Stack = createStackNavigator();
 /**
@@ -350,6 +351,7 @@ const App = ({ userLoggedIn }) => {
             )}
           </Stack.Navigator>
         </NavigationContainer>
+        <Toast />
         {renderSplash()}
       </>
     )) ||

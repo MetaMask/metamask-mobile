@@ -162,3 +162,6 @@ jest.mock('../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux-test'),
+}));
