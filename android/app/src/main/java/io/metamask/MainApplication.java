@@ -10,7 +10,6 @@ import com.airbnb.android.react.lottie.LottiePackage;
 import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 import io.branch.rnbranch.RNBranchModule;
 import io.metamask.nativeModules.RCTAnalyticsPackage;
-import io.metamask.nativeModules.RCTSystemUtilsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
@@ -44,7 +43,6 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 			packages.add(new RCTAnalyticsPackage());
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
-			packages.add(new RCTSystemUtilsPackage());
 
 			return packages;
 		}

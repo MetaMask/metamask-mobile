@@ -22,7 +22,6 @@ exports[`SimpleWebview should render correctly 1`] = `
         "uri": "https://etherscan.io",
       }
     }
-    textInteractionEnabled={true}
     useSharedProcessPool={true}
   />
 </View>

@@ -331,7 +331,7 @@ PODS:
     - React
   - react-native-viewpager (3.3.1):
     - React
-  - react-native-webview (11.17.2):
+  - react-native-webview (11.13.0):
     - React-Core
   - React-perflogger (0.66.3)
   - React-RCTActionSheet (0.66.3):
@@ -799,7 +799,7 @@ SPEC CHECKSUMS:
   react-native-video: 0bb76b6d6b77da3009611586c7dbf817b947f30e
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-viewpager: f730c1d175a2c1ae789464855d4a2c14247d3109
-  react-native-webview: 380c1a03ec94b7ed764dac8db1e7c9952d08c93a
+  react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9
   React-perflogger: 73732888d37d4f5065198727b167846743232882
   React-RCTActionSheet: 96c6d774fa89b1f7c59fc460adc3245ba2d7fd79
   React-RCTAnimation: 8940cfd3a8640bd6f6372150dbdb83a79bcbae6c
