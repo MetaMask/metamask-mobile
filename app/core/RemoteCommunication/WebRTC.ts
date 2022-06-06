@@ -232,4 +232,9 @@ export default class WebRTC extends EventEmitter2 {
     this.reconnect = true;
     this.socket.resume();
   }
+
+  disconnect() {
+    this.socket.disconnect();
+    this.webrtc?.close();
+  }
 }
