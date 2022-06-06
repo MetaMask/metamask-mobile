@@ -44,11 +44,6 @@ workflows:
                       - command: setup
                   title: Yarn Setup
             - yarn@0:
-                  inputs:
-                      - cache_local_deps: 'yes'
-                      - command: audit:ci
-                  title: Audit Dependencies
-            - yarn@0:
                   title: Lint
                   inputs:
                       - cache_local_deps: 'yes'
