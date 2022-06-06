@@ -302,7 +302,9 @@ class RevealPrivateCredential extends PureComponent {
     try {
       let privateCredential;
       if (!isPrivateKeyReveal) {
-        const mnemonic = await KeyringController.exportSeedPhrase(password);
+        const mnemonic = await KeyringController.exportSeedPhrase(
+          password,
+        ).toString();
         privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
       } else {
         privateCredential = await KeyringController.exportAccount(
