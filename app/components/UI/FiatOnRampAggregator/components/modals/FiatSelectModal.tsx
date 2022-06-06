@@ -53,7 +53,7 @@ const createStyles = (colors: Colors) =>
     },
     searchIcon: {
       marginHorizontal: 8,
-      color: colors.icon.default,
+      color: colors.icon.alternative,
     },
     input: {
       ...fontStyles.normal,
@@ -231,7 +231,7 @@ function FiatSelectModal({
                       name="ios-close-circle"
                       size={20}
                       style={styles.searchIcon}
-                      color={colors.icon.default}
+                      color={colors.icon.alternative}
                     />
                   </TouchableOpacity>
                 )}
