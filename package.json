@@ -278,6 +278,7 @@
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
     "@types/react-native-vector-icons": "^6.4.8",
+    "@types/react-native-video": "^5.0.13",
     "@types/redux-mock-store": "^1.0.3",
     "@typescript-eslint/eslint-plugin": "^4.20.0",
     "@typescript-eslint/parser": "^4.20.0",

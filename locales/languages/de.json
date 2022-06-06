@@ -1771,10 +1771,6 @@
     "loading": "Wird geladen ...",
     "not_found": "Medium nicht gefunden"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "DE CC",
-    "language": "de"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Erweiterte Optionen",
     "gas_limit": "Gas-Limit",
