@@ -1771,10 +1771,6 @@
     "loading": "Chargement…",
     "not_found": "Média introuvable"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "FR CC",
-    "language": "fr"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Options avancées",
     "gas_limit": "Limite de gaz",
