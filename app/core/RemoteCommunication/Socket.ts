@@ -27,26 +27,7 @@ export default class Socket extends EventEmitter2 {
     this.reconnect = reconnect;
     this.commLayer = commLayer;
 
-    this.socket = io('https://lizard-positive-office.glitch.me');
-
-    this.socket.on('error', () => {
-      this.socket.disconnect();
-      setTimeout(() => {
-        this.reconnect = true;
-        this.socket = io('https://lizard-positive-office.glitch.me');
-        this.socket.emit('join_channel', this.channelId);
-      }, 2000);
-    });
-
-    this.socket.on('disconnect', () => {
-      if (this.manualDisconnect) return;
-      this.socket.disconnect();
-      setTimeout(() => {
-        this.reconnect = true;
-        this.socket = io('https://lizard-positive-office.glitch.me');
-        this.connectToChannel(this.channelId);
-      }, 2000);
-    });
+    this.socket = io('https://socket.codefi.network/');
 
     this.keyExchange = new KeyExchange({
       CommLayer: this,
@@ -190,5 +171,9 @@ export default class Socket extends EventEmitter2 {
       this.socket.connect();
       this.socket.emit('join_channel', this.channelId);
     }
+  }
+
+  disconnect() {
+    this.socket.disconnect();
   }
 }

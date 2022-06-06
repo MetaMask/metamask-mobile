@@ -21,8 +21,9 @@ import {
 } from 'react-native-webrtc';
 import AsyncStorage from '@react-native-community/async-storage';
 import { AppState } from 'react-native';
+import Device from '../util/device';
 
-//import BackgroundTimer from 'react-native-background-timer';
+import BackgroundTimer from 'react-native-background-timer';
 
 const webrtc = {
   RTCPeerConnection,
@@ -188,8 +189,13 @@ class Connection {
     this.RemoteConn.resume();
   }
 
+  disconnect() {
+    this.RemoteConn.disconnect();
+  }
+
   removeConnection() {
     this.isReady = false;
+    this.disconnect();
     delete connected[this.channelId];
     this.backgroundBridge?.onDisconnect?.();
     delete connections[this.channelId];
@@ -248,9 +254,27 @@ const SDKConnect = {
   },
   timeout: null,
   paused: false,
+  pause() {
+    if (this.paused) return;
+
+    for (const id in connected) {
+      connected[id].pause();
+    }
+    this.paused = true;
+  },
+  disconnectAll() {
+    for (const id in connected) {
+      connected[id].removeConnection();
+    }
+  },
   handleAppState(appState) {
     if (appState === 'active') {
-      clearTimeout(this.timeout);
+      if (Device.isAndroid()) {
+        BackgroundTimer.clearInterval(this.timeout);
+      } else {
+        clearTimeout(this.timeout);
+      }
+
       if (this.paused) {
         this.reconnected = false;
         this.paused = false;
@@ -259,15 +283,17 @@ const SDKConnect = {
         }
       }
     } else if (appState === 'background' && !this.paused) {
-      this.timeout = setTimeout(() => {
-        if (this.paused) return;
-
-        for (const id in connected) {
-          //console.log('PAUSE------');
-          connected[id].pause();
-        }
-        this.paused = true;
-      }, 10000);
+      if (Device.isIos()) {
+        BackgroundTimer.start();
+        this.timeout = setTimeout(() => {
+          this.pause();
+        }, 20000);
+        BackgroundTimer.stop();
+      } else if (Device.isAndroid()) {
+        this.timeout = BackgroundTimer.setTimeout(() => {
+          this.pause();
+        }, 20000);
+      }
     }
   },
   async init() {
