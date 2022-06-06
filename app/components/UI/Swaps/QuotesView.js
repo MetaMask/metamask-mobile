@@ -857,6 +857,7 @@ function SwapsQuotesView({
           process.env.MM_FOX_CODE,
           WalletDevice.MM_MOBILE,
         );
+        console.log('Approval Tx Added ->', transactionMeta.id);
         approvalTransactionMetaId = transactionMeta.id;
         newSwapsTransactions[transactionMeta.id] = {
           action: 'approval',
@@ -888,6 +889,7 @@ function SwapsQuotesView({
         process.env.MM_FOX_CODE,
         WalletDevice.MM_MOBILE,
       );
+      console.log('Swap Tx Added ->', transactionMeta.id);
       updateSwapsTransactions(
         transactionMeta,
         approvalTransactionMetaId,

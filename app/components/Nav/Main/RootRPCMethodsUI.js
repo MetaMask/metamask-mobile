@@ -280,6 +280,7 @@ const RootRPCMethodsUI = (props) => {
       // if approval data includes metaswap contract
       // if destination address is metaswap contract
       if (
+        // QUESTION: Whats the reason for this condition?
         transactionMeta.origin === process.env.MM_FOX_CODE &&
         to &&
         (swapsUtils.isValidContractAddress(props.chainId, to) ||
@@ -288,6 +289,7 @@ const RootRPCMethodsUI = (props) => {
             decodeApproveData(data).spenderAddress?.toLowerCase() ===
               swapsUtils.getSwapsContractAddress(props.chainId)))
       ) {
+        console.log('autosign ->', transactionMeta.id);
         autoSign(transactionMeta);
       } else {
         const {
