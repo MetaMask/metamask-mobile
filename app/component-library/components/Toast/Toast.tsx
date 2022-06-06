@@ -54,7 +54,7 @@ const toastConfig = (styles: any, colors: any) => ({
                 variant={BaseTextVariant.sBodySM}
                 onPress={() => RNToastMessage.hide()}
               >
-                {strings('toast.showWarningToast.remind_me_later')}
+                {strings('toast.show_warning_toast.remind_me_later')}
               </Link>
               <Link
                 variant={BaseTextVariant.sBodySMBold}

@@ -902,7 +902,12 @@
     "failed_to_resolve_ens_name": "We couldn't resolve that ENS name",
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
-    "yes": "Yes"
+    "yes": "Yes",
+    "android_system_webview": {
+      "title": "Security Warning",
+      "message": "Your Android System Webview is out of date and may leave you open to security risks.",
+      "action_text": "Update on Play Store"
+    }
   },
   "backup_alert": {
     "title": "Protect your wallet",
@@ -2030,7 +2035,7 @@
     "unknownError": "Unknown error occurred"
   },
   "toast": {
-    "showWarningToast": {
+    "show_warning_toast": {
       "remind_me_later": "Remind me later"
     }
   }

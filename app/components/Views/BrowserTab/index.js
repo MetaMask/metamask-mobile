@@ -56,7 +56,7 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
-
+import Toast from '../../../component-library/components/Toast';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
@@ -229,8 +229,6 @@ export const BrowserTab = (props) => {
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
-  const [safeAndroidWebviewVersion, setSafeAndroidWebviewVersion] =
-    useState(true);
 
   const webviewRef = useRef(null);
 
@@ -332,13 +330,23 @@ export const BrowserTab = (props) => {
         const systemUtils = NativeModules.SystemUtils;
         const webviewVersion =
           await systemUtils.getCurrentWebViewPackageVersionName();
-        setSafeAndroidWebviewVersion(
+        if (
           compareVersions.compare(
             webviewVersion,
             MIN_ANDROID_SYSTEM_WEBVIEW_VERSION,
-            '>=',
-          ),
-        );
+            '<=',
+          )
+        ) {
+          Toast.showWarningToast({
+            title: strings('browser.android_system_webview.title'),
+            message: strings('browser.android_system_webview.message'),
+            actionText: strings('browser.android_system_webview.action_text'),
+            action: () =>
+              Linking.openURL(
+                'https://play.google.com/store/apps/details?id=com.google.android.webview',
+              ),
+          });
+        }
       }
     };
     getSystemWebviewVersion();
@@ -370,7 +378,7 @@ export const BrowserTab = (props) => {
         method: NOTIFICATION_NAMES.accountsChanged,
         params: [selectedAddress],
       });
-    }   
+    }
   }, [notifyAllConnections, props, props.approvedHosts, props.selectedAddress]);
 
   /**
@@ -1365,7 +1373,6 @@ export const BrowserTab = (props) => {
         style={[styles.wrapper, !isTabActive() && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
-        {!safeAndroidWebviewVersion && <Text>Not a safe version</Text>}
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
