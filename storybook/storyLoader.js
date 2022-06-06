@@ -11,10 +11,11 @@ function loadStories() {
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
+  require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
+  require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/Link/Link.stories');
-  require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
-  require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
+  require('../app/component-library/components/Toast/Toast.stories');
 }
 
 const stories = [
@@ -25,10 +26,10 @@ const stories = [
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
+  '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
+  '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/Link/Link.stories',
-  '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
-  '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
 ];
 
 module.exports = {
