@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
-import Networks from '../../../util/networks';
+import Networks, { getDecimalChainId } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
@@ -29,6 +29,7 @@ import {
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import AnalyticsV2 from '../../../util/analyticsV2';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -163,7 +164,7 @@ const AssetDetails = (props: Props) => {
   };
 
   const triggerHideToken = () => {
-    const { TokensController } = Engine.context as any;
+    const { TokensController, NetworkController } = Engine.context as any;
     navigation.navigate('AssetHideConfirmation', {
       onConfirm: () => {
         navigation.navigate('WalletView');
@@ -177,6 +178,15 @@ const AssetDetails = (props: Props) => {
               description: strings('wallet.token_toast.token_hidden_desc', {
                 tokenSymbol: symbol,
               }),
+            });
+            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
+              location: 'token_details',
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              tokens: [`${symbol} - ${address}`],
+              chain_id: getDecimalChainId(
+                NetworkController?.state?.provider?.chainId,
+              ),
             });
           } catch (err) {
             Logger.log(err, 'AssetDetails: Failed to hide token!');

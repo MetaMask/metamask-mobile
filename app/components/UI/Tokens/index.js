@@ -391,7 +391,7 @@ class Tokens extends PureComponent {
   };
 
   removeToken = async () => {
-    const { TokensController } = Engine.context;
+    const { TokensController, NetworkController } = Engine.context;
     const tokenAddress = this.tokenToRemove?.address;
     const symbol = this.tokenToRemove?.symbol;
     try {
@@ -404,6 +404,17 @@ class Tokens extends PureComponent {
           tokenSymbol: symbol,
         }),
       });
+      InteractionManager.runAfterInteractions(() =>
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
+          location: 'assets_list',
+          token_standard: 'ERC20',
+          asset_type: 'token',
+          tokens: [`${symbol} - ${tokenAddress}`],
+          chain_id: getDecimalChainId(
+            NetworkController?.state?.provider?.chainId,
+          ),
+        }),
+      );
     } catch (err) {
       Logger.log(err, 'Wallet: Failed to hide token!');
     }

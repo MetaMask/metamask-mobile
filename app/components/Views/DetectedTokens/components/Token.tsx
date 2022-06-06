@@ -73,7 +73,7 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.primary.default,
     },
-    checkBox: { height: 18, width: 18 },
+    checkBox: { height: 18 },
   });
 
 interface Props {
