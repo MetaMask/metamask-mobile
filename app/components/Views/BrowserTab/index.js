@@ -434,6 +434,18 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * This function verify if the hostname is a TLD
+   * @param {string} hostname - Represents the hostname of the URL
+   * @param {*} error - Represents the error of handleIpfsContent
+   * @returns {Boolean} - True if its a TLD, false if it's not
+   */
+  const isTLD = (hostname, error) =>
+    (hostname.slice(-4) !== '.eth' &&
+      error.toString().indexOf('is not standard') !== -1) ||
+    hostname.slice(-4) === '.xyz' ||
+    hostname.slice(-4) === '.test';
+
+  /**
    * Get IPFS info from a ens url
    */
   const handleIpfsContent = useCallback(
@@ -471,13 +483,8 @@ export const BrowserTab = (props) => {
           type,
         };
       } catch (err) {
-        // This is a TLD that might be a normal website
-        // For example .XYZ and might be more in the future
-        if (
-          (hostname.slice(-4) !== '.eth' &&
-            err.toString().indexOf('is not standard') !== -1) ||
-          hostname.slice(-4) === '.xyz'
-        ) {
+        //if it's not a ENS but a TLD (Top Level Domain)
+        if (isTLD(hostname, err)) {
           ensIgnoreList.push(hostname);
           return { url: fullUrl, reload: true };
         }
