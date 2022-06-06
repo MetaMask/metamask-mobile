@@ -69,6 +69,8 @@
     "**/nanoid": "^3.1.31",
     "**/json-schema": "^0.4.0",
     "@sentry/react-native/**/xmldom": "^0.6.0",
+    "@sentry/**/simple-plist": "^1.3.1",
+    "react-native/**/simple-plist": "^1.3.1",
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/set-value": "^4.0.1",
     "**/pac-resolver": "^5.0.0",
@@ -94,7 +96,12 @@
     "**/plist": "3.0.5",
     "**/minimist": "1.2.6",
     "@metamask/**/cross-fetch": "2.2.6",
-    "react-native-gesture-handler/**/cross-fetch": "3.1.5"
+    "react-native-gesture-handler/**/cross-fetch": "3.1.5",
+    "@storybook/addon-actions/**/prismjs": "^1.27.0",
+    "@storybook/addon-actions/**/highlight.js": "^10.4.1",
+    "react-native-svg-asset-plugin/sharp": "^0.30.5",
+    "detox/**/moment": "^2.29.2",
+    "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "^1.0.2",
