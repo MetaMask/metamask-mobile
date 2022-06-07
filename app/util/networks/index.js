@@ -101,6 +101,17 @@ export const isMainnetByChainId = (chainId) =>
 export const getNetworkName = (id) =>
   NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
 
+export const isTestNet = (networkId) => {
+  const networkName = getNetworkName(networkId);
+
+  return (
+    networkName === ROPSTEN ||
+    networkName === GOERLI ||
+    networkName === KOVAN ||
+    networkName === RINKEBY
+  );
+};
+
 export function getNetworkTypeById(id) {
   if (!id) {
     throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);

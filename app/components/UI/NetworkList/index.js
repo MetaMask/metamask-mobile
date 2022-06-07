@@ -284,7 +284,7 @@ export class NetworkList extends PureComponent {
       const { color, name } = Networks[network];
       const selected =
         provider.type === network ? (
-          <Icon name="check" size={20} color={colors.icon.default} />
+          <Icon name="check" size={16} color={colors.success.default} />
         ) : null;
       return this.networkElement(
         selected,
@@ -305,7 +305,7 @@ export class NetworkList extends PureComponent {
       const { color, name } = { name: nickname || rpcUrl, color: null };
       const selected =
         provider.rpcTarget === rpcUrl && provider.type === RPC ? (
-          <Icon name="check" size={20} color={colors.icon.default} />
+          <Icon name="check" size={16} color={colors.success.default} />
         ) : null;
       return this.networkElement(
         selected,
@@ -324,7 +324,7 @@ export class NetworkList extends PureComponent {
     const styles = this.getStyles();
     const isMainnet =
       provider.type === MAINNET ? (
-        <Icon name="check" size={15} color={colors.icon.default} />
+        <Icon name="check" size={16} color={colors.success.default} />
       ) : null;
     const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
 

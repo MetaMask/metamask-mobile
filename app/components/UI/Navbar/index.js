@@ -109,7 +109,7 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
  *
  * @param {string} title - Title in string format
  * @param {Object} navigation - Navigation object required to push new views
@@ -554,7 +554,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
  *
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
