@@ -347,7 +347,7 @@
     "here": "здесь",
     "agree": "Я согласен(-на)",
     "decline": "Нет, спасибо",
-    "description_title": "Помогите нам улучшить Metamask",
+    "description_title": "Помогите нам улучшить MetaMask",
     "description_content_1": "MetaMask хотел бы собрать основные данные об использовании, чтобы лучше понять, как наши пользователи взаимодействуют с мобильным приложением. Эти данные будут использоваться для постоянного улучшения удобства использования и взаимодействия с пользователем нашего продукта.",
     "description_content_2": "MetaMask...",
     "action_description_1": "всегда позволяет вам запретить сбор данных в Настройках;",
@@ -1761,11 +1761,6 @@
   "media_player": {
     "loading": "Загрузка...",
     "not_found": "Медиа не найдено"
-  },
-  "secret_phrase_video_subtitle": {
-    "title": "RU CC",
-    "language": "ru",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
   },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Расширенные параметры",
