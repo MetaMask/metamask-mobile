@@ -72,7 +72,7 @@ export default class AssetElement extends PureComponent {
           <Icon
             name="ios-arrow-forward"
             size={24}
-            color={colors.icon.muted}
+            color={colors.icon.alternative}
             style={styles.arrowIcon}
           />
         </View>
