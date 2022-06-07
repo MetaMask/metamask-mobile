@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.1.1",
+  "version": "5.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -104,7 +104,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "^1.0.2",
+    "@consensys/on-ramp-sdk": "^1.0.3",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
