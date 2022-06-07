@@ -1771,6 +1771,11 @@
     "loading": "लोड हो रहा है...",
     "not_found": "माध्यम नहीं मिला"
   },
+  "secret_phrase_video_subtitle": {
+    "title": "HI CC",
+    "language": "hi",
+    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-hi-in.vtt?raw=true"
+  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "एडवांस विकल्प",
     "gas_limit": "गैस की सीमा",
