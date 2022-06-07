@@ -69,7 +69,7 @@ const createStyles = (colors) =>
       height: 76,
       marginTop: 30,
       marginBottom: 12,
-      tintColor: colors.icon.default,
+      tintColor: colors.icon.muted,
     },
     emptyTitleText: {
       fontSize: 24,
