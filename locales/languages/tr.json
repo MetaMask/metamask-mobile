@@ -1771,6 +1771,10 @@
     "loading": "Yükleniyor...",
     "not_found": "Ortam bulunamadı"
   },
+  "secret_phrase_video_subtitle": {
+    "title": "TR CC",
+    "language": "tr"
+  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Gelişmiş seçenekler",
     "gas_limit": "Gaz limiti",
