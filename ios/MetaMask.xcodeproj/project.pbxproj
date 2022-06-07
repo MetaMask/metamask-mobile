@@ -861,7 +861,11 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 5.7.0;
+=======
+				MARKETING_VERSION = 5.2.99;
+>>>>>>> c773ab200 (Bump version)
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -927,7 +931,11 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
+<<<<<<< HEAD
 				MARKETING_VERSION = 5.7.0;
+=======
+				MARKETING_VERSION = 5.2.99;
+>>>>>>> c773ab200 (Bump version)
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",
