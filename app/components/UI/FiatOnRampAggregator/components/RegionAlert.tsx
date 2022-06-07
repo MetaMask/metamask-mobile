@@ -57,12 +57,10 @@ const RegionAlert: React.FC<Props> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const handleSupportLinkPress = useCallback(async () => {
-    const supported = await Linking.canOpenURL(SUPPORT_URL);
-    if (supported) {
-      await Linking.openURL(SUPPORT_URL);
-    }
-  }, []);
+  const handleSupportLinkPress = useCallback(
+    () => Linking.openURL(SUPPORT_URL),
+    [],
+  );
 
   return (
     <Modal

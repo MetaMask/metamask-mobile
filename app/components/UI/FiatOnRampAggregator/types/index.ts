@@ -7,3 +7,5 @@ export enum PROVIDER_LINKS {
   PRIVACY_POLICY = 'Privacy Policy',
   SUPPORT = 'Support',
 }
+
+export * from './analytics';
