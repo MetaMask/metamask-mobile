@@ -7,6 +7,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { renderNumber } from '../../../util/number';
 import {
+  FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/on-ramp';
@@ -16,6 +17,7 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
+import useAnalytics from '../FiatOnRampAggregator/hooks/useAnalytics';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -34,7 +36,6 @@ export const allowedToBuy = (chainId) =>
     NETWORKS_CHAIN_ID.ARBITRUM,
     NETWORKS_CHAIN_ID.CELO,
     NETWORKS_CHAIN_ID.AVAXCCHAIN,
-    NETWORKS_CHAIN_ID.HARMONY,
   ].includes(chainId);
 
 const baseNotificationDetails = {
@@ -58,13 +59,59 @@ export const getAnalyticsPayload = (fiatOrder) => {
   };
   switch (fiatOrder.state) {
     case FIAT_ORDER_STATES.FAILED: {
-      return [AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_FAILED, payload];
+      return [
+        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_FAILED_LEGACY,
+        payload,
+      ];
     }
     case FIAT_ORDER_STATES.CANCELLED: {
-      return [AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_CANCELLED, payload];
+      return [
+        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_CANCELLED_LEGACY,
+        payload,
+      ];
     }
     case FIAT_ORDER_STATES.COMPLETED: {
-      return [AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_COMPLETED, payload];
+      return [
+        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_COMPLETED_LEGACY,
+        payload,
+      ];
+    }
+    case FIAT_ORDER_STATES.PENDING:
+    default: {
+      return [null];
+    }
+  }
+};
+/**
+ * @param {FiatOrder} fiatOrder
+ */
+export const getAggregatorAnalyticsPayload = (fiatOrder) => {
+  const failedOrCancelledParams = {
+    currency_source: fiatOrder.currency,
+    currency_destination: fiatOrder.cryptocurrency,
+    chain_id_destination: fiatOrder.network,
+    payment_method_id: fiatOrder.data?.paymentMethod?.id,
+    provider_onramp: fiatOrder.data?.provider?.name,
+  };
+
+  const completedPayload = {
+    ...failedOrCancelledParams,
+    crypto_out: fiatOrder.amount,
+    total_fee: fiatOrder.total_fee,
+    exchange_rate:
+      (Number(fiatOrder.amount) - Number(fiatOrder.cryptoFee)) /
+      Number(fiatOrder.cryptoAmount),
+  };
+
+  switch (fiatOrder.state) {
+    case FIAT_ORDER_STATES.FAILED: {
+      return ['ONRAMP_PURCHASE_FAILED', failedOrCancelledParams];
+    }
+    case FIAT_ORDER_STATES.CANCELLED: {
+      return ['ONRAMP_PURCHASE_CANCELLED', failedOrCancelledParams];
+    }
+    case FIAT_ORDER_STATES.COMPLETED: {
+      return ['ONRAMP_PURCHASE_COMPLETED', completedPayload];
     }
     case FIAT_ORDER_STATES.PENDING:
     default: {
@@ -133,6 +180,7 @@ export const getNotificationDetails = (fiatOrder) => {
 };
 
 function FiatOrders({ pendingOrders, updateFiatOrder }) {
+  const trackEvent = useAnalytics();
   useInterval(
     async () => {
       await Promise.all(
@@ -140,6 +188,14 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
           const updatedOrder = await processOrder(order);
           updateFiatOrder(updatedOrder);
           if (updatedOrder.state !== order.state) {
+            if (updatedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+              const [event, params] =
+                getAggregatorAnalyticsPayload(updatedOrder);
+              if (event) {
+                trackEvent(event, params);
+              }
+              return;
+            }
             InteractionManager.runAfterInteractions(() => {
               const [analyticsEvent, analyticsPayload] =
                 getAnalyticsPayload(updatedOrder);

@@ -22,7 +22,8 @@ import ModalDragger from '../../../Base/ModalDragger';
 import { useTheme } from '../../../../util/theme';
 import RegionAlert from './RegionAlert';
 import { Colors } from '../../../../util/theme/models';
-import { Region } from '../types';
+import { Region, ScreenLocation } from '../types';
+import useAnalytics from '../hooks/useAnalytics';
 
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -120,6 +121,7 @@ interface Props {
   dismiss?: () => any;
   data?: Region[] | null;
   onRegionPress: (region: Region) => any;
+  location?: ScreenLocation;
 }
 
 const RegionModal: React.FC<Props> = ({
@@ -129,8 +131,10 @@ const RegionModal: React.FC<Props> = ({
   data,
   onRegionPress,
   dismiss,
+  location,
 }: Props) => {
   const { colors } = useTheme();
+  const trackEvent = useAnalytics();
   const styles = createStyles(colors);
   const searchInput = useRef<TextInput>(null);
   const list = useRef<FlatList<Region>>(null);
@@ -176,14 +180,22 @@ const RegionModal: React.FC<Props> = ({
         setRegionInTransit(region);
         setCurrentData(region.states as Region[]);
         setSearchString('');
-      } else if (region.unsupported) {
+        return;
+      }
+      if (region.unsupported) {
         setUnsupportedRegion(region);
         setShowAlert(true);
       } else {
         onRegionPress(region);
       }
+      trackEvent('ONRAMP_REGION_SELECTED', {
+        is_supported: region.unsupported,
+        country_onramp_id: regionInTransit?.id ?? region.id,
+        state_onramp_id: regionInTransit ? region.id : undefined,
+        location,
+      });
     },
-    [onRegionPress],
+    [location, onRegionPress, regionInTransit, trackEvent],
   );
 
   const renderRegionItem = useCallback(
