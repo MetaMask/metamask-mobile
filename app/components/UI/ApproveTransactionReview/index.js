@@ -78,6 +78,14 @@ const createStyles = (colors) =>
       marginVertical: 8,
       paddingHorizontal: 16,
     },
+    tokenKey: {
+      fontSize: 12, 
+      marginRight: 5
+    },
+    tokenValue: {
+      fontSize: 12, 
+      width: '75%'
+    },
     explanation: {
       ...fontStyles.normal,
       fontSize: 14,
@@ -88,6 +96,8 @@ const createStyles = (colors) =>
     },
     tokenAccess: {
       alignItems: 'center',
+      marginHorizontal: 14,
+      flexDirection: 'row',
     },
     editPermissionText: {
       ...fontStyles.bold,
@@ -696,18 +706,21 @@ class ApproveTransactionReview extends PureComponent {
               { tokenSymbol },
             )}
           </Text>
-          <View style={styles.tokenAccess}>
-            <Text bold>
-              {` ${strings('spend_limit_edition.access_up_to')} `}
-              <Text>
+          {originalApproveAmount && (
+            <View style={styles.tokenAccess}>
+              <Text bold style={styles.tokenKey}>
+                {` ${strings('spend_limit_edition.access_up_to')} `}
+              </Text>
+              <Text numberOfLines={4} style={styles.tokenValue}>
                 {` ${
                   customSpendAmount
                     ? formatNumber(customSpendAmount)
-                    : formatNumber(originalApproveAmount)
+                    : originalApproveAmount &&
+                      formatNumber(originalApproveAmount)
                 } ${tokenSymbol}`}
               </Text>
-            </Text>
-          </View>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.actionTouchable}
             onPress={this.toggleEditPermission}
