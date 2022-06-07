@@ -170,7 +170,7 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
   if (confusableCollection.length) {
-    const texts = toAddressName.split('').map((char, index) => {
+    const texts = toAddressName?.split('').map((char, index) => {
       // if text has a confusable highlight it red
       if (confusableCollection.includes(char)) {
         // if the confusable is zero width, replace it with `?`
