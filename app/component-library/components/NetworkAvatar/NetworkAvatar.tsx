@@ -9,8 +9,7 @@ import stylesheet from './NetworkAvatar.styles';
 import { useStyles } from '../../../component-library/hooks';
 
 type NetworkImageByChainId = {
-  [key in NetworksChainId]: {
-    letter: string;
+  [key: NetworkAvatarProps['chainId']]: {
     image?: ImageSourcePropType;
   };
 };
@@ -18,36 +17,11 @@ type NetworkImageByChainId = {
 const networkImageByChainId: NetworkImageByChainId = {
   [NetworksChainId.mainnet]: {
     image: require('../../../images/eth-logo.png'), // eslint-disable-line
-    letter: 'M',
-  },
-  [NetworksChainId.kovan]: {
-    letter: 'K',
-  },
-  [NetworksChainId.rinkeby]: {
-    letter: 'R',
-  },
-  [NetworksChainId.goerli]: {
-    letter: 'G',
-  },
-  [NetworksChainId.ropsten]: {
-    letter: 'R',
-  },
-  [NetworksChainId.localhost]: {
-    letter: 'l',
-  },
-  [NetworksChainId.rpc]: {
-    letter: 'r',
-  },
-  [NetworksChainId.optimism]: {
-    letter: 'O',
-  },
-  [NetworksChainId.optimismTest]: {
-    letter: 'OT',
   },
 };
 
-const NetworkAvatar = ({ size, style, chainId }: NetworkAvatarProps) => {
-  const { letter, image } = networkImageByChainId[chainId];
+const NetworkAvatar = ({ size, style, chainId, networkName, networkImageURL }: NetworkAvatarProps) => {
+  const { image } = networkImageByChainId[chainId];
 
   // TODO: remove the empty object which represents the stylesheet var
   const styles = useStyles(stylesheet, {});
@@ -58,15 +32,15 @@ const NetworkAvatar = ({ size, style, chainId }: NetworkAvatarProps) => {
       ? BaseTextVariant.lBodySM
       : BaseTextVariant.lBodyMD;
 
+  const chainNameFirstLetter = networkName[0];
+
   return (
     <BaseAvatar size={size} style={style}>
       {image ? (
         <Image source={image} style={styles.imageStyle} />
       ) : (
         <View style={styles.networkPlaceholderContainer}>
-          <BaseText variant={textVariant}>
-            {letter}
-          </BaseText>
+          <BaseText variant={textVariant}>{chainNameFirstLetter}</BaseText>
         </View>
       )}
     </BaseAvatar>

@@ -8,7 +8,15 @@ export interface NetworkAvatarProps extends BaseAvatarProps {
   /**
    * chain identification.
    */
-  chainId: NetworksChainId;
+  chainId: string;
+  /**
+   * chain name.
+   */
+  networkName: string;
+  /**
+   * chain image url.
+   */
+  networkImageURL?: string;
 }
 
 export interface NetworkAvatarStyleSheetVars {
