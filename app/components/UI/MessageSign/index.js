@@ -18,7 +18,7 @@ import {
   isHardwareAccount,
 } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { openLedgerSignModal } from '../../../actions/modals';
+import { createLedgerMessageSignModalNavDetails } from '../LedgerModals/LedgerMessageSignModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -73,10 +73,6 @@ class MessageSign extends PureComponent {
      * Indicated whether or not the expanded message is shown
      */
     showExpandedMessage: PropTypes.bool,
-    /**
-     * Opens the Ledger confirmation Flow
-     */
-    openLedgerSignModal: PropTypes.func,
   };
 
   state = {
@@ -160,14 +156,14 @@ class MessageSign extends PureComponent {
     if (isLedgerAccount) {
       this.props.onConfirm();
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
-
-      // Hand over process to Ledger Confirmation Modal
-      this.props.openLedgerSignModal({
-        messageParams: cleanMessageParams,
-        deviceId: ledgerKeyring.deviceId,
-        onConfirmationComplete: finalizeConfirmation,
-        type: 'signMessage',
-      });
+      this.props.navigation.navigate(
+        ...createLedgerMessageSignModalNavDetails({
+          messageParams: cleanMessageParams,
+          deviceId: ledgerKeyring.deviceId,
+          onConfirmationComplete: finalizeConfirmation,
+          type: 'signMessage',
+        }),
+      );
     } else {
       const rawSignature = await KeyringController.signMessage(
         cleanMessageParams,
@@ -293,8 +289,4 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  openLedgerSignModal: (params) => dispatch(openLedgerSignModal(params)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(MessageSign);
+export default connect(mapStateToProps)(MessageSign);

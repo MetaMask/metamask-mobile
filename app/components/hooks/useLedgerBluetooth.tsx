@@ -83,6 +83,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
     if (!transportRef.current && deviceId) {
       try {
         transportRef.current = await BluetoothTransport.open(deviceId);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         transportRef.current?.on('disconnect', (e) => {
           transportRef.current = undefined;
           // Restart connection if more code is to be run

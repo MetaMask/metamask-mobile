@@ -2,7 +2,7 @@
 /** This is a JS file, we can't use types */
 
 import React, { useRef } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -70,6 +70,7 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
+import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -507,8 +508,11 @@ const SetPasswordFlow = () => (
 );
 
 const LedgerConnectFlow = ({ navigation }) => (
-  <Stack.Navigator initialRouteName="LedgerConnect">
-    <Stack.Screen name="LedgerConnect" component={LedgerConnect} />
+  <Stack.Navigator initialRouteName={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}>
+    <Stack.Screen
+      name={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}
+      component={LedgerConnect}
+    />
   </Stack.Navigator>
 );
 
@@ -561,7 +565,23 @@ const MainNavigator = () => (
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}
     />
-    <Stack.Screen name="LedgerConnectFlow" component={LedgerConnectFlow} />
+    <Stack.Screen
+      name={Routes.LEDGER_CONNECT_FLOW.ID}
+      component={LedgerConnectFlow}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+      component={LedgerMessageSignModal}
+    />
     <Stack.Screen
       name="ConnectHardwareWalletFlow"
       component={ConnectHardwareWalletFlow}
