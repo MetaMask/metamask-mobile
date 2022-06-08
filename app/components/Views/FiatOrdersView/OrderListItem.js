@@ -15,10 +15,10 @@ import StatusText from '../../Base/StatusText';
 const transactionIconReceived = require('../../../images/transaction-icons/receive.png');
 
 const styles = StyleSheet.create({
-	icon: {
-		width: 28,
-		height: 28,
-	},
+  icon: {
+    width: 28,
+    height: 28,
+  },
 });
 
 /**
@@ -27,34 +27,47 @@ const styles = StyleSheet.create({
  * @param {FiatOrder} props.order
  */
 function OrderListItem({ order }) {
-	return (
-		<ListItem>
-			{order.createdAt && <ListItem.Date>{toDateFormat(order.createdAt)}</ListItem.Date>}
-			<ListItem.Content>
-				<ListItem.Icon>
-					<Image source={transactionIconReceived} style={styles.icon} resizeMode="stretch" />
-				</ListItem.Icon>
+  return (
+    <ListItem>
+      {order.createdAt && (
+        <ListItem.Date>{toDateFormat(order.createdAt)}</ListItem.Date>
+      )}
+      <ListItem.Content>
+        <ListItem.Icon>
+          <Image
+            source={transactionIconReceived}
+            style={styles.icon}
+            resizeMode="stretch"
+          />
+        </ListItem.Icon>
 
-				<ListItem.Body>
-					<ListItem.Title>
-						{getProviderName(order.provider)}:{' '}
-						{strings('fiat_on_ramp.purchased_currency', { currency: order.cryptocurrency })}
-					</ListItem.Title>
-					<StatusText status={order.state} context={'fiat_on_ramp'} />
-				</ListItem.Body>
-				<ListItem.Amounts>
-					<ListItem.Amount>
-						{order.cryptoAmount ? renderNumber(String(order.cryptoAmount)) : '...'} {order.cryptocurrency}
-					</ListItem.Amount>
-					<ListItem.FiatAmount>{addCurrencySymbol(order.amount, order.currency)}</ListItem.FiatAmount>
-				</ListItem.Amounts>
-			</ListItem.Content>
-		</ListItem>
-	);
+        <ListItem.Body>
+          <ListItem.Title>
+            {getProviderName(order.provider, order.data)}:{' '}
+            {strings('fiat_on_ramp.purchased_currency', {
+              currency: order.cryptocurrency,
+            })}
+          </ListItem.Title>
+          <StatusText status={order.state} context={'fiat_on_ramp'} />
+        </ListItem.Body>
+        <ListItem.Amounts>
+          <ListItem.Amount>
+            {order.cryptoAmount
+              ? renderNumber(String(order.cryptoAmount))
+              : '...'}{' '}
+            {order.cryptocurrency}
+          </ListItem.Amount>
+          <ListItem.FiatAmount>
+            {addCurrencySymbol(order.amount, order.currency)}
+          </ListItem.FiatAmount>
+        </ListItem.Amounts>
+      </ListItem.Content>
+    </ListItem>
+  );
 }
 
 OrderListItem.propTypes = {
-	order: PropTypes.object,
+  order: PropTypes.object,
 };
 
 export default OrderListItem;

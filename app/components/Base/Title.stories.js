@@ -7,9 +7,13 @@ import { text, boolean } from '@storybook/addon-knobs';
 import Title from './Title';
 
 storiesOf('Base / Title', module)
-	.addDecorator((getStory) => getStory())
-	.add('Default', () => (
-		<Title onPress={action('onPress')} centered={boolean('centered', false)} hero={boolean('hero', false)}>
-			{text('children', 'This is a Title component')}
-		</Title>
-	));
+  .addDecorator((getStory) => getStory())
+  .add('Default', () => (
+    <Title
+      onPress={action('onPress')}
+      centered={boolean('centered', false)}
+      hero={boolean('hero', false)}
+    >
+      {text('children', 'This is a Title component')}
+    </Title>
+  ));

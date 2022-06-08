@@ -1,6 +1,49 @@
 # Changelog
 
 ## Current Main Branch
+
+## 5.2.0 - May 17, 2022
+- [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
+- [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
+- [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
+- [#3696](https://github.com/MetaMask/metamask-mobile/pull/3696): [FEATURE] Fiat on Ramp Aggregator
+- [#4303](https://github.com/MetaMask/metamask-mobile/pull/4303): [IMPROVEMENT] Add support for env variable for MM_HOMEPAGE
+- [#4331](https://github.com/MetaMask/metamask-mobile/pull/4331): [IMPROVEMENT] Fix addressbook and browser test
+- [#4170](https://github.com/MetaMask/metamask-mobile/pull/4170): [FIX] Copy to clipboard for Android version 9 and below
+- [#4328](https://github.com/MetaMask/metamask-mobile/pull/4328): [FIX] Fix generate-static-assets
+- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Fix confusables bug
+- [#4316](https://github.com/MetaMask/metamask-mobile/pull/4316): [IMPROVEMENT] GIVEN, WHEN, THEN - Template Update
+- [#4167](https://github.com/MetaMask/metamask-mobile/pull/4167): [IMPROVEMENT] Adds support for 'dapp/' urls support on 'metamask://' and fixes DL opening to Apple Store
+- [#4175](https://github.com/MetaMask/metamask-mobile/pull/4175): [Fix] Favourites not showing when home button is pressed in browser tab menu
+- [#4278](https://github.com/MetaMask/metamask-mobile/pull/4278): [IMPROVEMENT] Convert back to spaces
+- [#4249](https://github.com/MetaMask/metamask-mobile/pull/4249): [IMPROVEMENT] patch cross-fetch instead of skipping
+- [#4174](https://github.com/MetaMask/metamask-mobile/pull/4174): [IMPROVEMENT] Address now is in the checksum standard format
+- [#4182](https://github.com/MetaMask/metamask-mobile/pull/4182): [IMPROVEMENT] Standardize prettier configuration
+- [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): [FIX] excluded audit because no available patch
+
+## 5.1.0 - May 5, 2022
+- [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
+- [#4159](https://github.com/MetaMask/metamask-mobile/pull/4159): [IMPROVEMENT] - iCloud Backup Restriction
+- [#4035](https://github.com/MetaMask/metamask-mobile/pull/4035): [FIX] Issue #207
+- [#4129](https://github.com/MetaMask/metamask-mobile/pull/4129): [IMPROVEMENT] Add e2e coverage for invalid browser url & changing password
+- [#4166](https://github.com/MetaMask/metamask-mobile/pull/4166): [FIX] Undefined address error
+- [#4165](https://github.com/MetaMask/metamask-mobile/pull/4165): [ANALYTICS] Add events to "Hold to Reveal Private Credential" feature
+- [#4099](https://github.com/MetaMask/metamask-mobile/pull/4099): [IMPROVEMENT] Metrics only enabled when confirm button is pressed
+- [#4168](https://github.com/MetaMask/metamask-mobile/pull/4168): [FIX] Fixed wallet_watchAsset API
+- [#4114](https://github.com/MetaMask/metamask-mobile/pull/4114): [FEAT] Add the "Hold to Reveal" button before revealing an account’s private key
+- [#4151](https://github.com/MetaMask/metamask-mobile/pull/4151): [FIX] Revert credit card support
+- [#3942](https://github.com/MetaMask/metamask-mobile/pull/3942): [FIX] Add custom token
+- [#4089](https://github.com/MetaMask/metamask-mobile/pull/4089): [FIX] Fix/2830 enter many names
+- [#4115](https://github.com/MetaMask/metamask-mobile/pull/4115): [IMPROVEMENT] Upgrade controllers to 28.0.0
+- [#4090](https://github.com/MetaMask/metamask-mobile/pull/4090): [FIX] Fix can not scroll on dapp modal
+- [#4113](https://github.com/MetaMask/metamask-mobile/pull/4113): [FIX] Add ticker to SelectQRAccounts
+- [#3980](https://github.com/MetaMask/metamask-mobile/pull/3980): [FIX] Patch network specific asset modal (Token detection)
+- [#4154](https://github.com/MetaMask/metamask-mobile/pull/4154): [FIX] Update react-native-webview+11.13.0.patch
+- [#4135](https://github.com/MetaMask/metamask-mobile/pull/4135): [IMPROVEMENT]browser improvement 
+
+## 5.0.1 - April 20, 2022
+- [FIX] iOS Hotfix - Add LinkPresentation library
+
 ## 5.0.0 - April 13, 2022
 - [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
 - [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
