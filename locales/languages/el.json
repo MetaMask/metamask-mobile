@@ -1771,10 +1771,6 @@
     "loading": "Φόρτωση...",
     "not_found": "Τα μέσα δεν βρέθηκαν"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "EL CC",
-    "language": "el"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Επιλογές για προχωρημένους",
     "gas_limit": "Όριο τέλους συναλλαγής",
