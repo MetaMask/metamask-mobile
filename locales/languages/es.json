@@ -1771,11 +1771,6 @@
     "loading": "Cargando…",
     "not_found": "No se encontró medio"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "ES CC",
-    "language": "es",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-es.vtt?raw=true"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Opciones avanzadas",
     "gas_limit": "Límite de gas",

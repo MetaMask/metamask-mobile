@@ -137,7 +137,7 @@ export default [
   },
   {
     url: 'https://faucet.metamask.io/',
-    name: 'Metamask Ether Faucet (Ropsten)',
+    name: 'MetamMask Ether Faucet (Ropsten)',
   },
   {
     url: 'https://www.minds.com/',
