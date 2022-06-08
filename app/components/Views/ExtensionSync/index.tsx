@@ -16,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import {

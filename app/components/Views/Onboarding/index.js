@@ -26,7 +26,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,

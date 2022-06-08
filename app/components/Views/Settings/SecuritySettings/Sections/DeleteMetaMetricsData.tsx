@@ -6,7 +6,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import Analytics from '../../../../../core/Analytics';
+import Analytics from '../../../../../core/Analytics/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';

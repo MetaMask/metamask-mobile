@@ -12,7 +12,7 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';

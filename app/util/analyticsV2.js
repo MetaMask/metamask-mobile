@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import Analytics from '../core/Analytics';
+import Analytics from '../core/Analytics/Analytics';
 import Logger from './Logger';
 
 const generateOpt = (name) => ({ category: name });

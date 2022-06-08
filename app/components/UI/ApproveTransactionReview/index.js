@@ -35,7 +35,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
