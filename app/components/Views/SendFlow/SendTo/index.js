@@ -51,6 +51,7 @@ import {
   ADD_ADDRESS_MODAL_CONTAINER_ID,
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
+import Routes from '../../../../constants/navigation/Routes';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -193,6 +194,10 @@ class SendFlow extends PureComponent {
      * Map representing the address book
      */
     addressBook: PropTypes.object,
+    /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
     /**
      * Network id
      */
@@ -358,8 +363,27 @@ class SendFlow extends PureComponent {
     });
     this.toggleFromAccountModal();
   };
+  /**
+   * This returns the address name from the address book or user accounts if the selectedAddress exist there
+   * @param {String} toSelectedAddress - Address input
+   * @returns {String | null} - Address or null if toSelectedAddress is not in the addressBook or identities array
+   */
+  getAddressNameFromBookOrIdentities = (toSelectedAddress) => {
+    if (!toSelectedAddress) return;
 
-  validateAddress = async (toSelectedAddress) => {
+    const { addressBook, network, identities } = this.props;
+    const networkAddressBook = addressBook[network] || {};
+
+    const checksummedAddress = toChecksumAddress(toSelectedAddress);
+
+    return networkAddressBook[checksummedAddress]
+      ? networkAddressBook[checksummedAddress].name
+      : identities[checksummedAddress]
+      ? identities[checksummedAddress].name
+      : null;
+  };
+
+  validateAddressOrENSFromInput = async (toSelectedAddress) => {
     const { AssetsContractController } = Engine.context;
     const { addressBook, network, identities, providerType } = this.props;
     const networkAddressBook = addressBook[network] || {};
@@ -369,8 +393,7 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-      toEnsAddressResolved,
-      isFromAddressBook;
+      toEnsAddressResolved;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
     if (isValidAddress(toSelectedAddress)) {
       const checksummedToSelectedAddress = toChecksumAddress(toSelectedAddress);
@@ -385,18 +408,11 @@ class SendFlow extends PureComponent {
           addToAddressToAddressBook = true;
         }
       } else if (
-        networkAddressBook[checksummedToSelectedAddress] ||
-        identities[checksummedToSelectedAddress]
+        !networkAddressBook[checksummedToSelectedAddress] &&
+        !identities[checksummedToSelectedAddress]
       ) {
-        toAddressName =
-          (networkAddressBook[checksummedToSelectedAddress] &&
-            networkAddressBook[checksummedToSelectedAddress].name) ||
-          (identities[checksummedToSelectedAddress] &&
-            identities[checksummedToSelectedAddress].name);
-        isFromAddressBook = true;
-      } else {
-        toAddressName = ens || toSelectedAddress;
-        // If not in address book nor user accounts
+        toAddressName = toSelectedAddress;
+        // If not in the addressBook nor user accounts
         addToAddressToAddressBook = true;
       }
 
@@ -461,25 +477,46 @@ class SendFlow extends PureComponent {
     } else if (toSelectedAddress && toSelectedAddress.length >= 42) {
       addressError = strings('transaction.invalid_address');
     }
+
     this.setState({
       addressError,
       addToAddressToAddressBook,
       toSelectedAddressReady,
-      toSelectedAddressName: toAddressName,
       toEnsName,
+      toSelectedAddressName: toAddressName,
       errorContinue,
       isOnlyWarning,
       confusableCollection,
       toEnsAddressResolved,
-      isFromAddressBook,
     });
   };
 
   onToSelectedAddressChange = (toSelectedAddress) => {
-    this.validateAddress(toSelectedAddress);
-    this.setState({
-      toSelectedAddress,
-    });
+    const addressName =
+      this.getAddressNameFromBookOrIdentities(toSelectedAddress);
+
+    /**
+     * If the address is from addressBook or identities
+     * then validation is not necessary since it was already validated
+     */
+    if (addressName) {
+      this.setState({
+        toSelectedAddress,
+        toSelectedAddressReady: true,
+        isFromAddressBook: true,
+        toSelectedAddressName: addressName,
+      });
+    } else {
+      this.validateAddressOrENSFromInput(toSelectedAddress);
+      /**
+       * Because validateAddressOrENSFromInput is an asynchronous function
+       * we are setting the state here synchronously, so it does not block the UI
+       * */
+      this.setState({
+        toSelectedAddress,
+        isFromAddressBook: false,
+      });
+    }
   };
 
   validateToAddress = async () => {
@@ -661,12 +698,12 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate('FiatOnRampAggregator');
+    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
-        button_copy: 'Buy ETH',
+        button_copy: 'Buy Native Token',
+        chain_id_destination: this.props.chainId,
       });
     });
   };
@@ -885,6 +922,7 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   selectedAsset: state.transaction.selectedAsset,
