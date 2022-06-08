@@ -198,3 +198,44 @@ index 5300699..df812c7 100644
                      /* istanbul ignore if */
                      if (error) {
                          reject(error);
+diff --git a/node_modules/@metamask/controllers/dist/network/NetworkController.js b/node_modules/@metamask/controllers/dist/network/NetworkController.js
+index 7905208..6c5ccb6 100644
+--- a/node_modules/@metamask/controllers/dist/network/NetworkController.js
++++ b/node_modules/@metamask/controllers/dist/network/NetworkController.js
+@@ -44,6 +44,14 @@ var NetworksChainId;
+     NetworksChainId["optimismTest"] = "69";
+ })(NetworksChainId = exports.NetworksChainId || (exports.NetworksChainId = {}));
+ const LOCALHOST_RPC_URL = 'http://localhost:8545';
++
++const TESTNET_TICKER_SYMBOLS = {
++    RINKEBY: 'RinkebyETH',
++    GOERLI: 'GoerliETH',
++    ROPSTEN: 'RopstenETH',
++    KOVAN: 'KovanETH',
++};
++
+ /**
+  * Controller that creates and manages an Ethereum network provider
+  */
+@@ -192,10 +200,17 @@ class NetworkController extends BaseController_1.BaseController {
+      */
+     setProviderType(type) {
+         const _a = this.state.provider, { rpcTarget, chainId, nickname } = _a, providerState = __rest(_a, ["rpcTarget", "chainId", "nickname"]);
+-        this.update({
+-            provider: Object.assign(Object.assign({}, providerState), { type, ticker: 'ETH', chainId: NetworksChainId[type] }),
+-        });
+-        this.refreshNetwork();
++           // If testnet the ticker symbol should use a testnet prefix                                                                                                                                                                                                           
++
++     const testNetTicker = TESTNET_TICKER_SYMBOLS[type.toUpperCase()];
++
++     this.update({
++       provider: {
++         ...providerState,
++         ...{ type, ticker: testNetTicker ? testNetTicker : 'ETH', chainId: NetworksChainId[type] },
++       }})
++     
++     this.refreshNetwork();
+     }
+     /**
+      * Convenience method to update provider RPC settings.

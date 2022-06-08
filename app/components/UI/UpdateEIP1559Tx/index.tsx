@@ -244,7 +244,7 @@ const UpdateEIP1559Tx = ({
           swapsParams: undefined,
           conversionRate,
           currentCurrency,
-          nativeCurrency,
+          nativeCurrency: ticker,
           selectedGasFee: {
             ...gasFee,
             estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,

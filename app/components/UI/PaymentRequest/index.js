@@ -46,6 +46,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isTestNet } from '../../../util/networks';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -106,6 +107,13 @@ const createStyles = (colors) =>
       paddingTop: Device.isAndroid() ? 3 : 0,
       paddingLeft: 10,
       textTransform: 'uppercase',
+      color: colors.text.default,
+    },
+    testNetEth: {
+      ...fontStyles.normal,
+      fontSize: 24,
+      paddingTop: Device.isAndroid() ? 3 : 0,
+      paddingLeft: 10,
       color: colors.text.default,
     },
     fiatValue: {
@@ -410,7 +418,6 @@ class PaymentRequest extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
-    console.log('test', chainId)
     if (chainId === '1') {
       results = this.state.searchInputValue
         ? this.state.results
@@ -757,7 +764,7 @@ class PaymentRequest extends PureComponent {
                     testID={'request-amount-input'}
                     keyboardAppearance={themeAppearance}
                   />
-                  <Text style={styles.eth} numberOfLines={1}>
+                  <Text style={isTestNet ? styles.testNetEth : styles.eth} numberOfLines={1}>
                     {symbol}
                   </Text>
                 </View>
