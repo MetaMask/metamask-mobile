@@ -113,56 +113,54 @@ const DeleteMetaMetricsData = () => {
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
   return (
-    <>
-      <SettingsButtonSection
-        needsModal
-        sectionTitle={strings('app_settings.delete_metrics_title')}
-        sectionButtonText={strings('app_settings.delete_metrics_button')}
-        descriptionText={
-          hasCollectedData ? (
-            <>
-              <Text>
-                {strings('app_settings.delete_metrics_description_part_one')}
-              </Text>{' '}
-              <Text style={[styles.boldText]}>
-                {strings('app_settings.delete_metrics_description_part_two')}
-              </Text>{' '}
-              <Text>
-                {strings('app_settings.delete_metrics_description_part_three')}
-              </Text>{' '}
-              <TouchableOpacity onPress={openPrivacyPolicy}>
-                <Text style={[styles.blueText]}>
-                  {strings('app_settings.consensys_privacy_policy')}
-                </Text>
-              </TouchableOpacity>
-            </>
-          ) : (
-            <>
-              <Text>
-                {strings('app_settings.delete_metrics_description_part_four')}
-              </Text>{' '}
-              <TouchableOpacity onPress={openPrivacyPolicy}>
-                <Text style={[styles.blueText]}>
-                  {strings('app_settings.consensys_privacy_policy')}
-                </Text>
-              </TouchableOpacity>
-            </>
-          )
-        }
-        buttonDisabled={!hasCollectedData}
-        modalTitleText={strings(
-          'app_settings.delete_metrics_confirm_modal_title',
-        )}
-        modalDescriptionText={strings(
-          'app_settings.delete_metrics_confirm_modal_description',
-        )}
-        modalConfirmButtonText={strings('app_settings.clear')}
-        modalCancelButtonText={strings(
-          'app_settings.reset_account_cancel_button',
-        )}
-        modalOnConfirm={deleteMetaMetrics}
-      />
-    </>
+    <SettingsButtonSection
+      needsModal
+      sectionTitle={strings('app_settings.delete_metrics_title')}
+      sectionButtonText={strings('app_settings.delete_metrics_button')}
+      descriptionText={
+        hasCollectedData ? (
+          <>
+            <Text>
+              {strings('app_settings.delete_metrics_description_part_one')}
+            </Text>{' '}
+            <Text style={[styles.boldText]}>
+              {strings('app_settings.delete_metrics_description_part_two')}
+            </Text>{' '}
+            <Text>
+              {strings('app_settings.delete_metrics_description_part_three')}
+            </Text>{' '}
+            <TouchableOpacity onPress={openPrivacyPolicy}>
+              <Text style={[styles.blueText]}>
+                {strings('app_settings.consensys_privacy_policy')}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <Text>
+              {strings('app_settings.delete_metrics_description_part_four')}
+            </Text>{' '}
+            <TouchableOpacity onPress={openPrivacyPolicy}>
+              <Text style={[styles.blueText]}>
+                {strings('app_settings.consensys_privacy_policy')}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )
+      }
+      buttonDisabled={!hasCollectedData}
+      modalTitleText={strings(
+        'app_settings.delete_metrics_confirm_modal_title',
+      )}
+      modalDescriptionText={strings(
+        'app_settings.delete_metrics_confirm_modal_description',
+      )}
+      modalConfirmButtonText={strings('app_settings.clear')}
+      modalCancelButtonText={strings(
+        'app_settings.reset_account_cancel_button',
+      )}
+      modalOnConfirm={deleteMetaMetrics}
+    />
   );
 };
 
