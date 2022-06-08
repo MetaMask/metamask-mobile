@@ -39,7 +39,7 @@ const createStyles = (colors) =>
     },
     icon: {
       bottom: 8,
-      color: colors.icon.muted,
+      color: colors.icon.alternative,
       left: 4,
       position: 'relative',
     },
