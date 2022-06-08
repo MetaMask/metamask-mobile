@@ -1771,11 +1771,6 @@
     "loading": "Загрузка...",
     "not_found": "Медиа не найдено"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "RU CC",
-    "language": "ru",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-ru-ru.vtt?raw=true"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Расширенные параметры",
     "gas_limit": "Лимит газа",
