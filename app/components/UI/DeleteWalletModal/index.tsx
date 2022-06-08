@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -27,6 +27,10 @@ import Routes from '../../../constants/navigation/Routes';
 
 const DELETE_KEYWORD = 'delete';
 
+if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 const DeleteWalletModal = () => {
   const navigation = useNavigation();
   const { colors, themeAppearance } = useTheme();
@@ -40,12 +44,6 @@ const DeleteWalletModal = () => {
   const [showDeleteWarning] = useState<boolean>(false);
 
   const [resetWalletState, deleteUser] = useDeleteWallet();
-
-  useEffect(() => {
-    if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
-      UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-  }, []);
 
   const showConfirmModal = () => {
     setShowConfirm(true);
