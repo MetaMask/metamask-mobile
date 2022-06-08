@@ -302,7 +302,9 @@ class RevealPrivateCredential extends PureComponent {
     try {
       let privateCredential;
       if (!isPrivateKeyReveal) {
-        const mnemonic = await KeyringController.exportSeedPhrase(password);
+        const mnemonic = await KeyringController.exportSeedPhrase(
+          password,
+        ).toString();
         privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
       } else {
         privateCredential = await KeyringController.exportAccount(
@@ -400,7 +402,7 @@ class RevealPrivateCredential extends PureComponent {
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
         activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
+        inactiveTextColor={colors.text.alternative}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}

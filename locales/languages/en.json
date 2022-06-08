@@ -578,7 +578,19 @@
     "theme_os": "System",
     "theme_light": "Light",
     "theme_dark": "Dark",
-    "network_exists": "This network has already been added."
+    "network_exists": "This network has already been added.",
+    "delete_metrics_title": "Delete MetaMetrics data",
+    "delete_metrics_description_part_one": "This will delete historical MetaMetrics data associated with your wallet.",
+    "delete_metrics_description_part_two": "MetaMetrics data is anonymized usage and diagnostic data.",
+    "delete_metrics_description_part_three": "Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 7 days. View the",
+    "delete_metrics_description_part_four": "No MetaMetrics data has been stored. View the",
+    "consensys_privacy_policy": "ConsenSys Privacy Policy.",
+    "delete_metrics_button": "Delete MetaMetrics data",
+    "delete_metrics_confirm_modal_title": "Delete MetaMetrics data?",
+    "delete_metrics_confirm_modal_description": "We are about to remove all your MetaMetrics data. Are you sure?",
+    "delete_wallet_data_title": "Delete wallet data",
+    "delete_wallet_data_description": "This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.",
+    "delete_wallet_data_button": "Delete wallet data"
   },
   "app_information": {
     "title": "Information",
@@ -684,7 +696,9 @@
     "cancel": "Cancel",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
-    "attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase."
+    "attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase.",
+    "not_allowed_error_title": "Enable camera access",
+    "not_allowed_error_desc": "Camera access needed to scan a QR code associated with an account address or a contract address"
   },
   "action_view": {
     "cancel": "Cancel",
@@ -725,6 +739,8 @@
     "insufficient": "Insufficient funds",
     "insufficient_amount": "You need {{amount}} more {{tokenSymbol}} to complete this transaction.",
     "buy_more_eth": "Buy more ETH",
+    "buy_more": "Buy more",
+    "go_to_faucet": "Go to faucet",
     "get_ether": "Get Ether for the {{networkName}} network.",
     "insufficient_tokens": "Insufficient {{token}}",
     "invalid_address": "Invalid address",
@@ -1884,11 +1900,6 @@
   "media_player": {
     "loading": "Loading...",
     "not_found": "Media not found"
-  },
-  "secret_phrase_video_subtitle": {
-    "title": "EN CC",
-    "language": "en",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
   },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Advanced options",
