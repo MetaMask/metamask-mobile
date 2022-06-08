@@ -31,13 +31,13 @@ import StyledButton from '../../StyledButton';
 import BaseListItem from '../../../Base/ListItem';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 
-import { callbackBaseUrl } from '../orderProcessor/aggregator';
 import useInterval from '../../../hooks/useInterval';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { PROVIDER_LINKS } from '../types';
+import useAnalytics from '../hooks/useAnalytics';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -182,7 +182,9 @@ const GetQuotes = () => {
     selectedAsset,
     selectedAddress,
     selectedFiatCurrencyId,
+    selectedChainId,
     appConfig,
+    callbackBaseUrl,
     sdkError,
   } = useFiatOnRampSDK();
 
@@ -191,6 +193,7 @@ const GetQuotes = () => {
 
   const { params } = useRoute();
   const navigation = useNavigation();
+  const trackEvent = useAnalytics();
   const [isLoading, setIsLoading] = useState(true);
   const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
   const [firstFetchCompleted, setFirstFetchCompleted] = useState(false);
@@ -235,10 +238,18 @@ const GetQuotes = () => {
     callbackBaseUrl,
   );
 
-  const filteredQuotes = useMemo(
+  const filteredQuotes: QuoteResponse[] = useMemo(
     () => (quotes || []).filter(({ error }) => !error).sort(sortByAmountOut),
     [quotes],
   );
+
+  const handleCancelPress = useCallback(() => {
+    trackEvent('ONRAMP_CANCELED', {
+      location: 'Quotes Screen',
+      chain_id_destination: selectedChainId,
+      results_count: filteredQuotes.length,
+    });
+  }, [filteredQuotes.length, selectedChainId, trackEvent]);
 
   // we only activate this interval polling once the first fetch of quotes is successfull
   useInterval(
@@ -300,9 +311,10 @@ const GetQuotes = () => {
         navigation,
         { title: strings('fiat_on_ramp_aggregator.select_a_quote') },
         colors,
+        handleCancelPress,
       ),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, handleCancelPress]);
 
   useEffect(() => {
     if (isFetchingQuotes) return;
@@ -310,27 +322,143 @@ const GetQuotes = () => {
   }, [isFetchingQuotes]);
 
   useEffect(() => {
+    if (
+      shouldFinishAnimation &&
+      quotes &&
+      !isFetchingQuotes &&
+      pollingCyclesLeft >= 0
+    ) {
+      const quotesWihoutError: QuoteResponse[] = quotes
+        .filter(({ error }) => !error)
+        .sort(sortByAmountOut);
+      const totals = quotesWihoutError.reduce(
+        (acc, curr) => {
+          const totalFee =
+            acc.totalFee +
+            ((curr?.networkFee || 0) +
+              (curr?.providerFee || 0) +
+              (curr?.extraFee || 0));
+          return {
+            amountOut: acc.amountOut + (curr?.amountOut || 0),
+            totalFee,
+            totalGasFee: acc.totalGasFee + (curr?.networkFee || 0),
+            totalProccessingFee:
+              acc.totalProccessingFee + (curr?.providerFee || 0),
+            feeAmountRatio:
+              acc.feeAmountRatio + totalFee / (curr?.amountOut || 0),
+          };
+        },
+        {
+          amountOut: 0,
+          totalFee: 0,
+          totalGasFee: 0,
+          totalProccessingFee: 0,
+          feeAmountRatio: 0,
+        },
+      );
+      trackEvent('ONRAMP_QUOTES_RECEIVED', {
+        currency_source: (params as any)?.fiatCurrency?.symbol as string,
+        currency_destination: (params as any)?.asset?.symbol as string,
+        chain_id_destination: selectedChainId,
+        amount: (params as any)?.amount as number,
+        refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+        results_count: filteredQuotes.length,
+        average_crypto_out: totals.amountOut / filteredQuotes.length,
+        average_total_fee: totals.totalFee / filteredQuotes.length,
+        average_gas_fee: totals.totalGasFee / filteredQuotes.length,
+        average_processing_fee:
+          totals.totalProccessingFee / filteredQuotes.length,
+        provider_onramp_list: filteredQuotes.map(
+          ({ provider }) => provider.name,
+        ),
+        provider_onramp_first: filteredQuotes[0]?.provider?.name,
+        average_total_fee_of_amount:
+          totals.feeAmountRatio / filteredQuotes.length,
+        provider_onramp_last:
+          filteredQuotes.length > 1
+            ? filteredQuotes[filteredQuotes.length - 1]?.provider?.name
+            : undefined,
+      });
+
+      if (quotes.length > quotesWihoutError.length) {
+        trackEvent('ONRAMP_QUOTE_ERROR', {
+          provider_onramp_list: quotes
+            .filter(({ error }) => Boolean(error))
+            .map(({ provider }) => provider.name),
+          currency_source: (params as any)?.fiatCurrency?.symbol as string,
+          currency_destination: (params as any)?.asset?.symbol as string,
+          chain_id_destination: selectedChainId,
+          amount: (params as any)?.amount as number,
+        });
+      }
+    }
+  }, [
+    appConfig.POLLING_CYCLES,
+    filteredQuotes,
+    isFetchingQuotes,
+    params,
+    pollingCyclesLeft,
+    quotes,
+    selectedChainId,
+    shouldFinishAnimation,
+    trackEvent,
+  ]);
+
+  useEffect(() => {
     if (filteredQuotes && filteredQuotes.length > 0) {
       setProviderId(filteredQuotes[0].provider?.id);
     }
   }, [filteredQuotes]);
 
-  const handleOnQuotePress = useCallback((quote) => {
+  const handleOnQuotePress = useCallback((quote: QuoteResponse) => {
     setProviderId(quote.provider.id);
   }, []);
 
-  const handleInfoPress = useCallback((quote) => {
-    if (quote?.provider) {
-      setSelectedProviderInfo(quote.provider);
-      setShowProviderInfo(true);
-    }
-  }, []);
+  const handleInfoPress = useCallback(
+    (quote) => {
+      if (quote?.provider) {
+        setSelectedProviderInfo(quote.provider);
+        setShowProviderInfo(true);
+        trackEvent('ONRAMP_PROVIDER_DETAILS_VIEWED', {
+          provider_onramp: quote.provider.name,
+        });
+      }
+    },
+    [trackEvent],
+  );
 
   const handleOnPressBuy = useCallback(
-    (quote) => {
+    (quote, index) => {
       quote?.provider?.id && navigation.navigate('Checkout', { ...quote });
+      const totalFee =
+        (quote.networkFee || 0) +
+        (quote.providerFee || 0) +
+        (quote.extraFee || 0);
+      trackEvent('ONRAMP_PROVIDER_SELECTED', {
+        provider_onramp: quote.provider.name,
+        refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+        quote_position: index + 1,
+        results_count: filteredQuotes.length,
+        crypto_out: quote.amountOut || 0,
+        currency_source: (params as any)?.fiatCurrency?.symbol as string,
+        currency_destination: (params as any)?.asset?.symbol as string,
+        chain_id_destination: selectedChainId,
+        total_fee: totalFee,
+        gas_fee: quote.networkFee || 0,
+        processing_fee: quote.providerFee || 0,
+        exchange_rate:
+          ((quote.amountIn || 0) - totalFee) / (quote.amountOut || 0),
+      });
     },
-    [navigation],
+    [
+      appConfig.POLLING_CYCLES,
+      filteredQuotes.length,
+      navigation,
+      params,
+      pollingCyclesLeft,
+      selectedChainId,
+      trackEvent,
+    ],
   );
 
   const handleFetchQuotes = useCallback(() => {
@@ -340,7 +468,23 @@ const GetQuotes = () => {
     setPollingCyclesLeft(appConfig.POLLING_CYCLES - 1);
     setRemainingTime(appConfig.POLLING_INTERVAL);
     fetchQuotes();
-  }, [appConfig.POLLING_CYCLES, appConfig.POLLING_INTERVAL, fetchQuotes]);
+    trackEvent('ONRAMP_QUOTES_REQUESTED', {
+      currency_source: (params as any)?.fiatCurrency?.symbol as string,
+      currency_destination: (params as any)?.asset?.symbol as string,
+      payment_method_id: selectedPaymentMethodId as string,
+      chain_id_destination: selectedChainId,
+      amount: (params as any)?.amount as number,
+      location: 'Quotes Screen',
+    });
+  }, [
+    appConfig.POLLING_CYCLES,
+    appConfig.POLLING_INTERVAL,
+    fetchQuotes,
+    params,
+    selectedChainId,
+    selectedPaymentMethodId,
+    trackEvent,
+  ]);
 
   const QuotesPolling = () => (
     <View style={styles.timerWrapper}>
@@ -502,7 +646,7 @@ const GetQuotes = () => {
                   <Quote
                     quote={quote}
                     onPress={() => handleOnQuotePress(quote)}
-                    onPressBuy={() => handleOnPressBuy(quote)}
+                    onPressBuy={() => handleOnPressBuy(quote, index)}
                     highlighted={quote.provider.id === providerId}
                     showInfo={() => handleInfoPress(quote)}
                   />
