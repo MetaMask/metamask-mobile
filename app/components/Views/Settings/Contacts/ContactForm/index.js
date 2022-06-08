@@ -367,7 +367,7 @@ class ContactForm extends PureComponent {
                   <AntIcon
                     name="scan1"
                     size={20}
-                    color={colors.icon.default}
+                    color={colors.primary.default}
                     style={styles.scanIcon}
                   />
                 </TouchableOpacity>

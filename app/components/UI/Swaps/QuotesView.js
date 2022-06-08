@@ -11,7 +11,6 @@ import {
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -149,7 +148,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     arrowDown: {
-      color: colors.icon.default,
+      color: colors.icon.alternative,
       fontSize: Device.isSmallDevice() ? 22 : 25,
       marginHorizontal: 15,
       marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -212,7 +211,7 @@ const createStyles = (colors) =>
     infoIcon: {
       fontSize: 12,
       margin: 3,
-      color: colors.icon.muted,
+      color: colors.icon.alternative,
     },
     ctaButton: {
       width: '100%',
@@ -236,7 +235,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 2,
     },
     gasInfoIcon: {
-      color: colors.icon.muted,
+      color: colors.icon.alternative,
     },
     hitSlop: {
       top: 10,
@@ -2067,7 +2066,10 @@ function SwapsQuotesView({
                     {`${strings('swaps.quotes_include_fee', {
                       fee: selectedQuote.fee,
                     })} `}
-                    <FAIcon name="info-circle" style={styles.infoIcon} />
+                    <MaterialCommunityIcons
+                      name="information"
+                      style={styles.infoIcon}
+                    />
                   </Text>
                 </TouchableOpacity>
               </View>
