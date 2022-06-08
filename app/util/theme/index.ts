@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
 import { Colors, AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import { colors as colorTheme, typography } from '@metamask/design-tokens';
+import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import Device from '../device';
 
 /**
@@ -10,9 +10,9 @@ import Device from '../device';
  * TODO: Convert classes into functional components and remove contextType
  */
 export const mockTheme = {
-  colors: colorTheme.light,
+  colors: lightTheme.colors,
   themeAppearance: 'light',
-  typography,
+  typography: lightTheme.typography,
 };
 
 export const ThemeContext = React.createContext<any>(undefined);
@@ -65,47 +65,47 @@ export const useAppTheme = (): Theme => {
   const setDarkStatusBar = () => {
     StatusBar.setBarStyle('light-content', true);
     Device.isAndroid() &&
-      StatusBar.setBackgroundColor(colorTheme.dark.background.default);
+      StatusBar.setBackgroundColor(darkTheme.colors.background.default);
   };
 
   const setLightStatusBar = () => {
     StatusBar.setBarStyle('dark-content', true);
     Device.isAndroid() &&
-      StatusBar.setBackgroundColor(colorTheme.light.background.default);
+      StatusBar.setBackgroundColor(lightTheme.colors.background.default);
   };
 
   switch (appTheme) {
     /* eslint-disable no-fallthrough */
     case AppThemeKey.os: {
       if (osThemeName === AppThemeKey.light) {
-        colors = colorTheme.light;
+        colors = lightTheme.colors;
         setLightStatusBar();
         break;
       } else if (osThemeName === AppThemeKey.dark) {
-        colors = colorTheme.dark;
+        colors = darkTheme.colors;
         setDarkStatusBar();
         break;
       } else {
         // Cover cases where OS returns undefined
-        colors = colorTheme.light;
+        colors = lightTheme.colors;
         setLightStatusBar();
       }
     }
     case AppThemeKey.light:
-      colors = colorTheme.light;
+      colors = lightTheme.colors;
       setLightStatusBar();
       break;
     case AppThemeKey.dark:
-      colors = colorTheme.dark;
+      colors = darkTheme.colors;
       setDarkStatusBar();
       break;
     default:
       // Default uses light theme
-      colors = colorTheme.light;
+      colors = lightTheme.colors;
       setLightStatusBar();
   }
 
-  return { colors, themeAppearance, typography };
+  return { colors, themeAppearance, typography: lightTheme.typography };
 };
 
 export const useAppThemeFromContext = (): Theme => {
