@@ -18,8 +18,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
-import AnalyticsV2, { ANALYTICS_REQUEST_DATA_DELETION } from '../../../../../util/analyticsV2';
-import Device from '../../../../../util/device';
+import AnalyticsV2, {
+  ANALYTICS_EVENTS_V2,
+} from '../../../../../util/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 
 const createStyles = (colors: any) =>
@@ -79,11 +80,14 @@ const DeleteMetaMetricsData = () => {
     const deviceOSVersion = Platform.Version;
     const deviceBrand = await getBrand();
     const deviceId = await getDeviceId();
-    AnalyticsV2.trackEvent(ANALYTICS_REQUEST_DATA_DELETION, {
-      os: deviceOS,
-      os_version: deviceOSVersion,
-      device_model: `${deviceBrand} ${deviceId}`,
-    });
+    AnalyticsV2.trackEvent(
+      ANALYTICS_EVENTS_V2.ANALYTICS_REQUEST_DATA_DELETION,
+      {
+        os: deviceOS,
+        os_version: deviceOSVersion,
+        device_model: `${deviceBrand} ${deviceId}`,
+      },
+    );
   };
 
   const deleteMetaMetrics = async () => {
