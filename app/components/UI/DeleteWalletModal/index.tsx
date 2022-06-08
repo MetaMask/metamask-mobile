@@ -41,7 +41,6 @@ const DeleteWalletModal = () => {
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
   const [deleteText, setDeleteText] = useState<string>('');
   const [disableButton, setDisableButton] = useState<boolean>(true);
-  const [showDeleteWarning] = useState<boolean>(false);
 
   const [resetWalletState, deleteUser] = useDeleteWallet();
 
@@ -123,11 +122,6 @@ const DeleteWalletModal = () => {
                 placeholderTextColor={colors.text.muted}
                 keyboardAppearance={themeAppearance}
               />
-              {showDeleteWarning && (
-                <Text style={styles.deleteWarningMsg}>
-                  {strings('login.cant_proceed')}
-                </Text>
-              )}
             </View>
           </TouchableWithoutFeedback>
         </WarningExistingUserModal>
