@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Alert,
   Linking,
@@ -7,6 +7,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
+import {
+  DeletionTaskStatus,
+  ResponseStatus,
+} from '../../../../../core/Analytics/constants';
 import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
@@ -39,12 +43,27 @@ const DeleteMetaMetricsData = () => {
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
     Analytics.getEnabled(),
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [deletionTaskCreated, setDeletionTaskCreated] =
+    useState<boolean>(false);
 
   useEffect(() => {
     if (!Analytics.getEnabled() && Analytics.getHasCollectedData()) {
       setHasCollectedData(false);
     }
   }, []);
+
+  const updateButtonText = (deletionTaskStatus: DeletionTaskStatus) => {
+    switch (deletionTaskStatus) {
+      case DeletionTaskStatus.pending:
+      case DeletionTaskStatus.staging:
+      case DeletionTaskStatus.started:
+        setDeletionTaskCreated(true);
+        break;
+      default:
+        setDeletionTaskCreated(false);
+    }
+  };
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -58,13 +77,42 @@ const DeleteMetaMetricsData = () => {
     );
   };
 
+  const showDeletionTaskStatus = (deletionTaskStatus: DeletionTaskStatus) => {
+    Alert.alert(
+      strings('app_settings.delete_data_status_title'),
+      `${strings(
+        'app_settings.delete_metrics_error_description',
+      )} ${deletionTaskStatus}`,
+      [
+        {
+          text: strings('app_settings.ok'),
+        },
+      ],
+    );
+  };
+
   const deleteMetaMetrics = async () => {
     try {
-      await Analytics.createDataDeletionTask();
-      setHasCollectedData(!Analytics.getEnabled());
+      const response = await Analytics.createDataDeletionTask();
+      if (response.status === ResponseStatus.ok) {
+        setHasCollectedData(!Analytics.getEnabled());
+        updateButtonText(DeletionTaskStatus.pending);
+      } else {
+        showDeleteTaskError();
+      }
     } catch (error: any) {
       showDeleteTaskError();
       Logger.log('Error deleteMetaMetrics -', error);
+    }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const checkDeletionTaskStatus = async () => {
+    try {
+      const response = await Analytics.checkStatusDataDeletionTask();
+      showDeletionTaskStatus(response.deletionTaskStatus);
+    } catch (error: any) {
+      Logger.log('Error checkDeletionTaskStatus -', error);
     }
   };
 
