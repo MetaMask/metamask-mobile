@@ -29,9 +29,9 @@ storiesOf('Getting Started', module).add('Introduction', () => {
       <Text>Welcome to the MetaMask Mobile Storybook.</Text>
       <Title>Building Locally and Contributing</Title>
       <Text>
-        If you are looking to get a local build of Metamask Mobile up and
+        If you are looking to get a local build of MetaMask Mobile up and
         running or contribute to the mobile app codebase please read the
-        Metamask{' '}
+        MetaMask{' '}
         <Text link onPress={openMetaMaskMobileReadme}>
           README.md
         </Text>

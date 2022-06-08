@@ -64,13 +64,15 @@ const createStyles = (colors) =>
       borderRadius: 30,
     },
     copyButton: {
-      backgroundColor: colors.icon.muted,
-      color: colors.text.default,
+      backgroundColor: colors.background.default,
+      color: colors.primary.default,
       borderRadius: 12,
       overflow: 'hidden',
       paddingVertical: 3,
       paddingHorizontal: 6,
       marginHorizontal: 6,
+      borderWidth: 1,
+      borderColor: colors.primary.default,
     },
     actionRow: {
       flexDirection: 'row',
@@ -315,7 +317,7 @@ class ReceiveRequest extends PureComponent {
               <EvilIcons
                 name={Device.isIos() ? 'share-apple' : 'share-google'}
                 size={25}
-                color={colors.icon.default}
+                color={colors.primary.default}
               />
             </TouchableOpacity>
           </TouchableOpacity>
