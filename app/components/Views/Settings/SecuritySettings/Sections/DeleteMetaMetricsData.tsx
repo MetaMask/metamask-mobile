@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Alert,
   Linking,
@@ -44,26 +44,20 @@ const DeleteMetaMetricsData = () => {
     Analytics.getEnabled(),
   );
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [deletionTaskCreated, setDeletionTaskCreated] =
-    useState<boolean>(false);
+  const [deletionTaskStatus, setDeletionTaskStatus] =
+    useState<DeletionTaskStatus>(DeletionTaskStatus.unknown);
 
-  useEffect(() => {
-    if (!Analytics.getEnabled() && Analytics.getHasCollectedData()) {
-      setHasCollectedData(false);
-    }
-  }, []);
-
-  const updateButtonText = (deletionTaskStatus: DeletionTaskStatus) => {
+  const enableDeleteData = useCallback(() => {
     switch (deletionTaskStatus) {
       case DeletionTaskStatus.pending:
       case DeletionTaskStatus.staging:
       case DeletionTaskStatus.started:
-        setDeletionTaskCreated(true);
-        break;
+      case DeletionTaskStatus.success:
+        return false;
       default:
-        setDeletionTaskCreated(false);
+        return true;
     }
-  };
+  }, [deletionTaskStatus]);
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -77,26 +71,12 @@ const DeleteMetaMetricsData = () => {
     );
   };
 
-  const showDeletionTaskStatus = (deletionTaskStatus: DeletionTaskStatus) => {
-    Alert.alert(
-      strings('app_settings.delete_data_status_title'),
-      `${strings(
-        'app_settings.delete_metrics_error_description',
-      )} ${deletionTaskStatus}`,
-      [
-        {
-          text: strings('app_settings.ok'),
-        },
-      ],
-    );
-  };
-
   const deleteMetaMetrics = async () => {
     try {
       const response = await Analytics.createDataDeletionTask();
       if (response.status === ResponseStatus.ok) {
-        setHasCollectedData(!Analytics.getEnabled());
-        updateButtonText(DeletionTaskStatus.pending);
+        setDeletionTaskStatus(DeletionTaskStatus.pending);
+        setHasCollectedData(false);
       } else {
         showDeleteTaskError();
       }
@@ -106,15 +86,29 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const checkDeletionTaskStatus = async () => {
+  const checkDeletionTaskStatus = useCallback(async () => {
     try {
       const response = await Analytics.checkStatusDataDeletionTask();
-      showDeletionTaskStatus(response.deletionTaskStatus);
+      setDeletionTaskStatus(response.deletionTaskStatus);
     } catch (error: any) {
       Logger.log('Error checkDeletionTaskStatus -', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      const deletionTaskId = Analytics.getDeletionTaskId();
+      if (deletionTaskId) {
+        await checkDeletionTaskStatus();
+      }
+    };
+
+    if (!Analytics.getEnabled() && enableDeleteData()) {
+      setHasCollectedData(false);
+    }
+
+    checkStatus();
+  }, [checkDeletionTaskStatus, enableDeleteData, deletionTaskStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 

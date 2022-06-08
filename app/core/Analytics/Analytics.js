@@ -1,6 +1,5 @@
 'use strict';
 
-import { METRICS_OPT_IN, AGREED, DENIED } from '../../constants/storage';
 import { Appearance, NativeModules } from 'react-native';
 import { util as controllersUtils } from '@metamask/controllers';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -9,6 +8,12 @@ import Logger from '../../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import { store } from '../../store';
 import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
+import {
+  METRICS_OPT_IN,
+  AGREED,
+  DENIED,
+  ANALYTICS_DATA_DELETION_TASK_ID,
+} from '../../constants/storage';
 import { ResponseStatus, DeletionTaskStatus } from './constants';
 
 const RCTAnalytics = NativeModules.Analytics;
@@ -36,11 +41,6 @@ class Analytics {
    * Whether the manager has permission to send analytics
    */
   enabled;
-
-  /**
-   * Whether the manager has collected data
-   */
-  dataCollected;
 
   /**
    *
@@ -171,11 +171,16 @@ class Analytics {
       });
 
       if (response.status === ResponseStatus.ok) {
-        this.dataDeletionTaskId = response[0].tracking_id;
-        this.dataCollected = false;
+        this.dataDeletionTaskId = response.results.task_id;
+
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_TASK_ID,
+          this.dataDeletionTaskId,
+        );
+
         return {
           status: response.status,
-          deletionTaskStatus: response[0].status,
+          deletionTaskStatus: ResponseStatus.pending,
         };
       }
       return { status: response.status, error: response.error };
@@ -223,18 +228,24 @@ class Analytics {
       },
     });
     const { results } = response;
+
+    if (results.status === DeletionTaskStatus.success) {
+      this.dataDeletionTaskId = undefined;
+    }
+
     return {
       status: ResponseStatus.ok,
-      deletionTaskStatus: results[0].status,
+      deletionTaskStatus: results.status,
     };
   }
 
   /**
    * Creates a Analytics instance
    */
-  constructor(metricsOptIn) {
+  constructor(metricsOptIn, dataDeletionTaskId) {
     if (!Analytics.instance) {
       this.enabled = metricsOptIn === AGREED;
+      this.dataDeletionTaskId = dataDeletionTaskId;
       this.listeners = [];
       Analytics.instance = this;
       if (!__DEV__) {
@@ -436,11 +447,11 @@ class Analytics {
    * @param {string} compliance - CCPA or GDPR compliance
    */
   createDataDeletionTask(compliance = 'GDPR') {
-    this._createDataDeletionTask(compliance);
+    return this._createDataDeletionTask(compliance);
   }
 
   checkStatusDataDeletionTask() {
-    this._checkStatusDataDeletionTask();
+    return this._checkStatusDataDeletionTask();
   }
 }
 
@@ -449,7 +460,10 @@ let instance;
 export default {
   init: async () => {
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-    instance = new Analytics(metricsOptIn);
+    const deleteTaskId = await DefaultPreference.get(
+      ANALYTICS_DATA_DELETION_TASK_ID,
+    );
+    instance = new Analytics(metricsOptIn, deleteTaskId);
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
       instance.remoteVariables = JSON.parse(vars);
@@ -473,8 +487,8 @@ export default {
   getDistinctId() {
     return instance && instance.getDistinctId();
   },
-  getHasCollectedData() {
-    return instance && instance.dataCollected;
+  getDeletionTaskId() {
+    return instance && instance.dataDeletionTaskId;
   },
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
