@@ -865,7 +865,6 @@ function SwapsQuotesView({
       TransactionController,
       newSwapsTransactions,
       approvalTransactionMetaId,
-      isHardwareAccount,
     ) => {
       if (!selectedQuote) {
         return;
@@ -884,7 +883,6 @@ function SwapsQuotesView({
           process.env.MM_FOX_CODE,
           WalletDevice.MM_MOBILE,
         );
-        console.log('Swap Tx Added ->', transactionMeta.id);
         updateSwapsTransactions(
           transactionMeta,
           approvalTransactionMetaId,
@@ -892,14 +890,6 @@ function SwapsQuotesView({
         );
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
-        if (isHardwareAccount) {
-          TransactionController.hub.once(
-            `${transactionMeta.id}:finished`,
-            () => {
-              navigation.dangerouslyGetParent()?.pop();
-            },
-          );
-        }
       } catch (e) {
         // send analytics
       }
@@ -909,7 +899,6 @@ function SwapsQuotesView({
       gasEstimateType,
       gasEstimates,
       gasLimit,
-      navigation,
       selectedQuote,
       sourceToken,
       updateSwapsTransactions,
@@ -948,11 +937,33 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
+        if (isHardwareAccount) {
+          TransactionController.hub.once(
+            `${transactionMeta.id}:finished`,
+            (transactionMeta) => {
+              if (transactionMeta.status === TransactionStatus.submitted) {
+                handleSwapTransaction(
+                  TransactionController,
+                  newSwapsTransactions,
+                  approvalTransactionMetaId,
+                  isHardwareAccount,
+                );
+              }
+            },
+          );
+        }
       } catch (e) {
         // send analytics
       }
     },
-    [approvalTransaction, gasEstimateType, gasEstimates, sourceToken],
+    [
+      approvalTransaction,
+      gasEstimateType,
+      gasEstimates,
+      handleSwapTransaction,
+      sourceToken.address,
+      sourceToken.decimals,
+    ],
   );
 
   const handleCompleteSwap = useCallback(async () => {
@@ -976,6 +987,11 @@ function SwapsQuotesView({
         approvalTransactionMetaId,
         isHardwareAccount,
       );
+
+      if (isHardwareAccount) {
+        navigation.dangerouslyGetParent()?.pop();
+        return;
+      }
     }
 
     handleSwapTransaction(
