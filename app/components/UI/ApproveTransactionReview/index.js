@@ -79,12 +79,12 @@ const createStyles = (colors) =>
       paddingHorizontal: 16,
     },
     tokenKey: {
-      fontSize: 12, 
-      marginRight: 5
+      fontSize: 12,
+      marginRight: 5,
     },
     tokenValue: {
-      fontSize: 12, 
-      width: '75%'
+      fontSize: 12,
+      width: '75%',
     },
     explanation: {
       ...fontStyles.normal,
