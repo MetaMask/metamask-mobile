@@ -167,7 +167,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const track = useCallback(
     (...eventArgs) => {
       InteractionManager.runAfterInteractions(async () => {
-        if (Analytics.getEnabled()) {
+        if (Analytics.checkEnabled()) {
           AnalyticsV2.trackEvent(eventArgs[0], eventArgs[1]);
           return;
         }

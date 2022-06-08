@@ -41,9 +41,8 @@ const DeleteMetaMetricsData = () => {
   const styles = createStyles(colors);
 
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
-    Analytics.getEnabled(),
+    Analytics.checkEnabled(),
   );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [deletionTaskStatus, setDeletionTaskStatus] =
     useState<DeletionTaskStatus>(DeletionTaskStatus.unknown);
 
@@ -103,7 +102,7 @@ const DeleteMetaMetricsData = () => {
       }
     };
 
-    if (!Analytics.getEnabled() && enableDeleteData()) {
+    if (!Analytics.checkEnabled() && enableDeleteData()) {
       setHasCollectedData(false);
     }
 
@@ -164,4 +163,4 @@ const DeleteMetaMetricsData = () => {
   );
 };
 
-export default DeleteMetaMetricsData;
+export default React.memo(DeleteMetaMetricsData);

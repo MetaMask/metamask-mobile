@@ -105,7 +105,6 @@ class Analytics {
     const isAnalyticsPreferenceSelectedEvent =
       ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
-    if (!this.dataCollected) this.dataCollected = true;
     this._setUserProfileProperties();
     if (!__DEV__) {
       if (!anonymously) {
@@ -146,7 +145,6 @@ class Analytics {
       Logger.log(
         `Analytics Deletion Task Created for following ${compliance} compliance`,
       );
-      this.dataCollected = false;
       return {
         status: ResponseStatus.ok,
         deletionTaskStatus: DeletionTaskStatus.pending,
@@ -183,8 +181,10 @@ class Analytics {
           deletionTaskStatus: ResponseStatus.pending,
         };
       }
+      Logger.log(`Analytics Deletion Task Error - ${response.error}`);
       return { status: response.status, error: response.error };
     } catch (error) {
+      Logger.log(`Analytics Deletion Task Error - ${error}`);
       return { status: ResponseStatus.error, error };
     }
   }
@@ -481,7 +481,7 @@ export default {
   disableInstance() {
     return instance && instance.disableInstance();
   },
-  getEnabled() {
+  checkEnabled() {
     return instance && instance.enabled;
   },
   getDistinctId() {

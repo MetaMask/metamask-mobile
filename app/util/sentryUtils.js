@@ -33,7 +33,5 @@ export function setupSentry() {
   });
 }
 
-export function deleteSentryData() {
-  // eslint-disable-next-line no-console
-  console.log('Delete Sentry Data');
-}
+// eslint-disable-next-line no-empty-function
+export function deleteSentryData() {}

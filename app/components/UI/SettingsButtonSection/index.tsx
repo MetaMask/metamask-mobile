@@ -76,4 +76,4 @@ const SettingsButtonSection = ({
   );
 };
 
-export default SettingsButtonSection;
+export default React.memo(SettingsButtonSection);

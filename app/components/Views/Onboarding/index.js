@@ -364,7 +364,7 @@ class Onboarding extends PureComponent {
 
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.getEnabled()) {
+      if (Analytics.checkEnabled()) {
         AnalyticsV2.trackEvent(...eventArgs);
         return;
       }

@@ -100,7 +100,7 @@ const DeleteWalletModal = () => {
           cancelText={strings('login.delete_my')}
           cancelButtonDisabled={disableButton}
           onCancelPress={deleteWallet}
-          onRequestClose={() => null}
+          onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -121,7 +121,6 @@ const DeleteWalletModal = () => {
                 baseColor={colors.border.default}
                 tintColor={colors.primary.default}
                 placeholderTextColor={colors.text.muted}
-                onSubmitEditing={() => null}
                 keyboardAppearance={themeAppearance}
               />
               {showDeleteWarning && (
@@ -137,7 +136,7 @@ const DeleteWalletModal = () => {
           warningModalVisible
           cancelText={strings('login.i_understand')}
           onCancelPress={showConfirmModal}
-          onRequestClose={() => null}
+          onRequestClose={triggerClose}
           onConfirmPress={triggerClose}
         >
           <View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>

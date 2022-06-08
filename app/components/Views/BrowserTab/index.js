@@ -653,7 +653,7 @@ export const BrowserTab = (props) => {
    */
   const injectHomePageScripts = async (bookmarks) => {
     const { current } = webviewRef;
-    const analyticsEnabled = Analytics.getEnabled();
+    const analyticsEnabled = Analytics.checkEnabled();
     const disctinctId = await Analytics.getDistinctId();
     const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};

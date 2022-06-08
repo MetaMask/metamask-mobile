@@ -376,7 +376,7 @@ class Settings extends PureComponent {
   componentDidMount = async () => {
     this.updateNavBar();
     const biometryType = await SecureKeychain.getSupportedBiometryType();
-    const analyticsEnabled = Analytics.getEnabled();
+    const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
