@@ -111,6 +111,10 @@ class Tokens extends PureComponent {
      */
     tokens: PropTypes.array,
     /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
+    /**
      * ETH to current currency conversion rate
      */
     conversionRate: PropTypes.number,
@@ -273,11 +277,14 @@ class Tokens extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
-        button_location: 'Home Screen',
-        button_copy: 'Buy ETH',
-      });
+      Analytics.trackEventWithParameters(
+        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
+        {
+          text: 'Buy Native Token',
+          location: 'Home Screen',
+          chain_id_destination: this.props.chainId,
+        },
+      );
     });
   };
 
@@ -361,6 +368,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:
