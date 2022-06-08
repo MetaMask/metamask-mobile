@@ -1,11 +1,5 @@
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  FlatList,
-  InteractionManager,
-} from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +15,7 @@ import Logger from '../../../util/Logger';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { getDecimalChainId } from '../../../util/networks';
+import { FlatList } from 'react-native-gesture-handler';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -223,7 +218,7 @@ const DetectedTokens = () => {
   const getTokenId = (item: TokenType) => item.address;
 
   const renderDetectedTokens = () => (
-    <FlatList<TokenType>
+    <FlatList
       style={styles.tokenList}
       data={detectedTokens}
       keyExtractor={getTokenId}
