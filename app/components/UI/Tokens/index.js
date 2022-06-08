@@ -28,6 +28,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
+import { isTestNet } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,6 +73,11 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.normal,
       textTransform: 'uppercase',
+    },
+    testNetBalance: {
+      fontSize: 16,
+      color: colors.text.default,
+      ...fontStyles.normal,
     },
     balanceFiat: {
       fontSize: 12,
@@ -254,7 +260,7 @@ class Tokens extends PureComponent {
         )}
 
         <View style={styles.balances} testID={'balance'}>
-          <Text style={styles.balance}>{mainBalance}</Text>
+          <Text style={isTestNet ? styles.testNetBalance : styles.balance}>{mainBalance}</Text>
           {secondaryBalance ? (
             <Text
               style={[

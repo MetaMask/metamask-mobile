@@ -196,6 +196,8 @@ class TransactionEditor extends PureComponent {
         });
       }
 
+      console.log('dappSuggestedGas', dappSuggestedGas, gasSelected)
+
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
@@ -316,9 +318,12 @@ class TransactionEditor extends PureComponent {
   };
 
   parseTransactionDataEIP1559 = (gasFee, options) => {
+    const { ticker } = this.props;
+
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
         ...this.props,
+        nativeCurrency: ticker,
         selectedGasFee: {
           ...gasFee,
           estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee,
@@ -335,9 +340,12 @@ class TransactionEditor extends PureComponent {
   };
 
   parseTransactionDataLegacy = (gasFee, options) => {
+    const { ticker } = this.props;
+
     const parsedTransactionLegacy = parseTransactionLegacy(
       {
         ...this.props,
+        nativeCurrency: ticker,
         selectedGasFee: gasFee,
       },
       { onlyGas: true },

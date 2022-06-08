@@ -41,6 +41,7 @@ import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { isTestNet } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -74,6 +75,11 @@ const createStyles = (colors) =>
       color: colors.text.default,
       ...fontStyles.normal,
       textTransform: 'uppercase',
+    },
+    testNetAmount: {
+      fontSize: 30,
+      color: colors.text.default,
+      ...fontStyles.normal,
     },
     amountFiat: {
       fontSize: 18,
@@ -338,7 +344,7 @@ class AssetOverview extends PureComponent {
             this.renderWarning()
           ) : (
             <>
-              <Text style={styles.amount} testID={'token-amount'}>
+              <Text style={isTestNet ? styles.testNetAmount : styles.amount} testID={'token-amount'}>
                 {mainBalance}
               </Text>
               {secondaryBalance && (

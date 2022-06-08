@@ -3,7 +3,7 @@ import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { isMainnetByChainId } from '../../../../util/networks';
+import { isMainnetByChainId, isTestNet } from '../../../../util/networks';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../Swaps/components/InfoModal';
@@ -155,6 +155,8 @@ const TransactionReviewEIP1559 = ({
     totalMaxPrimary = gasFeeMaxConversion;
   }
 
+  console.log('totalPrimary', totalPrimary, totalConversion, totalNative, primaryCurrency);
+
   const valueToWatchAnimation = `${gasFeeNative}${gasFeeMaxNative}`;
 
   return (
@@ -226,7 +228,7 @@ const TransactionReviewEIP1559 = ({
                 <Text
                   primary
                   bold
-                  upper
+                  upper={isTestNet()}
                   grey={!nativeCurrencySelected}
                   link={nativeCurrencySelected}
                   underline={nativeCurrencySelected}
@@ -331,7 +333,7 @@ const TransactionReviewEIP1559 = ({
                   <Text
                     bold
                     primary
-                    upper
+                    upper={isTestNet()}
                     right
                     noMargin
                     style={[Device.isSmallDevice() && styles.flex]}
