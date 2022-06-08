@@ -3,8 +3,8 @@ import { shallow } from 'enzyme';
 import ActionView from './';
 
 describe('ActionView', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(<ActionView />);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(<ActionView />);
+    expect(wrapper).toMatchSnapshot();
+  });
 });

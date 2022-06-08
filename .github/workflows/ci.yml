@@ -57,7 +57,7 @@ jobs:
       - run: yarn lint
   audit:
     runs-on: ubuntu-20.04
-    needs: lint
+    needs: setup
     steps:
       - uses: actions/cache@v2
         id: restore-build
@@ -75,7 +75,7 @@ jobs:
       - run: yarn audit:ci
   tgz-check:
     runs-on: ubuntu-20.04
-    needs: audit
+    needs: setup
     steps:
       - uses: actions/cache@v2
         id: restore-build
@@ -93,7 +93,7 @@ jobs:
       - run: yarn test:tgz-check
   test:
     runs-on: ubuntu-20.04
-    needs: tgz-check
+    needs: setup
     steps:
       - uses: actions/cache@v2
         id: restore-build

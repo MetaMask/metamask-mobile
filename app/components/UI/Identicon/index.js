@@ -15,65 +15,71 @@ import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 // eslint-disable-next-line react/display-name
 const Identicon = React.memo((props) => {
-	const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	if (!address) return null;
-	const uri = useBlockieIcon && toDataUrl(address);
+  const { diameter, address, customStyle, noFadeIn, useBlockieIcon } = props;
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  if (!address) return null;
+  const uri = useBlockieIcon && toDataUrl(address);
 
-	const image = useBlockieIcon ? (
-		<Image
-			source={{ uri }}
-			style={[
-				{
-					height: diameter,
-					width: diameter,
-					borderRadius: diameter / 2,
-				},
-				customStyle,
-			]}
-		/>
-	) : (
-		<View style={customStyle}>
-			<Jazzicon size={diameter} address={address} />
-		</View>
-	);
+  const image = useBlockieIcon ? (
+    <Image
+      source={{ uri }}
+      style={[
+        {
+          height: diameter,
+          width: diameter,
+          borderRadius: diameter / 2,
+        },
+        customStyle,
+      ]}
+    />
+  ) : (
+    <View style={customStyle}>
+      <Jazzicon size={diameter} address={address} />
+    </View>
+  );
 
-	if (noFadeIn) {
-		return image;
-	}
-	return <FadeIn placeholderStyle={{ backgroundColor: colors.background.alternative }}>{image}</FadeIn>;
+  if (noFadeIn) {
+    return image;
+  }
+  return (
+    <FadeIn
+      placeholderStyle={{ backgroundColor: colors.background.alternative }}
+    >
+      {image}
+    </FadeIn>
+  );
 });
 
 Identicon.propTypes = {
-	/**
-	 * Diameter that represents the size of the identicon
-	 */
-	diameter: PropTypes.number,
-	/**
-	 * Address used to render a specific identicon
-	 */
-	address: PropTypes.string,
-	/**
-	 * Custom style to apply to image
-	 */
-	customStyle: ViewPropTypes.style,
-	/**
-	 * True if render is happening without fade in
-	 */
-	noFadeIn: PropTypes.bool,
-	/**
-	 * Show a BlockieIcon instead of JazzIcon
-	 */
-	useBlockieIcon: PropTypes.bool,
+  /**
+   * Diameter that represents the size of the identicon
+   */
+  diameter: PropTypes.number,
+  /**
+   * Address used to render a specific identicon
+   */
+  address: PropTypes.string,
+  /**
+   * Custom style to apply to image
+   */
+  customStyle: ViewPropTypes.style,
+  /**
+   * True if render is happening without fade in
+   */
+  noFadeIn: PropTypes.bool,
+  /**
+   * Show a BlockieIcon instead of JazzIcon
+   */
+  useBlockieIcon: PropTypes.bool,
 };
 
 Identicon.defaultProps = {
-	diameter: 46,
-	useBlockieIcon: true,
+  diameter: 46,
+  useBlockieIcon: true,
 };
 
 const mapStateToProps = (state) => ({
-	useBlockieIcon: state.settings.useBlockieIcon,
+  useBlockieIcon: state.settings.useBlockieIcon,
 });
 
 export default connect(mapStateToProps)(Identicon);

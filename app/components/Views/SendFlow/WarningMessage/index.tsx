@@ -5,34 +5,39 @@ import Alert, { AlertType } from '../../../Base/Alert';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 interface Props {
-	/**
-	 * Warning message to display (Plain text or JSX)
-	 */
-	warningMessage: ReactNode;
-	style?: StyleProp<ViewStyle>;
+  /**
+   * Warning message to display (Plain text or JSX)
+   */
+  warningMessage: ReactNode;
+  style?: StyleProp<ViewStyle>;
 }
 
 const styles = StyleSheet.create({
-	icon: {
-		paddingTop: 4,
-		paddingRight: 8,
-	},
+  icon: {
+    paddingTop: 4,
+    paddingRight: 8,
+  },
 });
 
 const WarningMessage = ({ warningMessage, style }: Props) => {
-	const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useAppThemeFromContext() || mockTheme;
 
-	return (
-		<Alert
-			type={AlertType.Warning}
-			style={style}
-			renderIcon={() => (
-				<FontAwesome style={styles.icon} name={'exclamation-circle'} color={colors.warning.default} size={18} />
-			)}
-		>
-			{warningMessage}
-		</Alert>
-	);
+  return (
+    <Alert
+      type={AlertType.Warning}
+      style={style}
+      renderIcon={() => (
+        <FontAwesome
+          style={styles.icon}
+          name={'exclamation-circle'}
+          color={colors.warning.default}
+          size={18}
+        />
+      )}
+    >
+      {warningMessage}
+    </Alert>
+  );
 };
 
 export default WarningMessage;

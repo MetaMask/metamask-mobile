@@ -19,115 +19,115 @@ const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
 
 describe('Start Exploring', () => {
-	beforeEach(() => {
-		jest.setTimeout(150000);
-	});
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
 
-	it('should show the onboarding screen', async () => {
-		// Check that we are on the onboarding carousel screen
-		await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
-		await OnboardingCarouselView.isVisible();
-		await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
-		await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
-		// Swipe left
-		await OnboardingCarouselView.swipeCarousel();
-		await OnboardingCarouselView.isManageYourDigitalTextVisible();
+  it('should show the onboarding screen', async () => {
+    // Check that we are on the onboarding carousel screen
+    await device.launchApp({ newInstance: true }); // because of a flakey test step. We can improve this
+    await OnboardingCarouselView.isVisible();
+    await OnboardingCarouselView.isMetaMaskWelcomeTextVisible();
+    await OnboardingCarouselView.isWelcomeToMetaMaskImageVisible();
+    // Swipe left
+    await OnboardingCarouselView.swipeCarousel();
+    await OnboardingCarouselView.isManageYourDigitalTextVisible();
 
-		// Check that title of screen 2 is correct
-		await OnboardingCarouselView.isManageYourDigitalTextVisible();
-		await OnboardingCarouselView.isManageYourDigitalImageVisible();
-		// Swipe left
-		await OnboardingCarouselView.swipeCarousel();
-		// Check that title of screen 3 is correct
-		await OnboardingCarouselView.isYourGatewayToWeb3TextVisible();
-		await OnboardingCarouselView.isYourGatewayToWeb3ImageVisible();
-		// Check that Get started CTA is visible & tap it
-		await OnboardingCarouselView.tapOnGetStartedButton();
-		await OnboardingView.isVisible();
-	});
+    // Check that title of screen 2 is correct
+    await OnboardingCarouselView.isManageYourDigitalTextVisible();
+    await OnboardingCarouselView.isManageYourDigitalImageVisible();
+    // Swipe left
+    await OnboardingCarouselView.swipeCarousel();
+    // Check that title of screen 3 is correct
+    await OnboardingCarouselView.isYourGatewayToWeb3TextVisible();
+    await OnboardingCarouselView.isYourGatewayToWeb3ImageVisible();
+    // Check that Get started CTA is visible & tap it
+    await OnboardingCarouselView.tapOnGetStartedButton();
+    await OnboardingView.isVisible();
+  });
 
-	it('should be able to opt-out of the onboarding-wizard', async () => {
-		await OnboardingView.tapCreateWallet();
+  it('should be able to opt-out of the onboarding-wizard', async () => {
+    await OnboardingView.tapCreateWallet();
 
-		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapNoThanksButton();
+    await MetaMetricsOptIn.isVisible();
+    await MetaMetricsOptIn.tapNoThanksButton();
 
-		await CreatePasswordView.isVisible();
-	});
+    await CreatePasswordView.isVisible();
+  });
 
-	it('should be able to create a new wallet', async () => {
-		await CreatePasswordView.enterPassword(PASSWORD);
-		await CreatePasswordView.reEnterPassword(PASSWORD);
-		await CreatePasswordView.tapIUnderstandCheckBox();
-		await CreatePasswordView.tapCreatePasswordButton();
-	});
+  it('should be able to create a new wallet', async () => {
+    await CreatePasswordView.enterPassword(PASSWORD);
+    await CreatePasswordView.reEnterPassword(PASSWORD);
+    await CreatePasswordView.tapIUnderstandCheckBox();
+    await CreatePasswordView.tapCreatePasswordButton();
+  });
 
-	it('Should skip backup check', async () => {
-		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
-		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+  it('Should skip backup check', async () => {
+    // Check that we are on the Secure your wallet screen
+    await ProtectYourWalletView.isVisible();
+    await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
-		await WalletView.isVisible();
-	});
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await WalletView.isVisible();
+  });
 
-	it('should go through the onboarding wizard flow', async () => {
-		// Check that Take the tour CTA is visible and tap it
+  it('should go through the onboarding wizard flow', async () => {
+    // Check that Take the tour CTA is visible and tap it
 
-		await TestHelpers.delay(3000);
+    await TestHelpers.delay(3000);
 
-		await OnboardingWizardModal.isVisible();
-		await OnboardingWizardModal.tapTakeTourButton();
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapTakeTourButton();
 
-		await OnboardingWizardModal.isYourAccountsTutorialStepVisible();
-		await OnboardingWizardModal.tapGotItButton();
+    await OnboardingWizardModal.isYourAccountsTutorialStepVisible();
+    await OnboardingWizardModal.tapGotItButton();
 
-		// Ensure step 3 is shown correctly
-		await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
+    // Ensure step 3 is shown correctly
+    await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
 
-		await WalletView.editAccountName(ACCOUNT);
+    await WalletView.editAccountName(ACCOUNT);
 
-		await OnboardingWizardModal.tapGotItButton();
+    await OnboardingWizardModal.tapGotItButton();
 
-		await WalletView.isAccountNameCorrect(ACCOUNT);
+    await WalletView.isAccountNameCorrect(ACCOUNT);
 
-		// Ensure step 4 is shown correctly
-		await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    // Ensure step 4 is shown correctly
+    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
 
-		await WalletView.tapDrawerButton();
-		// Ensure step 5 is shown correctly
+    await WalletView.tapDrawerButton();
+    // Ensure step 5 is shown correctly
 
-		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
-		// Tap on Back
-		await OnboardingWizardModal.tapBackButton();
+    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    // Tap on Back
+    await OnboardingWizardModal.tapBackButton();
 
-		// Ensure step 4 is shown correctly
-		await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
-		await OnboardingWizardModal.tapGotItButton();
+    // Ensure step 4 is shown correctly
+    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await OnboardingWizardModal.tapGotItButton();
 
-		// Ensure step 5 is shown correctly
-		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
-		await OnboardingWizardModal.tapGotItButton();
+    // Ensure step 5 is shown correctly
+    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await OnboardingWizardModal.tapGotItButton();
 
-		// Ensure step 6 is shown correctly
-		await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
-		await OnboardingWizardModal.tapBackButton();
-		// Ensure step 5 is shown correctly
-		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
-		await OnboardingWizardModal.tapBackButton();
+    // Ensure step 6 is shown correctly
+    await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+    await OnboardingWizardModal.tapBackButton();
+    // Ensure step 5 is shown correctly
+    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await OnboardingWizardModal.tapBackButton();
 
-		// Ensure step 4 is shown correctly
-		await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
-		await OnboardingWizardModal.tapGotItButton();
+    // Ensure step 4 is shown correctly
+    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await OnboardingWizardModal.tapGotItButton();
 
-		await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
-		await OnboardingWizardModal.tapGotItButton();
+    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await OnboardingWizardModal.tapGotItButton();
 
-		// Ensure step 6 is shown correctly
-		await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
-		await OnboardingWizardModal.tapGotItButton();
-		// Check that we are on the Browser page
-		await Browser.isVisible();
-	});
+    // Ensure step 6 is shown correctly
+    await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+    await OnboardingWizardModal.tapGotItButton();
+    // Check that we are on the Browser page
+    await Browser.isVisible();
+  });
 });

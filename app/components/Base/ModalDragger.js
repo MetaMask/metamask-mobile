@@ -5,39 +5,39 @@ import { useAppThemeFromContext, mockTheme } from '../../util/theme';
 import { colors as importedColors } from '../../styles/common';
 
 const createStyles = (colors) =>
-	StyleSheet.create({
-		draggerWrapper: {
-			width: '100%',
-			height: 33,
-			alignItems: 'center',
-			justifyContent: 'center',
-			borderBottomWidth: StyleSheet.hairlineWidth,
-			borderColor: colors.border.muted,
-		},
-		borderless: {
-			borderColor: importedColors.transparent,
-		},
-		dragger: {
-			width: 48,
-			height: 5,
-			borderRadius: 4,
-			backgroundColor: colors.border.default,
-		},
-	});
+  StyleSheet.create({
+    draggerWrapper: {
+      width: '100%',
+      height: 33,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border.muted,
+    },
+    borderless: {
+      borderColor: importedColors.transparent,
+    },
+    dragger: {
+      width: 48,
+      height: 5,
+      borderRadius: 4,
+      backgroundColor: colors.border.default,
+    },
+  });
 
 function ModalDragger({ borderless }) {
-	const { colors } = useAppThemeFromContext() || mockTheme;
-	const styles = createStyles(colors);
+  const { colors } = useAppThemeFromContext() || mockTheme;
+  const styles = createStyles(colors);
 
-	return (
-		<View style={[styles.draggerWrapper, borderless && styles.borderless]}>
-			<View style={styles.dragger} />
-		</View>
-	);
+  return (
+    <View style={[styles.draggerWrapper, borderless && styles.borderless]}>
+      <View style={styles.dragger} />
+    </View>
+  );
 }
 
 ModalDragger.propTypes = {
-	borderless: PropTypes.bool,
+  borderless: PropTypes.bool,
 };
 
 export default ModalDragger;
