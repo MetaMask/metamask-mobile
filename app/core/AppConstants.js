@@ -95,6 +95,8 @@ export default {
     LOW: 'low',
     MEDIUM: 'medium',
     HIGH: 'high',
+    MARKET: 'market',
+    AGGRESSIVE: 'aggressive',
   },
   GAS_TIMES: {
     UNKNOWN: 'unknown',
