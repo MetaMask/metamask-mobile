@@ -220,21 +220,16 @@ const WhatsNewModal = (props) => {
           <Text style={styles.slideDescription}>{elementInfo.description}</Text>
         ));
       case 'image': {
+        let image;
         if (elementInfo.images) {
-          return (
-            <View style={styles.slideImageContainer}>
-              <Image
-                source={elementInfo.images[imageKey]}
-                style={styles.slideImage}
-                resizeMode={'stretch'}
-              />
-            </View>
-          );
+          image = elementInfo.images[imageKey];
+        } else {
+          image = elementInfo.image;
         }
         return (
           <View style={styles.slideImageContainer}>
             <Image
-              source={elementInfo.image}
+              source={image}
               style={styles.slideImage}
               resizeMode={'stretch'}
             />
