@@ -11,6 +11,14 @@ export const whatsNew: WhatsNew = {
   slides: [
     [
       {
+        type: 'image',
+        /* eslint-disable import/no-commonjs, @typescript-eslint/no-require-imports */
+        images: {
+          light: require('../../../images/whats_new_onramp_agg_light.png'),
+          dark: require('../../../images/whats_new_onramp_agg_dark.png'),
+        },
+      },
+      {
         type: 'title',
         title: strings('whats_new.feature_on_ramp_title'),
       },

@@ -26,7 +26,11 @@ import compareVersions from 'compare-versions';
 import PropTypes from 'prop-types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import StyledButton from '../StyledButton';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import {
+  useAppThemeFromContext,
+  mockTheme,
+  useAssetFromTheme,
+} from '../../../util/theme';
 const modalMargin = 24;
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
@@ -131,6 +135,7 @@ const WhatsNewModal = (props) => {
   const routes = useNavigationState((state) => state.routes);
   const [currentSlide, setCurrentSlide] = useState(0);
   const { colors } = useAppThemeFromContext() || mockTheme;
+  const imageKey = useAssetFromTheme('light', 'dark');
   const styles = createStyles(colors);
 
   useEffect(() => {
@@ -214,7 +219,18 @@ const WhatsNewModal = (props) => {
         return (element = (
           <Text style={styles.slideDescription}>{elementInfo.description}</Text>
         ));
-      case 'image':
+      case 'image': {
+        if (elementInfo.images) {
+          return (
+            <View style={styles.slideImageContainer}>
+              <Image
+                source={elementInfo.images[imageKey]}
+                style={styles.slideImage}
+                resizeMode={'stretch'}
+              />
+            </View>
+          );
+        }
         return (
           <View style={styles.slideImageContainer}>
             <Image
@@ -224,6 +240,7 @@ const WhatsNewModal = (props) => {
             />
           </View>
         );
+      }
       case 'button':
         return (
           <View style={styles.button}>
@@ -286,7 +303,7 @@ const WhatsNewModal = (props) => {
                 onPress={closeModal}
                 hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
               >
-                <Icon name="times" size={16} />
+                <Icon name="times" size={16} color={colors.icon.default} />
               </TouchableOpacity>
             </View>
           </View>

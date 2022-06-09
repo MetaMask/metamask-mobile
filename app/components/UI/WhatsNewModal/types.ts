@@ -5,6 +5,14 @@ interface SlideImage {
   image: ImageSourcePropType;
 }
 
+interface SlideImages {
+  type: 'image';
+  images: {
+    light: ImageSourcePropType;
+    dark: ImageSourcePropType;
+  };
+}
+
 interface SlideTitle {
   type: 'title';
   title: string;
@@ -26,6 +34,7 @@ interface SlideButton {
 
 type SlideContentType =
   | SlideImage
+  | SlideImages
   | SlideTitle
   | SlideDescription
   | SlideButton;
