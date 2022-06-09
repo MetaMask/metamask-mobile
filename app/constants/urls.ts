@@ -17,3 +17,6 @@ export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel
 export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
+
+// Network
+export const CHAINLIST_URL = 'https://chainlist.wtf';
