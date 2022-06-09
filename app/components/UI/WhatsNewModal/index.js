@@ -320,7 +320,7 @@ const WhatsNewModal = (props) => {
                 <View style={styles.progessContainer}>
                   {whatsNew.slides.map((_, index) => (
                     <TouchableWithoutFeedback
-                      key={index}
+                      key={`slide-circle-${index}`}
                       onPress={() => {
                         scrollViewRef?.current?.scrollTo({
                           y: 0,
@@ -328,7 +328,7 @@ const WhatsNewModal = (props) => {
                         });
                         setCurrentSlide(index);
                       }}
-                      hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+                      hitSlop={{ top: 8, left: 8, bottom: 8, right: 8 }}
                     >
                       <View
                         style={[
