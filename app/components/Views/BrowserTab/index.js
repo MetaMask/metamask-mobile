@@ -227,6 +227,7 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
 
   const webviewRef = useRef(null);
+  const blockList = useRef('');
 
   const url = useRef('');
   const title = useRef('');
@@ -411,9 +412,14 @@ export const BrowserTab = (props) => {
   const isAllowedUrl = useCallback(
     (hostname) => {
       const { PhishingController } = Engine.context;
+      const phishingControllerTestResult = PhishingController.test(hostname);
+      
+      //Only assign the if the hostname is on the block list
+      if(phishingControllerTestResult.result) blockList.current = phishingControllerTestResult.name;
+
       return (
         (props.whitelist && props.whitelist.includes(hostname)) ||
-        !PhishingController.test(hostname)
+        !phishingControllerTestResult.result
       );
     },
     [props.whitelist],
@@ -739,7 +745,10 @@ export const BrowserTab = (props) => {
    */
   const goToFilePhishingIssue = () => {
     setShowPhishingModal(false);
-    go(`https://github.com/metamask/eth-phishing-detect/issues/new`);
+    console.log('blockList',blockList)
+    blockList.current === 'MetaMask' ? 
+    go(`https://github.com/metamask/eth-phishing-detect/issues/new`) : 
+    go(`https://github.com/phishfort/phishfort-lists/issues/new`);
   };
 
   /**
