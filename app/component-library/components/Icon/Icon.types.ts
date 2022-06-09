@@ -1,4 +1,4 @@
-import { ViewProps } from 'react-native';
+import { ImageSourcePropType, ViewProps } from 'react-native';
 
 /**
  * Icon sizes
@@ -16,8 +16,16 @@ export enum IconSize {
  * Icon names
  */
 export enum IconName {
-  Medal = 'medal',
+  LockFilled = 'LockFilled',
+  AddOutline = 'AddOutline',
 }
+
+/**
+ * Asset stored by icon name
+ */
+export type AssetByIconName = {
+  [key in IconName]: ImageSourcePropType;
+};
 
 /**
  * Icon component props.

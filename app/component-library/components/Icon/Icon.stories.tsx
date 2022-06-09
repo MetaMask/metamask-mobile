@@ -6,7 +6,8 @@ import Icon, { IconSize, IconName } from './';
 storiesOf('Component Library / Icon', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
-    const sizeSelector = select('Size', IconSize, IconSize.Md);
+    const sizeSelector = select('size', IconSize, IconSize.Md);
+    const nameSelector = select('name', IconName, IconName.LockFilled);
 
-    return <Icon name={IconName.Medal} size={sizeSelector} />;
+    return <Icon name={nameSelector} size={sizeSelector} />;
   });

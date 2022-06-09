@@ -19,8 +19,6 @@ const styleSheet = (params: { vars: IconStyleSheetVars }) => {
       {
         height: sizeAsNum,
         width: sizeAsNum,
-        borderRadius: sizeAsNum / 2,
-        overflow: 'hidden',
       } as ImageStyle,
       style,
     ) as ImageStyle,

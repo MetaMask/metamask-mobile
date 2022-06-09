@@ -4,15 +4,18 @@ import { Image } from 'react-native';
 import { useStyles } from '../../hooks/useStyles';
 import { IconProps } from './Icon.types';
 import styleSheet from './Icon.styles';
-import SVG from 'react-native-svg';
+import { assetByIconName } from './Icon.assets';
 
-const Icon = ({ size, style }: IconProps) => {
+const Icon = ({ size, style, name }: IconProps) => {
   const styles = useStyles(styleSheet, {
     size,
     style,
   });
+  const asset = assetByIconName[name];
 
-  return <Image height={size} width={size} style={styles.container}></Image>;
+  return (
+    <Image source={asset} style={styles.container} resizeMode={'contain'} />
+  );
 };
 
 export default Icon;
