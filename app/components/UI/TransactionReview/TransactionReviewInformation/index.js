@@ -39,7 +39,8 @@ import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
-import AppConstants from '../../../../../app/core/AppConstants';
+import AppConstants from '../../../../core/AppConstants';
+import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,6 +103,9 @@ const createStyles = (colors) =>
     underline: {
       textDecorationLine: 'underline',
       ...fontStyles.bold,
+    },
+    actionsWrapper: {
+      margin: 24,
     },
   });
 
@@ -202,6 +206,7 @@ class TransactionReviewInformation extends PureComponent {
      * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
      */
     originWarning: PropTypes.bool,
+    gasSelected: PropTypes.string,
   };
 
   state = {
@@ -604,6 +609,7 @@ class TransactionReviewInformation extends PureComponent {
       network,
       showCustomNonce,
       gasEstimateType,
+      gasSelected,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -627,6 +633,12 @@ class TransactionReviewInformation extends PureComponent {
         {showFeeMarket
           ? this.renderTransactionReviewEIP1559()
           : this.renderTransactionReviewFeeCard()}
+        {gasSelected === AppConstants.GAS_OPTIONS.LOW && (
+          <WarningMessage
+            style={styles.actionsWrapper}
+            warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
+          />
+        )}
         {showCustomNonce && (
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
