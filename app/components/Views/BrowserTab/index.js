@@ -413,7 +413,7 @@ export const BrowserTab = (props) => {
     (hostname) => {
       const { PhishingController } = Engine.context;
       const phishingControllerTestResult = PhishingController.test(hostname);
-      
+
       //Only assign the if the hostname is on the block list
       if(phishingControllerTestResult.result) blockList.current = phishingControllerTestResult.name;
 
@@ -745,7 +745,6 @@ export const BrowserTab = (props) => {
    */
   const goToFilePhishingIssue = () => {
     setShowPhishingModal(false);
-    console.log('blockList',blockList)
     blockList.current === 'MetaMask' ? 
     go(`https://github.com/metamask/eth-phishing-detect/issues/new`) : 
     go(`https://github.com/phishfort/phishfort-lists/issues/new`);
