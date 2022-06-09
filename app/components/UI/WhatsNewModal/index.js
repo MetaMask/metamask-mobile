@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -51,7 +51,13 @@ const createStyles = (colors) =>
       flex: 1,
       width: slideItemWidth,
       paddingHorizontal: modalPadding,
+    },
+    slideItemContainerContent: {
       paddingBottom: 16,
+      flexGrow: 1,
+    },
+    slide: {
+      flex: 1,
     },
     progessContainer: {
       flexDirection: 'row',
@@ -119,11 +125,11 @@ const createStyles = (colors) =>
   });
 
 const WhatsNewModal = (props) => {
+  const scrollViewRef = useRef();
   const [featuresToShow, setFeaturesToShow] = useState(null);
   const [show, setShow] = useState(false);
   const routes = useNavigationState((state) => state.routes);
-  const slideIds = [0, 1];
-  const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
@@ -236,9 +242,13 @@ const WhatsNewModal = (props) => {
   const renderSlide = (slideInfo, index) => {
     const key = `slide-info-${index}`;
     return (
-      <ScrollView key={key} style={styles.slideItemContainer}>
+      <ScrollView
+        key={key}
+        style={styles.slideItemContainer}
+        contentContainerStyle={styles.slideItemContainerContent}
+      >
         <TouchableWithoutFeedback>
-          <View>
+          <View style={styles.slide}>
             {slideInfo.map((elementInfo, elIndex) => {
               const elKey = `${key}-${elIndex}`;
               return <View key={elKey}>{renderSlideElement(elementInfo)}</View>;
@@ -280,9 +290,11 @@ const WhatsNewModal = (props) => {
               </TouchableOpacity>
             </View>
           </View>
-          {featuresToShow && (
+          {whatsNew.slides.length > 0 && (
             <View style={styles.slideContent}>
               <ScrollView
+                ref={scrollViewRef}
+                scrollEnabled={whatsNew.slides.length > 1}
                 // This is not duplicate. Needed for Android.
                 onScrollEndDrag={onScrollEnd}
                 onMomentumScrollEnd={onScrollEnd}
@@ -292,17 +304,30 @@ const WhatsNewModal = (props) => {
               >
                 {whatsNew.slides.map(renderSlide)}
               </ScrollView>
-              <View style={styles.progessContainer}>
-                {slideIds.map((id) => (
-                  <View
-                    key={id}
-                    style={[
-                      styles.slideCircle,
-                      currentSlide === id ? styles.slideSolidCircle : {},
-                    ]}
-                  />
-                ))}
-              </View>
+              {whatsNew.slides.length > 1 && (
+                <View style={styles.progessContainer}>
+                  {whatsNew.slides.map((_, index) => (
+                    <TouchableWithoutFeedback
+                      key={index}
+                      onPress={() => {
+                        scrollViewRef?.current?.scrollTo({
+                          y: 0,
+                          x: index * slideItemWidth,
+                        });
+                        setCurrentSlide(index);
+                      }}
+                      hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+                    >
+                      <View
+                        style={[
+                          styles.slideCircle,
+                          currentSlide === index && styles.slideSolidCircle,
+                        ]}
+                      />
+                    </TouchableWithoutFeedback>
+                  ))}
+                </View>
+              )}
             </View>
           )}
         </View>
