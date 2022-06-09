@@ -782,7 +782,7 @@ class PaymentRequest extends PureComponent {
                     <FontAwesome
                       name="exchange"
                       size={18}
-                      color={colors.icon.default}
+                      color={colors.primary.default}
                       style={{ transform: [{ rotate: '270deg' }] }}
                     />
                   </TouchableOpacity>
