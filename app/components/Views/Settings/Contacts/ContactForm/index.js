@@ -226,7 +226,7 @@ class ContactForm extends PureComponent {
     const { network } = this.props;
     let addressError, toEnsName;
     let addressReady = false;
-    if (isValidHexAddress(address)) {
+    if (isValidHexAddress(address, { mixedCaseUseChecksum: true })) {
       addressError = this.checkIfAlreadySaved(address);
       addressReady = true;
     } else if (isENS(address)) {

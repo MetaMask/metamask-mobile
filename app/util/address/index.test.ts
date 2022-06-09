@@ -59,12 +59,16 @@ describe('formatAddress', () => {
 describe('isValidHexAddress', () => {
   it('should return true if all characters are lower case', () => {
     const lowerCaseMockAddress = '0x87187657b35f461d0ceec338d9b8e944a193afe2';
-    expect(isValidHexAddress(lowerCaseMockAddress)).toBe(true);
+    expect(
+      isValidHexAddress(lowerCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
   });
 
   it('should return true if all characters are upper case', () => {
     const upperCaseMockAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
-    expect(isValidHexAddress(upperCaseMockAddress)).toBe(true);
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
   });
 
   it('should return false if the characters are mixed case and the checksum is invalid', () => {
