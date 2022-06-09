@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`TermsAndConditions should render correctly 1`] = `
-<TermsAndConditions
-  action="import"
-/>
-`;

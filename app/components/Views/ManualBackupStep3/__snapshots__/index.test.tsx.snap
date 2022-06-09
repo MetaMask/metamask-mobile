@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`ManualBackupStep3 should render correctly 1`] = `<Connect(ManualBackupStep3) />`;
