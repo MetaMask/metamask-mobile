@@ -1444,6 +1444,7 @@ export function getFiatOnRampAggNavbar(
   navigation,
   { title, showBack = true } = {},
   themeColors,
+  onCancel,
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -1489,9 +1490,11 @@ export function getFiatOnRampAggNavbar(
       );
     },
     headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
+        onPress={() => {
+          navigation.dangerouslyGetParent()?.pop();
+          onCancel?.();
+        }}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
