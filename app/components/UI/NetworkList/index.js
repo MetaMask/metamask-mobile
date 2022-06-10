@@ -368,7 +368,13 @@ export class NetworkList extends PureComponent {
 
   goToNetworkSettings = () => {
     this.props.onClose(false);
-    this.props.navigation.navigate('NetworkSettings');
+    this.props.navigation.navigate('SettingsView', {
+      screen: 'SettingsFlow',
+      params: {
+        screen: 'NetworkSettings',
+        params: { isFullScreenModal: true },
+      },
+    });
   };
 
   render = () => {

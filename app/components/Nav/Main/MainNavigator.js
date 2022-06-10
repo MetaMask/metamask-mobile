@@ -194,11 +194,6 @@ const WalletTabModalFlow = () => (
       name={'AssetHideConfirmation'}
       component={AssetHideConfirmation}
     />
-    <Stack.Screen
-      name="NetworkSettings"
-      component={NetworkSettings}
-      options={NetworkSettings.navigationOptions}
-    />
   </Stack.Navigator>
 );
 
@@ -306,11 +301,7 @@ const SettingsFlow = () => (
       component={NetworksSettings}
       options={NetworksSettings.navigationOptions}
     />
-    <Stack.Screen
-      name="NetworkSettings"
-      component={NetworkSettings}
-      options={NetworkSettings.navigationOptions}
-    />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
     <Stack.Screen
       name="CompanySettings"
       component={AppInformation}
