@@ -94,6 +94,7 @@ export async function processAggregatorOrder(
     return {
       ...order,
       ...transformedOrder,
+      id: order.id || transformedOrder.id,
       network: order.network || transformedOrder.network,
       account: order.account || transformedOrder.account,
     };
