@@ -2,13 +2,24 @@
 
 ## Current Main Branch
 
-## 5.1.1 - May 12, 2022
-- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX] Crashes on Android devices when using the app in split screen
-- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FEAT] Download attachments in browser on iOS
-- [4174](https://github.com/MetaMask/metamask-mobile/pull/4174):  [IMPROVEMENT] Use checksum standard format
-- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Send flow confusables bug
-- [#4315](https://github.com/MetaMask/metamask-mobile/pull/4315): [IMPROVEMENT] Make reveal SRP blur view dynamic
+## 5.2.0 - May 17, 2022
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
+- [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
+- [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
+- [#3696](https://github.com/MetaMask/metamask-mobile/pull/3696): [FEATURE] Fiat on Ramp Aggregator
+- [#4303](https://github.com/MetaMask/metamask-mobile/pull/4303): [IMPROVEMENT] Add support for env variable for MM_HOMEPAGE
+- [#4331](https://github.com/MetaMask/metamask-mobile/pull/4331): [IMPROVEMENT] Fix addressbook and browser test
+- [#4170](https://github.com/MetaMask/metamask-mobile/pull/4170): [FIX] Copy to clipboard for Android version 9 and below
+- [#4328](https://github.com/MetaMask/metamask-mobile/pull/4328): [FIX] Fix generate-static-assets
+- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Fix confusables bug
+- [#4316](https://github.com/MetaMask/metamask-mobile/pull/4316): [IMPROVEMENT] GIVEN, WHEN, THEN - Template Update
+- [#4167](https://github.com/MetaMask/metamask-mobile/pull/4167): [IMPROVEMENT] Adds support for 'dapp/' urls support on 'metamask://' and fixes DL opening to Apple Store
+- [#4175](https://github.com/MetaMask/metamask-mobile/pull/4175): [Fix] Favourites not showing when home button is pressed in browser tab menu
+- [#4278](https://github.com/MetaMask/metamask-mobile/pull/4278): [IMPROVEMENT] Convert back to spaces
+- [#4249](https://github.com/MetaMask/metamask-mobile/pull/4249): [IMPROVEMENT] patch cross-fetch instead of skipping
+- [#4174](https://github.com/MetaMask/metamask-mobile/pull/4174): [IMPROVEMENT] Address now is in the checksum standard format
+- [#4182](https://github.com/MetaMask/metamask-mobile/pull/4182): [IMPROVEMENT] Standardize prettier configuration
+- [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): [FIX] excluded audit because no available patch
 
 ## 5.1.0 - May 5, 2022
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
