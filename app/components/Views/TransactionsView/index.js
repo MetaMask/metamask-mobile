@@ -8,6 +8,8 @@ import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
   TX_UNAPPROVED,
+  TX_SUBMITTED,
+  TX_SIGNED,
   TX_PENDING,
   TX_CONFIRMED,
 } from '../../../constants/transaction';
@@ -78,6 +80,8 @@ const TransactionsView = ({
         if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
         switch (tx.status) {
+          case TX_SUBMITTED:
+          case TX_SIGNED:
           case TX_UNAPPROVED:
             submittedTxs.push(tx);
             return false;
