@@ -376,7 +376,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMinConversion,
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
-        ] = calculateEthEIP1559({
+        ] = calculateEthEIP1559({ //TODO need to find a way to send ticker into this function
           nativeCurrency,
           currentCurrency,
           totalMinNative,
@@ -527,6 +527,7 @@ class TransactionReviewInformation extends PureComponent {
       renderableTotalMinConversion,
       renderableTotalMaxNative,
     ] = this.getRenderTotalsEIP1559(EIP1559GasData)();
+    console.log('getRenderTotalsEIP1559', renderableTotalMinNative, renderableTotalMinConversion)
     return (
       <TransactionReviewEIP1559
         totalNative={renderableTotalMinNative}
