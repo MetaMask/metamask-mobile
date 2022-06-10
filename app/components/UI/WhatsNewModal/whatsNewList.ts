@@ -5,7 +5,7 @@ import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
   // All users that have <1.0.7 and are updating to >=1.0.7 should see
-  onlyUpdates: true, // Only users who updated the app will see this, not newly installs
+  onlyUpdates: false, // Only users who updated the app will see this, not newly installs
   maxLastAppVersion: '5.3.0', // Only users who had a previous version < maxLaxtAppVersion version will see this
   minAppVersion: '5.3.0', // Only users who updated to a version >= minAppVersion will see this
   slides: [
