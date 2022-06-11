@@ -4,10 +4,10 @@ import { strings } from '../../../../locales/i18n';
 import { WhatsNew } from './types';
 
 export const whatsNew: WhatsNew = {
-  // All users that have <1.0.7 and are updating to >=1.0.7 should see
+  // All users that have <5.3.0 and are updating to >=5.3.0 should see
   onlyUpdates: false, // Only users who updated the app will see this, not newly installs
-  maxLastAppVersion: '5.3.0', // Only users who had a previous version < maxLaxtAppVersion version will see this
-  minAppVersion: '5.3.0', // Only users who updated to a version >= minAppVersion will see this
+  maxLastAppVersion: '5.3.0', // Only users who had a previous version <5.3.0 version will see this
+  minAppVersion: '5.3.0', // Only users who updated to a version >=5.3.0 will see this
   slides: [
     [
       {
