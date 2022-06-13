@@ -8,7 +8,9 @@ import ImportWalletView from '../pages/Onboarding/ImportWalletView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ConnectModal from '../pages/modals/ConnectModal';
-import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+//import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
+import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
+import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
 
 import { Browser } from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
@@ -23,7 +25,6 @@ const SECRET_RECOVERY_PHRASE =
 const PASSWORD = `12345678`;
 
 const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
-const POLYGON_RPC_URL = 'https://polygon-rpc.com/';
 
 const BINANCE_DEEPLINK_URL =
   'https://metamask.app.link/send/0xB8B4EE5B1b693971eB60bDa15211570df2dB228A@56?value=1e14';
@@ -107,62 +108,37 @@ describe('Deep linking Tests', () => {
     await NetworkView.tapAddNetworkButton();
 
     await NetworkView.isRpcViewVisible();
-    await NetworkView.typeInNetworkName('Binance Smart Chain Mainnet');
-    await NetworkView.typeInRpcUrl(BINANCE_RPC_URL);
-    await NetworkView.typeInChainId('56');
-    await NetworkView.typeInNetworkSymbol('BNB\n');
+    await NetworkView.tapPopularNetworkByName('BNB Smart Chain');
 
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-    await NetworkView.tapRpcNetworkAddButton();
+    await NetworkApprovalModal.isVisible();
+    await NetworkApprovalModal.isDisplayNameVisible('BNB Smart Chain');
+    await NetworkApprovalModal.isNetworkURLVisible(BINANCE_RPC_URL);
+    await NetworkApprovalModal.isChainIDVisible('56');
+    await NetworkApprovalModal.tapApproveButton();
 
-    await WalletView.isVisible();
-  });
+    await NetworkAddedModal.isVisible();
+    await NetworkAddedModal.tapCloseButton();
+    await NetworkView.isRpcViewVisible();
 
-  it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect(
-      'Binance Smart Chain Mainnet',
-    );
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
-  });
-
-  it('should return to settings then networks', async () => {
-    await WalletView.isNetworkNameVisible('Binance Smart Chain Mainnet');
-    await WalletView.tapDrawerButton(); // tapping burger menu
-
-    // Open Drawer
-    await DrawerView.isVisible();
-    await DrawerView.tapSettings();
-
-    await SettingsView.tapNetworks();
-
-    await NetworkView.isNetworkViewVisible();
+    //await WalletView.isVisible();
   });
 
   it('should add polygon network', async () => {
-    // Tap on Add Network button
-    await TestHelpers.delay(3000);
-    await NetworkView.tapAddNetworkButton();
+    await NetworkView.tapPopularNetworkByName('Polygon Mainnet');
 
-    await NetworkView.isRpcViewVisible();
-    await NetworkView.typeInNetworkName('Polygon Mainnet');
-    await NetworkView.typeInRpcUrl(POLYGON_RPC_URL);
-    await NetworkView.typeInChainId('137');
-    await NetworkView.typeInNetworkSymbol('MATIC\n');
+    await NetworkApprovalModal.isVisible();
+    await NetworkApprovalModal.isDisplayNameVisible('Polygon Mainnet');
+    //await NetworkApprovalModal.isNetworkURLVisible(POLYGON_RPC_URL);
+    await NetworkApprovalModal.isChainIDVisible('137');
 
-    await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
-    await NetworkView.tapRpcNetworkAddButton();
+    await NetworkApprovalModal.tapApproveButton();
+    await TestHelpers.delay(1000);
+
+    await NetworkAddedModal.isVisible();
+    await NetworkAddedModal.tapSwitchToNetwork();
 
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible('Polygon Mainnet');
-  });
-
-  it('should dismiss the network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect('Polygon Mainnet');
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
   });
 
   it('should deep link to the send flow on matic', async () => {
@@ -178,9 +154,7 @@ describe('Deep linking Tests', () => {
     await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
     await TestHelpers.delay(4500);
     await TransactionConfirmationView.isVisible();
-    await TransactionConfirmationView.isNetworkNameVisible(
-      'Binance Smart Chain Mainnet',
-    );
+    await TransactionConfirmationView.isNetworkNameVisible('BNB Smart Chain');
   });
 
   it('should deep link to the send flow on Rinkeby and submit the transaction', async () => {
@@ -205,6 +179,7 @@ describe('Deep linking Tests', () => {
     await TransactionConfirmationView.isNetworkNameVisible(
       'Ethereum Main Network',
     );
+    await TransactionConfirmationView.tapCancelButton();
   });
 
   it('should deep link to a dapp (Uniswap)', async () => {
