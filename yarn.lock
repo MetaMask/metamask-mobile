@@ -1981,17 +1981,6 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@keystonehq/base-eth-keyring@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.3.2.tgz#71efe1495d4931fab5fd0016c8722fe5d9657da9"
-  integrity sha512-y/kv8XNRSzqcSl7fvZklBKr4MVir1OJHzqM5vC+3yvzkh3mVtN8vUjAAxHtmVVVyM8rsdqK7aYZ7paexYdpnag==
-  dependencies:
-    "@ethereumjs/tx" "3.0.0"
-    "@keystonehq/bc-ur-registry-eth" "^0.7.7"
-    ethereumjs-util "^7.0.8"
-    hdkey "^2.0.1"
-    uuid "^8.3.2"
-
 "@keystonehq/base-eth-keyring@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.4.0.tgz#7667d2b6e38fc90553ce934c0c60c89329315b92"
@@ -2050,18 +2039,6 @@
     "@ngraveio/bc-ur" "^1.1.5"
     base58check "^2.0.0"
     tslib "^2.3.0"
-
-"@keystonehq/metamask-airgapped-keyring@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@keystonehq/metamask-airgapped-keyring/-/metamask-airgapped-keyring-0.2.2.tgz#8beb3e3fddf814be05e3c3178f973769b3ab40d7"
-  integrity sha512-1tuSNpc98jEoJ/9sptasxG6hm8KzESx0ShbKtPkNNKP+XxcDuMi632n03E748X98leCscI+M1WlRvsTryiEB8Q==
-  dependencies:
-    "@ethereumjs/tx" "^3.3.0"
-    "@keystonehq/base-eth-keyring" "^0.3.2"
-    "@keystonehq/bc-ur-registry-eth" "^0.7.7"
-    "@metamask/obs-store" "^7.0.0"
-    rlp "^2.2.6"
-    uuid "^8.3.2"
 
 "@keystonehq/metamask-airgapped-keyring@^0.3.0":
   version "0.3.0"
@@ -2140,7 +2117,7 @@
     deep-freeze-strict "^1.1.1"
     eth-ens-namehash "^2.0.8"
     eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^6.2.1"
+    eth-keyring-controller "^7.0.2"
     eth-method-registry "1.1.0"
     eth-phishing-detect "^1.2.0"
     eth-query "^2.1.2"
@@ -2163,15 +2140,14 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@^30.0.0":
-  version "30.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-30.0.0.tgz#35b38039532bd401977b25e61121766f4285d850"
-  integrity sha512-KDewzkKqAbxzZl09gmPCMnRtVAQyJmTBzswHd4Z/5PkcM/zioduqCoaXMiTcePUYJR5uotGaA6CV2xgJxBNusA==
+"@metamask/controllers@^26.0.0":
+  version "26.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-26.0.0.tgz#3df4a3071ffb26d357ba99f288d52fb9d913c35a"
+  integrity sha512-iAWDoP/omxGzPfYyBFRNPJ32zcYvZHnUhIM2LyWoCwQj9ZYC1qh+dDX6I0O5jEeQcBrEb+Nl6AcnwHKVdEUz5Q==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@keystonehq/metamask-airgapped-keyring" "^0.3.0"
-    "@metamask/contract-metadata" "^1.35.0"
+    "@metamask/contract-metadata" "^1.31.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
     "@types/uuid" "^8.3.0"
@@ -2181,9 +2157,9 @@
     deep-freeze-strict "^1.1.1"
     eth-ens-namehash "^2.0.8"
     eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^7.0.2"
+    eth-keyring-controller "^6.2.1"
     eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.2.0"
+    eth-phishing-detect "^1.1.14"
     eth-query "^2.1.2"
     eth-rpc-errors "^4.0.0"
     eth-sig-util "^3.0.0"
@@ -8767,43 +8743,6 @@ globby@^11.0.3:
     merge2 "^1.3.0"
     slash "^3.0.0"
 
-got@9.6.0:
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/got/-/got-9.6.0.tgz#edf45e7d67f99545705de1f7bbeeeb121765ed85"
-  integrity sha512-R7eWptXuGYxwijs0eV+v3o6+XH1IqVK8dJOEecQfTmkncw9AV4dcw/Dhxi8MdlqPthxxpZyizMzyg8RTmEsG+Q==
-  dependencies:
-    "@sindresorhus/is" "^0.14.0"
-    "@szmarczak/http-timer" "^1.1.2"
-    cacheable-request "^6.0.0"
-    decompress-response "^3.3.0"
-    duplexer3 "^0.1.4"
-    get-stream "^4.1.0"
-    lowercase-keys "^1.0.1"
-    mimic-response "^1.0.1"
-    p-cancelable "^1.0.0"
-    to-readable-stream "^1.0.0"
-    url-parse-lax "^3.0.0"
-
-got@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/got/-/got-7.1.0.tgz#05450fd84094e6bbea56f451a43a9c289166385a"
-  integrity sha512-Y5WMo7xKKq1muPsxD+KmrR8DH5auG7fBdDVueZwETwV6VytKyU9OX/ddpq2/1hp1vIPvVb4T81dKQz3BivkNLw==
-  dependencies:
-    decompress-response "^3.2.0"
-    duplexer3 "^0.1.4"
-    get-stream "^3.0.0"
-    is-plain-obj "^1.1.0"
-    is-retry-allowed "^1.0.0"
-    is-stream "^1.0.0"
-    isurl "^1.0.0-alpha5"
-    lowercase-keys "^1.0.0"
-    p-cancelable "^0.3.0"
-    p-timeout "^1.1.1"
-    safe-buffer "^5.0.1"
-    timed-out "^4.0.0"
-    url-parse-lax "^1.0.0"
-    url-to-options "^1.0.1"
-
 graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.3, graceful-fs@^4.1.6, graceful-fs@^4.1.9, graceful-fs@^4.2.0, graceful-fs@^4.2.4:
   version "4.2.6"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.6.tgz#ff040b2b0853b23c3d31027523706f1885d76bee"
@@ -14953,7 +14892,7 @@ simple-concat@^1.0.0:
   resolved "https://registry.yarnpkg.com/simple-concat/-/simple-concat-1.0.1.tgz#f46976082ba35c2263f1c8ab5edfe26c41c9552f"
   integrity sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==
 
-simple-get@4.0.1, simple-get@^2.7.0, simple-get@^4.0.0, simple-get@^4.0.1:
+simple-get@4.0.1, simple-get@^4.0.0, simple-get@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/simple-get/-/simple-get-4.0.1.tgz#4a39db549287c979d352112fa03fd99fd6bc3543"
   integrity sha512-brv7p5WgH0jmQJr1ZDDfKDOSeWWg+OVypG99A/5vYGPqJ6pxiaHLy8nxtFjBA7oMa01ebA9gfh1uMCFqOuXxvA==
@@ -15853,11 +15792,6 @@ time-stamp@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/time-stamp/-/time-stamp-1.1.0.tgz#764a5a11af50561921b133f3b44e618687e0f5c3"
   integrity sha1-dkpaEa9QVhkhsTPztE5hhofg9cM=
-
-timed-out@^4.0.0, timed-out@^4.0.1:
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/timed-out/-/timed-out-4.0.1.tgz#f32eacac5a175bea25d7fab565ab3ed8741ef56f"
-  integrity sha1-8y6srFoXW+ol1/q1Zas+2HQe9W8=
 
 tiny-queue@0.2.0:
   version "0.2.0"

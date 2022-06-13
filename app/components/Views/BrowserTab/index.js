@@ -59,6 +59,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
+import { MM_PHISH_DETECT_URL, MM_BLOCKLIST_ISSUE_URL, PHISHFORT_BLOCKLIST_ISSUE_URL, MM_ETHERSCAN_URL } from '../../../constants/urls';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -225,7 +226,6 @@ export const BrowserTab = (props) => {
   const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
-
   const webviewRef = useRef(null);
   const blockList = useRef('');
 
@@ -409,21 +409,21 @@ export const BrowserTab = (props) => {
   /**
    * Check if a hostname is allowed
    */
-  const isAllowedUrl = useCallback(
-    (hostname) => {
+  const isAllowedUrl = (hostname) => {
       const { PhishingController } = Engine.context;
       const phishingControllerTestResult = PhishingController.test(hostname);
-
-     // Only assign the if the hostname is on the block list
+      const blockedUrlObj = new URL(blockedUrl);
+      
+      // Only assign the if the hostname is on the block list
       if(phishingControllerTestResult.result) blockList.current = phishingControllerTestResult.name;
-      console.log('isAllowedUrl', phishingControllerTestResult)
-      return (
-        (props.whitelist && props.whitelist.includes(hostname)) ||
-        !phishingControllerTestResult.result
-      );
-    },
-    [props.whitelist],
-  );
+      
+      const result =(props.whitelist && props.whitelist.includes(hostname)) || blockedUrlObj.hostname === hostname ||
+        !phishingControllerTestResult.result;
+
+      if(blockedUrl) setBlockedUrl(undefined)
+
+      return result;
+  };
 
   const isBookmark = () => {
     const { bookmarks } = props;
@@ -511,7 +511,7 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
-      console.log('TESTSTST', url);
+
       const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
       const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
       const { hostname, query, pathname } = new URL(sanitizedURL);
@@ -716,7 +716,7 @@ export const BrowserTab = (props) => {
    */
   const goToETHPhishingDetector = () => {
     setShowPhishingModal(false);
-    go(`https://github.com/metamask/eth-phishing-detect`);
+    go(MM_PHISH_DETECT_URL);
   };
 
   /**
@@ -726,11 +726,9 @@ export const BrowserTab = (props) => {
     const urlObj = new URL(blockedUrl);
     props.addToWhitelist(urlObj.hostname);
     setShowPhishingModal(false);
-    console.log('continueToPhishingSite', urlObj)
     blockedUrl !== url.current &&
       setTimeout(() => {
         go(blockedUrl);
-        setBlockedUrl(undefined);
       }, 1000);
   };
 
@@ -739,7 +737,7 @@ export const BrowserTab = (props) => {
    */
   const goToEtherscam = () => {
     setShowPhishingModal(false);
-    go(`https://etherscamdb.info/domain/meta-mask.com`);
+    go(MM_ETHERSCAN_URL);
   };
 
   /**
@@ -748,8 +746,8 @@ export const BrowserTab = (props) => {
   const goToFilePhishingIssue = () => {
     setShowPhishingModal(false);
     blockList.current === 'MetaMask' ? 
-    go(`https://github.com/metamask/eth-phishing-detect/issues/new`) : 
-    go(`https://github.com/phishfort/phishfort-lists/issues/new`);
+    go(MM_BLOCKLIST_ISSUE_URL) : 
+    go(PHISHFORT_BLOCKLIST_ISSUE_URL);
   };
 
   /**
