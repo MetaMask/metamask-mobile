@@ -5,6 +5,14 @@ interface SlideImage {
   image: ImageSourcePropType;
 }
 
+interface SlideImages {
+  type: 'image';
+  images: {
+    light: ImageSourcePropType;
+    dark: ImageSourcePropType;
+  };
+}
+
 interface SlideTitle {
   type: 'title';
   title: string;
@@ -26,16 +34,19 @@ interface SlideButton {
 
 type SlideContentType =
   | SlideImage
+  | SlideImages
   | SlideTitle
   | SlideDescription
   | SlideButton;
 
 type WhatsNewSlides = SlideContentType[][];
 
+type VersionString = `${number}.${number}.${number}`;
+
 export interface WhatsNew {
   onlyUpdates: boolean;
-  maxLastAppVersion: string;
-  minAppVersion: string;
+  maxLastAppVersion: VersionString;
+  minAppVersion: VersionString;
   /**
    * Slides utilizes a templating system in the form of a 2D array, which is eventually rendered within app/components/UI/WhatsNewModal/index.js.
    * The root layer determines the number of slides. Ex. To display 3 slides, the root layer should contain 3 arrays.
