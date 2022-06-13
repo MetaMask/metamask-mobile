@@ -46,3 +46,18 @@ export const IMPORT_PASSWORD_CONTAINER_ID = 'import-from-seed-screen';
 export const SECRET_RECOVERY_PHRASE_INPUT_BOX_ID = 'input-seed-phrase';
 
 export const BROWSER_URL_MODAL_ID = 'browser-url-modal';
+export const APPROVE_NETWORK_MODAL_ID = 'approve-network-modal';
+export const APPROVE_NETWORK_APPROVE_BUTTON_ID =
+  'approve-network-approve-button';
+export const APPROVE_NETWORK_CANCEL_BUTTON_ID = 'approve-network-cancel-button';
+export const APPROVE_NETWORK_DISPLAY_NAME_ID =
+  'approve-network-display-name-id';
+
+export const REMOVE_NETWORK_ID = 'remove-network-button';
+export const ADD_NETWORKS_ID = 'add-network-button';
+export const ADD_CUSTOM_RPC_NETWORK_BUTTON_ID = 'add-network-button';
+export const RPC_VIEW_CONTAINER_ID = 'new-rpc-screen';
+
+export const NEW_NETWORK_ADDED_CLOSE_BUTTON_ID = 'close-network-button';
+export const NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID =
+  'switch-to-network-button';
