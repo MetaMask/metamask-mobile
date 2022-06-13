@@ -414,7 +414,7 @@ export const BrowserTab = (props) => {
       const { PhishingController } = Engine.context;
       const phishingControllerTestResult = PhishingController.test(hostname);
 
-      //Only assign the if the hostname is on the block list
+     // Only assign the if the hostname is on the block list
       if(phishingControllerTestResult.result) blockList.current = phishingControllerTestResult.name;
       console.log('isAllowedUrl', phishingControllerTestResult)
       return (
