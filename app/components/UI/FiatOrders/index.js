@@ -96,10 +96,10 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
 
   const completedPayload = {
     ...failedOrCancelledParams,
-    crypto_out: fiatOrder.amount,
-    total_fee: fiatOrder.total_fee,
+    crypto_out: fiatOrder.cryptoAmount,
+    total_fee: fiatOrder.fee,
     exchange_rate:
-      (Number(fiatOrder.amount) - Number(fiatOrder.cryptoFee)) /
+      (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
       Number(fiatOrder.cryptoAmount),
   };
 
