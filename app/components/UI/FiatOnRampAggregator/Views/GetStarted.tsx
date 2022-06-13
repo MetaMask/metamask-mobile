@@ -10,6 +10,7 @@ import { useTheme } from '../../../../util/theme';
 import { useFiatOnRampSDK } from '../sdk';
 import ErrorViewWithReportingJS from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
+import useAnalytics from '../hooks/useAnalytics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../components/images/WalletInfo.png');
@@ -53,9 +54,18 @@ const styles = StyleSheet.create({
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const { getStarted, setGetStarted, sdkError } = useFiatOnRampSDK();
+  const { getStarted, setGetStarted, sdkError, selectedChainId } =
+    useFiatOnRampSDK();
+  const trackEvent = useAnalytics();
 
   const { colors } = useTheme();
+
+  const handleCancelPress = useCallback(() => {
+    trackEvent('ONRAMP_CANCELED', {
+      location: 'Get Started Screen',
+      chain_id_destination: selectedChainId,
+    });
+  }, [selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -66,9 +76,10 @@ const GetStarted: React.FC = () => {
           showBack: false,
         },
         colors,
+        handleCancelPress,
       ),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.REGION);

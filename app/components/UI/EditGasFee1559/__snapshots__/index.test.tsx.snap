@@ -788,114 +788,6 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       underline={false}
                       upper={false}
                     >
-                      High
-                    </Text>
-                    <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      grey={true}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      This is best for time sensitive transactions (like Swaps) as it increases the likelihood of a successful transaction. If a Swap takes too long to process it may fail and result in losing some of your gas fee.
-                    </Text>
-                    <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
-                      noMargin={true}
-                      primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      style={
-                        Object {
-                          "marginTop": 9,
-                        }
-                      }
-                      underline={false}
-                      upper={false}
-                    >
-                      Medium
-                    </Text>
-                    <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={false}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      grey={true}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
-                      noMargin={true}
-                      primary={false}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      underline={false}
-                      upper={false}
-                    >
-                      A medium gas fee is good for sending, withdrawing or other non-time sensitive transactions. This setting will most often result in a successful transaction.
-                    </Text>
-                    <Text
-                      bigger={false}
-                      black={false}
-                      blue={false}
-                      bold={true}
-                      centered={false}
-                      disclaimer={false}
-                      green={false}
-                      infoModal={true}
-                      link={false}
-                      modal={false}
-                      muted={false}
-                      noMargin={true}
-                      primary={true}
-                      red={false}
-                      reset={false}
-                      right={false}
-                      small={false}
-                      strikethrough={false}
-                      style={
-                        Object {
-                          "marginTop": 9,
-                        }
-                      }
-                      underline={false}
-                      upper={false}
-                    >
                       Low
                     </Text>
                     <Text
@@ -921,7 +813,115 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                       underline={false}
                       upper={false}
                     >
-                      A low gas fee should only be used for unimportant transactions or when network traffic is very low. With a lower fee it can be hard to predict when (or if) your transaction will be successful.
+                      Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.
+                    </Text>
+                    <Text
+                      bigger={false}
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      muted={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      Market
+                    </Text>
+                    <Text
+                      bigger={false}
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      muted={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      Use Market for fast processing at current market price.
+                    </Text>
+                    <Text
+                      bigger={false}
+                      black={false}
+                      blue={false}
+                      bold={true}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      muted={false}
+                      noMargin={true}
+                      primary={true}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      style={
+                        Object {
+                          "marginTop": 9,
+                        }
+                      }
+                      underline={false}
+                      upper={false}
+                    >
+                      Aggresive
+                    </Text>
+                    <Text
+                      bigger={false}
+                      black={false}
+                      blue={false}
+                      bold={false}
+                      centered={false}
+                      disclaimer={false}
+                      green={false}
+                      grey={true}
+                      infoModal={true}
+                      link={false}
+                      modal={false}
+                      muted={false}
+                      noMargin={true}
+                      primary={false}
+                      red={false}
+                      reset={false}
+                      right={false}
+                      small={false}
+                      strikethrough={false}
+                      underline={false}
+                      upper={false}
+                    >
+                      High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.
                     </Text>
                   </View>
                 </TouchableWithoutFeedback>

@@ -1771,11 +1771,6 @@
     "loading": "Memuat...",
     "not_found": "Media tidak ditemukan"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "ID CC",
-    "language": "id",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-id-id.vtt?raw=true"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Opsi lanjutan",
     "gas_limit": "Batas gas",

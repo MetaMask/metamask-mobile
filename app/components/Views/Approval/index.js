@@ -28,6 +28,13 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  TX_CANCELLED,
+  TX_CONFIRMED,
+  TX_FAILED,
+  TX_SUBMITTED,
+  TX_REJECTED,
+} from '../../../constants/transaction';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -136,12 +143,30 @@ class Approval extends PureComponent {
     }
   };
 
+  isTxStatusCancellable = (transaction) => {
+    if (
+      transaction.status === TX_SUBMITTED ||
+      transaction.status === TX_REJECTED ||
+      transaction.status === TX_CONFIRMED ||
+      transaction.status === TX_CANCELLED ||
+      transaction.status === TX_FAILED
+    ) {
+      return false;
+    }
+    return true;
+  };
+
   handleAppStateChange = (appState) => {
     try {
       if (appState !== 'active') {
-        const { transaction } = this.props;
+        const { transaction, transactions } = this.props;
+        const currentTransaction = transactions.find(
+          (tx) => tx.id === transaction.id,
+        );
+
         transaction &&
           transaction.id &&
+          this.isTxStatusCancellable(currentTransaction) &&
           Engine.context.TransactionController.cancelTransaction(
             transaction.id,
           );
