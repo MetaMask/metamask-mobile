@@ -39,6 +39,7 @@ import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
+import { withNavigation } from '@react-navigation/compat';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -208,6 +209,11 @@ class TransactionReview extends PureComponent {
     dappSuggestedGasWarning: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    /**
+     * Returns the selected gas type
+     * @returns {string}
+     */
+    gasSelected: PropTypes.string,
   };
 
   state = {
@@ -377,6 +383,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGas,
       navigation,
       dappSuggestedGasWarning,
+      gasSelected,
     } = this.props;
     const {
       actionKey,
@@ -441,6 +448,7 @@ class TransactionReview extends PureComponent {
                       origin={
                         dappSuggestedGas ? currentPageInformation?.url : null
                       }
+                      gasSelected={gasSelected}
                       originWarning={dappSuggestedGasWarning}
                       onUpdatingValuesStart={onUpdatingValuesStart}
                       onUpdatingValuesEnd={onUpdatingValuesEnd}
@@ -518,5 +526,5 @@ const mapStateToProps = (state) => ({
 TransactionReview.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(
-  withQRHardwareAwareness(TransactionReview),
+  withNavigation(withQRHardwareAwareness(TransactionReview)),
 );
