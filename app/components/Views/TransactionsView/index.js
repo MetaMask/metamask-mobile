@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, InteractionManager } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
@@ -133,9 +133,11 @@ const TransactionsView = ({
     computing the transactions which will make the app feel more responsive. Also this takes usually less than 1 seconds
     so the effect will not be noticeable if the user is in this screen.
     */
-    InteractionManager.runAfterInteractions(() => {
+    //This is commented because the test always run before the interactions
+    /*   InteractionManager.runAfterInteractions(() => {
       filterTransactions();
-    });
+    }); */
+    filterTransactions();
   }, [filterTransactions]);
 
   return (

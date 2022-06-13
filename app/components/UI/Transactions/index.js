@@ -719,9 +719,10 @@ class Transactions extends PureComponent {
       >
         {!this.state.ready || this.props.loading
           ? this.renderLoader()
-          : !this.props.transactions.length
-          ? this.renderEmpty()
-          : this.renderList()}
+          : this.props.transactions.length ||
+            this.props.submittedTransactions.length
+          ? this.renderList()
+          : this.renderEmpty()}
         {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
           this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
       </SafeAreaView>

@@ -334,6 +334,7 @@ class TransactionElement extends PureComponent {
         containerStyle={styles.actionContainerStyle}
         style={styles.actionStyle}
         onPress={this.showCancelModal}
+        testID={'txn-submitted-cancel-btn'}
       >
         {strings('transaction.cancel')}
       </StyledButton>
