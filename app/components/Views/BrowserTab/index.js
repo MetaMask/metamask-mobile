@@ -416,7 +416,7 @@ export const BrowserTab = (props) => {
 
       //Only assign the if the hostname is on the block list
       if(phishingControllerTestResult.result) blockList.current = phishingControllerTestResult.name;
-
+      console.log('isAllowedUrl', phishingControllerTestResult)
       return (
         (props.whitelist && props.whitelist.includes(hostname)) ||
         !phishingControllerTestResult.result
@@ -511,6 +511,7 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
+      console.log('TESTSTST', url);
       const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
       const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
       const { hostname, query, pathname } = new URL(sanitizedURL);
@@ -725,6 +726,7 @@ export const BrowserTab = (props) => {
     const urlObj = new URL(blockedUrl);
     props.addToWhitelist(urlObj.hostname);
     setShowPhishingModal(false);
+    console.log('continueToPhishingSite', urlObj)
     blockedUrl !== url.current &&
       setTimeout(() => {
         go(blockedUrl);
