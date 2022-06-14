@@ -9,6 +9,24 @@ import {
 } from './conversion';
 import I18n from '../../locales/i18n';
 
+const NON_ISO4217_CRYPTO_CODES = [
+  '1ST',
+  'DASH',
+  'MYST',
+  'PTOY',
+  'QTUM',
+  'SC',
+  'SNGLS',
+  'STORJ',
+  'STEEM',
+  'TIME',
+  'TRST',
+  'USDC',
+  'USDT',
+  'WINGS',
+  'ZEC',
+];
+
 export function increaseLastGasPrice(lastGasPrice) {
   return addHexPrefix(
     multiplyCurrencies(lastGasPrice || '0x0', 1.1, {
@@ -99,11 +117,14 @@ export function getTransactionFee({
 export function formatCurrency(value, currencyCode) {
   const upperCaseCurrencyCode = currencyCode.toUpperCase();
 
-  const formatedCurrency = new Intl.NumberFormat(I18n.locale, {
-    currency: upperCaseCurrencyCode,
-    style: 'currency',
-    // eslint-disable-next-line no-mixed-spaces-and-tabs
-  }).format(Number(value));
+  const formatedCurrency = NON_ISO4217_CRYPTO_CODES.includes(
+    upperCaseCurrencyCode,
+  )
+    ? `${Number(value)} ${upperCaseCurrencyCode}`
+    : new Intl.NumberFormat(I18n.locale, {
+        currency: upperCaseCurrencyCode,
+        style: 'currency',
+      }).format(Number(value));
 
   return formatedCurrency;
 }
