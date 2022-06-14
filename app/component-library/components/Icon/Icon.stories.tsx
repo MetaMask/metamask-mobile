@@ -10,4 +10,10 @@ storiesOf('Component Library / Icon', module)
     const nameSelector = select('name', IconName, IconName.LockFilled);
 
     return <Icon name={nameSelector} size={sizeSelector} />;
+  })
+  .add('Colored', () => {
+    const sizeSelector = select('size', IconSize, IconSize.Xl);
+    const nameSelector = select('name', IconName, IconName.LockFilled);
+
+    return <Icon name={nameSelector} size={sizeSelector} color={'red'} />;
   });
