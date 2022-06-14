@@ -78,6 +78,7 @@ export interface AnalyticsEvents {
   };
   ONRAMP_PURCHASE_COMPLETED: {
     crypto_out: number;
+    amount: number;
     currency_source: string;
     currency_destination: string;
     chain_id_destination: string;
@@ -90,6 +91,7 @@ export interface AnalyticsEvents {
   };
   ONRAMP_PURCHASE_FAILED: {
     currency_source: string;
+    amount: number;
     currency_destination: string;
     chain_id_destination: string;
     payment_method_id: string;
@@ -97,6 +99,7 @@ export interface AnalyticsEvents {
   };
   ONRAMP_PURCHASE_CANCELLED: {
     currency_source: string;
+    amount: number;
     currency_destination: string;
     chain_id_destination: string;
     payment_method_id: string;
