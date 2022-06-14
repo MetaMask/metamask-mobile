@@ -24,6 +24,10 @@ export interface IconProps extends ViewProps {
    * Enum to select between icon names.
    */
   name: IconName;
+  /**
+   * Color of the icon.
+   */
+  color?: string;
 }
 
 /**
@@ -164,8 +168,8 @@ export enum IconName {
   TrendUpFilled = 'TrendUpFilled',
   UserAddFilled1 = 'UserAddFilled1',
   UserAddFilled = 'UserAddFilled',
+  UserCircleAddFilled = 'UserCircleAddFilled',
   UserCircleFilled = 'UserCircleFilled',
-  UserCirlceAddFilled = 'UserCirlceAddFilled',
   UserFilled = 'UserFilled',
   UserMinusFilled = 'UserMinusFilled',
   UserRemoveFilled = 'UserRemoveFilled',

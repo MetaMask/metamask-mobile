@@ -1,15 +1,23 @@
 #!/usr/bin/env node
-/* eslint-disable import/no-commonjs */
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable no-console */
+/* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
 const fs = require('fs');
 const path = require('path');
 
 const ASSETS_FOLDER = 'assets';
 const GENERATED_ASSETS_FILE = 'Icon.assets.ts';
 const TYPES_FILE = 'Icon.types.ts';
-const ASSET_EXT = '.png';
+const ASSET_EXT = '.svg';
 const TYPES_CONTENT_TO_DETECT = '// DO NOT EDIT - Use generate-assets.js';
+
+const getIconNameInTitleCase = (fileName) =>
+  path
+    .basename(fileName, ASSET_EXT)
+    .split('-')
+    .map(
+      (section) =>
+        `${section[0].toUpperCase()}${section.substring(1, section.length)}`,
+    )
+    .join('');
 
 const main = async () => {
   const assetsFolderPath = path.join(__dirname, `../${ASSETS_FOLDER}`);
@@ -21,12 +29,20 @@ const main = async () => {
     (fileName) => path.extname(fileName) === ASSET_EXT,
   );
 
+  // Replace the color black with currentColor
+  assetFileList.forEach((fileName) => {
+    const filePath = path.join(__dirname, `../${ASSETS_FOLDER}/${fileName}`);
+    const fileContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    const formattedFileContent = fileContent.replace(/black/g, 'currentColor');
+    fs.writeFileSync(filePath, formattedFileContent);
+  });
+
   fs.writeFileSync(assetsModulePath, '');
 
-  fs.appendFileSync(
-    assetsModulePath,
-    `/* eslint-disable import/prefer-default-export */\n/* eslint-disable import/no-commonjs */\n/* eslint-disable @typescript-eslint/no-require-imports */`,
-  );
+  // fs.appendFileSync(
+  //   assetsModulePath,
+  //   `// @typescript-eslint/ban-ts-comment\n// @ts-nocheck\n/* eslint-disable import/prefer-default-export */\n/* eslint-disable import/no-commonjs */\n/* eslint-disable @typescript-eslint/no-require-imports */`,
+  // );
 
   fs.appendFileSync(
     assetsModulePath,
@@ -36,6 +52,14 @@ const main = async () => {
     assetsModulePath,
     `\nimport { AssetByIconName, IconName } from './Icon.types';`,
   );
+
+  assetFileList.forEach((fileName) => {
+    const iconName = getIconNameInTitleCase(fileName);
+    fs.appendFileSync(
+      assetsModulePath,
+      `\nimport ${iconName} from './assets/${fileName}';`,
+    );
+  });
 
   fs.appendFileSync(
     assetsModulePath,
@@ -48,17 +72,10 @@ const main = async () => {
   );
 
   assetFileList.forEach(async (fileName) => {
-    const titlecaseAssetName = path
-      .basename(fileName, ASSET_EXT)
-      .split('-')
-      .map(
-        (section) =>
-          `${section[0].toUpperCase()}${section.substring(1, section.length)}`,
-      )
-      .join('');
+    const iconName = getIconNameInTitleCase(fileName);
     fs.appendFileSync(
       assetsModulePath,
-      `\n  [IconName.${titlecaseAssetName}]: require('./assets/${fileName}'),`,
+      `\n  [IconName.${iconName}]: ${iconName},`,
     );
   });
 
