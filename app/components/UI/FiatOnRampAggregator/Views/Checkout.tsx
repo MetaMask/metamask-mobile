@@ -160,6 +160,8 @@ const CheckoutWebView = () => {
           has_zero_native_balance: accounts[selectedAddress]?.balance
             ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
             : undefined,
+          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.cryptoCurrency.symbol,
         });
       } catch (navStateError) {
         setError((navStateError as Error)?.message);
