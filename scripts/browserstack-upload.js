@@ -21,7 +21,7 @@ async function upload() {
   await new Promise((resolve, reject) => {
     exec(
       `curl -u "${BROWSERSTACK_USERNAME}:${BROWSERSTACK_ACCESS_KEY}" -X POST "${endpoint}" -F "file=@${
-        file || APK_LOCATION
+        APK_LOCATION || file
       }"`,
       (error, stdout, stderr) => {
         if (error) reject(new Error(error));
