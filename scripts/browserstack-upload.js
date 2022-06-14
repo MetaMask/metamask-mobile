@@ -6,13 +6,15 @@ const { exec } = require('child_process');
 const endpoint = 'https://api-cloud.browserstack.com/app-live/upload';
 const file = './android/app/build/outputs/apk/debug/app-debug.apk';
 
-const BROWSERSTACK_USERNAME = process.env.MM_BROWSERSTACK_USERNAME;
-const BROWSERSTACK_ACCESS_KEY = process.env.MM_BROWSERSTACK_ACCESS_KEY;
-const APK_LOCATION = process.env.MM_APK_LOCATION;
+const {
+  MM_BROWSERSTACK_USERNAME,
+  MM_BROWSERSTACK_ACCESS_KEY,
+  MM_APK_LOCATION,
+} = process.env;
 
-if (!BROWSERSTACK_USERNAME || !BROWSERSTACK_ACCESS_KEY) {
+if (!MM_BROWSERSTACK_USERNAME || !MM_BROWSERSTACK_ACCESS_KEY) {
   console.log(
-    `You must provide BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY`,
+    `You must provide MM_BROWSERSTACK_USERNAME and MM_BROWSERSTACK_ACCESS_KEY`,
   );
   process.exit();
 }
@@ -20,8 +22,8 @@ if (!BROWSERSTACK_USERNAME || !BROWSERSTACK_ACCESS_KEY) {
 async function upload() {
   await new Promise((resolve, reject) => {
     exec(
-      `curl -u "${BROWSERSTACK_USERNAME}:${BROWSERSTACK_ACCESS_KEY}" -X POST "${endpoint}" -F "file=@${
-        APK_LOCATION || file
+      `curl -u "${MM_BROWSERSTACK_USERNAME}:${MM_BROWSERSTACK_ACCESS_KEY}" -X POST "${endpoint}" -F "file=@${
+        MM_APK_LOCATION || file
       }"`,
       (error, stdout, stderr) => {
         if (error) reject(new Error(error));
