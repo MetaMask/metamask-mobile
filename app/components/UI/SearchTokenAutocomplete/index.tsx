@@ -178,6 +178,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
                 screen: 'SettingsFlow',
                 params: {
                   screen: 'AdvancedSettings',
+                  params: {
+                    scrollToBottom: true,
+                  },
                 },
               });
             }}
