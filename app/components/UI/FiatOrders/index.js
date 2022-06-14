@@ -194,14 +194,16 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
               if (event) {
                 trackEvent(event, params);
               }
-              return;
+            } else {
+              InteractionManager.runAfterInteractions(() => {
+                const [analyticsEvent, analyticsPayload] =
+                  getAnalyticsPayload(updatedOrder);
+                if (analyticsEvent) {
+                  AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
+                }
+              });
             }
             InteractionManager.runAfterInteractions(() => {
-              const [analyticsEvent, analyticsPayload] =
-                getAnalyticsPayload(updatedOrder);
-              if (analyticsEvent) {
-                AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
-              }
               NotificationManager.showSimpleNotification(
                 getNotificationDetails(updatedOrder),
               );
