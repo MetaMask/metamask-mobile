@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Image, ViewPropTypes, View } from 'react-native';
+import { Image, ViewPropTypes, View, StyleSheet } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -11,12 +11,20 @@ import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { util } from '@metamask/controllers';
 import Identicon from '../../UI/Identicon';
 
+const createStyles = () =>
+  StyleSheet.create({
+    svgContainer: {
+      overflow: 'hidden',
+    },
+  });
+
 const RemoteImage = (props) => {
   const [error, setError] = useState(undefined);
   // Avoid using this component with animated SVG
   const source = resolveAssetSource(props.source);
   const isImageUrl = isUrl(props?.source?.uri);
   const ipfsGateway = useIpfsGateway();
+  const styles = createStyles();
   const resolvedIpfsUrl = useMemo(() => {
     try {
       const url = new URL(props.source.uri);
@@ -61,7 +69,7 @@ const RemoteImage = (props) => {
         onError={props.onError}
         componentLabel="RemoteImage-SVG"
       >
-        <View style={style}>
+        <View style={[...style, styles.svgContainer]}>
           <SvgUri {...props} uri={uri} width={'100%'} height={'100%'} />
         </View>
       </ComponentErrorBoundary>
