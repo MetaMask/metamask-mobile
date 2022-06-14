@@ -50,7 +50,7 @@ const createStyles = (colors: Colors) =>
     },
     infoIcon: {
       marginLeft: 8,
-      color: colors.icon.default,
+      color: colors.icon.alternative,
     },
     data: {
       overflow: 'hidden',
