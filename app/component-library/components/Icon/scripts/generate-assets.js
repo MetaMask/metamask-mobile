@@ -39,10 +39,10 @@ const main = async () => {
 
   fs.writeFileSync(assetsModulePath, '');
 
-  // fs.appendFileSync(
-  //   assetsModulePath,
-  //   `// @typescript-eslint/ban-ts-comment\n// @ts-nocheck\n/* eslint-disable import/prefer-default-export */\n/* eslint-disable import/no-commonjs */\n/* eslint-disable @typescript-eslint/no-require-imports */`,
-  // );
+  fs.appendFileSync(
+    assetsModulePath,
+    `/* eslint-disable import/prefer-default-export, @typescript-eslint/ban-ts-comment */\n// @ts-nocheck`,
+  );
 
   fs.appendFileSync(
     assetsModulePath,
