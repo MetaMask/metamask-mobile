@@ -709,7 +709,11 @@ const AmountToBuy = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <Pressable onPress={handleKeypadDone} style={styles.viewContainer}>
+        <Pressable
+          onPress={handleKeypadDone}
+          style={styles.viewContainer}
+          accessible={false}
+        >
           <ScreenLayout.Content>
             <View style={[styles.selectors, styles.row]}>
               <AccountSelector />
