@@ -60,6 +60,7 @@ const ApplePayButton = ({
           const fiatOrder: FiatOrder = {
             ...aggregatorOrderToFiatOrder(order),
             network: chainId,
+            account: selectedAddress,
           };
           addOrder(fiatOrder);
           // @ts-expect-error pop is not defined
