@@ -14,7 +14,7 @@ export interface AnalyticsEvents {
     chain_id_destination: string;
   };
   ONRAMP_REGION_SELECTED: {
-    is_supported: boolean;
+    is_unsupported: boolean;
     country_onramp_id: string;
     state_onramp_id?: string;
     location?: ScreenLocation;
