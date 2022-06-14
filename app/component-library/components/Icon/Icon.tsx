@@ -5,14 +5,12 @@ import { IconProps } from './Icon.types';
 import styleSheet from './Icon.styles';
 import { assetByIconName } from './Icon.assets';
 import { SvgProps } from 'react-native-svg';
-import { useAppThemeFromContext } from '../../../util/theme';
 
 const Icon = ({ size, style, name, color }: IconProps) => {
-  const styles = useStyles(styleSheet, {
+  const { styles, theme } = useStyles(styleSheet, {
     size,
     style,
   });
-  const theme = useAppThemeFromContext();
   const iconColor = color || theme.colors.icon.default;
   const SVG = assetByIconName[name] as React.FC<SvgProps>;
   const sizeAsNum = Number(size);
