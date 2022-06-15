@@ -1771,11 +1771,6 @@
     "loading": "Carregando...",
     "not_found": "Mídia não encontrada"
   },
-  "secret_phrase_video_subtitle": {
-    "title": "IN CC",
-    "language": "in",
-    "uri": "https://github.com/MetaMask/metamask-mobile/blob/main/app/videos/subtitles/secretPhrase/subtitles-en.vtt?raw=true"
-  },
   "edit_gas_fee_eip1559": {
     "advanced_options": "Opções avançadas",
     "gas_limit": "Limite de Gas",

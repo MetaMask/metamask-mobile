@@ -109,7 +109,7 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
  *
  * @param {string} title - Title in string format
  * @param {Object} navigation - Navigation object required to push new views
@@ -554,7 +554,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
  *
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
@@ -1415,5 +1415,72 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
+  };
+}
+
+export function getFiatOnRampAggNavbar(
+  navigation,
+  { title, showBack = true } = {},
+  themeColors,
+  onCancel,
+) {
+  const innerStyles = StyleSheet.create({
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerTitleStyle: {
+      fontSize: 20,
+      ...fontStyles.normal,
+      color: themeColors.text.default,
+      ...(!showBack && { textAlign: 'center' }),
+    },
+  });
+  const headerTitle = title ?? 'No title';
+
+  const leftActionText = strings('navigation.back');
+
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle,
+    headerLeft: () => {
+      if (!showBack) return <View />;
+
+      return Device.isAndroid() ? (
+        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+          <IonicIcon
+            name={'md-arrow-back'}
+            size={24}
+            style={innerStyles.headerIcon}
+          />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+          <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
+        </TouchableOpacity>
+      );
+    },
+    headerRight: () => (
+      <TouchableOpacity
+        onPress={() => {
+          navigation.dangerouslyGetParent()?.pop();
+          onCancel?.();
+        }}
+        style={styles.closeButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.cancel')}
+        </Text>
+      </TouchableOpacity>
+    ),
+    headerStyle: innerStyles.headerStyle,
+    headerTitleStyle: innerStyles.headerTitleStyle,
   };
 }

@@ -545,7 +545,9 @@ class ChoosePassword extends PureComponent {
     const { KeyringController } = Engine.context;
     const { password } = this.state;
     const keychainPassword = this.keyringControllerPasswordSet ? password : '';
-    const mnemonic = await KeyringController.exportSeedPhrase(keychainPassword);
+    const mnemonic = await KeyringController.exportSeedPhrase(
+      keychainPassword,
+    ).toString();
     return JSON.stringify(mnemonic).replace(/"/g, '');
   };
 

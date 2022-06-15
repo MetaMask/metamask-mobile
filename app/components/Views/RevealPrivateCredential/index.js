@@ -42,6 +42,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
+import AppConstants from '../../../core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -179,6 +180,7 @@ class RevealPrivateCredential extends PureComponent {
     password: '',
     warningIncorrectPassword: '',
     isModalVisible: false,
+    isAndroidSupportedVersion: true,
   };
 
   static propTypes = {
@@ -300,7 +302,9 @@ class RevealPrivateCredential extends PureComponent {
     try {
       let privateCredential;
       if (!isPrivateKeyReveal) {
-        const mnemonic = await KeyringController.exportSeedPhrase(password);
+        const mnemonic = await KeyringController.exportSeedPhrase(
+          password,
+        ).toString();
         privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
       } else {
         privateCredential = await KeyringController.exportAccount(
@@ -398,7 +402,7 @@ class RevealPrivateCredential extends PureComponent {
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
         activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
+        inactiveTextColor={colors.text.alternative}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
@@ -426,8 +430,18 @@ class RevealPrivateCredential extends PureComponent {
   };
 
   renderTabView(privateCredentialName) {
-    const { clipboardPrivateCredential } = this.state;
+    const { clipboardPrivateCredential, isAndroidSupportedVersion } =
+      this.state;
     const { styles, colors, themeAppearance } = this.getStyles();
+
+    Device.isAndroid() &&
+      Device.getDeviceAPILevel().then((apiLevel) => {
+        if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
+          this.setState({
+            isAndroidSupportedVersion: false,
+          });
+        }
+      });
 
     return (
       <ScrollableTabView
@@ -453,17 +467,19 @@ class RevealPrivateCredential extends PureComponent {
               placeholderTextColor={colors.text.muted}
               keyboardAppearance={themeAppearance}
             />
-            <TouchableOpacity
-              style={styles.privateCredentialAction}
-              onPress={() =>
-                this.copyPrivateCredentialToClipboard(privateCredentialName)
-              }
-              testID={'private-credential-touchable'}
-            >
-              <Text style={styles.blueText}>
-                {strings('reveal_credential.copy_to_clipboard')}
-              </Text>
-            </TouchableOpacity>
+            {isAndroidSupportedVersion && (
+              <TouchableOpacity
+                style={styles.privateCredentialAction}
+                onPress={() =>
+                  this.copyPrivateCredentialToClipboard(privateCredentialName)
+                }
+                testID={'private-credential-touchable'}
+              >
+                <Text style={styles.blueText}>
+                  {strings('reveal_credential.copy_to_clipboard')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
         <View
@@ -574,25 +590,25 @@ class RevealPrivateCredential extends PureComponent {
     const { styles } = this.getStyles();
     return (
       <Text style={styles.normalText}>
-        {strings('reveal_credential.seed_phrase_explanation')[0]}
-        <TouchableOpacity onPress={() => Linking.openURL(SRP_URL)}>
-          <Text style={[styles.blueText, styles.link]}>
-            {strings('reveal_credential.seed_phrase_explanation')[1]}
-          </Text>
-        </TouchableOpacity>
-        {strings('reveal_credential.seed_phrase_explanation')[2]}
+        {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
+        <Text
+          style={[styles.blueText, styles.link]}
+          onPress={() => Linking.openURL(SRP_URL)}
+        >
+          {strings('reveal_credential.seed_phrase_explanation')[1]}
+        </Text>{' '}
+        {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
         <Text style={styles.boldText}>
           {strings('reveal_credential.seed_phrase_explanation')[3]}
         </Text>
-        {strings('reveal_credential.seed_phrase_explanation')[4]}
-        <TouchableOpacity
+        {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
+        <Text
+          style={[styles.blueText, styles.link]}
           onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
         >
-          <Text style={[styles.blueText, styles.link]}>
-            {strings('reveal_credential.seed_phrase_explanation')[5]}
-          </Text>
-        </TouchableOpacity>
-        {strings('reveal_credential.seed_phrase_explanation')[6]}
+          {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
+        </Text>
+        {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
         <Text style={styles.boldText}>
           {strings('reveal_credential.seed_phrase_explanation')[7]}
         </Text>
