@@ -46,17 +46,19 @@ const DeleteMetaMetricsData = () => {
   const styles = createStyles(colors);
 
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
-    Analytics.checkEnabled(),
+    Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
   );
   const [deletionTaskStatus, setDeletionTaskStatus] =
     useState<DeletionTaskStatus>(DeletionTaskStatus.unknown);
+  const [deletionTaskDate, setDeletionTaskDate] = useState<
+    string | undefined
+  >();
 
   const enableDeleteData = useCallback(() => {
     switch (deletionTaskStatus) {
       case DeletionTaskStatus.pending:
       case DeletionTaskStatus.staging:
       case DeletionTaskStatus.started:
-      case DeletionTaskStatus.success:
         return false;
       default:
         return true;
@@ -96,6 +98,7 @@ const DeleteMetaMetricsData = () => {
       if (response.status === ResponseStatus.ok) {
         setDeletionTaskStatus(DeletionTaskStatus.pending);
         setHasCollectedData(false);
+        setDeletionTaskDate(Analytics.getDeletionTaskDate());
         await trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
@@ -120,12 +123,11 @@ const DeleteMetaMetricsData = () => {
       const deletionTaskId = Analytics.getDeletionTaskId();
       if (deletionTaskId) {
         await checkDeletionTaskStatus();
+        setDeletionTaskDate(Analytics.getDeletionTaskDate());
       }
     };
 
-    if (!Analytics.checkEnabled() && enableDeleteData()) {
-      setHasCollectedData(false);
-    }
+    setHasCollectedData(Analytics.getIsDataRecorded() || enableDeleteData());
 
     checkStatus();
   }, [checkDeletionTaskStatus, enableDeleteData, deletionTaskStatus]);
@@ -159,6 +161,10 @@ const DeleteMetaMetricsData = () => {
           <>
             <Text>
               {strings('app_settings.delete_metrics_description_part_four')}
+            </Text>{' '}
+            <Text>{deletionTaskDate}</Text>
+            <Text>
+              {strings('app_settings.delete_metrics_description_part_five')}
             </Text>{' '}
             <TouchableOpacity onPress={openPrivacyPolicy}>
               <Text style={[styles.blueText]}>
