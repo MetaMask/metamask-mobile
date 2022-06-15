@@ -156,7 +156,13 @@ class AdvancedSettings extends PureComponent {
      * Boolean that checks if token detection is enabled
      */
     isTokenDetectionEnabled: PropTypes.bool,
+    /**
+     * Object that represents the current route info like params passed to it
+     */
+    route: PropTypes.object,
   };
+
+  scrollView = React.createRef();
 
   state = {
     resetModalVisible: false,
@@ -193,6 +199,9 @@ class AdvancedSettings extends PureComponent {
       setTimeout(() => {
         this.mounted && this.setState({ inputWidth: '100%' });
       }, 100);
+
+    this.props.route?.params?.scrollToBottom &&
+      this.scrollView?.current?.scrollToEnd({ animated: true });
   };
 
   componentDidUpdate = () => {
@@ -349,6 +358,7 @@ class AdvancedSettings extends PureComponent {
         <KeyboardAwareScrollView
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
+          ref={this.scrollView}
         >
           <View style={styles.inner}>
             <ActionModal
