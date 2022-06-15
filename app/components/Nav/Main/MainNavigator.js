@@ -446,6 +446,11 @@ const FiatOnRampAggregator = () => (
         component={Region}
         options={{ animationEnabled: false }}
       />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
+        component={AmountToBuy}
+        options={{ animationEnabled: false }}
+      />
     </Stack.Navigator>
   </FiatOnRampSDKProvider>
 );

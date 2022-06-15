@@ -7,6 +7,7 @@ const Routes = {
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
     AMOUNT_TO_BUY: 'AmountToBuy',
+    AMOUNT_TO_BUY_HAS_STARTED: 'AmountToBuyHasStarted',
     GET_QUOTES: 'GetQuotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
