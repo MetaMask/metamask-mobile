@@ -1,7 +1,7 @@
 'use strict';
 
 import { Appearance, NativeModules } from 'react-native';
-import { util as controllersUtils } from '@metamask/controllers';
+import axios from 'axios';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
@@ -13,6 +13,8 @@ import {
   AGREED,
   DENIED,
   ANALYTICS_DATA_DELETION_TASK_ID,
+  ANALYTICS_DATA_DELETION_DATE,
+  ANALYTICS_DATA_RECORDED,
 } from '../../constants/storage';
 import { ResponseStatus, DeletionTaskStatus } from './constants';
 
@@ -43,9 +45,19 @@ class Analytics {
   enabled;
 
   /**
-   *
+   * ID from the deletion task
    */
   dataDeletionTaskId;
+
+  /**
+   * Date the deletion task was created
+   */
+  dataDeletionDate;
+
+  /**
+   * Boolean that indicates if the trackEvent method was executed
+   */
+  isDataRecorded;
 
   /**
    * Persist current Metrics OptIn flag in user preferences datastore
@@ -101,7 +113,10 @@ class Analytics {
   /**
    * Track event if enabled and not DEV mode
    */
-  _trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
+  async _trackEvent(
+    name,
+    { event, params = {}, value, info, anonymously = false },
+  ) {
     const isAnalyticsPreferenceSelectedEvent =
       ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
@@ -121,6 +136,16 @@ class Analytics {
           value,
           info,
         });
+      }
+
+      if (!this.isDataRecorded) {
+        this.isDataRecorded = true;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_TASK_ID,
+          this.dataDeletionTaskId,
+        );
+
+        await DefaultPreference.set(ANALYTICS_DATA_RECORDED, 'true');
       }
     } else {
       Logger.log(`Analytics '${name}' -`, event, params, value, info);
@@ -156,33 +181,53 @@ class Analytics {
     const GDPRToken = process.env.MM_MIXPANEL_GDPR_API_TOKEN;
     const url = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/?token=${token}`;
     try {
-      const response = await controllersUtils.handleFetch(url, {
-        method: 'POST',
+      const response = await axios({
+        url,
+        method: 'post',
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${GDPRToken}`,
         },
-        body: JSON.stringify({
+        data: JSON.stringify({
           distinct_ids: [distinctId],
           compliance_type: compliance,
         }),
       });
 
-      if (response.status === ResponseStatus.ok) {
-        this.dataDeletionTaskId = response.results.task_id;
+      const result = response.data;
+
+      if (result.status === ResponseStatus.ok) {
+        this.dataDeletionTaskId = result.results.task_id;
 
         await DefaultPreference.set(
           ANALYTICS_DATA_DELETION_TASK_ID,
           this.dataDeletionTaskId,
         );
 
+        const currentDate = new Date();
+        const month = currentDate.getUTCMonth() + 1;
+        const day = currentDate.getUTCDate();
+        const year = currentDate.getUTCFullYear();
+
+        this.dataDeletionDate = `${day}/${month}/${year}`;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_DATE,
+          this.dataDeletionDate,
+        );
+
+        this.isDataRecorded = false;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_RECORDED,
+          String(this.isDataRecorded),
+        );
+
         return {
-          status: response.status,
+          status: result.status,
           deletionTaskStatus: ResponseStatus.pending,
         };
       }
-      Logger.log(`Analytics Deletion Task Error - ${response.error}`);
-      return { status: response.status, error: response.error };
+      Logger.log(`Analytics Deletion Task Error - ${result.error}`);
+      return { status: response.status, error: result.error };
     } catch (error) {
       Logger.log(`Analytics Deletion Task Error - ${error}`);
       return { status: ResponseStatus.error, error };
@@ -220,32 +265,45 @@ class Analytics {
     const token = process.env.MM_MIXPANEL_TOKEN;
     const GDPRToken = process.env.MM_MIXPANEL_GDPR_API_TOKEN;
     const url = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/${this.dataDeletionTaskId}?token=${token}`;
-    const response = await controllersUtils.handleFetch(url, {
-      method: 'GET',
+    const response = await axios({
+      url,
+      method: 'get',
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${GDPRToken}`,
       },
     });
-    const { results } = response;
 
-    if (results.status === DeletionTaskStatus.success) {
+    const { status, results } = response.data;
+
+    if (results.status === ResponseStatus.success) {
       this.dataDeletionTaskId = undefined;
+      return {
+        status: ResponseStatus.ok,
+        deletionTaskStatus: DeletionTaskStatus.success,
+      };
     }
 
     return {
-      status: ResponseStatus.ok,
-      deletionTaskStatus: results.status,
+      status,
+      deletionTaskStatus: results.status || DeletionTaskStatus.unknown,
     };
   }
 
   /**
    * Creates a Analytics instance
    */
-  constructor(metricsOptIn, dataDeletionTaskId) {
+  constructor(
+    metricsOptIn,
+    dataDeletionTaskId,
+    dataDeletionDate,
+    isDataRecorded,
+  ) {
     if (!Analytics.instance) {
       this.enabled = metricsOptIn === AGREED;
       this.dataDeletionTaskId = dataDeletionTaskId;
+      this.dataDeletionDate = dataDeletionDate;
+      this.isDataRecorded = isDataRecorded;
       this.listeners = [];
       Analytics.instance = this;
       if (!__DEV__) {
@@ -463,7 +521,17 @@ export default {
     const deleteTaskId = await DefaultPreference.get(
       ANALYTICS_DATA_DELETION_TASK_ID,
     );
-    instance = new Analytics(metricsOptIn, deleteTaskId);
+    const dataDeletionDate = await DefaultPreference.get(
+      ANALYTICS_DATA_DELETION_DATE,
+    );
+    const isDataRecorded =
+      (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
+    instance = new Analytics(
+      metricsOptIn,
+      deleteTaskId,
+      dataDeletionDate,
+      isDataRecorded,
+    );
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
       instance.remoteVariables = JSON.parse(vars);
@@ -489,6 +557,12 @@ export default {
   },
   getDeletionTaskId() {
     return instance && instance.dataDeletionTaskId;
+  },
+  getDeletionTaskDate() {
+    return instance && instance.dataDeletionDate;
+  },
+  getIsDataRecorded() {
+    return instance && instance.isDataRecorded;
   },
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
