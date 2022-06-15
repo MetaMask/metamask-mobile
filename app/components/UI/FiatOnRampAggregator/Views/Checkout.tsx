@@ -124,13 +124,19 @@ const CheckoutWebView = () => {
           );
         }
 
-        const transformedOrder = await processAggregatorOrder(
-          aggregatorInitialFiatOrder({
-            id: orderId,
-            account: selectedAddress,
-            network: selectedChainId,
-          }),
-        );
+        const transformedOrder = {
+          ...(await processAggregatorOrder(
+            aggregatorInitialFiatOrder({
+              id: orderId,
+              account: selectedAddress,
+              network: selectedChainId,
+            }),
+          )),
+          id: orderId,
+          account: selectedAddress,
+          network: selectedChainId,
+        };
+
         // add the order to the redux global store
         handleAddFiatOrder(transformedOrder);
         // register the token automatically
