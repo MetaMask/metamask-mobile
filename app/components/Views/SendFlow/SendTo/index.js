@@ -781,7 +781,7 @@ class SendFlow extends PureComponent {
             inputRef={this.addressToInputRef}
             highlighted={toInputHighlighted}
             addressToReady={toSelectedAddressReady}
-            toAccount={toEnsAddressResolved || toAccount}
+            toSelectedAddress={toEnsAddressResolved || toAccount}
             toAddressName={toSelectedAddressName}
             onToSelectedAddressChange={this.onToSelectedAddressChange}
             onScan={this.onScan}
