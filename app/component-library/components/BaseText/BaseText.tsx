@@ -11,7 +11,7 @@ const BaseText: React.FC<BaseTextProps> = ({
   children,
   ...props
 }) => {
-  const styles = useStyles(styleSheet, { variant, style });
+  const { styles } = useStyles(styleSheet, { variant, style });
   return (
     <Text {...props} style={styles.base}>
       {children}
