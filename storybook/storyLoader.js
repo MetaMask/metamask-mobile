@@ -17,6 +17,7 @@ function loadStories() {
   require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
+  require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Link/Link.stories');
 }
@@ -35,6 +36,7 @@ const stories = [
   '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
+  '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Link/Link.stories',
 ];
