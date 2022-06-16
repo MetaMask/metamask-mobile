@@ -1,12 +1,23 @@
 'use strict';
 
-import { METRICS_OPT_IN, AGREED, DENIED } from '../constants/storage';
 import { Appearance, NativeModules } from 'react-native';
-import AUTHENTICATION_TYPE from '../constants/userProperties';
+import axios from 'axios';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
-import Logger from '../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../util/analyticsV2';
-import { store } from '../store';
+import Logger from '../../util/Logger';
+import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
+import { store } from '../../store';
+import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
+import {
+  METRICS_OPT_IN,
+  AGREED,
+  DENIED,
+  ANALYTICS_DATA_DELETION_TASK_ID,
+  ANALYTICS_DATA_DELETION_DATE,
+  ANALYTICS_DATA_RECORDED,
+} from '../../constants/storage';
+import { ResponseStatus, DeletionTaskStatus } from './constants';
+
 const RCTAnalytics = NativeModules.Analytics;
 
 const USER_PROFILE_PROPERTY = {
@@ -32,6 +43,21 @@ class Analytics {
    * Whether the manager has permission to send analytics
    */
   enabled;
+
+  /**
+   * ID from the deletion task
+   */
+  dataDeletionTaskId;
+
+  /**
+   * Date the deletion task was created
+   */
+  dataDeletionDate;
+
+  /**
+   * Boolean that indicates if the trackEvent method was executed
+   */
+  isDataRecorded;
 
   /**
    * Persist current Metrics OptIn flag in user preferences datastore
@@ -87,7 +113,10 @@ class Analytics {
   /**
    * Track event if enabled and not DEV mode
    */
-  _trackEvent(name, { event, params = {}, value, info, anonymously = false }) {
+  async _trackEvent(
+    name,
+    { event, params = {}, value, info, anonymously = false },
+  ) {
     const isAnalyticsPreferenceSelectedEvent =
       ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
     if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
@@ -108,17 +137,173 @@ class Analytics {
           info,
         });
       }
+
+      if (!this.isDataRecorded) {
+        this.isDataRecorded = true;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_TASK_ID,
+          this.dataDeletionTaskId,
+        );
+
+        await DefaultPreference.set(ANALYTICS_DATA_RECORDED, 'true');
+      }
     } else {
       Logger.log(`Analytics '${name}' -`, event, params, value, info);
     }
   }
 
   /**
+   * Creates a Deletion Task using MixPanel GDPR API
+   * Reference https://developer.mixpanel.com/docs/privacy-security#create-a-deletion-task
+   *
+   * @param {string} compliance - CCPA or GDPR compliance. Default is GDPR.
+   * @returns Object with the response of the request
+   *  {
+   *    status: ResponseStatus,
+   *    error?: string,
+   *    deletionTaskStatus?: DeletionTaskStatus
+   *  }
+   */
+  async _createDataDeletionTask(compliance) {
+    if (__DEV__) {
+      // Mock response for DEV env
+      Logger.log(
+        `Analytics Deletion Task Created for following ${compliance} compliance`,
+      );
+      return {
+        status: ResponseStatus.ok,
+        deletionTaskStatus: DeletionTaskStatus.pending,
+      };
+    }
+    const distinctId = await this.getDistinctId();
+    const action = 'data-deletions';
+    const token = process.env.MM_MIXPANEL_TOKEN;
+    const GDPRToken = process.env.MM_MIXPANEL_GDPR_API_TOKEN;
+    const url = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/?token=${token}`;
+    try {
+      const response = await axios({
+        url,
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${GDPRToken}`,
+        },
+        data: JSON.stringify({
+          distinct_ids: [distinctId],
+          compliance_type: compliance,
+        }),
+      });
+
+      const result = response.data;
+
+      if (result.status === ResponseStatus.ok) {
+        this.dataDeletionTaskId = result.results.task_id;
+
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_TASK_ID,
+          this.dataDeletionTaskId,
+        );
+
+        const currentDate = new Date();
+        const month = currentDate.getUTCMonth() + 1;
+        const day = currentDate.getUTCDate();
+        const year = currentDate.getUTCFullYear();
+
+        this.dataDeletionDate = `${day}/${month}/${year}`;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_DATE,
+          this.dataDeletionDate,
+        );
+
+        this.isDataRecorded = false;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_RECORDED,
+          String(this.isDataRecorded),
+        );
+
+        return {
+          status: result.status,
+          deletionTaskStatus: ResponseStatus.pending,
+        };
+      }
+      Logger.log(`Analytics Deletion Task Error - ${result.error}`);
+      return { status: response.status, error: result.error };
+    } catch (error) {
+      Logger.log(`Analytics Deletion Task Error - ${error}`);
+      return { status: ResponseStatus.error, error };
+    }
+  }
+
+  /**
+   * Creates a Deletion Task using MixPanel GDPR API
+   * Reference https://developer.mixpanel.com/docs/privacy-security#check-status-of-a-deletion-task
+   *
+   * @param {string} compliance - CCPA or GDPR compliance. Default is GDPR.
+   * @returns Object with the response of the request
+   *  {
+   *    status: ResponseStatus,
+   *    deletionTaskStatus?: DeletionTaskStatus
+   *  }
+   */
+  async _checkStatusDataDeletionTask() {
+    if (__DEV__) {
+      // Mock response for DEV env
+      return {
+        status: ResponseStatus.ok,
+        deletionTaskStatus: DeletionTaskStatus.pending,
+      };
+    }
+
+    if (!this.dataDeletionTaskId) {
+      return {
+        status: ResponseStatus.error,
+        deletionTaskStatus: DeletionTaskStatus.unknown,
+      };
+    }
+
+    const action = 'data-deletions';
+    const token = process.env.MM_MIXPANEL_TOKEN;
+    const GDPRToken = process.env.MM_MIXPANEL_GDPR_API_TOKEN;
+    const url = `${MIXPANEL_ENDPOINT_BASE_URL}/${action}/v3.0/${this.dataDeletionTaskId}?token=${token}`;
+    const response = await axios({
+      url,
+      method: 'get',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${GDPRToken}`,
+      },
+    });
+
+    const { status, results } = response.data;
+
+    if (results.status === ResponseStatus.success) {
+      this.dataDeletionTaskId = undefined;
+      return {
+        status: ResponseStatus.ok,
+        deletionTaskStatus: DeletionTaskStatus.success,
+      };
+    }
+
+    return {
+      status,
+      deletionTaskStatus: results.status || DeletionTaskStatus.unknown,
+    };
+  }
+
+  /**
    * Creates a Analytics instance
    */
-  constructor(metricsOptIn) {
+  constructor(
+    metricsOptIn,
+    dataDeletionTaskId,
+    dataDeletionDate,
+    isDataRecorded,
+  ) {
     if (!Analytics.instance) {
       this.enabled = metricsOptIn === AGREED;
+      this.dataDeletionTaskId = dataDeletionTaskId;
+      this.dataDeletionDate = dataDeletionDate;
+      this.isDataRecorded = isDataRecorded;
       this.listeners = [];
       Analytics.instance = this;
       if (!__DEV__) {
@@ -313,6 +498,19 @@ class Analytics {
       anonymously,
     });
   };
+
+  /**
+   * Creates a deletion task to delete all data, including events and user profile data, for the user specified by mixpanelUserId
+   *
+   * @param {string} compliance - CCPA or GDPR compliance
+   */
+  createDataDeletionTask(compliance = 'GDPR') {
+    return this._createDataDeletionTask(compliance);
+  }
+
+  checkStatusDataDeletionTask() {
+    return this._checkStatusDataDeletionTask();
+  }
 }
 
 let instance;
@@ -320,7 +518,20 @@ let instance;
 export default {
   init: async () => {
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-    instance = new Analytics(metricsOptIn);
+    const deleteTaskId = await DefaultPreference.get(
+      ANALYTICS_DATA_DELETION_TASK_ID,
+    );
+    const dataDeletionDate = await DefaultPreference.get(
+      ANALYTICS_DATA_DELETION_DATE,
+    );
+    const isDataRecorded =
+      (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
+    instance = new Analytics(
+      metricsOptIn,
+      deleteTaskId,
+      dataDeletionDate,
+      isDataRecorded,
+    );
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
       instance.remoteVariables = JSON.parse(vars);
@@ -338,11 +549,20 @@ export default {
   disableInstance() {
     return instance && instance.disableInstance();
   },
-  getEnabled() {
+  checkEnabled() {
     return instance && instance.enabled;
   },
   getDistinctId() {
     return instance && instance.getDistinctId();
+  },
+  getDeletionTaskId() {
+    return instance && instance.dataDeletionTaskId;
+  },
+  getDeletionTaskDate() {
+    return instance && instance.dataDeletionDate;
+  },
+  getIsDataRecorded() {
+    return instance && instance.isDataRecorded;
   },
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
@@ -366,5 +586,11 @@ export default {
     } catch (e) {
       // Do nothing
     }
+  },
+  createDataDeletionTask(compliance) {
+    return instance && instance.createDataDeletionTask(compliance);
+  },
+  checkStatusDataDeletionTask() {
+    return instance && instance.checkStatusDataDeletionTask();
   },
 };
