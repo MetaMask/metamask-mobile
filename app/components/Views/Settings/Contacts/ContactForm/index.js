@@ -13,12 +13,16 @@ import PropTypes from 'prop-types';
 import { getEditableOptions } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
-import { toChecksumAddress, isValidAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
 import { doENSLookup } from '../../../../../util/ENSUtils';
-import { isENS, renderShortAddress } from '../../../../../util/address';
+import {
+  isValidHexAddress,
+  isENS,
+  renderShortAddress,
+} from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
@@ -222,7 +226,7 @@ class ContactForm extends PureComponent {
     const { network } = this.props;
     let addressError, toEnsName;
     let addressReady = false;
-    if (isValidAddress(address)) {
+    if (isValidHexAddress(address, { mixedCaseUseChecksum: true })) {
       addressError = this.checkIfAlreadySaved(address);
       addressReady = true;
     } else if (isENS(address)) {
