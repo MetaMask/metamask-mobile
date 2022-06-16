@@ -491,8 +491,9 @@ const RootRPCMethodsUI = (props) => {
           onCancel={onWalletConnectSessionRejected}
           onConfirm={onWalletConnectSessionApproval}
           currentPageInformation={{
-            title: meta && meta.name,
-            url: meta && meta.url,
+            title: meta?.name,
+            url: meta?.url,
+            icon: meta?.icons?.[0],
           }}
           walletConnectRequest
         />
