@@ -10,9 +10,17 @@ This component extends `ViewProps` from React Native's [View Component](https://
 
 Enum to select between size variants.
 
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6) | Yes                                                     |
+
+### `iconName`
+
+Icon to use.
+
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BaseAvatarSize](./BaseAvatar.types.ts#L6)          | Yes                                                     |
+| [IconName](./Icon.types.ts#L53)                     | Yes                                                     |
 
 ### `color`
 
