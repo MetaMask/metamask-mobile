@@ -88,6 +88,10 @@ class TransactionReviewSummary extends PureComponent {
      * ETH or fiat, depending on user setting
      */
     primaryCurrency: PropTypes.string,
+    /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
   };
 
   renderWarning = () => (
@@ -104,9 +108,11 @@ class TransactionReviewSummary extends PureComponent {
       fiatValue,
       approveTransaction,
       primaryCurrency,
+      chainId,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+    const isTestNetResult = isTestNet(chainId);
 
     return (
       <View>
@@ -121,10 +127,24 @@ class TransactionReviewSummary extends PureComponent {
           </Text>
 
           {!conversionRate ? (
-            <Text style={isTestNet ? styles.testNestSummaryPrimary : styles.summaryPrimary}>{assetAmount}</Text>
+            <Text
+              style={
+                isTestNetResult
+                  ? styles.testNestSummaryPrimary
+                  : styles.summaryPrimary
+              }
+            >
+              {assetAmount}
+            </Text>
           ) : (
             <View>
-              <Text style={isTestNet ? styles.testNestSummaryPrimary : styles.summaryPrimary}>
+              <Text
+                style={
+                  isTestNetResult
+                    ? styles.testNestSummaryPrimary
+                    : styles.summaryPrimary
+                }
+              >
                 {primaryCurrency === 'ETH' ? assetAmount : fiatValue}
               </Text>
               <Text style={styles.summarySecondary}>

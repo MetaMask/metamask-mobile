@@ -424,7 +424,8 @@ class PaymentRequest extends PureComponent {
         : defaultAssets;
     } else if (
       //Check to see if it is not a test net ticker symbol
-      Object.values(NetworksChainId).find((value) => value === chainId) && !(chainId > '1' && chainId < '6')
+      Object.values(NetworksChainId).find((value) => value === chainId) &&
+      !(chainId > '1' && chainId < '6')
     ) {
       results = [defaultEth];
     } else {
@@ -717,6 +718,7 @@ class PaymentRequest extends PureComponent {
       showError,
       selectedAsset,
       internalPrimaryCurrency,
+      chainId,
     } = this.state;
     const currencySymbol = currencySymbols[currentCurrency];
     const exchangeRate =
@@ -764,7 +766,10 @@ class PaymentRequest extends PureComponent {
                     testID={'request-amount-input'}
                     keyboardAppearance={themeAppearance}
                   />
-                  <Text style={isTestNet ? styles.testNetEth : styles.eth} numberOfLines={1}>
+                  <Text
+                    style={isTestNet(chainId) ? styles.testNetEth : styles.eth}
+                    numberOfLines={1}
+                  >
                     {symbol}
                   </Text>
                 </View>
