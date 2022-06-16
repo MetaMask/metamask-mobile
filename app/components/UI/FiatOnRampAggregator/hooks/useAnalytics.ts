@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENTS_V2 } from '../../../../util/analyticsV2';
 import { AnalyticsEvents } from '../types';
 

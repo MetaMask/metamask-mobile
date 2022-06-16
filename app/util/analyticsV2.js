@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import Analytics from '../core/Analytics';
+import Analytics from '../core/Analytics/Analytics';
 import Logger from './Logger';
 
 const generateOpt = (name) => ({ category: name });
@@ -71,6 +71,9 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED: generateOpt('Analytics Preference Selected'),
+  ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
+    'Delete MetaMetrics Data Request Submitted',
+  ),
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
   ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt(
