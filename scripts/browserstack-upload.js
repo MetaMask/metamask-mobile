@@ -35,6 +35,7 @@ async function upload() {
       (error, stdout, stderr) => {
         if (error) reject(new Error(error));
         clearInterval(interval);
+        console.log('upload complete!');
         console.log({ stdout });
         resolve();
       },
