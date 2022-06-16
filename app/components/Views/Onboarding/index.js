@@ -26,7 +26,7 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
@@ -45,6 +45,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
+import Routes from '../../../constants/navigation/Routes';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -266,7 +267,7 @@ class Onboarding extends PureComponent {
   }
 
   logOut = () => {
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
     this.props.logOut();
   };
 
@@ -363,7 +364,7 @@ class Onboarding extends PureComponent {
 
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.getEnabled()) {
+      if (Analytics.checkEnabled()) {
         AnalyticsV2.trackEvent(...eventArgs);
         return;
       }

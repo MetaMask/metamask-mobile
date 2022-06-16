@@ -39,7 +39,7 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
