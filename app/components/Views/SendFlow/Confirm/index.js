@@ -56,16 +56,11 @@ import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
-  capitalize,
-  shallowEqual,
-  renderShortText,
-} from '../../../../util/general';
-import {
-  isMainNet,
-  getNetworkName,
+  isTestNet,
   getNetworkNonce,
   isMainnetByChainId,
 } from '../../../../util/networks';
@@ -88,6 +83,7 @@ import {
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
+import WarningMessage from '../WarningMessage';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -440,15 +436,15 @@ class Confirm extends PureComponent {
 
   handleConfusables = () => {
     const { identities = undefined, transactionState } = this.props;
-    const { transactionToName = undefined } = transactionState;
+    const { ensRecipient } = transactionState;
     const accountNames =
       (identities &&
         Object.keys(identities).map((hash) => identities[hash].name)) ||
       [];
-    const isOwnAccount = accountNames.includes(transactionToName);
-    if (transactionToName && !isOwnAccount) {
+    const isOwnAccount = accountNames.includes(ensRecipient);
+    if (ensRecipient && !isOwnAccount) {
       this.setState({
-        confusableCollection: collectConfusables(transactionToName),
+        confusableCollection: collectConfusables(ensRecipient),
       });
     }
   };
@@ -1295,7 +1291,7 @@ class Confirm extends PureComponent {
   buyEth = () => {
     const { navigation } = this.props;
     try {
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -1306,11 +1302,10 @@ class Confirm extends PureComponent {
     });
   };
 
-  gotoFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
+  goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: mmFaucetUrl,
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });
@@ -1425,13 +1420,11 @@ class Confirm extends PureComponent {
         <AdressToComponent />
       );
 
-    const is_main_net = isMainNet(network);
-    const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-    const networkName = capitalize(getNetworkName(network));
-    const errorLinkText = is_main_net
-      ? strings('transaction.buy_more_eth')
-      : strings('transaction.get_ether', { networkName });
-
+    const isTestNetwork = isTestNet(network);
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
+      ? strings('transaction.go_to_faucet')
+      : strings('transaction.buy_more');
     const { EIP1559TransactionData } = this.state;
 
     return (
@@ -1554,12 +1547,11 @@ class Confirm extends PureComponent {
             <View style={styles.errorWrapper}>
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{errorMessage}</Text>
-                {/* only show buy more on mainnet */}
-                {over && is_main_net && (
+                {over ? (
                   <Text style={[styles.error, styles.underline]}>
                     {errorLinkText}
                   </Text>
-                )}
+                ) : null}
               </TouchableOpacity>
             </View>
           )}
@@ -1568,6 +1560,14 @@ class Confirm extends PureComponent {
               <Text style={styles.error}>{warningGasPriceHigh}</Text>
             </View>
           )}
+
+          {this.state.gasSelected === AppConstants.GAS_OPTIONS.LOW && (
+            <WarningMessage
+              style={styles.actionsWrapper}
+              warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
+            />
+          )}
+
           <View style={styles.actionsWrapper}>
             {showHexData && (
               <TouchableOpacity

@@ -28,14 +28,9 @@ import {
   calculateEthEIP1559,
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
-import {
-  getNetworkName,
-  getNetworkNonce,
-  isMainNet,
-} from '../../../../util/networks';
-import { capitalize } from '../../../../util/general';
+import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
@@ -44,6 +39,8 @@ import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
+import AppConstants from '../../../../core/AppConstants';
+import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -106,6 +103,9 @@ const createStyles = (colors) =>
     underline: {
       textDecorationLine: 'underline',
       ...fontStyles.bold,
+    },
+    actionsWrapper: {
+      margin: 24,
     },
   });
 
@@ -206,6 +206,7 @@ class TransactionReviewInformation extends PureComponent {
      * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
      */
     originWarning: PropTypes.bool,
+    gasSelected: PropTypes.string,
   };
 
   state = {
@@ -268,7 +269,7 @@ class TransactionReviewInformation extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -500,12 +501,11 @@ class TransactionReviewInformation extends PureComponent {
     onCancelPress && onCancelPress();
   };
 
-  gotoFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
+  goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: mmFaucetUrl,
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });
@@ -609,18 +609,18 @@ class TransactionReviewInformation extends PureComponent {
       network,
       showCustomNonce,
       gasEstimateType,
+      gasSelected,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const is_main_net = isMainNet(network);
+    const isTestNetwork = isTestNet(network);
 
-    const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-    const networkName = capitalize(getNetworkName(network));
-    const errorLinkText = is_main_net
-      ? strings('transaction.buy_more_eth')
-      : strings('transaction.get_ether', { networkName });
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
+      ? strings('transaction.go_to_faucet')
+      : strings('transaction.buy_more');
 
     const showFeeMarket =
       !gasEstimateType ||
@@ -633,6 +633,12 @@ class TransactionReviewInformation extends PureComponent {
         {showFeeMarket
           ? this.renderTransactionReviewEIP1559()
           : this.renderTransactionReviewFeeCard()}
+        {gasSelected === AppConstants.GAS_OPTIONS.LOW && (
+          <WarningMessage
+            style={styles.actionsWrapper}
+            warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
+          />
+        )}
         {showCustomNonce && (
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
@@ -652,8 +658,7 @@ class TransactionReviewInformation extends PureComponent {
           <View style={styles.errorWrapper}>
             <TouchableOpacity onPress={errorPress}>
               <Text style={styles.error}>{error}</Text>
-              {/* only show buy more on mainnet */}
-              {over && is_main_net && (
+              {over && (
                 <Text style={[styles.error, styles.underline]}>
                   {errorLinkText}
                 </Text>

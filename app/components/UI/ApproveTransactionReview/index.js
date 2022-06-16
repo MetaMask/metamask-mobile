@@ -35,7 +35,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
@@ -46,13 +46,8 @@ import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { withNavigation } from '@react-navigation/compat';
-import {
-  getNetworkName,
-  isMainNet,
-  isMainnetByChainId,
-} from '../../../util/networks';
+import { isTestNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
-import { capitalize } from '../../../util/general';
 import EditPermission from './EditPermission';
 import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
@@ -64,6 +59,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
+import formatNumber from '../../../util/formatNumber';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -82,6 +78,14 @@ const createStyles = (colors) =>
       marginVertical: 8,
       paddingHorizontal: 16,
     },
+    tokenKey: {
+      fontSize: 12,
+      marginRight: 5,
+    },
+    tokenValue: {
+      fontSize: 12,
+      width: '75%',
+    },
     explanation: {
       ...fontStyles.normal,
       fontSize: 14,
@@ -89,6 +93,11 @@ const createStyles = (colors) =>
       color: colors.text.default,
       lineHeight: 20,
       paddingHorizontal: 16,
+    },
+    tokenAccess: {
+      alignItems: 'center',
+      marginHorizontal: 14,
+      flexDirection: 'row',
     },
     editPermissionText: {
       ...fontStyles.bold,
@@ -328,6 +337,7 @@ class ApproveTransactionReview extends PureComponent {
     editPermissionVisible: false,
     host: undefined,
     originalApproveAmount: undefined,
+    customSpendAmount: null,
     tokenSymbol: undefined,
     spendLimitUnlimitedSelected: true,
     spendLimitCustomValue: undefined,
@@ -536,6 +546,14 @@ class ApproveTransactionReview extends PureComponent {
         transaction,
       );
 
+      const { encodedAmount } = decodeApproveData(newApprovalTransaction.data);
+
+      const approveAmount = fromTokenMinimalUnit(
+        hexToBN(encodedAmount),
+        token.decimals,
+      );
+
+      this.setState({ customSpendAmount: approveAmount });
       setTransactionObject({
         ...newApprovalTransaction,
         transaction: {
@@ -631,7 +649,13 @@ class ApproveTransactionReview extends PureComponent {
   toggleDisplay = () => this.props.onUpdateContractNickname();
 
   renderDetails = () => {
-    const { host, tokenSymbol, spenderAddress } = this.state;
+    const {
+      host,
+      tokenSymbol,
+      spenderAddress,
+      originalApproveAmount,
+      customSpendAmount,
+    } = this.state;
     const {
       primaryCurrency,
       gasError,
@@ -650,14 +674,13 @@ class ApproveTransactionReview extends PureComponent {
       transactionConfirmed,
     } = this.props;
     const styles = this.getStyles();
-    const is_main_net = isMainNet(network);
+    const isTestNetwork = isTestNet(network);
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
-    const errorPress = is_main_net ? this.buyEth : this.gotoFaucet;
-    const networkName = capitalize(getNetworkName(network));
-    const errorLinkText = is_main_net
-      ? strings('transaction.buy_more_eth')
-      : strings('transaction.get_ether', { networkName });
+    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = isTestNetwork
+      ? strings('transaction.go_to_faucet')
+      : strings('transaction.buy_more');
 
     const showFeeMarket =
       !gasEstimateType ||
@@ -683,6 +706,21 @@ class ApproveTransactionReview extends PureComponent {
               { tokenSymbol },
             )}
           </Text>
+          {originalApproveAmount && (
+            <View style={styles.tokenAccess}>
+              <Text bold style={styles.tokenKey}>
+                {` ${strings('spend_limit_edition.access_up_to')} `}
+              </Text>
+              <Text numberOfLines={4} style={styles.tokenValue}>
+                {` ${
+                  customSpendAmount
+                    ? formatNumber(customSpendAmount)
+                    : originalApproveAmount &&
+                      formatNumber(originalApproveAmount)
+                } ${tokenSymbol}`}
+              </Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.actionTouchable}
             onPress={this.toggleEditPermission}
@@ -792,8 +830,8 @@ class ApproveTransactionReview extends PureComponent {
                         <Text reset style={styles.error}>
                           {gasError}
                         </Text>
-                        {/* only show buy more on mainnet */}
-                        {over && is_main_net && (
+
+                        {over && (
                           <Text reset style={[styles.error, styles.underline]}>
                             {errorLinkText}
                           </Text>
@@ -863,7 +901,7 @@ class ApproveTransactionReview extends PureComponent {
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
-      navigation.navigate('FiatOnRamp');
+      navigation.navigate('FiatOnRampAggregator');
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
@@ -884,12 +922,11 @@ class ApproveTransactionReview extends PureComponent {
     onConfirm && onConfirm();
   };
 
-  gotoFaucet = () => {
-    const mmFaucetUrl = 'https://faucet.metamask.io/';
+  goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
       this.props.navigation.navigate(Routes.BROWSER_VIEW, {
-        newTabUrl: mmFaucetUrl,
+        newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });
     });
@@ -927,7 +964,6 @@ class ApproveTransactionReview extends PureComponent {
   render = () => {
     const { viewDetails, editPermissionVisible } = this.state;
     const { isSigningQRObject } = this.props;
-
     return (
       <View>
         {viewDetails

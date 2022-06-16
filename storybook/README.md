@@ -4,7 +4,7 @@ Welcome to the MetaMask Mobile Storybook.
 
 ## Building Locally and Contributing
 
-If you are looking to get a local build of Metamask Mobile up and running or contribute to the mobile app codebase please read the Metamask [README.md](https://github.com/MetaMask/metamask-mobile)
+If you are looking to get a local build of MetaMask Mobile up and running or contribute to the mobile app codebase please read the MetaMask [README.md](https://github.com/MetaMask/metamask-mobile)
 
 ## Documentation Guidelines
 
