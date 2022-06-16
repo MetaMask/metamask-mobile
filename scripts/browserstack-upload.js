@@ -3,6 +3,7 @@
 /* eslint-disable import/no-nodejs-modules */
 /* eslint-disable no-console */
 const { exec } = require('child_process');
+const { write } = process.stdout;
 const endpoint = 'https://api-cloud.browserstack.com/app-live/upload';
 const debugApk = './android/app/build/outputs/apk/debug/app-debug.apk';
 
@@ -17,7 +18,7 @@ const {
 });
 
 const file = BROWSERSTACK_APK_LOCATION || debugApk;
-const writeDot = () => process.stdout.write('.');
+const writeDot = () => write('.');
 
 if (!BROWSERSTACK_USERNAME.length || !BROWSERSTACK_ACCESS_KEY.length) {
   console.log(
@@ -35,8 +36,7 @@ async function upload() {
       (error, stdout, stderr) => {
         if (error) reject(new Error(error));
         clearInterval(interval);
-        console.log('upload complete!');
-        console.log({ stdout });
+        console.log({ 'upload complete!': { stdout } });
         resolve();
       },
     );
