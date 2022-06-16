@@ -1,28 +1,26 @@
 # Changelog
 
 ## Current Main Branch
-- [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): Add onramp agg translations
-- [#4515](https://github.com/MetaMask/metamask-mobile/pull/4515): Fix version and build numbers
-- [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [5.3] [FEAT] Easy delete data
-- [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): update rpc URL for xDai
-- [#4269](https://github.com/MetaMask/metamask-mobile/pull/4269): [5.3] Show amount being approved by default on approval screens
-- [#4495](https://github.com/MetaMask/metamask-mobile/pull/4495): Fix WalletConnect Icon on connect screen
+- [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
+- [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
+- [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
+- [#4269](https://github.com/MetaMask/metamask-mobile/pull/4269): [[IMPROVEMENT] Show amount being approved by default on approval screens
+- [#4495](https://github.com/MetaMask/metamask-mobile/pull/4495): [FIX] WalletConnect Icon on connect screen
 - [#4505](https://github.com/MetaMask/metamask-mobile/pull/4505): updated new rpcUrl of gnosischain on test file
 - [#4442](https://github.com/MetaMask/metamask-mobile/pull/4442): [5.3] Skip to amount to buy when region is selected
 - [#4501](https://github.com/MetaMask/metamask-mobile/pull/4501): Add accesible false to pressable group preventing VoiceOver interaction
 - [#4247](https://github.com/MetaMask/metamask-mobile/pull/4247): [IMPROVEMENT] Add rounded corners to svg NFTs
 - [#4470](https://github.com/MetaMask/metamask-mobile/pull/4470): Add minimum required params to orders
-- [#4469](https://github.com/MetaMask/metamask-mobile/pull/4469): Fix displaying notification when state changes
-- [#4443](https://github.com/MetaMask/metamask-mobile/pull/4443): [5.3] Fix wrong analytics property for region event
-- [#4468](https://github.com/MetaMask/metamask-mobile/pull/4468): Fix wrong amount out for onramp analytics
+- [#4469](https://github.com/MetaMask/metamask-mobile/pull/4469): [FIX] Displaying notification when state changes
+- [#4443](https://github.com/MetaMask/metamask-mobile/pull/4443): [FIX] Wrong analytics property for region event
+- [#4468](https://github.com/MetaMask/metamask-mobile/pull/4468): [FIX] Wrong amount out for onramp analytics
 - [#4379](https://github.com/MetaMask/metamask-mobile/pull/4379): Update project README.md
 - [#4418](https://github.com/MetaMask/metamask-mobile/pull/4418): [IMPROVEMENT] Address Verification
 - [#3783](https://github.com/MetaMask/metamask-mobile/pull/3783): [5.3]Add custom networks
-- [#4131](https://github.com/MetaMask/metamask-mobile/pull/4131): [5.4] [FIX] Add method for crypto that are not in ISO4217
+- [#4131](https://github.com/MetaMask/metamask-mobile/pull/4131): [FIX] Add method for crypto that are not in ISO4217
 - [#4187](https://github.com/MetaMask/metamask-mobile/pull/4187): [5.3]Update copy in Edit & Advance Screens
 - [#4060](https://github.com/MetaMask/metamask-mobile/pull/4060): [FIX] Avoid canceling transactions after submission
 - [#4478](https://github.com/MetaMask/metamask-mobile/pull/4478): Get added subtitles working
-- [#4477](https://github.com/MetaMask/metamask-mobile/pull/4477): bring in subtitles from crowdin
 - [#4474](https://github.com/MetaMask/metamask-mobile/pull/4474): remove secret_phrase_video_subtitle key
 - [#4429](https://github.com/MetaMask/metamask-mobile/pull/4429): [FIX] Prompt camera permission
 - [#4341](https://github.com/MetaMask/metamask-mobile/pull/4341): 5.2.0
