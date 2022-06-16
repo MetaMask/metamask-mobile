@@ -14,7 +14,7 @@ export const routingInstrumentation =
   new Sentry.ReactNavigationV5Instrumentation();
 
 // Setup sentry remote error reporting
-export default function setupSentry() {
+export function setupSentry() {
   const environment =
     __DEV__ || !METAMASK_ENVIRONMENT ? 'development' : METAMASK_ENVIRONMENT;
   const dsn = environment === 'production' ? SENTRY_DSN_PROD : SENTRY_DSN_DEV;
@@ -32,3 +32,6 @@ export default function setupSentry() {
     tracesSampleRate: 0.2,
   });
 }
+
+// eslint-disable-next-line no-empty-function
+export function deleteSentryData() {}
