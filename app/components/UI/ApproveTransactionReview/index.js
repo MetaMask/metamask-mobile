@@ -59,6 +59,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
+import formatNumber from '../../../util/formatNumber';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -77,6 +78,14 @@ const createStyles = (colors) =>
       marginVertical: 8,
       paddingHorizontal: 16,
     },
+    tokenKey: {
+      fontSize: 12,
+      marginRight: 5,
+    },
+    tokenValue: {
+      fontSize: 12,
+      width: '75%',
+    },
     explanation: {
       ...fontStyles.normal,
       fontSize: 14,
@@ -84,6 +93,11 @@ const createStyles = (colors) =>
       color: colors.text.default,
       lineHeight: 20,
       paddingHorizontal: 16,
+    },
+    tokenAccess: {
+      alignItems: 'center',
+      marginHorizontal: 14,
+      flexDirection: 'row',
     },
     editPermissionText: {
       ...fontStyles.bold,
@@ -323,6 +337,7 @@ class ApproveTransactionReview extends PureComponent {
     editPermissionVisible: false,
     host: undefined,
     originalApproveAmount: undefined,
+    customSpendAmount: null,
     tokenSymbol: undefined,
     spendLimitUnlimitedSelected: true,
     spendLimitCustomValue: undefined,
@@ -531,6 +546,14 @@ class ApproveTransactionReview extends PureComponent {
         transaction,
       );
 
+      const { encodedAmount } = decodeApproveData(newApprovalTransaction.data);
+
+      const approveAmount = fromTokenMinimalUnit(
+        hexToBN(encodedAmount),
+        token.decimals,
+      );
+
+      this.setState({ customSpendAmount: approveAmount });
       setTransactionObject({
         ...newApprovalTransaction,
         transaction: {
@@ -626,7 +649,13 @@ class ApproveTransactionReview extends PureComponent {
   toggleDisplay = () => this.props.onUpdateContractNickname();
 
   renderDetails = () => {
-    const { host, tokenSymbol, spenderAddress } = this.state;
+    const {
+      host,
+      tokenSymbol,
+      spenderAddress,
+      originalApproveAmount,
+      customSpendAmount,
+    } = this.state;
     const {
       primaryCurrency,
       gasError,
@@ -677,6 +706,21 @@ class ApproveTransactionReview extends PureComponent {
               { tokenSymbol },
             )}
           </Text>
+          {originalApproveAmount && (
+            <View style={styles.tokenAccess}>
+              <Text bold style={styles.tokenKey}>
+                {` ${strings('spend_limit_edition.access_up_to')} `}
+              </Text>
+              <Text numberOfLines={4} style={styles.tokenValue}>
+                {` ${
+                  customSpendAmount
+                    ? formatNumber(customSpendAmount)
+                    : originalApproveAmount &&
+                      formatNumber(originalApproveAmount)
+                } ${tokenSymbol}`}
+              </Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.actionTouchable}
             onPress={this.toggleEditPermission}
