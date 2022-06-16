@@ -1,9 +1,9 @@
 import { StyleSheet, ViewStyle } from 'react-native';
+import { Theme } from '../../../util/theme/models';
 import {
   ButtonPrimaryStyleSheet,
   ButtonPrimaryStyleSheetVars,
 } from './ButtonPrimary.types';
-import { Theme } from '../../../util/theme/models';
 
 /**
  * Style sheet function for ButtonPrimary component.
