@@ -1,6 +1,54 @@
 # Changelog
 
 ## Current Main Branch
+- [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): Add onramp agg translations
+- [#4515](https://github.com/MetaMask/metamask-mobile/pull/4515): Fix version and build numbers
+- [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [5.3] [FEAT] Easy delete data
+- [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): update rpc URL for xDai
+- [#4269](https://github.com/MetaMask/metamask-mobile/pull/4269): [5.3] Show amount being approved by default on approval screens
+- [#4495](https://github.com/MetaMask/metamask-mobile/pull/4495): Fix WalletConnect Icon on connect screen
+- [#4505](https://github.com/MetaMask/metamask-mobile/pull/4505): updated new rpcUrl of gnosischain on test file
+- [#4442](https://github.com/MetaMask/metamask-mobile/pull/4442): [5.3] Skip to amount to buy when region is selected
+- [#4501](https://github.com/MetaMask/metamask-mobile/pull/4501): Add accesible false to pressable group preventing VoiceOver interaction
+- [#4247](https://github.com/MetaMask/metamask-mobile/pull/4247): [IMPROVEMENT] Add rounded corners to svg NFTs
+- [#4470](https://github.com/MetaMask/metamask-mobile/pull/4470): Add minimum required params to orders
+- [#4469](https://github.com/MetaMask/metamask-mobile/pull/4469): Fix displaying notification when state changes
+- [#4443](https://github.com/MetaMask/metamask-mobile/pull/4443): [5.3] Fix wrong analytics property for region event
+- [#4468](https://github.com/MetaMask/metamask-mobile/pull/4468): Fix wrong amount out for onramp analytics
+- [#4379](https://github.com/MetaMask/metamask-mobile/pull/4379): Update project README.md
+- [#4418](https://github.com/MetaMask/metamask-mobile/pull/4418): [IMPROVEMENT] Address Verification
+- [#3783](https://github.com/MetaMask/metamask-mobile/pull/3783): [5.3]Add custom networks
+- [#4131](https://github.com/MetaMask/metamask-mobile/pull/4131): [5.4] [FIX] Add method for crypto that are not in ISO4217
+- [#4187](https://github.com/MetaMask/metamask-mobile/pull/4187): [5.3]Update copy in Edit & Advance Screens
+- [#4060](https://github.com/MetaMask/metamask-mobile/pull/4060): [FIX] Avoid canceling transactions after submission
+- [#4478](https://github.com/MetaMask/metamask-mobile/pull/4478): Get added subtitles working
+- [#4477](https://github.com/MetaMask/metamask-mobile/pull/4477): bring in subtitles from crowdin
+- [#4474](https://github.com/MetaMask/metamask-mobile/pull/4474): remove secret_phrase_video_subtitle key
+- [#4429](https://github.com/MetaMask/metamask-mobile/pull/4429): [FIX] Prompt camera permission
+- [#4341](https://github.com/MetaMask/metamask-mobile/pull/4341): 5.2.0
+- [#4440](https://github.com/MetaMask/metamask-mobile/pull/4440): Updating instances of Metamask to MetaMask
+- [#4438](https://github.com/MetaMask/metamask-mobile/pull/4438): Resolved spelling mistake
+- [#4394](https://github.com/MetaMask/metamask-mobile/pull/4394): Remove subtitles from translation files
+- [#4415](https://github.com/MetaMask/metamask-mobile/pull/4415): Color updates for icons relative to the 1.5 -> 1.6 design tokens upgrade
+- [#4445](https://github.com/MetaMask/metamask-mobile/pull/4445): Adding resolutions for security critical packages
+- [#4258](https://github.com/MetaMask/metamask-mobile/pull/4258): [5.3] Bump Controllers to 29.0.1
+- [#3943](https://github.com/MetaMask/metamask-mobile/pull/3943): Remove old gas estimation
+- [#4070](https://github.com/MetaMask/metamask-mobile/pull/4070): [5.3] [IMPROVEMENT] Update SelectQRAccounts UI
+- [#4406](https://github.com/MetaMask/metamask-mobile/pull/4406): Upgrade contract-metadata to 1.35.0
+- [#4178](https://github.com/MetaMask/metamask-mobile/pull/4178): [5.3.0][FIX] Prevent crash when funds warning is pressed
+- [#4397](https://github.com/MetaMask/metamask-mobile/pull/4397): Add vtt files to crowdin config
+- [#4367](https://github.com/MetaMask/metamask-mobile/pull/4367): Make txt Hex data selectable
+- [#4381](https://github.com/MetaMask/metamask-mobile/pull/4381): [FIX] Add margin and check to AssetActionButton text
+- [#4361](https://github.com/MetaMask/metamask-mobile/pull/4361): Add texts for feat/delete-all-data
+- [#4380](https://github.com/MetaMask/metamask-mobile/pull/4380): only rely on setup
+- [#4295](https://github.com/MetaMask/metamask-mobile/pull/4295): 5.1.1
+- [#4365](https://github.com/MetaMask/metamask-mobile/pull/4365): [PS UI] AccountAvatar Component
+- [#4260](https://github.com/MetaMask/metamask-mobile/pull/4260): [PS UI] BaseAvatar component
+- [#4356](https://github.com/MetaMask/metamask-mobile/pull/4356): remove default from create-release-pr workflow
+- [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): Bugfix/fix subtitle mapping
+- [#4315](https://github.com/MetaMask/metamask-mobile/pull/4315): Make reveal SRP blur view dynamic
+- [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): Fix check for empty tokens list
+- [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): Fix homepage scripts and env import
 
 ## 5.2.0 - May 17, 2022
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
