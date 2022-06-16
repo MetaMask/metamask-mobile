@@ -342,7 +342,6 @@ class Approve extends PureComponent {
       parsedTransactionEIP1559.totalMaxHex,
     );
 
-    console.log('parsedTransactionEIP1559', parsedTransactionEIP1559);
     return parsedTransactionEIP1559;
   };
 
@@ -360,9 +359,6 @@ class Approve extends PureComponent {
     parsedTransactionLegacy.error = this.validateGas(
       parsedTransactionLegacy.totalHex,
     );
-
-    console.log('parsedTransactionLegacy', parsedTransactionLegacy);
-
 
     return parsedTransactionLegacy;
   };

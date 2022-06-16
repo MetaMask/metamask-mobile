@@ -155,9 +155,8 @@ const TransactionReviewEIP1559 = ({
     totalMaxPrimary = gasFeeMaxConversion;
   }
 
-  console.log('totalPrimary', totalPrimary, totalConversion, totalNative, primaryCurrency);
-
   const valueToWatchAnimation = `${gasFeeNative}${gasFeeMaxNative}`;
+  const isTestNetwork = isTestNet(chainId);
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -228,7 +227,7 @@ const TransactionReviewEIP1559 = ({
                 <Text
                   primary
                   bold
-                  upper={isTestNet()}
+                  upper={!isTestNetwork}
                   grey={!nativeCurrencySelected}
                   link={nativeCurrencySelected}
                   underline={nativeCurrencySelected}
@@ -333,7 +332,7 @@ const TransactionReviewEIP1559 = ({
                   <Text
                     bold
                     primary
-                    upper={isTestNet()}
+                    upper={!isTestNetwork}
                     right
                     noMargin
                     style={[Device.isSmallDevice() && styles.flex]}

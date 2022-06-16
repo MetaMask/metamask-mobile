@@ -581,10 +581,6 @@ export const calculateEthEIP1559 = ({
     totalMaxConversion,
     currentCurrency,
   );
-  console.log('calculateEthEIP1559', renderableTotalMinNative,
-  renderableTotalMinConversion,
-  renderableTotalMaxNative,
-  renderableTotalMaxConversion)
   return [
     renderableTotalMinNative,
     renderableTotalMinConversion,

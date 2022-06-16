@@ -346,7 +346,12 @@ class AssetOverview extends PureComponent {
             this.renderWarning()
           ) : (
             <>
-              <Text style={isTestNet ? styles.testNetAmount : styles.amount} testID={'token-amount'}>
+              <Text
+                style={
+                  isTestNet(chainId) ? styles.testNetAmount : styles.amount
+                }
+                testID={'token-amount'}
+              >
                 {mainBalance}
               </Text>
               {secondaryBalance && (

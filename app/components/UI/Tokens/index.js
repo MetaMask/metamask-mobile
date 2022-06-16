@@ -210,6 +210,7 @@ class Tokens extends PureComponent {
       primaryCurrency,
       tokenList,
     } = this.props;
+    const { chainId } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -264,7 +265,11 @@ class Tokens extends PureComponent {
         )}
 
         <View style={styles.balances} testID={'balance'}>
-          <Text style={isTestNet ? styles.testNetBalance : styles.balance}>{mainBalance}</Text>
+          <Text
+            style={isTestNet(chainId) ? styles.testNetBalance : styles.balance}
+          >
+            {mainBalance}
+          </Text>
           {secondaryBalance ? (
             <Text
               style={[

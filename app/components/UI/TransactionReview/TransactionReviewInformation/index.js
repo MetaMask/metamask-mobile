@@ -339,6 +339,12 @@ class TransactionReviewInformation extends PureComponent {
     return totals[assetType] || totals.default;
   };
 
+  isTestNetwork = () => {
+    const { network } = this.props;
+
+    return isTestNet(network);
+  };
+
   getRenderTotalsEIP1559 = ({
     gasFeeMinNative,
     gasFeeMinConversion,
@@ -351,6 +357,7 @@ class TransactionReviewInformation extends PureComponent {
       currentCurrency,
       conversionRate,
       contractExchangeRates,
+      ticker,
     } = this.props;
 
     let renderableTotalMinNative,
@@ -381,8 +388,8 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMinConversion,
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
-        ] = calculateEthEIP1559({ //TODO need to find a way to send ticker into this function
-          nativeCurrency,
+        ] = calculateEthEIP1559({
+          nativeCurrency: this.isTestNetwork ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -468,7 +475,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency,
+          nativeCurrency: this.isTestNetwork ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -532,7 +539,6 @@ class TransactionReviewInformation extends PureComponent {
       renderableTotalMinConversion,
       renderableTotalMaxNative,
     ] = this.getRenderTotalsEIP1559(EIP1559GasData)();
-    console.log('getRenderTotalsEIP1559', renderableTotalMinNative, renderableTotalMinConversion)
     return (
       <TransactionReviewEIP1559
         totalNative={renderableTotalMinNative}
