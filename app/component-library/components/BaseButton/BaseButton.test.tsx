@@ -1,7 +1,8 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import { IconName } from '../Icon';
-import BaseButton, { BaseButtonSize } from './';
+import BaseButton from './BaseButton';
+import { BaseButtonSize } from './BaseButton.types';
 
 describe('BaseButton', () => {
   it('should render correctly', () => {

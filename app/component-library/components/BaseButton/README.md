@@ -14,6 +14,14 @@ Button text.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | Yes                                                     |
 
+### `labelColor`
+
+Color of label. Applies to icon too.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | No                                                      |
+
 ### `size`
 
 Enum to select between size variants.
