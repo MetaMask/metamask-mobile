@@ -23,7 +23,6 @@
 - [#4478](https://github.com/MetaMask/metamask-mobile/pull/4478): Get added subtitles working
 - [#4474](https://github.com/MetaMask/metamask-mobile/pull/4474): remove secret_phrase_video_subtitle key
 - [#4429](https://github.com/MetaMask/metamask-mobile/pull/4429): [FIX] Prompt camera permission
-- [#4341](https://github.com/MetaMask/metamask-mobile/pull/4341): 5.2.0
 - [#4440](https://github.com/MetaMask/metamask-mobile/pull/4440): Updating instances of Metamask to MetaMask
 - [#4438](https://github.com/MetaMask/metamask-mobile/pull/4438): Resolved spelling mistake
 - [#4394](https://github.com/MetaMask/metamask-mobile/pull/4394): Remove subtitles from translation files
@@ -39,14 +38,13 @@
 - [#4381](https://github.com/MetaMask/metamask-mobile/pull/4381): [FIX] Add margin and check to AssetActionButton text
 - [#4361](https://github.com/MetaMask/metamask-mobile/pull/4361): Add texts for feat/delete-all-data
 - [#4380](https://github.com/MetaMask/metamask-mobile/pull/4380): only rely on setup
-- [#4295](https://github.com/MetaMask/metamask-mobile/pull/4295): 5.1.1
 - [#4365](https://github.com/MetaMask/metamask-mobile/pull/4365): [PS UI] AccountAvatar Component
 - [#4260](https://github.com/MetaMask/metamask-mobile/pull/4260): [PS UI] BaseAvatar component
 - [#4356](https://github.com/MetaMask/metamask-mobile/pull/4356): remove default from create-release-pr workflow
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): Bugfix/fix subtitle mapping
-- [#4315](https://github.com/MetaMask/metamask-mobile/pull/4315): Make reveal SRP blur view dynamic
-- [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): Fix check for empty tokens list
-- [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): Fix homepage scripts and env import
+
+
+
 
 ## 5.2.0 - May 17, 2022
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
