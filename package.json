@@ -310,6 +310,7 @@
     "octonode": "0.9.5",
     "patch-package": "^6.2.2",
     "prettier": "^2.2.1",
+    "rc": "^1.2.8",
     "react-dom": "16.8.4",
     "react-native-cli": "2.0.1",
     "react-native-storybook-loader": "^2.0.4",

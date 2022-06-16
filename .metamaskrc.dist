@@ -1,0 +1,3 @@
+; Extra environment variables
+BROWSERSTACK_USERNAME
+BROWSERSTACK_ACCESS_KEY
