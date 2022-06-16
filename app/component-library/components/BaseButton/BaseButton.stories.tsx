@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
+import { select, text } from '@storybook/addon-knobs';
 import BaseButton from './BaseButton';
 import { IconName } from '../Icon';
 import { BaseButtonSize } from './BaseButton.types';
-import { select, text } from '@storybook/addon-knobs';
 
 storiesOf('Component Library / BaseButton', module)
   .addDecorator((getStory) => getStory())
