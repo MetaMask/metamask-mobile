@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonSecondary should render correctly 1`] = `
+<BaseButton
+  icon="BankFilled"
+  label="Click me!"
+  labelColor="#FCFCFC"
+  onPress={[Function]}
+  size="40"
+  style={
+    Object {
+      "backgroundColor": "#F66A0A",
+    }
+  }
+/>
+`;
