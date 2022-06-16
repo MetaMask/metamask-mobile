@@ -1,9 +1,9 @@
 import { StyleSheet, ViewStyle } from 'react-native';
+import { Theme } from '../../../util/theme/models';
 import {
   BaseButtonStyleSheet,
   BaseButtonStyleSheetVars,
 } from './BaseButton.types';
-import { Theme } from '../../../util/theme/models';
 
 /**
  * Style sheet function for BaseButton component.
