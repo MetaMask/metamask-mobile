@@ -4,7 +4,7 @@
 /* eslint-disable no-console */
 const { exec } = require('child_process');
 const endpoint = 'https://api-cloud.browserstack.com/app-live/upload';
-const file = './android/app/build/outputs/apk/debug/app-debug.apk';
+const debugApk = './android/app/build/outputs/apk/debug/app-debug.apk';
 
 const {
   BROWSERSTACK_USERNAME,
@@ -16,6 +16,9 @@ const {
   BROWSERSTACK_APK_LOCATION: process.env.BROWSERSTACK_APK_LOCATION,
 });
 
+const file = BROWSERSTACK_APK_LOCATION || debugApk;
+const writeDot = () => process.stdout.write('.');
+
 if (!BROWSERSTACK_USERNAME.length || !BROWSERSTACK_ACCESS_KEY.length) {
   console.log(
     `You must provide BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY`,
@@ -25,12 +28,13 @@ if (!BROWSERSTACK_USERNAME.length || !BROWSERSTACK_ACCESS_KEY.length) {
 
 async function upload() {
   await new Promise((resolve, reject) => {
+    console.log(`uploading ${file} to browserstack`);
+    const interval = setInterval(writeDot, 1000);
     exec(
-      `curl -u "${BROWSERSTACK_USERNAME}:${BROWSERSTACK_ACCESS_KEY}" -X POST "${endpoint}" -F "file=@${
-        BROWSERSTACK_APK_LOCATION || file
-      }"`,
+      `curl -u "${BROWSERSTACK_USERNAME}:${BROWSERSTACK_ACCESS_KEY}" -X POST "${endpoint}" -F "file=@${file}"`,
       (error, stdout, stderr) => {
         if (error) reject(new Error(error));
+        clearInterval(interval);
         console.log({ stdout });
         resolve();
       },
