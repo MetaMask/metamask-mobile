@@ -17,7 +17,7 @@ const styleSheet = (params: {
   vars: BaseButtonStyleSheetVars;
 }): BaseButtonStyleSheet => {
   const { vars, theme } = params;
-  const { style, size } = vars;
+  const { style, size, labelColor } = vars;
   const sizeAsNum = Number(size);
 
   return StyleSheet.create({
@@ -34,6 +34,9 @@ const styleSheet = (params: {
     ) as ViewStyle,
     icon: {
       marginRight: 8,
+    },
+    label: {
+      color: labelColor,
     },
   });
 };

@@ -1,4 +1,4 @@
-import { StyleProp, ViewProps, ViewStyle } from 'react-native';
+import { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native';
 import { IconProps } from '../Icon';
 
 export enum BaseButtonSize {
@@ -16,9 +16,13 @@ export interface BaseButtonProps extends ViewProps {
    */
   label: string;
   /**
+   * Color of label. Applies to icon too.
+   */
+  labelColor?: string;
+  /**
    * Button icon.
    */
-  iconName?: IconProps['name'];
+  icon?: IconProps['name'];
   /**
    * Size of the button.
    */
@@ -39,9 +43,13 @@ export interface BaseButtonProps extends ViewProps {
 export interface BaseButtonStyleSheet {
   base: ViewStyle;
   icon: ViewStyle;
+  label: TextStyle;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type BaseButtonStyleSheetVars = Pick<BaseButtonProps, 'style' | 'size'>;
+export type BaseButtonStyleSheetVars = Pick<
+  BaseButtonProps,
+  'style' | 'size' | 'labelColor'
+>;

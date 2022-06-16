@@ -32,4 +32,20 @@ storiesOf('Component Library / BaseButton', module)
         onPress={() => console.log("I'm clicked!")}
       />
     );
-  });
+  })
+  .add('With label color', () => (
+    <BaseButton
+      icon={IconName.BankTokenFilled}
+      size={BaseButtonSize.Md}
+      label={"I'm a button!"}
+      onPress={() => console.log("I'm clicked!")}
+      labelColor={'blue'}
+    />
+  ))
+  .add('Without icon', () => (
+    <BaseButton
+      size={BaseButtonSize.Md}
+      label={"I'm a button!"}
+      onPress={() => console.log("I'm clicked!")}
+    />
+  ));

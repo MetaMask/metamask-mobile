@@ -13,13 +13,21 @@ const BaseButton = ({
   size,
   onPress,
   style,
+  labelColor,
   ...props
 }: BaseButtonProps): JSX.Element => {
-  const { styles } = useStyles(styleSheet, { style, size });
+  const { styles } = useStyles(styleSheet, { style, size, labelColor });
   return (
     <TouchableOpacity onPress={onPress} style={styles.base} {...props}>
-      {icon && <Icon name={icon} size={IconSize.Sm} style={styles.icon} />}
-      <BaseText suppressHighlighting variant={BaseTextVariant.sBodyMD}>
+      {icon && (
+        <Icon
+          color={labelColor}
+          name={icon}
+          size={IconSize.Sm}
+          style={styles.icon}
+        />
+      )}
+      <BaseText variant={BaseTextVariant.sBodyMD} style={styles.label}>
         {label}
       </BaseText>
     </TouchableOpacity>
