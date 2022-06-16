@@ -59,7 +59,12 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
-import { MM_PHISH_DETECT_URL, MM_BLOCKLIST_ISSUE_URL, PHISHFORT_BLOCKLIST_ISSUE_URL, MM_ETHERSCAN_URL } from '../../../constants/urls';
+import {
+  MM_PHISH_DETECT_URL,
+  MM_blockListType_ISSUE_URL,
+  PHISHFORT_blockListType_ISSUE_URL,
+  MM_ETHERSCAN_URL,
+} from '../../../constants/urls';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -227,7 +232,8 @@ export const BrowserTab = (props) => {
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const webviewRef = useRef(null);
-  const blockList = useRef('');
+  const blockListType = useRef('');
+  const componentAllowList = useRef([]);
 
   const url = useRef('');
   const title = useRef('');
@@ -409,21 +415,31 @@ export const BrowserTab = (props) => {
   /**
    * Check if a hostname is allowed
    */
-  const isAllowedUrl = (hostname) => {
+  const isAllowedUrl = useCallback(
+    (hostname) => {
       const { PhishingController } = Engine.context;
       const phishingControllerTestResult = PhishingController.test(hostname);
-      const blockedUrlObj = new URL(blockedUrl);
-      
+
       // Only assign the if the hostname is on the block list
-      if(phishingControllerTestResult.result) blockList.current = phishingControllerTestResult.name;
-      
-      const result =(props.whitelist && props.whitelist.includes(hostname)) || blockedUrlObj.hostname === hostname ||
+      if (phishingControllerTestResult.result)
+        blockListType.current = phishingControllerTestResult.name;
+
+      console.log(
+        'isAllowedUrl',
+        componentAllowList.current && componentAllowList.current.includes(hostname),
+        !phishingControllerTestResult.result,
+        hostname,
+        componentAllowList,
+      );
+
+      const result =
+        (componentAllowList.current && componentAllowList.current.includes(hostname)) ||
         !phishingControllerTestResult.result;
 
-      if(blockedUrl) setBlockedUrl(undefined)
-
       return result;
-  };
+    },
+    [componentAllowList],
+  );
 
   const isBookmark = () => {
     const { bookmarks } = props;
@@ -511,7 +527,6 @@ export const BrowserTab = (props) => {
    */
   const go = useCallback(
     async (url, initialCall) => {
-
       const hasProtocol = url.match(/^[a-z]*:\/\//) || isHomepage(url);
       const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
       const { hostname, query, pathname } = new URL(sanitizedURL);
@@ -546,6 +561,7 @@ export const BrowserTab = (props) => {
         setProgress(0);
         return sanitizedURL;
       }
+      console.log('go', 'handleNotAllowedUrl');
       handleNotAllowedUrl(urlToGo);
       return null;
     },
@@ -723,17 +739,32 @@ export const BrowserTab = (props) => {
    * Continue to phishing website
    */
   const continueToPhishingSite = () => {
+    console.log('continueToPhishingSite', props.whitelist, blockedUrl);
     const urlObj = new URL(blockedUrl);
     props.addToWhitelist(urlObj.hostname);
     setShowPhishingModal(false);
-    blockedUrl !== url.current &&
-      setTimeout(() => {
-        go(blockedUrl);
-      }, 1000);
   };
 
+  useEffect(() => {
+    console.log('useEffect', showPhishingModal, props.whitelist);
+    console.log('useEffect', blockedUrl);
+
+    const urlObj = new URL(blockedUrl);
+    if (
+      !showPhishingModal &&
+      blockedUrl !== undefined &&
+      blockedUrl !== url.current &&
+      props.whitelist.includes(urlObj.hostname)
+    ) {
+      console.log('useEffect PASS');
+      go(blockedUrl);
+      setBlockedUrl(undefined);
+      componentAllowList.current = props.whitelist;
+    }
+  }, [showPhishingModal, props.whitelist, blockedUrl, url, go]);
+
   /**
-   * Go to etherscam website
+   * Go to etherscam websiter
    */
   const goToEtherscam = () => {
     setShowPhishingModal(false);
@@ -745,9 +776,9 @@ export const BrowserTab = (props) => {
    */
   const goToFilePhishingIssue = () => {
     setShowPhishingModal(false);
-    blockList.current === 'MetaMask' ? 
-    go(MM_BLOCKLIST_ISSUE_URL) : 
-    go(PHISHFORT_BLOCKLIST_ISSUE_URL);
+    blockListType.current === 'MetaMask'
+      ? go(MM_blockListType_ISSUE_URL)
+      : go(PHISHFORT_blockListType_ISSUE_URL);
   };
 
   /**
@@ -985,6 +1016,7 @@ export const BrowserTab = (props) => {
     }
 
     if (!isAllowedUrl(hostname)) {
+      console.log('onLoadStart', 'handleNotAllowedUrl');
       return handleNotAllowedUrl(nativeEvent.url);
     }
     webviewUrlPostMessagePromiseResolve.current = null;

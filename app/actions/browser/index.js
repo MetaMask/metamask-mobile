@@ -29,6 +29,7 @@ export function clearHistory() {
  * @param {string} url - The website's url
  */
 export function addToWhitelist(url) {
+  console.log('addToWhitelist', url);
   return {
     type: 'ADD_TO_BROWSER_WHITELIST',
     url,
