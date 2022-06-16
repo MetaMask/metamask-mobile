@@ -21,7 +21,7 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 
 const RINKEBY = 'Rinkeby Test Network';
-const XDAI_URL = 'https://dai.poa.network/';
+const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 const PASSWORD = '12345678';
 
