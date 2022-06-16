@@ -43,7 +43,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
@@ -738,7 +738,7 @@ class DrawerView extends PureComponent {
   };
 
   logOut = () => {
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
     this.props.logOut();
   };
 
@@ -749,7 +749,7 @@ class DrawerView extends PureComponent {
     await KeyringController.setLocked();
     if (!passwordSet) {
       this.props.navigation.navigate('OnboardingRootNav', {
-        screen: 'OnboardingNav',
+        screen: Routes.ONBOARDING.NAV,
         params: { screen: 'Onboarding' },
       });
     } else {
