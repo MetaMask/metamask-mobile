@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonPrimary should render correctly 1`] = `
+<BaseButton
+  icon="BankFilled"
+  label="Click me!"
+  onPress={[Function]}
+  size="40"
+  style={
+    Object {
+      "backgroundColor": "#037DD6",
+    }
+  }
+/>
+`;

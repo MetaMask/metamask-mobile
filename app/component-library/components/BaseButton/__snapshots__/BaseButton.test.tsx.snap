@@ -2,6 +2,7 @@
 
 exports[`BaseButton should render correctly 1`] = `
 <TouchableOpacity
+  onPress={[Function]}
   style={
     Object {
       "alignItems": "center",
@@ -23,7 +24,6 @@ exports[`BaseButton should render correctly 1`] = `
     }
   />
   <BaseText
-    onPress={[Function]}
     suppressHighlighting={true}
     variant="sBodyMD"
   >
