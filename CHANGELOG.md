@@ -25,7 +25,6 @@
 - [#4477](https://github.com/MetaMask/metamask-mobile/pull/4477): bring in subtitles from crowdin
 - [#4474](https://github.com/MetaMask/metamask-mobile/pull/4474): remove secret_phrase_video_subtitle key
 - [#4429](https://github.com/MetaMask/metamask-mobile/pull/4429): [FIX] Prompt camera permission
-- [#4341](https://github.com/MetaMask/metamask-mobile/pull/4341): 5.2.0
 - [#4440](https://github.com/MetaMask/metamask-mobile/pull/4440): Updating instances of Metamask to MetaMask
 - [#4438](https://github.com/MetaMask/metamask-mobile/pull/4438): Resolved spelling mistake
 - [#4394](https://github.com/MetaMask/metamask-mobile/pull/4394): Remove subtitles from translation files
