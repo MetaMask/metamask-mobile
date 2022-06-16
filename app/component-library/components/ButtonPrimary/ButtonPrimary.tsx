@@ -9,8 +9,15 @@ const ButtonPrimary = ({
   style,
   ...props
 }: ButtonPrimaryProps): JSX.Element => {
-  const { styles } = useStyles(styleSheet, { style });
-  return <BaseButton {...props} style={styles.base} />;
+  const { styles, theme } = useStyles(styleSheet, { style });
+  const primaryInverseColor = theme.colors.primary.inverse;
+  return (
+    <BaseButton
+      {...props}
+      style={styles.base}
+      labelColor={primaryInverseColor}
+    />
+  );
 };
 
 export default ButtonPrimary;

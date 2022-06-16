@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { IconName } from '../Icon';
 import { BaseButtonSize } from '../BaseButton';
-import ButtonPrimary from './';
+import ButtonPrimary from './ButtonPrimary';
 
 describe('ButtonPrimary', () => {
   it('should render correctly', () => {

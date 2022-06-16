@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 import { IconName } from '../Icon';
 import { BaseButtonSize } from '../BaseButton';
-import ButtonPrimary from './';
+import ButtonPrimary from './ButtonPrimary';
 
 storiesOf('Component Library / ButtonPrimary', module)
   .addDecorator((getStory) => getStory())
@@ -32,4 +32,11 @@ storiesOf('Component Library / ButtonPrimary', module)
         onPress={() => console.log("I'm clicked!")}
       />
     );
-  });
+  })
+  .add('Without icon', () => (
+    <ButtonPrimary
+      size={BaseButtonSize.Md}
+      label={'Click Me!'}
+      onPress={() => console.log("I'm clicked!")}
+    />
+  ));
