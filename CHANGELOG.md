@@ -4,7 +4,7 @@
 - [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
 - [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
 - [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
-- [#4269](https://github.com/MetaMask/metamask-mobile/pull/4269): [[IMPROVEMENT] Show amount being approved by default on approval screens
+- [#4269](https://github.com/MetaMask/metamask-mobile/pull/4269): [IMPROVEMENT] Show amount being approved by default on approval screens
 - [#4495](https://github.com/MetaMask/metamask-mobile/pull/4495): [FIX] WalletConnect Icon on connect screen
 - [#4505](https://github.com/MetaMask/metamask-mobile/pull/4505): [FIX] Updated new rpcUrl of gnosischain on test file
 - [#4442](https://github.com/MetaMask/metamask-mobile/pull/4442): [FIX] Skip to amount to buy when region is selected
@@ -15,9 +15,9 @@
 - [#4443](https://github.com/MetaMask/metamask-mobile/pull/4443): [FIX] Wrong analytics property for region event
 - [#4468](https://github.com/MetaMask/metamask-mobile/pull/4468): [FIX] Wrong amount out for onramp analytics
 - [#4418](https://github.com/MetaMask/metamask-mobile/pull/4418): [IMPROVEMENT] Address Verification
-- [#3783](https://github.com/MetaMask/metamask-mobile/pull/3783): [5.3] Add custom networks
+- [#3783](https://github.com/MetaMask/metamask-mobile/pull/3783): [FEAT] Add custom networks
 - [#4131](https://github.com/MetaMask/metamask-mobile/pull/4131): [FIX] Add method for crypto that are not in ISO4217
-- [#4187](https://github.com/MetaMask/metamask-mobile/pull/4187): [5.3]Update copy in Edit & Advance Screens
+- [#4187](https://github.com/MetaMask/metamask-mobile/pull/4187): [IMPROVEMENT] Update copy in Edit & Advance Screens
 - [#4060](https://github.com/MetaMask/metamask-mobile/pull/4060): [FIX] Avoid canceling transactions after submission
 - [#4478](https://github.com/MetaMask/metamask-mobile/pull/4478): [IMPROVEMENT] Video subtitles
 - [#4429](https://github.com/MetaMask/metamask-mobile/pull/4429): [FIX] Prompt camera permission
