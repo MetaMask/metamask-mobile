@@ -2,7 +2,7 @@ import { ViewStyle } from 'react-native';
 import { BaseButtonProps } from '../BaseButton';
 
 /**
- * BaseButton component props.
+ * ButtonPrimary component props.
  */
 export type ButtonPrimaryProps = Omit<BaseButtonProps, 'labelColor'>;
 
