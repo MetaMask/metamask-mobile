@@ -9,7 +9,7 @@ import Icon, { IconSize } from '../Icon';
 
 const BaseButton = ({
   label,
-  iconName,
+  icon,
   size,
   onPress,
   style,
@@ -17,15 +17,9 @@ const BaseButton = ({
 }: BaseButtonProps): JSX.Element => {
   const { styles } = useStyles(styleSheet, { style, size });
   return (
-    <TouchableOpacity style={styles.base} {...props}>
-      {iconName && (
-        <Icon name={iconName} size={IconSize.Sm} style={styles.icon} />
-      )}
-      <BaseText
-        onPress={onPress}
-        suppressHighlighting
-        variant={BaseTextVariant.sBodyMD}
-      >
+    <TouchableOpacity onPress={onPress} style={styles.base} {...props}>
+      {icon && <Icon name={icon} size={IconSize.Sm} style={styles.icon} />}
+      <BaseText suppressHighlighting variant={BaseTextVariant.sBodyMD}>
         {label}
       </BaseText>
     </TouchableOpacity>

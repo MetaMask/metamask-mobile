@@ -1,5 +1,5 @@
 import { StyleProp, ViewProps, ViewStyle } from 'react-native';
-import { IconName } from '../Icon';
+import { IconProps } from '../Icon';
 
 export enum BaseButtonSize {
   Sm = '32',
@@ -18,7 +18,7 @@ export interface BaseButtonProps extends ViewProps {
   /**
    * Button icon.
    */
-  iconName?: IconName;
+  iconName?: IconProps['name'];
   /**
    * Size of the button.
    */

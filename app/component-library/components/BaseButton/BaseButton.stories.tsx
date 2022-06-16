@@ -26,7 +26,7 @@ storiesOf('Component Library / BaseButton', module)
 
     return (
       <BaseButton
-        iconName={iconSelector}
+        icon={iconSelector}
         size={sizeSelector}
         label={labelSelector}
         onPress={() => console.log("I'm clicked!")}
