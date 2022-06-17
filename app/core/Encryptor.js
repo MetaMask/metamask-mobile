@@ -54,7 +54,7 @@ export default class Encryptor {
 
   /**
    * Decrypts an encrypted JS object (encryptedString)
-   * using a password (and AES deccryption with native libraries)
+   * using a password (and AES decryption with native libraries)
    *
    * @param {string} password - Password used for decryption
    * @param {string} encryptedString - String to decrypt

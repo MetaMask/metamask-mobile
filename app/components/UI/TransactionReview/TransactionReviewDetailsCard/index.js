@@ -8,6 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import Feather from 'react-native-vector-icons/Feather';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ConnectHeader from '../../ConnectHeader';
+import formatNumber from '../../../../util/formatNumber';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -154,7 +155,7 @@ export default class TransactionReviewDetailsCard extends Component {
               {strings('spend_limit_edition.allowance')}
             </Text>
             <Text style={styles.transactionDetailsTextRight}>
-              {allowance} {tokenSymbol}
+              {formatNumber(allowance)} {tokenSymbol}
             </Text>
           </View>
         </View>
