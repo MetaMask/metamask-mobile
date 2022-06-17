@@ -214,7 +214,7 @@ class SardineWebView extends PureComponent {
                       Linking.openURL(externalLink);
                     }
                   });
-                } else {
+                } else if(orderSuccess) {
                   setTimeout(() => {
                     this.handleOrderStatus(orderData, orderSuccess);
                   }, 2000);
