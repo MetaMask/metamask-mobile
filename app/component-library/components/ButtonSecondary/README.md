@@ -37,3 +37,11 @@ Icon to use.
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [IconName](../Icon/Icon.types.ts#53)                | False                                                   |
+
+### `variant`
+
+Enum used to select between variants.
+
+| <span style="color:gray;font-size:14px">TYPE</span>     | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :------------------------------------------------------ | :------------------------------------------------------ |
+| [ButtonSecondaryVariant](./ButtonSecondary.types.ts#L7) | Yes                                                     |
