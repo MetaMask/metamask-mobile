@@ -341,7 +341,6 @@ class TransactionReviewInformation extends PureComponent {
 
   isTestNetwork = () => {
     const { network } = this.props;
-
     return isTestNet(network);
   };
 
@@ -613,7 +612,6 @@ class TransactionReviewInformation extends PureComponent {
       transaction: { warningGasPriceHigh },
       error,
       over,
-      network,
       showCustomNonce,
       gasEstimateType,
       gasSelected,
@@ -622,10 +620,8 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const isTestNetwork = isTestNet(network);
-
-    const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
-    const errorLinkText = isTestNetwork
+    const errorPress = this.isTestNetwork ? this.goToFaucet : this.buyEth;
+    const errorLinkText = this.isTestNetwork
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 

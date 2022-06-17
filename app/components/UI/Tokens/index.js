@@ -209,8 +209,8 @@ class Tokens extends PureComponent {
       tokenExchangeRates,
       primaryCurrency,
       tokenList,
+      chainId,
     } = this.props;
-    const { chainId } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
