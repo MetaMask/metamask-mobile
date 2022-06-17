@@ -28,7 +28,6 @@
 - [#4070](https://github.com/MetaMask/metamask-mobile/pull/4070): [IMPROVEMENT] Update SelectQRAccounts UI
 - [#4178](https://github.com/MetaMask/metamask-mobile/pull/4178): [FIX] Prevent crash when funds warning is pressed
 - [#4367](https://github.com/MetaMask/metamask-mobile/pull/4367): [IMPROVEMENT] Make text hex data selectable
-- [#4381](https://github.com/MetaMask/metamask-mobile/pull/4381): [FIX] Add margin and check to AssetActionButton text
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
 
 ## 5.2.0 - May 17, 2022
