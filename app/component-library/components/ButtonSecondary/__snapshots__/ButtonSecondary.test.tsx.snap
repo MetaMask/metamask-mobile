@@ -4,12 +4,14 @@ exports[`ButtonSecondary should render correctly 1`] = `
 <BaseButton
   icon="BankFilled"
   label="Click me!"
-  labelColor="#FCFCFC"
+  labelColor="#037DD6"
   onPress={[Function]}
   size="40"
   style={
     Object {
-      "backgroundColor": "#F66A0A",
+      "backgroundColor": "transparent",
+      "borderColor": "#037DD6",
+      "borderWidth": 1,
     }
   }
 />
