@@ -81,7 +81,7 @@ export default class TransactionSummary extends PureComponent {
             <Text small bold primary>
               {strings('transaction.amount')}
             </Text>
-            <Text small bold primary upper>
+            <Text small bold primary upper={!isTestNetResult}>
               {amount}
             </Text>
           </Summary.Row>
