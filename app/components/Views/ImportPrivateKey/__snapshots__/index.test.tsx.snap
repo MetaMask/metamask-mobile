@@ -82,7 +82,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
           size={12}
           style={
             Object {
-              "color": "#24272A",
+              "color": "#6A737D",
               "fontSize": 50,
               "marginLeft": 0,
               "marginTop": 0,
