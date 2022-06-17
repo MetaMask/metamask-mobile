@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import { IconName } from '../Icon';
 import { BaseButtonSize } from '../BaseButton';
 import ButtonTertiary from './ButtonTertiary';
+import { ButtonTertiaryVariant } from './ButtonTertiary.types';
 
 describe('ButtonTertiary', () => {
   it('should render correctly', () => {
@@ -12,6 +13,7 @@ describe('ButtonTertiary', () => {
         size={BaseButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
+        variant={ButtonTertiaryVariant.Normal}
       />,
     );
     expect(wrapper).toMatchSnapshot();

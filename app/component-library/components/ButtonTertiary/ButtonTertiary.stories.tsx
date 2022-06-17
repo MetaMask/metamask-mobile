@@ -5,6 +5,7 @@ import { select, text } from '@storybook/addon-knobs';
 import { IconName } from '../Icon';
 import { BaseButtonSize } from '../BaseButton';
 import ButtonTertiary from './ButtonTertiary';
+import { ButtonTertiaryVariant } from './ButtonTertiary.types';
 
 storiesOf('Component Library / ButtonTertiary', module)
   .addDecorator((getStory) => getStory())
@@ -30,6 +31,7 @@ storiesOf('Component Library / ButtonTertiary', module)
         size={sizeSelector}
         label={labelSelector}
         onPress={() => console.log("I'm clicked!")}
+        variant={ButtonTertiaryVariant.Normal}
       />
     );
   })
@@ -38,5 +40,14 @@ storiesOf('Component Library / ButtonTertiary', module)
       size={BaseButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
+      variant={ButtonTertiaryVariant.Normal}
+    />
+  ))
+  .add('Danger variant', () => (
+    <ButtonTertiary
+      size={BaseButtonSize.Md}
+      label={'Click Me!'}
+      onPress={() => console.log("I'm clicked!")}
+      variant={ButtonTertiaryVariant.Danger}
     />
   ));
