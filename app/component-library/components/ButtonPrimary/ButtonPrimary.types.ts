@@ -2,9 +2,20 @@ import { ViewStyle } from 'react-native';
 import { BaseButtonProps } from '../BaseButton';
 
 /**
+ * ButtonPrimary variant
+ */
+export enum ButtonPrimaryVariant {
+  Normal = 'Normal',
+  Danger = 'Danger',
+}
+
+/**
  * ButtonPrimary component props.
  */
-export type ButtonPrimaryProps = Omit<BaseButtonProps, 'labelColor'>;
+export interface ButtonPrimaryProps
+  extends Omit<BaseButtonProps, 'labelColor'> {
+  variant: ButtonPrimaryVariant;
+}
 
 /**
  * ButtonPrimary component style sheet.
@@ -16,4 +27,7 @@ export interface ButtonPrimaryStyleSheet {
 /**
  * Style sheet input parameters.
  */
-export type ButtonPrimaryStyleSheetVars = Pick<ButtonPrimaryProps, 'style'>;
+export type ButtonPrimaryStyleSheetVars = Pick<
+  ButtonPrimaryProps,
+  'style' | 'variant'
+>;

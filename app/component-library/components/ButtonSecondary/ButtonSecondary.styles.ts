@@ -3,6 +3,7 @@ import { Theme } from '../../../util/theme/models';
 import {
   ButtonSecondaryStyleSheet,
   ButtonSecondaryStyleSheetVars,
+  ButtonSecondaryVariant,
 } from './ButtonSecondary.types';
 
 /**
@@ -17,12 +18,23 @@ const styleSheet = (params: {
   vars: ButtonSecondaryStyleSheetVars;
 }): ButtonSecondaryStyleSheet => {
   const { vars, theme } = params;
-  const { style } = vars;
+  const { style, variant } = vars;
+  let borderColor: string;
+  switch (variant) {
+    case ButtonSecondaryVariant.Normal:
+      borderColor = theme.colors.primary.default;
+      break;
+    case ButtonSecondaryVariant.Danger:
+      borderColor = theme.colors.error.default;
+      break;
+  }
 
   return StyleSheet.create({
     base: Object.assign(
       {
-        backgroundColor: theme.colors.secondary.default,
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor,
       } as ViewStyle,
       style,
     ) as ViewStyle,
