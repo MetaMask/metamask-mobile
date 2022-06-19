@@ -4,6 +4,7 @@ import {
   renderSlightlyLongAddress,
   formatAddress,
   isHardwareAccount,
+  isValidHexAddress,
 } from '.';
 
 jest.mock('../../core/Engine');
@@ -94,5 +95,38 @@ xdescribe('isHardwareAccount,', () => {
     expect(
       isHardwareAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(false);
+  });
+
+describe('isValidHexAddress', () => {
+  it('should return true if all characters are lower case', () => {
+    const lowerCaseMockAddress = '0x87187657b35f461d0ceec338d9b8e944a193afe2';
+    expect(
+      isValidHexAddress(lowerCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
+  });
+
+  it('should return true if all characters are upper case', () => {
+    const upperCaseMockAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
+  });
+
+  it('should return false if the characters are mixed case and the checksum is invalid', () => {
+    const upperCaseMockAddress = '0x87187657b35f461d0ceEc338d9B8e944A193afe2';
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(false);
+  });
+
+  it('should return true if the characters are mixed case and the checksum is valid', () => {
+    const upperCaseMockAddress = '0x87187657b35F461D0Ceec338d9b8E944a193aFE2';
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
+  });
+
+  it('should return false if the address is an  empty string', () => {
+    expect(isValidHexAddress('', { mixedCaseUseChecksum: true })).toBe(false);
   });
 });
