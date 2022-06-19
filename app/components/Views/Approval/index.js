@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
 import Modal from 'react-native-modal';
 import { addHexPrefix, BNToHex } from '../../../util/number';
-import { isHardwareAccount } from '../../../util/address';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
@@ -23,6 +22,7 @@ import {
   getAddressAccountType,
   isQRHardwareAccount,
   safeToChecksumAddress,
+  isHardwareAccount,
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
