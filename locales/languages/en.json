@@ -177,7 +177,11 @@
     "toast_bluetooth_connection_error_subtitle": "Ledger has not been connected",
     "try_again": "Try again",
     "forget_device": "Forget Ledger",
-    "sign_with_ledger": "Sign with Ledger"
+    "sign_with_ledger": "Sign with Ledger",
+    "ledger_pending_confirmation": "Ledger is busy",
+    "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Please clear the action first then retry.",
+    "not_supported": "Operation not supported",
+    "not_supported_error": "Only version 4 of typed data signing is supported."
   },
   "login": {
     "title": "Welcome Back!",

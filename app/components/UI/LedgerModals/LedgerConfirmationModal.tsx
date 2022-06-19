@@ -129,6 +129,18 @@ const LedgerConfirmationModal = ({
         case LedgerCommunicationErrors.UserRefusedConfirmation:
           onReject();
           break;
+        case LedgerCommunicationErrors.LedgerHasPendingConfirmation:
+          setErrorDetails({
+            title: strings('ledger.ledger_pending_confirmation'),
+            subtitle: strings('ledger.ledger_pending_confirmation_error'),
+          });
+          break;
+        case LedgerCommunicationErrors.NotSupported:
+          setErrorDetails({
+            title: strings('ledger.not_supported'),
+            subtitle: strings('ledger.not_supported_error'),
+          });
+          break;
         case LedgerCommunicationErrors.UnknownError:
         case LedgerCommunicationErrors.LedgerDisconnected:
         default:
@@ -166,23 +178,10 @@ const LedgerConfirmationModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ledgerError, bluetoothConnectionError, bluetoothPermissionError]);
 
-  const displayErrorView = !!errorDetails;
-  const displayLookingForDevice = !isSendingLedgerCommands && !displayErrorView;
-  const displayOpenYourLedger =
-    isSendingLedgerCommands &&
-    !displayErrorView &&
-    isAppLaunchConfirmationNeeded;
-  const displayConfirmation =
-    isSendingLedgerCommands &&
-    !displayErrorView &&
-    !isAppLaunchConfirmationNeeded;
-
-  return (
-    <SafeAreaView style={styles.wrapper}>
-      <View style={styles.contentWrapper}>
-        {displayLookingForDevice && <SearchingForDeviceStep />}
-        {displayOpenYourLedger && <OpenETHAppStep onReject={onReject} />}
-        {displayErrorView && (
+  if (!!errorDetails) {
+    return (
+      <SafeAreaView style={styles.wrapper}>
+        <View style={styles.contentWrapper}>
           <ErrorStep
             onReject={onReject}
             onRetry={onRetry}
@@ -192,8 +191,35 @@ const LedgerConfirmationModal = ({
               !!bluetoothConnectionError || !!bluetoothPermissionError
             }
           />
-        )}
-        {displayConfirmation && <ConfirmationStep onReject={onReject} />}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!isSendingLedgerCommands) {
+    return (
+      <SafeAreaView style={styles.wrapper}>
+        <View style={styles.contentWrapper}>
+          <SearchingForDeviceStep />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isAppLaunchConfirmationNeeded) {
+    return (
+      <SafeAreaView style={styles.wrapper}>
+        <View style={styles.contentWrapper}>
+          <OpenETHAppStep onReject={onReject} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.wrapper}>
+      <View style={styles.contentWrapper}>
+        <ConfirmationStep onReject={onReject} />
       </View>
     </SafeAreaView>
   );

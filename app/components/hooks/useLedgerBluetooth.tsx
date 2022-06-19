@@ -6,11 +6,13 @@ import { strings } from '../../../locales/i18n';
 
 export enum LedgerCommunicationErrors {
   LedgerDisconnected = 'LedgerDisconnected',
+  LedgerHasPendingConfirmation = 'LedgerHasPendingConfirmation',
   FailedToOpenApp = 'FailedToOpenApp',
   FailedToCloseApp = 'FailedToCloseApp',
   UserRefusedConfirmation = 'UserRefusedConfirmation',
   AppIsNotInstalled = 'AppIsNotInstalled',
   LedgerIsLocked = 'LedgerIsLocked',
+  NotSupported = 'NotSupported',
   UnknownError = 'UnknownError',
 }
 class LedgerError extends Error {
@@ -198,6 +200,12 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
       if (e instanceof LedgerError) {
         setLedgerError(e.code);
+      } else if (e.name === 'TransportRaceCondition') {
+        setLedgerError(LedgerCommunicationErrors.LedgerHasPendingConfirmation);
+      } else if (
+        e.message.includes('Only version 4 of typed data signing is supported')
+      ) {
+        setLedgerError(LedgerCommunicationErrors.NotSupported);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }

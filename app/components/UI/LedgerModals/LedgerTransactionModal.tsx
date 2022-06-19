@@ -15,7 +15,11 @@ const LedgerTransactionModal = () => {
 
   const executeOnLedger = useCallback(async () => {
     // This requires the user to confirm on the ledger device
-    await TransactionController.approveTransaction(transactionId);
+    try {
+      await TransactionController.approveTransaction(transactionId);
+    } catch (e) {
+      throw e;
+    }
 
     onConfirmationComplete(true);
     dispatch(closeLedgerTransactionModal());
