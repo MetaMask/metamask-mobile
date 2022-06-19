@@ -11,6 +11,7 @@ export const createStyles = (colors: Colors) =>
     },
     contentWrapper: {
       paddingBottom: 32,
+      borderRadius: 20,
       backgroundColor: colors.background.default,
     },
   });

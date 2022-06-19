@@ -84,8 +84,8 @@ import {
 } from '../../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { openLedgerTransactionModal } from '../../../../actions/modals';
 import Routes from '../../../../constants/navigation/Routes';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -362,10 +362,6 @@ class Confirm extends PureComponent {
      * A string representing the network type
      */
     networkType: PropTypes.string,
-    /**
-     * Opens the Ledger confirmation Flow
-     */
-    openLedgerTransactionModal: PropTypes.func,
   };
 
   state = {
@@ -1035,12 +1031,15 @@ class Confirm extends PureComponent {
     if (isHardwareAccount(transaction.from, [KeyringTypes.ledger])) {
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
       // Approve transaction for ledger is called in the Confirmation Flow (modals) after user prompt
-      this.props.openLedgerTransactionModal({
-        transactionId: transactionMeta.id,
-        deviceId: ledgerKeyring.deviceId,
-        onConfirmationComplete: finalizeConfirmation,
-        type: 'signTransaction',
-      });
+
+      this.props.navigation.navigate(
+        ...createLedgerTransactionModalNavDetails({
+          transactionId: transactionMeta.id,
+          deviceId: ledgerKeyring.deviceId,
+          onConfirmationComplete: finalizeConfirmation,
+          type: 'signTransaction',
+        }),
+      );
     } else {
       await TransactionController.approveTransaction(transactionMeta.id);
       await finalizeConfirmation(true);
@@ -1699,8 +1698,6 @@ const mapDispatchToProps = (dispatch) => ({
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
     dispatch(removeFavoriteCollectible(selectedAddress, chainId, collectible)),
-  openLedgerTransactionModal: (params) =>
-    dispatch(openLedgerTransactionModal(params)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);

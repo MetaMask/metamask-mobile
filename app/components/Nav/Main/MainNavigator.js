@@ -71,6 +71,7 @@ import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
+import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -581,6 +582,19 @@ const MainNavigator = () => (
       }}
       name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
       component={LedgerMessageSignModal}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.LEDGER_TRANSACTION_MODAL}
+      component={LedgerTransactionModal}
     />
     <Stack.Screen
       name="ConnectHardwareWalletFlow"
