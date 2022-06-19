@@ -7,9 +7,13 @@ import {
   View,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { KeyringTypes } from '@metamask/controllers';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
-import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  safeToChecksumAddress,
+  isHardwareAccount,
+} from '../../../../util/address';
 import Engine from '../../../../core/Engine';
 import AnimatedTransactionModal from '../../../UI/AnimatedTransactionModal';
 import ApproveTransactionReview from '../../../UI/ApproveTransactionReview';
@@ -40,6 +44,7 @@ import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import GlobalAlert from '../../../UI/GlobalAlert';
 import checkIfAddressIsSaved from '../../../../util/checkAddress';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 
 const { BNToHex, hexToBN } = util;
 
@@ -510,15 +515,44 @@ class Approve extends PureComponent {
         },
       );
 
+      const finalizeConfirmation = (confirmed) => {
+        if (!confirmed) {
+          this.setState({ transactionHandled: false });
+        }
+
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED,
+          this.getAnalyticsParams(),
+        );
+
+        this.setState({ transactionConfirmed: true });
+      };
+
       const fullTx = transactions.find(({ id }) => id === transaction.id);
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transaction.id);
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_COMPLETED,
-        this.getAnalyticsParams(),
-      );
+
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        KeyringTypes.ledger,
+      ]);
+
+      // For Ledger Accounts we handover the signing to the confirmation flow
+      if (isLedgerAccount) {
+        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transaction.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: finalizeConfirmation,
+            type: 'signTransaction',
+          }),
+        );
+      } else {
+        await TransactionController.approveTransaction(transaction.id);
+        finalizeConfirmation(true);
+      }
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(
@@ -534,7 +568,7 @@ class Approve extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
-    this.setState({ transactionConfirmed: true });
+    finalizeConfirmation(true);
   };
 
   onCancel = () => {

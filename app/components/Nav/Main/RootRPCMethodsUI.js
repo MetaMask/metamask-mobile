@@ -6,12 +6,14 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { KeyringTypes } from '@metamask/controllers';
 
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { hexToBN, fromWei } from '../../../util/number';
+import { isHardwareAccount } from '../../../util/address';
 import {
   setEtherTransaction,
   setTransactionObject,
@@ -57,6 +59,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -252,7 +255,29 @@ const RootRPCMethodsUI = (props) => {
           },
         );
         await KeyringController.resetQRKeyringState();
-        await TransactionController.approveTransaction(transactionMeta.id);
+
+        console.log(transactionMeta);
+
+        const isLedgerAccount = isHardwareAccount(
+          transactionMeta.transaction.from,
+          [KeyringTypes.ledger],
+        );
+
+        // For Ledger Accounts we handover the signing to the confirmation flow
+        if (isLedgerAccount) {
+          const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+          props.navigation.navigate(
+            ...createLedgerTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              deviceId: ledgerKeyring.deviceId,
+              onConfirmationComplete: () => {},
+              type: 'signTransaction',
+            }),
+          );
+        } else {
+          await TransactionController.approveTransaction(transactionMeta.id);
+        }
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
