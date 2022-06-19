@@ -34,12 +34,8 @@ const LedgerTransactionModal = () => {
   const dismissModal = useCallback(() => modalRef?.current?.dismissModal(), []);
 
   const executeOnLedger = useCallback(async () => {
-    // This requires the user to confirm on the ledger device
-    try {
-      await TransactionController.approveTransaction(transactionId);
-    } catch (e) {
-      throw e;
-    }
+    // This requires the user to confirm on the ledger devicetry {
+    await TransactionController.approveTransaction(transactionId);
 
     onConfirmationComplete(true);
     dismissModal();

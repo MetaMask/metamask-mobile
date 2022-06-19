@@ -81,9 +81,6 @@ const LedgerConfirmationModal = ({
     onRejection();
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => onReject, []);
-
   const onRetry = async () => {
     if (!hasBluetoothPermissions) {
       await checkPermissions();
@@ -174,6 +171,14 @@ const LedgerConfirmationModal = ({
         title: strings('ledger.bluetooth_off'),
         subtitle: strings('ledger.bluetooth_off_message'),
       });
+    }
+
+    if (
+      !ledgerError &&
+      !bluetoothPermissionError &&
+      !bluetoothConnectionError
+    ) {
+      setErrorDetails(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ledgerError, bluetoothConnectionError, bluetoothPermissionError]);
