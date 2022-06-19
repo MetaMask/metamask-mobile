@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
+import { KeyringTypes } from '@metamask/controllers';
 import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
 import TransactionEditor from '../../UI/TransactionEditor';
@@ -21,6 +22,7 @@ import {
   getAddressAccountType,
   isQRHardwareAccount,
   safeToChecksumAddress,
+  isHardwareAccount,
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
@@ -28,6 +30,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import {
   TX_CANCELLED,
   TX_CONFIRMED,
@@ -321,6 +324,20 @@ class Approval extends PureComponent {
     if (transactionConfirmed) return;
     if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
     this.setState({ transactionConfirmed: true });
+
+    const finalizeConfirmation = (confirmed) => {
+      if (!confirmed) {
+        return this.setState({ transactionConfirmed: false });
+      }
+
+      this.showWalletConnectNotification(true);
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
+        this.getAnalyticsParams({ gasEstimateType, gasSelected }),
+      );
+      this.setState({ transactionConfirmed: true });
+    };
+
     try {
       if (assetType === 'ETH') {
         transaction = this.prepareTransaction({
@@ -357,8 +374,27 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-      await TransactionController.approveTransaction(transaction.id);
-      this.showWalletConnectNotification(true);
+
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        KeyringTypes.ledger,
+      ]);
+
+      // For Ledger Accounts we handover the signing to the confirmation flow
+      if (isLedgerAccount) {
+        const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+        this.props.navigation.navigate(
+          ...createLedgerTransactionModalNavDetails({
+            transactionId: transaction.id,
+            deviceId: ledgerKeyring.deviceId,
+            onConfirmationComplete: finalizeConfirmation,
+            type: 'signTransaction',
+          }),
+        );
+      } else {
+        await TransactionController.approveTransaction(transaction.id);
+        finalizeConfirmation(true);
+      }
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(
@@ -377,11 +413,6 @@ class Approval extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
-      this.getAnalyticsParams({ gasEstimateType, gasSelected }),
-    );
-    this.setState({ transactionConfirmed: false });
   };
 
   /**

@@ -141,7 +141,7 @@ class PersonalSign extends PureComponent {
           AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
           this.getAnalyticsParams(),
         );
-        return this.rejectMessage();
+        return this.rejectMessage(messageId);
       }
 
       PersonalMessageManager.setMessageStatusSigned(messageId, rawSignature);
@@ -158,7 +158,6 @@ class PersonalSign extends PureComponent {
     ]);
 
     if (isLedgerAccount) {
-      this.props.onConfirm();
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
 
       // Hand over process to Ledger Confirmation Modal
@@ -170,6 +169,8 @@ class PersonalSign extends PureComponent {
           type: 'signPersonalMessage',
         }),
       );
+
+      this.props.onConfirm();
     } else {
       const rawSignature = await KeyringController.signPersonalMessage(
         cleanMessageParams,
@@ -179,16 +180,19 @@ class PersonalSign extends PureComponent {
     }
   };
 
-  rejectMessage = () => {
+  rejectMessage = (messageId) => {
     const { messageParams } = this.props;
     const { PersonalMessageManager } = Engine.context;
-    const messageId = messageParams.metamaskId;
+
     PersonalMessageManager.rejectMessage(messageId);
     this.showWalletConnectNotification(messageParams);
   };
 
   cancelSignature = () => {
-    this.rejectMessage();
+    const { messageParams } = this.props;
+    const messageId = messageParams.metamaskId;
+    this.rejectMessage(messageId);
+
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),

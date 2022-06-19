@@ -137,7 +137,7 @@ class MessageSign extends PureComponent {
           AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
           this.getAnalyticsParams(),
         );
-        return this.rejectMessage();
+        return this.rejectMessage(messageId);
       }
 
       MessageManager.setMessageStatusSigned(messageId, rawSignature);
@@ -154,8 +154,8 @@ class MessageSign extends PureComponent {
     ]);
 
     if (isLedgerAccount) {
-      this.props.onConfirm();
       const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
       this.props.navigation.navigate(
         ...createLedgerMessageSignModalNavDetails({
           messageParams: cleanMessageParams,
@@ -164,6 +164,8 @@ class MessageSign extends PureComponent {
           type: 'signMessage',
         }),
       );
+
+      this.props.onConfirm();
     } else {
       const rawSignature = await KeyringController.signMessage(
         cleanMessageParams,
@@ -173,16 +175,19 @@ class MessageSign extends PureComponent {
     }
   };
 
-  rejectMessage = () => {
+  rejectMessage = (messageId) => {
     const { messageParams } = this.props;
     const { MessageManager } = Engine.context;
-    const messageId = messageParams.metamaskId;
+
     MessageManager.rejectMessage(messageId);
     this.showWalletConnectNotification(messageParams);
   };
 
   cancelSignature = () => {
-    this.rejectMessage();
+    const { messageParams } = this.props;
+    const messageId = messageParams.metamaskId;
+
+    this.rejectMessage(messageId);
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),

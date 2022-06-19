@@ -6,11 +6,13 @@ import { strings } from '../../../locales/i18n';
 
 export enum LedgerCommunicationErrors {
   LedgerDisconnected = 'LedgerDisconnected',
+  LedgerHasPendingConfirmation = 'LedgerHasPendingConfirmation',
   FailedToOpenApp = 'FailedToOpenApp',
   FailedToCloseApp = 'FailedToCloseApp',
   UserRefusedConfirmation = 'UserRefusedConfirmation',
   AppIsNotInstalled = 'AppIsNotInstalled',
   LedgerIsLocked = 'LedgerIsLocked',
+  NotSupported = 'NotSupported',
   UnknownError = 'UnknownError',
 }
 class LedgerError extends Error {
@@ -80,6 +82,10 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
   // Sets up the Bluetooth transport
   const setUpBluetoothConnection = async () => {
+    if (transportRef.current && deviceId) {
+      setIsSendingLedgerCommands(true);
+    }
+
     if (!transportRef.current && deviceId) {
       try {
         transportRef.current = await BluetoothTransport.open(deviceId);
@@ -125,6 +131,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
     try {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
+
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await KeyringController.connectLedgerHardware(
         transportRef.current,
@@ -192,12 +199,24 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         return await finalLogicFunc();
       }
     } catch (e: any) {
-      if (e.name === 'TransportStatusError' && e.statusCode === 0x6b0c) {
-        setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
-      }
-
-      if (e instanceof LedgerError) {
+      if (e.name === 'TransportStatusError') {
+        switch (e.statusCode) {
+          case 0x6985:
+          case 0x5501:
+          case 0x6b0c:
+            setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
+          default:
+            break;
+        }
+      } else if (e.name === 'TransportRaceCondition') {
+        setLedgerError(LedgerCommunicationErrors.LedgerHasPendingConfirmation);
+      } else if (e instanceof LedgerError) {
+        // We are throwing thse with the proper error codes already set
         setLedgerError(e.code);
+      } else if (
+        e.message.includes('Only version 4 of typed data signing is supported')
+      ) {
+        setLedgerError(LedgerCommunicationErrors.NotSupported);
       } else {
         setLedgerError(LedgerCommunicationErrors.UnknownError);
       }

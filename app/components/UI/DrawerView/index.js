@@ -32,7 +32,6 @@ import {
   toggleNetworkModal,
   toggleAccountsModal,
   toggleReceiveModal,
-  closeLedgerTransactionModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -363,10 +362,6 @@ class DrawerView extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-     * Action that closes the Ledger's transaction modal
-     */
-    closeLedgerTransactionModal: PropTypes.func,
-    /**
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
@@ -683,16 +678,6 @@ class DrawerView extends PureComponent {
       this.props.toggleNetworkModal();
       setTimeout(() => {
         this.animatingNetworksModal = false;
-      }, 500);
-    }
-  };
-
-  closeLedgerTransactionModal = async () => {
-    if (!this.animatingLedgerDeviceActionModal) {
-      this.animatingLedgerDeviceActionModal = true;
-      this.props.closeLedgerTransactionModal();
-      this.ledgerModalTimer = setTimeout(() => {
-        this.animatingLedgerDeviceActionModal = false;
       }, 500);
     }
   };
@@ -1454,19 +1439,6 @@ class DrawerView extends PureComponent {
             ticker={ticker}
           />
         </Modal>
-        <Modal
-          isVisible={this.props.ledgerTransactionModalVisible}
-          style={styles.bottomModal}
-          onBackdropPress={this.closeLedgerTransactionModal}
-          onBackButtonPress={this.closeLedgerTransactionModal}
-          onSwipeComplete={this.closeLedgerTransactionModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <LedgerTransactionModal />
-        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1530,7 +1502,6 @@ const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-  closeLedgerTransactionModal: () => dispatch(closeLedgerTransactionModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

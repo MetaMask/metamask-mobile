@@ -18,6 +18,7 @@ const Routes = {
     LEDGER_CONNECT: 'LedgerConnect',
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
+  LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
 };
 
 export default Routes;
