@@ -33,7 +33,7 @@ sudo gem install cocoapods
 ```
 
 
-### Device Environemt Setup
+### Device Environment Setup
 
 #### Android
 

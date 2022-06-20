@@ -7,6 +7,7 @@ const Routes = {
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
     AMOUNT_TO_BUY: 'AmountToBuy',
+    AMOUNT_TO_BUY_HAS_STARTED: 'AmountToBuyHasStarted',
     GET_QUOTES: 'GetQuotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
@@ -19,6 +20,17 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  MODAL: {
+    DELETE_WALLET: 'DeleteWalletModal',
+    ROOT_MODAL_FLOW: 'RootModalFlow',
+  },
+  ONBOARDING: {
+    ROOT_NAV: 'OnboardingRootNav',
+    HOME_NAV: 'HomeNav',
+    ONBOARDING: 'Onboarding',
+    LOGIN: 'Login',
+    NAV: 'OnboardingNav',
+  },
 };
 
 export default Routes;
