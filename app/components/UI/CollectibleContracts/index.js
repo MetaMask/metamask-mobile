@@ -12,7 +12,7 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
   collectibleContractsSelector,
@@ -69,7 +69,7 @@ const createStyles = (colors) =>
       height: 76,
       marginTop: 30,
       marginBottom: 12,
-      tintColor: colors.icon.default,
+      tintColor: colors.icon.muted,
     },
     emptyTitleText: {
       fontSize: 24,

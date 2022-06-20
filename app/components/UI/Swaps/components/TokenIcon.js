@@ -5,10 +5,10 @@ import { StyleSheet, View } from 'react-native';
 import RemoteImage from '../../../Base/RemoteImage';
 import Text from '../../../Base/Text';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import imageIcons from '../../../../images/image-icons';
 
 /* eslint-disable import/no-commonjs */
 const ethLogo = require('../../../../images/eth-logo.png');
-const bnbLogo = require('../../../../images/bnb-logo.png');
 /* eslint-enable import/no-commonjs */
 
 const REGULAR_SIZE = 24;
@@ -98,8 +98,9 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
     if (symbol === 'ETH') {
       return ethLogo;
     }
-    if (symbol === 'BNB') {
-      return bnbLogo;
+
+    if (Object.keys(imageIcons).includes(symbol)) {
+      return imageIcons[symbol];
     }
 
     if (icon) {

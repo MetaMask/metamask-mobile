@@ -39,7 +39,7 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -506,7 +506,7 @@ function SwapsAmountView({
 
   /* Keypad Handlers */
   const handleKeypadChange = useCallback(
-    (value) => {
+    ({ value }) => {
       if (value === amount) {
         return;
       }
@@ -827,7 +827,11 @@ function SwapsAmountView({
         pointerEvents={disabledView ? 'none' : 'auto'}
       >
         <AnimatableView ref={keypadViewRef}>
-          <Keypad onChange={handleKeypadChange} value={amount} />
+          <Keypad
+            onChange={handleKeypadChange}
+            value={amount}
+            currency="native"
+          />
         </AnimatableView>
         <View style={styles.buttonsContainer}>
           <View style={styles.column}>

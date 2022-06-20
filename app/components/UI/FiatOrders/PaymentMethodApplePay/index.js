@@ -348,7 +348,7 @@ function PaymentMethodApplePay({
               getNotificationDetails(order),
             );
             AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED,
+              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
               {
                 fiat_amount: { value: order.amount, anonymous: true },
                 fiat_currency: { value: order.currency, anonymous: true },
@@ -418,8 +418,8 @@ function PaymentMethodApplePay({
 
   const handleQuickAmountPress = useCallback((amount) => setAmount(amount), []);
   const handleKeypadChange = useCallback(
-    (value, key) => {
-      if (isOverMaximum && ![KEYS.BACK, KEYS.INITIAL].includes(key)) {
+    ({ value, pressedKey }) => {
+      if (isOverMaximum && ![KEYS.BACK, KEYS.INITIAL].includes(pressedKey)) {
         return;
       }
       if (value === amount) {

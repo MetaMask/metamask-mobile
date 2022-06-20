@@ -41,7 +41,7 @@ import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
@@ -69,7 +69,7 @@ const createStyles = (colors) =>
     },
     searchIcon: {
       marginHorizontal: 8,
-      color: colors.icon.default,
+      color: colors.icon.alternative,
     },
     input: {
       ...fontStyles.normal,
