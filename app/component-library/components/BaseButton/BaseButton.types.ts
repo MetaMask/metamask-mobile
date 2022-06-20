@@ -1,4 +1,9 @@
-import { StyleProp, TextStyle, ViewProps, ViewStyle } from 'react-native';
+import {
+  StyleProp,
+  TextStyle,
+  TouchableOpacityProps,
+  ViewStyle,
+} from 'react-native';
 import { IconProps } from '../Icon';
 
 export enum BaseButtonSize {
@@ -10,7 +15,7 @@ export enum BaseButtonSize {
 /**
  * BaseButton component props.
  */
-export interface BaseButtonProps extends ViewProps {
+export interface BaseButtonProps extends TouchableOpacityProps {
   /**
    * Button text.
    */

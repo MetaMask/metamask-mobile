@@ -27,7 +27,7 @@ export interface ButtonPrimaryStyleSheet {
 /**
  * Style sheet input parameters.
  */
-export type ButtonPrimaryStyleSheetVars = Pick<
-  ButtonPrimaryProps,
-  'style' | 'variant'
->;
+export interface ButtonPrimaryStyleSheetVars
+  extends Pick<ButtonPrimaryProps, 'style' | 'variant'> {
+  pressed: boolean;
+}
