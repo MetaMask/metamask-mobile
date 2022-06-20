@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useMemo, useState } from 'react';
+import { GestureResponderEvent } from 'react-native';
 import { useStyles } from '../../hooks';
 import BaseButton from '../BaseButton';
 import styleSheet from './ButtonPrimary.styles';
@@ -31,19 +32,19 @@ const ButtonPrimary = ({
   }, [theme, variant]);
 
   const triggerOnPressedIn = useCallback(
-    (e) => {
+    (e: GestureResponderEvent) => {
       setPressed(true);
       onPressIn?.(e);
     },
-    [onPressIn],
+    [setPressed, onPressIn],
   );
 
   const triggerOnPressedOut = useCallback(
-    (e) => {
+    (e: GestureResponderEvent) => {
       setPressed(false);
       onPressOut?.(e);
     },
-    [onPressOut],
+    [setPressed, onPressOut],
   );
 
   return (
