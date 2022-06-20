@@ -15,7 +15,7 @@ import QRCode from 'react-native-qrcode-svg';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';

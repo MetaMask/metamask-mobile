@@ -11,6 +11,9 @@ export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
 export const ONBOARDING_WIZARD = `${prefix}onboardingWizard`;
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
+export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
+export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
+export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;
