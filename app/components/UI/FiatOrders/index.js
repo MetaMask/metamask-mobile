@@ -96,10 +96,10 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
 
   const completedPayload = {
     ...failedOrCancelledParams,
-    crypto_out: fiatOrder.amount,
-    total_fee: fiatOrder.total_fee,
+    crypto_out: fiatOrder.cryptoAmount,
+    total_fee: fiatOrder.fee,
     exchange_rate:
-      (Number(fiatOrder.amount) - Number(fiatOrder.cryptoFee)) /
+      (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
       Number(fiatOrder.cryptoAmount),
   };
 
@@ -194,14 +194,16 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
               if (event) {
                 trackEvent(event, params);
               }
-              return;
+            } else {
+              InteractionManager.runAfterInteractions(() => {
+                const [analyticsEvent, analyticsPayload] =
+                  getAnalyticsPayload(updatedOrder);
+                if (analyticsEvent) {
+                  AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
+                }
+              });
             }
             InteractionManager.runAfterInteractions(() => {
-              const [analyticsEvent, analyticsPayload] =
-                getAnalyticsPayload(updatedOrder);
-              if (analyticsEvent) {
-                AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
-              }
               NotificationManager.showSimpleNotification(
                 getNotificationDetails(updatedOrder),
               );
