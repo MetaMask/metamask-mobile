@@ -402,7 +402,7 @@ class RevealPrivateCredential extends PureComponent {
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
         activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
+        inactiveTextColor={colors.text.alternative}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
@@ -590,25 +590,25 @@ class RevealPrivateCredential extends PureComponent {
     const { styles } = this.getStyles();
     return (
       <Text style={styles.normalText}>
-        {strings('reveal_credential.seed_phrase_explanation')[0]}
-        <TouchableOpacity onPress={() => Linking.openURL(SRP_URL)}>
-          <Text style={[styles.blueText, styles.link]}>
-            {strings('reveal_credential.seed_phrase_explanation')[1]}
-          </Text>
-        </TouchableOpacity>
-        {strings('reveal_credential.seed_phrase_explanation')[2]}
+        {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
+        <Text
+          style={[styles.blueText, styles.link]}
+          onPress={() => Linking.openURL(SRP_URL)}
+        >
+          {strings('reveal_credential.seed_phrase_explanation')[1]}
+        </Text>{' '}
+        {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
         <Text style={styles.boldText}>
           {strings('reveal_credential.seed_phrase_explanation')[3]}
         </Text>
-        {strings('reveal_credential.seed_phrase_explanation')[4]}
-        <TouchableOpacity
+        {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
+        <Text
+          style={[styles.blueText, styles.link]}
           onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
         >
-          <Text style={[styles.blueText, styles.link]}>
-            {strings('reveal_credential.seed_phrase_explanation')[5]}
-          </Text>
-        </TouchableOpacity>
-        {strings('reveal_credential.seed_phrase_explanation')[6]}
+          {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
+        </Text>
+        {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
         <Text style={styles.boldText}>
           {strings('reveal_credential.seed_phrase_explanation')[7]}
         </Text>
