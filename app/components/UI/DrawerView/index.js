@@ -75,7 +75,7 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import { isHardwareKeyring } from '../../../util/keyring-helpers';
-import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
+// import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
 import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
@@ -450,7 +450,7 @@ class DrawerView extends PureComponent {
     /**
      * Decides if Ledger's transaction modal is visible
      */
-    ledgerTransactionModalVisible: PropTypes.bool,
+    // ledgerTransactionModalVisible: PropTypes.bool,
   };
 
   constructor(props) {

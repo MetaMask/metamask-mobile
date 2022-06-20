@@ -205,6 +205,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
           case 0x5501:
           case 0x6b0c:
             setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
+            break;
           default:
             break;
         }

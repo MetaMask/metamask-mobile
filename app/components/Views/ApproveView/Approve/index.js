@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes, GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
 import {
@@ -21,7 +21,6 @@ import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
 import {
   getNormalizedTxState,
@@ -141,6 +140,7 @@ class Approve extends PureComponent {
      * The current network of the app
      */
     network: PropTypes.string,
+    navigation: PropTypes.object,
   };
 
   state = {
@@ -568,7 +568,7 @@ class Approve extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
-    finalizeConfirmation(true);
+    // finalizeConfirmation(true);
   };
 
   onCancel = () => {

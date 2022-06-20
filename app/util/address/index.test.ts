@@ -96,6 +96,7 @@ xdescribe('isHardwareAccount,', () => {
       isHardwareAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
     ).toBe(false);
   });
+});
 
 describe('isValidHexAddress', () => {
   it('should return true if all characters are lower case', () => {

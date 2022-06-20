@@ -183,7 +183,7 @@ const LedgerConfirmationModal = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ledgerError, bluetoothConnectionError, bluetoothPermissionError]);
 
-  if (!!errorDetails) {
+  if (errorDetails) {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.contentWrapper}>

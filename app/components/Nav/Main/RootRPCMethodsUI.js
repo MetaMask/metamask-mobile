@@ -6,7 +6,7 @@ import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
 import abi from 'human-standard-token-abi';
 import { ethErrors } from 'eth-json-rpc-errors';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes, util } from '@metamask/controllers';
 
 import Approval from '../../Views/Approval';
 import NotificationManager from '../../../core/NotificationManager';
@@ -46,7 +46,6 @@ import {
   toggleApproveModal,
 } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { util } from '@metamask/controllers';
 import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
@@ -256,6 +255,7 @@ const RootRPCMethodsUI = (props) => {
         );
         await KeyringController.resetQRKeyringState();
 
+        // eslint-disable-next-line no-console
         console.log(transactionMeta);
 
         const isLedgerAccount = isHardwareAccount(
@@ -271,6 +271,7 @@ const RootRPCMethodsUI = (props) => {
             ...createLedgerTransactionModalNavDetails({
               transactionId: transactionMeta.id,
               deviceId: ledgerKeyring.deviceId,
+              // eslint-disable-next-line no-empty-function
               onConfirmationComplete: () => {},
               type: 'signTransaction',
             }),
@@ -293,6 +294,7 @@ const RootRPCMethodsUI = (props) => {
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [props.swapsTransactions, trackSwaps],
   );
 
