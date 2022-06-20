@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { GestureResponderEvent } from 'react-native';
 import { useStyles } from '../../hooks';
 import BaseButton from '../BaseButton';
 import styleSheet from './ButtonPrimary.styles';
@@ -10,10 +11,13 @@ import {
 
 const ButtonPrimary = ({
   style,
+  onPressIn,
+  onPressOut,
   variant,
   ...props
 }: ButtonPrimaryProps): JSX.Element => {
-  const { styles, theme } = useStyles(styleSheet, { style, variant });
+  const [pressed, setPressed] = useState(false);
+  const { styles, theme } = useStyles(styleSheet, { style, variant, pressed });
   const labelColor = useMemo(() => {
     let color: string;
     switch (variant) {
@@ -27,7 +31,31 @@ const ButtonPrimary = ({
     return color;
   }, [theme, variant]);
 
-  return <BaseButton {...props} style={styles.base} labelColor={labelColor} />;
+  const triggerOnPressedIn = useCallback(
+    (e: GestureResponderEvent) => {
+      setPressed(true);
+      onPressIn?.(e);
+    },
+    [setPressed, onPressIn],
+  );
+
+  const triggerOnPressedOut = useCallback(
+    (e: GestureResponderEvent) => {
+      setPressed(false);
+      onPressOut?.(e);
+    },
+    [setPressed, onPressOut],
+  );
+
+  return (
+    <BaseButton
+      style={styles.base}
+      labelColor={labelColor}
+      onPressIn={triggerOnPressedIn}
+      onPressOut={triggerOnPressedOut}
+      {...props}
+    />
+  );
 };
 
 export default ButtonPrimary;

@@ -18,14 +18,19 @@ const styleSheet = (params: {
   vars: ButtonPrimaryStyleSheetVars;
 }): ButtonPrimaryStyleSheet => {
   const { vars, theme } = params;
-  const { style, variant } = vars;
+  const { colors } = theme;
+  const { style, variant, pressed } = vars;
   let backgroundColor: string;
   switch (variant) {
     case ButtonPrimaryVariant.Normal:
-      backgroundColor = theme.colors.primary.default;
+      backgroundColor = pressed
+        ? colors.primary.alternative
+        : colors.primary.default;
       break;
     case ButtonPrimaryVariant.Danger:
-      backgroundColor = theme.colors.error.default;
+      backgroundColor = pressed
+        ? colors.error.alternative
+        : colors.error.default;
       break;
   }
 

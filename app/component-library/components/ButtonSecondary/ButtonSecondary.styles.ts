@@ -18,14 +18,17 @@ const styleSheet = (params: {
   vars: ButtonSecondaryStyleSheetVars;
 }): ButtonSecondaryStyleSheet => {
   const { vars, theme } = params;
-  const { style, variant } = vars;
+  const { colors } = theme;
+  const { style, variant, pressed } = vars;
   let borderColor: string;
   switch (variant) {
     case ButtonSecondaryVariant.Normal:
-      borderColor = theme.colors.primary.default;
+      borderColor = pressed
+        ? colors.primary.alternative
+        : colors.primary.default;
       break;
     case ButtonSecondaryVariant.Danger:
-      borderColor = theme.colors.error.default;
+      borderColor = pressed ? colors.error.alternative : colors.error.default;
       break;
   }
 

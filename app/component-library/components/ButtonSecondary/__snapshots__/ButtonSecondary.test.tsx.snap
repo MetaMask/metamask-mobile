@@ -6,6 +6,8 @@ exports[`ButtonSecondary should render correctly 1`] = `
   label="Click me!"
   labelColor="#037DD6"
   onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
   size="40"
   style={
     Object {
