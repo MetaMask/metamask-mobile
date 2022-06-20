@@ -32,7 +32,7 @@ import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
 import WarningMessage from '../WarningMessage';
 import { util } from '@metamask/controllers';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
