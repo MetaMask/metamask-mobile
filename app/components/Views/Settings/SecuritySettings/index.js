@@ -312,6 +312,7 @@ class Settings extends PureComponent {
     passcodeChoice: false,
     showHint: false,
     hintText: '',
+    interactionHasTrans: false,
   };
 
   autolockOptions = [
@@ -374,6 +375,17 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
+    InteractionManager.runAfterInteractions(() => {
+      this.setState({ interactionHasTrans: true });
+    });
+    setTimeout(() => {
+      if (!this.state.interactionHasTrans) {
+        this.setState({ interactionHasTrans: true });
+      }
+    }, 3000);
+  };
+
+  onDidMountAsync = async () => {
     const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.getEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
@@ -1169,10 +1181,11 @@ class Settings extends PureComponent {
   };
 
   render = () => {
-    const { biometryType, biometryChoice, loading } = this.state;
+    const { biometryType, biometryChoice, loading, interactionHasTrans } =
+      this.state;
     const { styles } = this.getStyles();
 
-    if (loading)
+    if (loading || !interactionHasTrans)
       return (
         <View style={styles.loader}>
           <ActivityIndicator size="large" />
