@@ -2,6 +2,7 @@
 
 exports[`BaseButton should render correctly 1`] = `
 <TouchableOpacity
+  activeOpacity={1}
   onPress={[Function]}
   style={
     Object {

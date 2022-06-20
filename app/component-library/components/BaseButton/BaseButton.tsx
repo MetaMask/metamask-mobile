@@ -18,7 +18,12 @@ const BaseButton = ({
 }: BaseButtonProps): JSX.Element => {
   const { styles } = useStyles(styleSheet, { style, size, labelColor });
   return (
-    <TouchableOpacity onPress={onPress} style={styles.base} {...props}>
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={onPress}
+      style={styles.base}
+      {...props}
+    >
       {icon && (
         <Icon
           color={labelColor}
