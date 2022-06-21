@@ -1,17 +1,19 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
+import { Payment } from '@consensys/on-ramp-sdk';
 
+import BaseText from '../../../Base/Text';
 import ScreenLayout from './ScreenLayout';
 import ModalDragger from '../../../Base/ModalDragger';
 import PaymentOption from './PaymentOption';
 
-import { useTheme } from '../../../../util/theme';
+import useAnalytics from '../hooks/useAnalytics';
 import { getPaymentMethodIcon } from '../utils';
-import BaseText from '../../../Base/Text';
-import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import { Payment } from '@consensys/on-ramp-sdk';
+import { ScreenLocation } from '../types';
+import { strings } from '../../../../../locales/i18n';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -47,6 +49,7 @@ interface Props {
   onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
   selectedPaymentMethodId: Payment['id'] | null;
+  location?: ScreenLocation;
 }
 
 function PaymentMethodModal({
@@ -56,19 +59,25 @@ function PaymentMethodModal({
   onItemPress,
   paymentMethods,
   selectedPaymentMethodId,
+  location,
 }: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const trackEvent = useAnalytics();
 
   const handleOnPressItemCallback = useCallback(
     (paymentMethodId) => {
       if (selectedPaymentMethodId !== paymentMethodId) {
         onItemPress(paymentMethodId);
+        trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
+          payment_method_id: paymentMethodId,
+          location,
+        });
       } else {
         onItemPress();
       }
     },
-    [onItemPress, selectedPaymentMethodId],
+    [location, onItemPress, selectedPaymentMethodId, trackEvent],
   );
 
   return (
