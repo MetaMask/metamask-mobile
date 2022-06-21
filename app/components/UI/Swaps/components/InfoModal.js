@@ -77,6 +77,26 @@ function InfoModal({
     </TouchableOpacity>
   );
 
+  const InfoView = () => {
+    if (!message) {
+      return <CloseButton />;
+    }
+
+    return (
+      <>
+        <Text style={styles.messageLimit}>
+          <Text>{message} </Text>
+          {urlText && (
+            <Text link onPress={url}>
+              {urlText}
+            </Text>
+          )}
+        </Text>
+        <CloseButton />
+      </>
+    );
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -92,20 +112,7 @@ function InfoModal({
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
           {title && <Title>{title}</Title>}
-          {message && (
-            <>
-              <Text style={styles.messageLimit}>
-                <Text>{message} </Text>
-                {urlText && (
-                  <Text link onPress={url}>
-                    {urlText}
-                  </Text>
-                )}
-              </Text>
-              <CloseButton />
-            </>
-          )}
-          {!message && <CloseButton />}
+          <InfoView />
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
