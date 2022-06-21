@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
-import { Colors, AppThemeKey, Theme } from './models';
+import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import Device from '../device';
@@ -60,7 +60,8 @@ export const useAppTheme = (): Theme => {
     AppThemeKey.light,
     AppThemeKey.dark,
   );
-  let colors: Colors;
+  let colors: Theme['colors'];
+  let typography: Theme['typography'];
 
   const setDarkStatusBar = () => {
     StatusBar.setBarStyle('light-content', true);
@@ -79,33 +80,39 @@ export const useAppTheme = (): Theme => {
     case AppThemeKey.os: {
       if (osThemeName === AppThemeKey.light) {
         colors = lightTheme.colors;
+        typography = lightTheme.typography;
         setLightStatusBar();
         break;
       } else if (osThemeName === AppThemeKey.dark) {
         colors = darkTheme.colors;
+        typography = darkTheme.typography;
         setDarkStatusBar();
         break;
       } else {
         // Cover cases where OS returns undefined
         colors = lightTheme.colors;
+        typography = lightTheme.typography;
         setLightStatusBar();
       }
     }
     case AppThemeKey.light:
       colors = lightTheme.colors;
+      typography = lightTheme.typography;
       setLightStatusBar();
       break;
     case AppThemeKey.dark:
       colors = darkTheme.colors;
+      typography = darkTheme.typography;
       setDarkStatusBar();
       break;
     default:
       // Default uses light theme
       colors = lightTheme.colors;
+      typography = lightTheme.typography;
       setLightStatusBar();
   }
 
-  return { colors, themeAppearance, typography: lightTheme.typography };
+  return { colors, themeAppearance, typography };
 };
 
 export const useAppThemeFromContext = (): Theme => {
