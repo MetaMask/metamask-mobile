@@ -10,34 +10,40 @@ import {
   View,
   SafeAreaView,
 } from 'react-native';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
   isSafeChainId,
 } from '../../../util/networks';
 import { connect } from 'react-redux';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import StyledButton from '../StyledButton';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  NETWORK_LIST_MODAL_CONTAINER_ID,
-  OTHER_NETWORK_LIST_ID,
-  NETWORK_SCROLL_ID,
-} from '../../../constants/test-ids';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
+import getImage from '../../../util/getImage';
+import {
+  NETWORK_LIST_MODAL_CONTAINER_ID,
+  NETWORK_SCROLL_ID,
+} from '../../../constants/test-ids';
+import ImageIcon from '../ImageIcon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       borderRadius: 10,
-      minHeight: 450,
+      minHeight: 470,
     },
     titleWrapper: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border.muted,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     title: {
       textAlign: 'center',
@@ -52,20 +58,12 @@ const createStyles = (colors) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border.muted,
     },
-    otherNetworksText: {
-      textAlign: 'left',
-      fontSize: 13,
-      marginVertical: 12,
-      marginHorizontal: 20,
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
     networksWrapper: {
       flex: 1,
     },
     network: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border.muted,
+      borderTopWidth: StyleSheet.hairlineWidth,
       flexDirection: 'row',
       paddingHorizontal: 20,
       paddingVertical: 20,
@@ -85,30 +83,20 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     footer: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border.muted,
-      height: 60,
-      justifyContent: 'center',
+      marginVertical: 10,
       flexDirection: 'row',
-      alignItems: 'center',
     },
     footerButton: {
       flex: 1,
       alignContent: 'center',
       alignItems: 'center',
       justifyContent: 'center',
-      height: 60,
-    },
-    closeButton: {
-      fontSize: 16,
-      color: colors.primary.default,
-      ...fontStyles.normal,
+      marginHorizontal: 20,
     },
     networkIcon: {
-      width: 15,
-      height: 15,
-      borderRadius: 100,
-      marginTop: 3,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
     },
     networkWrapper: {
       flex: 0,
@@ -123,10 +111,17 @@ const createStyles = (colors) =>
       marginLeft: -30,
       marginTop: 3,
     },
-    otherNetworkIcon: {
-      backgroundColor: importedColors.transparent,
-      borderColor: colors.border.muted,
-      borderWidth: 2,
+    closeIcon: {
+      position: 'absolute',
+      right: 0,
+      padding: 15,
+      color: colors.icon.default,
+    },
+    text: {
+      textAlign: 'center',
+      color: colors.text.default,
+      fontSize: 10,
+      marginTop: 4,
     },
   });
 
@@ -160,13 +155,17 @@ export class NetworkList extends PureComponent {
      */
     onNetworkSelected: PropTypes.func,
     /**
-     *   A function that handles switching to info modal
+     * 	A function that handles switching to info modal
      */
     switchModalContent: PropTypes.func,
     /**
-     *   returns the network onboarding state
+     * 	returns the network onboarding state
      */
     networkOnboardedState: PropTypes.array,
+    /**
+     * react-navigation object used for switching between screens
+     */
+    navigation: PropTypes.object,
   };
 
   getOtherNetworks = () => getAllNetworks().slice(1);
@@ -251,22 +250,35 @@ export class NetworkList extends PureComponent {
     return createStyles(colors);
   };
 
-  networkElement = (selected, onPress, name, color, i, network) => {
+  networkElement = (
+    selected,
+    onPress,
+    name,
+    image,
+    i,
+    network,
+    isCustomRpc,
+  ) => {
     const styles = this.getStyles();
 
     return (
       <TouchableOpacity
         style={styles.network}
         key={`network-${i}`}
-        onPress={() => onPress(network)} // eslint-disable-line
+				onPress={() => onPress(network)} // eslint-disable-line
       >
         <View style={styles.selected}>{selected}</View>
-        <View
-          style={[
-            styles.networkIcon,
-            color ? { backgroundColor: color } : styles.otherNetworkIcon,
-          ]}
-        />
+        {isCustomRpc &&
+          (image ? (
+            <ImageIcon image={image} style={styles.networkIcon} />
+          ) : (
+            <View style={styles.networkIcon} />
+          ))}
+        {!isCustomRpc && (
+          <View style={[styles.networkIcon, { backgroundColor: image }]}>
+            <Text style={styles.text}>{name[0]}</Text>
+          </View>
+        )}
         <View style={styles.networkInfo}>
           <Text numberOfLines={1} style={styles.networkLabel}>
             {name}
@@ -282,9 +294,10 @@ export class NetworkList extends PureComponent {
 
     return this.getOtherNetworks().map((network, i) => {
       const { color, name } = Networks[network];
+      const isCustomRpc = false;
       const selected =
         provider.type === network ? (
-          <Icon name="check" size={16} color={colors.success.default} />
+          <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
         selected,
@@ -293,6 +306,7 @@ export class NetworkList extends PureComponent {
         color,
         i,
         network,
+        isCustomRpc,
       );
     });
   };
@@ -300,20 +314,22 @@ export class NetworkList extends PureComponent {
   renderRpcNetworks = () => {
     const { frequentRpcList, provider } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-
-    return frequentRpcList.map(({ nickname, rpcUrl }, i) => {
-      const { color, name } = { name: nickname || rpcUrl, color: null };
+    return frequentRpcList.map(({ nickname, rpcUrl, chainId }, i) => {
+      const { name } = { name: nickname || rpcUrl, chainId, color: null };
+      const image = getImage(chainId);
+      const isCustomRpc = true;
       const selected =
         provider.rpcTarget === rpcUrl && provider.type === RPC ? (
-          <Icon name="check" size={16} color={colors.success.default} />
+          <Icon name="check" size={20} color={colors.icon.default} />
         ) : null;
       return this.networkElement(
         selected,
         this.onSetRpcTarget,
         name,
-        color,
+        image,
         i,
         rpcUrl,
+        isCustomRpc,
       );
     });
   };
@@ -324,25 +340,23 @@ export class NetworkList extends PureComponent {
     const styles = this.getStyles();
     const isMainnet =
       provider.type === MAINNET ? (
-        <Icon name="check" size={16} color={colors.success.default} />
+        <Icon name="check" size={15} color={colors.icon.default} />
       ) : null;
-    const { color: mainnetColor, name: mainnetName } = Networks.mainnet;
+    const { name: mainnetName } = Networks.mainnet;
 
     return (
       <View style={styles.mainnetHeader}>
         <TouchableOpacity
           style={[styles.network, styles.mainnet]}
           key={`network-mainnet`}
-          onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
+					onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
           testID={'network-name'}
         >
           <View style={styles.networkWrapper}>
             <View style={[styles.selected, styles.mainnetSelected]}>
               {isMainnet}
             </View>
-            <View
-              style={[styles.networkIcon, { backgroundColor: mainnetColor }]}
-            />
+            <ImageIcon image="ETHEREUM" style={styles.networkIcon} />
             <View style={styles.networkInfo}>
               <Text style={styles.networkLabel}>{mainnetName}</Text>
             </View>
@@ -352,9 +366,13 @@ export class NetworkList extends PureComponent {
     );
   }
 
+  goToNetworkSettings = () => {
+    this.props.onClose(false);
+    this.props.navigation.navigate('NetworkSettings');
+  };
+
   render = () => {
     const styles = this.getStyles();
-
     return (
       <SafeAreaView
         style={styles.wrapper}
@@ -368,27 +386,27 @@ export class NetworkList extends PureComponent {
           >
             {strings('networks.title')}
           </Text>
+          <Ionicons
+            onPress={this.closeModal}
+            name={'ios-close'}
+            size={30}
+            style={styles.closeIcon}
+          />
         </View>
         <ScrollView style={styles.networksWrapper} testID={NETWORK_SCROLL_ID}>
           {this.renderMainnet()}
-          <View style={styles.otherNetworksHeader}>
-            <Text
-              style={styles.otherNetworksText}
-              testID={OTHER_NETWORK_LIST_ID}
-            >
-              {strings('networks.other_networks')}
-            </Text>
-          </View>
-          {this.renderOtherNetworks()}
           {this.renderRpcNetworks()}
+          {this.renderOtherNetworks()}
         </ScrollView>
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.footerButton}
-            onPress={this.closeModal}
+          <StyledButton
+            type="confirm"
+            onPress={this.goToNetworkSettings}
+            containerStyle={styles.footerButton}
+            testID={'add-network-button'}
           >
-            <Text style={styles.closeButton}>{strings('networks.close')}</Text>
-          </TouchableOpacity>
+            {strings('app_settings.add_network_title')}
+          </StyledButton>
         </View>
       </SafeAreaView>
     );
