@@ -16,6 +16,7 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
+import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
@@ -26,8 +27,8 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { routingInstrumentation } from '../../../util/setupSentry';
-import Analytics from '../../../core/Analytics';
+import { routingInstrumentation } from '../../../util/sentryUtils';
+import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
 import {
   EXISTING_USER,
@@ -41,6 +42,8 @@ import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import Toast from '../../../component-library/components/Toast';
+import { colors as importedColors } from '../../../styles/common';
+import Routes from '../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 /**
@@ -119,7 +122,7 @@ const SimpleWebviewScreen = () => (
 
 const OnboardingRootNav = () => (
   <Stack.Navigator
-    initialRouteName={'OnboardingNav'}
+    initialRouteName={Routes.ONBOARDING.NAV}
     mode="modal"
     screenOptions={{ headerShown: false }}
   >
@@ -234,7 +237,9 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     async function checkExsiting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-      const route = !existingUser ? 'OnboardingRootNav' : 'Login';
+      const route = !existingUser
+        ? Routes.ONBOARDING.ROOT_NAV
+        : Routes.ONBOARDING.LOGIN;
       setRoute(route);
       if (!existingUser) {
         triggerCheckedAuth();
@@ -317,6 +322,22 @@ const App = ({ userLoggedIn }) => {
     return null;
   };
 
+  const RootModalFlow = () => (
+    <Stack.Navigator
+      mode={'modal'}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: importedColors.transparent },
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MODAL.DELETE_WALLET}
+        component={DeleteWalletModal}
+      />
+    </Stack.Navigator>
+  );
+
   return (
     // do not render unless a route is defined
     (route && (
@@ -331,7 +352,15 @@ const App = ({ userLoggedIn }) => {
             triggerSetCurrentRoute(currentRoute);
           }}
         >
-          <Stack.Navigator route={route} initialRouteName={route}>
+          <Stack.Navigator
+            initialRouteName={route}
+            mode={'modal'}
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: importedColors.transparent },
+              animationEnabled: false,
+            }}
+          >
             <Stack.Screen
               name="Login"
               component={Login}
@@ -349,6 +378,10 @@ const App = ({ userLoggedIn }) => {
                 options={{ headerShown: false }}
               />
             )}
+            <Stack.Screen
+              name={Routes.MODAL.ROOT_MODAL_FLOW}
+              component={RootModalFlow}
+            />
           </Stack.Navigator>
         </NavigationContainer>
         <Toast />

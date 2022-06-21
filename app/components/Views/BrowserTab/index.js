@@ -47,7 +47,7 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2, { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { toggleNetworkModal } from '../../../actions/modals';
@@ -685,7 +685,7 @@ export const BrowserTab = (props) => {
    */
   const injectHomePageScripts = async (bookmarks) => {
     const { current } = webviewRef;
-    const analyticsEnabled = Analytics.getEnabled();
+    const analyticsEnabled = Analytics.checkEnabled();
     const disctinctId = await Analytics.getDistinctId();
     const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};

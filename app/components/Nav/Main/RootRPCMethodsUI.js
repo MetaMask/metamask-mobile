@@ -45,7 +45,7 @@ import {
 } from '../../../actions/modals';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { util } from '@metamask/controllers';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import BigNumber from 'bignumber.js';
 import { getTokenList } from '../../../reducers/tokens';
@@ -491,8 +491,9 @@ const RootRPCMethodsUI = (props) => {
           onCancel={onWalletConnectSessionRejected}
           onConfirm={onWalletConnectSessionApproval}
           currentPageInformation={{
-            title: meta && meta.name,
-            url: meta && meta.url,
+            title: meta?.name,
+            url: meta?.url,
+            icon: meta?.icons?.[0],
           }}
           walletConnectRequest
         />
