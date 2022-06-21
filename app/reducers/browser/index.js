@@ -17,11 +17,9 @@ const browserReducer = (state = initialState, action) => {
         ].slice(0, 50),
       };
     case 'ADD_TO_BROWSER_WHITELIST':
-      const resutl = [...state.whitelist, action.url]
-      console.log('ADD_TO_BROWSER_WHITELIST', resutl);
       return {
         ...state,
-        whitelist: resutl,
+        whitelist: [...state.whitelist, action.url],
       };
     case 'CLEAR_BROWSER_HISTORY':
       return {
