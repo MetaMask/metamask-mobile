@@ -14,6 +14,9 @@ export enum TabBarLabel {
   Activity = 'Activity',
 }
 
+/**
+ * Mapping of icon name by tab bar label.
+ */
 export type IconByTabBarLabel = {
   [key in TabBarLabel]: IconName;
 };
