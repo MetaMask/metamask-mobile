@@ -64,7 +64,6 @@ const ClearCookiesSection = () => {
   useEffect(() => {
     const run = async () => {
       if (Device.isAndroid()) {
-        // CookieManager.getAll() is not supported on Android
         setHasCookies(true);
       }
 

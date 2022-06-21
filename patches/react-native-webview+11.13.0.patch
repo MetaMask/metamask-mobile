@@ -1,5 +1,87 @@
+diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/CustomCookieJar.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/CustomCookieJar.java
+new file mode 100644
+index 0000000..809b280
+--- /dev/null
++++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/CustomCookieJar.java
+@@ -0,0 +1,76 @@
++package com.reactnativecommunity.webview;
++
++import android.os.Build;
++import android.webkit.CookieManager;
++import android.webkit.CookieSyncManager;
++import android.webkit.ValueCallback;
++import android.webkit.WebView;
++
++import java.util.ArrayList;
++import java.util.List;
++
++import okhttp3.Cookie;
++import okhttp3.CookieJar;
++import okhttp3.HttpUrl;
++
++class CustomCookieJar implements CookieJar {
++  public CustomCookieJar () {}
++
++  private CookieManager getCookieManager() throws Exception {
++    try {
++      CookieManager cookieManager = CookieManager.getInstance();
++      cookieManager.setAcceptCookie(true);
++      return cookieManager;
++    } catch (Exception e) {
++      throw new Exception(e);
++    }
++  }
++
++  @Override
++  public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
++    try {
++      CookieManager cookieManager = this.getCookieManager();
++
++      for (Cookie cookie : cookies) {
++        cookieManager.setCookie(url.toString(), cookie.toString(), new ValueCallback<Boolean>() {
++          @Override
++          public void onReceiveValue(Boolean value) { }
++        });
++        cookieManager.flush();
++      }
++    } catch (Exception e) {
++      e.printStackTrace();
++    }
++  }
++
++  @Override
++  public List<Cookie> loadForRequest(HttpUrl url) {
++    try {
++      CookieManager cookieManager = this.getCookieManager();
++
++      if (cookieManager.hasCookies()) {
++        String response = cookieManager.getCookie(url.toString());
++
++        if (response == null) return new ArrayList<Cookie>();
++
++        String[] cookies = response.split(";");
++        List<Cookie> cookieList = new ArrayList<Cookie>();
++
++        for (String cookieStr : cookies) {
++          Cookie.Builder builder = new Cookie.Builder();
++          String[] cookieKeyVal = cookieStr.split("=");
++          builder.name(cookieKeyVal[0].trim());
++          builder.value(cookieKeyVal[1].trim());
++          builder.domain(url.host());
++          cookieList.add(builder.build());
++        }
++
++        return cookieList;
++      }
++      return new ArrayList<Cookie>();
++    } catch (Exception e) {
++      e.printStackTrace();
++      return new ArrayList<Cookie>();
++    }
++  }
++}
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..308bcc6 100644
+index f743bbc..a025da8 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -103,7 +185,7 @@ index f743bbc..308bcc6 100644
 -      }
 -    };
 +    mWebViewConfig = webView -> httpClient = new OkHttpClient.Builder()
-+      .cookieJar(new CustomCookieJar(webView))
++      .cookieJar(new CustomCookieJar())
 +      .followRedirects(false)
 +      .followSslRedirects(false)
 +      .build();
@@ -247,7 +329,7 @@ index f743bbc..308bcc6 100644
 +        } catch (UnsupportedCharsetException e) {
 +            Log.d(REACT_CLASS, "wrong charset: " + charsetName);
 +        }
- 
++
 +        return cs;
 +    }
 +
@@ -321,7 +403,7 @@ index f743bbc..308bcc6 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
-+
+ 
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
@@ -457,83 +539,6 @@ index f743bbc..308bcc6 100644
      @Override
      public void onHostResume() {
        // do nothing
-@@ -1737,3 +2042,75 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
-     }
-   }
- }
-+
-+class CustomCookieJar implements CookieJar {
-+  private CookieSyncManager mCookieSyncManager;
-+  private static final boolean USES_LEGACY_STORE = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP;
-+
-+  public CustomCookieJar (WebView webView) {
-+    this.mCookieSyncManager = CookieSyncManager.createInstance(webView.getContext());
-+  }
-+
-+  private CookieManager getCookieManager() throws Exception {
-+    try {
-+      CookieManager cookieManager = CookieManager.getInstance();
-+      cookieManager.setAcceptCookie(true);
-+      return cookieManager;
-+    } catch (Exception e) {
-+      throw new Exception(e);
-+    }
-+  }
-+
-+  @Override
-+  public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
-+    try {
-+      CookieManager cookieManager = this.getCookieManager();
-+
-+      for (Cookie cookie : cookies) {
-+        if (USES_LEGACY_STORE) {
-+          cookieManager.setCookie(url.toString(), cookie.toString());
-+          this.mCookieSyncManager.sync();
-+        } else {
-+          cookieManager.setCookie(url.toString(), cookie.toString(), new ValueCallback<Boolean>() {
-+            @Override
-+            public void onReceiveValue(Boolean value) { }
-+          });
-+          cookieManager.flush();
-+        }
-+      }
-+    } catch (Exception e) {
-+      e.printStackTrace();
-+    }
-+  }
-+
-+  @Override
-+  public List<Cookie> loadForRequest(HttpUrl url) {
-+    try {
-+      CookieManager cookieManager = this.getCookieManager();
-+
-+      if (cookieManager.hasCookies()) {
-+        String response = cookieManager.getCookie(url.toString());
-+
-+        if (response == null) return new ArrayList<Cookie>();
-+
-+        String[] cookies = response.split(";");
-+        List<Cookie> cookieList = new ArrayList<Cookie>();
-+
-+        for (String cookieStr : cookies) {
-+          Cookie.Builder builder = new Cookie.Builder();
-+          String[] cookieKeyVal = cookieStr.split("=");
-+          builder.name(cookieKeyVal[0].trim());
-+          builder.value(cookieKeyVal[1].trim());
-+          builder.domain(url.host());
-+          cookieList.add(builder.build());
-+        }
-+
-+        return cookieList;
-+      }
-+      return new ArrayList<Cookie>();
-+    } catch (Exception e) {
-+      e.printStackTrace();
-+      return new ArrayList<Cookie>();
-+    }
-+  }
-+}
-\ No newline at end of file
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
 index 28c078a..4c8a7fc 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
