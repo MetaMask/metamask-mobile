@@ -449,7 +449,7 @@ class NetworkSettings extends PureComponent {
       // Remove trailing slashes
       const formattedHref = url.href.replace(/\/+$/, '');
       PreferencesController.addToFrequentRpcList(
-        formattedHref,
+        url.href,
         decimalChainId,
         ticker,
         nickname,
