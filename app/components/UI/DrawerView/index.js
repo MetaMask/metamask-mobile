@@ -1199,11 +1199,12 @@ class DrawerView extends PureComponent {
       (item) => item.network === sanitizeUrl(switchedNetwork.networkUrl),
     );
 
-    const networkInfo = showModal ||
-    networkOnboarding.showNetworkOnboarding ||
-    (currentRoute === 'WalletView' &&
-      switchedNetwork.networkStatus &&
-      checkIfCustomNetworkExists.length === 0)
+    const canShowNetworkInfoModal =
+      showModal ||
+      networkOnboarding.showNetworkOnboarding ||
+      (currentRoute === 'WalletView' &&
+        switchedNetwork.networkStatus &&
+        checkIfCustomNetworkExists.length === 0);
 
     return (
       <View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1371,7 +1372,9 @@ class DrawerView extends PureComponent {
           isVisible={
             networkModalVisible || networkOnboarding.showNetworkOnboarding
           }
-          onBackdropPress={networkInfo ? null : this.toggleNetworksModal}
+          onBackdropPress={
+            canShowNetworkInfoModal ? null : this.toggleNetworksModal
+          }
           onBackButtonPress={showModal ? null : this.toggleNetworksModa}
           onSwipeComplete={showModal ? null : this.toggleNetworksModa}
           swipeDirection={'down'}
@@ -1379,7 +1382,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          {networkInfo ? (
+          {canShowNetworkInfoModal ? (
             <NetworkInfo
               onClose={this.onInfoNetworksModalClose}
               type={networkType || networkOnboarding.networkType}
