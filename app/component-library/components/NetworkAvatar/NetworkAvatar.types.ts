@@ -1,4 +1,4 @@
-import { NetworksChainId } from '@metamask/controllers';
+import { ImageSourcePropType } from 'react-native';
 import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
 
 /**
@@ -6,19 +6,15 @@ import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
  */
 export interface NetworkAvatarProps extends BaseAvatarProps {
   /**
-   * chain identification.
-   */
-  chainId: string;
-  /**
    * chain name.
    */
-  networkName: string;
+  networkName?: string;
   /**
    * chain image url.
    */
-  networkImageURL?: string;
+  networkImage?: ImageSourcePropType;
 }
 
 export interface NetworkAvatarStyleSheetVars {
-  style: BaseAvatarProps['style'];
+  size: BaseAvatarProps['size'];
 }
