@@ -1,4 +1,9 @@
-import { isENS, renderSlightlyLongAddress, formatAddress } from '.';
+import {
+  isENS,
+  renderSlightlyLongAddress,
+  formatAddress,
+  isValidHexAddress,
+} from '.';
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -48,5 +53,39 @@ describe('formatAddress', () => {
   it('should return address formatted for mid type', () => {
     const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
     expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+  });
+});
+
+describe('isValidHexAddress', () => {
+  it('should return true if all characters are lower case', () => {
+    const lowerCaseMockAddress = '0x87187657b35f461d0ceec338d9b8e944a193afe2';
+    expect(
+      isValidHexAddress(lowerCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
+  });
+
+  it('should return true if all characters are upper case', () => {
+    const upperCaseMockAddress = '0x87187657B35F461D0CEEC338D9B8E944A193AFE2';
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
+  });
+
+  it('should return false if the characters are mixed case and the checksum is invalid', () => {
+    const upperCaseMockAddress = '0x87187657b35f461d0ceEc338d9B8e944A193afe2';
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(false);
+  });
+
+  it('should return true if the characters are mixed case and the checksum is valid', () => {
+    const upperCaseMockAddress = '0x87187657b35F461D0Ceec338d9b8E944a193aFE2';
+    expect(
+      isValidHexAddress(upperCaseMockAddress, { mixedCaseUseChecksum: true }),
+    ).toBe(true);
+  });
+
+  it('should return false if the address is an  empty string', () => {
+    expect(isValidHexAddress('', { mixedCaseUseChecksum: true })).toBe(false);
   });
 });

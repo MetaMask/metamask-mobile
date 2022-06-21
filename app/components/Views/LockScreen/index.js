@@ -22,6 +22,7 @@ import {
   mockTheme,
   ThemeContext,
 } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -123,7 +124,7 @@ class LockScreen extends PureComponent {
   }
 
   logOut = () => {
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
     this.props.logOut();
   };
 
@@ -157,7 +158,7 @@ class LockScreen extends PureComponent {
         this.logOut();
       } else {
         this.props.navigation.navigate('OnboardingRootNav', {
-          screen: 'OnboardingNav',
+          screen: Routes.ONBOARDING.NAV,
           params: { screen: 'Onboarding' },
         });
       }
