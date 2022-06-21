@@ -11,7 +11,6 @@ import { IconName } from '../Icon';
 export enum TabBarLabel {
   Wallet = 'Wallet',
   Browser = 'Browser',
-  Activity = 'Activity',
 }
 
 /**

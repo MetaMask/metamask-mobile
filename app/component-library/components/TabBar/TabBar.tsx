@@ -11,7 +11,6 @@ import { TabBarLabel, TabBarProps, IconByTabBarLabel } from './TabBar.types';
 const iconByTabBarLabel: IconByTabBarLabel = {
   [TabBarLabel.Wallet]: IconName.WalletFilled,
   [TabBarLabel.Browser]: IconName.ExploreFilled,
-  [TabBarLabel.Activity]: IconName.MoreVerticalOutline,
 };
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {

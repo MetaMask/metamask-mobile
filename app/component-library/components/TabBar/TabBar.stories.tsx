@@ -10,7 +10,6 @@ const TabBarStorybook = () => {
   const routes = [
     { name: 'WalletRoute', key: 'WalletRoute' },
     { name: 'BrowserRoute', key: 'BrowserRoute' },
-    { name: 'ActivityRoute', key: 'ActivityRoute' },
   ];
   const mockTabBarProps: any = {
     state: {
@@ -26,11 +25,6 @@ const TabBarStorybook = () => {
       BrowserRoute: {
         options: {
           tabBarLabel: TabBarLabel.Browser,
-        },
-      },
-      ActivityRoute: {
-        options: {
-          tabBarLabel: TabBarLabel.Activity,
         },
       },
     },
