@@ -21,7 +21,7 @@ const styleSheet = (params: {
   const { style, isSelected } = vars;
   return StyleSheet.create({
     base: Object.assign(
-      { alignItems: 'center' } as ViewStyle,
+      { flex: 1, alignItems: 'center' } as ViewStyle,
       style,
     ) as ViewStyle,
     label: {

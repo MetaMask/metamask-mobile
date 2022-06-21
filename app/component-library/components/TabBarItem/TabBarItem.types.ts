@@ -23,7 +23,7 @@ export interface TabBarItemProps extends TouchableOpacityProps {
    */
   isSelected: boolean;
   /**
-   * Callback to call when pressed.
+   * Function to call when pressed.
    */
   onPress: () => void;
   /**
