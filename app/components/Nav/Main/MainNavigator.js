@@ -110,6 +110,11 @@ const WalletTabHome = () => (
       component={ExperimentalSettings}
       options={ExperimentalSettings.navigationOptions}
     />
+    <Stack.Screen
+      name="NetworkSettings"
+      component={NetworkSettings}
+      options={NetworkSettings.navigationOptions}
+    />
   </Stack.Navigator>
 );
 
@@ -439,6 +444,11 @@ const FiatOnRampAggregator = () => (
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
+        options={{ animationEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
+        component={AmountToBuy}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>

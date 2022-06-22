@@ -91,6 +91,7 @@
     "react-devtools-core": "4.22.1",
     "web3": "1.6.1",
     "simple-get": "4.0.1",
+    "shell-quote": "1.7.3",
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
     "**/plist": "3.0.5",

@@ -24,7 +24,7 @@ const defaultOptions = {
   fingerprintPromptDesc: strings('authentication.fingerprint_prompt_desc'),
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
-import Analytics from '../core/Analytics';
+import Analytics from './Analytics/Analytics';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 /**
  * Class that wraps Keychain from react-native-keychain
