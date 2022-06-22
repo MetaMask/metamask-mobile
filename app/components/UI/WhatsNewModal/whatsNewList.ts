@@ -1,5 +1,4 @@
 /* eslint-disable import/prefer-default-export */
-import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { WhatsNew } from './types';
 
@@ -27,11 +26,14 @@ export const whatsNew: WhatsNew = {
         description: strings('whats_new.feature_on_ramp_text'),
       },
       {
+        type: 'description',
+        description: strings('whats_new.feature_on_ramp_text_description'),
+      },
+      {
         type: 'button',
         buttonType: 'blue',
         buttonText: strings('whats_new.feature_on_ramp_button'),
-        onPress: ({ navigation }) =>
-          navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID),
+        onPress: () => null,
       },
     ],
   ],
