@@ -233,6 +233,7 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
+  const allowList = useRef([]);
 
   const url = useRef('');
   const title = useRef('');
@@ -414,27 +415,19 @@ export const BrowserTab = (props) => {
   /**
    * Check if a hostname is allowed
    */
-  const isAllowedUrl = useCallback(
-    (hostname) => {
-      const { PhishingController } = Engine.context;
-      const phishingControllerTestResult = PhishingController.test(hostname);
-      const blockedUrlObj = new URL(blockedUrl);
+  const isAllowedUrl = useCallback((hostname) => {
+    const { PhishingController } = Engine.context;
+    const phishingControllerTestResult = PhishingController.test(hostname);
 
-      // Only assign the if the hostname is on the block list
-      if (phishingControllerTestResult.result)
-        blockListType.current = phishingControllerTestResult.name;
+    // Only assign the if the hostname is on the block list
+    if (phishingControllerTestResult.result)
+      blockListType.current = phishingControllerTestResult.name;
 
-      const result =
-        (props.whitelist && props.whitelist.includes(hostname)) ||
-        blockedUrlObj.hostname === hostname ||
-        !phishingControllerTestResult.result;
-
-      if (blockedUrl) setBlockedUrl(undefined);
-
-      return result;
-    },
-    [blockedUrl, blockListType, props.whitelist],
-  );
+    return (
+      (allowList.current && allowList.current.includes(hostname)) ||
+      !phishingControllerTestResult.result
+    );
+  }, []);
 
   const isBookmark = () => {
     const { bookmarks } = props;
@@ -995,7 +988,6 @@ export const BrowserTab = (props) => {
     }
 
     if (!isAllowedUrl(hostname)) {
-      console.log('onLoadStart', 'handleNotAllowedUrl');
       return handleNotAllowedUrl(nativeEvent.url);
     }
     webviewUrlPostMessagePromiseResolve.current = null;
@@ -1038,6 +1030,13 @@ export const BrowserTab = (props) => {
 		*/
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, props.activeTab, props.id, toggleUrlModal]);
+
+  /**
+   * Allow list updates do not propigate through the useCallbacks this updates a ref that is use in the callbacks
+   */
+  const updateAllowList = () => {
+    allowList.current = props.whitelist;
+  };
 
   /**
    * Render the progress bar
@@ -1388,6 +1387,7 @@ export const BrowserTab = (props) => {
             />
           )}
         </View>
+        {updateAllowList()}
         {renderProgressBar()}
         {isTabActive() && renderPhishingModal()}
         {isTabActive() && renderOptions()}
