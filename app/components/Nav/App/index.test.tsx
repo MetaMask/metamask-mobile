@@ -17,5 +17,6 @@ describe('App', () => {
       context: { store: mockStore(initialState) },
     });
     expect(wrapper).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
