@@ -20,3 +20,7 @@ export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
 
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
+
+// PlayStore
+export const ANDROID_WEBVIEW_PLAYSTORE_URL =
+  'https://play.google.com/store/apps/details?id=com.google.android.webview';

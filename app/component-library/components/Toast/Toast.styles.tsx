@@ -6,7 +6,7 @@ const WIDTH = 340;
 const BORDER_RADIUS = 8;
 
 /**
- * Style sheet function for Link component.
+ * Style sheet function for Toast component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.

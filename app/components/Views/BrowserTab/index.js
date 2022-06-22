@@ -61,6 +61,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
+import { ANDROID_WEBVIEW_PLAYSTORE_URL } from 'app/constants/urls';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -341,10 +342,7 @@ export const BrowserTab = (props) => {
             title: strings('browser.android_system_webview.title'),
             message: strings('browser.android_system_webview.message'),
             actionText: strings('browser.android_system_webview.action_text'),
-            action: () =>
-              Linking.openURL(
-                'https://play.google.com/store/apps/details?id=com.google.android.webview',
-              ),
+            action: () => Linking.openURL(ANDROID_WEBVIEW_PLAYSTORE_URL),
           });
         }
       }
