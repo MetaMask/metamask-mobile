@@ -1,4 +1,4 @@
-import { ImageSourcePropType, ViewProps } from 'react-native';
+import { ViewProps } from 'react-native';
 
 /**
  * Icon sizes
@@ -34,13 +34,6 @@ export interface IconProps extends ViewProps {
  * Style sheet input parameters.
  */
 export type IconStyleSheetVars = Pick<IconProps, 'size' | 'style'>;
-
-/**
- * Asset stored by icon name
- */
-export type AssetByIconName = {
-  [key in IconName]: ImageSourcePropType;
-};
 
 ///////////////////////////////////////////////////////
 // This is generated code - Manually add types above

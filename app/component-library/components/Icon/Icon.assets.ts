@@ -1,10 +1,8 @@
-/* eslint-disable import/prefer-default-export, @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 ///////////////////////////////////////////////////////
 // This is a generated file
 // DO NOT EDIT - Use generate-assets.js
 ///////////////////////////////////////////////////////
-import { AssetByIconName, IconName } from './Icon.types';
+import { IconName } from './Icon.types';
 import AddOutline from './assets/add-outline.svg';
 import AddSquareFilled from './assets/add-square-filled.svg';
 import Arrow2DownOutline from './assets/arrow-2-down-outline.svg';
@@ -137,7 +135,8 @@ import WarningFilled from './assets/warning-filled.svg';
 /**
  * Asset stored by icon name
  */
-export const assetByIconName: AssetByIconName = {
+// eslint-disable-next-line
+export const assetByIconName = {
   [IconName.AddOutline]: AddOutline,
   [IconName.AddSquareFilled]: AddSquareFilled,
   [IconName.Arrow2DownOutline]: Arrow2DownOutline,
