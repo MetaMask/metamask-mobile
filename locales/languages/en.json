@@ -1908,7 +1908,8 @@
     "title": "See what's new",
     "feature_on_ramp_title": "Buy Crypto improvements",
     "feature_on_ramp_text": "Our updated Buy Crypto feature aggregates quotes from multiple providers to help you find the best deal for your region and payment method.",
-    "feature_on_ramp_button": "Try it out"
+    "feature_on_ramp_text_description": "Try it out by clicking the \"Buy\" button on the wallet screen.",
+    "feature_on_ramp_button": "Got it"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
