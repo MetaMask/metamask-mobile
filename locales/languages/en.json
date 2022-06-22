@@ -1645,7 +1645,9 @@
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
     "webview_received_error": "WebView received error status code: {{code}}",
-    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "no_tokens_available_title": "No Tokens Available",
+    "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
+    "change_payment_method": "Change payment method",
     "try_different_region": "Try a different region",
     "return_home": "Return to Home Screen",
     "region": {
@@ -1904,9 +1906,10 @@
   },
   "whats_new": {
     "title": "See what's new",
-    "feature_security_settings_title": "Improved security settings",
-    "feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet Secret Recovery Phrase from Settings > Security & Privacy.",
-    "feature_security_settings_button": "View in Settings"
+    "feature_on_ramp_title": "Buy Crypto improvements",
+    "feature_on_ramp_text": "Our updated Buy Crypto feature aggregates quotes from multiple providers to help you find the best deal for your region and payment method.",
+    "feature_on_ramp_text_description": "Try it out by clicking the \"Buy\" button on the wallet screen.",
+    "feature_on_ramp_button": "Got it"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
