@@ -895,8 +895,8 @@ class NetworkSettings extends PureComponent {
           <InfoModal
             isVisible={this.state.showWarningModal}
             message={strings('networks.network_warning')}
-            clickText={strings('networks.learn_more')}
-            clickPress={this.goToLearnMore}
+            urlText={strings('networks.learn_more')}
+            url={this.goToLearnMore}
             toggleModal={this.toggleWarningModal}
           />
         )}
