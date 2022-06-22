@@ -111,7 +111,7 @@ function InfoModal({
       style={styles.modal}
       propagateSwipe={propagateSwipe}
       backdropColor={colors.overlay.default}
-      backdropOpacity={urlText ? 0.2 : 1}
+      backdropOpacity={1}
     >
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
