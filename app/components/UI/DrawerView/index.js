@@ -1162,7 +1162,7 @@ class DrawerView extends PureComponent {
       currentRoute,
       networkOnboarding,
       networkOnboardedState,
-      switchedNetwork,
+      switchedNetwork: { networkUrl, networkStatus },
       networkModalVisible,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -1196,8 +1196,18 @@ class DrawerView extends PureComponent {
     const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
     const checkIfCustomNetworkExists = networkOnboardedState.filter(
-      (item) => item.network === sanitizeUrl(switchedNetwork.networkUrl),
+      (item) => item.network === sanitizeUrl(networkUrl),
     );
+
+    const networkSwitchedAndInWalletView =
+      currentRoute === 'WalletView' &&
+      networkStatus &&
+      checkIfCustomNetworkExists.length === 0;
+
+    const canShowNetworkInfoModal =
+      showModal ||
+      networkOnboarding.showNetworkOnboarding ||
+      networkSwitchedAndInWalletView;
 
     return (
       <View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1365,7 +1375,9 @@ class DrawerView extends PureComponent {
           isVisible={
             networkModalVisible || networkOnboarding.showNetworkOnboarding
           }
-          onBackdropPress={showModal ? null : this.toggleNetworksModal}
+          onBackdropPress={
+            canShowNetworkInfoModal ? null : this.toggleNetworksModal
+          }
           onBackButtonPress={showModal ? null : this.toggleNetworksModa}
           onSwipeComplete={showModal ? null : this.toggleNetworksModa}
           swipeDirection={'down'}
@@ -1373,11 +1385,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          {showModal ||
-          networkOnboarding.showNetworkOnboarding ||
-          (currentRoute === 'WalletView' &&
-            switchedNetwork.networkStatus &&
-            checkIfCustomNetworkExists.length === 0) ? (
+          {canShowNetworkInfoModal ? (
             <NetworkInfo
               onClose={this.onInfoNetworksModalClose}
               type={networkType || networkOnboarding.networkType}
