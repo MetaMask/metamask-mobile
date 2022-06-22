@@ -114,7 +114,6 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   it('should delete wallet', async () => {
     await DeleteWalletModal.tapIUnderstandButton();
     await DeleteWalletModal.typeDeleteInInputBox();
-    await DeleteWalletModal.tapDeleteMyWalletButton();
 
     await TestHelpers.delay(2000);
     await OnboardingView.isVisible();
