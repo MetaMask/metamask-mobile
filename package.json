@@ -90,6 +90,7 @@
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
     "web3": "1.6.1",
+    "**/got": "^11.8.5",
     "simple-get": "4.0.1",
     "oss-attribution-generator/**/underscore": "1.12.1",
     "oss-attribution-generator/**/deep-extend": "0.5.1",
