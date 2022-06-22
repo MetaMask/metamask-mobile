@@ -14,7 +14,7 @@ Enum to select between size variants.
 | :----------------------------------------------------- | :------------------------------------------------------ |
 | [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6) | Yes                                                     |
 
-### `iconName`
+### `name`
 
 Icon to use.
 
