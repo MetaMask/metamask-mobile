@@ -1199,12 +1199,15 @@ class DrawerView extends PureComponent {
       (item) => item.network === sanitizeUrl(switchedNetwork.networkUrl),
     );
 
+    const networkSwitchedAndInWalletView =
+      currentRoute === 'WalletView' &&
+      switchedNetwork.networkStatus &&
+      checkIfCustomNetworkExists.length === 0;
+
     const canShowNetworkInfoModal =
       showModal ||
       networkOnboarding.showNetworkOnboarding ||
-      (currentRoute === 'WalletView' &&
-        switchedNetwork.networkStatus &&
-        checkIfCustomNetworkExists.length === 0);
+      networkSwitchedAndInWalletView;
 
     return (
       <View style={styles.wrapper} testID={'drawer-screen'}>
