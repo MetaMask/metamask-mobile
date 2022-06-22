@@ -10,6 +10,7 @@ import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import formatNumber from '../../../../util/formatNumber';
+import { INTEGER_OR_FLOAT_REGEX } from '../../../../util/number';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -120,7 +121,8 @@ function EditPermission({
 
   const displayErrorMessage = useMemo(
     () =>
-      !spendLimitUnlimitedSelected &&
+      (!spendLimitUnlimitedSelected &&
+        !INTEGER_OR_FLOAT_REGEX.test(spendLimitCustomValue)) ||
       Number(minimumSpendLimit) > spendLimitCustomValue,
     [spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit],
   );
