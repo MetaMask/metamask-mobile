@@ -54,8 +54,13 @@ const styles = StyleSheet.create({
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const { getStarted, setGetStarted, sdkError, selectedChainId } =
-    useFiatOnRampSDK();
+  const {
+    getStarted,
+    setGetStarted,
+    sdkError,
+    selectedChainId,
+    selectedRegion,
+  } = useFiatOnRampSDK();
   const trackEvent = useAnalytics();
 
   const { colors } = useTheme();
@@ -88,12 +93,24 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     if (getStarted) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
-      });
+      if (selectedRegion) {
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED,
+              params: { showBack: false },
+            },
+          ],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
+        });
+      }
     }
-  }, [getStarted, navigation]);
+  }, [getStarted, navigation, selectedRegion]);
 
   if (sdkError) {
     return (

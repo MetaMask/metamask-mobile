@@ -36,7 +36,7 @@ import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -49,7 +49,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
-
 import CookieManager from '@react-native-community/cookies';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import HintModal from '../../../UI/HintModal';
@@ -67,10 +66,11 @@ import {
   CHANGE_PASSWORD_BUTTON_ID,
   REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
 } from '../../../../constants/test-ids';
+import { LEARN_MORE_URL } from '../../../../constants/urls';
+import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
+import DeleteWalletData from './Sections/DeleteWalletData';
 
 const isIos = Device.isIos();
-const LEARN_MORE_URL =
-  'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -308,6 +308,7 @@ class Settings extends PureComponent {
     biometryType: false,
     browserHistoryModalVisible: false,
     cookiesModalVisible: false,
+    deleteMetricsModalVisible: false,
     analyticsEnabled: false,
     passcodeChoice: false,
     showHint: false,
@@ -375,7 +376,7 @@ class Settings extends PureComponent {
   componentDidMount = async () => {
     this.updateNavBar();
     const biometryType = await SecureKeychain.getSupportedBiometryType();
-    const analyticsEnabled = Analytics.getEnabled();
+    const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -1203,6 +1204,8 @@ class Settings extends PureComponent {
           {this.renderClearCookiesSection()}
           {this.renderPrivacyModeSection()}
           {this.renderMetaMetricsSection()}
+          <DeleteMetaMetricsData />
+          <DeleteWalletData />
           {this.renderThirdPartySection()}
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}

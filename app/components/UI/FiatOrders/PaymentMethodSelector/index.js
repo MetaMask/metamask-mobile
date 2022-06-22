@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics';
+import Analytics from '../../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getTicker } from '../../../../util/transactions';
