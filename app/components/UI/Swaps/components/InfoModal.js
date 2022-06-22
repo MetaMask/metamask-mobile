@@ -50,8 +50,12 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     messageLimit: {
-      width: '90%',
-      marginVertical: 10,
+      width: '80%',
+    },
+    infoContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
     },
   });
 
@@ -83,7 +87,7 @@ function InfoModal({
     }
 
     return (
-      <>
+      <View style={styles.infoContainer}>
         <Text style={styles.messageLimit}>
           <Text>{message} </Text>
           {urlText && (
@@ -93,7 +97,7 @@ function InfoModal({
           )}
         </Text>
         <CloseButton />
-      </>
+      </View>
     );
   };
 
