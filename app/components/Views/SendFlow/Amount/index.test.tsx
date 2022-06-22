@@ -649,4 +649,60 @@ describe('Amount', () => {
     expect(amountConversionValue.props.children).toBe('0.11765 AVAX');
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('should default to native crypto if no conversion rate is available', () => {
+    const { getByTestId, getByText, toJSON } = renderComponent({
+      settings: {
+        primaryCurrency: 'Fiat',
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            ...initialState.engine.backgroundState.CurrencyRateController,
+            conversionRate: null,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+          },
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: 'DE0B6B3A7640000',
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const balanceText = getByText(/Balance:/);
+    expect(balanceText.props.children).toBe('Balance: 1 ETH');
+
+    try {
+      getByTestId('txn-amount-conversion-value');
+    } catch (e: any) {
+      expect(e.message).toBe(
+        'Unable to find an element with testID: txn-amount-conversion-value',
+      );
+    }
+
+    expect(toJSON()).toMatchSnapshot();
+  });
 });
