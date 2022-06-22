@@ -480,13 +480,38 @@ class Amount extends PureComponent {
       this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
     }
 
+    const hasExchangeRate = this.hasExchangeRate();
+    let internalPrimaryCurrencyIsCrypto =
+      this.state.internalPrimaryCurrencyIsCrypto;
+
+    // Default to crypto if exchange rate is not available while on Fiat primary currency
+    if (this.props.primaryCurrency === 'Fiat' && !hasExchangeRate) {
+      internalPrimaryCurrencyIsCrypto = true;
+    }
+
     this.setState({
       inputValue: readableValue,
+      internalPrimaryCurrencyIsCrypto,
+      hasExchangeRate,
     });
   };
 
   componentDidUpdate = () => {
     this.updateNavBar();
+  };
+
+  hasExchangeRate = () => {
+    const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
+    let hasExchangeRate;
+
+    if (selectedAsset.isETH) {
+      hasExchangeRate = !!conversionRate;
+    } else {
+      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      hasExchangeRate = !!exchangeRate;
+    }
+
+    return hasExchangeRate;
   };
 
   /**
