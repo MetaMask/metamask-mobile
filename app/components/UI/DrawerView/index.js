@@ -1162,7 +1162,7 @@ class DrawerView extends PureComponent {
       currentRoute,
       networkOnboarding,
       networkOnboardedState,
-      switchedNetwork,
+      switchedNetwork: { networkUrl, networkStatus },
       networkModalVisible,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -1196,12 +1196,12 @@ class DrawerView extends PureComponent {
     const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
     const checkIfCustomNetworkExists = networkOnboardedState.filter(
-      (item) => item.network === sanitizeUrl(switchedNetwork.networkUrl),
+      (item) => item.network === sanitizeUrl(networkUrl),
     );
 
     const networkSwitchedAndInWalletView =
       currentRoute === 'WalletView' &&
-      switchedNetwork.networkStatus &&
+      networkStatus &&
       checkIfCustomNetworkExists.length === 0;
 
     const canShowNetworkInfoModal =
