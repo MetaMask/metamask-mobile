@@ -50,8 +50,12 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
     },
     messageLimit: {
-      width: '90%',
-      marginVertical: 10,
+      width: '80%',
+    },
+    infoContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
     },
   });
 
@@ -62,11 +66,40 @@ function InfoModal({
   toggleModal,
   message,
   propagateSwipe,
-  clickText,
-  clickPress,
+  urlText,
+  url,
 }) {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+
+  const CloseButton = () => (
+    <TouchableOpacity
+      onPress={toggleModal}
+      hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+    >
+      <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+    </TouchableOpacity>
+  );
+
+  const InfoView = () => {
+    if (!message) {
+      return <CloseButton />;
+    }
+
+    return (
+      <View style={styles.infoContainer}>
+        <Text style={styles.messageLimit}>
+          <Text>{message} </Text>
+          {urlText && (
+            <Text link onPress={url}>
+              {urlText}
+            </Text>
+          )}
+        </Text>
+        <CloseButton />
+      </View>
+    );
+  };
 
   return (
     <Modal
@@ -78,29 +111,12 @@ function InfoModal({
       style={styles.modal}
       propagateSwipe={propagateSwipe}
       backdropColor={colors.overlay.default}
-      backdropOpacity={clickText ? 0.2 : 1}
+      backdropOpacity={1}
     >
       <SafeAreaView style={styles.modalView}>
         <View style={styles.title}>
           {title && <Title>{title}</Title>}
-          {message && (
-            <Text style={styles.messageLimit}>
-              <Text>{message} </Text>
-              {clickText && (
-                <Text link onPress={clickPress}>
-                  {clickText}
-                </Text>
-              )}
-            </Text>
-          )}
-          {!message && (
-            <TouchableOpacity
-              onPress={toggleModal}
-              hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
-            >
-              <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
-            </TouchableOpacity>
-          )}
+          <InfoView />
         </View>
         {body && <View style={styles.body}>{body}</View>}
       </SafeAreaView>
@@ -114,8 +130,8 @@ InfoModal.propTypes = {
   toggleModal: PropTypes.func,
   propagateSwipe: PropTypes.bool,
   message: PropTypes.string,
-  clickText: PropTypes.string,
-  clickPress: PropTypes.func,
+  urlText: PropTypes.string,
+  url: PropTypes.func,
 };
 
 export default InfoModal;
