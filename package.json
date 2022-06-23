@@ -1,5 +1,5 @@
 {
-  "name": "metamask",
+  "name": "@metamask/mobile",
   "version": "5.2.0",
   "private": true,
   "scripts": {
