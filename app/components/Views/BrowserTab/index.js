@@ -1321,17 +1321,6 @@ export const BrowserTab = (props) => {
 
   const handleOnFileDownload = useCallback(
     async ({ nativeEvent: { downloadUrl } }) => {
-      /**
-       * Support native UI for downloading Apple Wallet Passes
-       */
-      if (
-        downloadUrl.endsWith('.pkpass') &&
-        Device.isIos() &&
-        Linking.canOpenURL(downloadUrl)
-      ) {
-        return Linking.openURL(downloadUrl);
-      }
-
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();

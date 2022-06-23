@@ -1,7 +1,9 @@
+import { Linking } from 'react-native';
 import Share, { ShareOptions } from 'react-native-share';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
 import RNFetchBlob, { FetchBlobResponse } from 'rn-fetch-blob';
 import { strings } from '../../../locales/i18n';
+import Device from '../device';
 
 interface DownloadResult {
   success: boolean;
@@ -23,9 +25,39 @@ const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
     'GET',
     downloadUrl,
   );
-  if (response.path()) {
+
+  /**
+   * Support native UI for downloading Apple Wallet Passes
+   */
+  if (
+    Device.isIos() &&
+    response.respInfo &&
+    response.respInfo.headers['Content-Type'] === 'application/vnd.apple.pkpass'
+  ) {
     try {
-      const shareResponse: ShareOpenResult = await shareFile(response.path());
+      await Linking.openURL(downloadUrl);
+      return {
+        success: true,
+        message: 'success',
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        return {
+          success: false,
+          message: err.message.toString(),
+        };
+      }
+      return {
+        success: false,
+        message: strings('download_files.message'),
+      };
+    }
+  }
+
+  const path = response.path();
+  if (path) {
+    try {
+      const shareResponse: ShareOpenResult = await shareFile(path);
       return {
         success: shareResponse.success,
         message: shareResponse.message,
