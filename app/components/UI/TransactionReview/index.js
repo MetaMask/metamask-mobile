@@ -29,7 +29,7 @@ import Device from '../../../util/device';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
@@ -209,6 +209,11 @@ class TransactionReview extends PureComponent {
     dappSuggestedGasWarning: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    /**
+     * Returns the selected gas type
+     * @returns {string}
+     */
+    gasSelected: PropTypes.string,
   };
 
   state = {
@@ -378,6 +383,7 @@ class TransactionReview extends PureComponent {
       dappSuggestedGas,
       navigation,
       dappSuggestedGasWarning,
+      gasSelected,
     } = this.props;
     const {
       actionKey,
@@ -442,6 +448,7 @@ class TransactionReview extends PureComponent {
                       origin={
                         dappSuggestedGas ? currentPageInformation?.url : null
                       }
+                      gasSelected={gasSelected}
                       originWarning={dappSuggestedGasWarning}
                       onUpdatingValuesStart={onUpdatingValuesStart}
                       onUpdatingValuesEnd={onUpdatingValuesEnd}

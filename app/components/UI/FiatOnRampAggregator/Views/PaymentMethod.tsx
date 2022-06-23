@@ -18,6 +18,7 @@ import Box from '../components/Box';
 import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
+import useAnalytics from '../hooks/useAnalytics';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -52,25 +53,13 @@ const SkeletonPaymentOption = () => (
 const PaymentMethod = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-
-  useEffect(() => {
-    navigation.setOptions(
-      getFiatOnRampAggNavbar(
-        navigation,
-        {
-          title: strings(
-            'fiat_on_ramp_aggregator.payment_method.payment_method',
-          ),
-        },
-        colors,
-      ),
-    );
-  }, [navigation, colors]);
+  const trackEvent = useAnalytics();
 
   const {
     selectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
+    selectedChainId,
     sdkError,
   } = useFiatOnRampSDK();
 
@@ -103,9 +92,42 @@ const PaymentMethod = () => {
     setSelectedPaymentMethodId,
   ]);
 
+  const handleCancelPress = useCallback(() => {
+    trackEvent('ONRAMP_CANCELED', {
+      location: 'Payment Method Screen',
+      chain_id_destination: selectedChainId,
+    });
+  }, [selectedChainId, trackEvent]);
+
+  const handlePaymentMethodPress = useCallback(
+    (id) => {
+      setSelectedPaymentMethodId(id);
+      trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
+        payment_method_id: id,
+        location: 'Payment Method Screen',
+      });
+    },
+    [setSelectedPaymentMethodId, trackEvent],
+  );
+
   const handleContinueToAmount = useCallback(() => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
   }, [navigation]);
+
+  useEffect(() => {
+    navigation.setOptions(
+      getFiatOnRampAggNavbar(
+        navigation,
+        {
+          title: strings(
+            'fiat_on_ramp_aggregator.payment_method.payment_method',
+          ),
+        },
+        colors,
+        handleCancelPress,
+      ),
+    );
+  }, [navigation, colors, handleCancelPress]);
 
   if (sdkError) {
     return (
@@ -155,7 +177,7 @@ const PaymentMethod = () => {
                 onPress={
                   id === selectedPaymentMethodId
                     ? undefined
-                    : () => setSelectedPaymentMethodId(id)
+                    : () => handlePaymentMethodPress(id)
                 }
                 amountTier={amountTier}
                 paymentType={getPaymentMethodIcon(id)}

@@ -71,6 +71,8 @@ const createStyles = (colors) =>
       paddingHorizontal: 15,
       paddingVertical: 5,
       flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
       height: Device.isIos() ? ROW_HEIGHT : undefined,
     },
     optionLabel: {
@@ -81,7 +83,6 @@ const createStyles = (colors) =>
     },
     icon: {
       paddingHorizontal: 10,
-      marginTop: 5,
     },
     listWrapper: {
       flex: 1,
