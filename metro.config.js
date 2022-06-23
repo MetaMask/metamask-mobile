@@ -6,22 +6,34 @@
  * @format
  */
 
-module.exports = {
-  transformer: {
-    getTransformOptions: async () => ({
-      transform: {
-        experimentalImportSupport: true,
-        inlineRequires: true,
-      },
-    }),
-    assetPlugins: ['react-native-svg-asset-plugin'],
-    svgAssetPlugin: {
-      pngCacheDir: '.png-cache',
-      scales: [1],
-      output: {
-        compressionLevel: 6,
+const { getDefaultConfig } = require('metro-config');
+
+module.exports = (async () => {
+  const {
+    resolver: { sourceExts, assetExts },
+  } = await getDefaultConfig();
+  return {
+    transformer: {
+      getTransformOptions: async () => ({
+        transform: {
+          experimentalImportSupport: true,
+          inlineRequires: true,
+        },
+      }),
+      babelTransformerPath: require.resolve('react-native-svg-transformer'),
+      assetPlugins: ['react-native-svg-asset-plugin'],
+      svgAssetPlugin: {
+        pngCacheDir: '.png-cache',
+        scales: [1],
+        output: {
+          compressionLevel: 6,
+        },
       },
     },
-  },
-  maxWorkers: 2,
-};
+    resolver: {
+      assetExts: assetExts.filter((ext) => ext !== 'svg'),
+      sourceExts: [...sourceExts, 'svg'],
+    },
+    maxWorkers: 2,
+  };
+})();
