@@ -1,16 +1,20 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from 'app/util/theme/models';
 import { BaseAvatarSize } from '../BaseAvatar';
+import { NetworkAvatarStyleSheetVars } from './NetworkAvatar.types';
 
 /**
  * Style sheet function for NetworkAvatar component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
- * @param params.vars App theme from ThemeContext.
+ * @param params.vars NetworkAvatar stylesheet vars.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: NetworkAvatarStyleSheetVars;
+}) => {
   const { vars, theme } = params;
   const { size } = vars;
   return StyleSheet.create({

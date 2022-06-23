@@ -1,4 +1,3 @@
-import { ImageSourcePropType } from 'react-native';
 import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
 
 /**
@@ -6,13 +5,13 @@ import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
  */
 export interface NetworkAvatarProps extends BaseAvatarProps {
   /**
-   * chain name.
+   * Chain name.
    */
   networkName?: string;
   /**
-   * chain image url.
+   * Chain image URL.
    */
-  networkImage?: ImageSourcePropType;
+  networkImageUrl?: string;
 }
 
 export interface NetworkAvatarStyleSheetVars {

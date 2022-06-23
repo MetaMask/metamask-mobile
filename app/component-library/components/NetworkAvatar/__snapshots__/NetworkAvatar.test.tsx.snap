@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkAvatar should render correctly 1`] = `
+<BaseAvatar
+  size="48"
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "backgroundColor": "#F2F4F6",
+        "borderColor": "#D6D9DC",
+        "borderRadius": 50,
+        "borderWidth": 1,
+        "flex": 1,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <BaseText
+      style={Object {}}
+      variant="lBodyMD"
+    >
+      E
+    </BaseText>
+  </View>
+</BaseAvatar>
+`;

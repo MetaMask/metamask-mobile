@@ -14,10 +14,19 @@ Enum to select between size variants.
 | :----------------------------------------------------- | :------------------------------------------------------ |
 | [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6) | Yes                                                     |
 
-### `chainId`
+### `networkName`
 
+Chain name 
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [NetworksChainId](https://github.com/MetaMask/controllers/blob/main/src/network/NetworkController.ts#L23)    | Yes                                                     |
+| [networkName](./NetworkAvatar.types.ts#L11)         | No                                                      |
+
+### `networkImageUrl`
+
+Chain image URL
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [networkImageUrl](./NetworkAvatar.types.ts#L15)     | No                                                      |
 

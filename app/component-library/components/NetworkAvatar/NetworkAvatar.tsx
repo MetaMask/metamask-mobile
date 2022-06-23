@@ -11,8 +11,7 @@ const NetworkAvatar = ({
   size,
   style,
   networkName,
-  // chainId,
-  networkImage,
+  networkImageUrl,
 }: NetworkAvatarProps) => {
   const styles = useStyles(stylesheet, { style, size });
 
@@ -23,12 +22,10 @@ const NetworkAvatar = ({
 
   const chainNameFirstLetter = networkName?.[0] ?? '?';
 
-  const imageUid = networkImage && Image.resolveAssetSource(networkImage);
-
   return (
     <BaseAvatar size={size} style={style}>
-      {networkImage ? (
-        <Image source={{ uri: imageUid.uri }} style={styles.imageStyle} />
+      {networkImageUrl ? (
+        <Image source={{ uri: networkImageUrl }} style={styles.imageStyle} />
       ) : (
         <View style={styles.networkPlaceholderContainer}>
           <BaseText style={styles.baseText} variant={textVariant}>
