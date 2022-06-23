@@ -84,6 +84,7 @@ import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import WarningMessage from '../WarningMessage';
+import { allowedToBuy } from '../../../UI/FiatOrders';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -382,7 +383,6 @@ class Confirm extends PureComponent {
     fromAccountModalVisible: false,
     warningModalVisible: false,
     mode: REVIEW,
-    over: false,
     gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
     EIP1559TransactionData: {},
@@ -1376,7 +1376,6 @@ class Confirm extends PureComponent {
       warningGasPriceHigh,
       confusableCollection,
       mode,
-      over,
       warningModalVisible,
       LegacyTransactionData,
       isAnimating,
@@ -1421,6 +1420,7 @@ class Confirm extends PureComponent {
       );
 
     const isTestNetwork = isTestNet(network);
+
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
@@ -1545,14 +1545,16 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              <TouchableOpacity onPress={errorPress}>
-                <Text style={styles.error}>{errorMessage}</Text>
-                {over ? (
+              {isTestNetwork || allowedToBuy(network) ? (
+                <TouchableOpacity onPress={errorPress}>
+                  <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>
                     {errorLinkText}
                   </Text>
-                ) : null}
-              </TouchableOpacity>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.error}>{errorMessage}</Text>
+              )}
             </View>
           )}
           {!!warningGasPriceHigh && (
