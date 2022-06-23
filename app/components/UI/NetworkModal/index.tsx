@@ -232,8 +232,6 @@ const NetworkModals = (props: NetworkProps) => {
                 isVisible
                 toggleModal={showToolTip}
                 message={strings('networks.provider')}
-                clickText={undefined}
-                clickPress={undefined}
               />
             )}
             <View style={styles.nameWrapper} testID={APPROVE_NETWORK_MODAL_ID}>

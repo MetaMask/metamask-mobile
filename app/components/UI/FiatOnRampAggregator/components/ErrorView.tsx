@@ -12,6 +12,8 @@ import { Colors } from '../../../../util/theme/models';
 const Text = BaseText as any;
 const Title = BaseTitle as any;
 
+type IconType = 'error' | 'info';
+
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     screen: {
@@ -31,11 +33,16 @@ const createStyles = (colors: Colors) =>
     row: {
       marginVertical: 1,
     },
-    errorIcon: {
-      color: colors.error.default,
+    icon: {
       fontSize: 38,
       marginVertical: 4,
       textAlign: 'center',
+    },
+    errorIcon: {
+      color: colors.error.default,
+    },
+    infoIcon: {
+      color: colors.primary.default,
     },
   });
 
@@ -44,9 +51,37 @@ interface Props {
   title?: string; //  The error title, default will be "Error" if not provided (Optional)
   ctaLabel?: string; // The CTA button label, default will be "Try again" (Optional)
   ctaOnPress?: () => any; // The optional callback to be invoked when pressing the CTA button (Optional)
+  icon?: IconType;
 }
 
-function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
+function ErrorIcon({ icon }: { icon: IconType }) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  let name, style;
+  switch (icon) {
+    case 'info': {
+      name = 'information-outline';
+      style = styles.infoIcon;
+      break;
+    }
+    case 'error':
+    default: {
+      name = 'close-circle-outline';
+      style = styles.errorIcon;
+      break;
+    }
+  }
+
+  return <MaterialCommunityIcons name={name} style={[styles.icon, style]} />;
+}
+
+function ErrorView({
+  description,
+  title,
+  ctaLabel,
+  ctaOnPress,
+  icon = 'error',
+}: Props) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -58,10 +93,7 @@ function ErrorView({ description, title, ctaLabel, ctaOnPress }: Props) {
     <View style={styles.screen}>
       <View style={styles.content}>
         <View style={styles.row}>
-          <MaterialCommunityIcons
-            name="close-circle-outline"
-            style={styles.errorIcon}
-          />
+          <ErrorIcon icon={icon} />
         </View>
 
         <View style={styles.row}>
