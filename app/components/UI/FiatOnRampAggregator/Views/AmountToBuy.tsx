@@ -722,8 +722,6 @@ const AmountToBuy = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
-            icon="info"
-            title={strings('fiat_on_ramp_aggregator.no_tokens_available_title')}
             description={strings(
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
@@ -731,18 +729,17 @@ const AmountToBuy = () => {
                 region: selectedRegion?.name,
               },
             )}
-            ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
-            ctaOnPress={showPaymentMethodsModal as () => void}
+            ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
+            ctaOnPress={toggleRegionModal as () => void}
           />
         </ScreenLayout.Body>
-        <PaymentMethodModal
-          isVisible={isPaymentMethodModalVisible}
-          dismiss={hidePaymentMethodModal as () => void}
-          title={strings('fiat_on_ramp_aggregator.select_payment_method')}
-          paymentMethods={filteredPaymentMethods}
-          selectedPaymentMethodId={selectedPaymentMethodId}
-          onItemPress={handleChangePaymentMethod}
-          location={'Amount to Buy Screen'}
+        <RegionModal
+          isVisible={isRegionModalVisible}
+          title={strings('fiat_on_ramp_aggregator.region.title')}
+          description={strings('fiat_on_ramp_aggregator.region.description')}
+          data={countries}
+          dismiss={hideRegionModal as () => void}
+          onRegionPress={handleRegionPress}
         />
       </ScreenLayout>
     );
