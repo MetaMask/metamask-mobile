@@ -16,4 +16,14 @@ storiesOf('Component Library / FaviconAvatar', module)
     );
 
     return <FaviconAvatar size={sizeSelector} imageUrl={foxImageUri} />;
+  })
+  .add('With Error', () => {
+    const sizeSelector = select(
+      'size',
+      BaseAvatarSize,
+      BaseAvatarSize.Md,
+      'Avatar Size',
+    );
+
+    return <FaviconAvatar size={sizeSelector} imageUrl={''} />;
   });

@@ -3,8 +3,10 @@
 exports[`FaviconAvatar should match the snapshot 1`] = `
 <BaseAvatar
   size="48"
+  style={Object {}}
 >
   <Image
+    onError={[Function]}
     resizeMode="contain"
     source={
       Object {

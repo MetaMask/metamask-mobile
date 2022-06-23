@@ -1,22 +1,51 @@
 /* eslint-disable react/prop-types */
-import React from 'react';
-import { Image } from 'react-native';
-import BaseAvatar from '../BaseAvatar';
-import { FaviconAvatarProps } from './FaviconAvatar.types';
-import stylesheet from './Favicon.styles';
+import React, { useCallback, useState } from 'react';
+import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
+import { useStyles } from '../../../component-library/hooks';
+import BaseAvatar, { BaseAvatarSize } from '../BaseAvatar';
+import {
+  FaviconAvatarProps,
+  IconSizeByAvatarSize,
+} from './FaviconAvatar.types';
+import stylesheet from './FaviconAvatar.styles';
+import Icon, { IconName, IconSize } from '../Icon';
+
+const iconSizeByAvatarSize: IconSizeByAvatarSize = {
+  [BaseAvatarSize.Xs]: IconSize.Xs,
+  [BaseAvatarSize.Sm]: IconSize.Sm,
+  [BaseAvatarSize.Md]: IconSize.Md,
+  [BaseAvatarSize.Lg]: IconSize.Lg,
+  [BaseAvatarSize.Xl]: IconSize.Xl,
+};
 
 const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
   imageUrl,
   size,
   style,
-}) => (
-  <BaseAvatar size={size} style={style}>
-    <Image
-      source={{ uri: imageUrl }}
-      style={stylesheet.imageStyle}
-      resizeMode={'contain'}
-    />
-  </BaseAvatar>
-);
+}) => {
+  const [error, setError] = useState(undefined);
+  const { styles } = useStyles(stylesheet, { style, error });
+
+  const onError = useCallback(
+    (e: NativeSyntheticEvent<ImageErrorEventData>) =>
+      setError(e.nativeEvent.error),
+    [setError],
+  );
+
+  return (
+    <BaseAvatar size={size} style={styles.base}>
+      {error ? (
+        <Icon size={iconSizeByAvatarSize[size]} name={IconName.GlobalFilled} />
+      ) : (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.image}
+          resizeMode={'contain'}
+          onError={onError}
+        />
+      )}
+    </BaseAvatar>
+  );
+};
 
 export default FaviconAvatar;
