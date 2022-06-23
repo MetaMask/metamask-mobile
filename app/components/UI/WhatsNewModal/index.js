@@ -31,6 +31,12 @@ import {
   mockTheme,
   useAssetFromTheme,
 } from '../../../util/theme';
+import {
+  WHATS_NEW_MODAL_CONTAINER_ID,
+  WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
+  WHATS_NEW_MODAL_GOT_IT_BUTTON_ID,
+} from '../../../constants/test-ids';
+
 const modalMargin = 24;
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
@@ -241,6 +247,7 @@ const WhatsNewModal = (props) => {
           <View style={styles.button}>
             <StyledButton
               type={elementInfo.buttonType}
+              testID={WHATS_NEW_MODAL_GOT_IT_BUTTON_ID}
               onPress={() => callButton(elementInfo.onPress)}
             >
               {elementInfo.buttonText}
@@ -288,7 +295,7 @@ const WhatsNewModal = (props) => {
       verticalButtons
       propagateSwipe
     >
-      <View style={styles.wrapper} testID={'whats-new-modal'}>
+      <View style={styles.wrapper} testID={WHATS_NEW_MODAL_CONTAINER_ID}>
         <View>
           <View style={styles.header}>
             <View style={styles.headerCenterAux} />
@@ -296,6 +303,7 @@ const WhatsNewModal = (props) => {
             <View style={styles.headerClose}>
               <TouchableOpacity
                 onPress={closeModal}
+                testID={WHATS_NEW_MODAL_CLOSE_BUTTON_ID}
                 hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
               >
                 <Icon name="times" size={16} color={colors.icon.default} />
