@@ -16,6 +16,7 @@ function loadStories() {
   require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Link/Link.stories');
+  require('../app/component-library/components/FaviconAvatar/FaviconAvatar.stories');
 }
 
 const stories = [
@@ -31,6 +32,7 @@ const stories = [
   '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Link/Link.stories',
+  '../app/component-library/components/FaviconAvatar/FaviconAvatar.stories',
 ];
 
 module.exports = {
