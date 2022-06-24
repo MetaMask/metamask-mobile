@@ -26,4 +26,9 @@ storiesOf(' Component Library / NetworkAvatar', module)
     return (
       <NetworkAvatar size={sizeSelector} networkName={networkNameSelector} />
     );
+  })
+  .add('Without image and networkName', () => {
+    const sizeSelector = select('size', BaseAvatarSize, BaseAvatarSize.Md);
+
+    return <NetworkAvatar size={sizeSelector} />;
   });
