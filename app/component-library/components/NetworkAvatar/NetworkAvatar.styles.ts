@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from 'app/util/theme/models';
 import { BaseAvatarSize } from '../BaseAvatar';
 import { NetworkAvatarStyleSheetVars } from './NetworkAvatar.types';
@@ -16,21 +16,20 @@ const styleSheet = (params: {
   vars: NetworkAvatarStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { size } = vars;
+  const { size, style, showPlaceholder } = vars;
+  const baseStyle: ViewStyle = showPlaceholder
+    ? {
+        backgroundColor: theme.colors.background.alternative,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+      }
+    : {};
   return StyleSheet.create({
-    baseText: size === BaseAvatarSize.Xs ? { lineHeight: 16 } : {},
-    imageStyle: {
+    base: Object.assign(baseStyle, style) as ViewStyle,
+    label: size === BaseAvatarSize.Xs ? { lineHeight: 16 } : {},
+    image: {
       flex: 1,
-      width: 'auto',
-    },
-    networkPlaceholderContainer: {
-      flex: 1,
-      backgroundColor: theme.colors.background.alternative,
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1,
-      borderRadius: 50,
-      borderColor: theme.colors.border.muted,
     },
   });
 };

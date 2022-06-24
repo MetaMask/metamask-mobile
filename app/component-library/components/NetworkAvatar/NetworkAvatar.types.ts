@@ -14,6 +14,7 @@ export interface NetworkAvatarProps extends BaseAvatarProps {
   networkImageUrl?: string;
 }
 
-export interface NetworkAvatarStyleSheetVars {
-  size: BaseAvatarProps['size'];
+export interface NetworkAvatarStyleSheetVars
+  extends Pick<NetworkAvatarProps, 'size' | 'style'> {
+  showPlaceholder: boolean;
 }
