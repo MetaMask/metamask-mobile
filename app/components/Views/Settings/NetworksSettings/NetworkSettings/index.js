@@ -60,8 +60,7 @@ const createStyles = (colors) =>
     },
     informationWrapper: {
       flex: 1,
-      paddingHorizontal: 15,
-      marginTop: 24,
+      paddingHorizontal: 10,
     },
     scrollWrapper: {
       flex: 1,
@@ -83,7 +82,7 @@ const createStyles = (colors) =>
       paddingRight: 4,
     },
     warningContainer: {
-      marginTop: 4,
+      marginTop: 24,
       flexGrow: 1,
       flexShrink: 1,
     },
@@ -149,6 +148,7 @@ const createStyles = (colors) =>
     },
     icon: {
       marginRight: 16,
+      marginTop: 4,
     },
     button: {
       flex: 1,
@@ -905,7 +905,7 @@ class NetworkSettings extends PureComponent {
             title={strings('networks.network_warning_title')}
             body={
               <Text>
-                <Text style={styles.text}>
+                <Text style={styles.desc}>
                   {strings('networks.network_warning_desc')}
                 </Text>{' '}
                 <Text style={[styles.blueText]} onPress={this.goToLearnMore}>
@@ -927,7 +927,7 @@ class NetworkSettings extends PureComponent {
           {item.warning ? (
             <WarningIcon
               name="warning"
-              size={20}
+              size={14}
               color={colors.icon.alternative}
               style={styles.icon}
               onPress={this.toggleWarningModal}
