@@ -61,6 +61,7 @@ const createStyles = (colors) =>
     informationWrapper: {
       flex: 1,
       paddingHorizontal: 15,
+      marginTop: 24,
     },
     scrollWrapper: {
       flex: 1,
@@ -117,11 +118,14 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'row',
     },
+    networksWrapper: {
+      marginTop: 12,
+    },
     popularNetwork: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginVertical: 10,
+      marginVertical: 12,
     },
     tabUnderlineStyle: {
       height: 2,
@@ -144,7 +148,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     icon: {
-      marginRight: 10,
+      marginRight: 16,
     },
     button: {
       flex: 1,
@@ -156,6 +160,10 @@ const createStyles = (colors) =>
     },
     confirm: {
       marginLeft: 8,
+    },
+    blueText: {
+      color: colors.primary.default,
+      marginTop: 1,
     },
   });
 
@@ -699,12 +707,12 @@ class NetworkSettings extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
         <KeyboardAwareScrollView style={styles.informationWrapper}>
-          {!network && (
+          {!network ? (
             <WarningMessage
               style={styles.warningContainer}
               warningMessage={strings('networks.malicious_network_warning')}
             />
-          )}
+          ) : null}
           <View style={styles.scrollWrapper}>
             <Text style={styles.label}>
               {strings('app_settings.network_name_label')}
@@ -891,15 +899,23 @@ class NetworkSettings extends PureComponent {
         style={styles.popularNetwork}
         onPress={() => this.togglePopularNetwork(item)}
       >
-        {this.state.showWarningModal && (
+        {this.state.showWarningModal ? (
           <InfoModal
             isVisible={this.state.showWarningModal}
-            message={strings('networks.network_warning')}
-            urlText={strings('networks.learn_more')}
-            url={this.goToLearnMore}
+            title={strings('networks.network_warning_title')}
+            body={
+              <Text>
+                <Text style={styles.text}>
+                  {strings('networks.network_warning_desc')}
+                </Text>{' '}
+                <Text style={[styles.blueText]} onPress={this.goToLearnMore}>
+                  {strings('networks.learn_more')}
+                </Text>
+              </Text>
+            }
             toggleModal={this.toggleWarningModal}
           />
-        )}
+        ) : null}
         <View style={styles.popularWrapper}>
           <ImageIcons
             image={item.rpcPrefs.imageUrl}
@@ -908,15 +924,15 @@ class NetworkSettings extends PureComponent {
           <CustomText bold>{item.nickname}</CustomText>
         </View>
         <View style={styles.popularWrapper}>
-          {item.warning && (
+          {item.warning ? (
             <WarningIcon
               name="warning"
               size={20}
-              color={colors.icon.default}
+              color={colors.icon.alternative}
               style={styles.icon}
               onPress={this.toggleWarningModal}
             />
-          )}
+          ) : null}
           <CustomText link>{strings('networks.add')}</CustomText>
         </View>
       </TouchableOpacity>
@@ -956,7 +972,11 @@ class NetworkSettings extends PureComponent {
                 this.tabView = tabView;
               }}
             >
-              <View tabLabel={strings('app_settings.popular')} key={'popular'}>
+              <View
+                tabLabel={strings('app_settings.popular').toUpperCase()}
+                key={'popular'}
+                style={styles.networksWrapper}
+              >
                 {this.popularNetworks()}
                 {this.state.showPopularNetworkModal && (
                   <NetworkModals
@@ -968,7 +988,9 @@ class NetworkSettings extends PureComponent {
                 )}
               </View>
               <View
-                tabLabel={strings('app_settings.custom_network_name')}
+                tabLabel={strings(
+                  'app_settings.custom_network_name',
+                ).toUpperCase()}
                 key={'custom'}
               >
                 {this.customNetwork()}
