@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
-import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
@@ -42,7 +41,9 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const network = Engine.context.NetworkController.state.network;
+  const network = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.network,
+  );
 
   const filterTransactions = useCallback(
     (network) => {
