@@ -1,20 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FaviconAvatar should match the snapshot 1`] = `
+exports[`NetworkAvatar should render correctly 1`] = `
 <BaseAvatar
   size="48"
-  style={
-    Object {
-      "borderRadius": 0,
-    }
-  }
+  style={Object {}}
 >
   <Image
     onError={[Function]}
-    resizeMode="contain"
     source={
       Object {
-        "uri": "https://uniswap.org/favicon.ico",
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
       }
     }
     style={
@@ -22,7 +17,7 @@ exports[`FaviconAvatar should match the snapshot 1`] = `
         "flex": 1,
       }
     }
-    testID="favicon-avatar-image"
+    testID="network-avatar-image"
   />
 </BaseAvatar>
 `;

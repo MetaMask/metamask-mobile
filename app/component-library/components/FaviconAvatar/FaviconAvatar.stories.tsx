@@ -3,7 +3,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
 import { BaseAvatarSize } from '../BaseAvatar';
 import FaviconAvatar from '.';
-import { foxImageUri } from './FaviconAvatar.data';
+import { testImageUrl } from './FaviconAvatar.data';
 
 storiesOf('Component Library / FaviconAvatar', module)
   .addDecorator((getStory) => getStory())
@@ -15,7 +15,7 @@ storiesOf('Component Library / FaviconAvatar', module)
       'Avatar Size',
     );
 
-    return <FaviconAvatar size={sizeSelector} imageUrl={foxImageUri} />;
+    return <FaviconAvatar size={sizeSelector} imageUrl={testImageUrl} />;
   })
   .add('With Error', () => {
     const sizeSelector = select(
