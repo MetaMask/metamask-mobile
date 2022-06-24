@@ -9,6 +9,7 @@ import {
 } from './FaviconAvatar.types';
 import stylesheet from './FaviconAvatar.styles';
 import Icon, { IconName, IconSize } from '../Icon';
+import { FAVICON_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 
 const iconSizeByAvatarSize: IconSizeByAvatarSize = {
   [BaseAvatarSize.Xs]: IconSize.Xs,
@@ -38,6 +39,7 @@ const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
         <Icon size={iconSizeByAvatarSize[size]} name={IconName.GlobalFilled} />
       ) : (
         <Image
+          testID={FAVICON_AVATAR_IMAGE_ID}
           source={{ uri: imageUrl }}
           style={styles.image}
           resizeMode={'contain'}

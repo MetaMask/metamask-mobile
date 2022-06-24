@@ -3,7 +3,11 @@
 exports[`FaviconAvatar should match the snapshot 1`] = `
 <BaseAvatar
   size="48"
-  style={Object {}}
+  style={
+    Object {
+      "borderRadius": 0,
+    }
+  }
 >
   <Image
     onError={[Function]}
@@ -18,6 +22,7 @@ exports[`FaviconAvatar should match the snapshot 1`] = `
         "flex": 1,
       }
     }
+    testID="favicon-avatar-image"
   />
 </BaseAvatar>
 `;
