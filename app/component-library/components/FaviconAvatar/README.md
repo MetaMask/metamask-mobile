@@ -1,6 +1,6 @@
 # FaviconAvatar
 
-FaviconAvatar is an Image component that renders an icon that is provided in the form of an URL. This component is based on the [BaseAvatar](../BaseAvatar/BaseAvatar.tsx) component.
+FaviconAvatar is an Image component that renders an icon that is provided in the form of a URL. This component is based on the [BaseAvatar](../BaseAvatar/BaseAvatar.tsx) component.
 
 ## Props
 
