@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useState } from 'react';
-import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
+import { Image } from 'react-native';
 import BaseAvatar, { BaseAvatarSize } from '../BaseAvatar';
 import { NetworkAvatarProps } from './NetworkAvatar.types';
 import BaseText, { BaseTextVariant } from '../BaseText';
@@ -23,23 +23,23 @@ const NetworkAvatar = ({
   const chainNameFirstLetter = networkName?.[0] ?? '?';
 
   const onError = useCallback(
-    (e: NativeSyntheticEvent<ImageErrorEventData>) => setShowPlaceholder(true),
+    () => setShowPlaceholder(true),
     [setShowPlaceholder],
   );
 
   return (
     <BaseAvatar size={size} style={styles.base}>
-      {networkImageUrl ? (
+      {showPlaceholder ? (
+        <BaseText style={styles.label} variant={textVariant}>
+          {chainNameFirstLetter}
+        </BaseText>
+      ) : (
         <Image
           source={{ uri: networkImageUrl }}
           style={styles.image}
           onError={onError}
           testID={NETWORK_AVATAR_IMAGE_ID}
         />
-      ) : (
-        <BaseText style={styles.label} variant={textVariant}>
-          {chainNameFirstLetter}
-        </BaseText>
       )}
     </BaseAvatar>
   );

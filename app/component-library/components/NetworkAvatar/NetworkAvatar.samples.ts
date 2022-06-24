@@ -1,7 +1,2 @@
-import { Image } from 'react-native';
-
-// eslint-disable-next-line
-const networkImage = require('../../../images/eth-logo.png');
-
-// eslint-disable-next-line
-export const imageUrl = Image.resolveAssetSource(networkImage).uri;
+/* eslint-disable import/prefer-default-export */
+export const testImageUrl = 'https://uniswap.org/favicon.ico';

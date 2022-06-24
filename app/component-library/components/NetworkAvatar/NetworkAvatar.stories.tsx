@@ -3,7 +3,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 import { BaseAvatarSize } from '../BaseAvatar';
 import NetworkAvatar from '.';
-import { imageUrl } from './NetworkAvatar.samples';
+import { testImageUrl } from './NetworkAvatar.samples';
 
 storiesOf(' Component Library / NetworkAvatar', module)
   .addDecorator((getStory) => getStory())
@@ -15,7 +15,7 @@ storiesOf(' Component Library / NetworkAvatar', module)
       <NetworkAvatar
         size={sizeSelector}
         networkName={networkNameSelector}
-        networkImageUrl={imageUrl}
+        networkImageUrl={testImageUrl}
       />
     );
   })

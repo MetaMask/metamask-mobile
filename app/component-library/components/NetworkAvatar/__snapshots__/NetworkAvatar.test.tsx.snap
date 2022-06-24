@@ -3,26 +3,21 @@
 exports[`NetworkAvatar should render correctly 1`] = `
 <BaseAvatar
   size="48"
+  style={Object {}}
 >
-  <View
-    style={
+  <Image
+    onError={[Function]}
+    source={
       Object {
-        "alignItems": "center",
-        "backgroundColor": "#F2F4F6",
-        "borderColor": "#D6D9DC",
-        "borderRadius": 50,
-        "borderWidth": 1,
-        "flex": 1,
-        "justifyContent": "center",
+        "uri": "https://uniswap.org/favicon.ico",
       }
     }
-  >
-    <BaseText
-      style={Object {}}
-      variant="lBodyMD"
-    >
-      E
-    </BaseText>
-  </View>
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+    testID="network-avatar-image"
+  />
 </BaseAvatar>
 `;

@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { BaseAvatarSize } from '../BaseAvatar';
 import NetworkAvatar from './NetworkAvatar';
-import { imageUrl } from './NetworkAvatar.samples';
+import { testImageUrl } from './NetworkAvatar.samples';
 import { NETWORK_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 
 describe('NetworkAvatar', () => {
@@ -13,7 +13,7 @@ describe('NetworkAvatar', () => {
       <NetworkAvatar
         size={BaseAvatarSize.Xl}
         networkName={networkName}
-        networkImageUrl={imageUrl}
+        networkImageUrl={testImageUrl}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -24,9 +24,10 @@ describe('NetworkAvatar', () => {
       <NetworkAvatar
         size={BaseAvatarSize.Xl}
         networkName={'Ethereum'}
-        networkImageUrl={imageUrl}
+        networkImageUrl={testImageUrl}
       />,
     );
+
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
     );
@@ -38,16 +39,16 @@ describe('NetworkAvatar', () => {
       <NetworkAvatar
         size={BaseAvatarSize.Xl}
         networkName={'Ethereum'}
-        networkImageUrl={imageUrl}
+        networkImageUrl={testImageUrl}
       />,
     );
     const prevImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
     );
     // Simulate onError on Image component
     prevImageComponent.props().onError({ nativeEvent: { error: 'ERROR!' } });
     const currentImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
     );
     expect(currentImageComponent.exists()).toBe(false);
   });
@@ -57,7 +58,7 @@ describe('NetworkAvatar', () => {
       <NetworkAvatar size={BaseAvatarSize.Xl} networkName={'Ethereum'} />,
     );
     const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
+      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
     );
     expect(imageComponent.exists()).toBe(false);
   });
