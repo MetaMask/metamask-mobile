@@ -26,7 +26,7 @@ const styleSheet = (params: {
         justifyContent: 'center',
         backgroundColor: colors.background.alternative,
       }
-    : {};
+    : { borderRadius: 0 };
 
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
