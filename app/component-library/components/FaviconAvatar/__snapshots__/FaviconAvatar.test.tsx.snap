@@ -14,7 +14,7 @@ exports[`FaviconAvatar should match the snapshot 1`] = `
     resizeMode="contain"
     source={
       Object {
-        "uri": undefined,
+        "uri": "https://uniswap.org/favicon.ico",
       }
     }
     style={

@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { BaseAvatarSize } from '../BaseAvatar';
 import NetworkAvatar from './NetworkAvatar';
-import { testImageUrl } from './NetworkAvatar.samples';
+import { testImageUrl } from './NetworkAvatar.data';
 import { NETWORK_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 
 describe('NetworkAvatar', () => {
