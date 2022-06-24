@@ -9,7 +9,7 @@ exports[`NetworkAvatar should render correctly 1`] = `
     onError={[Function]}
     source={
       Object {
-        "uri": "https://uniswap.org/favicon.ico",
+        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
       }
     }
     style={
