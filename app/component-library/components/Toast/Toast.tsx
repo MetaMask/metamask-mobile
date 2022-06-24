@@ -72,7 +72,7 @@ const toastConfig = (styles: any, colors: any) => ({
 
 const Toast: IToast = () => {
   const theme = useAppThemeFromContext();
-  const styles = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   return (
     <RNToastMessage
       position="bottom"
