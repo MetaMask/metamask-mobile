@@ -60,7 +60,7 @@ const createStyles = (colors) =>
     },
     informationWrapper: {
       flex: 1,
-      paddingHorizontal: 10,
+      paddingHorizontal: 20,
     },
     scrollWrapper: {
       flex: 1,
@@ -134,7 +134,7 @@ const createStyles = (colors) =>
       paddingVertical: 8,
     },
     textStyle: {
-      ...fontStyles.normal,
+      ...fontStyles.bold,
       fontSize: 14,
     },
     popularNetworkImage: {
