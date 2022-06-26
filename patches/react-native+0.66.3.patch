@@ -1,3 +1,16 @@
+diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
+index e30baa2..c93aeb2 100644
+--- a/node_modules/react-native/Libraries/Core/InitializeCore.js
++++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
+@@ -32,7 +32,7 @@ require('./setUpGlobals');
+ require('./setUpPerformance');
+ require('./setUpSystrace');
+ require('./setUpErrorHandling');
+-require('./polyfillPromise');
++// require('./polyfillPromise');
+ require('./setUpRegeneratorRuntime');
+ require('./setUpTimers');
+ require('./setUpXHR');
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index edadad2..2cadd4f 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle

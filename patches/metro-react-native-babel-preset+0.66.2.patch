@@ -1,0 +1,29 @@
+diff --git a/node_modules/metro-react-native-babel-preset/src/configs/main.js b/node_modules/metro-react-native-babel-preset/src/configs/main.js
+index caa45fe..8eeb742 100644
+--- a/node_modules/metro-react-native-babel-preset/src/configs/main.js
++++ b/node_modules/metro-react-native-babel-preset/src/configs/main.js
+@@ -174,16 +174,6 @@ const getPreset = (src, options) => {
+     extraPlugins.push([require("@babel/plugin-transform-react-jsx-self")]);
+   }
+
+-  if (!options || options.enableBabelRuntime !== false) {
+-    extraPlugins.push([
+-      require("@babel/plugin-transform-runtime"),
+-      {
+-        helpers: true,
+-        regenerator: !isHermes
+-      }
+-    ]);
+-  }
+-
+   return {
+     comments: false,
+     compact: true,
+@@ -196,7 +186,6 @@ const getPreset = (src, options) => {
+       {
+         plugins: [
+           ...defaultPluginsBeforeRegenerator,
+-          isHermes ? null : require("@babel/plugin-transform-regenerator"),
+           ...defaultPluginsAfterRegenerator
+         ].filter(Boolean)
+       },

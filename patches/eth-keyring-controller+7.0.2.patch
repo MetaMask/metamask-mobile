@@ -1,0 +1,16 @@
+diff --git a/node_modules/eth-keyring-controller/index.js b/node_modules/eth-keyring-controller/index.js
+index 4718456..48af07c 100644
+--- a/node_modules/eth-keyring-controller/index.js
++++ b/node_modules/eth-keyring-controller/index.js
+@@ -594,7 +594,10 @@ class KeyringController extends EventEmitter {
+     await this.clearKeyrings();
+     const vault = await this.encryptor.decrypt(password, encryptedVault);
+     this.password = password;
+-    await Promise.all(vault.map(this._restoreKeyring.bind(this)));
++    // Preserve the order of the serialized elements in the vault
++    for (const serialized of vault) {
++      await this._restoreKeyring(serialized);
++    }
+     await this._updateMemStoreKeyrings();
+     return this.keyrings;
+   }

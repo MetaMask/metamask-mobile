@@ -1,4 +1,5 @@
 import './shim.js';
+import 'ses';
 
 import 'react-native-gesture-handler';
 import 'react-native-url-polyfill/auto';
@@ -20,6 +21,8 @@ LogBox.ignoreLogs([
   // in e2e tests until issue https://github.com/MetaMask/metamask-mobile/issues/1395 is resolved
   //"Error in RPC response",
   // 'User rejected account access',
+  'Removing intrinsics.Object.assign.default',
+  'Removing intrinsics.Object.assign.__esModule',
   "Can't perform a React state update",
   'Error evaluating injectedJavaScript',
   'createErrorFromErrorData',
@@ -64,6 +67,9 @@ LogBox.ignoreLogs([
 /* Uncomment and comment regular registration below */
 // import Storybook from './storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
+
+// eslint-disable-next-line
+lockdown({consoleTaming: 'unsafe'});
 
 /**
  * Application entry point responsible for registering root component
