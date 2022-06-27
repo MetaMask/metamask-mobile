@@ -27,7 +27,7 @@ import {
   colors as importedColors,
 } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
+import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
@@ -432,18 +432,6 @@ export const BrowserTab = (props) => {
     setBlockedUrl(urlToGo);
     setTimeout(() => setShowPhishingModal(true), 1000);
   };
-
-  /**
-   * This function verify if the hostname is a TLD
-   * @param {string} hostname - Represents the hostname of the URL
-   * @param {*} error - Represents the error of handleIpfsContent
-   * @returns {Boolean} - True if its a TLD, false if it's not
-   */
-  const isTLD = (hostname, error) =>
-    (hostname.slice(-4) !== '.eth' &&
-      error.toString().indexOf('is not standard') !== -1) ||
-    hostname.slice(-4) === '.xyz' ||
-    hostname.slice(-4) === '.test';
 
   /**
    * Get IPFS info from a ens url
