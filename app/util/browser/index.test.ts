@@ -88,6 +88,12 @@ describe('Browser utils :: isTLD', () => {
     expect(isTLD(hostname, error)).toBeTruthy();
   });
 
+  it('should return true if the error contains is not standard', () => {
+    const hostname = 'ebisusbay.xyz';
+    const error = 'is not standard';
+    expect(isTLD(hostname, error)).toBeTruthy();
+  });
+
   it('should return false if it ends on .eth', () => {
     const hostname = 'evan.eth';
     const error = '';
