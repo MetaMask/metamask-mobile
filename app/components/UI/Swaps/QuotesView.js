@@ -37,7 +37,7 @@ import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
