@@ -1,7 +1,4 @@
 import { Theme as DesignTokenTheme } from '@metamask/design-tokens';
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-
-export type Colors = ThemeColors;
 
 export enum AppThemeKey {
   os = 'os',
@@ -11,3 +8,5 @@ export enum AppThemeKey {
 export interface Theme extends DesignTokenTheme {
   themeAppearance: AppThemeKey.light | AppThemeKey.dark;
 }
+
+export type Colors = Theme['colors'];
