@@ -1,9 +1,9 @@
-import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
+import { StyleProp, ViewProps, ViewStyle } from 'react-native';
 
 /**
  * Checkbox component props.
  */
-export interface CheckboxProps extends TouchableOpacityProps {
+export interface CheckboxProps extends ViewProps {
   /**
    * Determines if checkbox is selected.
    */

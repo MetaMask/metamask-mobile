@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
 import { useStyles } from '../../hooks';
 import Icon, { IconName, IconSize } from '../Icon';
 import styleSheet from './Checkbox.styles';
@@ -23,14 +22,14 @@ const Checkbox = ({ style, isSelected, ...props }: CheckboxProps) => {
   );
 
   return (
-    <TouchableOpacity style={styles.base} {...props}>
-      <Icon
-        testID={CHECKBOX_ICON_ID}
-        name={iconName}
-        size={IconSize.Lg}
-        color={iconColor}
-      />
-    </TouchableOpacity>
+    <Icon
+      testID={CHECKBOX_ICON_ID}
+      name={iconName}
+      size={IconSize.Lg}
+      color={iconColor}
+      style={styles.base}
+      {...props}
+    />
   );
 };
 

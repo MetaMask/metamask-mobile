@@ -4,7 +4,7 @@ Checkbox is a component typically used for multi-select scenarios.
 
 ## Props
 
-This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps Component](https://reactnative.dev/docs/touchableOpacity).
+This component extends `ViewProps` from React Native's [View Component](https://reactnative.dev/docs/view).
 
 ### `isSelected`
 

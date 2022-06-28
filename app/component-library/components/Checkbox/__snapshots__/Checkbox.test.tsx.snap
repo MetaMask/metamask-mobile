@@ -1,18 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Checkbox should render correctly 1`] = `
-<TouchableOpacity
-  style={
-    Object {
-      "alignSelf": "flex-start",
-    }
-  }
->
-  <Icon
-    color="#037DD6"
-    name="CheckBoxOnFilled"
-    size="24"
-    testID="checkbox-icon"
-  />
-</TouchableOpacity>
+<Icon
+  color="#037DD6"
+  name="CheckBoxOnFilled"
+  size="24"
+  style={Object {}}
+  testID="checkbox-icon"
+/>
 `;
