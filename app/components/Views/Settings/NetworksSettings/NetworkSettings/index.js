@@ -145,10 +145,11 @@ const createStyles = (colors) =>
     },
     popularWrapper: {
       flexDirection: 'row',
+      alignItems: 'center',
     },
     icon: {
       marginRight: 16,
-      marginTop: 4,
+      padding: 5,
     },
     button: {
       flex: 1,
@@ -899,23 +900,6 @@ class NetworkSettings extends PureComponent {
         style={styles.popularNetwork}
         onPress={() => this.togglePopularNetwork(item)}
       >
-        {this.state.showWarningModal ? (
-          <InfoModal
-            isVisible={this.state.showWarningModal}
-            title={strings('networks.network_warning_title')}
-            body={
-              <Text>
-                <Text style={styles.desc}>
-                  {strings('networks.network_warning_desc')}
-                </Text>{' '}
-                <Text style={[styles.blueText]} onPress={this.goToLearnMore}>
-                  {strings('networks.learn_more')}
-                </Text>
-              </Text>
-            }
-            toggleModal={this.toggleWarningModal}
-          />
-        ) : null}
         <View style={styles.popularWrapper}>
           <ImageIcons
             image={item.rpcPrefs.imageUrl}
@@ -998,6 +982,23 @@ class NetworkSettings extends PureComponent {
             </ScrollableTabView>
           )}
         </KeyboardAwareScrollView>
+        {this.state.showWarningModal ? (
+          <InfoModal
+            isVisible={this.state.showWarningModal}
+            title={strings('networks.network_warning_title')}
+            body={
+              <Text>
+                <Text style={styles.desc}>
+                  {strings('networks.network_warning_desc')}
+                </Text>{' '}
+                <Text style={[styles.blueText]} onPress={this.goToLearnMore}>
+                  {strings('networks.learn_more')}
+                </Text>
+              </Text>
+            }
+            toggleModal={this.toggleWarningModal}
+          />
+        ) : null}
       </SafeAreaView>
     );
   }
