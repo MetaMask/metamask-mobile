@@ -13,6 +13,10 @@ function loadStories() {
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
+  require('../app/component-library/components/BaseButton/BaseButton.stories');
+  require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
+  require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
+  require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/FaviconAvatar/FaviconAvatar.stories');
@@ -31,6 +35,10 @@ const stories = [
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
+  '../app/component-library/components/BaseButton/BaseButton.stories',
+  '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
+  '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
+  '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/FaviconAvatar/FaviconAvatar.stories',
