@@ -945,7 +945,7 @@ class NetworkSettings extends PureComponent {
     return (
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.text.default}
+        activeTextColor={colors.primary.default}
         inactiveTextColor={colors.text.muted}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
@@ -974,7 +974,7 @@ class NetworkSettings extends PureComponent {
             >
               <View
                 tabLabel={strings('app_settings.popular').toUpperCase()}
-                key={'popular'}
+                key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
                 style={styles.networksWrapper}
               >
                 {this.popularNetworks()}
@@ -991,7 +991,7 @@ class NetworkSettings extends PureComponent {
                 tabLabel={strings(
                   'app_settings.custom_network_name',
                 ).toUpperCase()}
-                key={'custom'}
+                key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
               >
                 {this.customNetwork()}
               </View>
