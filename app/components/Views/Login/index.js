@@ -10,8 +10,6 @@ import {
   StyleSheet,
   Image,
   InteractionManager,
-  TouchableWithoutFeedback,
-  Keyboard,
   BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -39,18 +37,15 @@ import {
   ORIGINAL,
   EXISTING_USER,
 } from '../../../constants/storage';
+import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { tlc, toLowerCaseEquals } from '../../../util/general';
+import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import {
-  DELETE_WALLET_CONTAINER_ID,
-  DELETE_WALLET_INPUT_BOX_ID,
   LOGIN_PASSWORD_ERROR,
   RESET_WALLET_ID,
 } from '../../../constants/test-ids';
@@ -193,13 +188,11 @@ const createStyles = (colors) =>
     },
   });
 
-const DELETE = 'delete';
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 const WRONG_PASSWORD_ERROR_ANDROID =
   'Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT';
 const VAULT_ERROR = 'Error: Cannot unlock without a previous vault.';
-const isTextDelete = (text) => tlc(text) === DELETE;
 
 /**
  * View where returning users can authenticate
@@ -428,67 +421,11 @@ class Login extends PureComponent {
     this.onLogin();
   };
 
-  delete = async () => {
-    const { KeyringController } = Engine.context;
-    try {
-      await Engine.resetState();
-      await KeyringController.createNewVaultAndKeychain(`${Date.now()}`);
-      await KeyringController.setLocked();
-      this.deleteExistingUser();
-    } catch (error) {
-      Logger.log(error, `Failed to createNewVaultAndKeychain: ${error}`);
-    }
-  };
-
-  deleteExistingUser = async () => {
-    try {
-      await AsyncStorage.removeItem(EXISTING_USER);
-      // We need to reset instead of navigate here otherwise, OnboardingRootNav remembers the last screen that it was on, which is most likely not OnboardingNav.
-      this.props.navigation?.reset({
-        routes: [
-          {
-            name: 'OnboardingRootNav',
-            state: {
-              routes: [
-                {
-                  name: 'OnboardingNav',
-                  params: { screen: 'Onboarding', params: { delete: true } },
-                },
-              ],
-            },
-          },
-        ],
-      });
-    } catch (error) {
-      Logger.log(
-        error,
-        `Failed to remove key: ${EXISTING_USER} from AsyncStorage`,
-      );
-    }
-  };
-
-  toggleWarningModal = () =>
-    this.setState((state) => ({
-      warningModalVisible: !state.warningModalVisible,
-    }));
-
-  toggleDeleteModal = () =>
-    this.setState((state) => ({
-      deleteModalVisible: !state.deleteModalVisible,
-    }));
-
-  checkDelete = (text) => {
-    this.setState({
-      deleteText: text,
-      showDeleteWarning: false,
-      disableDelete: !isTextDelete(text),
+  toggleWarningModal = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.DELETE_WALLET,
     });
-  };
-
-  submitDelete = () => {
-    const { deleteText } = this.state;
-    this.setState({ showDeleteWarning: !isTextDelete(deleteText) });
-    if (isTextDelete(deleteText)) this.delete();
   };
 
   updateBiometryChoice = async (biometryChoice) => {
@@ -585,75 +522,6 @@ class Login extends PureComponent {
 
     return (
       <ErrorBoundary view="Login">
-        <WarningExistingUserModal
-          warningModalVisible={this.state.warningModalVisible}
-          cancelText={strings('login.i_understand')}
-          onCancelPress={this.onCancelPress}
-          onRequestClose={this.toggleWarningModal}
-          onConfirmPress={this.toggleWarningModal}
-        >
-          <View style={styles.areYouSure} testID={DELETE_WALLET_CONTAINER_ID}>
-            <Icon
-              style={styles.warningIcon}
-              size={46}
-              color={colors.error.default}
-              name="exclamation-triangle"
-            />
-            <Text style={[styles.heading, styles.red]}>
-              {strings('login.are_you_sure')}
-            </Text>
-            <Text style={styles.warningText}>
-              <Text>{strings('login.your_current_wallet')}</Text>
-              <Text style={styles.bold}>{strings('login.removed_from')}</Text>
-              <Text>{strings('login.this_action')}</Text>
-            </Text>
-            <Text style={[styles.warningText, styles.noMarginBottom]}>
-              <Text>{strings('login.you_can_only')}</Text>
-              <Text style={styles.bold}>
-                {strings('login.recovery_phrase')}
-              </Text>
-              <Text>{strings('login.metamask_does_not')}</Text>
-            </Text>
-          </View>
-        </WarningExistingUserModal>
-
-        <WarningExistingUserModal
-          warningModalVisible={this.state.deleteModalVisible}
-          cancelText={strings('login.delete_my')}
-          cancelButtonDisabled={this.state.disableDelete}
-          onCancelPress={this.submitDelete}
-          onRequestClose={this.toggleDeleteModal}
-          onConfirmPress={this.toggleDeleteModal}
-          onSubmitEditing={this.submitDelete}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.areYouSure}>
-              <Text style={[styles.heading, styles.delete]}>
-                {strings('login.type_delete', { [DELETE]: DELETE })}
-              </Text>
-              <OutlinedTextField
-                style={styles.input}
-                testID={DELETE_WALLET_INPUT_BOX_ID}
-                autoFocus
-                returnKeyType={'done'}
-                onChangeText={this.checkDelete}
-                autoCapitalize="none"
-                value={this.state.deleteText}
-                baseColor={colors.border.default}
-                tintColor={colors.primary.default}
-                placeholderTextColor={colors.text.muted}
-                onSubmitEditing={this.submitDelete}
-                keyboardAppearance={themeAppearance}
-              />
-              {this.state.showDeleteWarning && (
-                <Text style={styles.deleteWarningMsg}>
-                  {strings('login.cant_proceed')}
-                </Text>
-              )}
-            </View>
-          </TouchableWithoutFeedback>
-        </WarningExistingUserModal>
-
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             style={styles.wrapper}

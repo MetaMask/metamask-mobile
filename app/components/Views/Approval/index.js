@@ -9,7 +9,7 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
   getTransactionReviewActionKey,

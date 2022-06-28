@@ -1,1 +1,9 @@
 # improved-yarn-audit advisory exclusions
+
+# Hermes advisory - https://www.npmjs.com/advisories/1075692
+
+1075692
+
+# Hermes advisory - https://www.npmjs.com/advisories/1075693
+
+1075693
