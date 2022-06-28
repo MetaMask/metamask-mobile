@@ -33,6 +33,7 @@ exports[`Confirm should render correctly 1`] = `
   selectedAsset={Object {}}
   setNonce={[Function]}
   setProposedNonce={[Function]}
+  showAlert={[Function]}
   showHexData={true}
   ticker="ETH"
   transaction={
