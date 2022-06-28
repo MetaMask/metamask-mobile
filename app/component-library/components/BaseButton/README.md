@@ -4,7 +4,7 @@ BaseButton is a base component that we use for constructing context specific but
 
 ## Props
 
-This component extends `ViewProps` from React Native's [View Component](https://reactnative.dev/docs/view).
+This component extends `TouchableOpacityProps` from React Native's [View Component](https://reactnative.dev/docs/touchableOpacity).
 
 ### `label`
 

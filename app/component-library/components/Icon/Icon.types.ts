@@ -1,4 +1,6 @@
-import { ImageSourcePropType, ViewProps } from 'react-native';
+import React from 'react';
+import { ViewProps } from 'react-native';
+import { SvgProps } from 'react-native-svg';
 
 /**
  * Icon sizes
@@ -39,7 +41,7 @@ export type IconStyleSheetVars = Pick<IconProps, 'size' | 'style'>;
  * Asset stored by icon name
  */
 export type AssetByIconName = {
-  [key in IconName]: ImageSourcePropType;
+  [key in IconName]: React.FC<SvgProps>;
 };
 
 ///////////////////////////////////////////////////////

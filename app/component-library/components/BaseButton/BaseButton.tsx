@@ -15,7 +15,7 @@ const BaseButton = ({
   style,
   labelColor,
   ...props
-}: BaseButtonProps): JSX.Element => {
+}: BaseButtonProps) => {
   const { styles } = useStyles(styleSheet, { style, size, labelColor });
   return (
     <TouchableOpacity
