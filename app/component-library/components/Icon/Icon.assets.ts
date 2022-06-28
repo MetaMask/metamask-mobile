@@ -1,5 +1,4 @@
-/* eslint-disable import/prefer-default-export, @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+/* eslint-disable import/prefer-default-export */
 ///////////////////////////////////////////////////////
 // This is a generated file
 // DO NOT EDIT - Use generate-assets.js
