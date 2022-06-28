@@ -13,9 +13,15 @@ function loadStories() {
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
+  require('../app/component-library/components/BaseButton/BaseButton.stories');
+  require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
+  require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
+  require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Link/Link.stories');
+  require('../app/component-library/components/NetworkAvatar/NetworkAvatar.stories');
+  require('../app/component-library/components/FaviconAvatar/FaviconAvatar.stories');
   require('../app/component-library/components/TabBarItem/TabBarItem.stories');
 }
 
@@ -29,9 +35,15 @@ const stories = [
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
+  '../app/component-library/components/BaseButton/BaseButton.stories',
+  '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
+  '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
+  '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Link/Link.stories',
+  '../app/component-library/components/NetworkAvatar/NetworkAvatar.stories',
+  '../app/component-library/components/FaviconAvatar/FaviconAvatar.stories',
   '../app/component-library/components/TabBarItem/TabBarItem.stories',
 ];
 
