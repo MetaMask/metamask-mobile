@@ -60,6 +60,8 @@ const createStyles = (colors) =>
     },
     informationWrapper: {
       flex: 1,
+    },
+    informationCustomWrapper: {
       paddingHorizontal: 20,
     },
     scrollWrapper: {
@@ -119,6 +121,7 @@ const createStyles = (colors) =>
     },
     networksWrapper: {
       marginTop: 12,
+      paddingHorizontal: 20,
     },
     popularNetwork: {
       flexDirection: 'row',
@@ -149,7 +152,7 @@ const createStyles = (colors) =>
     },
     icon: {
       marginRight: 16,
-      padding: 5,
+      marginTop: 4,
     },
     button: {
       flex: 1,
@@ -707,7 +710,7 @@ class NetworkSettings extends PureComponent {
 
     return (
       <SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
-        <KeyboardAwareScrollView style={styles.informationWrapper}>
+        <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
           {!network ? (
             <WarningMessage
               style={styles.warningContainer}
