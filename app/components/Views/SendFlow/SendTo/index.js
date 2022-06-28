@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
 import AddressList from './../AddressList';
@@ -26,7 +27,11 @@ import {
   setRecipient,
   newAssetTransaction,
 } from '../../../../actions/transaction';
-import { isENS, isValidHexAddress } from '../../../../util/address';
+import {
+  isENS,
+  isValidHexAddress,
+  validateAddressOrENS,
+} from '../../../../util/address';
 import { getTicker, getEther } from '../../../../util/transactions';
 import ErrorMessage from '../ErrorMessage';
 import { strings } from '../../../../../locales/i18n';
@@ -36,11 +41,9 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { allowedToBuy } from '../../../UI/FiatOrders';
-import NetworkList from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {
-  collectConfusables,
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
@@ -382,112 +385,41 @@ class SendFlow extends PureComponent {
       ? identities[checksummedAddress].name
       : null;
   };
-
+  /**
+   * This set to the state all the information
+   *  that come from validating an ENS or address
+   * @param {*} toSelectedAddress - The address or the ens writted on the destination input
+   */
   validateAddressOrENSFromInput = async (toSelectedAddress) => {
-    const { AssetsContractController } = Engine.context;
-    const { addressBook, network, identities, providerType } = this.props;
-    const networkAddressBook = addressBook[network] || {};
-    let addressError,
-      toAddressName,
+    const { network, addressBook, identities, providerType } = this.props;
+    const {
+      addressError,
       toEnsName,
+      addressReady,
+      toEnsAddress,
+      addToAddressToAddressBook,
+      toAddressName,
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-      toEnsAddressResolved;
-    let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
-    if (isValidHexAddress(toSelectedAddress, { mixedCaseUseChecksum: true })) {
-      const checksummedAddress = toChecksumAddress(toSelectedAddress);
-      toSelectedAddressReady = true;
-      const ens = await doENSReverseLookup(checksummedAddress);
-      if (ens) {
-        toAddressName = ens;
-        if (
-          !networkAddressBook[checksummedAddress] &&
-          !identities[checksummedAddress]
-        ) {
-          addToAddressToAddressBook = true;
-        }
-      } else if (
-        !networkAddressBook[checksummedAddress] &&
-        !identities[checksummedAddress]
-      ) {
-        toAddressName = toSelectedAddress;
-        // If not in the addressBook nor user accounts
-        addToAddressToAddressBook = true;
-      }
-
-      // Check if it's token contract address on mainnet
-      const networkId = NetworkList[providerType].networkId;
-      if (networkId === 1) {
-        try {
-          const symbol = await AssetsContractController.getERC721AssetSymbol(
-            checksummedAddress,
-          );
-          if (symbol) {
-            addressError = (
-              <Text>
-                <Text>
-                  {strings('transaction.tokenContractAddressWarning_1')}
-                </Text>
-                <Text bold>
-                  {strings('transaction.tokenContractAddressWarning_2')}
-                </Text>
-                <Text>
-                  {strings('transaction.tokenContractAddressWarning_3')}
-                </Text>
-              </Text>
-            );
-            errorContinue = true;
-          }
-        } catch (e) {
-          // Not a token address
-        }
-      }
-
-      /**
-       * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
-       * Check if it's smart contract address
-       */
-      /*
-			const smart = false; //
-
-			if (smart) {
-				addressError = strings('transaction.smartContractAddressWarning');
-				isOnlyWarning = true;
-			}
-			*/
-    } else if (isENS(toSelectedAddress)) {
-      toEnsName = toSelectedAddress;
-      confusableCollection = collectConfusables(toEnsName);
-      const resolvedAddress = await doENSLookup(toSelectedAddress, network);
-      if (resolvedAddress) {
-        const checksummedAddress = toChecksumAddress(resolvedAddress);
-        toAddressName = toSelectedAddress;
-        toEnsAddressResolved = resolvedAddress;
-        toSelectedAddressReady = true;
-        if (
-          !networkAddressBook[checksummedAddress] &&
-          !identities[checksummedAddress]
-        ) {
-          addToAddressToAddressBook = true;
-        }
-      } else {
-        addressError = strings('transaction.could_not_resolve_ens');
-      }
-    } else if (toSelectedAddress && toSelectedAddress.length >= 42) {
-      addressError = strings('transaction.invalid_address');
-    }
+    } = await validateAddressOrENS({
+      toAccount: toSelectedAddress,
+      network,
+      addressBook,
+      identities,
+      providerType,
+    });
 
     this.setState({
       addressError,
-      addToAddressToAddressBook,
-      toSelectedAddressReady,
       toEnsName,
+      toSelectedAddressReady: addressReady,
+      toEnsAddressResolved: toEnsAddress,
+      addToAddressToAddressBook,
       toSelectedAddressName: toAddressName,
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-      toEnsAddressResolved,
     });
   };
 
@@ -729,6 +661,16 @@ class SendFlow extends PureComponent {
     );
   };
 
+  renderAddressError = (addressError) =>
+    addressError === 'symbolError' ? (
+      <Text>
+        <Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
+        <Text bold>{strings('transaction.tokenContractAddressWarning_2')}</Text>
+        <Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
+      </Text>
+    ) : (
+      addressError
+    );
   render = () => {
     const { ticker } = this.props;
     const { addressBook, network } = this.props;
@@ -828,7 +770,7 @@ class SendFlow extends PureComponent {
                   testID={'address-error'}
                 >
                   <ErrorMessage
-                    errorMessage={addressError}
+                    errorMessage={this.renderAddressError(addressError)}
                     errorContinue={!!errorContinue}
                     onContinue={this.onTransactionDirectionSet}
                     isOnlyWarning={!!isOnlyWarning}
@@ -896,19 +838,17 @@ class SendFlow extends PureComponent {
 
         {!errorContinue && (
           <View style={styles.footerContainer} testID={'no-eth-message'}>
-            {!errorContinue && (
-              <View style={styles.buttonNextWrapper}>
-                <StyledButton
-                  type={'confirm'}
-                  containerStyle={styles.buttonNext}
-                  onPress={this.onTransactionDirectionSet}
-                  testID={'address-book-next-button'}
-                  disabled={!toSelectedAddressReady}
-                >
-                  {strings('address_book.next')}
-                </StyledButton>
-              </View>
-            )}
+            <View style={styles.buttonNextWrapper}>
+              <StyledButton
+                type={'confirm'}
+                containerStyle={styles.buttonNext}
+                onPress={this.onTransactionDirectionSet}
+                testID={'address-book-next-button'}
+                disabled={!toSelectedAddressReady}
+              >
+                {strings('address_book.next')}
+              </StyledButton>
+            </View>
           </View>
         )}
 

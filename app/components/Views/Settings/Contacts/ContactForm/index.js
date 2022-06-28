@@ -17,11 +17,9 @@ import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../../../locales/i18n';
-import { doENSLookup } from '../../../../../util/ENSUtils';
 import {
-  isValidHexAddress,
-  isENS,
   renderShortAddress,
+  validateAddressOrENS,
 } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -223,32 +221,21 @@ class ContactForm extends PureComponent {
     return;
   };
 
-  validateAddress = async (address) => {
+  validateAddressOrENSFromInput = async (address) => {
     const { network } = this.props;
-    let addressError, toEnsName, toEnsAddress;
-    let addressReady = false;
-    if (isValidHexAddress(address, { mixedCaseUseChecksum: true })) {
-      addressError = this.checkIfAlreadySaved(address);
-      addressReady = true;
-    } else if (isENS(address)) {
-      const resolvedAddress = await doENSLookup(address, network);
-      if (resolvedAddress) {
-        const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
-        toEnsName = address;
-        toEnsAddress = resolvedAddress;
-        addressError = this.checkIfAlreadySaved(checksummedResolvedAddress);
-        addressReady = true;
-      } else {
-        addressError = strings('transaction.could_not_resolve_ens');
-      }
-    } else if (address.length >= 42) {
-      addressError = strings('transaction.invalid_address');
-    }
+    const checkIfAlreadySaved = this.checkIfAlreadySaved;
+    const { addressError, toEnsName, addressReady, toEnsAddress } =
+      await validateAddressOrENS({
+        toAccount: address,
+        network,
+        checkIfAlreadySaved,
+      });
+
     this.setState({ addressError, toEnsName, addressReady, toEnsAddress });
   };
 
   onChangeAddress = (address) => {
-    this.validateAddress(address);
+    this.validateAddressOrENSFromInput(address);
     this.setState({ address });
   };
 

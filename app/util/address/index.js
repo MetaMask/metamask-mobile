@@ -10,7 +10,9 @@ import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
 import punycode from 'punycode/punycode';
 import { KeyringTypes } from '@metamask/controllers';
-
+import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
+import NetworkList from '../../util/networks';
+import { collectConfusables } from '../../util/confusables';
 /**
  * Returns full checksummed address
  *
@@ -240,4 +242,127 @@ export function isValidHexAddress(
     }
   }
   return isValidAddress(addressToCheck);
+}
+
+export async function validateAddressOrENS(params) {
+  const {
+    toAccount,
+    network,
+    addressBook,
+    identities,
+    providerType,
+    checkIfAlreadySaved,
+  } = params;
+
+  const { AssetsContractController } = Engine.context;
+
+  let addressError,
+    toEnsName,
+    toEnsAddress,
+    toAddressName,
+    errorContinue,
+    isOnlyWarning,
+    confusableCollection,
+    networkAddressBook;
+
+  if (addressBook) {
+    networkAddressBook = addressBook[network] || {};
+  }
+
+  let [addressReady, addToAddressToAddressBook] = [false, false];
+
+  if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+    if (checkIfAlreadySaved) {
+      addressError = checkIfAlreadySaved(toAccount);
+    }
+    const checksummedAddress = toChecksumAddress(toAccount);
+    addressReady = true;
+    const ens = await doENSReverseLookup(checksummedAddress);
+    if (ens) {
+      toAddressName = ens;
+      if (
+        networkAddressBook &&
+        !networkAddressBook[checksummedAddress] &&
+        !identities[checksummedAddress]
+      ) {
+        addToAddressToAddressBook = true;
+      }
+    } else if (
+      networkAddressBook &&
+      !networkAddressBook[checksummedAddress] &&
+      !identities[checksummedAddress]
+    ) {
+      toAddressName = toAccount;
+      // If not in the addressBook nor user accounts
+      addToAddressToAddressBook = true;
+    }
+
+    if (providerType) {
+      // Check if it's token contract address on mainnet
+      const networkId = NetworkList[providerType].networkId;
+      if (networkId === 1) {
+        try {
+          const symbol = await AssetsContractController.getERC721AssetSymbol(
+            checksummedAddress,
+          );
+          if (symbol) {
+            addressError = 'symbolError';
+            errorContinue = true;
+          }
+        } catch (e) {
+          // Not a token address
+        }
+      }
+    }
+    /**
+     * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
+     * Check if it's smart contract address
+     */
+    /*
+			const smart = false; //
+
+			if (smart) {
+				addressError = strings('transaction.smartContractAddressWarning');
+				isOnlyWarning = true;
+			}
+			*/
+  } else if (isENS(toAccount)) {
+    toEnsName = toAccount;
+    confusableCollection = collectConfusables(toEnsName);
+    const resolvedAddress = await doENSLookup(toAccount, network);
+    if (resolvedAddress) {
+      const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
+
+      if (checkIfAlreadySaved) {
+        addressError = checkIfAlreadySaved(checksummedResolvedAddress);
+      }
+      if (
+        networkAddressBook &&
+        !networkAddressBook[checksummedResolvedAddress] &&
+        !identities[checksummedResolvedAddress]
+      ) {
+        addToAddressToAddressBook = true;
+      }
+
+      toAddressName = toAccount;
+      toEnsAddress = resolvedAddress;
+      addressReady = true;
+    } else {
+      addressError = strings('transaction.could_not_resolve_ens');
+    }
+  } else if (toAccount && toAccount.length >= 42) {
+    addressError = strings('transaction.invalid_address');
+  }
+
+  return {
+    addressError,
+    toEnsName,
+    addressReady,
+    toEnsAddress,
+    addToAddressToAddressBook,
+    toAddressName,
+    errorContinue,
+    isOnlyWarning,
+    confusableCollection,
+  };
 }
