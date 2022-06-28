@@ -19,7 +19,7 @@ import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
