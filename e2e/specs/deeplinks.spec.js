@@ -69,7 +69,7 @@ describe('Deep linking Tests', () => {
 
   it('should tap on the close button in the whats new modal', async () => {
     // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2500);
     try {
       await WhatsNewModal.isVisible();
       await WhatsNewModal.tapCloseButton();

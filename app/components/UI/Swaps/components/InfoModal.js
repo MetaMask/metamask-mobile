@@ -44,9 +44,8 @@ const createStyles = (colors) =>
     },
     body: {
       width: '100%',
-      paddingVertical: 5,
+      paddingBottom: 5,
       marginBottom: 15,
-      paddingTop: 5,
       paddingHorizontal: 20,
     },
     messageLimit: {

@@ -52,7 +52,7 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
 
   it('should tap on "Got it" to dimiss the whats new modal', async () => {
     // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2500);
     try {
       await WhatsNewModal.isVisible();
       await WhatsNewModal.tapGotItButton();

@@ -63,12 +63,12 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
   });
 
-  it('should tap on "Got it" Button in the whats new modal', async () => {
+  it('should tap on the close button to dismiss the whats new modal', async () => {
     // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2500);
     try {
       await WhatsNewModal.isVisible();
-      await WhatsNewModal.tapGotItButton();
+      await WhatsNewModal.tapCloseButton();
     } catch {
       //
     }

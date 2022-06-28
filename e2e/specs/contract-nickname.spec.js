@@ -58,7 +58,7 @@ describe('Adding Contract Nickname', () => {
 
   it('should tap on "Got it" Button in the whats new modal', async () => {
     // dealing with flakiness on bitrise.
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2500);
     try {
       await WhatsNewModal.isVisible();
       await WhatsNewModal.tapGotItButton();
