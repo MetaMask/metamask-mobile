@@ -1149,11 +1149,7 @@ class Amount extends PureComponent {
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
               >
-                <Text
-                  testID={'txn-amount-conversion-value'}
-                  style={styles.textSwitch}
-                  numberOfLines={1}
-                >
+                <Text style={styles.textSwitch} numberOfLines={1}>
                   {renderableInputValueConversion}
                 </Text>
                 <View styles={styles.switchWrapper}>
