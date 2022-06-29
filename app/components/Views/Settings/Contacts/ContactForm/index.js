@@ -206,29 +206,15 @@ class ContactForm extends PureComponent {
     this.setState({ name });
   };
 
-  checkIfAlreadySaved = (address) => {
-    const { addressBook, network, identities } = this.props;
-    const { mode } = this.state;
-    const networkAddressBook = addressBook[network] || {};
-    const checksummedResolvedAddress = toChecksumAddress(address);
-    if (
-      mode === ADD &&
-      (networkAddressBook[checksummedResolvedAddress] ||
-        identities[checksummedResolvedAddress])
-    ) {
-      return strings('address_book.address_already_saved');
-    }
-    return;
-  };
-
   validateAddressOrENSFromInput = async (address) => {
-    const { network } = this.props;
-    const checkIfAlreadySaved = this.checkIfAlreadySaved;
+    const { network, addressBook, identities } = this.props;
+
     const { addressError, toEnsName, addressReady, toEnsAddress } =
       await validateAddressOrENS({
         toAccount: address,
         network,
-        checkIfAlreadySaved,
+        addressBook,
+        identities,
       });
 
     this.setState({ addressError, toEnsName, addressReady, toEnsAddress });
@@ -412,7 +398,15 @@ class ContactForm extends PureComponent {
             </View>
           </View>
 
-          {addressError && <ErrorMessage errorMessage={addressError} />}
+          {addressError && (
+            <ErrorMessage
+              errorMessage={
+                addressError === 'contactAlreadySaved'
+                  ? strings('address_book.address_already_saved')
+                  : addressError
+              }
+            />
+          )}
 
           {!!editable && (
             <View style={styles.buttonsWrapper}>

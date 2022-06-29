@@ -671,6 +671,7 @@ class SendFlow extends PureComponent {
     ) : (
       addressError
     );
+
   render = () => {
     const { ticker } = this.props;
     const { addressBook, network } = this.props;
@@ -764,7 +765,7 @@ class SendFlow extends PureComponent {
         ) : (
           <View style={styles.nextActionWrapper}>
             <ScrollView>
-              {addressError && (
+              {addressError && addressError !== 'contactAlreadySaved' && (
                 <View
                   style={styles.addressErrorWrapper}
                   testID={'address-error'}

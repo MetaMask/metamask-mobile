@@ -244,16 +244,57 @@ export function isValidHexAddress(
   return isValidAddress(addressToCheck);
 }
 
-export async function validateAddressOrENS(params) {
-  const {
-    toAccount,
-    network,
-    addressBook,
-    identities,
-    providerType,
-    checkIfAlreadySaved,
-  } = params;
+/**
+ *
+ * @param {Object} params - Contains multiple variables that are needed to
+ * check if the address is already saved in our contact list or in our accounts
+ * Variables:
+ *  address (String) - Represents the address of the account
+ *  addressBook (Object) -  Represents all the contacts that we have saved on the address book
+ *  identities (Object) - Represents our accounts on the current network of the wallet
+ * @returns String | undefined - When it is saved returns a string "contactAlreadySaved" if it's not reutrn undefined
+ */
+function checkIfAddressAlreadySaved(params) {
+  const { address, addressBook, network, identities } = params;
+  if (address) {
+    const networkAddressBook = addressBook[network] || {};
 
+    const checksummedResolvedAddress = toChecksumAddress(address);
+    if (
+      networkAddressBook[checksummedResolvedAddress] ||
+      identities[checksummedResolvedAddress]
+    ) {
+      return 'contactAlreadySaved';
+    }
+  }
+  return;
+}
+
+/**
+ *
+ * @param {Object} params - Contains multiple variables that are needed to validate an address or ens
+ * This function is needed in two place of the app, SendTo of SendFlow in order to send tokes and
+ * is present in ContactForm of Contatcs, in order to add a new contact
+ * Variables:
+ *  toAccount (String) - Represents the account address or ens
+ *  network (String) - Represents the current network chainId
+ *  addressBook (Object) - Represents all the contacts that we have saved on the address book
+ *  identities (Object) - Represents our accounts on the current network of the wallet
+ *  providerType (String) - Represents the network name
+ * @returns the variables that are needed for updating the state of the two flows metioned above
+ * Variables:
+ *  addressError (String) - Contains the message or the error
+ *  toEnsName (String) - Represents the ens name of the destination account
+ *  addressReady (Bollean) - Represents if the address is validated or not
+ *  toEnsAddress (String) - Represents the address of the ens inserted
+ *  addToAddressToAddressBook (Boolean) - Represents if the address it can be add to the address book
+ *  toAddressName (String) - Represents the address of the destination account
+ *  errorContinue (Boolean) - Represents if with one error we can proceed or not to the next step if we wish
+ *  confusableCollection (Object) - Represents one array with the confusable characters of the ens
+ *
+ */
+export async function validateAddressOrENS(params) {
+  const { toAccount, network, addressBook, identities, providerType } = params;
   const { AssetsContractController } = Engine.context;
 
   let addressError,
@@ -261,37 +302,30 @@ export async function validateAddressOrENS(params) {
     toEnsAddress,
     toAddressName,
     errorContinue,
-    isOnlyWarning,
-    confusableCollection,
-    networkAddressBook;
-
-  if (addressBook) {
-    networkAddressBook = addressBook[network] || {};
-  }
+    confusableCollection;
 
   let [addressReady, addToAddressToAddressBook] = [false, false];
 
   if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
-    if (checkIfAlreadySaved) {
-      addressError = checkIfAlreadySaved(toAccount);
+    const contactAlreadySaved = checkIfAddressAlreadySaved({
+      address: toAccount,
+      addressBook,
+      network,
+      identities,
+    });
+
+    if (contactAlreadySaved?.length) {
+      addressError = checkIfAddressAlreadySaved(toAccount);
     }
     const checksummedAddress = toChecksumAddress(toAccount);
     addressReady = true;
     const ens = await doENSReverseLookup(checksummedAddress);
     if (ens) {
       toAddressName = ens;
-      if (
-        networkAddressBook &&
-        !networkAddressBook[checksummedAddress] &&
-        !identities[checksummedAddress]
-      ) {
+      if (!contactAlreadySaved) {
         addToAddressToAddressBook = true;
       }
-    } else if (
-      networkAddressBook &&
-      !networkAddressBook[checksummedAddress] &&
-      !identities[checksummedAddress]
-    ) {
+    } else if (!contactAlreadySaved) {
       toAddressName = toAccount;
       // If not in the addressBook nor user accounts
       addToAddressToAddressBook = true;
@@ -330,18 +364,18 @@ export async function validateAddressOrENS(params) {
     toEnsName = toAccount;
     confusableCollection = collectConfusables(toEnsName);
     const resolvedAddress = await doENSLookup(toAccount, network);
-    if (resolvedAddress) {
-      const checksummedResolvedAddress = toChecksumAddress(resolvedAddress);
+    const contactAlreadySaved = checkIfAddressAlreadySaved({
+      address: resolvedAddress,
+      addressBook,
+      network,
+      identities,
+    });
 
-      if (checkIfAlreadySaved) {
-        addressError = checkIfAlreadySaved(checksummedResolvedAddress);
-      }
-      if (
-        networkAddressBook &&
-        !networkAddressBook[checksummedResolvedAddress] &&
-        !identities[checksummedResolvedAddress]
-      ) {
+    if (resolvedAddress) {
+      if (!contactAlreadySaved) {
         addToAddressToAddressBook = true;
+      } else {
+        addressError = contactAlreadySaved;
       }
 
       toAddressName = toAccount;
@@ -362,7 +396,6 @@ export async function validateAddressOrENS(params) {
     addToAddressToAddressBook,
     toAddressName,
     errorContinue,
-    isOnlyWarning,
     confusableCollection,
   };
 }
