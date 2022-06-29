@@ -71,6 +71,7 @@ import {
 } from '../../../../reducers/collectibles';
 import { gte } from '../../../../util/lodash';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Alert, { AlertType } from '../../../../components/Base/Alert';
 
 const { hexToBN, BNToHex } = util;
 
@@ -298,6 +299,18 @@ const createStyles = (colors) =>
       fontSize: 12,
       lineHeight: 16,
       color: colors.text.default,
+    },
+    warningTextContainer: {
+      lineHeight: 20,
+      paddingLeft: 10,
+    },
+    warningText: {
+      lineHeight: 20,
+      color: colors.text.default,
+    },
+    warningContainer: {
+      marginTop: 20,
+      marginHorizontal: 20,
     },
   });
 
@@ -1211,7 +1224,7 @@ class Amount extends PureComponent {
   };
 
   render = () => {
-    const { estimatedTotalGas } = this.state;
+    const { estimatedTotalGas, hasExchangeRate } = this.state;
     const {
       selectedAsset,
       transactionState: { isPaymentRequest },
@@ -1226,6 +1239,28 @@ class Amount extends PureComponent {
         testID={'amount-screen'}
       >
         <ScrollView style={styles.scrollWrapper}>
+          {this.props.primaryCurrency === 'Fiat' && !hasExchangeRate ? (
+            <Alert
+              small
+              type={AlertType.Warning}
+              renderIcon={() => (
+                <MaterialCommunityIcons
+                  name="information"
+                  size={20}
+                  color={colors.warning.default}
+                />
+              )}
+              style={styles.warningContainer}
+            >
+              {() => (
+                <View style={styles.warningTextContainer}>
+                  <Text red style={styles.warningText}>
+                    {strings('transaction.fiat_conversion_not_available')}
+                  </Text>
+                </View>
+              )}
+            </Alert>
+          ) : null}
           <View style={styles.inputWrapper}>
             <View style={styles.actionsWrapper}>
               <View style={styles.actionBorder} />
