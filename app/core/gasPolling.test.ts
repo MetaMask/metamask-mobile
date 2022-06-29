@@ -126,7 +126,7 @@ describe('GasPolling', () => {
   });
 
   it('should stop polling when stopGasPolling is called', async () => {
-    await stopGasPolling(tokenValue);
+    await stopGasPolling();
     expect(GasFeeController.stopPolling).toHaveBeenCalled();
   });
 });

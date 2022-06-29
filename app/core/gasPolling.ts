@@ -10,7 +10,12 @@ import {
   parseTransactionLegacy,
 } from '../util/transactions';
 
-export const startGasPolling = async (token: undefined) => {
+/**
+ * 
+ * @param {string} token Expects a token and when it is not provided, a random token is generated.
+ * @returns the token that is used to identify the gas polling.
+ */
+export const startGasPolling = async (token?: string) => {
   const { GasFeeController }: any = Engine.context;
   const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(
     token,
@@ -18,9 +23,13 @@ export const startGasPolling = async (token: undefined) => {
   return pollToken;
 };
 
-export const stopGasPolling = (token: string) => {
+/**
+ * 
+ * @returns clears the token array state in the GasFeeController.
+ */
+export const stopGasPolling = () => {
   const { GasFeeController }: any = Engine.context;
-  return GasFeeController.stopPolling(token);
+  return GasFeeController.stopPolling();
 };
 
 export const useDataStore = () => {
@@ -113,6 +122,11 @@ interface LegacyProps {
   suggestedGasLimit: any;
 }
 
+/**
+ * 
+ * @param {GetEIP1559TransactionDataProps} props 
+ * @returns parsed transaction data for EIP1559 transactions.
+ */
 export const getEIP1559TransactionData = ({
   gas,
   selectedOption,
@@ -124,6 +138,7 @@ export const getEIP1559TransactionData = ({
   nativeCurrency,
   suggestedGasLimit,
 }: GetEIP1559TransactionDataProps) => {
+
   const parsedTransactionEIP1559 = parseTransactionEIP1559({
     contractExchangeRates,
     conversionRate,
@@ -143,6 +158,12 @@ export const getEIP1559TransactionData = ({
   return parsedTransactionEIP1559;
 };
 
+
+/**
+ * 
+ * @param {LegacyProps} props
+ * @returns parsed transaction data for legacy transactions.
+ */
 export const getLegacyTransactionData = ({
   contractExchangeRates,
   conversionRate,
@@ -163,6 +184,10 @@ export const getLegacyTransactionData = ({
   return parsedTransationData;
 };
 
+/**
+ * 
+ * @returns {Object} the transaction data for the current transaction.
+ */
 export const useGasFeeEstimates = () => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -191,6 +216,8 @@ export const useGasFeeEstimates = () => {
     transaction: { gas: transactionGas },
   } = transactionState;
 
+  let transactionData 
+
   if (gasEstimateTypeChange) {
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       const suggestedGasLimit = fromWei(transactionGas, 'wei');
@@ -205,7 +232,7 @@ export const useGasFeeEstimates = () => {
         nativeCurrency,
         suggestedGasLimit,
       });
-      return EIP1559TransactionData;
+      transactionData = EIP1559TransactionData;
     } else if (gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
       const suggestedGasLimit = fromWei(transactionGas, 'wei');
       const LegacyTransactionData = getLegacyTransactionData({
@@ -220,9 +247,11 @@ export const useGasFeeEstimates = () => {
             : gasFeeEstimates.gasPrice,
         suggestedGasLimit,
       });
-      return LegacyTransactionData;
+      transactionData = LegacyTransactionData;
     }
+  } else {
+    return null
   }
 
-  return gasFeeEstimates;
+  return transactionData;
 };
