@@ -65,3 +65,4 @@ export const NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID =
 // Component library test ids
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
+export const CHECKBOX_ICON_ID = 'checkbox-icon';
