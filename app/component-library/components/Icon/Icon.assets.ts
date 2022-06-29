@@ -25,6 +25,10 @@ import CardTokenFilled from './assets/card-token-filled.svg';
 import CategoryFilled from './assets/category-filled.svg';
 import ChartFilled1 from './assets/chart-filled-1.svg';
 import ChartFilled from './assets/chart-filled.svg';
+import CheckBoxOffOutline from './assets/check-box-off-outline.svg';
+import CheckBoxOnFilled from './assets/check-box-on-filled.svg';
+import CheckCircleOffOutline from './assets/check-circle-off-outline.svg';
+import CheckCircleOnFilled from './assets/check-circle-on-filled.svg';
 import CheckOutline from './assets/check-outline.svg';
 import ClockFilled from './assets/clock-filled.svg';
 import CloseOutline from './assets/close-outline.svg';
@@ -158,6 +162,10 @@ export const assetByIconName: AssetByIconName = {
   [IconName.CategoryFilled]: CategoryFilled,
   [IconName.ChartFilled1]: ChartFilled1,
   [IconName.ChartFilled]: ChartFilled,
+  [IconName.CheckBoxOffOutline]: CheckBoxOffOutline,
+  [IconName.CheckBoxOnFilled]: CheckBoxOnFilled,
+  [IconName.CheckCircleOffOutline]: CheckCircleOffOutline,
+  [IconName.CheckCircleOnFilled]: CheckCircleOnFilled,
   [IconName.CheckOutline]: CheckOutline,
   [IconName.ClockFilled]: ClockFilled,
   [IconName.CloseOutline]: CloseOutline,
