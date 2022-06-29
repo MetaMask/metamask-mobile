@@ -4,7 +4,6 @@ import { useStyles } from '../../hooks/useStyles';
 import { IconProps } from './Icon.types';
 import styleSheet from './Icon.styles';
 import { assetByIconName } from './Icon.assets';
-import { SvgProps } from 'react-native-svg';
 
 const Icon = ({ size, style, name, color }: IconProps) => {
   const { styles, theme } = useStyles(styleSheet, {
@@ -12,7 +11,7 @@ const Icon = ({ size, style, name, color }: IconProps) => {
     style,
   });
   const iconColor = color || theme.colors.icon.default;
-  const SVG = assetByIconName[name] as React.FC<SvgProps>;
+  const SVG = assetByIconName[name];
   const sizeAsNum = Number(size);
 
   return (

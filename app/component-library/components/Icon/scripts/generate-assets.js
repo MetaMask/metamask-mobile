@@ -41,7 +41,7 @@ const main = async () => {
 
   fs.appendFileSync(
     assetsModulePath,
-    `/* eslint-disable import/prefer-default-export, @typescript-eslint/ban-ts-comment */\n// @ts-nocheck`,
+    `/* eslint-disable import/prefer-default-export */`,
   );
 
   fs.appendFileSync(
