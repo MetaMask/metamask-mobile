@@ -151,11 +151,9 @@ const DeleteMetaMetricsData = () => {
             <Text>
               {strings('app_settings.delete_metrics_description_part_three')}
             </Text>{' '}
-            <TouchableOpacity onPress={openPrivacyPolicy}>
-              <Text style={[styles.blueText]}>
-                {strings('app_settings.consensys_privacy_policy')}
-              </Text>
-            </TouchableOpacity>
+            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+              {strings('app_settings.consensys_privacy_policy')}
+            </Text>
           </>
         ) : (
           <>
@@ -166,11 +164,9 @@ const DeleteMetaMetricsData = () => {
             <Text>
               {strings('app_settings.delete_metrics_description_part_five')}
             </Text>{' '}
-            <TouchableOpacity onPress={openPrivacyPolicy}>
-              <Text style={[styles.blueText]}>
-                {strings('app_settings.consensys_privacy_policy')}
-              </Text>
-            </TouchableOpacity>
+            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+              {strings('app_settings.consensys_privacy_policy')}
+            </Text>
           </>
         )
       }
