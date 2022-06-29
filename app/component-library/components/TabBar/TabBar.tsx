@@ -23,6 +23,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
       const icon = iconByTabBarLabel[label];
+      const onPress = () => !isSelected && navigation.navigate(route.name);
 
       return (
         <TabBarItem
@@ -30,7 +31,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           isSelected={isSelected}
           label={label}
           icon={icon}
-          onPress={() => !isSelected && navigation.navigate(route.name)}
+          onPress={onPress}
         />
       );
     },
