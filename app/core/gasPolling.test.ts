@@ -132,8 +132,20 @@ describe('GasPolling', () => {
 });
 
 describe('GetEIP1559TransactionData', () => {
-  it('should get the transaction data for EIP1559', () => {
-    const transactionData = {
+  const transactionData = {
+    suggestedGasLimit,
+    gas,
+    selectedOption,
+    gasFeeEstimates,
+    transactionState,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    nativeCurrency,
+  };
+
+  it('should fail when incomplete props is passed for ', async () => {
+    const incompleteTransactionData = {
       suggestedGasLimit,
       gas,
       selectedOption,
@@ -142,9 +154,14 @@ describe('GetEIP1559TransactionData', () => {
       contractExchangeRates,
       conversionRate,
       currentCurrency,
-      nativeCurrency,
     };
 
+    const result = getEIP1559TransactionData(incompleteTransactionData as any);
+    expect(result).toEqual({});
+    expect(mockedParseTransactionEIP1559).not.toHaveBeenCalled();
+  });
+
+  it('should get the transaction data for EIP1559', () => {
     const expected = {
       estimatedBaseFee: '0.000000013',
       estimatedBaseFeeHex: 'd',

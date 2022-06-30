@@ -11,7 +11,7 @@ import {
 } from '../util/transactions';
 
 /**
- * 
+ *
  * @param {string} token Expects a token and when it is not provided, a random token is generated.
  * @returns the token that is used to identify the gas polling.
  */
@@ -24,7 +24,7 @@ export const startGasPolling = async (token?: string) => {
 };
 
 /**
- * 
+ *
  * @returns clears the token array state in the GasFeeController.
  */
 export const stopGasPolling = () => {
@@ -110,6 +110,7 @@ interface GetEIP1559TransactionDataProps {
   currentCurrency: string;
   nativeCurrency: string;
   suggestedGasLimit: string;
+  onlyGas?: boolean;
 }
 
 interface LegacyProps {
@@ -119,12 +120,12 @@ interface LegacyProps {
   transactionState: any;
   ticker: string;
   suggestedGasPrice: any;
-  suggestedGasLimit: any;
+  suggestedGasLimit: string;
 }
 
 /**
- * 
- * @param {GetEIP1559TransactionDataProps} props 
+ *
+ * @param {GetEIP1559TransactionDataProps} props
  * @returns parsed transaction data for EIP1559 transactions.
  */
 export const getEIP1559TransactionData = ({
@@ -137,30 +138,48 @@ export const getEIP1559TransactionData = ({
   currentCurrency,
   nativeCurrency,
   suggestedGasLimit,
+  onlyGas,
 }: GetEIP1559TransactionDataProps) => {
-
-  const parsedTransactionEIP1559 = parseTransactionEIP1559({
-    contractExchangeRates,
-    conversionRate,
-    currentCurrency,
-    nativeCurrency,
-    transactionState,
-    gasFeeEstimates,
-    swapsParams: undefined,
-    selectedGasFee: {
-      ...gas,
-      suggestedGasLimit,
-      selectedOption,
-      estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
-    },
-  });
-
-  return parsedTransactionEIP1559;
+  try {
+    if (
+      !gas ||
+      !selectedOption ||
+      !gasFeeEstimates ||
+      !transactionState ||
+      !contractExchangeRates ||
+      !conversionRate ||
+      !currentCurrency ||
+      !nativeCurrency ||
+      !suggestedGasLimit
+    ) {
+      return {};
+    }
+    const parsedTransactionEIP1559 = parseTransactionEIP1559(
+      {
+        contractExchangeRates,
+        conversionRate,
+        currentCurrency,
+        nativeCurrency,
+        transactionState,
+        gasFeeEstimates,
+        swapsParams: undefined,
+        selectedGasFee: {
+          ...gas,
+          suggestedGasLimit,
+          selectedOption,
+          estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
+        },
+      },
+      { onlyGas },
+    );
+    return parsedTransactionEIP1559;
+  } catch (error) {
+    return {};
+  }
 };
 
-
 /**
- * 
+ *
  * @param {LegacyProps} props
  * @returns parsed transaction data for legacy transactions.
  */
@@ -185,7 +204,7 @@ export const getLegacyTransactionData = ({
 };
 
 /**
- * 
+ *
  * @returns {Object} the transaction data for the current transaction.
  */
 export const useGasFeeEstimates = () => {
@@ -216,7 +235,7 @@ export const useGasFeeEstimates = () => {
     transaction: { gas: transactionGas },
   } = transactionState;
 
-  let transactionData 
+  let transactionData;
 
   if (gasEstimateTypeChange) {
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
@@ -250,7 +269,7 @@ export const useGasFeeEstimates = () => {
       transactionData = LegacyTransactionData;
     }
   } else {
-    return null
+    return null;
   }
 
   return transactionData;
