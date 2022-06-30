@@ -19,7 +19,7 @@ import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
-const PANCAKESWAP = 'https://pancakeswap.finance/';
+const UNISWAP = 'https://uniswap.exchange';
 const PASSWORD = '12345678';
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -116,21 +116,18 @@ describe('Browser Tests', () => {
     }
   });
 
-  it('should go to pancake swap', async () => {
+  it('should go to uniswap', async () => {
     await TestHelpers.delay(3000);
     // Tap on search in bottom navbar
     await Browser.tapBrowser();
-    await Browser.navigateToURL(PANCAKESWAP);
+    await Browser.navigateToURL(UNISWAP);
 
     // Wait for page to load
     await Browser.waitForBrowserPageToLoad();
 
     if (device.getPlatform() === 'android') {
       // Check that the dapp title is correct
-      await TestHelpers.checkIfElementWithTextIsVisible(
-        'pancakeswap.finance',
-        0,
-      );
+      await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
     }
     await TestHelpers.delay(5000);
     await ConnectModal.tapCancelButton();
@@ -143,7 +140,7 @@ describe('Browser Tests', () => {
     await Browser.isVisible();
   });
 
-  it('should add pancake swap to favorites', async () => {
+  it('should add uniswap to favorites', async () => {
     // Check that we are still on the browser screen
     await Browser.isVisible();
     // Tap on options
@@ -163,7 +160,7 @@ describe('Browser Tests', () => {
     await Browser.isVisible();
   });
 
-  it('should tap on pancake swap in favorites', async () => {
+  it('should tap on Uniswap in favorites', async () => {
     if (device.getPlatform() === 'ios') {
       // Tapping on favourite tap
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
