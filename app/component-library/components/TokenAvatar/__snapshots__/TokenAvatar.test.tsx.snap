@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenAvatar should render correctly 1`] = `
+<BaseAvatar
+  size="48"
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderWidth": 1,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Image
+    onError={[Function]}
+    source={
+      Object {
+        "uri": "../../../app/images/eth-logo.png",
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+      }
+    }
+    testID="token-avatar-image"
+  />
+</BaseAvatar>
+`;

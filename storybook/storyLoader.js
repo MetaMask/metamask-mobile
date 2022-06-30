@@ -29,6 +29,7 @@ function loadStories() {
   require('../app/component-library/components/TabBar/TabBar.stories');
   require('../app/component-library/components/TagUrl/TagUrl.stories');
   require('../app/component-library/components/Tag/Tag.stories');
+  require('../app/component-library/components/TokenAvatar/TokenAvatar.stories');
 }
 
 const stories = [
@@ -57,6 +58,7 @@ const stories = [
   '../app/component-library/components/TabBar/TabBar.stories',
   '../app/component-library/components/TagUrl/TagUrl.stories',
   '../app/component-library/components/Tag/Tag.stories',
+  '../app/component-library/components/TokenAvatar/TokenAvatar.stories'
 ];
 
 module.exports = {
