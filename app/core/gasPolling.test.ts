@@ -156,9 +156,15 @@ describe('GetEIP1559TransactionData', () => {
       currentCurrency,
     };
 
-    const result = getEIP1559TransactionData(incompleteTransactionData as any);
-    expect(result).toEqual({});
-    expect(mockedParseTransactionEIP1559).not.toHaveBeenCalled();
+    try {
+      const result = getEIP1559TransactionData(
+        incompleteTransactionData as any,
+      );
+      expect(result).toEqual('Incomplete data for EIP1559 transaction');
+      expect(mockedParseTransactionEIP1559).not.toHaveBeenCalled();
+    } catch (error) {
+      return expect(error).toBeTruthy();
+    }
   });
 
   it('should get the transaction data for EIP1559', () => {

@@ -152,8 +152,9 @@ export const getEIP1559TransactionData = ({
       !nativeCurrency ||
       !suggestedGasLimit
     ) {
-      return {};
+      return 'Incomplete data for EIP1559 transaction';
     }
+
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
         contractExchangeRates,
@@ -174,7 +175,7 @@ export const getEIP1559TransactionData = ({
     );
     return parsedTransactionEIP1559;
   } catch (error) {
-    return {};
+    return 'Error parsing transaction data';
   }
 };
 
