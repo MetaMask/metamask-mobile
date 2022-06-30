@@ -1958,7 +1958,7 @@
     "feature_token_detection_button_text": "Visit in Settings",
     "feature_token_security_title_1": "Scam and security risks",
     "feature_token_security_description_1": "Tokens can be created by anyone and can have duplicate names. If you see a token appear that you don’t trust or haven’t interacted with - its safer to not trust it.",
-    "feature_token_security_title_2": "Long press to remove tokens",
+    "feature_token_security_title_2": "Long press to hide tokens",
     "feature_token_security_description_2": "On MetaMask mobile app, you can always hide tokens by long pressing on the token, and select ‘Hide’.",
     "feature_token_security_button_text": "Let's start!"
   },
