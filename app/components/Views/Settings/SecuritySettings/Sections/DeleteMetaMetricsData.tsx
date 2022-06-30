@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Alert,
-  Linking,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
 import {
   DeletionTaskStatus,
