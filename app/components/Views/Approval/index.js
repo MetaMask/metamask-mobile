@@ -128,13 +128,22 @@ class Approval extends PureComponent {
         if (isQRHardwareAccount(selectedAddress)) {
           KeyringController.cancelQRSignRequest();
         } else {
-          Engine.context.TransactionController.cancelTransaction(
-            transaction.id,
-          );
+          const isLedgerAccount = isHardwareAccount(transaction.from, [
+            KeyringTypes.ledger,
+          ]);
+
+          // We hand over execution to the ledger flow it'll take care of cancelling
+          if (!isLedgerAccount) {
+            Engine.context.TransactionController.cancelTransaction(
+              transaction.id,
+            );
+
+            Engine.context.TransactionController.hub.removeAllListeners(
+              `${transaction.id}:finished`,
+            );
+          }
         }
-        Engine.context.TransactionController.hub.removeAllListeners(
-          `${transaction.id}:finished`,
-        );
+
         AppState.removeEventListener('change', this.handleAppStateChange);
         this.clear();
       }
@@ -320,13 +329,31 @@ class Approval extends PureComponent {
     let { transaction } = this.props;
     const { nonce } = transaction;
     const { transactionConfirmed } = this.state;
+
     if (transactionConfirmed) return;
     if (showCustomNonce && nonce) transaction.nonce = BNToHex(nonce);
-    this.setState({ transactionConfirmed: true });
+
+    const isLedgerAccount = isHardwareAccount(transaction.from, [
+      KeyringTypes.ledger,
+    ]);
 
     const finalizeConfirmation = (confirmed) => {
       if (!confirmed) {
-        return this.setState({ transactionConfirmed: false });
+        this.setState({ transactionConfirmed: false });
+
+        // If a rejection happened on the ledger UI we need to cancel the transaction
+        // In any othercase component will unmount takes care of it
+        if (isLedgerAccount) {
+          Engine.context.TransactionController.cancelTransaction(
+            transaction.id,
+          );
+
+          Engine.context.TransactionController.hub.removeAllListeners(
+            `${transaction.id}:finished`,
+          );
+        }
+
+        return;
       }
 
       this.showWalletConnectNotification(true);
@@ -357,8 +384,10 @@ class Approval extends PureComponent {
         `${transaction.id}:finished`,
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
-            this.setState({ transactionHandled: true });
-            this.props.toggleDappTransactionModal();
+            if (!isLedgerAccount) {
+              this.props.toggleDappTransactionModal();
+              this.setState({ transactionHandled: true });
+            }
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: transaction.assetType,
@@ -374,13 +403,10 @@ class Approval extends PureComponent {
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
-      const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
-      ]);
-
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        this.setState({ transactionHandled: true });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
@@ -390,6 +416,8 @@ class Approval extends PureComponent {
             type: 'signTransaction',
           }),
         );
+
+        this.props.toggleDappTransactionModal();
       } else {
         await TransactionController.approveTransaction(transaction.id);
         finalizeConfirmation(true);

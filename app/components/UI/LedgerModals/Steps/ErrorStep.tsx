@@ -63,7 +63,7 @@ const ErrorStep = ({
 
   return (
     <>
-      <Image source={ledgerErrorImage} />
+      <Image source={ledgerErrorImage} resizeMode="contain" />
       <View style={styles.textContainer}>
         <Text big bold style={styles.titleText}>
           {title}

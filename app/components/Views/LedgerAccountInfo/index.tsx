@@ -158,7 +158,7 @@ const LedgerAccountInfo = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.imageWrapper}>
-        <Image source={ledgerThemedImage} />
+        <Image source={ledgerThemedImage} resizeMode="contain" />
       </View>
       <View style={styles.textWrapper}>
         <Text big style={styles.accountCountText}>

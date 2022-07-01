@@ -23,8 +23,7 @@ const createStyles = () =>
     },
     ledgerImageStyle: {
       resizeMode: 'cover',
-      width: 100,
-      height: 54,
+      width: 150,
       overflow: 'visible',
     },
     confirmationViewTitle: {
@@ -49,7 +48,11 @@ const ConfirmationStep = ({ onReject }: ConfirmationStepProps) => {
 
   return (
     <>
-      <Image source={ledgerImage} style={styles.ledgerImageStyle} />
+      <Image
+        source={ledgerImage}
+        style={styles.ledgerImageStyle}
+        resizeMode="contain"
+      />
       <View style={styles.confirmationViewTitle}>
         <Text bold big style={styles.titleText}>
           {strings('ledger.confirm_transaction_on_ledger')}

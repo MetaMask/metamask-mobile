@@ -46,6 +46,7 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
+      marginBottom: 20,
     },
     buttonStyle: {
       width: Device.getDeviceWidth() * 0.8,
@@ -91,6 +92,7 @@ const LedgerConnectionError = ({
             ledgerConnectErrorLightImage,
             ledgerConnectErrorDarkImage,
           )}
+          resizeMode="contain"
         />
         <View style={styles.errorHasOccuredTextContainer}>
           <Text bold big style={styles.errorHasOccuredText}>

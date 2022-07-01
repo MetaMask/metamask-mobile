@@ -61,7 +61,11 @@ const SearchingForDeviceStep = () => {
 
   return (
     <View style={styles.lookingForDeviceContainer}>
-      <Image source={ledgerImage} style={styles.ledgerImageStyle} />
+      <Image
+        source={ledgerImage}
+        style={styles.ledgerImageStyle}
+        resizeMode="contain"
+      />
       <View style={styles.lookingForDeviceTitle}>
         <Text bold big style={styles.titleText}>
           {strings('ledger.looking_for_device')}

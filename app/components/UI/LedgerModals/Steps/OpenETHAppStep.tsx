@@ -47,7 +47,11 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
 
   return (
     <>
-      <Image source={ledgerImage} style={styles.ledgerImageStyle} />
+      <Image
+        source={ledgerImage}
+        style={styles.ledgerImageStyle}
+        resizeMode="contain"
+      />
       <View style={styles.modalTitle}>
         <Text bold big>
           {strings('ledger.open_eth_app')}

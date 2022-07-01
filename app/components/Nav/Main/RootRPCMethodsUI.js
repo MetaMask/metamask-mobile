@@ -532,7 +532,11 @@ const RootRPCMethodsUI = (props) => {
 
   const renderApproveModal = () =>
     props.approveModalVisible && (
-      <Approve modalVisible toggleApproveModal={props.toggleApproveModal} />
+      <Approve
+        navigation={props.navigation}
+        modalVisible
+        toggleApproveModal={props.toggleApproveModal}
+      />
     );
 
   const rejectPendingApproval = (id, error) => {

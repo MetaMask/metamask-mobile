@@ -68,7 +68,7 @@ const createStyles = (colors) =>
       alignItems: 'flex-end',
     },
     keyringTypeLabelText: {
-      color: colors.text.alternative,
+      color: colors.text.default,
       fontSize: 10,
       ...fontStyles.bold,
     },
