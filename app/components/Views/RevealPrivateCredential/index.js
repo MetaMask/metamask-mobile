@@ -32,7 +32,7 @@ import {
   KEEP_SRP_SAFE_URL,
 } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
@@ -54,6 +54,7 @@ const RevealPrivateCredential = ({
   showAlert,
   selectedAddress,
   passwordSet,
+  credentialName,
   cancel,
   route,
   navBarDisabled,
@@ -68,13 +69,13 @@ const RevealPrivateCredential = ({
     useState(false);
   const [isModalVisible, setIsModalVisible] = useState(true);
 
-  const { styles } = getStyles();
+  const { colors, themeAppearance } = useTheme();
+  const styles = createStyles(colors);
 
   const updateNavBar = () => {
     if (navBarDisabled) {
       return;
     }
-    const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings(
@@ -158,9 +159,8 @@ const RevealPrivateCredential = ({
   }, []);
 
   const isPrivateKey = () => {
-    const credentialName =
-      privateCredentialName || route.params.privateCredentialName;
-    return credentialName === PRIVATE_KEY;
+    const credential = credentialName || route.params.privateCredentialName;
+    return credential === PRIVATE_KEY;
   };
 
   const cancelLol = () => {
@@ -213,34 +213,23 @@ const RevealPrivateCredential = ({
     });
   };
 
-  const getStyles = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
-    const styles = createStyles(colors);
-    return { colors, styles, themeAppearance };
-  };
-
   const revealCredential = (privateCredentialName) => {
     tryUnlockWithPassword(password, privateCredentialName);
     setIsUserUnlocked(true);
     setIsModalVisible(false);
   };
 
-  const renderTabBar = () => {
-    const { styles, colors } = getStyles();
-
-    return (
-      <DefaultTabBar
-        underlineStyle={styles.tabUnderlineStyle}
-        activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.alternative}
-        backgroundColor={colors.background.default}
-        tabStyle={styles.tabStyle}
-        textStyle={styles.textStyle}
-        style={styles.tabBar}
-      />
-    );
-  };
+  const renderTabBar = () => (
+    <DefaultTabBar
+      underlineStyle={styles.tabUnderlineStyle}
+      activeTextColor={colors.primary.default}
+      inactiveTextColor={colors.text.alternative}
+      backgroundColor={colors.background.default}
+      tabStyle={styles.tabStyle}
+      textStyle={styles.textStyle}
+      style={styles.tabBar}
+    />
+  );
 
   const onTabBarChange = (event) => {
     if (event.i === 0) {
@@ -261,8 +250,6 @@ const RevealPrivateCredential = ({
   };
 
   const renderTabView = (privateCredentialName) => {
-    const { styles, colors, themeAppearance } = getStyles();
-
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
         if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
@@ -326,29 +313,26 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const renderPasswordEntry = () => {
-    const { styles, colors, themeAppearance } = getStyles();
-    return (
-      <>
-        <Text style={styles.enterPassword}>
-          {strings('reveal_credential.enter_password')}
-        </Text>
-        <TextInput
-          style={styles.input}
-          testID={'private-credential-password-text-input'}
-          placeholder={'Password'}
-          placeholderTextColor={colors.text.muted}
-          onChangeText={onPasswordChange}
-          secureTextEntry
-          onSubmitEditing={tryUnlock}
-          keyboardAppearance={themeAppearance}
-        />
-        <Text style={styles.warningText} testID={'password-warning'}>
-          {warningIncorrectPassword}
-        </Text>
-      </>
-    );
-  };
+  const renderPasswordEntry = () => (
+    <>
+      <Text style={styles.enterPassword}>
+        {strings('reveal_credential.enter_password')}
+      </Text>
+      <TextInput
+        style={styles.input}
+        testID={'private-credential-password-text-input'}
+        placeholder={'Password'}
+        placeholderTextColor={colors.text.muted}
+        onChangeText={onPasswordChange}
+        secureTextEntry
+        onSubmitEditing={tryUnlock}
+        keyboardAppearance={themeAppearance}
+      />
+      <Text style={styles.warningText} testID={'password-warning'}>
+        {warningIncorrectPassword}
+      </Text>
+    </>
+  );
 
   const closeModal = () => {
     AnalyticsV2.trackEvent(
@@ -361,55 +345,52 @@ const RevealPrivateCredential = ({
     isModalVisible(false);
   };
 
-  const renderModal = (isPrivateKeyReveal, privateCredentialName) => {
-    const { styles } = getStyles();
-    return (
-      <InfoModal
-        isVisible={isModalVisible}
-        toggleModal={closeModal}
-        title={strings('reveal_credential.keep_credential_safe', {
-          credentialName: isPrivateKeyReveal
-            ? strings('reveal_credential.private_key_text')
-            : strings('reveal_credential.srp_abbreviation_text'),
-        })}
-        body={
-          <>
-            <Text style={[styles.normalText, styles.revealModalText]}>
-              {
-                strings('reveal_credential.reveal_credential_modal', {
-                  credentialName: isPrivateKeyReveal
-                    ? strings('reveal_credential.private_key_text')
-                    : strings('reveal_credential.srp_text'),
-                })[0]
-              }
-              <Text style={styles.boldText}>
-                {isPrivateKeyReveal
-                  ? strings('reveal_credential.reveal_credential_modal')[1]
-                  : strings('reveal_credential.reveal_credential_modal')[2]}
-              </Text>
-              {strings('reveal_credential.reveal_credential_modal')[3]}
-              <TouchableOpacity
-                onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
-              >
-                <Text style={[styles.blueText, styles.link]}>
-                  {strings('reveal_credential.reveal_credential_modal')[4]}
-                </Text>
-              </TouchableOpacity>
-            </Text>
-
-            <ButtonReveal
-              label={strings('reveal_credential.hold_to_reveal_credential', {
+  const renderModal = (isPrivateKeyReveal, privateCredentialName) => (
+    <InfoModal
+      isVisible={isModalVisible}
+      toggleModal={closeModal}
+      title={strings('reveal_credential.keep_credential_safe', {
+        credentialName: isPrivateKeyReveal
+          ? strings('reveal_credential.private_key_text')
+          : strings('reveal_credential.srp_abbreviation_text'),
+      })}
+      body={
+        <>
+          <Text style={[styles.normalText, styles.revealModalText]}>
+            {
+              strings('reveal_credential.reveal_credential_modal', {
                 credentialName: isPrivateKeyReveal
                   ? strings('reveal_credential.private_key_text')
-                  : strings('reveal_credential.srp_abbreviation_text'),
-              })}
-              onLongPress={() => revealCredential(privateCredentialName)}
-            />
-          </>
-        }
-      />
-    );
-  };
+                  : strings('reveal_credential.srp_text'),
+              })[0]
+            }
+            <Text style={styles.boldText}>
+              {isPrivateKeyReveal
+                ? strings('reveal_credential.reveal_credential_modal')[1]
+                : strings('reveal_credential.reveal_credential_modal')[2]}
+            </Text>
+            {strings('reveal_credential.reveal_credential_modal')[3]}
+            <TouchableOpacity
+              onPress={() => Linking.openURL(KEEP_SRP_SAFE_URL)}
+            >
+              <Text style={[styles.blueText, styles.link]}>
+                {strings('reveal_credential.reveal_credential_modal')[4]}
+              </Text>
+            </TouchableOpacity>
+          </Text>
+
+          <ButtonReveal
+            label={strings('reveal_credential.hold_to_reveal_credential', {
+              credentialName: isPrivateKeyReveal
+                ? strings('reveal_credential.private_key_text')
+                : strings('reveal_credential.srp_abbreviation_text'),
+            })}
+            onLongPress={() => revealCredential(privateCredentialName)}
+          />
+        </>
+      }
+    />
+  );
 
   const renderSRPExplanation = () => (
     <Text style={styles.normalText}>
@@ -438,37 +419,30 @@ const RevealPrivateCredential = ({
     </Text>
   );
 
-  const renderWarning = (privateCredentialName) => {
-    const { styles } = getStyles();
-    return (
-      <View style={styles.warningWrapper}>
-        <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-          <Icon style={styles.icon} name="eye-slash" size={20} solid />
-          {privateCredentialName === PRIVATE_KEY ? (
-            <Text style={styles.warningMessageText}>
-              {strings(
-                `reveal_credential.${privateCredentialName}_warning_explanation`,
-              )}
+  const renderWarning = (privateCredentialName) => (
+    <View style={styles.warningWrapper}>
+      <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
+        <Icon style={styles.icon} name="eye-slash" size={20} solid />
+        {privateCredentialName === PRIVATE_KEY ? (
+          <Text style={styles.warningMessageText}>
+            {strings(
+              `reveal_credential.${privateCredentialName}_warning_explanation`,
+            )}
+          </Text>
+        ) : (
+          <Text style={styles.warningMessageText}>
+            {strings('reveal_credential.seed_phrase_warning_explanation')[0]}
+            <Text style={styles.boldText}>
+              {strings('reveal_credential.seed_phrase_warning_explanation')[1]}
             </Text>
-          ) : (
-            <Text style={styles.warningMessageText}>
-              {strings('reveal_credential.seed_phrase_warning_explanation')[0]}
-              <Text style={styles.boldText}>
-                {
-                  strings(
-                    'reveal_credential.seed_phrase_warning_explanation',
-                  )[1]
-                }
-              </Text>
-            </Text>
-          )}
-        </View>
+          </Text>
+        )}
       </View>
-    );
-  };
+    </View>
+  );
 
   const privateCredentialName =
-    privateCredentialName || route.params.privateCredentialName;
+    credentialName || route.params.privateCredentialName;
 
   return (
     <SafeAreaView
@@ -510,9 +484,7 @@ const RevealPrivateCredential = ({
       {renderModal(isPrivateKey(), privateCredentialName)}
     </SafeAreaView>
   );
-}
-
-RevealPrivateCredential.contextType = ThemeContext;
+};
 
 RevealPrivateCredential.propTypes = {
   /**
@@ -534,7 +506,7 @@ RevealPrivateCredential.propTypes = {
   /**
    * String that determines whether to show the seedphrase or private key export screen
    */
-  privateCredentialName: PropTypes.string,
+  credentialName: PropTypes.string,
   /**
    * Cancel function to be called when cancel button is clicked. If not provided, we go to previous screen on cancel
    */
