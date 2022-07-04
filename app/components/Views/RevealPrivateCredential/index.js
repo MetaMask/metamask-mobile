@@ -468,7 +468,7 @@ const RevealPrivateCredential = ({
   };
 
   const privateCredentialName =
-    privateCredential || route.params.privateCredentialName;
+    privateCredentialName || route.params.privateCredentialName;
 
   return (
     <SafeAreaView
