@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { PureComponent } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dimensions,
   SafeAreaView,
@@ -49,54 +49,16 @@ const PRIVATE_KEY = 'private_key';
 /**
  * View that displays private account information as private key or seed phrase
  */
-class RevealPrivateCredential extends PureComponent {
-  state = {
-    clipboardPrivateCredential: '',
-    unlocked: false,
-    isUserUnlocked: false,
-    password: '',
-    warningIncorrectPassword: '',
-    isModalVisible: false,
-    isAndroidSupportedVersion: true,
-  };
+const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passwordSet, privateCredential, cancel, route, navBarDisabled }) => {
+  const [clipboardPrivateCredential, setClipboardPrivateCredential] = useState('');
+  const [unlocked, setUnlocked] = useState(false);
+  const [isUserUnlocked, setIsUserUnlocked] = useState(false);
+  const [password, setPassword] = useState('');
+  const [warningIncorrectPassword, setWarningIncorrectPassword] = useState('');
+  const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(true);
 
-  static propTypes = {
-    /**
-		/* navigation object required to push new views
-		*/
-    navigation: PropTypes.object,
-    /**
-     * Action that shows the global alert
-     */
-    showAlert: PropTypes.func.isRequired,
-    /**
-     * String that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
-     * Boolean that determines if the user has set a password before
-     */
-    passwordSet: PropTypes.bool,
-    /**
-     * String that determines whether to show the seedphrase or private key export screen
-     */
-    privateCredentialName: PropTypes.string,
-    /**
-     * Cancel function to be called when cancel button is clicked. If not provided, we go to previous screen on cancel
-     */
-    cancel: PropTypes.func,
-    /**
-     * Object that represents the current route info like params passed to it
-     */
-    route: PropTypes.object,
-    /**
-     * Boolean that indicates if navbar should be disabled
-     */
-    navBarDisabled: PropTypes.bool,
-  };
-
-  updateNavBar = () => {
-    const { navigation, route, navBarDisabled } = this.props;
+  const updateNavBar = () => {
     if (navBarDisabled) {
       return;
     }
@@ -115,13 +77,11 @@ class RevealPrivateCredential extends PureComponent {
     );
   };
 
-  async componentDidMount() {
-    this.updateNavBar();
-    // Try to use biometrics to unloc
-    // (if available)
+  useEffect(async () => {
+    updateNavBar();
     const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (!this.props.passwordSet) {
-      this.tryUnlockWithPassword('');
+    if (passwordSet) {
+      tryUnlockWithPassword();
     } else if (biometryType) {
       const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
       if (biometryChoice !== '' && biometryChoice === biometryType) {
@@ -134,46 +94,35 @@ class RevealPrivateCredential extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
     });
-  }
 
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, []);
 
-  componentWillUnmount = () => {
-    InteractionManager.runAfterInteractions(() => {
-      PreventScreenshot.allow();
-    });
-  };
-
-  isPrivateKey = () => {
-    const { privateCredentialName, route } = this.props;
+  const isPrivateKey = () => {
     const credentialName =
       privateCredentialName || route.params.privateCredentialName;
     return credentialName === PRIVATE_KEY;
   };
 
-  cancel = () => {
-    if (!this.unlocked)
+  const cancelLol = () => {
+    if (!unlocked)
       AnalyticsV2.trackEvent(
-        this.isPrivateKey()
+        isPrivateKey()
           ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
         { view: 'Enter password' },
       );
 
-    if (this.props.cancel) return this.props.cancel();
-    this.navigateBack();
-  };
-
-  navigateBack = () => {
-    const { navigation } = this.props;
+    if (cancel) return cancel();
     navigation.pop();
   };
 
-  async tryUnlockWithPassword(password, privateCredentialName) {
+  cosnt tryUnlockWithPassword = async (password, privateCredentialName) => {
     const { KeyringController } = Engine.context;
-    const { selectedAddress } = this.props;
     const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
 
     try {
@@ -192,12 +141,10 @@ class RevealPrivateCredential extends PureComponent {
 
       if (
         privateCredential &&
-        (this.state.isUserUnlocked || isPrivateKeyReveal)
+        (isUserUnlocked || isPrivateKeyReveal)
       ) {
-        this.setState({
-          clipboardPrivateCredential: privateCredential,
-          unlocked: true,
-        });
+        setClipboardPrivateCredential(privateCredential);
+        setUnlocked(true);
       }
     } catch (e) {
       let msg = strings('reveal_credential.warning_incorrect_password');
@@ -209,23 +156,22 @@ class RevealPrivateCredential extends PureComponent {
         msg = strings('reveal_credential.unknown_error');
       }
 
-      this.setState({
-        isModalVisible: false,
-        unlocked: false,
-        warningIncorrectPassword: msg,
-      });
+      setIsModalVisible(false);
+      setUnlocked(false);
+      setWarningIncorrectPassword(msg);
+
     }
   }
 
-  tryUnlock = () => {
-    this.setState({ isModalVisible: true });
+  const tryUnlock = () => {
+    setIsModalVisible(true);
   };
 
-  onPasswordChange = (password) => {
-    this.setState({ password });
+  const onPasswordChange = (password) => {
+    setPassword(password)
   };
 
-  copyPrivateCredentialToClipboard = async (privateCredentialName) => {
+  const copyPrivateCredentialToClipboard = async (privateCredentialName) => {
     AnalyticsV2.trackEvent(
       privateCredentialName === PRIVATE_KEY
         ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
@@ -233,7 +179,6 @@ class RevealPrivateCredential extends PureComponent {
       { action: 'copied to clipboard' },
     );
 
-    const { clipboardPrivateCredential } = this.state;
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
     const msg = `${strings(
@@ -244,7 +189,7 @@ class RevealPrivateCredential extends PureComponent {
         : ''
     }`;
 
-    this.props.showAlert({
+    showAlert({
       isVisible: true,
       autodismiss: 1500,
       content: 'clipboard-alert',
@@ -255,25 +200,21 @@ class RevealPrivateCredential extends PureComponent {
     });
   };
 
-  getStyles = () => {
+  const getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
     return { colors, styles, themeAppearance };
   };
 
-  revealCredential = (privateCredentialName) => {
-    const { password } = this.state;
-    this.tryUnlockWithPassword(password, privateCredentialName);
-
-    this.setState({
-      isUserUnlocked: true,
-      isModalVisible: false,
-    });
+  const revealCredential = (privateCredentialName) => {
+    tryUnlockWithPassword(password, privateCredentialName);
+    setIsUserUnlocked(true);
+    setIsModalVisible(false);
   };
 
-  renderTabBar() {
-    const { styles, colors } = this.getStyles();
+  const renderTabBar = () => {
+    const { styles, colors } = getStyles();
 
     return (
       <DefaultTabBar
@@ -288,7 +229,7 @@ class RevealPrivateCredential extends PureComponent {
     );
   }
 
-  onTabBarChange = (event) => {
+  const onTabBarChange = (event) => {
     if (event.i === 0) {
       AnalyticsV2.trackEvent(
         this.isPrivateKey()
@@ -306,24 +247,20 @@ class RevealPrivateCredential extends PureComponent {
     }
   };
 
-  renderTabView(privateCredentialName) {
-    const { clipboardPrivateCredential, isAndroidSupportedVersion } =
-      this.state;
+  const renderTabView = (privateCredentialName) => {
     const { styles, colors, themeAppearance } = this.getStyles();
 
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
         if (apiLevel < AppConstants.LEAST_SUPPORTED_ANDROID_API_LEVEL) {
-          this.setState({
-            isAndroidSupportedVersion: false,
-          });
+          setIsAndroidSupportedVersion(false);
         }
       });
 
     return (
       <ScrollableTabView
-        renderTabBar={() => this.renderTabBar()}
-        onChangeTab={(event) => this.onTabBarChange(event)}
+        renderTabBar={() => renderTabBar()}
+        onChangeTab={(event) => onTabBarChange(event)}
       >
         <View
           tabLabel={strings(`reveal_credential.text`)}
@@ -376,8 +313,8 @@ class RevealPrivateCredential extends PureComponent {
     );
   }
 
-  renderPasswordEntry() {
-    const { styles, colors, themeAppearance } = this.getStyles();
+  const renderPasswordEntry = () => {
+    const { styles, colors, themeAppearance } = getStyles();
     return (
       <>
         <Text style={styles.enterPassword}>
@@ -388,19 +325,19 @@ class RevealPrivateCredential extends PureComponent {
           testID={'private-credential-password-text-input'}
           placeholder={'Password'}
           placeholderTextColor={colors.text.muted}
-          onChangeText={this.onPasswordChange}
+          onChangeText={onPasswordChange}
           secureTextEntry
-          onSubmitEditing={this.tryUnlock}
+          onSubmitEditing={tryUnlock}
           keyboardAppearance={themeAppearance}
         />
         <Text style={styles.warningText} testID={'password-warning'}>
-          {this.state.warningIncorrectPassword}
+          {warningIncorrectPassword}
         </Text>
       </>
     );
   }
 
-  closeModal = () => {
+  const closeModal = () => {
     AnalyticsV2.trackEvent(
       this.isPrivateKey()
         ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
@@ -408,12 +345,10 @@ class RevealPrivateCredential extends PureComponent {
       { view: 'Hold to reveal' },
     );
 
-    this.setState({
-      isModalVisible: false,
-    });
+    isModalVisible(false);
   };
 
-  renderModal(isPrivateKeyReveal, privateCredentialName) {
+  const renderModal = (isPrivateKeyReveal, privateCredentialName) => {
     const { styles } = this.getStyles();
     return (
       <InfoModal
@@ -574,6 +509,41 @@ class RevealPrivateCredential extends PureComponent {
 }
 
 RevealPrivateCredential.contextType = ThemeContext;
+
+RevealPrivateCredential.propTypes = {
+  /**
+  /* navigation object required to push new views
+  */
+  navigation: PropTypes.object,
+  /**
+   * Action that shows the global alert
+   */
+  showAlert: PropTypes.func.isRequired,
+  /**
+   * String that represents the selected address
+   */
+  selectedAddress: PropTypes.string,
+  /**
+   * Boolean that determines if the user has set a password before
+   */
+  passwordSet: PropTypes.bool,
+  /**
+   * String that determines whether to show the seedphrase or private key export screen
+   */
+  privateCredentialName: PropTypes.string,
+  /**
+   * Cancel function to be called when cancel button is clicked. If not provided, we go to previous screen on cancel
+   */
+  cancel: PropTypes.func,
+  /**
+   * Object that represents the current route info like params passed to it
+   */
+  route: PropTypes.object,
+  /**
+   * Boolean that indicates if navbar should be disabled
+   */
+  navBarDisabled: PropTypes.bool,
+};
 
 const mapStateToProps = (state) => ({
   selectedAddress:
