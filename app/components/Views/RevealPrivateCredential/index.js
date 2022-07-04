@@ -49,14 +49,26 @@ const PRIVATE_KEY = 'private_key';
 /**
  * View that displays private account information as private key or seed phrase
  */
-const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passwordSet, privateCredential, cancel, route, navBarDisabled }) => {
-  const [clipboardPrivateCredential, setClipboardPrivateCredential] = useState('');
+const RevealPrivateCredential = ({
+  navigation,
+  showAlert,
+  selectedAddress,
+  passwordSet,
+  cancel,
+  route,
+  navBarDisabled,
+}) => {
+  const [clipboardPrivateCredential, setClipboardPrivateCredential] =
+    useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [isUserUnlocked, setIsUserUnlocked] = useState(false);
   const [password, setPassword] = useState('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState('');
-  const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] = useState(false);
+  const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] =
+    useState(false);
   const [isModalVisible, setIsModalVisible] = useState(true);
+
+  const { styles } = getStyles();
 
   const updateNavBar = () => {
     if (navBarDisabled) {
@@ -77,20 +89,62 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
     );
   };
 
-  useEffect(async () => {
-    updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (passwordSet) {
-      tryUnlockWithPassword();
-    } else if (biometryType) {
-      const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-      if (biometryChoice !== '' && biometryChoice === biometryType) {
-        const credentials = await SecureKeychain.getGenericPassword();
-        if (credentials) {
-          this.tryUnlockWithPassword(credentials.password);
+  const tryUnlockWithPassword = async (password, privateCredentialName) => {
+    const { KeyringController } = Engine.context;
+    const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
+
+    try {
+      let privateCredential;
+      if (!isPrivateKeyReveal) {
+        const mnemonic = await KeyringController.exportSeedPhrase(
+          password,
+        ).toString();
+        privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
+      } else {
+        privateCredential = await KeyringController.exportAccount(
+          password,
+          selectedAddress,
+        );
+      }
+
+      if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
+        setClipboardPrivateCredential(privateCredential);
+        setUnlocked(true);
+      }
+    } catch (e) {
+      let msg = strings('reveal_credential.warning_incorrect_password');
+      if (isQRHardwareAccount(selectedAddress)) {
+        msg = strings('reveal_credential.hardware_error');
+      } else if (
+        e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
+      ) {
+        msg = strings('reveal_credential.unknown_error');
+      }
+
+      setIsModalVisible(false);
+      setUnlocked(false);
+      setWarningIncorrectPassword(msg);
+    }
+  };
+
+  useEffect(() => {
+    const something = async () => {
+      const biometryType = await SecureKeychain.getSupportedBiometryType();
+      if (passwordSet) {
+        tryUnlockWithPassword();
+      } else if (biometryType) {
+        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+        if (biometryChoice !== '' && biometryChoice === biometryType) {
+          const credentials = await SecureKeychain.getGenericPassword();
+          if (credentials) {
+            tryUnlockWithPassword(credentials.password);
+          }
         }
       }
-    }
+    };
+
+    updateNavBar();
+    something();
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
     });
@@ -100,6 +154,7 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
         PreventScreenshot.allow();
       });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isPrivateKey = () => {
@@ -121,54 +176,12 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
     navigation.pop();
   };
 
-  cosnt tryUnlockWithPassword = async (password, privateCredentialName) => {
-    const { KeyringController } = Engine.context;
-    const isPrivateKeyReveal = privateCredentialName === PRIVATE_KEY;
-
-    try {
-      let privateCredential;
-      if (!isPrivateKeyReveal) {
-        const mnemonic = await KeyringController.exportSeedPhrase(
-          password,
-        ).toString();
-        privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
-      } else {
-        privateCredential = await KeyringController.exportAccount(
-          password,
-          selectedAddress,
-        );
-      }
-
-      if (
-        privateCredential &&
-        (isUserUnlocked || isPrivateKeyReveal)
-      ) {
-        setClipboardPrivateCredential(privateCredential);
-        setUnlocked(true);
-      }
-    } catch (e) {
-      let msg = strings('reveal_credential.warning_incorrect_password');
-      if (isQRHardwareAccount(selectedAddress)) {
-        msg = strings('reveal_credential.hardware_error');
-      } else if (
-        e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
-      ) {
-        msg = strings('reveal_credential.unknown_error');
-      }
-
-      setIsModalVisible(false);
-      setUnlocked(false);
-      setWarningIncorrectPassword(msg);
-
-    }
-  }
-
   const tryUnlock = () => {
     setIsModalVisible(true);
   };
 
   const onPasswordChange = (password) => {
-    setPassword(password)
+    setPassword(password);
   };
 
   const copyPrivateCredentialToClipboard = async (privateCredentialName) => {
@@ -227,19 +240,19 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
         style={styles.tabBar}
       />
     );
-  }
+  };
 
   const onTabBarChange = (event) => {
     if (event.i === 0) {
       AnalyticsV2.trackEvent(
-        this.isPrivateKey()
+        isPrivateKey()
           ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
     } else if (event.i === 1) {
       AnalyticsV2.trackEvent(
-        this.isPrivateKey()
+        isPrivateKey()
           ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_COMPLETED
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
@@ -248,7 +261,7 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
   };
 
   const renderTabView = (privateCredentialName) => {
-    const { styles, colors, themeAppearance } = this.getStyles();
+    const { styles, colors, themeAppearance } = getStyles();
 
     Device.isAndroid() &&
       Device.getDeviceAPILevel().then((apiLevel) => {
@@ -285,7 +298,7 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
               <TouchableOpacity
                 style={styles.privateCredentialAction}
                 onPress={() =>
-                  this.copyPrivateCredentialToClipboard(privateCredentialName)
+                  copyPrivateCredentialToClipboard(privateCredentialName)
                 }
                 testID={'private-credential-touchable'}
               >
@@ -311,7 +324,7 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
         </View>
       </ScrollableTabView>
     );
-  }
+  };
 
   const renderPasswordEntry = () => {
     const { styles, colors, themeAppearance } = getStyles();
@@ -335,11 +348,11 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
         </Text>
       </>
     );
-  }
+  };
 
   const closeModal = () => {
     AnalyticsV2.trackEvent(
-      this.isPrivateKey()
+      isPrivateKey()
         ? AnalyticsV2.ANALYTICS_EVENTS.REVEAL_PRIVATE_KEY_CANCELLED
         : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
       { view: 'Hold to reveal' },
@@ -349,11 +362,11 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
   };
 
   const renderModal = (isPrivateKeyReveal, privateCredentialName) => {
-    const { styles } = this.getStyles();
+    const { styles } = getStyles();
     return (
       <InfoModal
-        isVisible={this.state.isModalVisible}
-        toggleModal={this.closeModal}
+        isVisible={isModalVisible}
+        toggleModal={closeModal}
         title={strings('reveal_credential.keep_credential_safe', {
           credentialName: isPrivateKeyReveal
             ? strings('reveal_credential.private_key_text')
@@ -390,46 +403,43 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
                   ? strings('reveal_credential.private_key_text')
                   : strings('reveal_credential.srp_abbreviation_text'),
               })}
-              onLongPress={() => this.revealCredential(privateCredentialName)}
+              onLongPress={() => revealCredential(privateCredentialName)}
             />
           </>
         }
       />
     );
-  }
+  };
 
-  renderSRPExplanation() {
-    const { styles } = this.getStyles();
-    return (
-      <Text style={styles.normalText}>
-        {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
-        <Text
-          style={[styles.blueText, styles.link]}
-          onPress={() => Linking.openURL(SRP_URL)}
-        >
-          {strings('reveal_credential.seed_phrase_explanation')[1]}
-        </Text>{' '}
-        {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-        <Text style={styles.boldText}>
-          {strings('reveal_credential.seed_phrase_explanation')[3]}
-        </Text>
-        {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
-        <Text
-          style={[styles.blueText, styles.link]}
-          onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
-        >
-          {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
-        </Text>
-        {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
-        <Text style={styles.boldText}>
-          {strings('reveal_credential.seed_phrase_explanation')[7]}
-        </Text>
+  const renderSRPExplanation = () => (
+    <Text style={styles.normalText}>
+      {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
+      <Text
+        style={[styles.blueText, styles.link]}
+        onPress={() => Linking.openURL(SRP_URL)}
+      >
+        {strings('reveal_credential.seed_phrase_explanation')[1]}
+      </Text>{' '}
+      {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
+      <Text style={styles.boldText}>
+        {strings('reveal_credential.seed_phrase_explanation')[3]}
       </Text>
-    );
-  }
+      {strings('reveal_credential.seed_phrase_explanation')[4]}{' '}
+      <Text
+        style={[styles.blueText, styles.link]}
+        onPress={() => Linking.openURL(NON_CUSTODIAL_WALLET_URL)}
+      >
+        {strings('reveal_credential.seed_phrase_explanation')[5]}{' '}
+      </Text>
+      {strings('reveal_credential.seed_phrase_explanation')[6]}{' '}
+      <Text style={styles.boldText}>
+        {strings('reveal_credential.seed_phrase_explanation')[7]}
+      </Text>
+    </Text>
+  );
 
-  renderWarning(privateCredentialName) {
-    const { styles } = this.getStyles();
+  const renderWarning = (privateCredentialName) => {
+    const { styles } = getStyles();
     return (
       <View style={styles.warningWrapper}>
         <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
@@ -455,57 +465,51 @@ const RevealPrivateCredential = ({ navigation, showAlert, selectedAddress, passw
         </View>
       </View>
     );
-  }
-
-  render = () => {
-    const { unlocked, password } = this.state;
-    const { styles } = this.getStyles();
-    const privateCredentialName =
-      this.props.privateCredentialName ||
-      this.props.route.params.privateCredentialName;
-    const isPrivateKeyReveal = this.isPrivateKey();
-
-    return (
-      <SafeAreaView
-        style={styles.wrapper}
-        testID={'reveal-private-credential-screen'}
-      >
-        <ActionView
-          cancelText={
-            unlocked
-              ? strings('reveal_credential.done')
-              : strings('reveal_credential.cancel')
-          }
-          confirmText={strings('reveal_credential.confirm')}
-          onCancelPress={unlocked ? this.navigateBack : this.cancel}
-          testID={`next-button`}
-          onConfirmPress={() => this.tryUnlock()}
-          showConfirmButton={!unlocked}
-          confirmDisabled={!password.length}
-        >
-          <>
-            <View style={[styles.rowWrapper, styles.normalText]}>
-              {isPrivateKeyReveal ? (
-                <Text style={styles.normalText}>
-                  {strings(`reveal_credential.private_key_explanation`)}
-                </Text>
-              ) : (
-                this.renderSRPExplanation()
-              )}
-            </View>
-            {this.renderWarning(privateCredentialName)}
-
-            <View style={styles.rowWrapper}>
-              {unlocked
-                ? this.renderTabView(privateCredentialName)
-                : this.renderPasswordEntry()}
-            </View>
-          </>
-        </ActionView>
-        {this.renderModal(isPrivateKeyReveal, privateCredentialName)}
-      </SafeAreaView>
-    );
   };
+
+  const privateCredentialName =
+    privateCredential || route.params.privateCredentialName;
+
+  return (
+    <SafeAreaView
+      style={styles.wrapper}
+      testID={'reveal-private-credential-screen'}
+    >
+      <ActionView
+        cancelText={
+          unlocked
+            ? strings('reveal_credential.done')
+            : strings('reveal_credential.cancel')
+        }
+        confirmText={strings('reveal_credential.confirm')}
+        onCancelPress={unlocked ? navigateBack : cancelLol}
+        testID={`next-button`}
+        onConfirmPress={() => tryUnlock()}
+        showConfirmButton={!unlocked}
+        confirmDisabled={!password.length}
+      >
+        <>
+          <View style={[styles.rowWrapper, styles.normalText]}>
+            {isPrivateKey() ? (
+              <Text style={styles.normalText}>
+                {strings(`reveal_credential.private_key_explanation`)}
+              </Text>
+            ) : (
+              renderSRPExplanation()
+            )}
+          </View>
+          {renderWarning(privateCredentialName)}
+
+          <View style={styles.rowWrapper}>
+            {unlocked
+              ? renderTabView(privateCredentialName)
+              : renderPasswordEntry()}
+          </View>
+        </>
+      </ActionView>
+      {renderModal(isPrivateKey(), privateCredentialName)}
+    </SafeAreaView>
+  );
 }
 
 RevealPrivateCredential.contextType = ThemeContext;
