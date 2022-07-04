@@ -3,7 +3,6 @@ import React, { PureComponent } from 'react';
 import {
   Dimensions,
   SafeAreaView,
-  StyleSheet,
   View,
   Text,
   TextInput,
@@ -37,134 +36,12 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isQRHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    normalText: {
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    seedPhrase: {
-      backgroundColor: colors.background.default,
-      marginTop: 10,
-      paddingBottom: 20,
-      paddingLeft: 20,
-      paddingRight: 20,
-      fontSize: 20,
-      textAlign: 'center',
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    seedPhraseView: {
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      marginTop: 10,
-      alignItems: 'center',
-    },
-    privateCredentialAction: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderColor: colors.primary.default,
-      borderWidth: 1,
-      borderRadius: 20,
-      width: '90%',
-      paddingVertical: 10,
-      marginBottom: 15,
-    },
-    rowWrapper: {
-      padding: 20,
-    },
-    warningWrapper: {
-      backgroundColor: colors.error.muted,
-      margin: 20,
-      marginTop: 10,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.error.default,
-    },
-    warningRowWrapper: {
-      flex: 1,
-      flexDirection: 'row',
-      alignContent: 'center',
-      alignItems: 'center',
-    },
-    warningText: {
-      marginTop: 10,
-      color: colors.error.default,
-      ...fontStyles.normal,
-    },
-    input: {
-      borderWidth: 2,
-      borderRadius: 5,
-      borderColor: colors.border.default,
-      padding: 10,
-      color: colors.text.default,
-    },
-    icon: {
-      margin: 10,
-      color: colors.error.default,
-    },
-    blueText: {
-      color: colors.primary.default,
-    },
-    link: {
-      top: 2.5,
-    },
-    warningMessageText: {
-      marginLeft: 10,
-      marginRight: 40,
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
-    enterPassword: {
-      marginBottom: 15,
-      color: colors.text.default,
-    },
-    boldText: {
-      color: colors.text.default,
-      ...fontStyles.bold,
-    },
-    tabContent: {
-      padding: 20,
-    },
-    qrCodeWrapper: {
-      marginTop: 20,
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    tabUnderlineStyle: {
-      height: 2,
-      backgroundColor: colors.primary.default,
-    },
-    tabStyle: {
-      paddingBottom: 0,
-      backgroundColor: colors.background.default,
-    },
-    textStyle: {
-      fontSize: 12,
-      letterSpacing: 0.5,
-      ...fontStyles.bold,
-    },
-    revealModalText: {
-      marginBottom: 20,
-    },
-    tabBar: {
-      borderColor: colors.border.muted,
-    },
-  });
+import { createStyles } from './styles';
 
 const PRIVATE_KEY = 'private_key';
 // const SEED_PHRASE = 'seed_phrase';
