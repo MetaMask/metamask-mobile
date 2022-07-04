@@ -11,7 +11,6 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
@@ -25,7 +24,6 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
-import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import {
   SRP_URL,
   NON_CUSTODIAL_WALLET_URL,
@@ -35,7 +33,6 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import SecureKeychain from '../../../core/SecureKeychain';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -53,7 +50,6 @@ const RevealPrivateCredential = ({
   navigation,
   showAlert,
   selectedAddress,
-  passwordSet,
   credentialName,
   cancel,
   route,
@@ -67,7 +63,7 @@ const RevealPrivateCredential = ({
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState('');
   const [isAndroidSupportedVersion, setIsAndroidSupportedVersion] =
     useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
@@ -129,23 +125,7 @@ const RevealPrivateCredential = ({
   };
 
   useEffect(() => {
-    const something = async () => {
-      const biometryType = await SecureKeychain.getSupportedBiometryType();
-      if (passwordSet) {
-        tryUnlockWithPassword();
-      } else if (biometryType) {
-        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
-        if (biometryChoice !== '' && biometryChoice === biometryType) {
-          const credentials = await SecureKeychain.getGenericPassword();
-          if (credentials) {
-            tryUnlockWithPassword(credentials.password);
-          }
-        }
-      }
-    };
-
     updateNavBar();
-    something();
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
     });
@@ -456,7 +436,7 @@ const RevealPrivateCredential = ({
             : strings('reveal_credential.cancel')
         }
         confirmText={strings('reveal_credential.confirm')}
-        onCancelPress={unlocked ? navigateBack : cancelLol}
+        onCancelPress={unlocked ? navigation.pop : cancelLol}
         testID={`next-button`}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
@@ -499,10 +479,6 @@ RevealPrivateCredential.propTypes = {
    * String that represents the selected address
    */
   selectedAddress: PropTypes.string,
-  /**
-   * Boolean that determines if the user has set a password before
-   */
-  passwordSet: PropTypes.bool,
   /**
    * String that determines whether to show the seedphrase or private key export screen
    */
