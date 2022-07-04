@@ -17,6 +17,7 @@ import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import { addScreenshotListener } from 'react-native-detector';
 import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
@@ -138,9 +139,24 @@ const RevealPrivateCredential = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const userDidScreenshot = () => {
+      // eslint-disable-next-line no-console
+      console.log('User took screenshot');
+    };
+    const unsubscribe = addScreenshotListener(userDidScreenshot);
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   const isPrivateKey = () => {
     const credential = credentialName || route.params.privateCredentialName;
     return credential === PRIVATE_KEY;
+  };
+
+  const navigateBack = () => {
+    navigation.pop();
   };
 
   const cancelLol = () => {
@@ -153,7 +169,7 @@ const RevealPrivateCredential = ({
       );
 
     if (cancel) return cancel();
-    navigation.pop();
+    navigateBack();
   };
 
   const tryUnlock = () => {
@@ -322,7 +338,7 @@ const RevealPrivateCredential = ({
       { view: 'Hold to reveal' },
     );
 
-    isModalVisible(false);
+    setIsModalVisible(false);
   };
 
   const renderModal = (isPrivateKeyReveal, privateCredentialName) => (
@@ -436,7 +452,7 @@ const RevealPrivateCredential = ({
             : strings('reveal_credential.cancel')
         }
         confirmText={strings('reveal_credential.confirm')}
-        onCancelPress={unlocked ? navigation.pop : cancelLol}
+        onCancelPress={unlocked ? navigateBack : cancelLol}
         testID={`next-button`}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
