@@ -500,7 +500,6 @@ RevealPrivateCredential.propTypes = {
 const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  passwordSet: state.user.passwordSet,
 });
 
 const mapDispatchToProps = (dispatch) => ({
