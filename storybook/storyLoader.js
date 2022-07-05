@@ -15,10 +15,10 @@ function loadStories() {
   require('../app/component-library/components/AvatarIcon/AvatarIcon.stories');
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/BaseButton/BaseButton.stories');
+  require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
-  require('../app/component-library/components/BaseText/BaseText.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/FaviconAvatar/FaviconAvatar.stories');
   require('../app/component-library/components/Icon/Icon.stories');
@@ -26,10 +26,11 @@ function loadStories() {
   require('../app/component-library/components/Link/Link.stories');
   require('../app/component-library/components/MultiselectListItem/MultiselectListItem.stories');
   require('../app/component-library/components/NetworkAvatar/NetworkAvatar.stories');
-  require('../app/component-library/components/TabBarItem/TabBarItem.stories');
+  require('../app/component-library/components/SelectableListItem/SelectableListItem.stories');
   require('../app/component-library/components/TabBar/TabBar.stories');
-  require('../app/component-library/components/TagUrl/TagUrl.stories');
+  require('../app/component-library/components/TabBarItem/TabBarItem.stories');
   require('../app/component-library/components/Tag/Tag.stories');
+  require('../app/component-library/components/TagUrl/TagUrl.stories');
 }
 
 const stories = [
@@ -44,10 +45,10 @@ const stories = [
   '../app/component-library/components/AvatarIcon/AvatarIcon.stories',
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/BaseButton/BaseButton.stories',
+  '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',
-  '../app/component-library/components/BaseText/BaseText.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/FaviconAvatar/FaviconAvatar.stories',
   '../app/component-library/components/Icon/Icon.stories',
@@ -55,10 +56,11 @@ const stories = [
   '../app/component-library/components/Link/Link.stories',
   '../app/component-library/components/MultiselectListItem/MultiselectListItem.stories',
   '../app/component-library/components/NetworkAvatar/NetworkAvatar.stories',
-  '../app/component-library/components/TabBarItem/TabBarItem.stories',
+  '../app/component-library/components/SelectableListItem/SelectableListItem.stories',
   '../app/component-library/components/TabBar/TabBar.stories',
-  '../app/component-library/components/TagUrl/TagUrl.stories',
+  '../app/component-library/components/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Tag/Tag.stories',
+  '../app/component-library/components/TagUrl/TagUrl.stories',
 ];
 
 module.exports = {
