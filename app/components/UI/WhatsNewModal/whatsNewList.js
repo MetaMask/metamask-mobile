@@ -2,10 +2,10 @@
 import { strings } from '../../../../locales/i18n';
 
 export const whatsNew = {
-  // All users that have <5.2.0 and are updating to >=5.2.0 should see
+  // All users that have <5.4.0 and are updating to >=5.4.0 should see
   onlyUpdates: true, // Only users who updated the app will see this, not newly installs
-  maxLastAppVersion: '5.2.0', // Only users who had a previous version <5.2.0 version will see this
-  minAppVersion: '5.2.0', // Only users who updated to a version >= 5.2.0 will see this
+  maxLastAppVersion: '5.4.0', // Only users who had a previous version <5.4.0 version will see this
+  minAppVersion: '5.4.0', // Only users who updated to a version >= 5.4.0 will see this
   /**
    * Slides utilizes a templating system in the form of a 2D array, which is eventually rendered within app/components/UI/WhatsNewModal/index.js.
    * The root layer determines the number of slides. Ex. To display 3 slides, the root layer should contain 3 arrays.
