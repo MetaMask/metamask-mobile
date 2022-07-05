@@ -133,7 +133,7 @@
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
     "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings & try again.",
     "location_access_blocked": "Ledger needs location access to pair with your mobile device.",
-    "location_access_blocked_message": "If you want to pair your Ledger device you’ll need to enable location access in Settings & try again.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings & try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
     "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",

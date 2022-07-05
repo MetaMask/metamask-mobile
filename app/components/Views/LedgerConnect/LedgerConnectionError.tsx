@@ -46,7 +46,7 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      marginBottom: 20,
+      paddingBottom: '5.5%',
     },
     buttonStyle: {
       width: Device.getDeviceWidth() * 0.8,

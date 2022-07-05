@@ -14,7 +14,6 @@ import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from './hooks/useBluetoothDevices';
-import { createIconSetFromFontello } from 'react-native-vector-icons';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
