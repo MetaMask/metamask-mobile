@@ -20,7 +20,7 @@ Token name
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [tokenName](./TokenAvatar.types.ts#L11)         | No                                                      |
+| [tokenName](./TokenAvatar.types.ts#L10)         | No                                                      |
 
 ### `tokenImageUrl`
 
@@ -28,5 +28,12 @@ Token image URL
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [tokenImageUrl](./TokenAvatar.types.ts#L15)     | No                                                      |
+| [tokenImageUrl](./TokenAvatar.types.ts#L10)     | No                                                      |
+
+### `showHalo`
+
+Boolean value that activates halo effect(blurred image colors around)
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [showHalo](./TokenAvatar.types.ts#L18)     | No                                                      |
 

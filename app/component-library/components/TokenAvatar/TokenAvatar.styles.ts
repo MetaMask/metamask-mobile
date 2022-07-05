@@ -16,15 +16,45 @@ const styleSheet = (params: {
   vars: TokenAvatarStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { size, style } = vars;
+  const { size, style, showFallback, showHalo } = vars;
+
+  const avatarSizeWithHalo = showHalo
+    ? {
+        width: 20,
+        height: 20,
+        borderRadius: 20 / 2,
+      }
+    : {};
+
+  const fallbackAvatarStyle = showFallback
+    ? {
+        backgroundColor: theme.colors.background.alternative,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+      }
+    : {};
+
   const baseStyle = {
-    backgroundColor: theme.colors.background.alternative,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
+    ...fallbackAvatarStyle,
+    ...avatarSizeWithHalo,
   };
+
+  const haloSize = Number(BaseAvatarSize.Md);
+
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
+    haloImage: {
+      opacity: 0.5,
+    },
+    halo: {
+      width: haloSize,
+      height: haloSize,
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden',
+      borderRadius: haloSize / 2,
+    },
     label: size === BaseAvatarSize.Xs ? { lineHeight: 16 } : {},
     image: {
       flex: 1,

@@ -3,14 +3,7 @@
 exports[`TokenAvatar should render correctly 1`] = `
 <BaseAvatar
   size="48"
-  style={
-    Object {
-      "alignItems": "center",
-      "backgroundColor": "#F2F4F6",
-      "borderWidth": 1,
-      "justifyContent": "center",
-    }
-  }
+  style={Object {}}
 >
   <Image
     onError={[Function]}

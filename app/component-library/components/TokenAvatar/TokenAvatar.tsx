@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image } from 'react-native';
+import { Image, ImageBackground } from 'react-native';
 import BaseAvatar, { BaseAvatarSize } from '../BaseAvatar';
 import { TokenAvatarProps } from './TokenAvatar.types';
 import BaseText, { BaseTextVariant } from '../BaseText';
@@ -12,22 +12,30 @@ const TokenAvatar = ({
   style,
   tokenName,
   tokenImageUrl,
+  showHalo,
 }: TokenAvatarProps) => {
-  const [showPlaceholder, setShowPlaceholder] = useState(!tokenImageUrl);
-  const { styles } = useStyles(stylesheet, { style, size, showPlaceholder });
+  const [showFallback, setShowFallback] = useState(!tokenImageUrl);
+
+  const { styles } = useStyles(stylesheet, {
+    style,
+    size,
+    showHalo,
+    showFallback,
+  });
+
   const textVariant =
     size === BaseAvatarSize.Sm || size === BaseAvatarSize.Xs
       ? BaseTextVariant.lBodySM
       : BaseTextVariant.lBodyMD;
-  const chainNameFirstLetter = tokenName?.[0] ?? '?';
+  const tokenNameFirstLetter = tokenName?.[0] ?? '?';
 
-  const onError = () => setShowPlaceholder(true);
+  const onError = () => setShowFallback(true);
 
-  return (
+  const tokenImage = () => (
     <BaseAvatar size={size} style={styles.base}>
-      {showPlaceholder ? (
+      {showFallback ? (
         <BaseText style={styles.label} variant={textVariant}>
-          {chainNameFirstLetter}
+          {tokenNameFirstLetter}
         </BaseText>
       ) : (
         <Image
@@ -38,6 +46,19 @@ const TokenAvatar = ({
         />
       )}
     </BaseAvatar>
+  );
+
+  return !showHalo ? (
+    tokenImage()
+  ) : (
+    <ImageBackground
+      blurRadius={20}
+      style={styles.halo}
+      imageStyle={styles.haloImage}
+      source={{ uri: tokenImageUrl }}
+    >
+      {tokenImage()}
+    </ImageBackground>
   );
 };
 
