@@ -3,7 +3,7 @@ import { strings } from '../../../../locales/i18n';
 
 export const whatsNew = {
   // All users that have <5.2.0 and are updating to >=5.2.0 should see
-  onlyUpdates: false, // Only users who updated the app will see this, not newly installs
+  onlyUpdates: true, // Only users who updated the app will see this, not newly installs
   maxLastAppVersion: '5.2.0', // Only users who had a previous version <5.2.0 version will see this
   minAppVersion: '5.2.0', // Only users who updated to a version >= 5.2.0 will see this
   /**
