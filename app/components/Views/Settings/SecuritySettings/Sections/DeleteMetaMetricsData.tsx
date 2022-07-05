@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Alert,
-  Linking,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
 import {
   DeletionTaskStatus,
@@ -151,11 +144,9 @@ const DeleteMetaMetricsData = () => {
             <Text>
               {strings('app_settings.delete_metrics_description_part_three')}
             </Text>{' '}
-            <TouchableOpacity onPress={openPrivacyPolicy}>
-              <Text style={[styles.blueText]}>
-                {strings('app_settings.consensys_privacy_policy')}
-              </Text>
-            </TouchableOpacity>
+            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+              {strings('app_settings.consensys_privacy_policy')}
+            </Text>
           </>
         ) : (
           <>
@@ -166,11 +157,9 @@ const DeleteMetaMetricsData = () => {
             <Text>
               {strings('app_settings.delete_metrics_description_part_five')}
             </Text>{' '}
-            <TouchableOpacity onPress={openPrivacyPolicy}>
-              <Text style={[styles.blueText]}>
-                {strings('app_settings.consensys_privacy_policy')}
-              </Text>
-            </TouchableOpacity>
+            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+              {strings('app_settings.consensys_privacy_policy')}
+            </Text>
           </>
         )
       }
