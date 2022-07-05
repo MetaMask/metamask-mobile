@@ -8,3 +8,5 @@ export enum AppThemeKey {
 export interface Theme extends DesignTokenTheme {
   themeAppearance: AppThemeKey.light | AppThemeKey.dark;
 }
+
+export type Colors = Theme['colors'];
