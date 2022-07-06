@@ -62,6 +62,10 @@ export const NEW_NETWORK_ADDED_CLOSE_BUTTON_ID = 'close-network-button';
 export const NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID =
   'switch-to-network-button';
 
+export const WHATS_NEW_MODAL_CONTAINER_ID = 'whats-new-modal-container';
+export const WHATS_NEW_MODAL_CLOSE_BUTTON_ID = 'whats-new-modal-close-button';
+export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
+
 // Component library test ids
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
