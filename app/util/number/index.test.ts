@@ -23,6 +23,7 @@ import {
   toHexadecimal,
   safeNumberToBN,
   fastSplit,
+  isHexString,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -615,5 +616,18 @@ describe('Number utils :: safeNumberToBN', () => {
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
     expect(result.length).toEqual(expected.length);
+  });
+});
+
+describe('Number utils :: isHexString', () => {
+  it('isHexString', () => {
+    expect(isHexString('0')).toBe(true);
+    expect(isHexString('0x0')).toBe(true);
+    expect(isHexString('1')).toBe(true);
+    expect(isHexString('-1')).toBe(true);
+    expect(isHexString('0x1')).toBe(true);
+    expect(isHexString('-0x1')).toBe(true);
+    expect(isHexString('0xabcdef123')).toBe(true);
+    expect(isHexString('-0xabcdef123')).toBe(true);
   });
 });

@@ -502,6 +502,12 @@ export function fiatNumberToWei(fiat, conversionRate) {
  * @returns {Object} - The converted value as BN instance
  */
 export function safeNumberToBN(value) {
+  if (
+    typeof value === 'string' &&
+    (!isHexString(value) || !isHexString(value))
+  ) {
+    return numberToBN('0');
+  }
   const safeValue = fastSplit(value?.toString()) || '0';
   return numberToBN(safeValue);
 }
@@ -631,6 +637,20 @@ export function isPrefixedFormattedHexString(value) {
     return false;
   }
   return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
+}
+
+/**
+ * Checks whether the given value is a hexadecimal string (0x-prefixed optional).
+ *
+ * @param {string} value - The value to check.
+ * @returns {boolean} True if the value is a hex string,
+ * false otherwise.
+ */
+export function isHexString(value) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  return /^(-)?(0x)?[0-9a-f]+[0-9a-f]*$/i.test(value);
 }
 
 const converter = ({
