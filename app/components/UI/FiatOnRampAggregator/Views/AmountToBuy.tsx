@@ -132,7 +132,6 @@ const AmountToBuy = () => {
   const {
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
-    selectedPaymentMethodType,
     selectedRegion,
     setSelectedRegion,
     selectedAsset,
@@ -814,7 +813,9 @@ const AmountToBuy = () => {
             label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
               <PaymentIcon
-                iconType={getPaymentMethodIcon(selectedPaymentMethodType)}
+                iconType={getPaymentMethodIcon(
+                  currentPaymentMethod?.paymentType,
+                )}
                 size={20}
                 color={colors.icon.default}
               />

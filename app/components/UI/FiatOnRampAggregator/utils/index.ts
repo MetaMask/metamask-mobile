@@ -95,7 +95,7 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function getPaymentMethodIcon(paymentType: string | null) {
+export function getPaymentMethodIcon(paymentType: string | null | undefined) {
   switch (paymentType) {
     case PaymentType.ApplePay: {
       return Icon.Apple;
