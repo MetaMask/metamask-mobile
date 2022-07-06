@@ -68,10 +68,7 @@ const LoginOptionsSwitch = ({
         />
       </View>
     );
-  } else if (
-    shouldRenderBiometricOption === null &&
-    allowLoginWithRememberMe === true
-  ) {
+  } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {
     return (
       <View style={styles.container} testID={LOGIN_WITH_REMEMBER_ME_SWITCH}>
         <Text style={styles.label}>
