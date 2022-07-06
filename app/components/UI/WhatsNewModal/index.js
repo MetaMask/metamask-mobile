@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  TouchableWithoutFeedback,
   Image,
   InteractionManager,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigationState } from '@react-navigation/native';
 import ActionModal from '../ActionModal';
@@ -23,37 +23,78 @@ import {
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
 import compareVersions from 'compare-versions';
-import scaling from '../../../util/scaling';
 import PropTypes from 'prop-types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import StyledButton from '../StyledButton';
+import {
+  useAppThemeFromContext,
+  mockTheme,
+  useAssetFromTheme,
+} from '../../../util/theme';
+import {
+  WHATS_NEW_MODAL_CONTAINER_ID,
+  WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
+  WHATS_NEW_MODAL_GOT_IT_BUTTON_ID,
+} from '../../../constants/test-ids';
+
+const modalMargin = 24;
+const modalPadding = 24;
+const screenWidth = Device.getDeviceWidth();
+const screenHeight = Device.getDeviceHeight();
+const slideItemWidth = screenWidth - modalMargin * 2;
+const maxSlideItemHeight = screenHeight - 200;
+const slideImageWidth = slideItemWidth - modalPadding * 2;
+const imageAspectRatio = 128 / 264;
+const slideImageHeight = slideImageWidth * imageAspectRatio;
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       marginTop: 24,
-      maxHeight: Device.getDeviceHeight() - 200,
+      flex: 1,
+      overflow: 'hidden',
+    },
+    slideContent: {
+      maxHeight: maxSlideItemHeight,
+    },
+    slideItemContainer: {
+      flex: 1,
+      width: slideItemWidth,
+      paddingHorizontal: modalPadding,
+    },
+    slideItemContainerContent: {
+      paddingBottom: 16,
+      flexGrow: 1,
+    },
+    slide: {
       flex: 1,
     },
-    button: {
+    progessContainer: {
+      flexDirection: 'row',
+      alignSelf: 'center',
       marginTop: 16,
-      borderColor: colors.primary.default,
-      borderWidth: 1,
-      borderRadius: 50,
-      padding: 12,
-      paddingHorizontal: 34,
+      marginBottom: 8,
     },
-    buttonText: {
-      color: colors.primary.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
+    slideCircle: {
+      width: 8,
+      height: 8,
+      borderRadius: 8 / 2,
+      backgroundColor: colors.icon.default,
+      opacity: 0.4,
+      marginHorizontal: 8,
+    },
+    slideSolidCircle: {
+      opacity: 1,
+    },
+    button: {
+      marginTop: 8,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 24,
-      paddingHorizontal: 24,
+      marginBottom: 20,
+      paddingHorizontal: modalPadding,
     },
     headerCenterAux: {
       flex: 1,
@@ -67,48 +108,40 @@ const createStyles = (colors) =>
       fontSize: 18,
       color: colors.text.default,
     },
-    newFeatureImageContainer: {
+    slideImageContainer: {
       flexDirection: 'row',
-      flex: 1,
       borderRadius: 10,
       marginBottom: 24,
     },
-    newFeatureImage: {
+    slideImage: {
       flex: 1,
       borderRadius: 10,
-      width: scaling.scale(280, { baseModel: 1 }),
-      height: scaling.scale(128, { baseModel: 1 }),
+      width: slideImageWidth,
+      height: slideImageHeight,
     },
-    newFeatureTitle: {
+    slideTitle: {
       ...fontStyles.bold,
       fontSize: 16,
       marginBottom: 12,
-      textAlign: 'center',
       color: colors.text.default,
     },
-    newFeatureText: {
+    slideDescription: {
       ...fontStyles.normal,
       fontSize: 14,
       lineHeight: 20,
-      textAlign: 'center',
       color: colors.text.default,
-      marginBottom: 12,
-    },
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-    },
-    featureContainer: {
-      marginBottom: 25,
-      paddingHorizontal: 24,
+      marginBottom: 24,
     },
   });
 
 const WhatsNewModal = (props) => {
+  const scrollViewRef = useRef();
   const [featuresToShow, setFeaturesToShow] = useState(null);
   const [show, setShow] = useState(false);
   const routes = useNavigationState((state) => state.routes);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const { colors } = useAppThemeFromContext() || mockTheme;
+  const imageKey = useAssetFromTheme('light', 'dark');
   const styles = createStyles(colors);
 
   useEffect(() => {
@@ -121,44 +154,39 @@ const WhatsNewModal = (props) => {
       const lastAppVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
       const isUpdate = !!lastAppVersion && currentAppVersion !== lastAppVersion;
 
-      let showFeatures = [];
-
-      whatsNew.forEach((feature) => {
-        const seen =
-          !!whatsNewAppVersionSeen &&
-          compareVersions.compare(
-            whatsNewAppVersionSeen,
-            feature.minAppVersion,
-            '>=',
-          );
-
-        if (seen) return;
-
-        if (feature.onlyUpdates) {
-          const updatingCorrect = feature.onlyUpdates && isUpdate;
-
-          if (!updatingCorrect) return;
-
-          const lastVersionCorrect = compareVersions.compare(
-            lastAppVersion,
-            feature.maxLastAppVersion,
-            '<',
-          );
-
-          if (!lastVersionCorrect) return;
-        }
-
-        const versionCorrect = compareVersions.compare(
-          currentAppVersion,
-          feature.minAppVersion,
+      const seen =
+        !!whatsNewAppVersionSeen &&
+        compareVersions.compare(
+          whatsNewAppVersionSeen,
+          whatsNew.minAppVersion,
           '>=',
         );
 
-        if (!versionCorrect) return;
+      if (seen) return;
 
-        showFeatures = [...showFeatures, ...feature.features];
-      });
-      if (showFeatures.length) setFeaturesToShow(showFeatures);
+      if (whatsNew.onlyUpdates) {
+        const updatingCorrect = whatsNew.onlyUpdates && isUpdate;
+
+        if (!updatingCorrect) return;
+
+        const lastVersionCorrect = compareVersions.compare(
+          lastAppVersion,
+          whatsNew.maxLastAppVersion,
+          '<',
+        );
+
+        if (!lastVersionCorrect) return;
+      }
+
+      const versionCorrect = compareVersions.compare(
+        currentAppVersion,
+        whatsNew.minAppVersion,
+        '>=',
+      );
+
+      if (!versionCorrect) return;
+
+      if (whatsNew.slides.length) setFeaturesToShow(true);
     };
     shouldShow();
   }, []);
@@ -169,13 +197,13 @@ const WhatsNewModal = (props) => {
     await AsyncStorage.setItem(WHATS_NEW_APP_VERSION_SEEN, version);
   };
 
-  const callButton = (feature) => {
+  const callButton = (onPress) => {
     closeModal();
-    feature.buttonPress && feature.buttonPress(props);
+    onPress(props);
   };
 
   useEffect(() => {
-    if (props.enabled && !!featuresToShow) {
+    if (props.enabled && featuresToShow) {
       const route = findRouteNameFromNavigatorState(routes);
       if (route === 'WalletView') {
         InteractionManager.runAfterInteractions(() => {
@@ -187,6 +215,78 @@ const WhatsNewModal = (props) => {
     }
   }, [featuresToShow, props.enabled, routes]);
 
+  const renderSlideElement = (elementInfo) => {
+    switch (elementInfo.type) {
+      case 'title':
+        return (element = (
+          <Text style={styles.slideTitle}>{elementInfo.title}</Text>
+        ));
+      case 'description':
+        return (element = (
+          <Text style={styles.slideDescription}>{elementInfo.description}</Text>
+        ));
+      case 'image': {
+        let image;
+        if (elementInfo.images) {
+          image = elementInfo.images[imageKey];
+        } else {
+          image = elementInfo.image;
+        }
+        return (
+          <View style={styles.slideImageContainer}>
+            <Image
+              source={image}
+              style={styles.slideImage}
+              resizeMode={'stretch'}
+            />
+          </View>
+        );
+      }
+      case 'button':
+        return (
+          <View style={styles.button}>
+            <StyledButton
+              type={elementInfo.buttonType}
+              testID={WHATS_NEW_MODAL_GOT_IT_BUTTON_ID}
+              onPress={() => callButton(elementInfo.onPress)}
+            >
+              {elementInfo.buttonText}
+            </StyledButton>
+          </View>
+        );
+    }
+    return null;
+  };
+
+  const renderSlide = (slideInfo, index) => {
+    const key = `slide-info-${index}`;
+    return (
+      <ScrollView
+        key={key}
+        style={styles.slideItemContainer}
+        contentContainerStyle={styles.slideItemContainerContent}
+      >
+        <TouchableWithoutFeedback>
+          <View style={styles.slide}>
+            {slideInfo.map((elementInfo, elIndex) => {
+              const elKey = `${key}-${elIndex}`;
+              return <View key={elKey}>{renderSlideElement(elementInfo)}</View>;
+            })}
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
+    );
+  };
+
+  const onScrollEnd = (e) => {
+    const xOffset = e.nativeEvent.contentOffset.x;
+    const slideIndex = Math.round(xOffset / screenWidth);
+    if (currentSlide === slideIndex) {
+      return;
+    }
+    setCurrentSlide(slideIndex);
+  };
+
   return (
     <ActionModal
       modalVisible={show}
@@ -195,7 +295,7 @@ const WhatsNewModal = (props) => {
       verticalButtons
       propagateSwipe
     >
-      <View style={styles.wrapper} testID={'whats-new-modal'}>
+      <View style={styles.wrapper} testID={WHATS_NEW_MODAL_CONTAINER_ID}>
         <View>
           <View style={styles.header}>
             <View style={styles.headerCenterAux} />
@@ -203,45 +303,52 @@ const WhatsNewModal = (props) => {
             <View style={styles.headerClose}>
               <TouchableOpacity
                 onPress={closeModal}
+                testID={WHATS_NEW_MODAL_CLOSE_BUTTON_ID}
                 hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
               >
-                <Icon name="times" size={16} />
+                <Icon name="times" size={16} color={colors.icon.default} />
               </TouchableOpacity>
             </View>
           </View>
-          {!!featuresToShow && (
-            <ScrollView>
-              <TouchableWithoutFeedback>
-                <View>
-                  {featuresToShow.map((feature, index) => (
-                    <View key={index} style={styles.featureContainer}>
-                      <View style={styles.newFeatureImageContainer}>
-                        <Image
-                          source={feature.image}
-                          style={styles.newFeatureImage}
-                          resizeMode={'stretch'}
-                        />
-                      </View>
-
-                      <Text style={styles.newFeatureTitle}>
-                        {feature.title}
-                      </Text>
-                      <Text style={styles.newFeatureText}>{feature.text}</Text>
-                      <View style={styles.buttonContainer}>
-                        <TouchableOpacity
-                          style={styles.button}
-                          onPress={() => callButton(feature)}
-                        >
-                          <Text style={styles.buttonText}>
-                            {feature.buttonText}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
+          {whatsNew.slides.length > 0 && (
+            <View style={styles.slideContent}>
+              <ScrollView
+                ref={scrollViewRef}
+                scrollEnabled={whatsNew.slides.length > 1}
+                // This is not duplicate. Needed for Android.
+                onScrollEndDrag={onScrollEnd}
+                onMomentumScrollEnd={onScrollEnd}
+                showsHorizontalScrollIndicator={false}
+                horizontal
+                pagingEnabled
+              >
+                {whatsNew.slides.map(renderSlide)}
+              </ScrollView>
+              {whatsNew.slides.length > 1 && (
+                <View style={styles.progessContainer}>
+                  {whatsNew.slides.map((_, index) => (
+                    <TouchableWithoutFeedback
+                      key={`slide-circle-${index}`}
+                      onPress={() => {
+                        scrollViewRef?.current?.scrollTo({
+                          y: 0,
+                          x: index * slideItemWidth,
+                        });
+                        setCurrentSlide(index);
+                      }}
+                      hitSlop={{ top: 8, left: 8, bottom: 8, right: 8 }}
+                    >
+                      <View
+                        style={[
+                          styles.slideCircle,
+                          currentSlide === index && styles.slideSolidCircle,
+                        ]}
+                      />
+                    </TouchableWithoutFeedback>
                   ))}
                 </View>
-              </TouchableWithoutFeedback>
-            </ScrollView>
+              )}
+            </View>
           )}
         </View>
       </View>
