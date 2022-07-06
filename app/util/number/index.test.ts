@@ -489,3 +489,113 @@ describe('Number utils :: fastSplit', () => {
     expect(fastSplit('test string', ' ')).toEqual('test');
   });
 });
+
+describe('Number utils :: safeNumberToBN', () => {
+  it('should safe convert a string type positive decimal number to BN', () => {
+    const result: any = safeNumberToBN('1650000007.7');
+    const expected: any = new BN('1650000007');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a number type positive decimal number to BN', () => {
+    const result: any = safeNumberToBN(1650000007.7);
+    const expected: any = new BN('1650000007');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a string type positive integer to BN', () => {
+    const result: any = safeNumberToBN('16500');
+    const expected: any = new BN('16500');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a number type positive integer to BN', () => {
+    const result: any = safeNumberToBN(16500);
+    const expected: any = new BN('16500');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a string type negative decimal number to BN', () => {
+    const result: any = safeNumberToBN('-1650000007.7');
+    const expected: any = new BN('-1650000007');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a number type negative decimal number to BN', () => {
+    const result: any = safeNumberToBN(-1650000007.7);
+    const expected: any = new BN('-1650000007');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a string type negative integer to BN', () => {
+    const result: any = safeNumberToBN('-16500');
+    const expected: any = new BN('-16500');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a number type negative integer to BN', () => {
+    const result: any = safeNumberToBN(-16500);
+    const expected: any = new BN('-16500');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a positive hex to BN', () => {
+    const result: any = safeNumberToBN('75BCD15');
+    const expected: any = new BN('123456789');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a positive hex with 0x prefix to BN', () => {
+    const result: any = safeNumberToBN('0x75BCD15');
+    const expected: any = new BN('123456789');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a negative hex to BN', () => {
+    const result: any = safeNumberToBN('-75BCD15');
+    const expected: any = new BN('-123456789');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+
+  it('should safe convert a negative hex with 0x prefix to BN', () => {
+    const result: any = safeNumberToBN('-0x75BCD15');
+    const expected: any = new BN('-123456789');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
+});
