@@ -19,6 +19,7 @@ import LoginView from '../pages/LoginView';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const PASSWORD = '12345678';
 
@@ -50,6 +51,17 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('should tap on "Got it" Button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapGotItButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {
