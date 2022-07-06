@@ -18,6 +18,7 @@ const Routes = {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
     WHATS_NEW: 'WhatsNewModal',
+    TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',

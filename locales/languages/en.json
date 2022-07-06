@@ -1204,10 +1204,6 @@
     "enable_device_passcode_ios": "Unlock with device passcode?",
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
-  "remember_me": {
-    "enable_remember_me": "Allow \"Remember me\"",
-    "enable_remember_me_description": "Turn on at your own risk. When \"Remember me\" is on, it gives anyone access to your MetaMask if they can access your phone."
-  },
   "authentication": {
     "auth_prompt_title": "Authentication required",
     "auth_prompt_desc": "Please authenticate in order to use MetaMask",

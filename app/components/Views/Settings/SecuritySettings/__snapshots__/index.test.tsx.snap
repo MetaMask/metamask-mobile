@@ -3,7 +3,6 @@
 exports[`SecuritySettings should render correctly 1`] = `
 <Settings
   accounts={Object {}}
-  allowLoginWithRememberMe={true}
   approvedHosts={Object {}}
   browserHistory={Array []}
   clearBrowserHistory={[Function]}
@@ -30,7 +29,6 @@ exports[`SecuritySettings should render correctly 1`] = `
   passwordSet={[Function]}
   privacyMode={true}
   selectedAddress="0x"
-  setAllowLoginWithRememberMe={[Function]}
   setLockTime={[Function]}
   setPrivacyMode={[Function]}
   setThirdPartyApiMode={[Function]}
