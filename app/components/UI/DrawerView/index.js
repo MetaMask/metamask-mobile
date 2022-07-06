@@ -1444,11 +1444,9 @@ class DrawerView extends PureComponent {
             showReceiveModal={this.showReceiveModal}
           />
         </Modal>
-        <WhatsNewModal
-          navigation={this.props.navigation}
-          enabled={showProtectWalletModal === false}
-        />
-
+        {showProtectWalletModal === false ? (
+          <WhatsNewModal navigation={this.props.navigation} enabled />
+        ) : null}
         {this.renderProtectModal()}
       </View>
     );
