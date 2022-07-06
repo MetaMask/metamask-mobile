@@ -12,7 +12,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import { getPaymentMethodIcon } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import { ScreenLocation } from '../types';
+import { PaymentType, ScreenLocation } from '../types';
 import { strings } from '../../../../../locales/i18n';
 
 // TODO: Convert into typescript and correctly type
@@ -48,7 +48,7 @@ interface Props {
   title?: string;
   onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
-  selectedPaymentMethodId: Payment['id'] | null;
+  selectedPaymentMethodType: string | null;
   location?: ScreenLocation;
 }
 
@@ -58,7 +58,7 @@ function PaymentMethodModal({
   title,
   onItemPress,
   paymentMethods,
-  selectedPaymentMethodId,
+  selectedPaymentMethodType,
   location,
 }: Props) {
   const { colors } = useTheme();
@@ -66,18 +66,18 @@ function PaymentMethodModal({
   const trackEvent = useAnalytics();
 
   const handleOnPressItemCallback = useCallback(
-    (paymentMethodId) => {
-      if (selectedPaymentMethodId !== paymentMethodId) {
-        onItemPress(paymentMethodId);
+    (paymentType) => {
+      if (selectedPaymentMethodType !== paymentType) {
+        onItemPress(paymentType);
         trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-          payment_method_id: paymentMethodId,
+          payment_method_id: paymentType,
           location,
         });
       } else {
         onItemPress();
       }
     },
-    [location, onItemPress, selectedPaymentMethodId, trackEvent],
+    [location, onItemPress, selectedPaymentMethodType, trackEvent],
   );
 
   return (
@@ -102,27 +102,30 @@ function PaymentMethodModal({
             <ScrollView>
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
-                  {paymentMethods?.map(({ id, name, delay, amountTier }) => (
-                    <View key={id} style={styles.row}>
-                      <PaymentOption
-                        highlighted={id === selectedPaymentMethodId}
-                        title={name}
-                        time={delay}
-                        id={id}
-                        onPress={() => handleOnPressItemCallback(id)}
-                        amountTier={amountTier}
-                        paymentType={getPaymentMethodIcon(id)}
-                      />
-                    </View>
-                  ))}
+                  {(paymentMethods as any[])?.map(
+                    ({ id, name, delay, amountTier, paymentType }) => (
+                      <View key={id} style={styles.row}>
+                        <PaymentOption
+                          highlighted={
+                            paymentType === selectedPaymentMethodType
+                          }
+                          title={name}
+                          time={delay}
+                          id={id}
+                          onPress={() => handleOnPressItemCallback(paymentType)}
+                          amountTier={amountTier}
+                          paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                        />
+                      </View>
+                    ),
+                  )}
 
                   <Text small grey centered>
-                    {selectedPaymentMethodId === '/payments/apple-pay' &&
+                    {selectedPaymentMethodType === PaymentType.applePay &&
                       strings(
                         'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                       )}
-                    {selectedPaymentMethodId ===
-                      '/payments/debit-credit-card' &&
+                    {selectedPaymentMethodType === PaymentType.debitOrCredit &&
                       strings(
                         'fiat_on_ramp_aggregator.payment_method.card_fees',
                       )}

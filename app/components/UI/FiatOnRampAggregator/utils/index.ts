@@ -1,4 +1,5 @@
 import { Icon } from '../components/PaymentIcon';
+import { PaymentType } from '../types';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -94,19 +95,15 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function getPaymentMethodIcon(id: string | null) {
-  switch (id) {
-    case '/payments/apple-pay': {
+export function getPaymentMethodIcon(paymentType: string | null) {
+  switch (paymentType) {
+    case PaymentType.applePay: {
       return Icon.Apple;
     }
-    case '/payments/bank-account':
-    case '/payments/gbp-bank-transfer':
-    case '/payments/sepa-bank-transfer':
-    case '/payments/ach-bank-transfer':
-    case '/payments/upi': {
+    case PaymentType.bankAccount: {
       return Icon.Bank;
     }
-    case '/payments/debit-credit-card':
+    case PaymentType.debitOrCredit:
     default: {
       return Icon.Card;
     }

@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { PaymentType } from '../../components/UI/FiatOnRampAggregator/types';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -57,9 +58,9 @@ export const setFiatOrdersRegionAGG = (regionCode) => ({
   type: ACTIONS.FIAT_SET_REGION_AGG,
   payload: regionCode,
 });
-export const setFiatOrdersPaymentMethodAGG = (paymentMethodId) => ({
+export const setFiatOrdersPaymentMethodAGG = (paymentMethodType) => ({
   type: ACTIONS.FIAT_SET_PAYMENT_METHOD_AGG,
-  payload: paymentMethodId,
+  payload: paymentMethodType,
 });
 export const setFiatOrdersGetStartedAGG = (getStartedFlag) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
@@ -98,7 +99,7 @@ export const getProviderName = (provider, data = {}) => {
 
 const INITIAL_SELECTED_REGION = null;
 const INITIAL_GET_STARTED = false;
-const INITIAL_PAYMENT_METHOD = '/payments/debit-credit-card';
+const INITIAL_PAYMENT_METHOD = PaymentType.debitOrCredit;
 
 const ordersSelector = (state) => state.fiatOrders.orders || [];
 export const chainIdSelector = (state) =>

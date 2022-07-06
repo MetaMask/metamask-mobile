@@ -19,6 +19,7 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
+import { PaymentType } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -57,8 +58,8 @@ const PaymentMethod = () => {
 
   const {
     selectedRegion,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
+    selectedPaymentMethodType,
+    setSelectedPaymentMethodType,
     selectedChainId,
     sdkError,
   } = useFiatOnRampSDK();
@@ -68,7 +69,7 @@ const PaymentMethod = () => {
 
   const filteredPaymentMethods = useMemo(() => {
     if (paymentMethods) {
-      return paymentMethods.filter((paymentMethod) =>
+      return (paymentMethods as any[]).filter((paymentMethod) =>
         Device.isAndroid() ? !paymentMethod.isApplePay : true,
       );
     }
@@ -77,19 +78,19 @@ const PaymentMethod = () => {
 
   useEffect(() => {
     if (!isFetching && !error && filteredPaymentMethods) {
-      const paymentMethod = filteredPaymentMethods.find(
-        (pm) => pm.id === selectedPaymentMethodId,
+      const paymentMethod = (filteredPaymentMethods as any[]).find(
+        (pm) => pm.paymentType === selectedPaymentMethodType,
       );
       if (!paymentMethod) {
-        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
+        setSelectedPaymentMethodType(filteredPaymentMethods?.[0]?.paymentType);
       }
     }
   }, [
     error,
     filteredPaymentMethods,
     isFetching,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
+    selectedPaymentMethodType,
+    setSelectedPaymentMethodType,
   ]);
 
   const handleCancelPress = useCallback(() => {
@@ -100,14 +101,14 @@ const PaymentMethod = () => {
   }, [selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
-    (id) => {
-      setSelectedPaymentMethodId(id);
+    (paymentType) => {
+      setSelectedPaymentMethodType(paymentType);
       trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-        payment_method_id: id,
+        payment_method_id: paymentType,
         location: 'Payment Method Screen',
       });
     },
-    [setSelectedPaymentMethodId, trackEvent],
+    [setSelectedPaymentMethodType, trackEvent],
   );
 
   const handleContinueToAmount = useCallback(() => {
@@ -167,34 +168,36 @@ const PaymentMethod = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          {filteredPaymentMethods?.map(({ id, name, delay, amountTier }) => (
-            <View key={id} style={styles.row}>
-              <PaymentOption
-                highlighted={id === selectedPaymentMethodId}
-                title={name}
-                time={delay}
-                id={id}
-                onPress={
-                  id === selectedPaymentMethodId
-                    ? undefined
-                    : () => handlePaymentMethodPress(id)
-                }
-                amountTier={amountTier}
-                paymentType={getPaymentMethodIcon(id)}
-              />
-            </View>
-          ))}
+          {(filteredPaymentMethods as any[])?.map(
+            ({ id, name, delay, amountTier, paymentType }) => (
+              <View key={id} style={styles.row}>
+                <PaymentOption
+                  highlighted={paymentType === selectedPaymentMethodType}
+                  title={name}
+                  time={delay}
+                  id={id}
+                  onPress={
+                    paymentType === selectedPaymentMethodType
+                      ? undefined
+                      : () => handlePaymentMethodPress(paymentType)
+                  }
+                  amountTier={amountTier}
+                  paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                />
+              </View>
+            ),
+          )}
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.row}>
             <Text small grey centered>
-              {selectedPaymentMethodId === '/payments/apple-pay' &&
+              {selectedPaymentMethodType === PaymentType.applePay &&
                 strings(
                   'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                 )}
-              {selectedPaymentMethodId === '/payments/debit-credit-card' &&
+              {selectedPaymentMethodType === PaymentType.debitOrCredit &&
                 strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
             </Text>
           </View>
@@ -202,7 +205,7 @@ const PaymentMethod = () => {
             <StyledButton
               type={'confirm'}
               onPress={handleContinueToAmount}
-              disabled={!selectedPaymentMethodId}
+              disabled={!selectedPaymentMethodType}
             >
               {strings(
                 'fiat_on_ramp_aggregator.payment_method.continue_to_amount',

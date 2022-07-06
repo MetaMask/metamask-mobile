@@ -41,8 +41,8 @@ export interface IFiatOnRampSDK {
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
 
-  selectedPaymentMethodId: string | null;
-  setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
+  selectedPaymentMethodType: string | null;
+  setSelectedPaymentMethodType: (paymentMethodType: string | null) => void;
 
   selectedAsset: CryptoCurrency | null;
   setSelectedAsset: (asset: CryptoCurrency) => void;
@@ -121,15 +121,15 @@ export const FiatOnRampSDKProvider = ({
   const selectedAddress: string = useSelector(selectedAddressSelector);
   const selectedChainId: string = useSelector(chainIdSelector);
 
-  const INITIAL_PAYMENT_METHOD: string | null = useSelector(
+  const INITIAL_PAYMENT_METHOD_TYPE: string | null = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
-    INITIAL_PAYMENT_METHOD,
+  const [selectedPaymentMethodType, setSelectedPaymentMethodType] = useState(
+    INITIAL_PAYMENT_METHOD_TYPE,
   );
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
   const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
@@ -142,10 +142,10 @@ export const FiatOnRampSDKProvider = ({
     [dispatch],
   );
 
-  const setSelectedPaymentMethodIdCallback = useCallback(
-    (paymentMethodId) => {
-      setSelectedPaymentMethodId(paymentMethodId);
-      dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
+  const setSelectedPaymentMethodTypeCallback = useCallback(
+    (paymentMethodType) => {
+      setSelectedPaymentMethodType(paymentMethodType);
+      dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodType));
     },
     [dispatch],
   );
@@ -173,8 +173,8 @@ export const FiatOnRampSDKProvider = ({
     selectedRegion,
     setSelectedRegion: setSelectedRegionCallback,
 
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
+    selectedPaymentMethodType,
+    setSelectedPaymentMethodType: setSelectedPaymentMethodTypeCallback,
 
     selectedAsset,
     setSelectedAsset: setSelectedAssetCallback,
