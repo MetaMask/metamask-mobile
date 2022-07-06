@@ -41,6 +41,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
+import { allowedToBuy } from '../../FiatOrders';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -659,14 +660,18 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            <TouchableOpacity onPress={errorPress}>
+            {isTestNetwork || allowedToBuy(network) ? (
+              <TouchableOpacity onPress={errorPress}>
+                <Text style={styles.error}>{error}</Text>
+                {over && (
+                  <Text style={[styles.error, styles.underline]}>
+                    {errorLinkText}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ) : (
               <Text style={styles.error}>{error}</Text>
-              {over && (
-                <Text style={[styles.error, styles.underline]}>
-                  {errorLinkText}
-                </Text>
-              )}
-            </TouchableOpacity>
+            )}
           </View>
         )}
         {!!warningGasPriceHigh && (
