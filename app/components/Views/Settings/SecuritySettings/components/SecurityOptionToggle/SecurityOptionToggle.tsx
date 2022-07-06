@@ -12,7 +12,8 @@ interface SecurityOptionsToggleProps {
   description?: string;
   value: boolean;
   onOptionUpdated: (enabled: boolean) => void;
-  testId: string;
+  testId?: string;
+  disabled?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ const SecurityOptionToggle = ({
   value,
   testId,
   onOptionUpdated,
+  disabled,
 }: SecurityOptionsToggleProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -50,6 +52,7 @@ const SecurityOptionToggle = ({
           thumbColor={importedColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
+          disabled={disabled}
         />
       </View>
     </View>

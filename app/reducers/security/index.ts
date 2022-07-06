@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/default-param-last */
 import { ActionType, Action } from '../../actions/security';
 import { SecuritySettingsState } from '../../actions/security/state';
-import { store } from '../../store';
-
-const { isUsingRememberMe } = store.getState();
 
 const initialState: Readonly<SecuritySettingsState> = {
-  allowLoginWithRememberMe: isUsingRememberMe,
+  allowLoginWithRememberMe: false,
 };
 
 const securityReducer = (
