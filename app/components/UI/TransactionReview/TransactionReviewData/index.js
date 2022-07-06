@@ -1,12 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { fontStyles } from '../../../../styles/common';
@@ -14,6 +8,9 @@ import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import { showAlert } from '../../../../actions/alert';
+import GlobalAlert from '../../../../components/UI/GlobalAlert';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -95,9 +92,28 @@ class TransactionReviewData extends PureComponent {
      * Height of custom gas and data modal
      */
     customGasHeight: PropTypes.number,
+    /**
+     * Triggers global alert
+     */
+    showAlert: PropTypes.func,
   };
 
   applyRootHeight = () => ({ height: this.props.customGasHeight });
+
+  handleCopyHex = () => {
+    const {
+      transaction: {
+        transaction: { data },
+      },
+    } = this.props;
+    ClipboardManager.setString(data);
+    this.props.showAlert({
+      isVisible: true,
+      autodismiss: 1500,
+      content: 'clipboard-alert',
+      data: { msg: strings('transaction.hex_data_copied') },
+    });
+  };
 
   render = () => {
     const {
@@ -146,14 +162,17 @@ class TransactionReviewData extends PureComponent {
           </Text>
           <View style={styles.scrollView}>
             <KeyboardAwareScrollView style={styles.scrollView}>
-              <TouchableWithoutFeedback style={styles.scrollView}>
-                <Text selectable style={styles.hexData}>
-                  {data}
-                </Text>
-              </TouchableWithoutFeedback>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={this.handleCopyHex}
+                style={styles.scrollView}
+              >
+                <Text style={styles.hexData}>{data}</Text>
+              </TouchableOpacity>
             </KeyboardAwareScrollView>
           </View>
         </View>
+        <GlobalAlert />
       </View>
     );
   };
@@ -169,6 +188,13 @@ const mapStateToProps = (state) => ({
   transaction: state.transaction,
 });
 
+const mapDispatchToProps = (dispatch) => ({
+  showAlert: (config) => dispatch(showAlert(config)),
+});
+
 TransactionReviewData.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(TransactionReviewData);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(TransactionReviewData);

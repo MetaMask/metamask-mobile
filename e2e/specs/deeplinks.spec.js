@@ -11,6 +11,7 @@ import ConnectModal from '../pages/modals/ConnectModal';
 //import NetworkEducationModal from '../pages/modals/NetworkEducationModal';
 import NetworkApprovalModal from '../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../pages/modals/NetworkAddedModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 import { Browser } from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
@@ -64,6 +65,17 @@ describe('Deep linking Tests', () => {
     await ImportWalletView.reEnterPassword(PASSWORD);
     await WalletView.isVisible();
     ///
+  });
+
+  it('should tap on the close button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {
