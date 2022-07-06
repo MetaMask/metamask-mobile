@@ -14,6 +14,7 @@ import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from './hooks/useBluetoothDevices';
+import { LedgerCommunicationErrors } from '../../hooks/useLedgerBluetooth';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -38,9 +39,14 @@ interface ScanProps {
   onScanningErrorStateChanged: (
     error: LedgerConnectionErrorProps | undefined,
   ) => void;
+  ledgerError: LedgerCommunicationErrors | undefined;
 }
 
-const Scan = ({ onDeviceSelected, onScanningErrorStateChanged }: ScanProps) => {
+const Scan = ({
+  onDeviceSelected,
+  onScanningErrorStateChanged,
+  ledgerError,
+}: ScanProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDevice, setSelectedDevice] = useState<
@@ -63,12 +69,18 @@ const Scan = ({ onDeviceSelected, onScanningErrorStateChanged }: ScanProps) => {
     if (
       !bluetoothPermissionError &&
       !bluetoothConnectionError &&
-      !deviceScanError
+      !deviceScanError &&
+      !ledgerError
     ) {
       onScanningErrorStateChanged(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bluetoothPermissionError, bluetoothConnectionError, deviceScanError]);
+  }, [
+    bluetoothPermissionError,
+    bluetoothConnectionError,
+    deviceScanError,
+    ledgerError,
+  ]);
 
   useEffect(() => {
     // first device is selected by default

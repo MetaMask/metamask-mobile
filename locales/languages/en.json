@@ -183,7 +183,8 @@
     "not_supported": "Operation not supported",
     "not_supported_error": "Only version 4 of typed data signing is supported.",
     "error_during_connection": "An unknown error occured",
-    "error_during_connection_message": "Ledger has not been connected. If this happened while trying to pair the device for the first time please make sure that the Ethereum app is NOT running. You can also try to remove the device from you phone's paired bluetooth devices."
+    "error_during_connection_message": "Ledger has not been connected. If this happened while trying to pair the device for the first time please make sure that the Ethereum app is NOT running. You can also try to remove the device from you phone's paired bluetooth devices.",
+    "how_to_install_eth_webview_title": "How to install the Ethereum App"
   },
   "login": {
     "title": "Welcome Back!",

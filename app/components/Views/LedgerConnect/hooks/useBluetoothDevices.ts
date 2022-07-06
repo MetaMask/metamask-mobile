@@ -23,7 +23,7 @@ const useBluetoothDevices = (
   bluetoothInterface: BluetoothInterface = BluetoothTransport,
 ) => {
   const [devices, setDevices] = useState<Record<string, BluetoothDevice>>({});
-  const [deviceScanError, setDeviceScanError] = useState<boolean>();
+  const [deviceScanError, setDeviceScanError] = useState<boolean>(false);
 
   // Initiate scanning and pairing if bluetooth is enabled
   useEffect(() => {

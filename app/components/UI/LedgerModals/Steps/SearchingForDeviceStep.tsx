@@ -2,10 +2,17 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-var-requires */
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Text from '../../../Base/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../util/theme';
+import { useNavigation } from '@react-navigation/native';
 
 const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
 const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
@@ -54,10 +61,22 @@ const createStyles = () =>
 
 const SearchingForDeviceStep = () => {
   const styles = useMemo(() => createStyles(), []);
+  const navigation = useNavigation();
+
   const ledgerImage = useAssetFromTheme(
     ledgerConnectLightImage,
     ledgerConnectDarkImage,
   );
+
+  const handleOpenInstallEthAppInstructions = () => {
+    navigation.push('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true',
+        title: strings('ledger.how_to_install_eth_webview_title'),
+      },
+    });
+  };
 
   return (
     <View style={styles.lookingForDeviceContainer}>
@@ -86,9 +105,11 @@ const SearchingForDeviceStep = () => {
           {strings('ledger.ledger_reminder_message_step_three')}
         </Text>
       </View>
-      <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>
-        {strings('ledger.how_to_install_eth_app')}
-      </Text>
+      <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
+        <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>
+          {strings('ledger.how_to_install_eth_app')}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

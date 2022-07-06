@@ -176,6 +176,7 @@ const LedgerConnect = () => {
             strings('ledger.ethereum_app_not_installed'),
             strings('ledger.ethereum_app_not_installed_error'),
           );
+
           break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
           navigation.navigate('SelectHardwareWallet');
@@ -212,7 +213,6 @@ const LedgerConnect = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ledgerError]);
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.connectLedgerWrapper}>
@@ -279,6 +279,7 @@ const LedgerConnect = () => {
                 setSelectedDevice(ledgerDevice)
               }
               onScanningErrorStateChanged={(error) => setErrorDetails(error)}
+              ledgerError={ledgerError}
             />
           ) : null}
           {selectedDevice && !isAppLaunchConfirmationNeeded ? (
@@ -301,9 +302,9 @@ const LedgerConnect = () => {
           ) : null}
         </View>
       </View>
-      {errorDetail ? <LedgerConnectionError {...errorDetail} /> : null}
+      {errorDetail && <LedgerConnectionError {...errorDetail} />}
     </SafeAreaView>
   );
 };
-
+// Emanuel Charlie Tiparu
 export default React.memo(LedgerConnect);

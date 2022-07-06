@@ -83,7 +83,6 @@ const LedgerConnectionError = ({
 }: LedgerConnectionErrorProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-
   return (
     <View style={styles.wrapper}>
       <View style={styles.contentWrapper}>
