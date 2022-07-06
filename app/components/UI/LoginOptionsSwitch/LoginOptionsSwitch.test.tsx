@@ -14,6 +14,7 @@ describe('LoginWithBiometricsSwitch', () => {
       <Provider store={store}>
         <LoginOptionsSwitch
           shouldRenderBiometricOption={BIOMETRY_TYPE.FACE}
+          initialBiometryChoice
           onUpdateBiometryChoice={handleUpdate}
           onUpdateRememberMe={handleUpdate}
         />

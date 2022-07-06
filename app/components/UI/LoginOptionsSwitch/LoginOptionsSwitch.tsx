@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 
 interface Props {
   shouldRenderBiometricOption: BIOMETRY_TYPE | null;
+  initialBiometryChoice: boolean;
   onUpdateBiometryChoice: (biometryEnabled: boolean) => void;
   onUpdateRememberMe: (rememberMeEnabled: boolean) => void;
 }
@@ -24,6 +25,7 @@ interface Props {
  */
 const LoginOptionsSwitch = ({
   shouldRenderBiometricOption,
+  initialBiometryChoice,
   onUpdateBiometryChoice,
   onUpdateRememberMe,
 }: Props) => {
@@ -32,7 +34,9 @@ const LoginOptionsSwitch = ({
   const allowLoginWithRememberMe = useSelector(
     (state: any) => state.security.allowLoginWithRememberMe,
   );
-  const [biometryEnabled, setBiometryEnabled] = useState<boolean>(false);
+  const [biometryEnabled, setBiometryEnabled] = useState<boolean>(
+    initialBiometryChoice,
+  );
   const [rememberMeEnabled, setRememberMeEnabled] = useState<boolean>(false);
 
   const onBiometryValueChanged = useCallback(async () => {
@@ -68,10 +72,7 @@ const LoginOptionsSwitch = ({
         />
       </View>
     );
-  } else if (
-    shouldRenderBiometricOption === null &&
-    allowLoginWithRememberMe === true
-  ) {
+  } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {
     return (
       <View style={styles.container} testID={LOGIN_WITH_REMEMBER_ME_SWITCH}>
         <Text style={styles.label}>

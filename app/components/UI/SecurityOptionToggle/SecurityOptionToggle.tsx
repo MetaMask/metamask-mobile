@@ -1,11 +1,8 @@
 import React, { useCallback } from 'react';
 import { Switch, Text, View } from 'react-native';
-import {
-  mockTheme,
-  useAppThemeFromContext,
-} from '../../../../../../util/theme';
+import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { createStyles } from './styles';
-import { colors as importedColors } from '../../../../../../styles/common';
+import { colors as importedColors } from '../../../styles/common';
 
 interface SecurityOptionsToggleProps {
   title: string;
