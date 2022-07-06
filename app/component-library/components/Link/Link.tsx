@@ -12,7 +12,7 @@ const Link: React.FC<LinkProps> = ({
   variant = BaseTextVariant.sBodyMD,
   ...props
 }) => {
-  const styles = useStyles(styleSheet, { style });
+  const { styles } = useStyles(styleSheet, { style });
   return (
     <BaseText
       onPress={onPress}

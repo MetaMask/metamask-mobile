@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.3.0",
+  "version": "5.2.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -144,7 +144,6 @@
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
     "buffer": "5.2.1",
-    "codecov": "^3.8.1",
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
     "dnode": "1.2.2",
@@ -171,6 +170,7 @@
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
+    "metro-config": "^0.71.1",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "obj-multiplex": "1.0.0",
@@ -317,6 +317,7 @@
     "react-native-cli": "2.0.1",
     "react-native-storybook-loader": "^2.0.4",
     "react-native-svg-asset-plugin": "^0.5.0",
+    "react-native-svg-transformer": "^1.0.0",
     "react-redux-test": "npm:react-redux@5.1.1",
     "react-test-renderer": "17.0.2",
     "regenerator-runtime": "0.13.9",
