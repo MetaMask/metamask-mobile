@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonTertiary should render correctly 1`] = `
+<BaseButton
+  icon="BankFilled"
+  label="Click me!"
+  labelColor="#037DD6"
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  size="40"
+  style={
+    Object {
+      "backgroundColor": "transparent",
+    }
+  }
+/>
+`;
