@@ -6,7 +6,7 @@ import { BaseAvatarProps } from './BaseAvatar.types';
 import styleSheet from './BaseAvatar.styles';
 
 const BaseAvatar: React.FC<BaseAvatarProps> = ({ size, style, children }) => {
-  const styles = useStyles(styleSheet, {
+  const { styles } = useStyles(styleSheet, {
     size,
     style,
   });
