@@ -65,12 +65,12 @@ interface IProviderProps<T> {
   children?: React.ReactNode | undefined;
 }
 
-const apiHttpHost = process.env.MM_ONRAMP_API_HOST;
+const apiHttpHost = process.env.MM_ONRAMP_API_HOST || '';
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
 export const SDK = OnRampSdk.create(
-  apiHttpHost || isDevelopment ? Environment.Staging : Environment.Production,
+  apiHttpHost || (isDevelopment ? Environment.Staging : Environment.Production),
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,

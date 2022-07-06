@@ -104,19 +104,21 @@ function PaymentMethodModal({
             <ScrollView>
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
-                  {paymentMethods?.map(({ id, name, delay, amountTier }) => (
-                    <View key={id} style={styles.row}>
-                      <PaymentOption
-                        highlighted={id === selectedPaymentMethodId}
-                        title={name}
-                        time={delay}
-                        id={id}
-                        onPress={() => handleOnPressItemCallback(id)}
-                        amountTier={amountTier}
-                        paymentTypeIcon={getPaymentMethodIcon(id)}
-                      />
-                    </View>
-                  ))}
+                  {paymentMethods?.map(
+                    ({ id, name, delay, amountTier, paymentType }) => (
+                      <View key={id} style={styles.row}>
+                        <PaymentOption
+                          highlighted={id === selectedPaymentMethodId}
+                          title={name}
+                          time={delay}
+                          id={id}
+                          onPress={() => handleOnPressItemCallback(id)}
+                          amountTier={amountTier}
+                          paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                        />
+                      </View>
+                    ),
+                  )}
 
                   <Text small grey centered>
                     {selectedPaymentMethodType === PaymentType.ApplePay &&
