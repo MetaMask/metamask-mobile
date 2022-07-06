@@ -48,7 +48,8 @@ interface Props {
   title?: string;
   onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
-  selectedPaymentMethodType: string | null;
+  selectedPaymentMethodId: Payment['id'] | null;
+  selectedPaymentMethodType: PaymentType;
   location?: ScreenLocation;
 }
 
@@ -58,6 +59,7 @@ function PaymentMethodModal({
   title,
   onItemPress,
   paymentMethods,
+  selectedPaymentMethodId,
   selectedPaymentMethodType,
   location,
 }: Props) {
@@ -66,18 +68,18 @@ function PaymentMethodModal({
   const trackEvent = useAnalytics();
 
   const handleOnPressItemCallback = useCallback(
-    (paymentType) => {
-      if (selectedPaymentMethodType !== paymentType) {
-        onItemPress(paymentType);
+    (paymentMethodId) => {
+      if (selectedPaymentMethodId !== paymentMethodId) {
+        onItemPress(paymentMethodId);
         trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-          payment_method_id: paymentType,
+          payment_method_id: paymentMethodId,
           location,
         });
       } else {
         onItemPress();
       }
     },
-    [location, onItemPress, selectedPaymentMethodType, trackEvent],
+    [location, onItemPress, selectedPaymentMethodId, trackEvent],
   );
 
   return (
@@ -102,23 +104,19 @@ function PaymentMethodModal({
             <ScrollView>
               <View style={styles.resultsView}>
                 <ScreenLayout.Content style={styles.content}>
-                  {(paymentMethods as any[])?.map(
-                    ({ id, name, delay, amountTier, paymentType }) => (
-                      <View key={id} style={styles.row}>
-                        <PaymentOption
-                          highlighted={
-                            paymentType === selectedPaymentMethodType
-                          }
-                          title={name}
-                          time={delay}
-                          id={id}
-                          onPress={() => handleOnPressItemCallback(paymentType)}
-                          amountTier={amountTier}
-                          paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                        />
-                      </View>
-                    ),
-                  )}
+                  {paymentMethods?.map(({ id, name, delay, amountTier }) => (
+                    <View key={id} style={styles.row}>
+                      <PaymentOption
+                        highlighted={id === selectedPaymentMethodId}
+                        title={name}
+                        time={delay}
+                        id={id}
+                        onPress={() => handleOnPressItemCallback(id)}
+                        amountTier={amountTier}
+                        paymentTypeIcon={getPaymentMethodIcon(id)}
+                      />
+                    </View>
+                  ))}
 
                   <Text small grey centered>
                     {selectedPaymentMethodType === PaymentType.applePay &&

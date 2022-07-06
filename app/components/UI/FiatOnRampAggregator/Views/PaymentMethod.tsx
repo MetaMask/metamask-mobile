@@ -58,8 +58,8 @@ const PaymentMethod = () => {
 
   const {
     selectedRegion,
-    selectedPaymentMethodType,
-    setSelectedPaymentMethodType,
+    selectedPaymentMethodId,
+    setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
   } = useFiatOnRampSDK();
@@ -69,28 +69,37 @@ const PaymentMethod = () => {
 
   const filteredPaymentMethods = useMemo(() => {
     if (paymentMethods) {
-      return (paymentMethods as any[]).filter((paymentMethod) =>
+      return paymentMethods.filter((paymentMethod) =>
         Device.isAndroid() ? !paymentMethod.isApplePay : true,
       );
     }
     return null;
   }, [paymentMethods]);
 
+  //TODO: remove "as any" when Payment type is imported from the SDK
+  const currentPaymentMethod = useMemo(
+    () =>
+      filteredPaymentMethods?.find?.(
+        (method) => method.id === selectedPaymentMethodId,
+      ) as any,
+    [filteredPaymentMethods, selectedPaymentMethodId],
+  );
+
   useEffect(() => {
     if (!isFetching && !error && filteredPaymentMethods) {
-      const paymentMethod = (filteredPaymentMethods as any[]).find(
-        (pm) => pm.paymentType === selectedPaymentMethodType,
+      const paymentMethod = filteredPaymentMethods.find(
+        (pm) => pm.id === selectedPaymentMethodId,
       );
       if (!paymentMethod) {
-        setSelectedPaymentMethodType(filteredPaymentMethods?.[0]?.paymentType);
+        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
       }
     }
   }, [
     error,
     filteredPaymentMethods,
     isFetching,
-    selectedPaymentMethodType,
-    setSelectedPaymentMethodType,
+    selectedPaymentMethodId,
+    setSelectedPaymentMethodId,
   ]);
 
   const handleCancelPress = useCallback(() => {
@@ -101,14 +110,14 @@ const PaymentMethod = () => {
   }, [selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
-    (paymentType) => {
-      setSelectedPaymentMethodType(paymentType);
+    (id) => {
+      setSelectedPaymentMethodId(id);
       trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-        payment_method_id: paymentType,
+        payment_method_id: id,
         location: 'Payment Method Screen',
       });
     },
-    [setSelectedPaymentMethodType, trackEvent],
+    [setSelectedPaymentMethodId, trackEvent],
   );
 
   const handleContinueToAmount = useCallback(() => {
@@ -172,14 +181,14 @@ const PaymentMethod = () => {
             ({ id, name, delay, amountTier, paymentType }) => (
               <View key={id} style={styles.row}>
                 <PaymentOption
-                  highlighted={paymentType === selectedPaymentMethodType}
+                  highlighted={id === selectedPaymentMethodId}
                   title={name}
                   time={delay}
                   id={id}
                   onPress={
-                    paymentType === selectedPaymentMethodType
+                    id === selectedPaymentMethodId
                       ? undefined
-                      : () => handlePaymentMethodPress(paymentType)
+                      : () => handlePaymentMethodPress(id)
                   }
                   amountTier={amountTier}
                   paymentTypeIcon={getPaymentMethodIcon(paymentType)}
@@ -193,11 +202,12 @@ const PaymentMethod = () => {
         <ScreenLayout.Content>
           <View style={styles.row}>
             <Text small grey centered>
-              {selectedPaymentMethodType === PaymentType.applePay &&
+              {currentPaymentMethod?.paymentType === PaymentType.applePay &&
                 strings(
                   'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                 )}
-              {selectedPaymentMethodType === PaymentType.debitOrCredit &&
+              {currentPaymentMethod?.paymentType ===
+                PaymentType.debitOrCredit &&
                 strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
             </Text>
           </View>
@@ -205,7 +215,7 @@ const PaymentMethod = () => {
             <StyledButton
               type={'confirm'}
               onPress={handleContinueToAmount}
-              disabled={!selectedPaymentMethodType}
+              disabled={!selectedPaymentMethodId}
             >
               {strings(
                 'fiat_on_ramp_aggregator.payment_method.continue_to_amount',

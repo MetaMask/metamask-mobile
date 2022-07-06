@@ -130,8 +130,9 @@ const AmountToBuy = () => {
    * Grab the current state of the SDK via the context.
    */
   const {
+    selectedPaymentMethodId,
+    setSelectedPaymentMethodId,
     selectedPaymentMethodType,
-    setSelectedPaymentMethodType,
     selectedRegion,
     setSelectedRegion,
     selectedAsset,
@@ -168,7 +169,7 @@ const AmountToBuy = () => {
   ] = useSDKMethod(
     'getDefaultFiatCurrency',
     selectedRegion?.id,
-    selectedPaymentMethodType,
+    selectedPaymentMethodId,
   );
 
   const [
@@ -181,7 +182,7 @@ const AmountToBuy = () => {
   ] = useSDKMethod(
     'getFiatCurrencies',
     selectedRegion?.id,
-    selectedPaymentMethodType,
+    selectedPaymentMethodId,
   );
 
   const [
@@ -194,7 +195,7 @@ const AmountToBuy = () => {
   ] = useSDKMethod(
     'getCryptoCurrencies',
     selectedRegion?.id,
-    selectedPaymentMethodType,
+    selectedPaymentMethodId,
     selectedFiatCurrencyId,
   );
 
@@ -210,7 +211,7 @@ const AmountToBuy = () => {
   const [{ data: limits }] = useSDKMethod(
     'getLimits',
     selectedRegion?.id,
-    selectedPaymentMethodType,
+    selectedPaymentMethodId,
     selectedAsset?.id,
     selectedFiatCurrencyId,
   );
@@ -350,23 +351,21 @@ const AmountToBuy = () => {
       !errorPaymentMethods &&
       filteredPaymentMethods
     ) {
-      const foundPaymentMethod = (filteredPaymentMethods as any[])?.find(
-        (pm) => pm.paymentType === selectedPaymentMethodType,
+      const foundPaymentMethod = filteredPaymentMethods?.find(
+        (pm) => pm.id === selectedPaymentMethodId,
       );
       if (foundPaymentMethod) {
-        setSelectedPaymentMethodType(foundPaymentMethod.paymentType);
+        setSelectedPaymentMethodId(foundPaymentMethod.id);
       } else {
-        setSelectedPaymentMethodType(
-          (filteredPaymentMethods as any[])?.[0]?.paymentType,
-        );
+        setSelectedPaymentMethodId(filteredPaymentMethods?.[0]?.id);
       }
     }
   }, [
     errorPaymentMethods,
     filteredPaymentMethods,
     isFetchingPaymentMethods,
-    selectedPaymentMethodType,
-    setSelectedPaymentMethodType,
+    selectedPaymentMethodId,
+    setSelectedPaymentMethodId,
   ]);
 
   /**
@@ -392,10 +391,10 @@ const AmountToBuy = () => {
 
   const currentPaymentMethod = useMemo(
     () =>
-      (filteredPaymentMethods as any[])?.find?.(
-        (method) => method.paymentType === selectedPaymentMethodType,
+      filteredPaymentMethods?.find?.(
+        (method) => method.id === selectedPaymentMethodId,
       ),
-    [filteredPaymentMethods, selectedPaymentMethodType],
+    [filteredPaymentMethods, selectedPaymentMethodId],
   );
 
   /**
@@ -519,7 +518,7 @@ const AmountToBuy = () => {
          */
         const newRegionCurrency = await queryDefaultFiatCurrency(
           region.id,
-          selectedPaymentMethodType,
+          selectedPaymentMethodId,
         );
         setSelectedFiatCurrencyId(newRegionCurrency?.id);
       }
@@ -530,7 +529,7 @@ const AmountToBuy = () => {
       hideRegionModal,
       queryDefaultFiatCurrency,
       selectedFiatCurrencyId,
-      selectedPaymentMethodType,
+      selectedPaymentMethodId,
       setSelectedFiatCurrencyId,
       setSelectedRegion,
     ],
@@ -577,15 +576,15 @@ const AmountToBuy = () => {
    */
 
   const handleChangePaymentMethod = useCallback(
-    (paymentType) => {
-      if (paymentType) {
+    (paymentMethodId) => {
+      if (paymentMethodId) {
         setAmount('0');
         setAmountNumber(0);
-        setSelectedPaymentMethodType(paymentType);
+        setSelectedPaymentMethodId(paymentMethodId);
       }
       hidePaymentMethodModal();
     },
-    [hidePaymentMethodModal, setSelectedPaymentMethodType],
+    [hidePaymentMethodModal, setSelectedPaymentMethodId],
   );
 
   /**
@@ -600,7 +599,7 @@ const AmountToBuy = () => {
     trackEvent('ONRAMP_QUOTES_REQUESTED', {
       currency_source: currentFiatCurrency?.symbol as string,
       currency_destination: selectedAsset?.symbol as string,
-      payment_method_id: selectedPaymentMethodType as string,
+      payment_method_id: selectedPaymentMethodId as string,
       chain_id_destination: selectedChainId,
       amount: amountNumber,
       location: 'Amount to Buy Screen',
@@ -611,7 +610,7 @@ const AmountToBuy = () => {
     navigation,
     selectedAsset,
     selectedChainId,
-    selectedPaymentMethodType,
+    selectedPaymentMethodId,
     trackEvent,
   ]);
 
@@ -882,7 +881,8 @@ const AmountToBuy = () => {
         dismiss={hidePaymentMethodModal as () => void}
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
         paymentMethods={filteredPaymentMethods}
-        selectedPaymentMethodType={selectedPaymentMethodType}
+        selectedPaymentMethodId={selectedPaymentMethodId}
+        selectedPaymentMethodType={(currentPaymentMethod as any)?.paymentType}
         onItemPress={handleChangePaymentMethod}
         location={'Amount to Buy Screen'}
       />

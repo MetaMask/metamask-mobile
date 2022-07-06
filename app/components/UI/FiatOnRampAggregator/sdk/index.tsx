@@ -41,8 +41,8 @@ export interface IFiatOnRampSDK {
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
 
-  selectedPaymentMethodType: string | null;
-  setSelectedPaymentMethodType: (paymentMethodType: string | null) => void;
+  selectedPaymentMethodId: string | null;
+  setSelectedPaymentMethodId: (paymentMethodId: string | null) => void;
 
   selectedAsset: CryptoCurrency | null;
   setSelectedAsset: (asset: CryptoCurrency) => void;
@@ -65,11 +65,12 @@ interface IProviderProps<T> {
   children?: React.ReactNode | undefined;
 }
 
+const apiHttpHost = process.env.MM_ONRAMP_API_HOST;
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
 export const SDK = OnRampSdk.create(
-  isDevelopment ? Environment.Staging : Environment.Production,
+  apiHttpHost || isDevelopment ? Environment.Staging : Environment.Production,
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,
@@ -121,15 +122,15 @@ export const FiatOnRampSDKProvider = ({
   const selectedAddress: string = useSelector(selectedAddressSelector);
   const selectedChainId: string = useSelector(chainIdSelector);
 
-  const INITIAL_PAYMENT_METHOD_TYPE: string | null = useSelector(
+  const INITIAL_PAYMENT_METHOD_ID: string | null = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
 
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
-  const [selectedPaymentMethodType, setSelectedPaymentMethodType] = useState(
-    INITIAL_PAYMENT_METHOD_TYPE,
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
+    INITIAL_PAYMENT_METHOD_ID,
   );
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
   const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
@@ -142,10 +143,10 @@ export const FiatOnRampSDKProvider = ({
     [dispatch],
   );
 
-  const setSelectedPaymentMethodTypeCallback = useCallback(
-    (paymentMethodType) => {
-      setSelectedPaymentMethodType(paymentMethodType);
-      dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodType));
+  const setSelectedPaymentMethodIdCallback = useCallback(
+    (paymentMethodId) => {
+      setSelectedPaymentMethodId(paymentMethodId);
+      dispatch(setFiatOrdersPaymentMethodAGG(paymentMethodId));
     },
     [dispatch],
   );
@@ -173,8 +174,8 @@ export const FiatOnRampSDKProvider = ({
     selectedRegion,
     setSelectedRegion: setSelectedRegionCallback,
 
-    selectedPaymentMethodType,
-    setSelectedPaymentMethodType: setSelectedPaymentMethodTypeCallback,
+    selectedPaymentMethodId,
+    setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
     selectedAsset,
     setSelectedAsset: setSelectedAssetCallback,
