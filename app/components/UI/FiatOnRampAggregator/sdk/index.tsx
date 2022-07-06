@@ -28,6 +28,9 @@ import {
   setFiatOrdersPaymentMethodAGG,
 } from '../../../../reducers/fiatOrders';
 import { Region } from '../types';
+
+// TODO: import *default* I18n to get locale for SDK constructor
+import { /*I18n,*/ I18nEvents } from '../../../../../locales/i18n';
 interface IFiatOnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -68,6 +71,7 @@ interface IProviderProps<T> {
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
+// TODO: Add I18n.locale to constructor (param or option)
 export const SDK = OnRampSdk.create(
   isDevelopment ? Environment.Staging : Environment.Production,
   Context.Mobile,
@@ -75,6 +79,10 @@ export const SDK = OnRampSdk.create(
     verbose: VERBOSE_SDK,
   },
 );
+
+I18nEvents.addListener('localeChanged', (_locale) => {
+  // TODO: Rename _locale to locale and call `SDK.setLocale`
+});
 
 export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp-content.metaswap-dev.codefi.network/regions/fake-callback'
