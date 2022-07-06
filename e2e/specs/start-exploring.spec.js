@@ -14,6 +14,7 @@ import { Browser } from '../pages/Drawer/Browser';
 
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
@@ -70,6 +71,17 @@ describe('Start Exploring', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('should tap on the close button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
   });
 
   it('should go through the onboarding wizard flow', async () => {
