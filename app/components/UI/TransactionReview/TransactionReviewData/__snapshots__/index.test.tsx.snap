@@ -5,7 +5,7 @@ exports[`TransactionReviewData should render correctly 1`] = `
   contractExchangeRates={Object {}}
   conversionRate={0.1}
   currentCurrency="usd"
-  dispatch={[Function]}
+  showAlert={[Function]}
   transaction={
     Object {
       "assetType": undefined,

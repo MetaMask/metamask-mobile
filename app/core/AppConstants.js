@@ -121,4 +121,6 @@ export default {
     ANDROID: 'io.metamask',
   },
   LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
+  ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',
+  ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
 };

@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BaseButton should render correctly 1`] = `
+<TouchableOpacity
+  activeOpacity={1}
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Icon
+    name="BankFilled"
+    size="16"
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
+  />
+  <BaseText
+    style={
+      Object {
+        "color": undefined,
+      }
+    }
+    variant="sBodyMD"
+  >
+    Click me!
+  </BaseText>
+</TouchableOpacity>
+`;
