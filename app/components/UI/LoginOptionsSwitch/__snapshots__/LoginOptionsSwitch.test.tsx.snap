@@ -2,6 +2,7 @@
 
 exports[`LoginWithBiometricsSwitch should render correctly 1`] = `
 <Component
+  initialBiometryChoice={true}
   onUpdateBiometryChoice={[Function]}
   onUpdateRememberMe={[Function]}
   shouldRenderBiometricOption="Face"

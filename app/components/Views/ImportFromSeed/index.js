@@ -394,10 +394,6 @@ class ImportFromSeed extends PureComponent {
     }
   };
 
-  onBiometryChoiceChange = (value) => {
-    this.setState({ biometryChoice: value });
-  };
-
   clearSecretRecoveryPhrase = async (seed) => {
     // get clipboard contents
     const clipboardContents = await Clipboard.getString();
@@ -461,6 +457,7 @@ class ImportFromSeed extends PureComponent {
     return (
       <LoginOptionsSwitch
         shouldRenderBiometricOption={this.state.biometryType}
+        initialBiometryChoice
         onUpdateBiometryChoice={this.updateBiometryChoice}
         onUpdateRememberMe={handleUpdateRememberMe}
       />
