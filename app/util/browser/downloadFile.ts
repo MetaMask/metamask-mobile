@@ -19,20 +19,18 @@ const shareFile = async (filePath: string) => {
   return await Share.open(options);
 };
 
-const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
-  const { config } = RNFetchBlob;
-  const response: FetchBlobResponse = await config({ fileCache: true }).fetch(
-    'GET',
-    downloadUrl,
-  );
-
+const checkAppleWalletPass = async (
+  response: FetchBlobResponse,
+  downloadUrl: string,
+) => {
   /**
    * Support native UI for downloading Apple Wallet Passes
    */
+  const APPLE_WALLET_PASS_MIME_TYPE = 'application/vnd.apple.pkpass';
   if (
     Device.isIos() &&
     response.respInfo &&
-    response.respInfo.headers['Content-Type'] === 'application/vnd.apple.pkpass'
+    response.respInfo.headers['Content-Type'] === APPLE_WALLET_PASS_MIME_TYPE
   ) {
     try {
       await Linking.openURL(downloadUrl);
@@ -52,6 +50,23 @@ const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
         message: strings('download_files.message'),
       };
     }
+  }
+};
+
+const downloadFile = async (downloadUrl: string): Promise<DownloadResult> => {
+  const { config } = RNFetchBlob;
+  const response: FetchBlobResponse = await config({ fileCache: true }).fetch(
+    'GET',
+    downloadUrl,
+  );
+
+  const checkAppleWalletPassResponse = await checkAppleWalletPass(
+    response,
+    downloadUrl,
+  );
+
+  if (checkAppleWalletPassResponse) {
+    return checkAppleWalletPassResponse;
   }
 
   const path = response.path();
