@@ -617,6 +617,15 @@ describe('Number utils :: safeNumberToBN', () => {
     expect(result.negative).toEqual(expected.negative);
     expect(result.length).toEqual(expected.length);
   });
+
+  it('should safe convert an invalid hex string to zero', () => {
+    const result: any = safeNumberToBN('0xNaN');
+    const expected: any = new BN('0');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
+  });
 });
 
 describe('Number utils :: isHexString', () => {

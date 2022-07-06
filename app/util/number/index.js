@@ -353,6 +353,16 @@ export function toBN(value) {
 }
 
 /**
+ * Determines if a string is a valid number
+ *
+ * @param {*} str - Number string
+ * @returns {boolean} - True if the string  is a valid number
+ */
+export function isNumberString(str) {
+  return /^(-)?(\d+(\.\d+)?)$/.test(str);
+}
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -503,13 +513,18 @@ export function fiatNumberToWei(fiat, conversionRate) {
  */
 export function safeNumberToBN(value) {
   if (
-    typeof value === 'string' &&
-    (!isHexString(value) || !isHexString(value))
+    typeof value === 'number' ||
+    (typeof value === 'string' && isNumberString(value))
   ) {
-    return numberToBN('0');
+    const safeValue = fastSplit(value?.toString()) || '0';
+    return numberToBN(safeValue);
   }
-  const safeValue = fastSplit(value?.toString()) || '0';
-  return numberToBN(safeValue);
+
+  if (typeof value === 'string' && isHexString(value)) {
+    return numberToBN(value);
+  }
+
+  return numberToBN('0');
 }
 
 /**
