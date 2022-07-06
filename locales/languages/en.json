@@ -1082,12 +1082,8 @@
     "approve": "Approve",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
-<<<<<<< HEAD
     "network_warning_title": "Network Information",
     "network_warning_desc": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
-=======
-    "network_warning": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
->>>>>>> main
     "learn_more": "Learn more",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
     "switch_network": "Switch to network",
