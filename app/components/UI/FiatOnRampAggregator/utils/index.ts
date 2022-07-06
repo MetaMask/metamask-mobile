@@ -1,5 +1,5 @@
+import { PaymentType } from '@consensys/on-ramp-sdk';
 import { Icon } from '../components/PaymentIcon';
-import { PaymentType } from '../types';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -97,13 +97,13 @@ export const formatId = (id: string) => {
 
 export function getPaymentMethodIcon(paymentType: string | null) {
   switch (paymentType) {
-    case PaymentType.applePay: {
+    case PaymentType.ApplePay: {
       return Icon.Apple;
     }
-    case PaymentType.bankAccount: {
+    case PaymentType.BankTransfer: {
       return Icon.Bank;
     }
-    case PaymentType.debitOrCredit:
+    case PaymentType.DebitCreditCard:
     default: {
       return Icon.Card;
     }

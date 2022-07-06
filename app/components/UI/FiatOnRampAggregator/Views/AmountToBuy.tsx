@@ -391,7 +391,7 @@ const AmountToBuy = () => {
 
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find?.(
+      filteredPaymentMethods?.find(
         (method) => method.id === selectedPaymentMethodId,
       ),
     [filteredPaymentMethods, selectedPaymentMethodId],
@@ -882,7 +882,7 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
         paymentMethods={filteredPaymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
-        selectedPaymentMethodType={(currentPaymentMethod as any)?.paymentType}
+        selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
         location={'Amount to Buy Screen'}
       />

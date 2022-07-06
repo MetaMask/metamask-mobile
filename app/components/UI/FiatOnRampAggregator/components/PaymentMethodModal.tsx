@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
-import { Payment } from '@consensys/on-ramp-sdk';
+import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 
 import BaseText from '../../../Base/Text';
 import ScreenLayout from './ScreenLayout';
@@ -12,7 +12,7 @@ import useAnalytics from '../hooks/useAnalytics';
 import { getPaymentMethodIcon } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-import { PaymentType, ScreenLocation } from '../types';
+import { ScreenLocation } from '../types';
 import { strings } from '../../../../../locales/i18n';
 
 // TODO: Convert into typescript and correctly type
@@ -49,7 +49,7 @@ interface Props {
   onItemPress: (paymentMethodId?: Payment['id']) => void;
   paymentMethods?: Payment[] | null;
   selectedPaymentMethodId: Payment['id'] | null;
-  selectedPaymentMethodType: PaymentType;
+  selectedPaymentMethodType: PaymentType | undefined;
   location?: ScreenLocation;
 }
 
@@ -119,11 +119,12 @@ function PaymentMethodModal({
                   ))}
 
                   <Text small grey centered>
-                    {selectedPaymentMethodType === PaymentType.applePay &&
+                    {selectedPaymentMethodType === PaymentType.ApplePay &&
                       strings(
                         'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                       )}
-                    {selectedPaymentMethodType === PaymentType.debitOrCredit &&
+                    {selectedPaymentMethodType ===
+                      PaymentType.DebitCreditCard &&
                       strings(
                         'fiat_on_ramp_aggregator.payment_method.card_fees',
                       )}

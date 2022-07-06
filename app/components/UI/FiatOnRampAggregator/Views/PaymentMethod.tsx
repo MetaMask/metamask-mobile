@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentOption from '../components/PaymentOption';
@@ -19,8 +20,6 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
-import { PaymentType } from '../types';
-
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -76,12 +75,11 @@ const PaymentMethod = () => {
     return null;
   }, [paymentMethods]);
 
-  //TODO: remove "as any" when Payment type is imported from the SDK
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find?.(
+      filteredPaymentMethods?.find(
         (method) => method.id === selectedPaymentMethodId,
-      ) as any,
+      ),
     [filteredPaymentMethods, selectedPaymentMethodId],
   );
 
@@ -177,7 +175,7 @@ const PaymentMethod = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          {(filteredPaymentMethods as any[])?.map(
+          {filteredPaymentMethods?.map(
             ({ id, name, delay, amountTier, paymentType }) => (
               <View key={id} style={styles.row}>
                 <PaymentOption
@@ -202,12 +200,12 @@ const PaymentMethod = () => {
         <ScreenLayout.Content>
           <View style={styles.row}>
             <Text small grey centered>
-              {currentPaymentMethod?.paymentType === PaymentType.applePay &&
+              {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
                 strings(
                   'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                 )}
               {currentPaymentMethod?.paymentType ===
-                PaymentType.debitOrCredit &&
+                PaymentType.DebitCreditCard &&
                 strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
             </Text>
           </View>
