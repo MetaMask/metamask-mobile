@@ -178,13 +178,14 @@ class AdvancedSettings extends PureComponent {
   };
 
   updateNavBar = () => {
-    const { navigation } = this.props;
+    const { navigation, route } = this.props;
     const { colors } = this.getStyles();
+    const isFullScreenModal = route?.params?.isFullScreenModal || false;
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('app_settings.advanced_title'),
         navigation,
-        false,
+        isFullScreenModal,
         colors,
       ),
     );

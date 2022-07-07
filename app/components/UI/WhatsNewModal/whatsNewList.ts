@@ -32,13 +32,14 @@ export const whatsNew: WhatsNew = {
         type: 'button',
         buttonType: 'normal',
         buttonText: strings('whats_new.feature_token_detection_button_text'),
-        onPress: (props) =>
+        onPress: (props: any) =>
           props.navigation.navigate('SettingsView', {
             screen: 'SettingsFlow',
             params: {
               screen: 'AdvancedSettings',
               params: {
                 scrollToBottom: true,
+                isFullScreenModal: true,
               },
             },
           }),
