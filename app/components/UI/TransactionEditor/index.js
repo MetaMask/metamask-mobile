@@ -270,6 +270,7 @@ class TransactionEditor extends PureComponent {
     const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(
       this.state.pollToken,
     );
+
     this.setState({ pollToken });
   };
 
@@ -283,9 +284,7 @@ class TransactionEditor extends PureComponent {
     const hasEIP1559Gas =
       Boolean(transaction.maxFeePerGas) &&
       Boolean(transaction.maxPriorityFeePerGas);
-
-    if (!hasGasPrice || !hasGasLimit)
-      this.handleGetGas(hasGasPrice, hasGasLimit);
+    if (!hasGasLimit) this.handleGetGasLimit();
 
     if (!hasGasPrice && !hasEIP1559Gas) {
       this.startPolling();
@@ -499,32 +498,13 @@ class TransactionEditor extends PureComponent {
   };
 
   /**
-   * Updates gas price or/and gas limit
-   * @param {boolean} hasGasPrice - Indicates if the transaction have gas price
-   * @param {boolean} hasGasLimit - Indicates if the transaction have gas limit
+   * Updates gas limit
    *
    */
-  handleGetGas = async (hasGasPrice, hasGasLimit) => {
+  handleGetGasLimit = async () => {
     if (!Object.keys(this.props.transaction.selectedAsset).length) return;
-    const { gasPrice, gas } = await this.estimateGas({});
-
-    if (!hasGasPrice && !hasGasLimit) {
-      this.props.setTransactionObject({
-        gasPrice: hexToBN(gasPrice),
-        gas: hexToBN(gas),
-      });
-      return;
-    }
-    if (!hasGasPrice) {
-      this.props.setTransactionObject({
-        gasPrice: hexToBN(gasPrice),
-      });
-      return;
-    }
-
-    this.props.setTransactionObject({
-      gas: hexToBN(gas),
-    });
+    const { gas } = await this.estimateGas({});
+    this.props.setTransactionObject({ gas: hexToBN(gas) });
   };
 
   /**
@@ -629,13 +609,13 @@ class TransactionEditor extends PureComponent {
    * @param {bool} allowEmpty - Whether the validation allows empty amount or not
    * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
    */
-  validateAmount = async (allowEmpty = true, totalGas) => {
+  validateAmount = async (allowEmpty = true) => {
     const {
       transaction: { assetType },
     } = this.props;
     const validations = {
-      ETH: () => this.validateEtherAmount(allowEmpty, totalGas),
-      ERC20: async () => await this.validateTokenAmount(allowEmpty, totalGas),
+      ETH: () => this.validateEtherAmount(allowEmpty),
+      ERC20: async () => await this.validateTokenAmount(allowEmpty),
       ERC721: async () => await this.validateCollectibleOwnership(),
     };
     if (!validations[assetType]) return false;
@@ -671,7 +651,7 @@ class TransactionEditor extends PureComponent {
    * @param {bool} allowEmpty - Whether the validation allows empty amount or not
    * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
    */
-  validateEtherAmount = (allowEmpty = true, total) => {
+  validateEtherAmount = (allowEmpty = true) => {
     let error;
     if (!allowEmpty) {
       const {
@@ -694,16 +674,25 @@ class TransactionEditor extends PureComponent {
    * @param {bool} allowEmpty - Whether the validation allows empty amount or not
    * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
    */
-  validateTokenAmount = async (allowEmpty = true, total) => {
+  validateTokenAmount = async (allowEmpty = true) => {
     let error;
     if (!allowEmpty) {
       const {
-        transaction: { value, gas, gasPrice, from, selectedAsset },
+        transaction: { value, gas, from, selectedAsset },
         contractBalances,
       } = this.props;
       const checksummedFrom = safeToChecksumAddress(from) || '';
-      if (!value || !gas || !gasPrice || !from) {
+
+      if (!value) {
         return strings('transaction.invalid_amount');
+      }
+
+      if (!gas) {
+        return strings('transaction.invalid_gas');
+      }
+
+      if (!from) {
+        return strings('transaction.invalid_from_address');
       }
       // If user trying to send a token that doesn't own, validate balance querying contract
       // If it fails, skip validation
