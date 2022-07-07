@@ -112,10 +112,6 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.3.0",
-<<<<<<< HEAD
-    "@metamask/controllers": "git+https://github.com/MetaMask/controllers.git#19cbb3664f226bf177edcb61fd818261988872fc",
-=======
->>>>>>> main
     "@metamask/contract-metadata": "^1.35.0",
     "@metamask/controllers": "29.0.1",
     "@metamask/design-tokens": "^1.7.0",
