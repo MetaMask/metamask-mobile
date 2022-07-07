@@ -982,7 +982,13 @@ class DrawerView extends PureComponent {
           icon: this.getImageIcon('wallet'),
           selectedIcon: this.getSelectedImageIcon('wallet'),
           action: this.showWallet,
-          routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
+          routeNames: [
+            'Wallet',
+            'WalletView',
+            'Asset',
+            'AddAsset',
+            'Collectible',
+          ],
         },
         {
           name: strings('drawer.transaction_activity'),
