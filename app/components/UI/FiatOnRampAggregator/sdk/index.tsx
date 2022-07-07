@@ -29,8 +29,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { Region } from '../types';
 
-// TODO: import *default* I18n to get locale for SDK constructor
-import { /*I18n,*/ I18nEvents } from '../../../../../locales/i18n';
+import I18n, { I18nEvents } from '../../../../../locales/i18n';
 interface IFiatOnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -71,17 +70,17 @@ interface IProviderProps<T> {
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
-// TODO: Add I18n.locale to constructor (param or option)
 export const SDK = OnRampSdk.create(
   isDevelopment ? Environment.Staging : Environment.Production,
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,
+    locale: I18n.locale,
   },
 );
 
-I18nEvents.addListener('localeChanged', (_locale) => {
-  // TODO: Rename _locale to locale and call `SDK.setLocale`
+I18nEvents.addListener('localeChanged', (locale) => {
+  SDK.setLocale(locale);
 });
 
 export const callbackBaseUrl = isDevelopment
