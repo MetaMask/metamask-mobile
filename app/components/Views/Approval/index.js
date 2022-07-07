@@ -134,13 +134,7 @@ class Approval extends PureComponent {
 
           // We hand over execution to the ledger flow it'll take care of cancelling
           if (!isLedgerAccount) {
-            Engine.context.TransactionController.cancelTransaction(
-              transaction.id,
-            );
-
-            Engine.context.TransactionController.hub.removeAllListeners(
-              `${transaction.id}:finished`,
-            );
+            this.cancelTransactionAndRemoveListeners(transaction.id);
           }
         }
 
@@ -166,6 +160,14 @@ class Approval extends PureComponent {
     }
     return true;
   };
+
+  cancelTransactionAndRemoveListeners = (transactionId) => {
+    Engine.context.TransactionController.cancelTransaction(transactionId);
+
+    Engine.context.TransactionController.hub.removeAllListeners(
+      `${transactionId}:finished`,
+    );
+  }
 
   handleAppStateChange = (appState) => {
     try {
@@ -342,15 +344,9 @@ class Approval extends PureComponent {
         this.setState({ transactionConfirmed: false });
 
         // If a rejection happened on the ledger UI we need to cancel the transaction
-        // In any othercase component will unmount takes care of it
+        // In any other case, componentWillUnmount will take care of it
         if (isLedgerAccount) {
-          Engine.context.TransactionController.cancelTransaction(
-            transaction.id,
-          );
-
-          Engine.context.TransactionController.hub.removeAllListeners(
-            `${transaction.id}:finished`,
-          );
+          this.cancelTransactionAndRemoveListeners(transaction.id);
         }
 
         return;
