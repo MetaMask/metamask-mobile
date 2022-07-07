@@ -196,8 +196,6 @@ class TransactionEditor extends PureComponent {
         });
       }
 
-      console.log('dappSuggestedGas', dappSuggestedGas, gasSelected)
-
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
