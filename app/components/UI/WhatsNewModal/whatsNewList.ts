@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import/no-commonjs, @typescript-eslint/no-require-imports */
 import { strings } from '../../../../locales/i18n';
 
 export const whatsNew = {
@@ -31,13 +31,14 @@ export const whatsNew = {
         type: 'button',
         buttonType: 'normal',
         buttonText: strings('whats_new.feature_token_detection_button_text'),
-        onPress: (props) =>
+        onPress: (props: any) =>
           props.navigation.navigate('SettingsView', {
             screen: 'SettingsFlow',
             params: {
               screen: 'AdvancedSettings',
               params: {
                 scrollToBottom: true,
+                isFullScreenModal: true,
               },
             },
           }),
