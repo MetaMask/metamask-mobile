@@ -60,6 +60,7 @@ import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
 import formatNumber from '../../../util/formatNumber';
+import { allowedToBuy } from '../FiatOrders';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -675,6 +676,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
+
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
@@ -826,17 +828,26 @@ class ApproveTransactionReview extends PureComponent {
 
                   {gasError && (
                     <View style={styles.errorWrapper}>
-                      <TouchableOpacity onPress={errorPress}>
+                      {isTestNetwork || allowedToBuy(network) ? (
+                        <TouchableOpacity onPress={errorPress}>
+                          <Text reset style={styles.error}>
+                            {gasError}
+                          </Text>
+
+                          {over && (
+                            <Text
+                              reset
+                              style={[styles.error, styles.underline]}
+                            >
+                              {errorLinkText}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      ) : (
                         <Text reset style={styles.error}>
                           {gasError}
                         </Text>
-
-                        {over && (
-                          <Text reset style={[styles.error, styles.underline]}>
-                            {errorLinkText}
-                          </Text>
-                        )}
-                      </TouchableOpacity>
+                      )}
                     </View>
                   )}
                   {!gasError && (
