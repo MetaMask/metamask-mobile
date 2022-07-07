@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MultiselectListItem should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Checkbox
+    isSelected={true}
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+  />
+  <View />
+</TouchableOpacity>
+`;

@@ -1,7 +1,8 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import/no-commonjs, import/prefer-default-export, @typescript-eslint/no-require-imports */
 import { strings } from '../../../../locales/i18n';
+import { WhatsNew } from './types';
 
-export const whatsNew = {
+export const whatsNew: WhatsNew = {
   // All users that have <5.4.0 and are updating to >=5.4.0 should see
   onlyUpdates: true, // Only users who updated the app will see this, not newly installs
   maxLastAppVersion: '5.4.0', // Only users who had a previous version <5.4.0 version will see this
@@ -73,5 +74,3 @@ export const whatsNew = {
     ],
   ],
 };
-
-export default whatsNew;
