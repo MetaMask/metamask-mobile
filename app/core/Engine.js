@@ -44,8 +44,6 @@ import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
 
-const NON_EMPTY = 'NON_EMPTY';
-
 const encryptor = new Encryptor();
 let currentChainId: any;
 
@@ -84,7 +82,7 @@ class Engine {
         },
       );
       const networkController = new NetworkController({
-        infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+        infuraProjectId: 'd039103314584a379e33c21fbe89b6cb',
         providerConfig: {
           static: {
             eth_sendTransaction: async (
