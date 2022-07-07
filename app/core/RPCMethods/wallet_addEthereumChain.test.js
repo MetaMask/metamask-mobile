@@ -5,7 +5,7 @@ const correctParams = {
   chainName: 'xDai',
   blockExplorerUrls: ['https://blockscout.com/xdai/mainnet'],
   nativeCurrency: { symbol: 'xDai', decimals: 18 },
-  rpcUrls: ['https://rpc.xdaichain.com'],
+  rpcUrls: ['https://rpc.gnosischain.com'],
 };
 
 const otherOptions = {

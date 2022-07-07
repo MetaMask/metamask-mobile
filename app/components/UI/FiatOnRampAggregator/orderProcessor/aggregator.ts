@@ -34,7 +34,7 @@ const aggregatorOrderStateToFiatOrderState = (
 interface InitialAggregatorOrder {
   id: string;
   account: string;
-  network: number;
+  network: string;
 }
 
 export const aggregatorInitialFiatOrder = (
@@ -63,7 +63,10 @@ export const aggregatorOrderToFiatOrder = (aggregatorOrder: Order) => ({
   currency: aggregatorOrder.fiatCurrency?.symbol || '',
   currencySymbol: aggregatorOrder.fiatCurrency?.denomSymbol || '',
   cryptocurrency: aggregatorOrder.cryptoCurrency?.symbol || '',
-  network: aggregatorOrder.cryptoCurrency?.network?.chainId || '',
+  network:
+    aggregatorOrder.network ||
+    (aggregatorOrder.cryptoCurrency?.network?.chainId &&
+      String(aggregatorOrder.cryptoCurrency.network.chainId)),
   state: aggregatorOrderStateToFiatOrderState(aggregatorOrder.status),
   account: aggregatorOrder.walletAddress,
   txHash: aggregatorOrder.txHash,
@@ -86,9 +89,14 @@ export async function processAggregatorOrder(
       throw new Error('Payment Request Failed: empty order response');
     }
 
+    const transformedOrder = aggregatorOrderToFiatOrder(updatedOrder);
+
     return {
       ...order,
-      ...aggregatorOrderToFiatOrder(updatedOrder),
+      ...transformedOrder,
+      id: order.id || transformedOrder.id,
+      network: order.network || transformedOrder.network,
+      account: order.account || transformedOrder.account,
     };
   } catch (error) {
     Logger.error(error as Error, {
@@ -98,5 +106,3 @@ export async function processAggregatorOrder(
     return order;
   }
 }
-
-export const callbackBaseUrl = 'https://dummy.url.metamask.io';

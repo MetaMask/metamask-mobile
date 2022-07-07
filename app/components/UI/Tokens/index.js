@@ -20,7 +20,7 @@ import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { connect } from 'react-redux';
 import { safeToChecksumAddress } from '../../../util/address';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
@@ -110,6 +110,10 @@ class Tokens extends PureComponent {
      * Array of assets (in this case ERC20 tokens)
      */
     tokens: PropTypes.array,
+    /**
+     * Network provider chain id
+     */
+    chainId: PropTypes.string,
     /**
      * ETH to current currency conversion rate
      */
@@ -273,11 +277,14 @@ class Tokens extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
-        button_location: 'Home Screen',
-        button_copy: 'Buy ETH',
-      });
+      Analytics.trackEventWithParameters(
+        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
+        {
+          text: 'Buy Native Token',
+          location: 'Home Screen',
+          chain_id_destination: this.props.chainId,
+        },
+      );
     });
   };
 
@@ -361,6 +368,7 @@ class Tokens extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   currentCurrency:
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   conversionRate:

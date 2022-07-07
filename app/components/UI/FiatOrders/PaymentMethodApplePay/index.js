@@ -348,7 +348,7 @@ function PaymentMethodApplePay({
               getNotificationDetails(order),
             );
             AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED,
+              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
               {
                 fiat_amount: { value: order.amount, anonymous: true },
                 fiat_currency: { value: order.currency, anonymous: true },

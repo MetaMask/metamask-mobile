@@ -24,7 +24,7 @@ import Button from 'react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
@@ -354,7 +354,7 @@ class Onboarding extends PureComponent {
 
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.getEnabled()) {
+      if (Analytics.checkEnabled()) {
         AnalyticsV2.trackEvent(...eventArgs);
         return;
       }

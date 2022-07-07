@@ -20,6 +20,7 @@ import {
   mockTheme,
   ThemeContext,
 } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -140,7 +141,7 @@ class LockScreen extends PureComponent {
 
       if (!this.props.passwordSet) {
         this.props.navigation.navigate('OnboardingRootNav', {
-          screen: 'OnboardingNav',
+          screen: Routes.ONBOARDING.NAV,
           params: { screen: 'Onboarding' },
         });
       }

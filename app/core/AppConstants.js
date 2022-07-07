@@ -85,6 +85,7 @@ export default {
     NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
     SECURITY:
       'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
+    MM_FAUCET: 'https://faucet.metamask.io/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -94,6 +95,8 @@ export default {
     LOW: 'low',
     MEDIUM: 'medium',
     HIGH: 'high',
+    MARKET: 'market',
+    AGGRESSIVE: 'aggressive',
   },
   GAS_TIMES: {
     UNKNOWN: 'unknown',
@@ -118,4 +121,6 @@ export default {
     ANDROID: 'io.metamask',
   },
   LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
+  ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',
+  ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
 };

@@ -295,7 +295,9 @@ class ManualBackupStep1 extends PureComponent {
 
   tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
-    const mnemonic = await KeyringController.exportSeedPhrase(password);
+    const mnemonic = await KeyringController.exportSeedPhrase(
+      password,
+    ).toString();
     const seed = JSON.stringify(mnemonic).replace(/"/g, '').split(' ');
     return seed;
   };

@@ -1,14 +1,52 @@
 # Changelog
 
 ## Current Main Branch
+- [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
+- [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
+- [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
+- [#4269](https://github.com/MetaMask/metamask-mobile/pull/4269): [IMPROVEMENT] Show amount being approved by default on approval screens
+- [#4495](https://github.com/MetaMask/metamask-mobile/pull/4495): [FIX] WalletConnect Icon on connect screen
+- [#4505](https://github.com/MetaMask/metamask-mobile/pull/4505): [FIX] Updated new rpcUrl of gnosischain on test file
+- [#4442](https://github.com/MetaMask/metamask-mobile/pull/4442): [FIX] Skip to amount to buy when region is selected
+- [#4501](https://github.com/MetaMask/metamask-mobile/pull/4501): [FIX] Add accesible false to pressable group preventing VoiceOver interaction
+- [#4247](https://github.com/MetaMask/metamask-mobile/pull/4247): [IMPROVEMENT] Add rounded corners to svg NFTs
+- [#4470](https://github.com/MetaMask/metamask-mobile/pull/4470): [FIX] Add minimum required params to orders
+- [#4469](https://github.com/MetaMask/metamask-mobile/pull/4469): [FIX] Displaying notification when state changes
+- [#4443](https://github.com/MetaMask/metamask-mobile/pull/4443): [FIX] Wrong analytics property for region event
+- [#4468](https://github.com/MetaMask/metamask-mobile/pull/4468): [FIX] Wrong amount out for onramp analytics
+- [#4418](https://github.com/MetaMask/metamask-mobile/pull/4418): [IMPROVEMENT] Address Verification
+- [#3783](https://github.com/MetaMask/metamask-mobile/pull/3783): [FEAT] Add custom networks
+- [#4131](https://github.com/MetaMask/metamask-mobile/pull/4131): [FIX] Add method for crypto that are not in ISO4217
+- [#4187](https://github.com/MetaMask/metamask-mobile/pull/4187): [IMPROVEMENT] Update copy in Edit & Advance Screens
+- [#4060](https://github.com/MetaMask/metamask-mobile/pull/4060): [FIX] Avoid canceling transactions after submission
+- [#4478](https://github.com/MetaMask/metamask-mobile/pull/4478): [IMPROVEMENT] Video subtitles
+- [#4429](https://github.com/MetaMask/metamask-mobile/pull/4429): [FIX] Prompt camera permission
+- [#4440](https://github.com/MetaMask/metamask-mobile/pull/4440): [FIX] Updating instances of "Metamask" to "MetaMask"
+- [#4438](https://github.com/MetaMask/metamask-mobile/pull/4438): [FIX] Resolved spelling mistake
+- [#4445](https://github.com/MetaMask/metamask-mobile/pull/4445): [FIX] Adding resolutions for security critical packages
+- [#3943](https://github.com/MetaMask/metamask-mobile/pull/3943): [FIX] Remove old gas estimation
+- [#4070](https://github.com/MetaMask/metamask-mobile/pull/4070): [IMPROVEMENT] Update SelectQRAccounts UI
+- [#4178](https://github.com/MetaMask/metamask-mobile/pull/4178): [FIX] Prevent crash when funds warning is pressed
+- [#4367](https://github.com/MetaMask/metamask-mobile/pull/4367): [IMPROVEMENT] Make text hex data selectable
 
-## 5.1.1 - May 12, 2022
-- [#4254](https://github.com/MetaMask/metamask-mobile/pull/4254): [FIX] Crashes on Android devices when using the app in split screen
-- [#4052](https://github.com/MetaMask/metamask-mobile/pull/4052): [FEAT] Download attachments in browser on iOS
-- [4174](https://github.com/MetaMask/metamask-mobile/pull/4174):  [IMPROVEMENT] Use checksum standard format
-- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Send flow confusables bug
-- [#4315](https://github.com/MetaMask/metamask-mobile/pull/4315): [IMPROVEMENT] Make reveal SRP blur view dynamic
+## 5.2.0 - May 17, 2022
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
+- [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
+- [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
+- [#3696](https://github.com/MetaMask/metamask-mobile/pull/3696): [FEATURE] Fiat on Ramp Aggregator
+- [#4303](https://github.com/MetaMask/metamask-mobile/pull/4303): [IMPROVEMENT] Add support for env variable for MM_HOMEPAGE
+- [#4331](https://github.com/MetaMask/metamask-mobile/pull/4331): [IMPROVEMENT] Fix addressbook and browser test
+- [#4170](https://github.com/MetaMask/metamask-mobile/pull/4170): [FIX] Copy to clipboard for Android version 9 and below
+- [#4328](https://github.com/MetaMask/metamask-mobile/pull/4328): [FIX] Fix generate-static-assets
+- [#4318](https://github.com/MetaMask/metamask-mobile/pull/4318): [FIX] Fix confusables bug
+- [#4316](https://github.com/MetaMask/metamask-mobile/pull/4316): [IMPROVEMENT] GIVEN, WHEN, THEN - Template Update
+- [#4167](https://github.com/MetaMask/metamask-mobile/pull/4167): [IMPROVEMENT] Adds support for 'dapp/' urls support on 'metamask://' and fixes DL opening to Apple Store
+- [#4175](https://github.com/MetaMask/metamask-mobile/pull/4175): [Fix] Favourites not showing when home button is pressed in browser tab menu
+- [#4278](https://github.com/MetaMask/metamask-mobile/pull/4278): [IMPROVEMENT] Convert back to spaces
+- [#4249](https://github.com/MetaMask/metamask-mobile/pull/4249): [IMPROVEMENT] patch cross-fetch instead of skipping
+- [#4174](https://github.com/MetaMask/metamask-mobile/pull/4174): [IMPROVEMENT] Address now is in the checksum standard format
+- [#4182](https://github.com/MetaMask/metamask-mobile/pull/4182): [IMPROVEMENT] Standardize prettier configuration
+- [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): [FIX] excluded audit because no available patch
 
 ## 5.1.0 - May 5, 2022
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes

@@ -13,11 +13,11 @@ import { Theme } from '../../util/theme/models';
 export const useStyles = <R, V>(
   styleSheet: (params: { theme: Theme; vars: V }) => R,
   vars: V,
-): R => {
+): { styles: R; theme: Theme } => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(
     () => styleSheet({ theme, vars }),
     [styleSheet, theme, vars],
   );
-  return styles;
+  return { styles, theme };
 };
