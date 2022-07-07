@@ -35,7 +35,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
@@ -59,6 +59,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import Routes from '../../../constants/navigation/Routes';
+import formatNumber from '../../../util/formatNumber';
+import { allowedToBuy } from '../FiatOrders';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -77,6 +79,14 @@ const createStyles = (colors) =>
       marginVertical: 8,
       paddingHorizontal: 16,
     },
+    tokenKey: {
+      fontSize: 12,
+      marginRight: 5,
+    },
+    tokenValue: {
+      fontSize: 12,
+      width: '75%',
+    },
     explanation: {
       ...fontStyles.normal,
       fontSize: 14,
@@ -84,6 +94,11 @@ const createStyles = (colors) =>
       color: colors.text.default,
       lineHeight: 20,
       paddingHorizontal: 16,
+    },
+    tokenAccess: {
+      alignItems: 'center',
+      marginHorizontal: 14,
+      flexDirection: 'row',
     },
     editPermissionText: {
       ...fontStyles.bold,
@@ -323,6 +338,7 @@ class ApproveTransactionReview extends PureComponent {
     editPermissionVisible: false,
     host: undefined,
     originalApproveAmount: undefined,
+    customSpendAmount: null,
     tokenSymbol: undefined,
     spendLimitUnlimitedSelected: true,
     spendLimitCustomValue: undefined,
@@ -531,6 +547,14 @@ class ApproveTransactionReview extends PureComponent {
         transaction,
       );
 
+      const { encodedAmount } = decodeApproveData(newApprovalTransaction.data);
+
+      const approveAmount = fromTokenMinimalUnit(
+        hexToBN(encodedAmount),
+        token.decimals,
+      );
+
+      this.setState({ customSpendAmount: approveAmount });
       setTransactionObject({
         ...newApprovalTransaction,
         transaction: {
@@ -626,7 +650,13 @@ class ApproveTransactionReview extends PureComponent {
   toggleDisplay = () => this.props.onUpdateContractNickname();
 
   renderDetails = () => {
-    const { host, tokenSymbol, spenderAddress } = this.state;
+    const {
+      host,
+      tokenSymbol,
+      spenderAddress,
+      originalApproveAmount,
+      customSpendAmount,
+    } = this.state;
     const {
       primaryCurrency,
       gasError,
@@ -646,6 +676,7 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
+
     const originIsDeeplink =
       origin === ORIGIN_DEEPLINK || origin === ORIGIN_QR_CODE;
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
@@ -677,6 +708,21 @@ class ApproveTransactionReview extends PureComponent {
               { tokenSymbol },
             )}
           </Text>
+          {originalApproveAmount && (
+            <View style={styles.tokenAccess}>
+              <Text bold style={styles.tokenKey}>
+                {` ${strings('spend_limit_edition.access_up_to')} `}
+              </Text>
+              <Text numberOfLines={4} style={styles.tokenValue}>
+                {` ${
+                  customSpendAmount
+                    ? formatNumber(customSpendAmount)
+                    : originalApproveAmount &&
+                      formatNumber(originalApproveAmount)
+                } ${tokenSymbol}`}
+              </Text>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.actionTouchable}
             onPress={this.toggleEditPermission}
@@ -782,17 +828,26 @@ class ApproveTransactionReview extends PureComponent {
 
                   {gasError && (
                     <View style={styles.errorWrapper}>
-                      <TouchableOpacity onPress={errorPress}>
+                      {isTestNetwork || allowedToBuy(network) ? (
+                        <TouchableOpacity onPress={errorPress}>
+                          <Text reset style={styles.error}>
+                            {gasError}
+                          </Text>
+
+                          {over && (
+                            <Text
+                              reset
+                              style={[styles.error, styles.underline]}
+                            >
+                              {errorLinkText}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      ) : (
                         <Text reset style={styles.error}>
                           {gasError}
                         </Text>
-
-                        {over && (
-                          <Text reset style={[styles.error, styles.underline]}>
-                            {errorLinkText}
-                          </Text>
-                        )}
-                      </TouchableOpacity>
+                      )}
                     </View>
                   )}
                   {!gasError && (

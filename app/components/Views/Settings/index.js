@@ -4,7 +4,7 @@ import { StyleSheet, ScrollView, InteractionManager } from 'react-native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getClosableNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { connect } from 'react-redux';
 import { ThemeContext, mockTheme } from '../../../util/theme';

@@ -33,7 +33,7 @@ import {
 import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
