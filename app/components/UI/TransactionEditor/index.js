@@ -270,7 +270,6 @@ class TransactionEditor extends PureComponent {
     const pollToken = await GasFeeController.getGasFeeEstimatesAndStartPolling(
       this.state.pollToken,
     );
-
     this.setState({ pollToken });
   };
 
