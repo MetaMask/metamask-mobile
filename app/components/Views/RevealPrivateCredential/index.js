@@ -490,8 +490,6 @@ class RevealPrivateCredential extends PureComponent {
             <QRCode
               value={clipboardPrivateCredential}
               size={Dimensions.get('window').width - 160}
-              color={colors.text.default}
-              backgroundColor={colors.background.default}
             />
           </View>
         </View>

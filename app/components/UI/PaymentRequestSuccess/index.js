@@ -389,8 +389,6 @@ class PaymentRequestSuccess extends PureComponent {
                 <QRCode
                   value={this.state.qrLink}
                   size={Dimensions.get('window').width - 160}
-                  color={colors.text.default}
-                  backgroundColor={colors.background.default}
                 />
               </View>
             </View>
