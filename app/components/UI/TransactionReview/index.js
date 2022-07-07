@@ -271,7 +271,7 @@ class TransactionReview extends PureComponent {
   };
 
   async componentDidUpdate(prevProps) {
-    if (this.props.ready !== prevProps.ready && this.props.ready) {
+    if (this.props.ready !== prevProps.ready) {
       const error = this.props.validate && (await this.props.validate());
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState({ error });
