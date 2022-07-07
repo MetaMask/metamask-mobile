@@ -43,6 +43,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
+import ConfirmationModal from '../../../component-library/components/ConfirmationModal';
 
 const Stack = createStackNavigator();
 /**
@@ -334,6 +335,7 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
       />
+      <Stack.Screen name={'ConfirmationModal'} component={ConfirmationModal} />
     </Stack.Navigator>
   );
 
