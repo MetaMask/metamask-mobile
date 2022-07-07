@@ -3,6 +3,8 @@ import { StyleProp, TextStyle } from 'react-native';
 import MaterialsCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialsIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
+
 interface iconParams {
   iconType: Icon;
   style?: StyleProp<TextStyle>;
@@ -14,6 +16,7 @@ export enum Icon {
   Apple = 'apple',
   Card = 'credit-card',
   Bank = 'bank',
+  Wallet = 'wallet',
 }
 
 const PaymentIcon = ({
@@ -31,9 +34,12 @@ const PaymentIcon = ({
     case Icon.Bank: {
       return <MaterialsCommunityIcons name={Icon.Bank} {...props} />;
     }
-    case Icon.Card:
-    default: {
+    case Icon.Card: {
       return <MaterialsIcons name={Icon.Card} {...props} />;
+    }
+    case Icon.Wallet:
+    default: {
+      return <SimpleLineIcons name={Icon.Wallet} {...props} />;
     }
   }
 };

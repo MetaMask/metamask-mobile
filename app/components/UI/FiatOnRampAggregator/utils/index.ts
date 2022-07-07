@@ -104,8 +104,10 @@ export function getPaymentMethodIcon(paymentType: string | null | undefined) {
       return Icon.Bank;
     }
     case PaymentType.DebitCreditCard:
-    default: {
       return Icon.Card;
+    case PaymentType.Wallet:
+    default: {
+      return Icon.Wallet;
     }
   }
 }
