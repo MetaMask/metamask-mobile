@@ -20,11 +20,11 @@ export default class NetworkView {
   }
 
   static async switchToCustomNetworks() {
-    await TestHelpers.tapByText('Custom networks');
+    await TestHelpers.tapByText('CUSTOM NETWORKS');
   }
 
   static async switchToPopularNetworks() {
-    await TestHelpers.tapByText('Popular');
+    await TestHelpers.tapByText('POPULAR');
   }
 
   static async tapPopularNetworkByName(networkName) {
