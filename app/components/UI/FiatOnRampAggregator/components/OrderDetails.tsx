@@ -258,29 +258,25 @@ const OrderDetails: React.FC<Props> = ({
         />
         <Group>
           <Text centered primary style={styles.tokenAmount}>
-            {orderData?.cryptoCurrency?.decimals &&
+            {orderData?.cryptoCurrency?.decimals !== undefined &&
             cryptoAmount &&
             cryptocurrency ? (
               renderFromTokenMinimalUnit(
                 toTokenMinimalUnit(
                   cryptoAmount,
-                  orderData?.cryptoCurrency?.decimals,
+                  orderData.cryptoCurrency.decimals,
                 ).toString(),
-                orderData?.cryptoCurrency?.decimals,
+                orderData.cryptoCurrency.decimals,
               )
             ) : (
               <Text>...</Text>
             )}{' '}
             {cryptocurrency}
           </Text>
-          {orderData?.fiatCurrency?.decimals && currencySymbol ? (
+          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
             <Text centered small grey>
               {currencySymbol}
-              {renderFiat(
-                amountOut,
-                currency,
-                orderData?.fiatCurrency?.decimals,
-              )}
+              {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
             </Text>
           ) : (
             <Text centered small>
@@ -352,12 +348,12 @@ const OrderDetails: React.FC<Props> = ({
               </ListItem.Body>
               <ListItem.Amounts>
                 <Text small bold primary>
-                  {orderData?.paymentMethod?.name}
+                  {orderData.paymentMethod.name}
                 </Text>
               </ListItem.Amounts>
             </ListItem.Content>
           )}
-          {Boolean(order.provider && orderData?.paymentMethod?.name) && (
+          {Boolean(order.provider) && (
             <Text small right grey>
               {providerName}
               {supportLinkUrl ? (
@@ -391,14 +387,15 @@ const OrderDetails: React.FC<Props> = ({
                 </Text>
               </ListItem.Body>
               <ListItem.Amounts>
-                {cryptoAmount && orderData?.cryptoCurrency?.decimals ? (
+                {cryptoAmount &&
+                orderData?.cryptoCurrency?.decimals !== undefined ? (
                   <Text small bold primary>
                     {renderFromTokenMinimalUnit(
                       toTokenMinimalUnit(
                         cryptoAmount,
-                        orderData?.cryptoCurrency?.decimals,
+                        orderData.cryptoCurrency.decimals,
                       ).toString(),
-                      orderData?.cryptoCurrency?.decimals,
+                      orderData.cryptoCurrency.decimals,
                     )}{' '}
                     {cryptocurrency}
                   </Text>
@@ -422,13 +419,13 @@ const OrderDetails: React.FC<Props> = ({
                   {order.cryptocurrency &&
                   isFinite(exchangeRate) &&
                   currency &&
-                  orderData?.fiatCurrency?.decimals ? (
+                  orderData?.fiatCurrency?.decimals !== undefined ? (
                     <Text small bold primary>
                       1 {order.cryptocurrency} @{' '}
                       {renderFiat(
                         exchangeRate,
                         currency,
-                        orderData?.fiatCurrency?.decimals,
+                        orderData.fiatCurrency.decimals,
                       )}
                     </Text>
                   ) : (
@@ -446,7 +443,7 @@ const OrderDetails: React.FC<Props> = ({
                   </Text>
                 </ListItem.Body>
                 <ListItem.Amounts>
-                  {orderData?.fiatCurrency?.decimals &&
+                  {orderData?.fiatCurrency?.decimals !== undefined &&
                   amountOut &&
                   currency ? (
                     <Text small bold primary>
@@ -454,7 +451,7 @@ const OrderDetails: React.FC<Props> = ({
                       {renderFiat(
                         amountOut,
                         currency,
-                        orderData?.fiatCurrency?.decimals,
+                        orderData.fiatCurrency.decimals,
                       )}
                     </Text>
                   ) : (
@@ -472,13 +469,15 @@ const OrderDetails: React.FC<Props> = ({
                 </Text>
               </ListItem.Body>
               <ListItem.Amounts>
-                {cryptoFee && currency && orderData?.fiatCurrency?.decimals ? (
+                {cryptoFee &&
+                currency &&
+                orderData?.fiatCurrency?.decimals !== undefined ? (
                   <Text small bold primary>
                     {currencySymbol}
                     {renderFiat(
                       cryptoFee as number,
                       currency,
-                      orderData?.fiatCurrency?.decimals,
+                      orderData.fiatCurrency.decimals,
                     )}
                   </Text>
                 ) : (
@@ -502,13 +501,13 @@ const OrderDetails: React.FC<Props> = ({
                 {currencySymbol &&
                 amount &&
                 currency &&
-                orderData?.fiatCurrency?.decimals ? (
+                orderData?.fiatCurrency?.decimals !== undefined ? (
                   <Text small bold primary>
                     {currencySymbol}
                     {renderFiat(
                       amount as number,
                       currency,
-                      orderData?.fiatCurrency?.decimals,
+                      orderData.fiatCurrency.decimals,
                     )}
                   </Text>
                 ) : (
