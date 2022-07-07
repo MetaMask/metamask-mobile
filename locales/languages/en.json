@@ -133,7 +133,7 @@
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
     "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings & try again.",
     "location_access_blocked": "Ledger needs location access to pair with your mobile device.",
-    "location_access_blocked_message": "If you want to pair your Ledger device using you’ll need to enable location access in Settings & try again.",
+    "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings & try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
     "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",
@@ -168,7 +168,7 @@
     "unknown_error": "Unexpected error occurred.",
     "unknown_error_message": "An unexpected error occured. Please try again.",
     "error_occured": "An error occured",
-    "how_to_install_eth_app": "How to install the Ethereum app on a ledger device",
+    "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
     "open_eth_app": "Please open the Ethereum app",
     "open_eth_app_message_one": "We’ve detected you have the Ethereum app installed but it’s not open, please ",
@@ -181,7 +181,10 @@
     "ledger_pending_confirmation": "Ledger is busy",
     "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Please clear the action first then retry.",
     "not_supported": "Operation not supported",
-    "not_supported_error": "Only version 4 of typed data signing is supported."
+    "not_supported_error": "Only version 4 of typed data signing is supported.",
+    "error_during_connection": "An unknown error occured",
+    "error_during_connection_message": "Ledger has not been connected. If this happened while trying to pair the device for the first time please make sure that the Ethereum app is NOT running. You can also try to remove the device from you phone's paired bluetooth devices.",
+    "how_to_install_eth_webview_title": "How to install the Ethereum App"
   },
   "login": {
     "title": "Welcome Back!",

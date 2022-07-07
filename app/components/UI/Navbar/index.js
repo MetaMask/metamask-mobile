@@ -179,7 +179,7 @@ export function getNavigationOptionsTitle(
       ...fontStyles.normal,
     },
     headerIcon: {
-      color: themeColors.primary.default,
+      color: themeColors.text.default,
     },
     headerStyle: {
       backgroundColor: themeColors.background.default,

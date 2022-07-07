@@ -367,11 +367,19 @@ class Approve extends PureComponent {
     const { GasFeeController } = Engine.context;
     GasFeeController.stopPolling(this.state.pollToken);
     AppState.removeEventListener('change', this.handleAppStateChange);
-    Engine.context.TransactionController.hub.removeAllListeners(
-      `${transaction.id}:finished`,
-    );
-    if (!approved)
-      Engine.context.TransactionController.cancelTransaction(transaction.id);
+
+    const isLedgerAccount = isHardwareAccount(transaction.from, [
+      KeyringTypes.ledger,
+    ]);
+
+    if (!isLedgerAccount) {
+      if (!approved)
+        Engine.context.TransactionController.cancelTransaction(transaction.id);
+
+      Engine.context.TransactionController.hub.removeAllListeners(
+        `${transaction.id}:finished`,
+      );
+    }
   };
 
   handleAppStateChange = (appState) => {
@@ -497,14 +505,21 @@ class Approve extends PureComponent {
     } else if (this.validateGas(LegacyGasData.totalHex)) return;
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true });
+
     try {
       const transaction = this.prepareTransaction(this.props.transaction);
+      const isLedgerAccount = isHardwareAccount(transaction.from, [
+        KeyringTypes.ledger,
+      ]);
+
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
           if (transactionMeta.status === 'submitted') {
-            this.setState({ approved: true });
-            this.props.toggleApproveModal();
+            if (!isLedgerAccount) {
+              this.setState({ approved: true });
+              this.props.toggleApproveModal();
+            }
             NotificationManager.watchSubmittedTransaction({
               ...transactionMeta,
               assetType: 'ETH',
@@ -518,6 +533,18 @@ class Approve extends PureComponent {
       const finalizeConfirmation = (confirmed) => {
         if (!confirmed) {
           this.setState({ transactionHandled: false });
+
+          // If a rejection happened on the ledger UI we need to cancel the transaction
+          // In any othercase component will unmount takes care of it
+          if (isLedgerAccount) {
+            Engine.context.TransactionController.cancelTransaction(
+              transaction.id,
+            );
+
+            Engine.context.TransactionController.hub.removeAllListeners(
+              `${transaction.id}:finished`,
+            );
+          }
         }
 
         AnalyticsV2.trackEvent(
@@ -533,13 +560,10 @@ class Approve extends PureComponent {
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
-      const isLedgerAccount = isHardwareAccount(transaction.from, [
-        KeyringTypes.ledger,
-      ]);
-
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
         const ledgerKeyring = await KeyringController.getLedgerKeyring();
+        this.setState({ transactionHandled: true });
 
         this.props.navigation.navigate(
           ...createLedgerTransactionModalNavDetails({
@@ -549,6 +573,8 @@ class Approve extends PureComponent {
             type: 'signTransaction',
           }),
         );
+
+        this.props.toggleApproveModal();
       } else {
         await TransactionController.approveTransaction(transaction.id);
         finalizeConfirmation(true);

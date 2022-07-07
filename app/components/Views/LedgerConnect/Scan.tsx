@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform, Linking } from 'react-native';
 import { openSettings } from 'react-native-permissions';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +14,7 @@ import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from './hooks/useBluetoothDevices';
+import { LedgerCommunicationErrors } from '../../hooks/useLedgerBluetooth';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -38,11 +39,19 @@ interface ScanProps {
   onScanningErrorStateChanged: (
     error: LedgerConnectionErrorProps | undefined,
   ) => void;
+  ledgerError: LedgerCommunicationErrors | undefined;
 }
 
-const Scan = ({ onDeviceSelected, onScanningErrorStateChanged }: ScanProps) => {
+const Scan = ({
+  onDeviceSelected,
+  onScanningErrorStateChanged,
+  ledgerError,
+}: ScanProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const [selectedDevice, setSelectedDevice] = useState<
+    BluetoothDevice | undefined
+  >();
   const {
     hasBluetoothPermissions,
     bluetoothPermissionError,
@@ -60,12 +69,18 @@ const Scan = ({ onDeviceSelected, onScanningErrorStateChanged }: ScanProps) => {
     if (
       !bluetoothPermissionError &&
       !bluetoothConnectionError &&
-      !deviceScanError
+      !deviceScanError &&
+      !ledgerError
     ) {
       onScanningErrorStateChanged(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bluetoothPermissionError, bluetoothConnectionError, deviceScanError]);
+  }, [
+    bluetoothPermissionError,
+    bluetoothConnectionError,
+    deviceScanError,
+    ledgerError,
+  ]);
 
   useEffect(() => {
     // first device is selected by default
@@ -156,9 +171,15 @@ const Scan = ({ onDeviceSelected, onScanningErrorStateChanged }: ScanProps) => {
             label={strings('ledger.available_devices')}
             defaultValue={options[0]?.label}
             onValueChange={(deviceId: string) => {
-              const selectedDevice = devices.find((d) => d.id === deviceId);
-              onDeviceSelected(selectedDevice);
+              const currentDevice = devices.find((d) => d.id === deviceId);
+              setSelectedDevice(currentDevice);
+              onDeviceSelected(currentDevice);
             }}
+            selectedValue={
+              (selectedDevice &&
+                options.find((d) => d.value === selectedDevice?.id)?.value) ??
+              options[0]?.value
+            }
           />
         </View>
       ) : null}

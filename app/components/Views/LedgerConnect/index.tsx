@@ -21,7 +21,7 @@ import {
   useAssetFromTheme,
 } from '../../../util/theme';
 import Device from '../../../util/device';
-import { fontStyles } from '../../../styles/common';
+import { colors as importedColors, fontStyles } from '../../../styles/common';
 import Scan from './Scan';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
@@ -112,6 +112,7 @@ const LedgerConnect = () => {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -127,7 +128,8 @@ const LedgerConnect = () => {
     error: ledgerError,
   } = useLedgerBluetooth(selectedDevice?.id);
 
-  const connectLedger = () =>
+  const connectLedger = () => {
+    setLoading(true);
     ledgerLogicToRun(async () => {
       const defaultLedgerAccount =
         await KeyringController.unlockLedgerDefaultAccount();
@@ -137,6 +139,7 @@ const LedgerConnect = () => {
 
       navigation.dispatch(StackActions.popToTop());
     });
+  };
 
   const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
     setErrorDetails({
@@ -154,6 +157,7 @@ const LedgerConnect = () => {
 
   useEffect(() => {
     if (ledgerError) {
+      setLoading(false);
       switch (ledgerError) {
         case LedgerCommunicationErrors.FailedToOpenApp:
           handleErrorWithRetry(
@@ -172,6 +176,7 @@ const LedgerConnect = () => {
             strings('ledger.ethereum_app_not_installed'),
             strings('ledger.ethereum_app_not_installed_error'),
           );
+
           break;
         case LedgerCommunicationErrors.UserRefusedConfirmation:
           navigation.navigate('SelectHardwareWallet');
@@ -184,7 +189,12 @@ const LedgerConnect = () => {
           break;
         case LedgerCommunicationErrors.UnknownError:
         case LedgerCommunicationErrors.LedgerDisconnected:
-        default:
+          handleErrorWithRetry(
+            strings('ledger.error_during_connection'),
+            strings('ledger.error_during_connection_message'),
+          );
+          break;
+        default: {
           dispatch(
             showSimpleNotification({
               autodismiss: false,
@@ -198,11 +208,11 @@ const LedgerConnect = () => {
           );
           navigation.navigate('SelectHardwareWallet');
           break;
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ledgerError]);
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.connectLedgerWrapper}>
@@ -212,6 +222,7 @@ const LedgerConnect = () => {
             ledgerDeviceDarkImage,
           )}
           style={styles.ledgerImage}
+          resizeMode="contain"
         />
         <Text bold style={styles.connectLedgerText}>
           {strings('ledger.connect_ledger')}
@@ -268,6 +279,7 @@ const LedgerConnect = () => {
                 setSelectedDevice(ledgerDevice)
               }
               onScanningErrorStateChanged={(error) => setErrorDetails(error)}
+              ledgerError={ledgerError}
             />
           ) : null}
           {selectedDevice && !isAppLaunchConfirmationNeeded ? (
@@ -278,8 +290,8 @@ const LedgerConnect = () => {
                 testID={'add-network-button'}
                 disabled={isSendingLedgerCommands}
               >
-                {isSendingLedgerCommands ? (
-                  <ActivityIndicator color={colors.white} />
+                {loading || isSendingLedgerCommands ? (
+                  <ActivityIndicator color={importedColors.white} />
                 ) : ledgerError ? (
                   strings('ledger.retry')
                 ) : (
@@ -290,9 +302,9 @@ const LedgerConnect = () => {
           ) : null}
         </View>
       </View>
-      {errorDetail ? <LedgerConnectionError {...errorDetail} /> : null}
+      {errorDetail && <LedgerConnectionError {...errorDetail} />}
     </SafeAreaView>
   );
 };
-
+// Emanuel Charlie Tiparu
 export default React.memo(LedgerConnect);

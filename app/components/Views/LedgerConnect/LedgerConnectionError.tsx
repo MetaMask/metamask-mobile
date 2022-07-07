@@ -46,6 +46,7 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
+      paddingBottom: '5.5%',
     },
     buttonStyle: {
       width: Device.getDeviceWidth() * 0.8,
@@ -82,7 +83,6 @@ const LedgerConnectionError = ({
 }: LedgerConnectionErrorProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-
   return (
     <View style={styles.wrapper}>
       <View style={styles.contentWrapper}>
@@ -91,6 +91,7 @@ const LedgerConnectionError = ({
             ledgerConnectErrorLightImage,
             ledgerConnectErrorDarkImage,
           )}
+          resizeMode="contain"
         />
         <View style={styles.errorHasOccuredTextContainer}>
           <Text bold big style={styles.errorHasOccuredText}>

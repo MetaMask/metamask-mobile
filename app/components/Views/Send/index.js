@@ -513,6 +513,7 @@ class Send extends PureComponent {
           TransactionTypes.MMM,
           WalletDevice.MM_MOBILE,
         );
+
       await KeyringController.resetQRKeyringState();
       await TransactionController.approveTransaction(transactionMeta.id);
 
