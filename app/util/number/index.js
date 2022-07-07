@@ -111,6 +111,7 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
 }
 
 const INTEGER_REGEX = /^-?\d*(\.0+|\.)?$/;
+export const INTEGER_OR_FLOAT_REGEX = /^[+-]?\d+(\.\d+)?$/;
 
 /**
  * Converts token minimal unit to readable string value
