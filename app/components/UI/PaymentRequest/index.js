@@ -425,7 +425,7 @@ class PaymentRequest extends PureComponent {
     } else if (
       //Check to see if it is not a test net ticker symbol
       Object.values(NetworksChainId).find((value) => value === chainId) &&
-      !(chainId > '1' && chainId < '6')
+      !(parseInt(chainId, 10) > 1 && parseInt(chainId, 10) < 6)
     ) {
       results = [defaultEth];
     } else {
