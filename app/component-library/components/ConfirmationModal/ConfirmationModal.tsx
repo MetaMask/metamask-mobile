@@ -49,7 +49,7 @@ const ConfirmationModal = ({ route }: ConfirmationModalProps) => {
         variant={ButtonSecondaryVariant[variant]}
         onPress={triggerCancel}
         label={cancelLabel || strings('wallet.hide_token.cancel_cta')}
-        size={BaseButtonSize.Md}
+        size={BaseButtonSize.Lg}
         style={styles.button}
       />
       <View style={styles.buttonDivider} />
@@ -57,7 +57,7 @@ const ConfirmationModal = ({ route }: ConfirmationModalProps) => {
         variant={ButtonPrimaryVariant[variant]}
         onPress={triggerConfirm}
         label={confirmLabel || strings('wallet.hide_token.confirm_cta')}
-        size={BaseButtonSize.Md}
+        size={BaseButtonSize.Lg}
         style={styles.button}
       />
     </View>
