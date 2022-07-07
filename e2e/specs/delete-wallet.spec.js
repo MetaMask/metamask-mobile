@@ -19,6 +19,7 @@ import ChangePasswordView from '../pages/Drawer/Settings/SecurityAndPrivacy/Chan
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import DeleteWalletModal from '../pages/modals/DeleteWalletModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const SECRET_RECOVERY_PHRASE =
   'ketchup width ladder rent cheap eye torch employ quantum evidence artefact render protect delay wrap identify valley umbrella yard ridge wool swap differ kidney';
@@ -47,6 +48,17 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
     await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
+  });
+
+  it('should tap on "Got it" to dimiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapGotItButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {
@@ -114,7 +126,7 @@ describe('Import wallet with 24 word SRP, change password then delete wallet flo
   it('should delete wallet', async () => {
     await DeleteWalletModal.tapIUnderstandButton();
     await DeleteWalletModal.typeDeleteInInputBox();
-
+    await DeleteWalletModal.tapDeleteMyWalletButton();
     await TestHelpers.delay(2000);
     await OnboardingView.isVisible();
   });
