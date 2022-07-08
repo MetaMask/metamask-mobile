@@ -1,18 +1,22 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
-import { View, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import { fontStyles } from '../../../../styles/common';
-import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import { isNumber } from '../../../../util/number';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import formatNumber from '../../../../util/formatNumber';
-import { INTEGER_OR_FLOAT_REGEX } from '../../../../util/number';
 
-const createStyles = (colors) =>
+const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
       paddingHorizontal: 24,
@@ -99,6 +103,20 @@ const createStyles = (colors) =>
     },
   });
 
+interface IEditPermissionProps {
+  host: string;
+  minimumSpendLimit: string;
+  spendLimitUnlimitedSelected: boolean;
+  tokenSymbol: string;
+  spendLimitCustomValue: string;
+  originalApproveAmount: string;
+  onSetApprovalAmount: () => void;
+  onSpendLimitCustomValueChange: (approvalCustomValue: string) => void;
+  onPressSpendLimitUnlimitedSelected: () => void;
+  onPressSpendLimitCustomSelected: () => void;
+  toggleEditPermission: () => void;
+}
+
 function EditPermission({
   host,
   minimumSpendLimit,
@@ -111,21 +129,25 @@ function EditPermission({
   onPressSpendLimitUnlimitedSelected,
   onPressSpendLimitCustomSelected,
   toggleEditPermission,
-}) {
+}: IEditPermissionProps) {
   const [initialState] = useState({
     spendLimitUnlimitedSelected,
     spendLimitCustomValue,
   });
+  const [disableBtn, setDisableBtn] = useState(false);
+  const [displayErrorMsg, setDisplayErrorMsg] = useState(false);
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
-  const displayErrorMessage = useMemo(
-    () =>
-      (!spendLimitUnlimitedSelected &&
-        !INTEGER_OR_FLOAT_REGEX.test(spendLimitCustomValue)) ||
-      Number(minimumSpendLimit) > spendLimitCustomValue,
-    [spendLimitUnlimitedSelected, spendLimitCustomValue, minimumSpendLimit],
-  );
+  useEffect(() => {
+    setDisplayErrorMsg(
+      Number(minimumSpendLimit) > Number(spendLimitCustomValue),
+    );
+  }, [minimumSpendLimit, spendLimitCustomValue, spendLimitUnlimitedSelected]);
+
+  useEffect(() => {
+    setDisableBtn(!isNumber(spendLimitCustomValue) || displayErrorMsg);
+  }, [spendLimitCustomValue, displayErrorMsg]);
 
   const onSetApprovalAmount = useCallback(() => {
     if (!spendLimitUnlimitedSelected && !spendLimitCustomValue) {
@@ -141,13 +163,12 @@ function EditPermission({
   ]);
 
   const onBackPress = useCallback(() => {
-    const { spendLimitUnlimitedSelected, spendLimitCustomValue } = initialState;
-    if (spendLimitUnlimitedSelected) {
+    if (initialState.spendLimitUnlimitedSelected) {
       onPressSpendLimitUnlimitedSelected();
     } else {
       onPressSpendLimitCustomSelected();
     }
-    onSpendLimitCustomValueChange(spendLimitCustomValue);
+    onSpendLimitCustomValueChange(initialState.spendLimitCustomValue);
     toggleEditPermission();
   }, [
     initialState,
@@ -249,7 +270,7 @@ function EditPermission({
               returnKeyType={'done'}
               keyboardAppearance={themeAppearance}
             />
-            {displayErrorMessage && (
+            {displayErrorMsg && (
               <View style={styles.errorMessageWrapper}>
                 <ErrorMessage
                   errorMessage={strings(
@@ -265,7 +286,7 @@ function EditPermission({
         </View>
       </View>
       <StyledButton
-        disabled={displayErrorMessage}
+        disabled={disableBtn}
         type="confirm"
         onPress={onSetApprovalAmount}
       >
@@ -274,19 +295,5 @@ function EditPermission({
     </View>
   );
 }
-
-EditPermission.propTypes = {
-  host: PropTypes.string.isRequired,
-  minimumSpendLimit: PropTypes.string,
-  spendLimitUnlimitedSelected: PropTypes.bool.isRequired,
-  tokenSymbol: PropTypes.string.isRequired,
-  spendLimitCustomValue: PropTypes.string.isRequired,
-  originalApproveAmount: PropTypes.string.isRequired,
-  onPressSpendLimitUnlimitedSelected: PropTypes.func.isRequired,
-  onPressSpendLimitCustomSelected: PropTypes.func.isRequired,
-  onSpendLimitCustomValueChange: PropTypes.func.isRequired,
-  onSetApprovalAmount: PropTypes.func.isRequired,
-  toggleEditPermission: PropTypes.func.isRequired,
-};
 
 export default EditPermission;
