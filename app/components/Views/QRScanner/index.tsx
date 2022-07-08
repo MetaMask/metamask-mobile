@@ -84,8 +84,9 @@ interface Props {
  */
 const QRScanner = ({ navigation, route }: Props) => {
   const { onScanError, onScanSuccess, onStartScan, origin } = route.params;
-  const mountedRef = useRef(true);
-  const shouldReadBarCodeRef = useRef(true);
+
+  const mountedRef = useRef<boolean>(true);
+  const shouldReadBarCodeRef = useRef<boolean>(true);
 
   const currentChainId = useSelector(
     (state: any) =>
@@ -116,7 +117,7 @@ const QRScanner = ({ navigation, route }: Props) => {
     );
   };
 
-  const showAlertForURLRedirection = (domain: string) =>
+  const showAlertForURLRedirection = (domain: string): Promise<boolean> =>
     new Promise((resolve) => {
       mountedRef.current = false;
       Alert.alert(
@@ -125,12 +126,12 @@ const QRScanner = ({ navigation, route }: Props) => {
         [
           {
             text: strings('qr_scanner.cancel'),
-            onPress: () => resolve('cancel'),
+            onPress: () => resolve(false),
             style: 'cancel',
           },
           {
             text: strings('qr_scanner.continue'),
-            onPress: () => resolve('continue'),
+            onPress: () => resolve(true),
             style: 'default',
           },
         ],
@@ -160,7 +161,12 @@ const QRScanner = ({ navigation, route }: Props) => {
       }
 
       if (/^(ftp|http|https):\/\/[^ "]+$/.test(content)) {
-        await showAlertForURLRedirection(content);
+        const redirect = await showAlertForURLRedirection(content);
+
+        if (!redirect) {
+          navigation.goBack();
+          return;
+        }
       }
 
       let data = {};
