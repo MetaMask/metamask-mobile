@@ -1,6 +1,6 @@
 # ConfirmationModal
 
-ConfirmationModal is a modal component typically used when confirmation options are needed.
+ConfirmationModal is a modal component typically used when confirmation options are needed. This component is meant to be used with React Navigation as a modal and is already pre-wired.
 
 ## Props
 
