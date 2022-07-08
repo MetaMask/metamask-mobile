@@ -26,11 +26,7 @@ import compareVersions from 'compare-versions';
 import PropTypes from 'prop-types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import StyledButton from '../StyledButton';
-import {
-  useAppThemeFromContext,
-  mockTheme,
-  useAssetFromTheme,
-} from '../../../util/theme';
+import { useTheme, useAssetFromTheme } from '../../../util/theme';
 import {
   WHATS_NEW_MODAL_CONTAINER_ID,
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
@@ -140,7 +136,7 @@ const WhatsNewModal = (props) => {
   const [show, setShow] = useState(false);
   const routes = useNavigationState((state) => state.routes);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const imageKey = useAssetFromTheme('light', 'dark');
   const styles = createStyles(colors);
 

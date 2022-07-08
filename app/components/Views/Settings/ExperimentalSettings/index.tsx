@@ -18,7 +18,7 @@ import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -84,7 +84,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       state.engine.backgroundState.NetworkController.provider.chainId,
   );
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(

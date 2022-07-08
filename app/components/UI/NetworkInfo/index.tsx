@@ -7,7 +7,7 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { MAINNET, RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
@@ -121,7 +121,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     isTokenDetectionEnabled,
     networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
   } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const isMainnetTokenDetectionEnabled = useMemo(() => {

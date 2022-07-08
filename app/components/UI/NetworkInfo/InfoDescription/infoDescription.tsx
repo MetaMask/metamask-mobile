@@ -3,7 +3,7 @@ import { View, Text, Linking, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { MAINNET } from '../../../../constants/network';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -53,7 +53,7 @@ const Description = (props: DescriptionProps) => {
     isMainnetTokenDetectionEnabled,
     network,
   } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
