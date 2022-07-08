@@ -4,13 +4,25 @@ import ReusableModal, {
   ReusableModalRef,
 } from '../../../components/UI/ReusableModal';
 import { strings } from '../../../../locales/i18n';
-import { ConfirmationModalProps } from './ConfirmationModal.types';
+import {
+  ConfirmationModalProps,
+  ConfirmationModalVariant,
+} from './ConfirmationModal.types';
 import { useStyles } from '../../../component-library/hooks';
 import stylesheet from './ConfirmationModal.styles';
 import { BaseButtonSize } from '../BaseButton';
 import ButtonSecondary, { ButtonSecondaryVariant } from '../ButtonSecondary';
 import ButtonPrimary, { ButtonPrimaryVariant } from '../ButtonPrimary';
 import BaseText, { BaseTextVariant } from '../BaseText';
+import {
+  CONFIRMATION_MODAL_NORMAL_BUTTON_ID,
+  CONFIRMATION_MODAL_DANGER_BUTTON_ID,
+} from '../../../constants/test-ids';
+
+const buttonTestIdByVariant = {
+  [ConfirmationModalVariant.Normal]: CONFIRMATION_MODAL_NORMAL_BUTTON_ID,
+  [ConfirmationModalVariant.Danger]: CONFIRMATION_MODAL_DANGER_BUTTON_ID,
+};
 
 const ConfirmationModal = ({ route }: ConfirmationModalProps) => {
   const {
@@ -52,6 +64,7 @@ const ConfirmationModal = ({ route }: ConfirmationModalProps) => {
       />
       <View style={styles.buttonDivider} />
       <ButtonPrimary
+        testID={buttonTestIdByVariant[variant]}
         variant={ButtonPrimaryVariant[variant]}
         onPress={triggerConfirm}
         label={confirmLabel || strings('wallet.hide_token.confirm_cta')}
