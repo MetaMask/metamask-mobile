@@ -26,7 +26,9 @@ import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
 } from '../../../util/validators';
+import { isValidHexAddress } from '../../../util/address';
 import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
 
 // TODO: This file needs typings
 const styles = StyleSheet.create({
@@ -81,7 +83,7 @@ interface Props {
  * View that wraps the QR code scanner screen
  */
 const QRScanner = ({ navigation, route }: Props) => {
-  const { onScanError, onScanSuccess, onStartScan } = route.params;
+  const { onScanError, onScanSuccess, onStartScan, origin } = route.params;
   const mountedRef = useRef(true);
   const shouldReadBarCodeRef = useRef(true);
 
@@ -100,8 +102,43 @@ const QRScanner = ({ navigation, route }: Props) => {
     navigation.goBack();
   }, [mountedRef, navigation]);
 
+  const showAlertForInvalidAddress = () => {
+    Alert.alert(
+      'Unrecognized QR Code',
+      'Sorry, this QR code is not associated with an account address or a contract address.',
+      [
+        {
+          text: 'Ok',
+          onPress: () => null,
+          style: 'default',
+        },
+      ],
+    );
+  };
+
+  const showAlertForURLRedirection = (domain: string) =>
+    new Promise((resolve, reject) => {
+      mountedRef.current = false;
+      Alert.alert(
+        'You are about to visit  an external link',
+        `${domain} \n\n Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.`,
+        [
+          {
+            text: 'Cancel',
+            onPress: () => resolve('cancel'),
+            style: 'cancel',
+          },
+          {
+            text: 'Continue',
+            onPress: () => resolve('continue'),
+            style: 'default',
+          },
+        ],
+      );
+    });
+
   const onBarCodeRead = useCallback(
-    (response) => {
+    async (response) => {
       const content = response.data;
       /**
        * Barcode read triggers multiple times
@@ -110,6 +147,20 @@ const QRScanner = ({ navigation, route }: Props) => {
        */
       if (!shouldReadBarCodeRef.current || !mountedRef.current || !content) {
         return;
+      }
+
+      if (
+        (origin === Routes.SEND_FLOW.SEND_TO ||
+          origin === Routes.SETTINGS.CONTACT_FORM) &&
+        !isValidHexAddress(content)
+      ) {
+        showAlertForInvalidAddress();
+        end();
+        return;
+      }
+
+      if (/^(ftp|http|https):\/\/[^ "]+$/.test(content)) {
+        await showAlertForURLRedirection(content);
       }
 
       let data = {};
@@ -140,7 +191,6 @@ const QRScanner = ({ navigation, route }: Props) => {
           onScanSuccess(data, content);
           return;
         }
-
         const { KeyringController } = Engine.context as any;
         const isUnlocked = KeyringController.isUnlocked();
 
@@ -207,7 +257,7 @@ const QRScanner = ({ navigation, route }: Props) => {
 
       end();
     },
-    [end, onStartScan, onScanSuccess, navigation, currentChainId],
+    [origin, end, onStartScan, onScanSuccess, navigation, currentChainId],
   );
 
   const showCameraNotAuthorizedAlert = () =>
