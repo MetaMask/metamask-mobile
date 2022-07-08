@@ -32,21 +32,19 @@ const ConfirmationModal = ({ route }: ConfirmationModalProps) => {
   };
 
   const renderHeader = () => (
-    <BaseText style={styles.headerLabel} variant={BaseTextVariant.sHeadingLG}>
+    <BaseText style={styles.headerLabel} variant={BaseTextVariant.sHeadingMD}>
       {title}
     </BaseText>
   );
 
   const renderDescription = () => (
-    <BaseText variant={BaseTextVariant.sHeadingSMRegular}>
-      {description}
-    </BaseText>
+    <BaseText variant={BaseTextVariant.sBodyMD}>{description}</BaseText>
   );
 
   const renderButtons = () => (
     <View style={styles.buttonsContainer}>
       <ButtonSecondary
-        variant={ButtonSecondaryVariant[variant]}
+        variant={ButtonSecondaryVariant.Normal}
         onPress={triggerCancel}
         label={cancelLabel || strings('wallet.hide_token.cancel_cta')}
         size={BaseButtonSize.Lg}

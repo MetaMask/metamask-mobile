@@ -335,7 +335,10 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
       />
-      <Stack.Screen name={'ConfirmationModal'} component={ConfirmationModal} />
+      <Stack.Screen
+        name={Routes.MODAL.CONFIRMATION_MODAL}
+        component={ConfirmationModal}
+      />
     </Stack.Navigator>
   );
 

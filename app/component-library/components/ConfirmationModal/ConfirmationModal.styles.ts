@@ -20,11 +20,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginHorizontal: 16,
     },
     bodyContainer: {
-      paddingHorizontal: 24,
-      paddingVertical: 32,
+      padding: 24,
     },
     headerLabel: {
-      marginBottom: 16,
+      marginBottom: 8,
     },
     divider: {
       height: 1,
