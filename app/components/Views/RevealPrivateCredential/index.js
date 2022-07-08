@@ -10,6 +10,7 @@ import {
   InteractionManager,
   Linking,
   Platform,
+  Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode-svg';
@@ -17,6 +18,7 @@ import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+// eslint-disable-next-line import/no-unresolved
 import { addScreenshotListener } from 'react-native-detector';
 import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
@@ -125,6 +127,19 @@ const RevealPrivateCredential = ({
     }
   };
 
+  const showScreenshotAlert = () => {
+    Alert.alert('Warning', 'My Alert Msg', [
+      {
+        text: 'Cancel',
+        // eslint-disable-next-line no-console
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      // eslint-disable-next-line no-console
+      { text: 'OK', onPress: () => console.log('OK Pressed') },
+    ]);
+  };
+
   useEffect(() => {
     updateNavBar();
     InteractionManager.runAfterInteractions(() => {
@@ -141,9 +156,9 @@ const RevealPrivateCredential = ({
 
   useEffect(() => {
     const userDidScreenshot = () => {
-      // eslint-disable-next-line no-console
-      console.log('User took screenshot');
+      showScreenshotAlert();
     };
+
     const unsubscribe = addScreenshotListener(userDidScreenshot);
     return () => {
       unsubscribe();
