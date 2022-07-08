@@ -50,6 +50,7 @@ import {
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
 } from '../../../../../constants/test-ids';
 import EmptyPopularList from './emptyList';
+import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -874,7 +875,10 @@ class NetworkSettings extends PureComponent {
   };
 
   togglePopularNetwork = (network) =>
-    this.setState({ showPopularNetworkModal: true, popularNetwork: network });
+    this.setState({
+      showPopularNetworkModal: true,
+      popularNetwork: { ...network, rpcUrl: hideKeyFromUrl(network.rpcUrl) },
+    });
 
   onCancel = () => this.setState({ showPopularNetworkModal: false });
 

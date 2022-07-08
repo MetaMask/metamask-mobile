@@ -121,6 +121,7 @@ const NetworkModals = (props: NetworkProps) => {
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
   } = props;
+
   const [showDetails, setShowDetails] = React.useState(false);
   const [showInfo, setShowInfo] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
