@@ -513,19 +513,12 @@ export function fiatNumberToWei(fiat, conversionRate) {
  * @returns {Object} - The converted value as BN instance
  */
 export function safeNumberToBN(value) {
-  if (
-    typeof value === 'number' ||
-    (typeof value === 'string' && isNumberString(value))
-  ) {
+  try {
     const safeValue = fastSplit(value?.toString()) || '0';
     return numberToBN(safeValue);
+  } catch {
+    return numberToBN('0');
   }
-
-  if (typeof value === 'string' && isHexString(value)) {
-    return numberToBN(value);
-  }
-
-  return numberToBN('0');
 }
 
 /**

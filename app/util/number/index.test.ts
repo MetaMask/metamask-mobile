@@ -600,7 +600,7 @@ describe('Number utils :: safeNumberToBN', () => {
     expect(result.length).toEqual(expected.length);
   });
 
-  it('should safe convert decimal zero to BN', () => {
+  it('should safe convert a decimal zero to BN', () => {
     const result: any = safeNumberToBN('0');
     const expected: any = new BN('0');
     expect(result.words[0]).toEqual(expected.words[0]);
@@ -609,7 +609,7 @@ describe('Number utils :: safeNumberToBN', () => {
     expect(result.length).toEqual(expected.length);
   });
 
-  it('should safe convert hex zero to BN', () => {
+  it('should safe convert a hex zero to BN', () => {
     const result: any = safeNumberToBN('0x0');
     const expected: any = new BN('0');
     expect(result.words[0]).toEqual(expected.words[0]);
@@ -626,17 +626,13 @@ describe('Number utils :: safeNumberToBN', () => {
     expect(result.negative).toEqual(expected.negative);
     expect(result.length).toEqual(expected.length);
   });
-});
 
-describe('Number utils :: isHexString', () => {
-  it('isHexString', () => {
-    expect(isHexString('0')).toBe(true);
-    expect(isHexString('0x0')).toBe(true);
-    expect(isHexString('1')).toBe(true);
-    expect(isHexString('-1')).toBe(true);
-    expect(isHexString('0x1')).toBe(true);
-    expect(isHexString('-0x1')).toBe(true);
-    expect(isHexString('0xabcdef123')).toBe(true);
-    expect(isHexString('-0xabcdef123')).toBe(true);
+  it('should safe convert a NaN object', () => {
+    const result: any = safeNumberToBN(NaN);
+    const expected: any = new BN('0');
+    expect(result.words[0]).toEqual(expected.words[0]);
+    expect(result.words[1]).toEqual(expected.words[1]);
+    expect(result.negative).toEqual(expected.negative);
+    expect(result.length).toEqual(expected.length);
   });
 });
