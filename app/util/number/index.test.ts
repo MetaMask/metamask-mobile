@@ -23,6 +23,7 @@ import {
   toHexadecimal,
   safeNumberToBN,
   fastSplit,
+  isNumber,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {
@@ -633,5 +634,30 @@ describe('Number utils :: safeNumberToBN', () => {
     expect(result.words[1]).toEqual(expected.words[1]);
     expect(result.negative).toEqual(expected.negative);
     expect(result.length).toEqual(expected.length);
+  });
+});
+
+describe('Number utils :: isNumber', () => {
+  it('should be a valid number ', () => {
+    expect(isNumber('1650.7')).toBe(true);
+    expect(isNumber('1000')).toBe(true);
+    expect(isNumber('0.0001')).toBe(true);
+    expect(isNumber('0001')).toBe(true);
+    expect(isNumber('1')).toBe(true);
+  });
+
+  it('should not be a valid number ', () => {
+    expect(isNumber('..7')).toBe(false);
+    expect(isNumber('1..1')).toBe(false);
+    expect(isNumber('0..')).toBe(false);
+    expect(isNumber('a.0001')).toBe(false);
+    expect(isNumber('00a01')).toBe(false);
+    expect(isNumber('1,.')).toBe(false);
+    expect(isNumber('1,')).toBe(false);
+    expect(isNumber('.')).toBe(false);
+    expect(isNumber('a¡1')).toBe(false);
+    expect(isNumber('.01')).toBe(false);
+    expect(isNumber(undefined)).toBe(false);
+    expect(isNumber(null)).toBe(false);
   });
 });
