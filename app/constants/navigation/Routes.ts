@@ -25,6 +25,12 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
   },
+  SEND_FLOW: {
+    SEND_TO: 'SendTo',
+  },
+  SETTINGS: {
+    CONTACT_FORM: 'ContactForm',
+  },
 };
 
 export default Routes;

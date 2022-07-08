@@ -27,6 +27,7 @@ import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -284,6 +285,7 @@ class ContactForm extends PureComponent {
           this.onChangeAddress(meta.target_address);
         }
       },
+      origin: Routes.SETTINGS.CONTACT_FORM,
     });
   };
 

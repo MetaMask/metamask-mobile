@@ -579,6 +579,7 @@ class SendFlow extends PureComponent {
           this.onToSelectedAddressChange(meta.target_address);
         }
       },
+      origin: Routes.SEND_FLOW.SEND_TO,
     });
   };
 
