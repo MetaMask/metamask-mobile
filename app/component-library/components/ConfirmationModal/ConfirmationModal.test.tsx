@@ -1,17 +1,24 @@
 import React from 'react';
-import { View } from 'react-native';
 import { shallow } from 'enzyme';
 import ConfirmationModal from './ConfirmationModal';
+import { ConfirmationModalVariant } from './ConfirmationModal.types';
 
 describe('ConfirmationModal', () => {
-  // it('should render correctly', () => {
-  //   const wrapper = shallow(
-  //     <MultiselectListItem isSelected>
-  //       <View />
-  //     </MultiselectListItem>,
-  //   );
-  //   expect(wrapper).toMatchSnapshot();
-  // });
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <ConfirmationModal
+        route={{
+          params: {
+            onConfirm: () => null,
+            variant: ConfirmationModalVariant.Normal,
+            title: 'Title!',
+            description: 'Description.',
+          },
+        }}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
   // it('should be checked when selected', () => {
   //   const wrapper = shallow(
   //     <MultiselectListItem isSelected>
