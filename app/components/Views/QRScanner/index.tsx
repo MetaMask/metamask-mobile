@@ -104,11 +104,11 @@ const QRScanner = ({ navigation, route }: Props) => {
 
   const showAlertForInvalidAddress = () => {
     Alert.alert(
-      'Unrecognized QR Code',
-      'Sorry, this QR code is not associated with an account address or a contract address.',
+      strings('qr_scanner.unrecognized_address_qr_code_title'),
+      strings('qr_scanner.unrecognized_address_qr_code_desc'),
       [
         {
-          text: 'Ok',
+          text: strings('qr_scanner.ok'),
           onPress: () => null,
           style: 'default',
         },
@@ -117,19 +117,19 @@ const QRScanner = ({ navigation, route }: Props) => {
   };
 
   const showAlertForURLRedirection = (domain: string) =>
-    new Promise((resolve, reject) => {
+    new Promise((resolve) => {
       mountedRef.current = false;
       Alert.alert(
-        'You are about to visit  an external link',
-        `${domain} \n\n Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust.`,
+        strings('qr_scanner.url_redirection_alert_title'),
+        `${domain} \n\n ${strings('qr_scanner.url_redirection_alert_desc')}`,
         [
           {
-            text: 'Cancel',
+            text: strings('qr_scanner.cancel'),
             onPress: () => resolve('cancel'),
             style: 'cancel',
           },
           {
-            text: 'Continue',
+            text: strings('qr_scanner.continue'),
             onPress: () => resolve('continue'),
             style: 'default',
           },
