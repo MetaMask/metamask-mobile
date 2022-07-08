@@ -23,7 +23,6 @@ import {
   toHexadecimal,
   safeNumberToBN,
   fastSplit,
-  isHexString,
 } from '.';
 
 describe('Number utils :: BNToHex', () => {

@@ -354,16 +354,6 @@ export function toBN(value) {
 }
 
 /**
- * Determines if a string is a valid number
- *
- * @param {*} str - Number string
- * @returns {boolean} - True if the string  is a valid number
- */
-export function isNumberString(str) {
-  return /^(-)?(\d+(\.\d+)?)$/.test(str);
-}
-
-/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -646,20 +636,6 @@ export function isPrefixedFormattedHexString(value) {
     return false;
   }
   return /^0x[1-9a-f]+[0-9a-f]*$/iu.test(value);
-}
-
-/**
- * Checks whether the given value is a hexadecimal string (0x-prefixed optional).
- *
- * @param {string} value - The value to check.
- * @returns {boolean} True if the value is a hex string,
- * false otherwise.
- */
-export function isHexString(value) {
-  if (typeof value !== 'string') {
-    return false;
-  }
-  return /^(-)?(0x)?[0-9a-f]+[0-9a-f]*$/i.test(value);
 }
 
 const converter = ({
