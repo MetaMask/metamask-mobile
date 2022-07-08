@@ -117,12 +117,12 @@ const QRScanner = ({ navigation, route }: Props) => {
     );
   };
 
-  const showAlertForURLRedirection = (domain: string): Promise<boolean> =>
+  const showAlertForURLRedirection = (url: string): Promise<boolean> =>
     new Promise((resolve) => {
       mountedRef.current = false;
       Alert.alert(
         strings('qr_scanner.url_redirection_alert_title'),
-        `${domain} \n\n ${strings('qr_scanner.url_redirection_alert_desc')}`,
+        `${url} \n\n ${strings('qr_scanner.url_redirection_alert_desc')}`,
         [
           {
             text: strings('qr_scanner.cancel'),
