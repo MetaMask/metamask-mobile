@@ -6,16 +6,13 @@ import BaseText from '../../../Base/Text';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
-
+import { colors as importedColors } from '../../../../styles/common';
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const Identicon = JSIdenticon as any;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    selector: {
-      flexShrink: 1,
-    },
     accountText: {
       flexShrink: 1,
       marginVertical: 3,
@@ -31,9 +28,20 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       flexShrink: 1,
     },
+    transparentContainer: {
+      backgroundColor: importedColors.transparent,
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+    },
   });
 
-const Account = () => {
+const Account = ({
+  address,
+  transparent = false,
+}: {
+  address?: string;
+  transparent?: boolean;
+}) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const selectedAddress = useSelector(
@@ -45,11 +53,13 @@ const Account = () => {
       state.engine.backgroundState.PreferencesController.identities,
   );
   return (
-    <View style={styles.container}>
-      <Identicon diameter={15} address={selectedAddress} />
+    <View
+      style={[styles.container, transparent && styles.transparentContainer]}
+    >
+      <Identicon diameter={15} address={address || selectedAddress} />
       <Text style={styles.accountText} primary centered numberOfLines={1}>
-        {identities[selectedAddress]?.name} (
-        <EthereumAddress address={selectedAddress} type={'short'} />)
+        {identities[address || selectedAddress]?.name} (
+        <EthereumAddress address={address || selectedAddress} type={'short'} />)
       </Text>
     </View>
   );
