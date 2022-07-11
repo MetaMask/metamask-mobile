@@ -163,7 +163,6 @@ const NetworkModals = (props: NetworkProps) => {
           blockExplorerUrl,
         },
       );
-      
 
       const analyticsParamsAdd = {
         rpc_url: sanitizedUrl,

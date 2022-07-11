@@ -48,11 +48,11 @@ import {
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
-  INPUT_NETWORK_NAME
+  INPUT_NETWORK_NAME,
 } from '../../../../../constants/test-ids';
 import EmptyPopularList from './emptyList';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
-import { themeAppearanceLight} from '../../../../../constants/storage';
+import { themeAppearanceLight } from '../../../../../constants/storage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -708,8 +708,21 @@ class NetworkSettings extends PureComponent {
       inputWidth,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || themeAppearanceLight;
+    const themeAppearance =
+      this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
+
+    const formatNetworkRpcUrl = (rpcUrl, chainId) => {
+      const isNetworkPrePopulated = PopularList.find(
+        (val) => val.rpcUrl === rpcUrl && val.chainId === chainId,
+      );
+      if (isNetworkPrePopulated !== undefined) {
+        if (isNetworkPrePopulated.warning) {
+          return null;
+        }
+        return hideKeyFromUrl(isNetworkPrePopulated.rpcUrl);
+      }
+    };
 
     return (
       <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
@@ -737,7 +750,6 @@ class NetworkSettings extends PureComponent {
               testID={INPUT_NETWORK_NAME}
               keyboardAppearance={themeAppearance}
             />
-
             <Text style={styles.label}>
               {strings('app_settings.network_rpc_url_label')}
             </Text>
@@ -746,7 +758,7 @@ class NetworkSettings extends PureComponent {
               style={[styles.input, inputWidth]}
               autoCapitalize={'none'}
               autoCorrect={false}
-              value={rpcUrl}
+              value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
               editable={editable}
               onChangeText={this.onRpcUrlChange}
               onBlur={this.validateRpcUrl}
