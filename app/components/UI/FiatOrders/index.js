@@ -17,7 +17,7 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
-import useAnalytics from '../FiatOnRampAggregator/hooks/useAnalytics';
+import { trackEvent } from '../FiatOnRampAggregator/hooks/useAnalytics';
 
 /**
  * @typedef {import('../../../reducers/fiatOrders').FiatOrder} FiatOrder
@@ -179,37 +179,37 @@ export const getNotificationDetails = (fiatOrder) => {
   }
 };
 
+export async function processFiatOrder(order, updateFiatOrder) {
+  const updatedOrder = await processOrder(order);
+  updateFiatOrder(updatedOrder);
+  if (updatedOrder.state !== order.state) {
+    if (updatedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+      const [event, params] = getAggregatorAnalyticsPayload(updatedOrder);
+      if (event) {
+        trackEvent(event, params);
+      }
+    } else {
+      InteractionManager.runAfterInteractions(() => {
+        const [analyticsEvent, analyticsPayload] =
+          getAnalyticsPayload(updatedOrder);
+        if (analyticsEvent) {
+          AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
+        }
+      });
+    }
+    InteractionManager.runAfterInteractions(() => {
+      NotificationManager.showSimpleNotification(
+        getNotificationDetails(updatedOrder),
+      );
+    });
+  }
+}
+
 function FiatOrders({ pendingOrders, updateFiatOrder }) {
-  const trackEvent = useAnalytics();
   useInterval(
     async () => {
       await Promise.all(
-        pendingOrders.map(async (order) => {
-          const updatedOrder = await processOrder(order);
-          updateFiatOrder(updatedOrder);
-          if (updatedOrder.state !== order.state) {
-            if (updatedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
-              const [event, params] =
-                getAggregatorAnalyticsPayload(updatedOrder);
-              if (event) {
-                trackEvent(event, params);
-              }
-            } else {
-              InteractionManager.runAfterInteractions(() => {
-                const [analyticsEvent, analyticsPayload] =
-                  getAnalyticsPayload(updatedOrder);
-                if (analyticsEvent) {
-                  AnalyticsV2.trackEvent(analyticsEvent, analyticsPayload);
-                }
-              });
-            }
-            InteractionManager.runAfterInteractions(() => {
-              NotificationManager.showSimpleNotification(
-                getNotificationDetails(updatedOrder),
-              );
-            });
-          }
-        }),
+        pendingOrders.map((order) => processFiatOrder(order, updateFiatOrder)),
       );
     },
     pendingOrders.length ? POLLING_FREQUENCY : null,
