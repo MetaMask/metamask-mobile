@@ -48,9 +48,11 @@ import {
   ADD_NETWORKS_ID,
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
+  INPUT_NETWORK_NAME
 } from '../../../../../constants/test-ids';
 import EmptyPopularList from './emptyList';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
+import { themeAppearanceLight} from '../../../../../constants/storage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -706,11 +708,11 @@ class NetworkSettings extends PureComponent {
       inputWidth,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
-    const themeAppearance = this.context.themeAppearance || 'light';
+    const themeAppearance = this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'new-rpc-screen'}>
+      <SafeAreaView style={styles.wrapper} testID={RPC_VIEW_CONTAINER_ID}>
         <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
           {!network ? (
             <WarningMessage
@@ -732,7 +734,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToRpcURL}
-              testID={'input-network-name'}
+              testID={INPUT_NETWORK_NAME}
               keyboardAppearance={themeAppearance}
             />
 
@@ -877,7 +879,12 @@ class NetworkSettings extends PureComponent {
   togglePopularNetwork = (network) =>
     this.setState({
       showPopularNetworkModal: true,
-      popularNetwork: { ...network, rpcUrl: hideKeyFromUrl(network.rpcUrl) },
+      popularNetwork: {
+        ...network,
+        formattedRpcUrl: network.warning
+          ? null
+          : hideKeyFromUrl(network.rpcUrl),
+      },
     });
 
   onCancel = () => this.setState({ showPopularNetworkModal: false });

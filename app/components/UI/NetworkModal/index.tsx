@@ -118,6 +118,7 @@ const NetworkModals = (props: NetworkProps) => {
       nickname,
       ticker,
       rpcUrl,
+      formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
   } = props;
@@ -162,6 +163,7 @@ const NetworkModals = (props: NetworkProps) => {
           blockExplorerUrl,
         },
       );
+      
 
       const analyticsParamsAdd = {
         rpc_url: sanitizedUrl,
@@ -220,7 +222,7 @@ const NetworkModals = (props: NetworkProps) => {
             chainId={chainId}
             nickname={nickname}
             ticker={ticker}
-            rpcUrl={rpcUrl}
+            rpcUrl={formattedRpcUrl || rpcUrl}
             blockExplorerUrl={blockExplorerUrl}
           />
         ) : networkAdded ? (
@@ -281,7 +283,7 @@ const NetworkModals = (props: NetworkProps) => {
                 </Text>
                 <Text black>{strings('networks.network_rpc_url')}</Text>
                 <Text bold black style={styles.bottomSpace}>
-                  {rpcUrl}
+                  {formattedRpcUrl || rpcUrl}
                 </Text>
               </View>
             </View>
