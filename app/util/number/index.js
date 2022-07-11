@@ -354,6 +354,16 @@ export function toBN(value) {
 }
 
 /**
+ * Determines if a string is a valid number
+ *
+ * @param {*} str - Number string
+ * @returns {boolean} - True if the string  is a valid number
+ */
+export function isNumber(str) {
+  return /^(\d+(\.\d+)?)$/.test(str);
+}
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
