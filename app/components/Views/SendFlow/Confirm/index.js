@@ -83,6 +83,10 @@ import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import WarningMessage from '../WarningMessage';
+import { showAlert } from '../../../../actions/alert';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import GlobalAlert from '../../../UI/GlobalAlert';
+import { allowedToBuy } from '../../../UI/FiatOrders';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -359,6 +363,10 @@ class Confirm extends PureComponent {
      * A string representing the network type
      */
     networkType: PropTypes.string,
+    /**
+     * Triggers global alert
+     */
+    showAlert: PropTypes.func,
   };
 
   state = {
@@ -381,7 +389,6 @@ class Confirm extends PureComponent {
     fromAccountModalVisible: false,
     warningModalVisible: false,
     mode: REVIEW,
-    over: false,
     gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
     EIP1559TransactionData: {},
@@ -1213,12 +1220,22 @@ class Confirm extends PureComponent {
     );
   };
 
+  handleCopyHex = () => {
+    const { data } = this.props.transactionState.transaction;
+    ClipboardManager.setString(data);
+    this.props.showAlert({
+      isVisible: true,
+      autodismiss: 1500,
+      content: 'clipboard-alert',
+      data: { msg: strings('transaction.hex_data_copied') },
+    });
+  };
+
   renderHexDataModal = () => {
     const { hexDataModalVisible } = this.state;
     const { data } = this.props.transactionState.transaction;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
     return (
       <Modal
         isVisible={hexDataModalVisible}
@@ -1245,10 +1262,17 @@ class Confirm extends PureComponent {
             <Text style={styles.addressTitle}>
               {strings('transaction.hex_data')}
             </Text>
-            <Text style={styles.hexDataText}>
-              {data || strings('unit.empty_data')}
-            </Text>
+            <TouchableOpacity
+              disabled={!data}
+              activeOpacity={0.8}
+              onPress={this.handleCopyHex}
+            >
+              <Text style={styles.hexDataText}>
+                {data || strings('unit.empty_data')}
+              </Text>
+            </TouchableOpacity>
           </View>
+          <GlobalAlert />
         </View>
       </Modal>
     );
@@ -1373,7 +1397,6 @@ class Confirm extends PureComponent {
       warningGasPriceHigh,
       confusableCollection,
       mode,
-      over,
       warningModalVisible,
       LegacyTransactionData,
       isAnimating,
@@ -1418,6 +1441,7 @@ class Confirm extends PureComponent {
       );
 
     const isTestNetwork = isTestNet(network);
+
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
@@ -1542,14 +1566,16 @@ class Confirm extends PureComponent {
 
           {errorMessage && (
             <View style={styles.errorWrapper}>
-              <TouchableOpacity onPress={errorPress}>
-                <Text style={styles.error}>{errorMessage}</Text>
-                {over ? (
+              {isTestNetwork || allowedToBuy(network) ? (
+                <TouchableOpacity onPress={errorPress}>
+                  <Text style={styles.error}>{errorMessage}</Text>
                   <Text style={[styles.error, styles.underline]}>
                     {errorLinkText}
                   </Text>
-                ) : null}
-              </TouchableOpacity>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.error}>{errorMessage}</Text>
+              )}
             </View>
           )}
           {!!warningGasPriceHigh && (
@@ -1651,6 +1677,7 @@ const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
   setNonce: (nonce) => dispatch(setNonce(nonce)),
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
+  showAlert: (config) => dispatch(showAlert(config)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Confirm);
