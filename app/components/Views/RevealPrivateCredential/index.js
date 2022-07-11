@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dimensions,
   SafeAreaView,
@@ -71,6 +71,9 @@ const RevealPrivateCredential = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
+  const privateCredentialName =
+    credentialName || route.params.privateCredentialName;
+
   const updateNavBar = () => {
     if (navBarDisabled) {
       return;
@@ -127,18 +130,31 @@ const RevealPrivateCredential = ({
     }
   };
 
-  const showScreenshotAlert = () => {
-    Alert.alert('Warning', 'My Alert Msg', [
-      {
-        text: 'Cancel',
+  const showScreenshotAlert = useCallback(() => {
+    Alert.alert(
+      strings('reveal_credential.screenshot_warning_title'),
+      strings('reveal_credential.screenshot_warning_desc', {
+        credentialName:
+          privateCredentialName === PRIVATE_KEY
+            ? strings('reveal_credential.private_key_text')
+            : strings('reveal_credential.srp_abbreviation_text'),
+      }),
+      [
+        {
+          text: strings('reveal_credential.learn_more'),
+          // eslint-disable-next-line no-console
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
         // eslint-disable-next-line no-console
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      // eslint-disable-next-line no-console
-      { text: 'OK', onPress: () => console.log('OK Pressed') },
-    ]);
-  };
+        {
+          text: strings('reveal_credential.got_it'),
+          // eslint-disable-next-line no-console
+          onPress: () => console.log('OK Pressed'),
+        },
+      ],
+    );
+  }, [privateCredentialName]);
 
   useEffect(() => {
     updateNavBar();
@@ -156,14 +172,16 @@ const RevealPrivateCredential = ({
 
   useEffect(() => {
     const userDidScreenshot = () => {
-      showScreenshotAlert();
+      if (unlocked) {
+        showScreenshotAlert();
+      }
     };
 
     const unsubscribe = addScreenshotListener(userDidScreenshot);
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [showScreenshotAlert, unlocked]);
 
   const isPrivateKey = () => {
     const credential = credentialName || route.params.privateCredentialName;
@@ -451,9 +469,6 @@ const RevealPrivateCredential = ({
       </View>
     </View>
   );
-
-  const privateCredentialName =
-    credentialName || route.params.privateCredentialName;
 
   return (
     <SafeAreaView
