@@ -1,32 +1,31 @@
-import { StyleProp, TextStyle, ViewStyle } from 'react-native';
-import { IconProps } from '../Icon';
-
 export enum ToastVariant {
   Account = 'Account',
   Network = 'Network',
 }
 
-/**
- * Toast component props.
- */
-export interface ToastProps {
-  /**
-   * Button text.
-   */
+interface ToastLabelOption {
   label: string;
-  /**
-   * Color of label. Applies to icon too.
-   */
-  labelColor?: string;
-  /**
-   * Button icon.
-   */
-  icon?: IconProps['name'];
+  isBold?: boolean;
+}
 
-  /**
-   * Escape hatch for applying extra styles. Only use if absolutely necessary.
-   */
-  style?: StyleProp<ViewStyle>;
+interface BaseToastVariant {
+  labelOptions: ToastLabelOption[];
+}
+
+interface AccountToastVariant extends BaseToastVariant {
+  type: ToastVariant.Account;
+  accountAddress: string;
+}
+
+interface NetworkToastVariant extends BaseToastVariant {
+  type: ToastVariant.Network;
+  networkImageUrl: string;
+}
+
+export type ToastOptions = AccountToastVariant | NetworkToastVariant;
+
+export interface ToastRef {
+  showToast: (toastOptions: ToastOptions) => void;
 }
 
 /**

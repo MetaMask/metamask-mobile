@@ -13,7 +13,6 @@ import { ToastStyleSheetVars } from './Toast.types';
 const styleSheet = (params: { theme: Theme; vars: ToastStyleSheetVars }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  // const { style, size, labelColor } = vars;
   // const sizeAsNum = Number(size);
   const marginWidth = 16;
   const padding = 16;
