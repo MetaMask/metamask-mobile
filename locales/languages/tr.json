@@ -294,7 +294,6 @@
     "deposit_button": "Para Yatır",
     "copy_address": "Hata",
     "collectible_action_title": "Koleksiyon Seçenekleri",
-    "remove_token_title": "Bu tokeni kaldırmak istiyor musunuz?",
     "remove_collectible_title": "Bu koleksiyonu kaldırmak istiyor musunuz?",
     "refresh_metadata": "Meta Verileri Yenile",
     "token_removal_issue_title": "Token kaldırılırken sorun oldu.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Fikrinizi değiştirirseniz \"Tokenleri İçe Aktar\" düğmesine dokunarak geri ekleyebilirsiniz",
     "collectible_removed_title": "Koleksiyon kaldırıldı!",
     "collectible_removed_desc": "Fikrinizi değiştirirseniz \"NFT'leri İçe Aktar\" düğmesine dokunarak geri ekleyebilirsiniz",
-    "remove": "Kaldır",
     "cancel": "İptal",
     "yes": "Evet",
     "private_key_detected": "Özel anahtar algılandı",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Token Sembolü",
     "token_address": "Token Adresi",
-    "token_precision": "Kesinlik Tokeni",
     "search_tokens_placeholder": "Token Ara",
     "address_cant_be_empty": "Token adresi boş olamaz.",
     "address_must_be_valid": "Token adresi geçerli bir adres olmalıdır.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "ve uygulamayı tekrar yükleyin. Not: Gizli Kurtarma İfadeniz olmadan cüzdanınızı geri YÜKLEYEMEZSİNİZ.",
     "copied_clipboard": "Panoya kopyalandı",
     "ok": "Tamam"
-  },
-  "whats_new": {
-    "title": "Yeniliklere bakın",
-    "feature_security_settings_title": "Güvenlik ayarları iyileştirildi",
-    "feature_security_settings_text": "Artık Ayarlar > Güvenlik ve Gizlilik kısmından MetaMask uygulama şifrenizi değiştirebilir ve cüzdanınızı nasıl yedekleyeceğinizi inceleyebilirsiniz.",
-    "feature_security_settings_button": "Ayarlar kısmında görüntüle"
   },
   "invalid_network": {
     "title": "Kişisel ağ \n%{network} \niçin zincir kimliğinin yeniden girilmesi gerekiyor.",
