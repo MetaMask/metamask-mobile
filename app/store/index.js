@@ -23,11 +23,11 @@ const MigratedStorage = {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
         // Using new storage system
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
+          storage: 'FilesystemStorage',
+        });
         return res;
       }
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
-        storage: 'FilesystemStorage',
-      });
     } catch {
       //Fail silently
     }
@@ -37,11 +37,11 @@ const MigratedStorage = {
       const res = await AsyncStorage.getItem(key);
       if (res) {
         // Using old storage system
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
+          storage: 'AsyncStorage',
+        });
         return res;
       }
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
-        storage: 'AsyncStorage',
-      });
     } catch (error) {
       Logger.error(error, { message: 'Failed to run migration' });
       throw new Error('Failed async storage storage fetch.');
