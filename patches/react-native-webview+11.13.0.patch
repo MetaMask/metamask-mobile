@@ -1,6 +1,6 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/CustomCookieJar.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/CustomCookieJar.java
 new file mode 100644
-index 0000000..c7953c4
+index 0000000..39d1a19
 --- /dev/null
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/CustomCookieJar.java
 @@ -0,0 +1,99 @@
@@ -84,10 +84,10 @@ index 0000000..c7953c4
 +          String headerValue = "";
 +          Collection c = (Collection) m.get("Set-Cookie");
 +          for (Iterator i = c.iterator(); i.hasNext();) {
-+            headerValue += (String) i.next() + ",";
++            headerValue += (String) i.next() + ";;";
 +          }
 +          Log.d("tag", "cookie set " +  headerValue);
-+          String[] serverCookies = headerValue.split(",");
++          String[] serverCookies = headerValue.split(";;");
 +
 +          for (String cookieStr: serverCookies) {
 +            Cookie cookie = Cookie.parse(httpUrl, cookieStr);
