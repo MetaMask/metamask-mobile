@@ -1,6 +1,49 @@
 # Changelog
 
 ## Current Main Branch
+- [#4661](https://github.com/MetaMask/metamask-mobile/pull/4661): Lower version numbers
+- [#4604](https://github.com/MetaMask/metamask-mobile/pull/4604): Change quotes error to individual events
+- [#4497](https://github.com/MetaMask/metamask-mobile/pull/4497): Add amount to onramp analytics events
+- [#4496](https://github.com/MetaMask/metamask-mobile/pull/4496): Add currency destination symbol to purchase submitted
+- [#4498](https://github.com/MetaMask/metamask-mobile/pull/4498): Add decimals optional prop to keypad in onramp amount view
+- [#4600](https://github.com/MetaMask/metamask-mobile/pull/4600): Add onramp extra properties to events
+- [#4656](https://github.com/MetaMask/metamask-mobile/pull/4656): [FIX] Plain texts in code
+- [#4388](https://github.com/MetaMask/metamask-mobile/pull/4388): [5.4] Feature/3157 token detection v2 merge
+- [#4582](https://github.com/MetaMask/metamask-mobile/pull/4582): updated package name to be consistent with our npm namespace
+- [#4609](https://github.com/MetaMask/metamask-mobile/pull/4609): Add pull to refresh and new design to Fiat Order Details view
+- [#4527](https://github.com/MetaMask/metamask-mobile/pull/4527): changed launch mode to singleInstance
+- [#4644](https://github.com/MetaMask/metamask-mobile/pull/4644): Update url formats popular networks
+- [#4420](https://github.com/MetaMask/metamask-mobile/pull/4420): Refactor transaction component
+- [#4263](https://github.com/MetaMask/metamask-mobile/pull/4263): [FIX] Swaps approval transaction
+- [#4516](https://github.com/MetaMask/metamask-mobile/pull/4516): 5.3.0
+- [#4618](https://github.com/MetaMask/metamask-mobile/pull/4618): Create SelectableListItem
+- [#4606](https://github.com/MetaMask/metamask-mobile/pull/4606): Component/4598 multiselect list item
+- [#4610](https://github.com/MetaMask/metamask-mobile/pull/4610): [FIX] Remove TouchableOpacity from DeleteMetaMetricsData component
+- [#4554](https://github.com/MetaMask/metamask-mobile/pull/4554): Allow for env variable to customise the simulator that gets launched on iOS
+- [#4575](https://github.com/MetaMask/metamask-mobile/pull/4575): Component/4569 tag url
+- [#4572](https://github.com/MetaMask/metamask-mobile/pull/4572): Component/4227 tag
+- [#4549](https://github.com/MetaMask/metamask-mobile/pull/4549): Component/4084 tab bar
+- [#4599](https://github.com/MetaMask/metamask-mobile/pull/4599): Create Checkbox
+- [#4583](https://github.com/MetaMask/metamask-mobile/pull/4583): Component/4225 icon button
+- [#4548](https://github.com/MetaMask/metamask-mobile/pull/4548): Component/4085 tab bar item
+- [#4525](https://github.com/MetaMask/metamask-mobile/pull/4525): Component/4518 button tertiary
+- [#4524](https://github.com/MetaMask/metamask-mobile/pull/4524): Component/4517 button secondary
+- [#4523](https://github.com/MetaMask/metamask-mobile/pull/4523): Component/4507 button primary
+- [#4522](https://github.com/MetaMask/metamask-mobile/pull/4522): Component/4081 buttons
+- [#4602](https://github.com/MetaMask/metamask-mobile/pull/4602): Fix color types
+- [#4603](https://github.com/MetaMask/metamask-mobile/pull/4603): Remove yarn audit exclusions
+- [#4580](https://github.com/MetaMask/metamask-mobile/pull/4580): [PS UI] Add NetworkAvatar component
+- [#4414](https://github.com/MetaMask/metamask-mobile/pull/4414): [PS UI] FaviconAvatar component
+- [#4587](https://github.com/MetaMask/metamask-mobile/pull/4587): Remove codecov
+- [#4499](https://github.com/MetaMask/metamask-mobile/pull/4499): Component/4221 icon
+- [#4573](https://github.com/MetaMask/metamask-mobile/pull/4573): Revert #4568 Changes
+- [#4570](https://github.com/MetaMask/metamask-mobile/pull/4570): Update PR template
+- [#4481](https://github.com/MetaMask/metamask-mobile/pull/4481): Updating colors and typography to use theme objects
+- [#4568](https://github.com/MetaMask/metamask-mobile/pull/4568): [UPGRADE] - update dependencies
+- [#4559](https://github.com/MetaMask/metamask-mobile/pull/4559): Add resolution for shell-quote & got
+- [#4531](https://github.com/MetaMask/metamask-mobile/pull/4531): add delete wallet step
+- [#4514](https://github.com/MetaMask/metamask-mobile/pull/4514): Update README.md
+- [#4519](https://github.com/MetaMask/metamask-mobile/pull/4519): Fix package version number
 - [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
 - [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
 - [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
