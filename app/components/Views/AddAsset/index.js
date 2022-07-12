@@ -10,9 +10,9 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
-import { NetworksChainId } from '@metamask/controllers';
 import CollectibleDetectionModal from '../../UI/CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
+import { util as controllerUtils } from '@metamask/controllers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -126,6 +126,8 @@ class AddAsset extends PureComponent {
       useCollectibleDetection,
     } = this.props;
     const { dismissNftInfo } = this.state;
+    const isTokenDetectionSupported =
+      controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -143,8 +145,11 @@ class AddAsset extends PureComponent {
             </View>
           )}
         {assetType === 'token' ? (
-          <ScrollableTabView renderTabBar={() => this.renderTabBar()}>
-            {NetworksChainId.mainnet === this.props.chainId && (
+          <ScrollableTabView
+            key={chainId}
+            renderTabBar={() => this.renderTabBar()}
+          >
+            {isTokenDetectionSupported && (
               <SearchTokenAutocomplete
                 navigation={navigation}
                 tabLabel={strings('add_asset.search_token')}
@@ -155,6 +160,7 @@ class AddAsset extends PureComponent {
               navigation={navigation}
               tabLabel={strings('add_asset.custom_token')}
               testID={'tab-add-custom-token'}
+              isTokenDetectionSupported={isTokenDetectionSupported}
             />
           </ScrollableTabView>
         ) : (

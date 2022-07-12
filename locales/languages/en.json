@@ -282,6 +282,23 @@
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import Tokens",
+    "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
+    "token_toast": {
+      "tokens_imported_title": "Imported Tokens",
+      "tokens_imported_desc": "Successfully imported {{tokenSymbols}}",
+      "token_imported_title": "Imported Token",
+      "token_imported_desc": "Successfully imported {{tokenSymbol}}",
+      "tokens_hidden_title": "Hiding Tokens",
+      "tokens_hidden_desc": "Hiding detected tokens from your wallet",
+      "token_hidden_title": "Hiding Token",
+      "token_hidden_desc": "Hiding {{tokenSymbol}}"
+    },
+    "hide_token": {
+      "title": "Hide Token?",
+      "desc": "You can add this token back in the future by going to “Import token” and searching for the token.",
+      "cancel_cta": "Cancel",
+      "confirm_cta": "Confirm"
+    },
     "no_tokens": "You don't have any tokens!",
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
@@ -294,16 +311,14 @@
     "deposit_button": "Deposit",
     "copy_address": "Copy",
     "collectible_action_title": "Collectible Options",
-    "remove_token_title": "Do you want to remove this token?",
+    "remove_token_title": "Do you want to hide this token?",
     "remove_collectible_title": "Do you want to remove this collectible?",
     "refresh_metadata": "Refresh Metadata",
     "token_removal_issue_title": "Issue removing token.",
     "token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
-    "token_removed_title": "Token removed!",
-    "token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
     "collectible_removed_title": "Collectible removed!",
     "collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
-    "remove": "Remove",
+    "remove": "Hide",
     "cancel": "Cancel",
     "yes": "Yes",
     "private_key_detected": "Private key detected",
@@ -312,6 +327,19 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance"
+  },
+  "asset_details": {
+    "token": "Token",
+    "amount": "Token Amount",
+    "address": "Token contract address",
+    "decimal": "Token decimal",
+    "network": "Network",
+    "lists": "Token Lists",
+    "hide_cta": "Hide token",
+    "options": {
+      "view_on_block": "View on block explorer",
+      "token_details": "Token details"
+    }
   },
   "activity_view": {
     "title": "Activity"
@@ -332,11 +360,15 @@
       "cancel_add_collectible": "CANCEL",
       "add_collectible": "IMPORT"
     },
-    "warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
-    "warning_link": "scams and security risks.",
-    "security_tips": "Security Tips",
-    "token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
-    "token_detection_link": "Enable it from Settings."
+    "banners": {
+      "search_desc": "Improved token detection is currently available on {{network}} network. ",
+      "search_link": "Enable it from Settings.",
+      "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
+      "custom_warning_link": "scams and security risks.",
+      "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+      "custom_info_link": "token scams and security risks.",
+      "custom_security_tips": "Security Tips"
+    }
   },
   "terms_and_conditions": {
     "title": "Terms and Conditions",
@@ -360,9 +392,9 @@
     "action_description_6": "Never sell data for profit. Ever!"
   },
   "token": {
-    "token_symbol": "Token Symbol",
-    "token_address": "Token Address",
-    "token_precision": "Token of Precision",
+    "token_symbol": "Token symbol",
+    "token_address": "Token address",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Search Tokens",
     "address_cant_be_empty": "Token address can't be empty.",
     "address_must_be_valid": "Token address must be a valid address.",
@@ -689,7 +721,8 @@
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
     "troubleshooting_missing": "troubleshooting missing balances",
-    "for_help": "for help."
+    "for_help": "for help.",
+    "troubleshoot": "Troubleshoot"
   },
   "account_details": {
     "title": "Account Details",
@@ -698,6 +731,22 @@
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
     "share_public_key": "Sharing my public key: "
+  },
+  "detected_tokens": {
+    "title": "{{tokenCount}} new token found",
+    "title_plural": "{{tokenCount}} new tokens found",
+    "import_cta": "Import ({{tokenCount}})",
+    "hide_cta": "Hide All",
+    "token_address": "Token address: ",
+    "token_lists": "Token lists: {{listNames}}",
+    "token_more": " + {{remainingListCount}} more",
+    "confirm": {
+      "title": "Import selected tokens?",
+      "desc": "Only the tokens you've selected will appear in your wallet. You can always import hidden tokens later by searching for them.",
+      "cancel_cta": "Cancel",
+      "confirm_cta": "Confirm"
+    },
+    "address_copied_to_clipboard": "Token address copied to clipboard"
   },
   "qr_scanner": {
     "invalid_qr_code_title": "Invalid QR Code",
@@ -1910,10 +1959,14 @@
   },
   "whats_new": {
     "title": "See what's new",
-    "feature_on_ramp_title": "Buy Crypto improvements",
-    "feature_on_ramp_text": "Our updated Buy Crypto feature aggregates quotes from multiple providers to help you find the best deal for your region and payment method.",
-    "feature_on_ramp_text_description": "Try it out by clicking the \"Buy\" button on the wallet screen.",
-    "feature_on_ramp_button": "Got it"
+    "feature_token_detection_title": "Improved token detection is here",
+    "feature_token_detection_description": "Improved token detection is currently available on Ethereum Mainnet, Polygon, BSC, and Avalanche network. More to come!\n\nWe source tokens from 3rd party tokens lists. Tokens listed on more than two token lists will be automatically detected.\n\nToken detection feature is ON by default. But you can disable it from Settings.",
+    "feature_token_detection_button_text": "Visit in Settings",
+    "feature_token_security_title_1": "Scam and security risks",
+    "feature_token_security_description_1": "Tokens can be created by anyone and can have duplicate names. If you see a token appear that you don’t trust or haven’t interacted with - its safer to not trust it.",
+    "feature_token_security_title_2": "Long press to hide tokens",
+    "feature_token_security_description_2": "On MetaMask mobile app, you can always hide tokens by long pressing on the token, and select ‘Hide’.",
+    "feature_token_security_button_text": "Let's start!"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
@@ -2075,7 +2128,7 @@
     "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "Enable auto token detection",
-    "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
+    "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or"
   },
