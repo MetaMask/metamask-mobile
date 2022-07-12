@@ -176,10 +176,10 @@ export const validateCollectibleOwnership = async (
       tokenId,
     );
     const isOwner = toLowerCaseEquals(owner, selectedAddress);
-    if (!isOwner) {
-      return strings('transaction.invalid_collectible_ownership');
-    }
-    return undefined;
+
+    return !isOwner
+      ? strings('transaction.invalid_collectible_ownership')
+      : undefined;
   } catch (e) {
     return false;
   }
