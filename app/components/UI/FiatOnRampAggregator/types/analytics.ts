@@ -131,10 +131,12 @@ export interface AnalyticsEvents {
     url_domain: string;
   };
   ONRAMP_QUOTE_ERROR: {
-    provider_onramp_list: string[];
+    provider_onramp: string;
     currency_source: string;
     currency_destination: string;
     chain_id_destination: string;
+    payment_method_id: string;
+    error_message?: string;
     amount: number;
   };
 }
