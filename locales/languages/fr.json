@@ -294,7 +294,6 @@
     "deposit_button": "Dépôt",
     "copy_address": "Copiez",
     "collectible_action_title": "Options des objets de collection",
-    "remove_token_title": "Voulez-vous supprimer ce jeton ?",
     "remove_collectible_title": "Voulez-vous supprimer cet objet de collection ?",
     "refresh_metadata": "Rafraîchir les métadonnées",
     "token_removal_issue_title": "Problème de suppression du jeton.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Si vous changez d’avis, vous pouvez le rajouter en appuyant sur « Importer des jetons »",
     "collectible_removed_title": "Objet de collection supprimé !",
     "collectible_removed_desc": "Si vous changez d’avis, vous pouvez le rajouter en appuyant sur « Importer des NFT »",
-    "remove": "Supprimer",
     "cancel": "Annuler",
     "yes": "Oui",
     "private_key_detected": "Clé privée détectée",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Symbole du jeton",
     "token_address": "Adresse du jeton",
-    "token_precision": "Jeton de précision",
     "search_tokens_placeholder": "Chercher des jetons",
     "address_cant_be_empty": "L’adresse du jeton ne peut être vide.",
     "address_must_be_valid": "L’adresse du jeton doit être valide.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "et réinstallez l’application. Remarque : vous ne pouvez PAS restaurer votre portefeuille sans votre phrase secrète de récupération.",
     "copied_clipboard": "Copié dans le presse-papiers",
     "ok": "OK"
-  },
-  "whats_new": {
-    "title": "Voir les nouveautés",
-    "feature_security_settings_title": "Paramètres de sécurité améliorés",
-    "feature_security_settings_text": "Vous pouvez maintenant modifier le mot de passe de l’application MetaMask et examiner comment sauvegarder la phrase secrète de récupération de votre portefeuille dans Paramètres > Sécurité et confidentialité.",
-    "feature_security_settings_button": "Afficher dans les paramètres"
   },
   "invalid_network": {
     "title": "L’ID de chaîne pour le réseau personnalisé \n %{network} \n  doit être saisi à nouveau.",

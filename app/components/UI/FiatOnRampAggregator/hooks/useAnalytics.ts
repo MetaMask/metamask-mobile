@@ -16,28 +16,35 @@ const AnonymousEvents: (keyof AnalyticsEvents)[] = [
   'ONRAMP_QUOTE_ERROR',
 ];
 
+export function trackEvent<T extends keyof AnalyticsEvents>(
+  eventType: T,
+  params: AnalyticsEvents[T],
+) {
+  const event = ANALYTICS_EVENTS_V2[eventType];
+  const anonymous = AnonymousEvents.includes(eventType);
+
+  InteractionManager.runAfterInteractions(() => {
+    if (anonymous) {
+      Analytics.trackEventWithParameters(event, {});
+      Analytics.trackEventWithParameters(event, params, true);
+    } else {
+      Analytics.trackEventWithParameters(event, params);
+    }
+  });
+}
+
 function useAnalytics() {
-  const trackEvent = useCallback(
+  const trackEventHook = useCallback(
     <T extends keyof AnalyticsEvents>(
       eventType: T,
       params: AnalyticsEvents[T],
     ) => {
-      const event = ANALYTICS_EVENTS_V2[eventType];
-      const anonymous = AnonymousEvents.includes(eventType);
-
-      InteractionManager.runAfterInteractions(() => {
-        if (anonymous) {
-          Analytics.trackEventWithParameters(event, {});
-          Analytics.trackEventWithParameters(event, params, true);
-        } else {
-          Analytics.trackEventWithParameters(event, params);
-        }
-      });
+      trackEvent(eventType, params);
     },
     [],
   );
 
-  return trackEvent;
+  return trackEventHook;
 }
 
 export default useAnalytics;
