@@ -80,6 +80,7 @@ export interface AnalyticsEvents {
     chain_id_destination: string;
     has_zero_native_balance?: boolean;
     is_apple_pay: boolean;
+    currency_destination: string;
   };
   ONRAMP_PURCHASE_COMPLETED: {
     crypto_out: number;
