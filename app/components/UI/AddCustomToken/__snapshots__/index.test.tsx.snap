@@ -25,32 +25,37 @@ exports[`AddCustomToken should render correctly 1`] = `
     testID="add-asset-cancel-button"
   >
     <View>
-      <WarningMessage
+      <Alert
+        renderIcon={[Function]}
         style={
           Object {
             "marginHorizontal": 20,
             "marginTop": 20,
-            "paddingRight": 0,
           }
         }
-        warningMessage={
-          <React.Fragment>
-            Anyone can create a token, including creating fake versions of existing tokens. Learn more about 
-            <Text
-              onPress={[Function]}
-              style={
-                Object {
-                  "color": "#037DD6",
-                }
-              }
-              suppressHighlighting={true}
-              testID="add-asset-warning-message"
-            >
-              scams and security risks.
-            </Text>
-          </React.Fragment>
-        }
-      />
+        type="Info"
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+            }
+          }
+        >
+          Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
+        </Text>
+        <Text
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#037DD6",
+            }
+          }
+          suppressHighlighting={true}
+        >
+          token scams and security risks.
+        </Text>
+      </Alert>
       <View
         style={
           Object {
@@ -67,7 +72,7 @@ exports[`AddCustomToken should render correctly 1`] = `
             }
           }
         >
-          Token Address
+          Token address
         </Text>
         <TextInput
           keyboardAppearance="light"
@@ -119,7 +124,7 @@ exports[`AddCustomToken should render correctly 1`] = `
             }
           }
         >
-          Token Symbol
+          Token symbol
         </Text>
         <TextInput
           keyboardAppearance="light"
@@ -170,7 +175,7 @@ exports[`AddCustomToken should render correctly 1`] = `
             }
           }
         >
-          Token of Precision
+          Token decimal
         </Text>
         <TextInput
           keyboardAppearance="light"
