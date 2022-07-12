@@ -362,6 +362,7 @@ const GetQuotes = () => {
           currency_destination: (params as any)?.asset?.symbol as string,
           chain_id_destination: selectedChainId,
           amount: (params as any)?.amount as number,
+          payment_method_id: selectedPaymentMethodId as string,
           refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
           results_count: quotesWithoutError.length,
           average_crypto_out: totals.amountOut / quotesWithoutError.length,
@@ -451,6 +452,7 @@ const GetQuotes = () => {
         currency_source: (params as any)?.fiatCurrency?.symbol as string,
         currency_destination: (params as any)?.asset?.symbol as string,
         chain_id_destination: selectedChainId,
+        payment_method_id: selectedPaymentMethodId as string,
         total_fee: totalFee,
         gas_fee: quote.networkFee || 0,
         processing_fee: quote.providerFee || 0,
@@ -465,6 +467,7 @@ const GetQuotes = () => {
       params,
       pollingCyclesLeft,
       selectedChainId,
+      selectedPaymentMethodId,
       trackEvent,
     ],
   );
