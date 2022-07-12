@@ -43,6 +43,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
+import Toast from '../../../component-library/components/Toast';
 
 const Stack = createStackNavigator();
 /**
@@ -384,6 +385,7 @@ const App = ({ userLoggedIn }) => {
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}
+        <Toast />
       </>
     )) ||
     null
