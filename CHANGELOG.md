@@ -14,7 +14,6 @@
 - [#4644](https://github.com/MetaMask/metamask-mobile/pull/4644): [IMPROVEMENT] Update url formats popular networks
 - [#4420](https://github.com/MetaMask/metamask-mobile/pull/4420): [IMPROVEMENT] Refactor transaction component
 - [#4263](https://github.com/MetaMask/metamask-mobile/pull/4263): [FIX] Swaps approval transaction
-- [#4516](https://github.com/MetaMask/metamask-mobile/pull/4516): [MERGE] Merge in 5.3.0 release
 - [#4618](https://github.com/MetaMask/metamask-mobile/pull/4618): [IMPROVEMENT] Componentize SelectableListItem
 - [#4606](https://github.com/MetaMask/metamask-mobile/pull/4606): [IMPROVEMENT] Componentize multiselect list item
 - [#4610](https://github.com/MetaMask/metamask-mobile/pull/4610): [FIX] Remove TouchableOpacity from DeleteMetaMetricsData component
