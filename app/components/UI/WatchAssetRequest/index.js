@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
@@ -13,6 +13,7 @@ import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import NotificationManager from '../../../core/NotificationManager';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -91,6 +92,9 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
+  const { asset } = suggestedAssetMeta;
+  let [balance] = useTokenBalance(asset.address, selectedAddress);
+  balance = renderFromTokenMinimalUnit(balance, asset.decimals);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
@@ -105,7 +109,6 @@ const WatchAssetRequest = ({
 
   const getAnalyticsParams = () => {
     try {
-      const { asset } = suggestedAssetMeta;
       const { NetworkController } = Engine.context;
       const { chainId, type } = NetworkController?.state?.provider || {};
       const url = new URL(currentPageInformation?.url);
@@ -127,16 +130,22 @@ const WatchAssetRequest = ({
   const onConfirmPress = async () => {
     const { TokensController } = Engine.context;
     await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
-      getAnalyticsParams(),
-    );
     onConfirm && onConfirm();
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
+        getAnalyticsParams(),
+      );
+      NotificationManager.showSimpleNotification({
+        status: `simple_notification`,
+        duration: 5000,
+        title: strings('wallet.token_toast.token_imported_title'),
+        description: strings('wallet.token_toast.token_imported_desc', {
+          tokenSymbol: asset?.symbol || '---',
+        }),
+      });
+    });
   };
-
-  const { asset } = suggestedAssetMeta;
-  let [balance] = useTokenBalance(asset.address, selectedAddress);
-  balance = renderFromTokenMinimalUnit(balance, asset.decimals);
 
   return (
     <View style={styles.root}>
