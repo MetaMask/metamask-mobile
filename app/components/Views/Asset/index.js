@@ -113,12 +113,16 @@ class Asset extends PureComponent {
   updateNavBar = () => {
     const { navigation, route } = this.props;
     const colors = this.context.colors || mockTheme.colors;
+    const { isETH } = route.params;
+
     navigation.setOptions(
       getNetworkNavbarOptions(
         route.params?.symbol ?? '',
         false,
         navigation,
         colors,
+        () => navigation.navigate('AssetOptions', { isNativeCurrency: isETH }),
+        true,
       ),
     );
   };

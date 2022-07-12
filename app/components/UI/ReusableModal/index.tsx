@@ -42,17 +42,17 @@ import createStyles from './styles';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 const screenHeight = Dimensions.get('window').height;
 
-type DismissModal = () => void;
+type DismissModalCallback = () => void;
 
 export interface ReusableModalRef {
-  dismissModal: (callback?: DismissModal) => void;
+  dismissModal: (callback?: DismissModalCallback) => void;
 }
 
 interface Props {
   ref?: React.Ref<ReusableModalRef>;
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
-  onDismiss?: DismissModal;
+  onDismiss?: (hasPendingAction: boolean) => void;
 }
 
 const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
@@ -61,7 +61,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
   const bottomOffset = screenHeight;
   const navigation = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
-  const trigger = useRef<DismissModal>();
+  const trigger = useRef<DismissModalCallback>();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
@@ -80,7 +80,7 @@ const ReusableModal = forwardRef<ReusableModalRef, Props>((props, ref) => {
     // Remove modal from stack
     navigation.goBack();
     // Declaratively
-    onDismiss && onDismiss();
+    onDismiss && onDismiss(!!trigger.current);
     // Imperatively
     trigger.current && trigger.current();
   }, [onDismiss]);
