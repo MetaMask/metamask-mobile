@@ -80,6 +80,8 @@ const ApplePayButton = ({
             has_zero_native_balance: accounts[selectedAddress]?.balance
               ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
               : undefined,
+            currency_destination: (fiatOrder?.data as Order)?.cryptoCurrency
+              .symbol,
           });
         } else {
           Logger.error('FiatOnRampAgg::ApplePay empty order response', order);
