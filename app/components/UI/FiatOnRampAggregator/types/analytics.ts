@@ -42,6 +42,7 @@ export interface AnalyticsEvents {
     currency_destination: string;
     chain_id_destination: string;
     amount: number;
+    payment_method_id: string;
     refresh_count: number;
     results_count: number;
     average_crypto_out: number;
@@ -62,6 +63,7 @@ export interface AnalyticsEvents {
     currency_source: string;
     currency_destination: string;
     chain_id_destination: string;
+    payment_method_id: string;
     total_fee: number;
     gas_fee: number;
     processing_fee: number;
@@ -72,9 +74,13 @@ export interface AnalyticsEvents {
   };
   ONRAMP_PURCHASE_SUBMITTED: {
     provider_onramp: string;
+    payment_method_id: string;
+    currency_source: string;
+    currency_destination: string;
     chain_id_destination: string;
     has_zero_native_balance?: boolean;
     is_apple_pay: boolean;
+    currency_destination: string;
   };
   ONRAMP_PURCHASE_COMPLETED: {
     crypto_out: number;
@@ -108,6 +114,7 @@ export interface AnalyticsEvents {
   ONRAMP_PURCHASE_DETAILS_VIEWED: {
     purchase_status: string;
     provider_onramp: string;
+    payment_method_id: string;
     currency_destination: string;
     chain_id_destination: string;
     currency_source: string;
