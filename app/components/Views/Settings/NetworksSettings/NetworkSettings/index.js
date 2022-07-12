@@ -235,13 +235,13 @@ class NetworkSettings extends PureComponent {
   getOtherNetworks = () => allNetworks.slice(1);
 
   updateNavBar = () => {
-    const { navigation } = this.props;
+    const { navigation, route } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getNavigationOptionsTitle(
         strings('app_settings.networks_title'),
         navigation,
-        false,
+        route?.params?.isFullScreenModal,
         colors,
       ),
     );

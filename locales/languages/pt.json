@@ -294,7 +294,6 @@
     "deposit_button": "Depositar",
     "copy_address": "Copiar",
     "collectible_action_title": "Opções dos colecionáveis",
-    "remove_token_title": "Deseja remover esse token?",
     "remove_collectible_title": "Deseja remover esse colecionável?",
     "refresh_metadata": "Atualizar metadados",
     "token_removal_issue_title": "Erro ao remover o token.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Se mudar de ideia, você pode adicioná-lo novamente tocando em \"Importar tokens\"",
     "collectible_removed_title": "Colecionável removido!",
     "collectible_removed_desc": "Se mudar de ideia, você pode adicioná-lo novamente tocando em \"Importar NFTs\"",
-    "remove": "Remover",
     "cancel": "Cancelar",
     "yes": "Sim",
     "private_key_detected": "Chave privada detectada",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Símbolo do token",
     "token_address": "Endereço do token",
-    "token_precision": "Token de precisão",
     "search_tokens_placeholder": "Pesquisar tokens",
     "address_cant_be_empty": "O endereço do token não pode ficar em branco.",
     "address_must_be_valid": "O endereço do token deve ser um endereço válido.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "e reinstale o app. Observação: você NÃO poderá restaurar sua carteira sem a Frase Secreta de Recuperação.",
     "copied_clipboard": "Copiada para a área de transferência",
     "ok": "OK"
-  },
-  "whats_new": {
-    "title": "Veja as novidades",
-    "feature_security_settings_title": "Configurações de segurança aprimoradas",
-    "feature_security_settings_text": "Agora você pode alterar sua senha do app da MetaMask e ver como fazer o backup da Frase Secreta de Recuperação da sua carteira em Configurações > Segurança e privacidade.",
-    "feature_security_settings_button": "Ver nas configurações"
   },
   "invalid_network": {
     "title": "O ID de cadeia da rede personalizada \n %{network} \n precisa ser reinserido.",
