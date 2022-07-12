@@ -218,8 +218,8 @@ export const validateAmount = async (
     ERC721: async () =>
       await validateCollectibleOwnership(address, tokenId, selectedAddress),
   };
-  if (!validations[assetType]) return false;
-  return await validations[assetType]();
+
+  return !validations[assetType] ? false : await validations[assetType]();
 };
 
 export const getGasAnalyticsParams = (
@@ -229,9 +229,9 @@ export const getGasAnalyticsParams = (
   networkType: string,
 ) => {
   try {
-    const { selectedAsset } = transaction;
+    const { selectedAsset, origin } = transaction;
     return {
-      dapp_host_name: transaction?.origin,
+      dapp_host_name: origin,
       dapp_url: activeTabUrl,
       active_currency: { value: selectedAsset?.symbol, anonymous: true },
       gas_estimate_type: gasEstimateType,
