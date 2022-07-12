@@ -8,6 +8,7 @@ function KeypadComponent({
   onChange,
   value,
   currency,
+  decimals,
   style,
   digitButtonStyle,
   digitTextStyle,
@@ -16,7 +17,7 @@ function KeypadComponent({
   deleteButtonStyle,
   deleteIcon,
 }) {
-  const { handler, decimalSeparator } = useCurrency(currency);
+  const { handler, decimalSeparator } = useCurrency(currency, decimals);
   const handleKeypadPress = useCallback(
     (pressedKey) => {
       const newValue = handler(value, pressedKey);
@@ -191,6 +192,10 @@ KeypadComponent.propTypes = {
    * currency without decimals (CURRENCIES[default])
    */
   currency: PropTypes.string,
+  /**
+   * Currency decimals
+   */
+  decimals: PropTypes.number,
   /**
    * Current value used to create new value when a key is pressed.
    */

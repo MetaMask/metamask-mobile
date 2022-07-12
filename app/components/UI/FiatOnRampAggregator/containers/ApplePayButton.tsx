@@ -71,6 +71,10 @@ const ApplePayButton = ({
           );
           trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
             provider_onramp: (fiatOrder?.data as Order)?.provider?.name,
+            payment_method_id: (fiatOrder?.data as Order)?.paymentMethod?.id,
+            currency_source: (fiatOrder?.data as Order)?.fiatCurrency.symbol,
+            currency_destination: (fiatOrder?.data as Order)?.cryptoCurrency
+              .symbol,
             chain_id_destination: chainId,
             is_apple_pay: true,
             has_zero_native_balance: accounts[selectedAddress]?.balance
