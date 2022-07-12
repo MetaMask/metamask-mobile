@@ -13,6 +13,7 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import Device from '../util/device';
+import AnalyticsV2 from '../util/analyticsV2';
 
 const TIMEOUT = 40000;
 
@@ -24,6 +25,9 @@ const MigratedStorage = {
         // Using new storage system
         return res;
       }
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
+        storage: 'FilesystemStorage',
+      });
     } catch {
       //Fail silently
     }
@@ -35,6 +39,9 @@ const MigratedStorage = {
         // Using old storage system
         return res;
       }
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
+        storage: 'AsyncStorage',
+      });
     } catch (error) {
       Logger.error(error, { message: 'Failed to run migration' });
       throw new Error('Failed async storage storage fetch.');
