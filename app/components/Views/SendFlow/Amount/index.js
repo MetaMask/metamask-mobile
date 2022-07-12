@@ -515,16 +515,12 @@ class Amount extends PureComponent {
 
   hasExchangeRate = () => {
     const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
-    let hasExchangeRate;
-
     if (selectedAsset.isETH) {
-      hasExchangeRate = !!conversionRate;
-    } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
-      hasExchangeRate = !!exchangeRate;
+     return !!conversionRate;
     }
-
-    return hasExchangeRate;
+    const exchangeRate = contractExchangeRates[selectedAsset.address];
+    return !!exchangeRate;
+  }
   };
 
   /**
