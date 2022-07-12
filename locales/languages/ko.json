@@ -294,7 +294,6 @@
     "deposit_button": "예금",
     "copy_address": "복사",
     "collectible_action_title": "콜렉티블 옵션",
-    "remove_token_title": "이 토큰을 제거하시겠습니까?",
     "remove_collectible_title": "이 콜렉티블을 제거하시겠습니까?",
     "refresh_metadata": "메타 데이터 새로 고침",
     "token_removal_issue_title": "토큰 제거 과정에서 문제가 발생했습니다.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "생각이 바뀌면, \"토큰 불러오기\"를 눌러 다시 추가할 수 있습니다",
     "collectible_removed_title": "콜렉티블이 제거되었습니다!",
     "collectible_removed_desc": "생각이 바뀌면, \"NFT 불러오기\"를 눌러 다시 추가할 수 있습니다",
-    "remove": "제거",
     "cancel": "취소",
     "yes": "예",
     "private_key_detected": "개인 키가 감지되었습니다",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "토큰 기호",
     "token_address": "토큰 주소",
-    "token_precision": "토큰 십진수",
     "search_tokens_placeholder": "토큰 검색",
     "address_cant_be_empty": "토큰 주소는 비워둘 수 없습니다.",
     "address_must_be_valid": "토큰 주소는 유효한 주소여야 합니다.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "앱을 다시 설치하세요. 참고: 비밀 복구 구문 없이는 지갑을 복구할 수 없습니다.",
     "copied_clipboard": "클립보드에 복사되었습니다",
     "ok": "확인"
-  },
-  "whats_new": {
-    "title": "새롭게 바뀐 사항을 확인하세요",
-    "feature_security_settings_title": "개선된 보안 설정",
-    "feature_security_settings_text": "설정 > 보안 & 개인정보 보호에서 MetaMask 앱 비밀번호를 변경하고 지갑 비밀 복구 구문을 백업하는 방법을 검토할 수 있습니다.",
-    "feature_security_settings_button": "설정에서 확인"
   },
   "invalid_network": {
     "title": "맞춤 네트워크용 체인 ID \n %{network}\n네트워크를 다시 입력해야 합니다.",

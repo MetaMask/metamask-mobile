@@ -180,6 +180,9 @@ const fiatOrderReducer = (state = initialState, action) => {
       const orders = state.orders;
       const order = action.payload;
       const index = findOrderIndex(order.provider, order.id, orders);
+      if (index === -1) {
+        return state;
+      }
       return {
         ...state,
         orders: [
