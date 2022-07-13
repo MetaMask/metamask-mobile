@@ -2624,6 +2624,13 @@
     prop-types "^15.6.1"
     react-lifecycles-compat "^3.0.4"
 
+"@react-native-async-storage/async-storage@^1.15.15", "@react-native-async-storage/async-storage@^1.15.17", "@react-native-async-storage/async-storage@^1.17.7":
+  version "1.17.7"
+  resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-1.17.7.tgz#f9213e8cc6202a8c29df5a4da1db588f3b0fa8a9"
+  integrity sha512-mDtWhCcpxzrZhA95f6zi0pnBsjBEZW1LKZWfxVXG0UfaWpPxDBCKowNk2xjRTytckZeVhjmPJPtBU+8QNQcR0A==
+  dependencies:
+    merge-options "^3.0.4"
+
 "@react-native-clipboard/clipboard@^1.8.4":
   version "1.8.4"
   resolved "https://registry.yarnpkg.com/@react-native-clipboard/clipboard/-/clipboard-1.8.4.tgz#4bc1fb00643688e489d8220cd635844ab5c066f9"
@@ -2910,6 +2917,27 @@
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/@rnhooks/keyboard/-/keyboard-0.0.3.tgz#e17a62a9f1e4f25efdf0afa4359b82e3dbea6523"
   integrity sha512-tBaDWQkcLgeEQCol/6NkB8JyRkvS7L3//mkkOSNOoeLc74Fttz8kiLUsSj9cBwSyFCrWP2K04Tn8zNgWfdFQYg==
+
+"@segment/analytics-react-native@^2.3.2":
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/@segment/analytics-react-native/-/analytics-react-native-2.3.2.tgz#7aff998c20de62c5761ad1fb1db3169f791b28f4"
+  integrity sha512-NnIocJi/g0R3qd7eQDP9Axx2Wj38ewzqySzzGiFXVUmoqQD6jynF3dbvJpsN79qRxen0e5QF69gL5NrZN5/T3Q==
+  dependencies:
+    "@react-native-async-storage/async-storage" "^1.15.17"
+    "@segment/sovran-react-native" "^0.2.8"
+    deepmerge "^4.2.2"
+    js-base64 "^3.7.2"
+    nanoid "^3.1.25"
+
+"@segment/sovran-react-native@^0.2.8":
+  version "0.2.8"
+  resolved "https://registry.yarnpkg.com/@segment/sovran-react-native/-/sovran-react-native-0.2.8.tgz#76a3c29011f9726a0fa2ac3942fb1d7715816d7e"
+  integrity sha512-b3a2vfEj2+jb8w/o+rNrJESWUhHEtrRZgydRNg1PEmMDlLeh42T3mDAap4mtGFICRDHU57w2zPeuw+wfs/sk7g==
+  dependencies:
+    "@react-native-async-storage/async-storage" "^1.15.15"
+    ansi-regex "5.0.1"
+    deepmerge "^4.2.2"
+    shell-quote "1.7.3"
 
 "@sentry/browser@6.2.1":
   version "6.2.1"
@@ -4338,7 +4366,7 @@ ansi-red@^0.1.1:
   dependencies:
     ansi-wrap "0.1.0"
 
-ansi-regex@^0.2.0, ansi-regex@^0.2.1, ansi-regex@^2.0.0, ansi-regex@^3.0.0, ansi-regex@^4.1.0, ansi-regex@^5.0.0, ansi-regex@^5.0.1:
+ansi-regex@5.0.1, ansi-regex@^0.2.0, ansi-regex@^0.2.1, ansi-regex@^2.0.0, ansi-regex@^3.0.0, ansi-regex@^4.1.0, ansi-regex@^5.0.0, ansi-regex@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-5.0.1.tgz#082cb2c89c9fe8659a311a53bd6a4dc5301db304"
   integrity sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==
@@ -10845,6 +10873,11 @@ joi@^17.2.1:
     "@sideway/formula" "^3.0.0"
     "@sideway/pinpoint" "^2.0.0"
 
+js-base64@^3.7.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.2.tgz#816d11d81a8aff241603d19ce5761e13e41d7745"
+  integrity sha512-NnRs6dsyqUXejqk/yv2aiXlAvOs56sLkX6nUdeaNezI5LFFLlsZjOThmwnrcwh5ZZRwZlCMnVAY3CvhIhoVEKQ==
+
 js-sha3@0.5.5:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.5.5.tgz#baf0c0e8c54ad5903447df96ade7a4a1bca79a4a"
@@ -11712,6 +11745,13 @@ memoizerific@^1.11.3:
   dependencies:
     map-or-similar "^1.5.0"
 
+merge-options@^3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/merge-options/-/merge-options-3.0.4.tgz#84709c2aa2a4b24c1981f66c179fe5565cc6dbb7"
+  integrity sha512-2Sug1+knBjkaMsMgf1ctR1Ujx+Ayku4EdJN4Z+C2+JzoeF7A3OZ9KM2GY0CpQS51NR61LTurMJrRKPhSs3ZRTQ==
+  dependencies:
+    is-plain-obj "^2.1.0"
+
 merge-stream@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/merge-stream/-/merge-stream-2.0.0.tgz#52823629a14dd00c9770fb6ad47dc6310f2c1f60"
@@ -12546,7 +12586,7 @@ nan@^2.0.5, nan@^2.14.0, nan@^2.2.1:
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.14.1.tgz#d7be34dfa3105b91494c3147089315eff8874b01"
   integrity sha512-isWHgVjnFjh2x2yuJ/tj3JbwoHu3UC2dX5G/88Cm24yB6YopVgxvBObDY7n5xW6ExmFhJpSEQqFPvq9zaXc8Jw==
 
-nanoid@^3.1.15, nanoid@^3.1.31:
+nanoid@^3.1.15, nanoid@^3.1.25, nanoid@^3.1.31:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.2.0.tgz#62667522da6673971cca916a6d3eff3f415ff80c"
   integrity sha512-fmsZYa9lpn69Ad5eDn7FMcnnSR+8R34W9qJEijxYhTbfOWzr22n1QxCMzXLK+ODyW2973V3Fux959iQoUxzUIA==
