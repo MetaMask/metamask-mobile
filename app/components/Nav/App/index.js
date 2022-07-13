@@ -23,6 +23,7 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
+import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
@@ -344,6 +345,7 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
       />
+      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     </Stack.Navigator>
   );
 

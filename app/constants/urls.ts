@@ -20,3 +20,12 @@ export const MIXPANEL_ENDPOINT_BASE_URL = 'https://mixpanel.com/api/app';
 
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
+export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
+
+// Phishing
+export const MM_PHISH_DETECT_URL =
+  'https://github.com/metamask/eth-phishing-detect';
+export const MM_BLOCKLIST_ISSUE_URL =
+  'https://github.com/metamask/eth-phishing-detect/issues/new';
+export const PHISHFORT_BLOCKLIST_ISSUE_URL =
+  'https://github.com/phishfort/phishfort-lists/issues/new';

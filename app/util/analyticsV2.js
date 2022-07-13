@@ -111,8 +111,6 @@ export const ANALYTICS_EVENTS_V2 = {
   BROWSER_RELOAD: generateOpt('Reload Browser'),
   BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
   // Settings
-  SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
-  SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
   // Reveal Credentials
   REVEAL_SRP_INITIATED: generateOpt('Reveal SRP Initiated'),
   REVEAL_SRP_CANCELLED: generateOpt('Reveal SRP Cancelled'),
@@ -134,6 +132,12 @@ export const ANALYTICS_EVENTS_V2 = {
     'User canceled QR hardware transaction',
   ),
   HARDWARE_WALLET_ERROR: generateOpt('Hardware wallet error'),
+
+  // TOKENS
+  TOKEN_DETECTED: generateOpt('Token Detected'),
+  TOKEN_IMPORT_CLICKED: generateOpt('Token Import Clicked'),
+  TOKEN_IMPORT_CANCELED: generateOpt('Token Import Canceled'),
+  TOKENS_HIDDEN: generateOpt('Tokens Hidden'),
 
   // ONRAMP AGGREGATOR
   BUY_BUTTON_CLICKED: generateOpt('Buy Button Clicked'),
