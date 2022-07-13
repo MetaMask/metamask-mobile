@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { Fragment, PureComponent } from 'react';
 
 import { fontStyles, baseStyles } from '../../../../styles/common';
 import { getSendFlowTitle } from '../../../UI/Navbar';
@@ -676,11 +676,11 @@ class SendFlow extends PureComponent {
 
   renderAddressError = (addressError) =>
     addressError === 'symbolError' ? (
-      <Text>
+      <Fragment>
         <Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
         <Text bold>{strings('transaction.tokenContractAddressWarning_2')}</Text>
         <Text>{strings('transaction.tokenContractAddressWarning_3')}</Text>
-      </Text>
+      </Fragment>
     ) : (
       addressError
     );

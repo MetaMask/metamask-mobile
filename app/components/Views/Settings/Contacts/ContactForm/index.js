@@ -127,6 +127,10 @@ class ContactForm extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Network provider type as mainnet
+     */
+    providerType: PropTypes.string,
   };
 
   state = {
@@ -207,17 +211,29 @@ class ContactForm extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (address) => {
-    const { network, addressBook, identities } = this.props;
+    const { network, addressBook, identities, providerType } = this.props;
 
-    const { addressError, toEnsName, addressReady, toEnsAddress } =
-      await validateAddressOrENS({
-        toAccount: address,
-        network,
-        addressBook,
-        identities,
-      });
+    const {
+      addressError,
+      toEnsName,
+      addressReady,
+      toEnsAddress,
+      errorContinue,
+    } = await validateAddressOrENS({
+      toAccount: address,
+      network,
+      addressBook,
+      identities,
+      providerType,
+    });
 
-    this.setState({ addressError, toEnsName, addressReady, toEnsAddress });
+    this.setState({
+      addressError,
+      toEnsName,
+      addressReady,
+      toEnsAddress,
+      errorContinue,
+    });
   };
 
   onChangeAddress = (address) => {
@@ -244,19 +260,12 @@ class ContactForm extends PureComponent {
     const { network, navigation } = this.props;
     const { AddressBookController } = Engine.context;
     if (!name || !address) return;
-    toEnsAddress
-      ? AddressBookController.set(
-          toChecksumAddress(toEnsAddress),
-          name,
-          network,
-          memo,
-        )
-      : AddressBookController.set(
-          toChecksumAddress(address),
-          name,
-          network,
-          memo,
-        );
+    AddressBookController.set(
+      toChecksumAddress(toEnsAddress || address),
+      name,
+      network,
+      memo,
+    );
     navigation.pop();
   };
 
@@ -282,6 +291,27 @@ class ContactForm extends PureComponent {
     this.actionSheet = ref;
   };
 
+  renderErrorMessage = (addressError) => {
+    let errorMessage = addressError;
+
+    if (addressError === 'contactAlreadySaved') {
+      errorMessage = strings('address_book.address_already_saved');
+    }
+    if (addressError === 'symbolError') {
+      errorMessage = `${
+        strings('transaction.tokenContractAddressWarning_1') +
+        strings('transaction.tokenContractAddressWarning_2') +
+        strings('transaction.tokenContractAddressWarning_3')
+      }`;
+    }
+
+    return errorMessage;
+  };
+
+  onErrorContinue = () => {
+    this.setState({ addressError: undefined });
+  };
+
   render = () => {
     const {
       address,
@@ -294,6 +324,7 @@ class ContactForm extends PureComponent {
       editable,
       inputWidth,
       toEnsAddress,
+      errorContinue,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -400,11 +431,9 @@ class ContactForm extends PureComponent {
 
           {addressError && (
             <ErrorMessage
-              errorMessage={
-                addressError === 'contactAlreadySaved'
-                  ? strings('address_book.address_already_saved')
-                  : addressError
-              }
+              errorMessage={this.renderErrorMessage(addressError)}
+              errorContinue={!!errorContinue}
+              onContinue={this.onErrorContinue}
             />
           )}
 
@@ -461,6 +490,7 @@ const mapStateToProps = (state) => ({
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   identities: state.engine.backgroundState.PreferencesController.identities,
   network: state.engine.backgroundState.NetworkController.network,
+  providerType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 export default connect(mapStateToProps)(ContactForm);
