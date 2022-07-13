@@ -1,40 +1,94 @@
 /* eslint-disable react/prop-types */
-import ButtonReveal from '../../../components/UI/ButtonReveal';
 import React, {
   forwardRef,
-  useEffect,
   useImperativeHandle,
+  useMemo,
   useState,
 } from 'react';
-import { View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, withTiming } from 'react-native-reanimated';
-import { useStyles } from '../../hooks';
+import {
+  Dimensions,
+  LayoutChangeEvent,
+  StyleProp,
+  View,
+  ViewStyle,
+} from 'react-native';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
 import { BaseAvatarSize } from '../BaseAvatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import Link from '../Link';
-import styleSheet from './Toast.styles';
-import { ToastOptions, ToastRef } from './Toast.types';
+import styles from './Toast.styles';
+import {
+  ToastLabelOptions,
+  ToastLinkOption,
+  ToastOptions,
+  ToastRef,
+  ToastVariant,
+} from './Toast.types';
+import NetworkAvatar from '../NetworkAvatar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const visibilityDuration = 2500;
+const animationDuration = 250;
+const bottomPadding = 16;
+const screenHeight = Dimensions.get('window').height;
 
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
-  const animationProgress = useSharedValue(1);
-  const { styles } = useStyles(styleSheet, { animationProgress });
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
+  const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
+  const translateYProgress = useSharedValue(screenHeight);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateYProgress.value }],
+  }));
+  const baseStyle: StyleProp<Animated.AnimateStyle<StyleProp<ViewStyle>>> =
+    useMemo(
+      () => [styles.base, animatedStyle],
+      /* eslint-disable-next-line */
+      [],
+    );
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      showToast: setToastOptions,
-    }),
-    [setToastOptions],
-  );
+  const showToast = (options: ToastOptions) => {
+    if (toastOptions) {
+      return;
+    }
+    setToastOptions(options);
+  };
 
-  // useEffect(() => {
-  //   animationProgress.value = withTiming(0, { duration: 5000 });
-  // }, [props]);
+  useImperativeHandle(ref, () => ({
+    showToast,
+  }));
+
+  const resetState = () => setToastOptions(undefined);
+
+  const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
+    if (toastOptions) {
+      const { height } = e.nativeEvent.layout;
+      const translateYToValue = -(bottomPadding + bottomNotchSpacing);
+
+      translateYProgress.value = height;
+      translateYProgress.value = withTiming(
+        translateYToValue,
+        { duration: animationDuration },
+        () =>
+          (translateYProgress.value = withDelay(
+            visibilityDuration,
+            withTiming(
+              height,
+              { duration: animationDuration },
+              runOnJS(resetState),
+            ),
+          )),
+      );
+    }
+  };
 
   const renderAccountAvatar = (accountAddress: string) => (
     <AccountAvatar
@@ -44,23 +98,20 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       style={styles.avatar}
     />
   );
-  const labelInfo = [
-    {
-      label: 'Hiding',
-    },
-    {
-      label: ' Network',
-      isBold: true,
-    },
-    {
-      label: ' tokens.',
-    },
-  ];
 
-  const renderLabel = (label: string) => (
+  const renderNetworkAvatar = (networkImageUrl: string) => (
+    <NetworkAvatar
+      networkImageUrl={networkImageUrl}
+      size={BaseAvatarSize.Md}
+      style={styles.avatar}
+    />
+  );
+
+  const renderLabel = (labelOptions: ToastLabelOptions) => (
     <BaseText variant={BaseTextVariant.sBodyMD}>
-      {labelInfo.map(({ label, isBold }) => (
+      {labelOptions.map(({ label, isBold }, index) => (
         <BaseText
+          key={`toast-label-${index}`}
           variant={
             isBold ? BaseTextVariant.sBodyMDBold : BaseTextVariant.sBodyMD
           }
@@ -70,57 +121,54 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         </BaseText>
       ))}
     </BaseText>
-
-    // <BaseText variant={BaseTextVariant.sBodyMD} style={styles.label}>
-    //   {label}
-    // </BaseText>
   );
 
-  const renderLink = (label: string) => (
-    <Link onPress={() => {}} variant={BaseTextVariant.sBodyMD}>
-      {label}
-    </Link>
-  );
+  const renderLink = (linkOption?: ToastLinkOption) =>
+    linkOption ? (
+      <Link onPress={linkOption.onPress} variant={BaseTextVariant.sBodyMD}>
+        {linkOption.label}
+      </Link>
+    ) : null;
 
-  const triggerPress = () => {
-    'worklet';
-    animationProgress.value = withTiming(1.2, { duration: 400 });
+  const renderToastContent = (options: ToastOptions) => {
+    let avatarContent: React.ReactNode = null;
+    const { labelOptions, linkOption } = options;
+
+    switch (toastOptions?.variant) {
+      case ToastVariant.Plain:
+        break;
+      case ToastVariant.Account:
+        {
+          const { accountAddress } = toastOptions;
+          avatarContent = renderAccountAvatar(accountAddress);
+        }
+        break;
+      case ToastVariant.Network: {
+        {
+          const { networkImageUrl } = toastOptions;
+          avatarContent = renderNetworkAvatar(networkImageUrl);
+        }
+      }
+    }
+    return (
+      <>
+        {avatarContent}
+        <View style={styles.labelsContainer}>
+          {renderLabel(labelOptions)}
+          {renderLink(linkOption)}
+        </View>
+      </>
+    );
   };
 
+  if (!toastOptions) {
+    return null;
+  }
+
   return (
-    <View>
-      <Animated.View
-        style={[
-          styles.base,
-          { transform: [{ scale: animationProgress.value }] },
-        ]}
-      >
-        {renderAccountAvatar(
-          '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092',
-        )}
-
-        <TouchableOpacity
-          style={{ justifyContent: 'center', flex: 1 }}
-          onPress={triggerPress}
-        >
-          {renderLabel('HELLO')}
-
-          {/* {renderLink('Press me!')} */}
-        </TouchableOpacity>
-        {/* <ButtonReveal onLongPress={() => {}} label={'woot'} /> */}
-        {/* {icon && (
-        <Icon
-          color={labelColor}
-          name={icon}
-          size={IconSize.Sm}
-          style={styles.icon}
-        />
-      )} */}
-        {/* <BaseText variant={BaseTextVariant.sBodyMD} style={styles.label}>
-        {label}
-      </BaseText> */}
-      </Animated.View>
-    </View>
+    <Animated.View onLayout={onAnimatedViewLayout} style={baseStyle}>
+      {renderToastContent(toastOptions)}
+    </Animated.View>
   );
 });
 

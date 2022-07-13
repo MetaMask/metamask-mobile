@@ -1,19 +1,10 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { IconName } from '../Icon';
-import BaseButton from './BaseButton';
-import { BaseButtonSize } from './BaseButton.types';
+import Toast from './Toast';
 
-describe('BaseButton', () => {
+describe('Toast', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <BaseButton
-        icon={IconName.BankFilled}
-        size={BaseButtonSize.Md}
-        label={'Click me!'}
-        onPress={() => null}
-      />,
-    );
+    const wrapper = shallow(<Toast />);
     expect(wrapper).toMatchSnapshot();
   });
 });

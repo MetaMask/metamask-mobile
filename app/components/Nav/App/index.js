@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -43,7 +49,9 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
-import Toast from '../../../component-library/components/Toast';
+import Toast, {
+  ToastContext,
+} from '../../../component-library/components/Toast';
 
 const Stack = createStackNavigator();
 /**
@@ -149,6 +157,7 @@ const App = ({ userLoggedIn }) => {
   const [route, setRoute] = useState();
   const [animationPlayed, setAnimationPlayed] = useState();
   const { colors } = useAppThemeFromContext() || mockTheme;
+  const { toastRef } = useContext(ToastContext);
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
@@ -385,7 +394,7 @@ const App = ({ userLoggedIn }) => {
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}
-        <Toast />
+        <Toast ref={toastRef} />
       </>
     )) ||
     null

@@ -1,34 +1,47 @@
 export enum ToastVariant {
+  Plain = 'Plain',
   Account = 'Account',
   Network = 'Network',
 }
 
-interface ToastLabelOption {
+export type ToastLabelOptions = {
   label: string;
   isBold?: boolean;
+}[];
+
+export interface ToastLinkOption {
+  label: string;
+  onPress: () => void;
 }
 
 interface BaseToastVariant {
-  labelOptions: ToastLabelOption[];
+  labelOptions: ToastLabelOptions;
+  linkOption?: ToastLinkOption;
 }
 
-interface AccountToastVariant extends BaseToastVariant {
-  type: ToastVariant.Account;
+interface PlainToastOption extends BaseToastVariant {
+  variant: ToastVariant.Plain;
+}
+
+interface AccountToastOption extends BaseToastVariant {
+  variant: ToastVariant.Account;
   accountAddress: string;
 }
 
-interface NetworkToastVariant extends BaseToastVariant {
-  type: ToastVariant.Network;
+interface NetworkToastOption extends BaseToastVariant {
+  variant: ToastVariant.Network;
   networkImageUrl: string;
 }
 
-export type ToastOptions = AccountToastVariant | NetworkToastVariant;
+export type ToastOptions =
+  | PlainToastOption
+  | AccountToastOption
+  | NetworkToastOption;
 
 export interface ToastRef {
   showToast: (toastOptions: ToastOptions) => void;
 }
 
-/**
- * Style sheet input parameters.
- */
-export type ToastStyleSheetVars = {};
+export interface ToastContextParams {
+  toastRef: React.RefObject<ToastRef> | undefined;
+}
