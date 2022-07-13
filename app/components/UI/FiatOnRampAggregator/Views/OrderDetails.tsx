@@ -57,6 +57,7 @@ const OrderDetails = () => {
       trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
         purchase_status: order.state,
         provider_onramp: (order.data as Order)?.provider.name,
+        payment_method_id: (order.data as Order)?.paymentMethod?.id,
         currency_destination: order.cryptocurrency,
         currency_source: order.currency,
         chain_id_destination: order.network,
