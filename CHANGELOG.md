@@ -1,6 +1,8 @@
 # Changelog
 
 ## Current Main Branch
+
+## 5.3.0 - Jun 16, 2022
 - [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
 - [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
 - [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
