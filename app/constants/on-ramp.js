@@ -67,6 +67,15 @@ export const NETWORKS_NAMES = {
   [NETWORKS_CHAIN_ID.HARMONY]: 'Harmony',
 };
 
+export const FORMATTED_NETWORK_NAMES = {
+  [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
+  [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
+  [NETWORKS_CHAIN_ID.AVAXCCHAIN]: 'Avalanche',
+  [NETWORKS_CHAIN_ID.CELO]: 'Celo',
+  [NETWORKS_CHAIN_ID.FANTOM]: 'Fantom',
+};
+
 const TRANSAK_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'ethereum',
   [NETWORKS_CHAIN_ID.BSC]: 'bsc',
