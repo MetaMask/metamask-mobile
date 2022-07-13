@@ -4,7 +4,11 @@ import { Image, StyleSheet } from 'react-native';
 import ListItem from '../../Base/ListItem';
 import { strings } from '../../../../locales/i18n';
 import { toDateFormat } from '../../../util/date';
-import { renderNumber, addCurrencySymbol } from '../../../util/number';
+import {
+  renderNumber,
+  addCurrencySymbol,
+  renderFiat,
+} from '../../../util/number';
 import { getProviderName } from '../../../reducers/fiatOrders';
 import StatusText from '../../Base/StatusText';
 /**
@@ -58,7 +62,7 @@ function OrderListItem({ order }) {
             {order.cryptocurrency}
           </ListItem.Amount>
           <ListItem.FiatAmount>
-            {addCurrencySymbol(order.amount, order.currency)}
+            {addCurrencySymbol(renderFiat(order.amount, ''), order.currency)}
           </ListItem.FiatAmount>
         </ListItem.Amounts>
       </ListItem.Content>

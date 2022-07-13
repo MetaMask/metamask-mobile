@@ -265,7 +265,7 @@ export class NetworkList extends PureComponent {
       <TouchableOpacity
         style={styles.network}
         key={`network-${i}`}
-				onPress={() => onPress(network)} // eslint-disable-line
+        onPress={() => onPress(network)} // eslint-disable-line
       >
         <View style={styles.selected}>{selected}</View>
         {isCustomRpc &&
@@ -349,7 +349,7 @@ export class NetworkList extends PureComponent {
         <TouchableOpacity
           style={[styles.network, styles.mainnet]}
           key={`network-mainnet`}
-					onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
+          onPress={() => this.onNetworkChange(MAINNET)} // eslint-disable-line
           testID={'network-name'}
         >
           <View style={styles.networkWrapper}>
@@ -368,7 +368,13 @@ export class NetworkList extends PureComponent {
 
   goToNetworkSettings = () => {
     this.props.onClose(false);
-    this.props.navigation.navigate('NetworkSettings');
+    this.props.navigation.navigate('SettingsView', {
+      screen: 'SettingsFlow',
+      params: {
+        screen: 'NetworkSettings',
+        params: { isFullScreenModal: true },
+      },
+    });
   };
 
   render = () => {

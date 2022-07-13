@@ -147,7 +147,9 @@
     "wrong_password_error": "Error: Decrypt failed",
     "wrong_password_error_android": "Error: error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT",
     "vault_error": "Error: Cannot unlock without a previous vault.",
-    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase."
+    "clean_vault_error": "MetaMask encountered an error due to reaching a storage limit. The local data has been corrupted. Please reinstall MetaMask and restore with your Secret Recovery Phrase.",
+    "security_alert_title": "Security Alert",
+    "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)"
   },
   "enter_password": {
     "title": "Enter your password",
@@ -282,6 +284,23 @@
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import Tokens",
+    "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
+    "token_toast": {
+      "tokens_imported_title": "Imported Tokens",
+      "tokens_imported_desc": "Successfully imported {{tokenSymbols}}",
+      "token_imported_title": "Imported Token",
+      "token_imported_desc": "Successfully imported {{tokenSymbol}}",
+      "tokens_hidden_title": "Hiding Tokens",
+      "tokens_hidden_desc": "Hiding detected tokens from your wallet",
+      "token_hidden_title": "Hiding Token",
+      "token_hidden_desc": "Hiding {{tokenSymbol}}"
+    },
+    "hide_token": {
+      "title": "Hide Token?",
+      "desc": "You can add this token back in the future by going to “Import token” and searching for the token.",
+      "cancel_cta": "Cancel",
+      "confirm_cta": "Confirm"
+    },
     "no_tokens": "You don't have any tokens!",
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
@@ -294,16 +313,14 @@
     "deposit_button": "Deposit",
     "copy_address": "Copy",
     "collectible_action_title": "Collectible Options",
-    "remove_token_title": "Do you want to remove this token?",
+    "remove_token_title": "Do you want to hide this token?",
     "remove_collectible_title": "Do you want to remove this collectible?",
     "refresh_metadata": "Refresh Metadata",
     "token_removal_issue_title": "Issue removing token.",
     "token_removal_issue_desc": "There was a problem when trying to remove the token. Try again.",
-    "token_removed_title": "Token removed!",
-    "token_removed_desc": "If you change your mind, you can add it back by tapping on \"Import Tokens\"",
     "collectible_removed_title": "Collectible removed!",
     "collectible_removed_desc": "If you change your mind, you can add it back by tapping on \"Import NFTs\"",
-    "remove": "Remove",
+    "remove": "Hide",
     "cancel": "Cancel",
     "yes": "Yes",
     "private_key_detected": "Private key detected",
@@ -312,6 +329,19 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance"
+  },
+  "asset_details": {
+    "token": "Token",
+    "amount": "Token Amount",
+    "address": "Token contract address",
+    "decimal": "Token decimal",
+    "network": "Network",
+    "lists": "Token Lists",
+    "hide_cta": "Hide token",
+    "options": {
+      "view_on_block": "View on block explorer",
+      "token_details": "Token details"
+    }
   },
   "activity_view": {
     "title": "Activity"
@@ -332,11 +362,15 @@
       "cancel_add_collectible": "CANCEL",
       "add_collectible": "IMPORT"
     },
-    "warning_body_description": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
-    "warning_link": "scams and security risks.",
-    "security_tips": "Security Tips",
-    "token_detection_feature": "New! Improved token detection is available on Ethereum Mainnet as an experimental feature. ",
-    "token_detection_link": "Enable it from Settings."
+    "banners": {
+      "search_desc": "Improved token detection is currently available on {{network}} network. ",
+      "search_link": "Enable it from Settings.",
+      "custom_warning_desc": "Anyone can create a token, including creating fake versions of existing tokens. Learn more about ",
+      "custom_warning_link": "scams and security risks.",
+      "custom_info_desc": "Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about ",
+      "custom_info_link": "token scams and security risks.",
+      "custom_security_tips": "Security Tips"
+    }
   },
   "terms_and_conditions": {
     "title": "Terms and Conditions",
@@ -360,9 +394,9 @@
     "action_description_6": "Never sell data for profit. Ever!"
   },
   "token": {
-    "token_symbol": "Token Symbol",
-    "token_address": "Token Address",
-    "token_precision": "Token of Precision",
+    "token_symbol": "Token symbol",
+    "token_address": "Token address",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Search Tokens",
     "address_cant_be_empty": "Token address can't be empty.",
     "address_must_be_valid": "Token address must be a valid address.",
@@ -582,7 +616,7 @@
     "mainnet": "Mainnet",
     "test_network_name": "Test networks",
     "custom_network_name": "Custom networks",
-		"popular": "Popular",
+    "popular": "Popular",
     "delete": "Delete",
     "network_exists": "This network has already been added.",
     "delete_metrics_title": "Delete MetaMetrics data",
@@ -689,7 +723,8 @@
     "were_unable": "We’re unable to load your",
     "balance": "balance. See the support article",
     "troubleshooting_missing": "troubleshooting missing balances",
-    "for_help": "for help."
+    "for_help": "for help.",
+    "troubleshoot": "Troubleshoot"
   },
   "account_details": {
     "title": "Account Details",
@@ -698,6 +733,22 @@
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
     "share_public_key": "Sharing my public key: "
+  },
+  "detected_tokens": {
+    "title": "{{tokenCount}} new token found",
+    "title_plural": "{{tokenCount}} new tokens found",
+    "import_cta": "Import ({{tokenCount}})",
+    "hide_cta": "Hide All",
+    "token_address": "Token address: ",
+    "token_lists": "Token lists: {{listNames}}",
+    "token_more": " + {{remainingListCount}} more",
+    "confirm": {
+      "title": "Import selected tokens?",
+      "desc": "Only the tokens you've selected will appear in your wallet. You can always import hidden tokens later by searching for them.",
+      "cancel_cta": "Cancel",
+      "confirm_cta": "Confirm"
+    },
+    "address_copied_to_clipboard": "Token address copied to clipboard"
   },
   "qr_scanner": {
     "invalid_qr_code_title": "Invalid QR Code",
@@ -832,7 +883,8 @@
     "no_camera_permission": "Camera not authorized. Please give permission and retry",
     "invalid_qr_code_sign": "Invalid QR code. Please check your hardware and retry.",
     "no_camera_permission_android": "You need to grant MetaMask access to your camera to proceed. You may also need to change your system settings.",
-    "mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'."
+    "mismatched_qr_request_id": "Incongruent transaction data. Please use your Keystone to sign the QR code below and tap 'Get Signature'.",
+    "hex_data_copied": "Hex data copied to clipboard"
   },
   "custom_gas": {
     "total": "Total",
@@ -1064,36 +1116,37 @@
     "status_ok": "All Systems Operational",
     "status_not_ok": "The network is having some issues",
     "want_to_add_network": "Want to add this network?",
-		"network_infomation": "This allows this network to be used within MetaMask",
-		"network_endorsement": "MetaMask does not endorse custom networks or their security.",
-		"learn_about": "Learn about",
-		"network_risk": "scams and network security risks",
-		"network_display_name": "Display name",
-		"network_chain_id": "Chain ID",
-		"network_rpc_url": "Network URL",
-		"view_details": "View details",
-		"network_details": "Network details",
-		"network_currency_symbol": "Currency Symbol",
-		"network_block_explorer_url": "Block Explorer URL",
-		"search": "Search for previously added network",
-		"add": "Add",
-		"cancel": "Cancel",
-		"approve": "Approve",
-		"malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
-		"security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
-		"network_warning": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
-		"learn_more": "Learn more",
-		"learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
-		"switch_network": "Switch to network",
-		"new_network": "New network added",
-		"network_name": "{{networkName}} Network",
-		"network_added": " is now available in the network selector.",
-		"provider": "A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully",
-		"no_match": "No matching results found.",
-		"empty_popular_networks": "You’ve added all the popular networks. You can discover more networks",
-		"add_other_network_here": "here.",
-		"you_can": "Or you can",
-		"add_network": "add more networks manually."
+    "network_infomation": "This allows this network to be used within MetaMask",
+    "network_endorsement": "MetaMask does not endorse custom networks or their security.",
+    "learn_about": "Learn about",
+    "network_risk": "scams and network security risks",
+    "network_display_name": "Display name",
+    "network_chain_id": "Chain ID",
+    "network_rpc_url": "Network URL",
+    "view_details": "View details",
+    "network_details": "Network details",
+    "network_currency_symbol": "Currency Symbol",
+    "network_block_explorer_url": "Block Explorer URL",
+    "search": "Search for previously added network",
+    "add": "Add",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
+    "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
+    "network_warning_title": "Network Information",
+    "network_warning_desc": "This network connection relies on third parties. This connection may be less reliable or enable third-parties to track activity.",
+    "learn_more": "Learn more",
+    "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4417500466971",
+    "switch_network": "Switch to network",
+    "new_network": "New network added",
+    "network_name": "{{networkName}} Network",
+    "network_added": " is now available in the network selector.",
+    "provider": "A provider is trusted to tell your wallet its balances and to broadcast its transactions faithfully",
+    "no_match": "No matching results found.",
+    "empty_popular_networks": "You’ve added all the popular networks. You can discover more networks",
+    "add_other_network_here": "here.",
+    "you_can": "Or you can",
+    "add_network": "add more networks manually."
   },
   "select": {
     "cancel": "Cancel",
@@ -1645,7 +1698,9 @@
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy!",
     "webview_received_error": "WebView received error status code: {{code}}",
-    "no_tokens_available": "There are currently no cryptocurrencies available to purchase on {{network}} in {{region}}",
+    "no_tokens_available_title": "No Tokens Available",
+    "no_tokens_available": "There are currently no tokens available to purchase on {{network}} with the selected payment method.",
+    "change_payment_method": "Change payment method",
     "try_different_region": "Try a different region",
     "return_home": "Return to Home Screen",
     "region": {
@@ -1670,6 +1725,7 @@
       "available_in_account": "is now available in your account",
       "crypto": "crypto",
       "failed": "Order Failed",
+      "cancelled": "Order Canceled",
       "failed_description": "Something went wrong, and {{provider}} was unable to complete your order. Please try again or with another provider.",
       "the_provider": "the provider",
       "processing": "Processing Order",
@@ -1681,8 +1737,9 @@
       "etherscan": "View full details on",
       "another_purchase": "Make another purchase",
       "questions": "Questions?",
-      "contact": "Contact",
+      "contact_support": "Contact support",
       "support": "Support",
+      "view_order_status": "View order status on {{provider}}",
       "id": "Order ID",
       "date_and_time": "Date and Time",
       "payment_method": "Payment Method",
@@ -1904,9 +1961,14 @@
   },
   "whats_new": {
     "title": "See what's new",
-    "feature_security_settings_title": "Improved security settings",
-    "feature_security_settings_text": "You can now change your MetaMask app password & review how to backup your wallet Secret Recovery Phrase from Settings > Security & Privacy.",
-    "feature_security_settings_button": "View in Settings"
+    "feature_token_detection_title": "Improved token detection is here",
+    "feature_token_detection_description": "Improved token detection is currently available on Ethereum Mainnet, Polygon, BSC, and Avalanche network. More to come!\n\nWe source tokens from 3rd party tokens lists. Tokens listed on more than two token lists will be automatically detected.\n\nToken detection feature is ON by default. But you can disable it from Settings.",
+    "feature_token_detection_button_text": "Visit in Settings",
+    "feature_token_security_title_1": "Scam and security risks",
+    "feature_token_security_description_1": "Tokens can be created by anyone and can have duplicate names. If you see a token appear that you don’t trust or haven’t interacted with - its safer to not trust it.",
+    "feature_token_security_title_2": "Long press to hide tokens",
+    "feature_token_security_description_2": "On MetaMask mobile app, you can always hide tokens by long pressing on the token, and select ‘Hide’.",
+    "feature_token_security_button_text": "Let's start!"
   },
   "invalid_network": {
     "title": "The chain ID for custom network \n %{network} \n has to be re-entered.",
@@ -1958,13 +2020,13 @@
     "learn_more": {
       "title": "How should I choose?",
       "intro": "Selecting the right gas fee depends on the type of transaction and how important it is to you.",
-	  "aggressive_label": "Aggresive",
-	  "aggressive_text": "High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.",
-	  "market_label": "Market",
-	  "market_text": "Use Market for fast processing at current market price.",
-	  "low_label": "Low",
-	  "low_text": "Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.",
-	  "link": "Learn more about customizing gas."
+      "aggressive_label": "Aggresive",
+      "aggressive_text": "High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.",
+      "market_label": "Market",
+      "market_text": "Use Market for fast processing at current market price.",
+      "low_label": "Low",
+      "low_text": "Use Low to wait for a cheaper price. Time estimates are much less accurate as prices are somewhat unpredictable.",
+      "link": "Learn more about customizing gas."
     },
     "save": "Save",
     "submit": "Submit",
@@ -2068,7 +2130,7 @@
     "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "enable_token_detection": "Enable auto token detection",
-    "token_detection_mainnet_title": "Token detection is enabled so many tokens will automatically show up in your wallet.",
+    "token_detection_mainnet_title": "Token detection is enabled so tokens will automatically show up in your wallet.",
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or"
   },

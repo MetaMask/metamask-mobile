@@ -84,7 +84,7 @@ export default class AssetList extends PureComponent {
               testID={'searched-token-result'}
             >
               <View style={styles.assetListElement}>
-                <AssetIcon logo={iconUrl} />
+                <AssetIcon address={address} logo={iconUrl} />
                 <Text style={styles.text}>
                   {name} ({symbol})
                 </Text>

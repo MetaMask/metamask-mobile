@@ -401,8 +401,8 @@ class Login extends PureComponent {
         return;
       } else if (error === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
-          'Security Alert',
-          'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
+          strings('login.security_alert_title'),
+          strings('login.security_alert_desc'),
         );
         this.setState({ loading: false });
       } else if (toLowerCaseEquals(error, VAULT_ERROR)) {

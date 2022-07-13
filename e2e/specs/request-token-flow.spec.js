@@ -15,6 +15,7 @@ import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import RequestPaymentModal from '../pages/modals/RequestPaymentModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 import TestHelpers from '../helpers';
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
@@ -50,6 +51,17 @@ describe('Request Token Flow', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('should tap on the close button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {
