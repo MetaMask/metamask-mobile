@@ -23,6 +23,7 @@ import {
   toHexadecimal,
   safeNumberToBN,
   fastSplit,
+  isNumber,
 } from '.';
 import numberToBN from 'number-to-bn';
 
@@ -499,5 +500,30 @@ describe('Number utils:: safeNumberToBN', () => {
     expect(safeNumberToBN('304717635658067,7')).toEqual(
       numberToBN('304717635658067'),
     );
+  });
+});
+
+describe('Number utils :: isNumber', () => {
+  it('should be a valid number ', () => {
+    expect(isNumber('1650.7')).toBe(true);
+    expect(isNumber('1000')).toBe(true);
+    expect(isNumber('0.0001')).toBe(true);
+    expect(isNumber('0001')).toBe(true);
+    expect(isNumber('1')).toBe(true);
+  });
+
+  it('should not be a valid number ', () => {
+    expect(isNumber('..7')).toBe(false);
+    expect(isNumber('1..1')).toBe(false);
+    expect(isNumber('0..')).toBe(false);
+    expect(isNumber('a.0001')).toBe(false);
+    expect(isNumber('00a01')).toBe(false);
+    expect(isNumber('1,.')).toBe(false);
+    expect(isNumber('1,')).toBe(false);
+    expect(isNumber('.')).toBe(false);
+    expect(isNumber('a¡1')).toBe(false);
+    expect(isNumber('.01')).toBe(false);
+    expect(isNumber(undefined)).toBe(false);
+    expect(isNumber(null)).toBe(false);
   });
 });

@@ -294,7 +294,6 @@
     "deposit_button": "Deposit",
     "copy_address": "Salin",
     "collectible_action_title": "Pilihan Koleksi",
-    "remove_token_title": "Apakah Anda ingin menghapus token ini?",
     "remove_collectible_title": "Apakah Anda ingin menghapus koleksi ini?",
     "refresh_metadata": "Segarkan Metadata",
     "token_removal_issue_title": "Terjadi masalah saat menghapus token.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Jika berubah pikiran, Anda dapat menambahkannya kembali dengan mengetuk \"Impor Token\"",
     "collectible_removed_title": "Koleksi dihapus!",
     "collectible_removed_desc": "Jika berubah pikiran, Anda dapat menambahkannya kembali dengan mengetuk \"Impor NFT\"",
-    "remove": "Hapus",
     "cancel": "Batal",
     "yes": "Ya",
     "private_key_detected": "Kunci pribadi terdeteksi",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Simbol Token",
     "token_address": "Alamat Token",
-    "token_precision": "Token Presisi",
     "search_tokens_placeholder": "Cari Token",
     "address_cant_be_empty": "Alamat token wajib diisi.",
     "address_must_be_valid": "Alamat token harus berupa alamat yang valid.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "& instal ulang aplikasi. Catatan: Anda TIDAK dapat memulihkan dompet Anda tanpa Frasa Pemulihan Rahasia.",
     "copied_clipboard": "Disalin ke papan klip",
     "ok": "Oke"
-  },
-  "whats_new": {
-    "title": "Lihat yang baru",
-    "feature_security_settings_title": "Pengaturan keamanan yang ditingkatkan",
-    "feature_security_settings_text": "Kini Anda dapat mengubah kata sandi aplikasi MetaMask & meninjau cara mencadangkan Frasa Pemulihan Rahasia dompet Anda dari Pengaturan > Keamanan & Privasi.",
-    "feature_security_settings_button": "Lihat di Pengaturan"
   },
   "invalid_network": {
     "title": "ID rantai untuk jaringan khusus \n %{network} \n harus dimasukkan kembali.",

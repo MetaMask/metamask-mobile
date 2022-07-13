@@ -294,7 +294,6 @@
     "deposit_button": "Κατάθεση",
     "copy_address": "Αντιγράψτε",
     "collectible_action_title": "Επιλογές Συλλεκτικών",
-    "remove_token_title": "Θέλετε να αφαιρέσετε αυτό το token;",
     "remove_collectible_title": "Θέλετε να αφαιρέσετε αυτό το συλλεκτικό;",
     "refresh_metadata": "Ανανέωση Μεταδεδομένων",
     "token_removal_issue_title": "Υπήρξε πρόβλημα κατά την αφαίρεση του token.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Εάν αλλάξετε γνώμη, μπορείτε να το προσθέσετε και πάλι πατώντας στο «Εισαγωγή Token»",
     "collectible_removed_title": "Το Συλλεκτικό αφαιρέθηκε!",
     "collectible_removed_desc": "Εάν αλλάξετε γνώμη, μπορείτε να το προσθέσετε και πάλι πατώντας στο «Εισαγωγή NFT»",
-    "remove": "Αφαίρεση",
     "cancel": "Άκυρο",
     "yes": "Ναι",
     "private_key_detected": "Εντοπίστηκε Ιδιωτικό κλειδί",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Σύμβολο Token",
     "token_address": "Διεύθυνση Token",
-    "token_precision": "Token Ακριβείας",
     "search_tokens_placeholder": "Αναζήτηση Token",
     "address_cant_be_empty": "Η διεύθυνση του token δεν μπορεί να είναι κενή.",
     "address_must_be_valid": "Η διεύθυνση του token πρέπει να είναι μια έγκυρη διεύθυνση.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "και εγκαταστήστε ξανά την εφαρμογή. Σημείωση: ΔΕΝ μπορείτε να επαναφέρετε το πορτοφόλι σας χωρίς τη Μυστική Φράση Ανάκτησης.",
     "copied_clipboard": "Αντιγράφηκε στο πρόχειρο",
     "ok": "ΟΚ"
-  },
-  "whats_new": {
-    "title": "Δείτε τι νέο υπάρχει",
-    "feature_security_settings_title": "Βελτιωμένες ρυθμίσεις ασφαλείας",
-    "feature_security_settings_text": "Μπορείτε τώρα να αλλάξετε τον κωδικό πρόσβασης της εφαρμογής MetaMask και να δείτε πώς να κάνετε αντίγραφα ασφαλείας της Μυστικής Φράσης Ανάκτησης του πορτοφολιού σας από τις Ρυθμίσεις > Ασφάλεια και Απόρρητο",
-    "feature_security_settings_button": "Προβολή στις Ρυθμίσεις"
   },
   "invalid_network": {
     "title": "Το αναγνωριστικό αλυσίδας για προσαρμοσμένο δίκτυο \n %{network} \n πρέπει να εισαχθεί ξανά.",
