@@ -1003,8 +1003,11 @@ export function getWalletNavbarOptions(
  * Function that returns the navigation options containing title and network indicator
  *
  * @param {string} title - Title in string format
- * @param {string} translate - Boolean that specifies if the title needs translation
+ * @param {boolean} translate - Boolean that specifies if the title needs translation
  * @param {Object} navigation - Navigation object required to push new views
+ * @param {Object} themeColors - Colors from theme
+ * @param {Function} onRightPress - Callback that determines if right button exists
+ * @param {boolean} disableNetwork - Boolean that determines if network is accessible from navbar
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
 export function getNetworkNavbarOptions(
@@ -1012,6 +1015,8 @@ export function getNetworkNavbarOptions(
   translate,
   navigation,
   themeColors,
+  onRightPress = undefined,
+  disableNetwork = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1024,7 +1029,13 @@ export function getNetworkNavbarOptions(
     },
   });
   return {
-    headerTitle: () => <NavbarTitle title={title} translate={translate} />,
+    headerTitle: () => (
+      <NavbarTitle
+        disableNetwork={disableNetwork}
+        title={title}
+        translate={translate}
+      />
+    ),
     headerLeft: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -1039,7 +1050,18 @@ export function getNetworkNavbarOptions(
         />
       </TouchableOpacity>
     ),
-    headerRight: () => <View />,
+    headerRight: onRightPress
+      ? () => (
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <MaterialCommunityIcon
+              name={'dots-horizontal'}
+              size={28}
+              style={innerStyles.headerIcon}
+            />
+          </TouchableOpacity>
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )
+      : () => <View />,
     headerStyle: innerStyles.headerStyle,
   };
 }

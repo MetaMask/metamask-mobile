@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Image, ViewPropTypes, View, StyleSheet } from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
@@ -9,6 +9,7 @@ import isUrl from 'is-url';
 import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { util } from '@metamask/controllers';
+import Identicon from '../../UI/Identicon';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -18,6 +19,7 @@ const createStyles = () =>
   });
 
 const RemoteImage = (props) => {
+  const [error, setError] = useState(undefined);
   // Avoid using this component with animated SVG
   const source = resolveAssetSource(props.source);
   const isImageUrl = isUrl(props?.source?.uri);
@@ -39,6 +41,12 @@ const RemoteImage = (props) => {
   }, [props.source.uri, ipfsGateway]);
 
   const uri = resolvedIpfsUrl || source.uri;
+
+  const onError = ({ nativeEvent: { error } }) => setError(error);
+
+  if (error && props.address) {
+    return <Identicon address={props.address} customStyle={props.style} />;
+  }
 
   if (
     source &&
@@ -71,11 +79,11 @@ const RemoteImage = (props) => {
   if (props.fadeIn) {
     return (
       <FadeIn placeholderStyle={props.placeholderStyle}>
-        <Image {...props} source={{ uri }} />
+        <Image {...props} source={{ uri }} onError={onError} />
       </FadeIn>
     );
   }
-  return <Image {...props} source={{ uri }} />;
+  return <Image {...props} source={{ uri }} onError={onError} />;
 };
 
 RemoteImage.propTypes = {
@@ -103,6 +111,10 @@ RemoteImage.propTypes = {
    * This is set if we know that an image is remote
    */
   isUrl: PropTypes.bool,
+  /**
+   * Token address
+   */
+  address: PropTypes.string,
 };
 
 export default RemoteImage;

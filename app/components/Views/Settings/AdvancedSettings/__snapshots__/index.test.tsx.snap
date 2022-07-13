@@ -2,10 +2,16 @@
 
 exports[`AdvancedSettings should render correctly 1`] = `
 <AdvancedSettings
+  chainId="1"
   fullState={
     Object {
       "engine": Object {
         "backgroundState": Object {
+          "NetworkController": Object {
+            "provider": Object {
+              "chainId": "1",
+            },
+          },
           "PreferencesController": Object {
             "ipfsGateway": "https://ipfs.io/ipfs/",
           },

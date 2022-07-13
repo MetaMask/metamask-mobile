@@ -385,6 +385,17 @@ class SendFlow extends PureComponent {
       ? identities[checksummedAddress].name
       : null;
   };
+
+  isAddressSaved = () => {
+    const { toSelectedAddress } = this.state;
+    const { addressBook, network, identities } = this.props;
+    const networkAddressBook = addressBook[network] || {};
+    const checksummedAddress = toChecksumAddress(toSelectedAddress);
+    return !!(
+      networkAddressBook[checksummedAddress] || identities[checksummedAddress]
+    );
+  };
+
   /**
    * This set to the state all the information
    *  that come from validating an ENS or address
@@ -514,8 +525,10 @@ class SendFlow extends PureComponent {
       fromAccountName,
       toEnsAddressResolved,
     } = this.state;
-    const addressError = await this.validateToAddress();
-    if (addressError) return;
+    if (!this.isAddressSaved()) {
+      const addressError = await this.validateToAddress();
+      if (addressError) return;
+    }
     const toAddress = toEnsAddressResolved || toSelectedAddress;
     addRecent(toAddress);
     setRecipient(
