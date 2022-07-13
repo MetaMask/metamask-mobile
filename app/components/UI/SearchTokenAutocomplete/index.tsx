@@ -15,7 +15,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
-import { MAINNET } from '../../../constants/network';
+import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
+import NotificationManager from '../../../core/NotificationManager';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
@@ -52,17 +53,21 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals } = selectedAsset as any;
+  const { address, symbol, decimals, image } = selectedAsset as any;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(
     (state: any) =>
-      !state.engine.backgroundState.PreferencesController.useStaticTokenList,
+      state.engine.backgroundState.PreferencesController.useTokenDetection,
   );
-  const isMainnet = useSelector(
+  const chainId = useSelector(
     (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.type === MAINNET,
+      state.engine.backgroundState.NetworkController.provider.chainId,
+  );
+  const networkType = useSelector(
+    (state: any) =>
+      state.engine.backgroundState.NetworkController.provider.type,
   );
 
   const setFocusState = useCallback(
@@ -75,19 +80,17 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const getAnalyticsParams = useCallback(() => {
     try {
-      const { NetworkController } = Engine.context as any;
-      const { chainId, type } = NetworkController?.state?.provider || {};
       return {
         token_address: address,
         token_symbol: symbol,
-        network_name: type,
+        network_name: networkType,
         chain_id: chainId,
         source: 'Add token dropdown',
       };
     } catch (error) {
       return {};
     }
-  }, [address, symbol]);
+  }, [address, symbol, chainId, networkType]);
 
   const cancelAddToken = useCallback(() => {
     navigation.goBack();
@@ -110,7 +113,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals);
+    await TokensController.addToken(address, symbol, decimals, image);
 
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
@@ -124,11 +127,20 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
     InteractionManager.runAfterInteractions(() => {
       navigation.goBack();
+      NotificationManager.showSimpleNotification({
+        status: `simple_notification`,
+        duration: 5000,
+        title: strings('wallet.token_toast.token_imported_title'),
+        description: strings('wallet.token_toast.token_imported_desc', {
+          tokenSymbol: symbol,
+        }),
+      });
     });
   }, [
     address,
     symbol,
     decimals,
+    image,
     setSearchResults,
     setSearchQuery,
     setSelectedAsset,
@@ -137,7 +149,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   ]);
 
   const renderTokenDetectionBanner = useCallback(() => {
-    if (isTokenDetectionEnabled || !isMainnet || isSearchFocused) {
+    if (isTokenDetectionEnabled || isSearchFocused) {
       return null;
     }
     return (
@@ -155,7 +167,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       >
         <>
           <Text style={styles.tokenDetectionDescription}>
-            {strings('add_asset.token_detection_feature')}
+            {strings('add_asset.banners.search_desc', {
+              network: FORMATTED_NETWORK_NAMES[chainId],
+            })}
           </Text>
           <Text
             suppressHighlighting
@@ -163,16 +177,16 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
               navigation.navigate('SettingsView', {
                 screen: 'SettingsFlow',
                 params: {
-                  screen: 'ExperimentalSettings',
+                  screen: 'AdvancedSettings',
                   params: {
-                    isFullScreenModal: true,
+                    scrollToBottom: true,
                   },
                 },
               });
             }}
             style={styles.tokenDetectionLink}
           >
-            {strings('add_asset.token_detection_link')}
+            {strings('add_asset.banners.search_link')}
           </Text>
         </>
       </Alert>
@@ -181,9 +195,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     navigation,
     isSearchFocused,
     isTokenDetectionEnabled,
-    isMainnet,
     colors,
     styles,
+    chainId,
   ]);
 
   return (

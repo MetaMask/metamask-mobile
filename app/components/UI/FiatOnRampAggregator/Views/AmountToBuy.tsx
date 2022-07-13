@@ -853,6 +853,7 @@ const AmountToBuy = () => {
           value={amount}
           onChange={handleKeypadChange}
           currency={currentFiatCurrency?.symbol}
+          decimals={currentFiatCurrency?.decimals}
         />
         <ScreenLayout.Content>
           <StyledButton type="confirm" onPress={handleKeypadDone}>

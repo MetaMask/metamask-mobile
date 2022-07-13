@@ -2,7 +2,6 @@ import React, { memo, useCallback } from 'react';
 import { View, Text, Linking, StyleSheet } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { MAINNET } from '../../../../constants/network';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 
 const createStyles = (colors: {
@@ -39,9 +38,8 @@ interface DescriptionProps {
   description: string;
   clickableText: string | undefined;
   number: number;
-  onClose: () => void;
-  isMainnetTokenDetectionEnabled: boolean;
-  network: string;
+  onClose?: () => void;
+  isTokenDetectionLinkEnabled?: boolean;
 }
 
 const Description = (props: DescriptionProps) => {
@@ -50,8 +48,7 @@ const Description = (props: DescriptionProps) => {
     clickableText,
     number,
     onClose,
-    isMainnetTokenDetectionEnabled,
-    network,
+    isTokenDetectionLinkEnabled,
   } = props;
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -61,14 +58,19 @@ const Description = (props: DescriptionProps) => {
     if (number === 2) {
       Linking.openURL(strings('network_information.learn_more_url'));
     } else {
-      onClose();
+      onClose?.();
       navigation.navigate('AddAsset', { assetType: 'token' });
     }
   }, [navigation, onClose, number]);
 
   const handleNavigation = useCallback(() => {
-    onClose();
-    navigation.navigate('ExperimentalSettings');
+    onClose?.();
+    navigation.navigate('SettingsView', {
+      screen: 'SettingsFlow',
+      params: {
+        screen: 'AdvancedSettings',
+      },
+    });
   }, [navigation, onClose]);
 
   return (
@@ -79,7 +81,7 @@ const Description = (props: DescriptionProps) => {
           <Text>{`${description} `}</Text>
           {clickableText && (
             <>
-              {!isMainnetTokenDetectionEnabled && network === MAINNET && (
+              {isTokenDetectionLinkEnabled && (
                 <>
                   <Text style={styles.link} onPress={handleNavigation}>
                     {`${strings(
