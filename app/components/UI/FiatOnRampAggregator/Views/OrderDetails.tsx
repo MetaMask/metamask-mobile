@@ -1,26 +1,23 @@
-import React, { useCallback, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { RefreshControl } from 'react-native';
 import ScreenLayout from '../components/ScreenLayout';
 import StyledButton from '../../StyledButton';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import OrderDetail from '../components/OrderDetails';
-import Account from '../components/Account';
 import { strings } from '../../../../../locales/i18n';
-import { makeOrderIdSelector } from '../../../../reducers/fiatOrders';
-import { useSelector } from 'react-redux';
+import {
+  makeOrderIdSelector,
+  updateFiatOrder,
+} from '../../../../reducers/fiatOrders';
+import { useDispatch, useSelector } from 'react-redux';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { useTheme } from '../../../../util/theme';
 import { ScrollView } from 'react-native-gesture-handler';
 import Routes from '../../../../constants/navigation/Routes';
-import { FiatOrder } from '../../FiatOrders';
+import { FiatOrder, processFiatOrder } from '../../FiatOrders';
 import useAnalytics from '../hooks/useAnalytics';
 import { Order } from '@consensys/on-ramp-sdk';
-
-const styles = StyleSheet.create({
-  screenLayout: {
-    paddingTop: 0,
-  },
-});
+import Logger from '../../../../util/Logger';
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
@@ -38,6 +35,9 @@ const OrderDetails = () => {
   );
   const { colors } = useTheme();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     navigation.setOptions(
@@ -57,6 +57,7 @@ const OrderDetails = () => {
       trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
         purchase_status: order.state,
         provider_onramp: (order.data as Order)?.provider.name,
+        payment_method_id: (order.data as Order)?.paymentMethod?.id,
         currency_destination: order.cryptocurrency,
         currency_source: order.currency,
         chain_id_destination: order.network,
@@ -64,6 +65,27 @@ const OrderDetails = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trackEvent]);
+
+  const dispatchUpdateFiatOrder = useCallback(
+    (updatedOrder) => {
+      dispatch(updateFiatOrder(updatedOrder));
+    },
+    [dispatch],
+  );
+
+  const handleOnRefresh = useCallback(async () => {
+    try {
+      setIsRefreshing(true);
+      await processFiatOrder(order, dispatchUpdateFiatOrder);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: 'FiatOrders::OrderDetails error while processing order',
+        order,
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [dispatchUpdateFiatOrder, order]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
@@ -76,12 +98,18 @@ const OrderDetails = () => {
 
   return (
     <ScreenLayout>
-      <ScrollView>
-        <ScreenLayout.Header>
-          <Account />
-        </ScreenLayout.Header>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            refreshing={isRefreshing}
+            onRefresh={handleOnRefresh}
+          />
+        }
+      >
         <ScreenLayout.Body>
-          <ScreenLayout.Content style={styles.screenLayout}>
+          <ScreenLayout.Content>
             <OrderDetail
               order={order}
               provider={provider}
@@ -91,13 +119,11 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
-            <View>
-              <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.another_purchase',
-                )}
-              </StyledButton>
-            </View>
+            <StyledButton type="confirm" onPress={handleMakeAnotherPurchase}>
+              {strings(
+                'fiat_on_ramp_aggregator.order_details.another_purchase',
+              )}
+            </StyledButton>
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScrollView>

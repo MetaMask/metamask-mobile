@@ -25,8 +25,11 @@ import Spinner from '../../AnimatedSpinner';
 import useAnalytics from '../hooks/useAnalytics';
 import { FiatOrder } from '../../FiatOrders';
 import { PROVIDER_LINKS } from '../types';
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+import Account from './Account';
+
+/* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
+
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -36,55 +39,29 @@ const createStyles = (colors: any) =>
     stage: {
       alignItems: 'center',
     },
-    provider: {
-      alignSelf: 'flex-end',
-      marginTop: 0,
-    },
-    listItems: {
-      paddingVertical: 4,
-    },
     seperationBottom: {
       paddingVertical: 4,
       paddingBottom: 18,
     },
-    seperationTop: {
-      paddingVertical: 4,
-      paddingTop: 18,
-    },
     transactionIdFlex: {
       flex: 1,
-    },
-    transactionTitle: {
-      marginBottom: 8,
     },
     line: {
       backgroundColor: colors.border.muted,
       height: 1,
       marginVertical: 12,
     },
-    link: {
-      paddingTop: 10,
-    },
-    fiatColor: {
-      paddingBottom: 12,
-    },
     tokenAmount: {
       fontSize: 24,
     },
-    stageDescription: {
-      paddingBottom: 5,
-      paddingTop: 10,
-    },
-    stageMessage: {
-      paddingBottom: 4,
-    },
-    contactDesc: {
-      flexDirection: 'row',
-      alignSelf: 'center',
-      paddingTop: 15,
-    },
     flexZero: {
       flex: 0,
+    },
+    row: {
+      marginVertical: 4,
+    },
+    group: {
+      marginVertical: 8,
     },
   });
 
@@ -94,6 +71,17 @@ interface PropsStage {
   cryptocurrency?: string;
   providerName?: string;
 }
+
+const Row: React.FC = (props) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return <View style={styles.row} {...props} />;
+};
+const Group: React.FC = (props) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+  return <View style={styles.group} {...props} />;
+};
 
 const Stage: React.FC<PropsStage> = ({
   stage,
@@ -106,74 +94,82 @@ const Stage: React.FC<PropsStage> = ({
   switch (stage) {
     case OrderStatusEnum.Completed: {
       return (
-        <>
+        <View style={styles.stage}>
           <Feather
             name="check-circle"
             size={32}
             color={colors.success.default}
           />
-          <Text bold big primary centered style={styles.stageDescription}>
-            {strings('fiat_on_ramp_aggregator.order_details.successful')}
-          </Text>
-          <Text small centered style={styles.stageMessage}>
-            {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
-            {cryptocurrency ||
-              strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
-            {strings(
-              'fiat_on_ramp_aggregator.order_details.available_in_account',
-            )}
-          </Text>
-        </>
+          <Group>
+            <Text bold big primary centered>
+              {strings('fiat_on_ramp_aggregator.order_details.successful')}
+            </Text>
+            <Text small centered grey>
+              {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
+              {cryptocurrency ||
+                strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
+              {strings(
+                'fiat_on_ramp_aggregator.order_details.available_in_account',
+              )}
+            </Text>
+          </Group>
+        </View>
       );
     }
     case OrderStatusEnum.Cancelled:
     case OrderStatusEnum.Failed: {
       return (
-        <>
+        <View style={styles.stage}>
           <Image source={failedIcon} />
-          <Text bold big primary centered style={styles.stageDescription}>
-            {stage === 'FAILED'
-              ? strings('fiat_on_ramp_aggregator.order_details.failed')
-              : 'fiat_on_ramp.cancelled'}
-          </Text>
-          <Text small centered style={styles.stageMessage}>
-            {strings(
-              'fiat_on_ramp_aggregator.order_details.failed_description',
-              {
-                provider:
-                  providerName ||
-                  strings('fiat_on_ramp_aggregator.order_details.the_provider'),
-              },
-            )}
-          </Text>
-        </>
+          <Group>
+            <Text bold big primary centered>
+              {stage === 'FAILED'
+                ? strings('fiat_on_ramp_aggregator.order_details.failed')
+                : strings('fiat_on_ramp_aggregator.order_details.cancelled')}
+            </Text>
+            <Text small centered grey>
+              {strings(
+                'fiat_on_ramp_aggregator.order_details.failed_description',
+                {
+                  provider:
+                    providerName ||
+                    strings(
+                      'fiat_on_ramp_aggregator.order_details.the_provider',
+                    ),
+                },
+              )}
+            </Text>
+          </Group>
+        </View>
       );
     }
     case OrderStatusEnum.Pending:
     case OrderStatusEnum.Unknown:
     default: {
       return (
-        <>
+        <View style={styles.stage}>
           <Spinner />
-          <Text bold big primary centered style={styles.stageDescription}>
-            {stage === 'PENDING'
-              ? strings('fiat_on_ramp_aggregator.order_details.processing')
-              : strings('transaction.submitted')}
-          </Text>
-          {!paymentType?.includes('Credit') ? (
-            <Text small centered style={styles.stageMessage}>
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.processing_bank_description',
-              )}
+          <Group>
+            <Text bold big primary centered>
+              {stage === 'PENDING'
+                ? strings('fiat_on_ramp_aggregator.order_details.processing')
+                : strings('transaction.submitted')}
             </Text>
-          ) : (
-            <Text small centered style={styles.stageMessage}>
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.processing_card_description',
-              )}
-            </Text>
-          )}
-        </>
+            {!paymentType?.includes('Credit') ? (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.processing_bank_description',
+                )}
+              </Text>
+            ) : (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.processing_card_description',
+                )}
+              </Text>
+            )}
+          </Group>
+        </View>
       );
     }
   }
@@ -215,7 +211,7 @@ const OrderDetails: React.FC<Props> = ({
   const trackEvent = useAnalytics();
   const explorer = useBlockExplorer(provider, frequentRpcList);
   const styles = createStyles(colors);
-  const date = toDateFormat(createdAt);
+  const date = createdAt && toDateFormat(createdAt);
   const amountOut = Number(amount) - Number(cryptoFee);
   const exchangeRate = Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
@@ -249,73 +245,100 @@ const OrderDetails: React.FC<Props> = ({
   const supportLinkUrl = orderData?.provider?.links?.find(
     (link) => link.name === PROVIDER_LINKS.SUPPORT,
   )?.url;
+  const orderLink = orderData?.providerOrderLink;
 
   return (
     <View>
-      <View style={styles.stage}>
+      <Group>
         <Stage
           stage={state}
           paymentType={orderData?.paymentMethod?.name}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
         />
-      </View>
-      <Text centered primary style={styles.tokenAmount}>
-        {orderData?.cryptoCurrency?.decimals &&
-        cryptoAmount &&
-        cryptoAmount !== 0 &&
-        cryptocurrency ? (
-          renderFromTokenMinimalUnit(
-            toTokenMinimalUnit(
-              cryptoAmount,
-              orderData?.cryptoCurrency?.decimals,
-            ).toString(),
-            orderData?.cryptoCurrency?.decimals,
-          )
-        ) : (
-          <Text>...</Text>
-        )}{' '}
-        {cryptocurrency}
-      </Text>
-      {orderData?.fiatCurrency?.decimals && currencySymbol ? (
-        <Text centered small style={styles.fiatColor}>
-          {currencySymbol}
-          {renderFiat(amountOut, currency, orderData?.fiatCurrency?.decimals)}
-        </Text>
-      ) : (
-        <Text>...</Text>
-      )}
-      <Box>
-        <Text bold primary style={styles.transactionTitle}>
-          {strings('fiat_on_ramp_aggregator.order_details.details')}
-        </Text>
-        <View>
-          <ListItem.Content style={styles.listItems}>
-            <ListItem.Body style={styles.transactionIdFlex}>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.order_details.id')}
+        <Group>
+          <Text centered primary style={styles.tokenAmount}>
+            {orderData?.cryptoCurrency?.decimals !== undefined &&
+            cryptoAmount &&
+            cryptocurrency ? (
+              renderFromTokenMinimalUnit(
+                toTokenMinimalUnit(
+                  cryptoAmount,
+                  orderData.cryptoCurrency.decimals,
+                ).toString(),
+                orderData.cryptoCurrency.decimals,
+              )
+            ) : (
+              <Text>...</Text>
+            )}{' '}
+            {cryptocurrency}
+          </Text>
+          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
+            <Text centered small grey>
+              {currencySymbol}
+              {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
+            </Text>
+          ) : (
+            <Text centered small>
+              ...
+            </Text>
+          )}
+        </Group>
+
+        {orderLink && (
+          <Row>
+            <TouchableOpacity
+              onPress={() => handleProviderLinkPress(orderLink as string)}
+            >
+              <Text small centered link>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.view_order_status',
+                  { provider: providerName },
+                )}
               </Text>
-            </ListItem.Body>
-            <ListItem.Amounts style={styles.transactionIdFlex}>
-              <Text small bold primary right selectable>
-                {orderData?.providerOrderId}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-          <ListItem.Content style={styles.listItems}>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.order_details.date_and_time')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <Text small bold primary>
-                {date}
-              </Text>
-            </ListItem.Amounts>
-          </ListItem.Content>
-          {orderData?.paymentMethod?.name && (
-            <ListItem.Content style={styles.listItems}>
+            </TouchableOpacity>
+          </Row>
+        )}
+      </Group>
+      <Group>
+        <Box thin>
+          <Row>
+            <Account address={order.account} transparent />
+          </Row>
+          <Row>
+            <ListItem.Content>
+              <ListItem.Body style={styles.transactionIdFlex}>
+                <Text black small>
+                  {strings('fiat_on_ramp_aggregator.order_details.id')}
+                </Text>
+              </ListItem.Body>
+              <ListItem.Amounts style={styles.transactionIdFlex}>
+                <Text small bold primary right selectable>
+                  {orderData?.providerOrderId}
+                </Text>
+              </ListItem.Amounts>
+            </ListItem.Content>
+          </Row>
+          {Boolean(date) && (
+            <Row>
+              <ListItem.Content>
+                <ListItem.Body>
+                  <Text black small>
+                    {strings(
+                      'fiat_on_ramp_aggregator.order_details.date_and_time',
+                    )}
+                  </Text>
+                </ListItem.Body>
+                <ListItem.Amounts>
+                  <Text small bold primary>
+                    {date}
+                  </Text>
+                </ListItem.Amounts>
+              </ListItem.Content>
+            </Row>
+          )}
+          {Boolean(orderData?.paymentMethod?.name) && (
+            <ListItem.Content>
               <ListItem.Body>
                 <Text black small>
                   {strings(
@@ -325,169 +348,192 @@ const OrderDetails: React.FC<Props> = ({
               </ListItem.Body>
               <ListItem.Amounts>
                 <Text small bold primary>
-                  {orderData?.paymentMethod?.name}
+                  {orderData.paymentMethod.name}
                 </Text>
               </ListItem.Amounts>
             </ListItem.Content>
           )}
-          {order.provider && orderData?.paymentMethod?.name && (
-            <Text small style={styles.provider}>
-              {strings('fiat_on_ramp_aggregator.order_details.via')}{' '}
+          {Boolean(order.provider) && (
+            <Text small right grey>
               {providerName}
+              {supportLinkUrl ? (
+                <>
+                  {' '}
+                  •{' '}
+                  <Text
+                    small
+                    right
+                    underline
+                    grey
+                    onPress={() =>
+                      handleExplorerLinkPress(supportLinkUrl as string)
+                    }
+                  >
+                    {strings(
+                      'fiat_on_ramp_aggregator.order_details.contact_support',
+                    )}
+                  </Text>
+                </>
+              ) : null}
             </Text>
           )}
-          <ListItem.Content style={styles.seperationTop}>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.order_details.token_amount')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              {cryptoAmount && orderData?.cryptoCurrency?.decimals ? (
-                <Text small bold primary>
-                  {renderFromTokenMinimalUnit(
-                    toTokenMinimalUnit(
-                      cryptoAmount,
-                      orderData?.cryptoCurrency?.decimals,
-                    ).toString(),
-                    orderData?.cryptoCurrency?.decimals,
-                  )}{' '}
-                  {cryptocurrency}
-                </Text>
-              ) : (
-                <Text>...</Text>
-              )}
-            </ListItem.Amounts>
-          </ListItem.Content>
-          <ListItem.Content style={styles.seperationBottom}>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.order_details.exchange_rate')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts style={styles.flexZero}>
-              {order.cryptocurrency &&
-              isFinite(exchangeRate) &&
-              currency &&
-              orderData?.fiatCurrency?.decimals ? (
-                <Text small bold primary>
-                  1 {order.cryptocurrency} @{' '}
-                  {renderFiat(
-                    exchangeRate,
-                    currency,
-                    orderData?.fiatCurrency?.decimals,
+          <Row>
+            <ListItem.Content>
+              <ListItem.Body>
+                <Text black small>
+                  {strings(
+                    'fiat_on_ramp_aggregator.order_details.token_amount',
                   )}
                 </Text>
-              ) : (
-                <Text>...</Text>
-              )}
-            </ListItem.Amounts>
-          </ListItem.Content>
-
-          <ListItem.Content style={styles.listItems}>
-            <ListItem.Body>
-              <Text black small>
-                {currency}{' '}
-                {strings('fiat_on_ramp_aggregator.order_details.amount')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              {orderData?.fiatCurrency?.decimals && amountOut && currency ? (
-                <Text small bold primary>
-                  {currencySymbol}
-                  {renderFiat(
-                    amountOut,
-                    currency,
-                    orderData?.fiatCurrency?.decimals,
-                  )}
-                </Text>
-              ) : (
-                <Text>...</Text>
-              )}
-            </ListItem.Amounts>
-          </ListItem.Content>
-          <ListItem.Content style={styles.listItems}>
-            <ListItem.Body>
-              <Text black small>
-                {strings('fiat_on_ramp_aggregator.order_details.total_fees')}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              {cryptoFee && currency && orderData?.fiatCurrency?.decimals ? (
-                <Text small bold primary>
-                  {currencySymbol}
-                  {renderFiat(
-                    cryptoFee as number,
-                    currency,
-                    orderData?.fiatCurrency?.decimals,
-                  )}
-                </Text>
-              ) : (
-                <Text>...</Text>
-              )}
-            </ListItem.Amounts>
-          </ListItem.Content>
-        </View>
-
-        <View style={styles.line} />
-
-        <ListItem.Content style={styles.listItems}>
-          <ListItem.Body>
-            <Text black small>
-              {strings('fiat_on_ramp_aggregator.order_details.purchase_amount')}
-            </Text>
-          </ListItem.Body>
-          <ListItem.Amounts>
-            {currencySymbol &&
-            amount &&
-            currency &&
-            orderData?.fiatCurrency?.decimals ? (
-              <Text small bold primary>
-                {currencySymbol}
-                {renderFiat(
-                  amount as number,
-                  currency,
-                  orderData?.fiatCurrency?.decimals,
+              </ListItem.Body>
+              <ListItem.Amounts>
+                {cryptoAmount &&
+                orderData?.cryptoCurrency?.decimals !== undefined ? (
+                  <Text small bold primary>
+                    {renderFromTokenMinimalUnit(
+                      toTokenMinimalUnit(
+                        cryptoAmount,
+                        orderData.cryptoCurrency.decimals,
+                      ).toString(),
+                      orderData.cryptoCurrency.decimals,
+                    )}{' '}
+                    {cryptocurrency}
+                  </Text>
+                ) : (
+                  <Text>...</Text>
                 )}
-              </Text>
-            ) : (
-              <Text>...</Text>
-            )}
-          </ListItem.Amounts>
-        </ListItem.Content>
-        {order.state === OrderStatusEnum.Completed && txHash && (
-          <TouchableOpacity
-            onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
-          >
-            <Text blue small centered style={styles.link}>
-              {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
-              {explorer.isValid
-                ? explorer.name
-                : strings(
-                    'fiat_on_ramp_aggregator.order_details.a_block_explorer',
+              </ListItem.Amounts>
+            </ListItem.Content>
+          </Row>
+          <Group>
+            <Row>
+              <ListItem.Content>
+                <ListItem.Body>
+                  <Text black small>
+                    {strings(
+                      'fiat_on_ramp_aggregator.order_details.exchange_rate',
+                    )}
+                  </Text>
+                </ListItem.Body>
+                <ListItem.Amounts style={styles.flexZero}>
+                  {order.cryptocurrency &&
+                  isFinite(exchangeRate) &&
+                  currency &&
+                  orderData?.fiatCurrency?.decimals !== undefined ? (
+                    <Text small bold primary>
+                      1 {order.cryptocurrency} @{' '}
+                      {renderFiat(
+                        exchangeRate,
+                        currency,
+                        orderData.fiatCurrency.decimals,
+                      )}
+                    </Text>
+                  ) : (
+                    <Text>...</Text>
                   )}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </Box>
-      {Boolean(supportLinkUrl) && (
-        <View style={styles.contactDesc}>
-          <Text small>
-            {strings('fiat_on_ramp_aggregator.order_details.questions')}{' '}
-          </Text>
-          <TouchableOpacity
-            onPress={() => handleProviderLinkPress(supportLinkUrl as string)}
-          >
-            {order.provider && data && (
-              <Text small underline>
-                {strings('fiat_on_ramp_aggregator.order_details.contact')}{' '}
-                {providerName}{' '}
-                {strings('fiat_on_ramp_aggregator.order_details.support')}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+                </ListItem.Amounts>
+              </ListItem.Content>
+            </Row>
+            <Row>
+              <ListItem.Content>
+                <ListItem.Body>
+                  <Text black small>
+                    {currency}{' '}
+                    {strings('fiat_on_ramp_aggregator.order_details.amount')}
+                  </Text>
+                </ListItem.Body>
+                <ListItem.Amounts>
+                  {orderData?.fiatCurrency?.decimals !== undefined &&
+                  amountOut &&
+                  currency ? (
+                    <Text small bold primary>
+                      {currencySymbol}
+                      {renderFiat(
+                        amountOut,
+                        currency,
+                        orderData.fiatCurrency.decimals,
+                      )}
+                    </Text>
+                  ) : (
+                    <Text>...</Text>
+                  )}
+                </ListItem.Amounts>
+              </ListItem.Content>
+            </Row>
+          </Group>
+          <Row>
+            <ListItem.Content>
+              <ListItem.Body>
+                <Text black small>
+                  {strings('fiat_on_ramp_aggregator.order_details.total_fees')}
+                </Text>
+              </ListItem.Body>
+              <ListItem.Amounts>
+                {cryptoFee &&
+                currency &&
+                orderData?.fiatCurrency?.decimals !== undefined ? (
+                  <Text small bold primary>
+                    {currencySymbol}
+                    {renderFiat(
+                      cryptoFee as number,
+                      currency,
+                      orderData.fiatCurrency.decimals,
+                    )}
+                  </Text>
+                ) : (
+                  <Text>...</Text>
+                )}
+              </ListItem.Amounts>
+            </ListItem.Content>
+          </Row>
+
+          <View style={styles.line} />
+          <Row>
+            <ListItem.Content>
+              <ListItem.Body>
+                <Text black small>
+                  {strings(
+                    'fiat_on_ramp_aggregator.order_details.purchase_amount',
+                  )}
+                </Text>
+              </ListItem.Body>
+              <ListItem.Amounts>
+                {currencySymbol &&
+                amount &&
+                currency &&
+                orderData?.fiatCurrency?.decimals !== undefined ? (
+                  <Text small bold primary>
+                    {currencySymbol}
+                    {renderFiat(
+                      amount as number,
+                      currency,
+                      orderData.fiatCurrency.decimals,
+                    )}
+                  </Text>
+                ) : (
+                  <Text>...</Text>
+                )}
+              </ListItem.Amounts>
+            </ListItem.Content>
+          </Row>
+          {Boolean(order.state === OrderStatusEnum.Completed && txHash) && (
+            <Group>
+              <TouchableOpacity
+                onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
+              >
+                <Text blue small centered>
+                  {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
+                  {explorer.isValid
+                    ? explorer.name
+                    : strings(
+                        'fiat_on_ramp_aggregator.order_details.a_block_explorer',
+                      )}
+                </Text>
+              </TouchableOpacity>
+            </Group>
+          )}
+        </Box>
+      </Group>
     </View>
   );
 };

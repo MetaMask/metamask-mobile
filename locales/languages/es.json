@@ -294,7 +294,6 @@
     "deposit_button": "Depositar",
     "copy_address": "Copie",
     "collectible_action_title": "Opciones de coleccionables",
-    "remove_token_title": "¿Quiere quitar este token?",
     "remove_collectible_title": "¿Quiere quitar este coleccionable?",
     "refresh_metadata": "Actualizar los metadatos",
     "token_removal_issue_title": "Problema al eliminar el token.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Si cambia de opinión, puede volver a agregarlo. Presione en \"+ AGREGAR TOKENS\"",
     "collectible_removed_title": "Se quitó el coleccionable.",
     "collectible_removed_desc": "Si cambia de opinión, puede volver a agregarlo si presiona en \"+ AGREGAR NFT\"",
-    "remove": "Quitar",
     "cancel": "Cancelar",
     "yes": "Sí",
     "private_key_detected": "Clave privad detectada",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Símbolo del token",
     "token_address": "Dirección del token",
-    "token_precision": "Token de precisión",
     "search_tokens_placeholder": "Buscar tokens",
     "address_cant_be_empty": "La dirección del token no puede estar vacía.",
     "address_must_be_valid": "La dirección del token debe ser una dirección válida.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "y vuelva a instalar la aplicación. Nota: NO puede restaurar la cartera si no tiene la frase secreta de recuperación.",
     "copied_clipboard": "Copiado en el Portapapeles",
     "ok": "Aceptar"
-  },
-  "whats_new": {
-    "title": "Ver las novedades",
-    "feature_security_settings_title": "Configuración de seguridad mejorada",
-    "feature_security_settings_text": "Ahora puede cambiar la contraseña de la aplicación MetaMask y aprender a crear una copia de seguridad de la frase secreta de recuperación de su cartera en Configuración > Seguridad y privacidad.",
-    "feature_security_settings_button": "Ver en Configuración"
   },
   "invalid_network": {
     "title": "Es necesario volver a especificar el id. de la cadena para la red virtual personalizada \n %{network} \n.",
