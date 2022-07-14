@@ -384,10 +384,10 @@ class SendFlow extends PureComponent {
   };
 
   isAddressSaved = () => {
-    const { toSelectedAddress } = this.state;
+    const { toAccount } = this.state;
     const { addressBook, network, identities } = this.props;
     const networkAddressBook = addressBook[network] || {};
-    const checksummedAddress = toChecksumAddress(toSelectedAddress);
+    const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
     );
