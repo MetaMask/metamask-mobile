@@ -323,17 +323,10 @@ app:
           PROJECT_LOCATION_IOS: ios
         - opts:
               is_expand: false
-<<<<<<< HEAD
           VERSION_NAME: 5.4.0
         - opts:
               is_expand: false
           VERSION_NUMBER: 931
-=======
-          VERSION_NAME: 5.3.2
-        - opts:
-              is_expand: false
-          VERSION_NUMBER: 930
->>>>>>> 19ba84623 (bitrise test)
         - opts:
               is_expand: false
           ANDROID_APK_LINK: ''
