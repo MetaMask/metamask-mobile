@@ -1,25 +1,57 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../hooks';
+import { BaseAvatarSize } from '../BaseAvatar';
+import BaseText, { BaseTextVariant } from '../BaseText';
+import TokenAvatar from '../TokenAvatar';
 import styleSheet from './StackedAvatars.styles';
 import { StackedAvatarsProps } from './StackedAvatars.types';
+const MAX_STACKED_AVATARS = 4;
 
-const StackedAvatars = ({ size, type, tokenList }: StackedAvatarsProps) => {
-  const { styles } = useStyles(styleSheet, {});
+const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
+  const extraSmallSize = BaseAvatarSize.Xs;
+  const sizeAsNumber = Number(extraSmallSize);
+  const overflowCounter = tokenList.length - MAX_STACKED_AVATARS;
+  const avatarSpacing = sizeAsNumber / 2;
+  const amountOfVisibleAvatars =
+    overflowCounter > 0 ? MAX_STACKED_AVATARS : tokenList.length;
+  const stackWidth = avatarSpacing * (amountOfVisibleAvatars + 1);
+  const shouldRenderOverflowCounter = overflowCounter > 0;
 
-  // TODO: add a unique string for each avatar. Reason: re-renders should draw only the updated component and not the whole list
+  const { styles } = useStyles(styleSheet, { stackWidth });
+
   return (
-    <View>
-      {tokenList?.map((Avatar, index) => (
-        <View key={index} style={styles.avatarListContainer}>
-          <Avatar size={size} />
-        </View>
-      ))}
+    <View style={styles.base}>
+      <View style={styles.stack}>
+        {tokenList
+          .slice(0, MAX_STACKED_AVATARS)
+          .map(({ name, imageUrl, id }, index) => {
+            const leftOffset = avatarSpacing * index;
+
+            return (
+              <View
+                key={`${name}-${id}`}
+                style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
+              >
+                <TokenAvatar
+                  tokenName={name}
+                  tokenImageUrl={imageUrl}
+                  size={extraSmallSize}
+                />
+              </View>
+            );
+          })}
+      </View>
+      <View style={styles.overflowCounterWrapper}>
+        {shouldRenderOverflowCounter && (
+          <BaseText
+            variant={BaseTextVariant.sBodyMD}
+            style={styles.textStyle}
+          >{`+${overflowCounter}`}</BaseText>
+        )}
+      </View>
     </View>
   );
 };
 
 export default StackedAvatars;
-
-export { StackedAvatars };

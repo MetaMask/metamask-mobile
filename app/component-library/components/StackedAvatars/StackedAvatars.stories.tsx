@@ -1,23 +1,45 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
-import { BaseAvatarSize } from '../BaseAvatar';
-import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
 import StackedAvatar from '.';
 
 storiesOf(' Component Library / StackedAvatar', module).add('Default', () => {
-  const sizeSelector = select('size', BaseAvatarSize, BaseAvatarSize.Md);
-
-  const avatarList = [
-    TokenAvatar,
-    TokenAvatar,
-    TokenAvatar,
-    AccountAvatar,
-    AccountAvatar,
-    AccountAvatar,
-    AccountAvatar,
-    AccountAvatar,
+  const tokenList = [
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '0',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '1',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '2',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '3',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '4',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '5',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '6',
+    },
   ];
 
-  return <StackedAvatar size={sizeSelector} avatarList={avatarList} />;
+  return <StackedAvatar tokenList={tokenList} />;
 });

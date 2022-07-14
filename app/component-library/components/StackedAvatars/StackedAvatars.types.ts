@@ -3,9 +3,15 @@ import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
  * StackedAvatars component props.
  */
 
-export interface StackedAvatarsProps extends Pick<BaseAvatarProps, 'size'> {
+interface TokenMetadata {
+  id: string;
+  name: string;
+  imageUrl: string;
+}
+
+export interface StackedAvatarsProps extends Omit<BaseAvatarProps, 'size'> {
   /**
    * A list of Avatars to be horizontally stacked.
    */
-  avatarList?: JSX.Element[];
+  tokenList: TokenMetadata[];
 }
