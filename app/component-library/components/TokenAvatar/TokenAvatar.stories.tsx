@@ -21,6 +21,7 @@ const groupId = 'props';
 storiesOf(' Component Library / TokenAvatar', module)
   // Component centered container
   .addDecorator((storyFn) => (
+    //  eslint-disable-next-line
     <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
       {storyFn()}
     </View>
