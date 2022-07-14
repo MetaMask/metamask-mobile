@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import Analytics from '../core/Analytics';
+import Analytics from '../core/Analytics/Analytics';
 import Logger from './Logger';
 
 const generateOpt = (name) => ({ category: name });
@@ -39,16 +39,16 @@ export const ANALYTICS_EVENTS_V2 = {
   // Send transaction
   SEND_TRANSACTION_STARTED: generateOpt('Send Transaction Started'),
   SEND_TRANSACTION_COMPLETED: generateOpt('Send Transaction Completed'),
-  // On-ramp
+  // On-ramp [LEGACY]
   ONRAMP_OPENED: generateOpt('On-ramp Opened'),
   ONRAMP_CLOSED: generateOpt('On-ramp Closed'),
   ONRAMP_PURCHASE_EXITED: generateOpt('On-ramp Purchase Exited'),
   ONRAMP_PURCHASE_STARTED: generateOpt('On-ramp Purchase Started'),
   ONRAMP_PURCHASE_SUBMISSION_FAILED: generateOpt('On-ramp Submission Failed'),
-  ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
-  ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
-  ONRAMP_PURCHASE_CANCELLED: generateOpt('On-ramp Purchase Cancelled'),
-  ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
+  ONRAMP_PURCHASE_SUBMITTED_LEGACY: generateOpt('On-ramp Purchase Submitted'),
+  ONRAMP_PURCHASE_FAILED_LEGACY: generateOpt('On-ramp Purchase Failed'),
+  ONRAMP_PURCHASE_CANCELLED_LEGACY: generateOpt('On-ramp Purchase Cancelled'),
+  ONRAMP_PURCHASE_COMPLETED_LEGACY: generateOpt('On-ramp Purchase Completed'),
   // Wallet Security
   WALLET_SECURITY_STARTED: generateOpt('Wallet Security Started'),
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt(
@@ -71,6 +71,9 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED: generateOpt('Analytics Preference Selected'),
+  ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
+    'Delete MetaMetrics Data Request Submitted',
+  ),
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
   ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt(
@@ -108,8 +111,6 @@ export const ANALYTICS_EVENTS_V2 = {
   BROWSER_RELOAD: generateOpt('Reload Browser'),
   BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
   // Settings
-  SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
-  SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
   // Reveal Credentials
   REVEAL_SRP_INITIATED: generateOpt('Reveal SRP Initiated'),
   REVEAL_SRP_CANCELLED: generateOpt('Reveal SRP Cancelled'),
@@ -131,6 +132,35 @@ export const ANALYTICS_EVENTS_V2 = {
     'User canceled QR hardware transaction',
   ),
   HARDWARE_WALLET_ERROR: generateOpt('Hardware wallet error'),
+
+  // TOKENS
+  TOKEN_DETECTED: generateOpt('Token Detected'),
+  TOKEN_IMPORT_CLICKED: generateOpt('Token Import Clicked'),
+  TOKEN_IMPORT_CANCELED: generateOpt('Token Import Canceled'),
+  TOKENS_HIDDEN: generateOpt('Tokens Hidden'),
+
+  // ONRAMP AGGREGATOR
+  BUY_BUTTON_CLICKED: generateOpt('Buy Button Clicked'),
+  ONRAMP_REGION_SELECTED: generateOpt('On-ramp Region Selected'),
+  ONRAMP_PAYMENT_METHOD_SELECTED: generateOpt(
+    'On-ramp Payment Method Selected',
+  ),
+  ONRAMP_QUOTES_REQUESTED: generateOpt('On-ramp Quotes Requested'),
+  ONRAMP_CANCELED: generateOpt('On-ramp Canceled'),
+  ONRAMP_QUOTES_RECEIVED: generateOpt('On-ramp Quotes Received'),
+  ONRAMP_PROVIDER_SELECTED: generateOpt('On-ramp Provider Selected'),
+  ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
+    'On-ramp Provider Details Viewed',
+  ),
+  ONRAMP_PURCHASE_SUBMITTED: generateOpt('On-ramp Purchase Submitted'),
+  ONRAMP_PURCHASE_COMPLETED: generateOpt('On-ramp Purchase Completed'),
+  ONRAMP_PURCHASE_FAILED: generateOpt('On-ramp Purchase Failed'),
+  ONRAMP_PURCHASE_CANCELLED: generateOpt('On-ramp Purchase Cancelled'),
+  ONRAMP_PURCHASE_DETAILS_VIEWED: generateOpt(
+    'On-ramp Purchase Details Viewed',
+  ),
+  ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
+  ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
 };
 
 /**

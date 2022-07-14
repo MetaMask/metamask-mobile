@@ -97,6 +97,10 @@ export class Browser {
     await TestHelpers.checkIfNotVisible(ADD_BOOKMARKS_SCREEN_ID);
   }
 
+  static async isBrowserFavoriteVisible(browserFavoriteName) {
+    await TestHelpers.checkIfElementWithTextIsVisible(browserFavoriteName);
+  }
+
   static async isBackToSafetyButtonVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible('Back to safety');
   }

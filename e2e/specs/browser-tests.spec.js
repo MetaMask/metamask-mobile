@@ -15,6 +15,7 @@ import ConnectModal from '../pages/modals/ConnectModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
@@ -53,6 +54,17 @@ describe('Browser Tests', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('should tap on the close button to dismiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2000);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {
@@ -140,18 +152,16 @@ describe('Browser Tests', () => {
     await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
   });
 
-  it('should go back home', async () => {
+  it('tap on home button', async () => {
     // Tap on home on bottom navbar
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(1000);
     await Browser.isVisible();
   });
-  it('should navigate to favorites', async () => {
-    if (device.getPlatform() === 'ios') {
-      await Browser.tapOptionsButton();
-      await Browser.tapOpenTabButton();
 
+  it('should tap on Uniswap in favorites', async () => {
+    if (device.getPlatform() === 'ios') {
       // Tapping on favourite tap
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
       await TestHelpers.delay(1500);

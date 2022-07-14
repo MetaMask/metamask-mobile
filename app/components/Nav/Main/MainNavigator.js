@@ -16,7 +16,12 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
+import AssetOptions from '../../Views/AssetOptions';
+import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
+import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
+import DetectedTokens from '../../Views/DetectedTokens';
+import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
@@ -52,8 +57,16 @@ import GasEducationCarousel from '../../Views/GasEducationCarousel';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+import { FiatOnRampSDKProvider } from '../../UI/FiatOnRampAggregator/sdk';
+import GetStarted from '../../../components/UI/FiatOnRampAggregator/Views/GetStarted';
+import PaymentMethod from '../../../components/UI/FiatOnRampAggregator/Views/PaymentMethod';
+import AmountToBuy from '../../../components/UI/FiatOnRampAggregator/Views/AmountToBuy';
+import GetQuotes from '../../../components/UI/FiatOnRampAggregator/Views/GetQuotes';
+import CheckoutWebView from '../../UI/FiatOnRampAggregator/Views/Checkout';
+import Region from '../../UI/FiatOnRampAggregator/Views/Region';
 import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
+import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -69,18 +82,92 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
 });
-/**
- * Navigator component that wraps
- * the 2 main sections: Browser, Wallet
- */
 
-const WalletTabHome = () => (
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+    cardStyleInterpolator: () => ({
+      overlayStyle: {
+        opacity: 0,
+      },
+    }),
+  },
+  animationEnabled: false,
+};
+
+const DetectedTokensFlow = () => (
+  <Stack.Navigator
+    mode={'modal'}
+    screenOptions={clearStackNavigatorOptions}
+    initialRouteName={'DetectedTokens'}
+  >
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+    <Stack.Screen
+      name={'DetectedTokensConfirmation'}
+      component={DetectedTokensConfirmation}
+    />
+  </Stack.Navigator>
+);
+
+const WalletModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen
+      name={'Wallet'}
+      component={Wallet}
+      options={{ headerShown: true, animationEnabled: false }}
+    />
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+  </Stack.Navigator>
+);
+
+/* eslint-disable react/prop-types */
+const AssetStackFlow = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={'Asset'}
+      component={Asset}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name={'AssetDetails'}
+      component={AssetDetails}
+      initialParams={{ address: props.route.params?.address }}
+    />
+  </Stack.Navigator>
+);
+
+const AssetModalFlow = (props) => (
+  <Stack.Navigator
+    mode={'modal'}
+    initialRouteName={'AssetStackFlow'}
+    screenOptions={clearStackNavigatorOptions}
+  >
+    <Stack.Screen
+      name={'AssetStackFlow'}
+      component={AssetStackFlow}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name={'AssetOptions'}
+      component={AssetOptions}
+      initialParams={{ address: props.route.params?.address }}
+    />
+  </Stack.Navigator>
+);
+/* eslint-enable react/prop-types */
+
+const WalletTabStackFlow = () => (
   <Stack.Navigator initialRouteName={'WalletView'}>
-    <Stack.Screen name="WalletView" component={Wallet} />
+    <Stack.Screen
+      name="WalletView"
+      component={WalletModalFlow}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="Asset"
-      component={Asset}
-      options={Asset.navigationOptions}
+      component={AssetModalFlow}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AddAsset"
@@ -97,10 +184,15 @@ const WalletTabHome = () => (
       component={RevealPrivateCredential}
       options={RevealPrivateCredential.navigationOptions}
     />
+  </Stack.Navigator>
+);
+
+const WalletTabModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
     <Stack.Screen
-      name="ExperimentalSettings"
-      component={ExperimentalSettings}
-      options={ExperimentalSettings.navigationOptions}
+      name={'AssetHideConfirmation'}
+      component={AssetHideConfirmation}
     />
   </Stack.Navigator>
 );
@@ -123,8 +215,12 @@ const BrowserFlow = () => (
 );
 
 const TransactionsHome = () => (
-  <Stack.Navigator>
+  <Stack.Navigator mode="modal">
     <Stack.Screen name="TransactionsView" component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -143,7 +239,7 @@ const HomeTabs = () => {
         >
           <Tab.Screen
             name="WalletTabHome"
-            component={WalletTabHome}
+            component={WalletTabModalFlow}
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
@@ -205,11 +301,7 @@ const SettingsFlow = () => (
       component={NetworksSettings}
       options={NetworksSettings.navigationOptions}
     />
-    <Stack.Screen
-      name="NetworkSettings"
-      component={NetworkSettings}
-      options={NetworkSettings.navigationOptions}
-    />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
     <Stack.Screen
       name="CompanySettings"
       component={AppInformation}
@@ -395,6 +487,49 @@ const FiatOnRamp = () => (
   </Stack.Navigator>
 );
 
+const FiatOnRampAggregator = () => (
+  <FiatOnRampSDKProvider>
+    <Stack.Navigator
+      initialRouteName={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
+    >
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_STARTED}
+        component={GetStarted}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD}
+        component={PaymentMethod}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
+        component={AmountToBuy}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.GET_QUOTES}
+        component={GetQuotes}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT}
+        component={CheckoutWebView}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION}
+        component={Region}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
+        component={Region}
+        options={{ animationEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
+        component={AmountToBuy}
+        options={{ animationEnabled: false }}
+      />
+    </Stack.Navigator>
+  </FiatOnRampSDKProvider>
+);
+
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -500,6 +635,10 @@ const MainNavigator = () => (
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
+      component={FiatOnRampAggregator}
+    />
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen
       name="SetPasswordFlow"

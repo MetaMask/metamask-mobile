@@ -44,6 +44,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               />
             </TouchableOpacity>
             <Text
+              bigger={false}
               black={true}
               blue={false}
               bold={true}
@@ -52,6 +53,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               green={false}
               link={false}
               modal={false}
+              muted={false}
               primary={false}
               red={false}
               reset={false}
@@ -95,6 +97,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 }
               >
                 <Text
+                  bigger={false}
                   black={true}
                   blue={false}
                   bold={false}
@@ -103,6 +106,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                   green={false}
                   link={false}
                   modal={false}
+                  muted={false}
                   primary={false}
                   red={false}
                   reset={false}
@@ -121,6 +125,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 </Text>
               </View>
               <Text
+                bigger={false}
                 black={true}
                 blue={false}
                 bold={false}
@@ -129,6 +134,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 green={false}
                 link={false}
                 modal={false}
+                muted={false}
                 primary={false}
                 red={false}
                 reset={false}
@@ -153,6 +159,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             </View>
             <Text
               big={true}
+              bigger={false}
               black={true}
               blue={false}
               bold={false}
@@ -161,6 +168,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               green={false}
               link={false}
               modal={false}
+              muted={false}
               primary={false}
               red={false}
               reset={false}
@@ -171,6 +179,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
               upper={false}
             >
               <Text
+                bigger={false}
                 black={true}
                 blue={false}
                 bold={true}
@@ -179,6 +188,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 green={false}
                 link={false}
                 modal={false}
+                muted={false}
                 primary={false}
                 red={false}
                 reset={false}
@@ -224,6 +234,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       }
                     >
                       <Text
+                        bigger={false}
                         black={true}
                         blue={false}
                         bold={true}
@@ -232,6 +243,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         green={false}
                         link={false}
                         modal={false}
+                        muted={false}
                         noMargin={true}
                         primary={false}
                         red={false}
@@ -294,6 +306,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                       }
                     >
                       <Text
+                        bigger={false}
                         black={true}
                         blue={false}
                         bold={true}
@@ -302,6 +315,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                         green={false}
                         link={false}
                         modal={false}
+                        muted={false}
                         noMargin={true}
                         primary={false}
                         red={false}
@@ -371,6 +385,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
           body={
             <View>
               <Text
+                bigger={false}
                 black={false}
                 blue={false}
                 bold={false}
@@ -381,6 +396,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                 infoModal={true}
                 link={false}
                 modal={false}
+                muted={false}
                 primary={false}
                 red={false}
                 reset={false}

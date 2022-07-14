@@ -12,6 +12,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
     <TokenIcon />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -20,6 +21,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={true}
     red={false}
     reset={false}
@@ -48,6 +50,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -56,6 +59,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={true}
     red={false}
     reset={false}
@@ -84,6 +88,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -92,6 +97,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={true}
     red={false}
     reset={false}
@@ -121,6 +127,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -129,6 +136,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={true}
     red={false}
     reset={false}
@@ -160,6 +168,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -168,6 +177,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     primary={true}
     red={false}
     reset={false}

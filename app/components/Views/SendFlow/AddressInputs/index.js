@@ -125,11 +125,11 @@ const createStyles = (colors) =>
       justifyContent: 'center',
       paddingRight: 8,
     },
-    scanIcon: {
+    inputIcon: {
       flexDirection: 'column',
       alignItems: 'center',
     },
-    iconOpaque: {
+    inputIconOpaque: {
       color: colors.icon.default,
     },
     iconHighlighted: {
@@ -170,7 +170,7 @@ const AddressName = ({ toAddressName, confusableCollection = [] }) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
   if (confusableCollection.length) {
-    const texts = toAddressName.split('').map((char, index) => {
+    const texts = toAddressName?.split('').map((char, index) => {
       // if text has a confusable highlight it red
       if (confusableCollection.includes(char)) {
         // if the confusable is zero width, replace it with `?`
@@ -331,8 +331,8 @@ export const AddressTo = (props) => {
                 name="scan1"
                 size={20}
                 style={[
-                  styles.scanIcon,
-                  highlighted ? styles.iconHighlighted : styles.iconOpaque,
+                  styles.inputIcon,
+                  highlighted ? styles.iconHighlighted : styles.inputIconOpaque,
                 ]}
               />
             </TouchableOpacity>
@@ -345,10 +345,7 @@ export const AddressTo = (props) => {
               <AntIcon
                 name="close"
                 size={20}
-                style={[
-                  styles.scanIcon,
-                  highlighted ? styles.iconHighlighted : styles.iconOpaque,
-                ]}
+                style={[styles.inputIcon, styles.inputIconOpaque]}
               />
             </TouchableOpacity>
           )}
@@ -454,10 +451,7 @@ export const AddressTo = (props) => {
                 <AntIcon
                   name="close"
                   size={20}
-                  style={[
-                    styles.scanIcon,
-                    highlighted ? styles.iconHighlighted : styles.iconOpaque,
-                  ]}
+                  style={[styles.inputIcon, styles.inputIconOpaque]}
                 />
               </TouchableOpacity>
             </View>
@@ -584,7 +578,7 @@ export const AddressFrom = (props) => {
                 size={20}
                 style={[
                   styles.dropdownIcon,
-                  highlighted ? styles.iconHighlighted : styles.iconOpaque,
+                  highlighted ? styles.iconHighlighted : styles.inputIconOpaque,
                 ]}
               />
             </View>

@@ -55,7 +55,6 @@ const NAMES = {
   WALLET_COLLECTIBLES: 'Collectibles',
   WALLET_QR_SCANNER: 'QR scanner',
   WALLET_COPIED_ADDRESS: 'Copied Address',
-  WALLET_ADD_TOKENS: 'Add Tokens',
   WALLET_ADD_COLLECTIBLES: 'Add Collectibles',
   // Transactions
   TRANSACTIONS_CONFIRM_STARTED: 'Confirm Started',
@@ -97,8 +96,6 @@ const NAMES = {
   DAPP_APPROVE_SCREEN_EDIT_PERMISSION: 'Edit permission',
   DAPP_APPROVE_SCREEN_EDIT_FEE: 'Edit tx fee',
   DAPP_APPROVE_SCREEN_VIEW_DETAILS: 'View tx details',
-  // Fiat Orders
-  WALLET_BUY_ETH: 'Buy ETH',
   PAYMENTS_SELECTS_DEBIT_OR_ACH:
     'Selects debit card or bank account as payment method',
   PAYMENTS_SELECTS_APPLE_PAY: 'Selects Apple Pay as payment method',
@@ -377,11 +374,6 @@ export const ANALYTICS_EVENT_OPTS = {
     ACTIONS.WALLET_VIEW,
     NAMES.WALLET_COPIED_ADDRESS,
   ),
-  WALLET_ADD_TOKENS: generateOpt(
-    CATEGORIES.WALLET_VIEW,
-    ACTIONS.WALLET_VIEW,
-    NAMES.WALLET_ADD_TOKENS,
-  ),
   WALLET_ADD_COLLECTIBLES: generateOpt(
     CATEGORIES.WALLET_VIEW,
     ACTIONS.WALLET_VIEW,
@@ -558,12 +550,6 @@ export const ANALYTICS_EVENT_OPTS = {
     CATEGORIES.DAPP_INTERACTIONS,
     ACTIONS.APPROVE_REQUEST,
     NAMES.DAPP_APPROVE_SCREEN_VIEW_DETAILS,
-  ),
-  // Fiat Orders
-  WALLET_BUY_ETH: generateOpt(
-    CATEGORIES.WALLET,
-    ACTIONS.BUY_ETH,
-    NAMES.WALLET_BUY_ETH,
   ),
   PAYMENTS_SELECTS_DEBIT_OR_ACH: generateOpt(
     CATEGORIES.PAYMENTS,

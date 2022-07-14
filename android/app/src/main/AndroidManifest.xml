@@ -24,7 +24,7 @@
 		android:largeHeap="true"
 	>
 		<activity
-			android:launchMode="singleTask"
+			android:launchMode="singleInstance"
 			android:name=".SplashActivity"
 			android:theme="@style/SplashTheme"
 			android:label="@string/app_name"
@@ -34,7 +34,7 @@
 			</intent-filter>
 		</activity>
 		<activity
-			android:launchMode="singleTask"
+			android:launchMode="singleInstance"
 			android:name=".MainActivity"
 			android:label="@string/app_name"
 			android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"

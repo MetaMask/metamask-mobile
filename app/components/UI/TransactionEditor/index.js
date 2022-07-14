@@ -901,6 +901,7 @@ class TransactionEditor extends PureComponent {
                 onConfirm={this.onConfirm}
                 validate={this.validate}
                 ready={ready}
+                gasSelected={gasSelected}
                 transactionConfirmed={transactionConfirmed}
                 over={over}
                 gasEstimateType={gasEstimateType}

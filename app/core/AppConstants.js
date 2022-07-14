@@ -28,8 +28,9 @@ export default {
     SUPPORTED_NETWORKS: [MAINNET, RINKEBY],
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
-  HOMEPAGE_URL: 'https://home.metamask.io/',
+  HOMEPAGE_URL: process.env.MM_HOMEPAGE || 'https://home.metamask.io/',
   SHORT_HOMEPAGE_URL: 'MetaMask.io',
   ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
   USER_AGENT: Device.isAndroid()
@@ -84,6 +85,9 @@ export default {
     NFT: 'https://metamask.zendesk.com/hc/en-us/articles/360058238591-NFT-tokens-in-MetaMask-wallet',
     SECURITY:
       'https://metamask.zendesk.com/hc/en-us/articles/360015489591-Basic-Safety-and-Security-Tips-for-MetaMask',
+    TOKEN_BALANCE:
+      'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate',
+    MM_FAUCET: 'https://faucet.metamask.io/',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -93,6 +97,8 @@ export default {
     LOW: 'low',
     MEDIUM: 'medium',
     HIGH: 'high',
+    MARKET: 'market',
+    AGGRESSIVE: 'aggressive',
   },
   GAS_TIMES: {
     UNKNOWN: 'unknown',
@@ -116,4 +122,7 @@ export default {
     IOS: 'io.metamask.MetaMask',
     ANDROID: 'io.metamask',
   },
+  LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
+  ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',
+  ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
 };

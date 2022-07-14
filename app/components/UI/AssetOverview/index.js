@@ -33,9 +33,8 @@ import {
 import { getTokenList } from '../../../reducers/tokens';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { allowedToBuy } from '../FiatOrders';
 import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
@@ -182,13 +181,16 @@ class AssetOverview extends PureComponent {
   };
 
   onBuy = () => {
-    this.props.navigation.navigate('FiatOnRamp');
+    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_BUY_ETH);
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_OPENED, {
-        button_location: 'Token Screen',
-        button_copy: 'Buy',
-      });
+      Analytics.trackEventWithParameters(
+        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
+        {
+          text: 'Buy',
+          location: 'Token Screen',
+          chain_id_destination: this.props.chainId,
+        },
+      );
     });
   };
 
@@ -255,10 +257,10 @@ class AssetOverview extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const supportArticleUrl =
-      'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
     return (
-      <TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
+      <TouchableOpacity
+        onPress={() => this.goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
+      >
         <Text style={styles.warning}>
           {strings('asset_overview.were_unable')} {symbol}{' '}
           {strings('asset_overview.balance')}{' '}
