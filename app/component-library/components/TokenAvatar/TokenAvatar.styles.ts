@@ -31,6 +31,7 @@ const styleSheet = (params: {
         backgroundColor: theme.colors.background.alternative,
         justifyContent: 'center',
         alignItems: 'center',
+        borderColor: theme.colors.border.muted,
         borderWidth: 1,
       }
     : {};
