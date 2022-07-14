@@ -1,3 +1,3 @@
 export { default } from './Toast';
 export { ToastVariant } from './Toast.types';
-export { ToastContext } from './Toast.context';
+export { ToastContext, ToastContextWrapper } from './Toast.context';
