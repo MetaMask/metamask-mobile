@@ -1,7 +1,6 @@
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
-
 import NotificationManager from '../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';

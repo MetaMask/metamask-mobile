@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Appearance,
   Alert,
+  Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -35,6 +36,7 @@ import { useTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
+import { SRP_GUIDE_URL } from '../../../constants/urls';
 
 import AnalyticsV2 from '../../../util/analyticsV2';
 
@@ -290,7 +292,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       [
         {
           text: strings('reveal_credential.learn_more'),
-          onPress: () => null,
+          onPress: () => Linking.openURL(SRP_GUIDE_URL),
           style: 'cancel',
         },
         // eslint-disable-next-line no-console

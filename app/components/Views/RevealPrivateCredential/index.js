@@ -142,15 +142,12 @@ const RevealPrivateCredential = ({
       [
         {
           text: strings('reveal_credential.learn_more'),
-          // eslint-disable-next-line no-console
-          onPress: () => console.log('Cancel Pressed'),
+          onPress: () => Linking.openURL(SRP_GUIDE_URL),
           style: 'cancel',
         },
-        // eslint-disable-next-line no-console
         {
           text: strings('reveal_credential.got_it'),
-          // eslint-disable-next-line no-console
-          onPress: () => console.log('OK Pressed'),
+          onPress: () => null,
         },
       ],
     );
