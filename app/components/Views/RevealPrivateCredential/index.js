@@ -28,7 +28,7 @@ import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { showAlert } from '../../../actions/alert';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import {
-  SRP_URL,
+  SRP_GUIDE_URL,
   NON_CUSTODIAL_WALLET_URL,
   KEEP_SRP_SAFE_URL,
 } from '../../../constants/urls';
@@ -426,7 +426,7 @@ const RevealPrivateCredential = ({
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
       <Text
         style={[styles.blueText, styles.link]}
-        onPress={() => Linking.openURL(SRP_URL)}
+        onPress={() => Linking.openURL(SRP_GUIDE_URL)}
       >
         {strings('reveal_credential.seed_phrase_explanation')[1]}
       </Text>{' '}
