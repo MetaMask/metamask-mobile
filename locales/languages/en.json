@@ -1371,7 +1371,11 @@
     "view": "View",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM"
+    "confirm": "CONFIRM",
+    "screenshot_warning_title": "Screenshot warning",
+    "screenshot_warning_desc": "If you are going to store your SRP, do it in a safe place, not as a screenshot that is likely to be automatically backed up online. Don’t share your SRP.",
+    "got_it": "Got it",
+    "learn_more": "Learn More"
   },
   "manual_backup_step_2": {
     "action": "Confirm Secret Recovery Phrase",
