@@ -294,7 +294,6 @@
     "deposit_button": "Einzahlen",
     "copy_address": "Kopieren",
     "collectible_action_title": "Sammlerstück-Optionen",
-    "remove_token_title": "Möchten Sie dieses Token entfernen?",
     "remove_collectible_title": "Möchten Sie dieses Sammlerstück entfernen?",
     "refresh_metadata": "Metadaten aktualisieren",
     "token_removal_issue_title": "Problem beim Entfernen des Tokens.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Wenn Sie Ihre Meinung ändern, können Sie es wieder hinzufügen, indem Sie auf „Token importieren“ tippen",
     "collectible_removed_title": "Sammlerstück entfernt!",
     "collectible_removed_desc": "Wenn Sie Ihre Meinung ändern, können Sie es wieder hinzufügen, indem Sie auf „NFTs importieren“ tippen",
-    "remove": "Entfernen",
     "cancel": "Abbrechen",
     "yes": "Ja",
     "private_key_detected": "Privater Key entdeckt",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Token-Symbol",
     "token_address": "Token-Adresse",
-    "token_precision": "Token der Genauigkeit",
     "search_tokens_placeholder": "Token suchen",
     "address_cant_be_empty": "Token-Adresse kann nicht leer sein.",
     "address_must_be_valid": "Die Token-Adresse muss eine gültige Adresse sein.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "und installieren Sie die App neu. Achtung: Sie können Ihr Wallet ohne ihre geheime Wiederherstellungsphrase NICHT wiederherstellen.",
     "copied_clipboard": "In die Zwischenablage kopiert",
     "ok": "OK"
-  },
-  "whats_new": {
-    "title": "Neuigkeiten anzeigen",
-    "feature_security_settings_title": "Verbesserte Sicherheitseinstellungen",
-    "feature_security_settings_text": "Sie können Ihr MetaMask App-Passwort jetzt ändern und einsehen, wie Sie ein Backup Ihrer geheimen Wiederherstellungsphrase Ihres Wallets unter Einstellungen > Sicherheit & Datenschutz erstellen können.",
-    "feature_security_settings_button": "In den Einstellungen anzeigen"
   },
   "invalid_network": {
     "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n%{network} \n muss erneut eingegeben werden.",

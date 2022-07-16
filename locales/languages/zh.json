@@ -294,7 +294,6 @@
     "deposit_button": "存款",
     "copy_address": "复制",
     "collectible_action_title": "收藏品选项",
-    "remove_token_title": "是否要删除此代币？",
     "remove_collectible_title": "是否要删除此收藏品？",
     "refresh_metadata": "刷新元数据",
     "token_removal_issue_title": "删除代币问题。",
@@ -303,7 +302,6 @@
     "token_removed_desc": "如果您改变主意，可以点按“+ 添加代币”重新添加。",
     "collectible_removed_title": "收藏品已删除！",
     "collectible_removed_desc": "如果您改变主意，可以点按“+ 添加收藏品”重新添加。",
-    "remove": "删除",
     "cancel": "取消",
     "yes": "是",
     "private_key_detected": "检测到私钥",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "代币符号",
     "token_address": "代币地址",
-    "token_precision": "代币精度",
     "search_tokens_placeholder": "搜索代币",
     "address_cant_be_empty": "代币地址不能为空。",
     "address_must_be_valid": "代币地址必须是有效地址。",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "并重新安装应用。注：没有助记词将无法恢复钱包。",
     "copied_clipboard": "已复制到剪贴板",
     "ok": "确定"
-  },
-  "whats_new": {
-    "title": "了解新功能",
-    "feature_security_settings_title": "改进了安全设置",
-    "feature_security_settings_text": "您现在可以从“设置”>“安全和隐私”更改 MetaMask 应用密码并查看如何备份钱包助记词。",
-    "feature_security_settings_button": "在“设置”中查看"
   },
   "invalid_network": {
     "title": "必须重新输入自定义网络\n %{network} \n的链 ID。",

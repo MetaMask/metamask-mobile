@@ -86,6 +86,9 @@ const createStyles = (colors) =>
       alignItems: 'center',
       flexDirection: 'row',
     },
+    infoIconContainer: {
+      paddingHorizontal: 3,
+    },
     infoIcon: {
       fontSize: 12,
       color: colors.icon.default,
@@ -115,9 +118,11 @@ const NetworkModals = (props: NetworkProps) => {
       nickname,
       ticker,
       rpcUrl,
+      formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
   } = props;
+
   const [showDetails, setShowDetails] = React.useState(false);
   const [showInfo, setShowInfo] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
@@ -216,7 +221,7 @@ const NetworkModals = (props: NetworkProps) => {
             chainId={chainId}
             nickname={nickname}
             ticker={ticker}
-            rpcUrl={rpcUrl}
+            rpcUrl={formattedRpcUrl || rpcUrl}
             blockExplorerUrl={blockExplorerUrl}
           />
         ) : networkAdded ? (
@@ -232,8 +237,6 @@ const NetworkModals = (props: NetworkProps) => {
                 isVisible
                 toggleModal={showToolTip}
                 message={strings('networks.provider')}
-                clickText={undefined}
-                clickPress={undefined}
               />
             )}
             <View style={styles.nameWrapper} testID={APPROVE_NETWORK_MODAL_ID}>
@@ -248,11 +251,13 @@ const NetworkModals = (props: NetworkProps) => {
             </Text>
             <Text centered bold>
               {strings('networks.network_endorsement')}
-              <FAIcon
-                name="info-circle"
-                style={styles.infoIcon}
-                onPress={showToolTip}
-              />
+              <View style={styles.infoIconContainer}>
+                <FAIcon
+                  name="info-circle"
+                  style={styles.infoIcon}
+                  onPress={showToolTip}
+                />
+              </View>
             </Text>
             <Text centered style={styles.bottomSpace}>
               <Text>{strings('networks.learn_about')} </Text>
@@ -277,7 +282,7 @@ const NetworkModals = (props: NetworkProps) => {
                 </Text>
                 <Text black>{strings('networks.network_rpc_url')}</Text>
                 <Text bold black style={styles.bottomSpace}>
-                  {rpcUrl}
+                  {formattedRpcUrl || rpcUrl}
                 </Text>
               </View>
             </View>
