@@ -130,7 +130,13 @@ const RevealPrivateCredential = ({
     }
   };
 
+  const openSRPGuide = () => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
+    Linking.openURL(SRP_GUIDE_URL);
+  };
+
   const showScreenshotAlert = useCallback(() => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
     Alert.alert(
       strings('reveal_credential.screenshot_warning_title'),
       strings('reveal_credential.screenshot_warning_desc', {
@@ -142,12 +148,13 @@ const RevealPrivateCredential = ({
       [
         {
           text: strings('reveal_credential.learn_more'),
-          onPress: () => Linking.openURL(SRP_GUIDE_URL),
+          onPress: openSRPGuide,
           style: 'cancel',
         },
         {
           text: strings('reveal_credential.got_it'),
-          onPress: () => null,
+          onPress: () =>
+            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
         },
       ],
     );

@@ -285,20 +285,26 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     );
   };
 
+  const openSRPGuide = () => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
+    Linking.openURL(SRP_GUIDE_URL);
+  };
+
   const showScreenshotAlert = useCallback(() => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
     Alert.alert(
       strings('manual_backup_step_1.screenshot_warning_title'),
       strings('manual_backup_step_1.screenshot_warning_desc'),
       [
         {
           text: strings('reveal_credential.learn_more'),
-          onPress: () => Linking.openURL(SRP_GUIDE_URL),
+          onPress: openSRPGuide,
           style: 'cancel',
         },
-        // eslint-disable-next-line no-console
         {
           text: strings('reveal_credential.got_it'),
-          onPress: () => null,
+          onPress: () =>
+            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
         },
       ],
     );

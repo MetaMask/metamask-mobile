@@ -161,6 +161,10 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
+  // Screenshots
+  SCREENSHOT_WARNING: generateOpt('screenshot_warning_seen'),
+  SCREENSHOT_LEARN_MORE: generateOpt('clicked_screenshot_warning_learn_more'),
+  SCREENSHOT_OK: generateOpt('clicked_screenshot_warning_okay'),
 };
 
 /**
