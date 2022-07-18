@@ -262,7 +262,14 @@ class AccountOverview extends PureComponent {
     const { PreferencesController } = Engine.context;
     const { selectedAddress } = this.props;
     const { accountLabel } = this.state;
-    PreferencesController.setAccountLabel(selectedAddress, accountLabel);
+
+    const lastAccountLabel =
+      PreferencesController.state.identities[selectedAddress].name;
+
+    PreferencesController.setAccountLabel(
+      selectedAddress,
+      accountLabel || lastAccountLabel,
+    );
     this.setState({ accountLabelEditable: false });
   };
 
