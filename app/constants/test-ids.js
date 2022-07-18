@@ -73,3 +73,4 @@ export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
 export const CHECKBOX_ICON_ID = 'checkbox-icon';
 export const SELECTABLE_LIST_ITEM_OVERLAY_ID = 'selectable-list-item-overlay';
+export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
