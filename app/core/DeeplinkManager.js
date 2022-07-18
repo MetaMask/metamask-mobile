@@ -94,15 +94,8 @@ class DeeplinkManager {
     const {
       parameters: { address, uint256 },
       target_address,
-      chain_id,
     } = ethUrl;
-    const { TransactionController, PreferencesController, NetworkController } =
-      Engine.context;
-
-    if (chain_id) {
-      const newNetworkType = getNetworkTypeById(chain_id);
-      NetworkController.setProviderType(newNetworkType);
-    }
+    const { TransactionController, PreferencesController } = Engine.context;
 
     const uint256Number = Number(uint256);
 
