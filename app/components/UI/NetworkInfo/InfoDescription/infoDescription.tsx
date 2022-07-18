@@ -69,6 +69,10 @@ const Description = (props: DescriptionProps) => {
       screen: 'SettingsFlow',
       params: {
         screen: 'AdvancedSettings',
+        params: {
+          scrollToBottom: true,
+          isFullScreenModal: true,
+        },
       },
     });
   }, [navigation, onClose]);
