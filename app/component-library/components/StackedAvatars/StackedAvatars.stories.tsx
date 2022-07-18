@@ -39,6 +39,41 @@ storiesOf(' Component Library / StackedAvatar', module).add('Default', () => {
       imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
       id: '6',
     },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '7',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '8',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '9',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '10',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '11',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '12',
+    },
+    {
+      name: 'Ethereum',
+      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+      id: '13',
+    },
   ];
 
   return <StackedAvatar tokenList={tokenList} />;
