@@ -48,7 +48,7 @@ const TokenAvatar = ({
     </BaseAvatar>
   );
 
-  return !showHalo ? (
+  return !showHalo || showFallback ? (
     tokenImage()
   ) : (
     <ImageBackground

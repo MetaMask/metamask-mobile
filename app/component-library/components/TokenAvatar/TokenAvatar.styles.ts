@@ -18,13 +18,14 @@ const styleSheet = (params: {
   const { vars, theme } = params;
   const { size, style, showFallback, showHalo } = vars;
 
-  const avatarSizeWithHalo = showHalo
-    ? {
-        width: 20,
-        height: 20,
-        borderRadius: 20 / 2,
-      }
-    : {};
+  const avatarSizeWithHalo =
+    showHalo && !showFallback
+      ? {
+          width: 20,
+          height: 20,
+          borderRadius: 20 / 2,
+        }
+      : {};
 
   const fallbackAvatarStyle = showFallback
     ? {
