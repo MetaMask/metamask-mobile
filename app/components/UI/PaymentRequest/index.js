@@ -46,6 +46,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/controllers/dist/util';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -410,11 +411,15 @@ class PaymentRequest extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
+    const isTDSupportedForNetwork =
+      isTokenDetectionSupportedForNetwork(chainId);
 
-    if (chainId === '1') {
-      results = this.state.searchInputValue
-        ? this.state.results
-        : defaultAssets;
+    if (isTDSupportedForNetwork) {
+      const defaults =
+        chainId === NetworksChainId.mainnet
+          ? defaultAssets
+          : [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
+      results = this.state.searchInputValue ? this.state.results : defaults;
     } else if (
       Object.values(NetworksChainId).find((value) => value === chainId)
     ) {
@@ -437,7 +442,7 @@ class PaymentRequest extends PureComponent {
             {strings('payment_request.choose_asset')}
           </Text>
         </View>
-        {chainId === '1' && (
+        {isTDSupportedForNetwork && (
           <View style={styles.searchWrapper}>
             <FeatherIcon
               name="search"
