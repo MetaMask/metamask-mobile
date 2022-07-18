@@ -16,7 +16,12 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
+import AssetOptions from '../../Views/AssetOptions';
+import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
+import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
+import DetectedTokens from '../../Views/DetectedTokens';
+import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
@@ -77,18 +82,92 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
 });
-/**
- * Navigator component that wraps
- * the 2 main sections: Browser, Wallet
- */
 
-const WalletTabHome = () => (
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+    cardStyleInterpolator: () => ({
+      overlayStyle: {
+        opacity: 0,
+      },
+    }),
+  },
+  animationEnabled: false,
+};
+
+const DetectedTokensFlow = () => (
+  <Stack.Navigator
+    mode={'modal'}
+    screenOptions={clearStackNavigatorOptions}
+    initialRouteName={'DetectedTokens'}
+  >
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+    <Stack.Screen
+      name={'DetectedTokensConfirmation'}
+      component={DetectedTokensConfirmation}
+    />
+  </Stack.Navigator>
+);
+
+const WalletModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen
+      name={'Wallet'}
+      component={Wallet}
+      options={{ headerShown: true, animationEnabled: false }}
+    />
+    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+  </Stack.Navigator>
+);
+
+/* eslint-disable react/prop-types */
+const AssetStackFlow = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={'Asset'}
+      component={Asset}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name={'AssetDetails'}
+      component={AssetDetails}
+      initialParams={{ address: props.route.params?.address }}
+    />
+  </Stack.Navigator>
+);
+
+const AssetModalFlow = (props) => (
+  <Stack.Navigator
+    mode={'modal'}
+    initialRouteName={'AssetStackFlow'}
+    screenOptions={clearStackNavigatorOptions}
+  >
+    <Stack.Screen
+      name={'AssetStackFlow'}
+      component={AssetStackFlow}
+      initialParams={props.route.params}
+    />
+    <Stack.Screen
+      name={'AssetOptions'}
+      component={AssetOptions}
+      initialParams={{ address: props.route.params?.address }}
+    />
+  </Stack.Navigator>
+);
+/* eslint-enable react/prop-types */
+
+const WalletTabStackFlow = () => (
   <Stack.Navigator initialRouteName={'WalletView'}>
-    <Stack.Screen name="WalletView" component={Wallet} />
+    <Stack.Screen
+      name="WalletView"
+      component={WalletModalFlow}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name="Asset"
-      component={Asset}
-      options={Asset.navigationOptions}
+      component={AssetModalFlow}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AddAsset"
@@ -105,15 +184,15 @@ const WalletTabHome = () => (
       component={RevealPrivateCredential}
       options={RevealPrivateCredential.navigationOptions}
     />
+  </Stack.Navigator>
+);
+
+const WalletTabModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
     <Stack.Screen
-      name="ExperimentalSettings"
-      component={ExperimentalSettings}
-      options={ExperimentalSettings.navigationOptions}
-    />
-    <Stack.Screen
-      name="NetworkSettings"
-      component={NetworkSettings}
-      options={NetworkSettings.navigationOptions}
+      name={'AssetHideConfirmation'}
+      component={AssetHideConfirmation}
     />
   </Stack.Navigator>
 );
@@ -160,7 +239,7 @@ const HomeTabs = () => {
         >
           <Tab.Screen
             name="WalletTabHome"
-            component={WalletTabHome}
+            component={WalletTabModalFlow}
             options={{ tabBarVisible: false }}
           />
           <Tab.Screen
@@ -222,11 +301,7 @@ const SettingsFlow = () => (
       component={NetworksSettings}
       options={NetworksSettings.navigationOptions}
     />
-    <Stack.Screen
-      name="NetworkSettings"
-      component={NetworkSettings}
-      options={NetworkSettings.navigationOptions}
-    />
+    <Stack.Screen name="NetworkSettings" component={NetworkSettings} />
     <Stack.Screen
       name="CompanySettings"
       component={AppInformation}
