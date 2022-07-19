@@ -294,7 +294,6 @@
     "deposit_button": "जमा करें",
     "copy_address": "कॉपी करें",
     "collectible_action_title": "संग्रहणीय विकल्प",
-    "remove_token_title": "क्या आप इस टोकन को हटाना चाहते हैं?",
     "remove_collectible_title": "क्या आप इस संग्रहणीय वस्तु को हटाना चाहते हैं?",
     "refresh_metadata": "Metadata को रिफ्रेश करें",
     "token_removal_issue_title": "टोकन हटाने में मुश्किल।",
@@ -303,7 +302,6 @@
     "token_removed_desc": "अगर आप मन बदल लेते हैं, \"टोकन इम्पोर्ट करें\" पर टैप करके आप इसे वापस जोड़ सकते हैं",
     "collectible_removed_title": "संग्रहणीय वस्तु हटा दी गई!",
     "collectible_removed_desc": "अगर आप मन बदल लेते हैं, \"NFT इम्पोर्ट करें\" पर टैप करके आप इसे वापस जोड़ सकते हैं",
-    "remove": "हटाएं",
     "cancel": "रद्द करें",
     "yes": "हां",
     "private_key_detected": "व्यक्तिगत की का पता चला",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "टोकन का प्रतीक",
     "token_address": "टोकन का पता",
-    "token_precision": "शुद्धता का टोकन",
     "search_tokens_placeholder": "टोकन खोजें",
     "address_cant_be_empty": "टोकन का पता कभी खाली नहीं रह सकता।",
     "address_must_be_valid": "टोकन का पता एक मान्य पता होना चाहिए।",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "और ऐप को फिर से स्थापित करें। नोट: अपने सीक्रेट रिकवरी फ्रेज के बिना आप अपने वॉलेट को बहाल नहीं कर सकते हैं।",
     "copied_clipboard": "क्लिपबोर्ड पर नकल ",
     "ok": "ठीक है"
-  },
-  "whats_new": {
-    "title": "देखे क्या नया है",
-    "feature_security_settings_title": "संशोधित सुरक्षा सेटिंग ",
-    "feature_security_settings_text": "अब आप अपने MetaMask ऐप के पासवर्ड को बदल सकते हैं और समीक्षा कर सकते हैं कि सेटिंग > सुरक्षा और गोपनीयता से अपनी वॉलेट के सीक्रेट रिकवरी फ्रेज का बैकअप कैसे लें।",
-    "feature_security_settings_button": "सेटिंग में देखें"
   },
   "invalid_network": {
     "title": "कस्टम नेटवर्क के लिए चेनID  \n %{network} \n को फिर से दर्ज करना होगा। ",
