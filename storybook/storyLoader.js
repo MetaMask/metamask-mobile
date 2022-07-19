@@ -27,6 +27,8 @@ function loadStories() {
   require('../app/component-library/components/MultiselectListItem/MultiselectListItem.stories');
   require('../app/component-library/components/NetworkAvatar/NetworkAvatar.stories');
   require('../app/component-library/components/NetworkPicker/NetworkPicker.stories');
+  require('../app/component-library/components/PickerAccount/PickerAccount.stories');
+  require('../app/component-library/components/PickerItem/PickerItem.stories');
   require('../app/component-library/components/SelectableListItem/SelectableListItem.stories');
   require('../app/component-library/components/TabBar/TabBar.stories');
   require('../app/component-library/components/TabBarItem/TabBarItem.stories');
@@ -59,12 +61,14 @@ const stories = [
   '../app/component-library/components/MultiselectListItem/MultiselectListItem.stories',
   '../app/component-library/components/NetworkAvatar/NetworkAvatar.stories',
   '../app/component-library/components/NetworkPicker/NetworkPicker.stories',
+  '../app/component-library/components/PickerAccount/PickerAccount.stories',
+  '../app/component-library/components/PickerItem/PickerItem.stories',
   '../app/component-library/components/SelectableListItem/SelectableListItem.stories',
   '../app/component-library/components/TabBar/TabBar.stories',
   '../app/component-library/components/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Tag/Tag.stories',
   '../app/component-library/components/TagUrl/TagUrl.stories',
-  '../app/component-library/components/TokenAvatar/TokenAvatar.stories'
+  '../app/component-library/components/TokenAvatar/TokenAvatar.stories',
 ];
 
 module.exports = {
