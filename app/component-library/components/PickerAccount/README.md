@@ -1,6 +1,6 @@
-# PickerItem
+# PickerAccount
 
-PickerItem is a wrapper component used for providing a dropdown icon next to wrapped content.
+PickerAccount is a component used for accessing account selection.
 
 ## Props
 
@@ -14,9 +14,25 @@ Callback to trigger when pressed.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | function                                            | Yes                                                     |
 
+### `accountAddress`
+
+An Ethereum wallet address.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | Yes                                                     |
+
+### `accountName`
+
+Name of the account.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| string                                              | Yes                                                     |
+
 ### `children`
 
-Content to wrap in PickerItem.
+Content to wrap in PickerAccount.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
