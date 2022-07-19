@@ -245,6 +245,13 @@ class AccountOverview extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       this.doENSLookup();
     });
+
+    //This is to fix the accounts which doesn't had name on their accounts
+    //If this is on Production for some time can be removed.
+    const { PreferencesController } = Engine.context;
+    if (!accountLabel) {
+      PreferencesController.setAccountLabel(selectedAddress, 'Unnamed');
+    }
   };
 
   componentDidUpdate(prevProps) {
