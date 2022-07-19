@@ -250,7 +250,7 @@ class AccountOverview extends PureComponent {
     //If this is on Production for some time can be removed.
     const { PreferencesController } = Engine.context;
     if (!accountLabel) {
-      PreferencesController.setAccountLabel(selectedAddress, 'Unnamed');
+      PreferencesController.setAccountLabel(selectedAddress, 'Account');
     }
   };
 
