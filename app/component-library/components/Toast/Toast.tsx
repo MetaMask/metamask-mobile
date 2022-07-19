@@ -90,23 +90,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }
   };
 
-  const renderAccountAvatar = (accountAddress: string) => (
-    <AccountAvatar
-      accountAddress={accountAddress}
-      type={AccountAvatarType.JazzIcon}
-      size={BaseAvatarSize.Md}
-      style={styles.avatar}
-    />
-  );
-
-  const renderNetworkAvatar = (networkImageUrl: string) => (
-    <NetworkAvatar
-      networkImageUrl={networkImageUrl}
-      size={BaseAvatarSize.Md}
-      style={styles.avatar}
-    />
-  );
-
   const renderLabel = (labelOptions: ToastLabelOptions) => (
     <BaseText variant={BaseTextVariant.sBodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
@@ -130,29 +113,42 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       </Link>
     ) : null;
 
-  const renderToastContent = (options: ToastOptions) => {
-    let avatarContent: React.ReactNode = null;
-    const { labelOptions, linkOption } = options;
-
+  const renderAvatar = () => {
     switch (toastOptions?.variant) {
       case ToastVariant.Plain:
-        break;
-      case ToastVariant.Account:
-        {
-          const { accountAddress } = toastOptions;
-          avatarContent = renderAccountAvatar(accountAddress);
-        }
-        break;
+        return null;
+      case ToastVariant.Account: {
+        const { accountAddress } = toastOptions;
+        return (
+          <AccountAvatar
+            accountAddress={accountAddress}
+            type={AccountAvatarType.JazzIcon}
+            size={BaseAvatarSize.Md}
+            style={styles.avatar}
+          />
+        );
+      }
       case ToastVariant.Network: {
         {
           const { networkImageUrl } = toastOptions;
-          avatarContent = renderNetworkAvatar(networkImageUrl);
+          return (
+            <NetworkAvatar
+              networkImageUrl={networkImageUrl}
+              size={BaseAvatarSize.Md}
+              style={styles.avatar}
+            />
+          );
         }
       }
     }
+  };
+
+  const renderToastContent = (options: ToastOptions) => {
+    const { labelOptions, linkOption } = options;
+
     return (
       <>
-        {avatarContent}
+        {renderAvatar()}
         <View style={styles.labelsContainer}>
           {renderLabel(labelOptions)}
           {renderLink(linkOption)}
