@@ -16,6 +16,7 @@ function loadStories() {
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/BaseButton/BaseButton.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
+  require('../app/component-library/components/BottomSheet/BottomSheet.stories');
   require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
@@ -47,6 +48,7 @@ const stories = [
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/BaseButton/BaseButton.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
+  '../app/component-library/components/BottomSheet/BottomSheet.stories',
   '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',
@@ -62,7 +64,7 @@ const stories = [
   '../app/component-library/components/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Tag/Tag.stories',
   '../app/component-library/components/TagUrl/TagUrl.stories',
-  '../app/component-library/components/TokenAvatar/TokenAvatar.stories'
+  '../app/component-library/components/TokenAvatar/TokenAvatar.stories',
 ];
 
 module.exports = {
