@@ -4,14 +4,6 @@ module.exports = {
   plugins: [
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
-    [
-      'module-resolver',
-      {
-        alias: {
-          app: './app',
-        },
-      },
-    ],
   ],
   env: {
     production: {

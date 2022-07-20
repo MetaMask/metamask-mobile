@@ -68,7 +68,7 @@ import ThemeSettings from '../../Views/ThemeSettings';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
-import Routes from 'app/constants/navigation/Routes';
+import Routes from '../../../constants/navigation/Routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
