@@ -741,6 +741,7 @@ const AmountToBuy = () => {
           title={strings('fiat_on_ramp_aggregator.select_payment_method')}
           paymentMethods={filteredPaymentMethods}
           selectedPaymentMethodId={selectedPaymentMethodId}
+          selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
           location={'Amount to Buy Screen'}
         />

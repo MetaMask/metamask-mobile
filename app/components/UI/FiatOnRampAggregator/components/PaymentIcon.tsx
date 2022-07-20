@@ -14,6 +14,7 @@ interface iconParams {
 
 export enum Icon {
   Apple = 'apple',
+  GooglePay = 'google',
   Card = 'credit-card',
   Bank = 'bank',
   Wallet = 'wallet',
@@ -30,6 +31,9 @@ const PaymentIcon = ({
   switch (iconType) {
     case Icon.Apple: {
       return <FontAwesome name={Icon.Apple} {...props} />;
+    }
+    case Icon.GooglePay: {
+      return <FontAwesome name={Icon.GooglePay} {...props} />;
     }
     case Icon.Bank: {
       return <MaterialsCommunityIcons name={Icon.Bank} {...props} />;
