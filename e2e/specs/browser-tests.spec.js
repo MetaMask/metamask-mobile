@@ -15,6 +15,7 @@ import ConnectModal from '../pages/modals/ConnectModal';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const ENS_Example = 'https://brunobarbieri.eth';
 const ENS_TLD = 'https://inbox.mailchain.xyz';
@@ -53,6 +54,17 @@ describe('Browser Tests', () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await WalletView.isVisible();
+  });
+
+  it('should tap on the close button to dismiss the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2000);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {

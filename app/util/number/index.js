@@ -111,6 +111,7 @@ export function fromTokenMinimalUnit(minimalInput, decimals) {
 }
 
 const INTEGER_REGEX = /^-?\d*(\.0+|\.)?$/;
+export const INTEGER_OR_FLOAT_REGEX = /^[+-]?\d+(\.\d+)?$/;
 
 /**
  * Converts token minimal unit to readable string value
@@ -350,6 +351,16 @@ export function isDecimal(value) {
  */
 export function toBN(value) {
   return new BN(value);
+}
+
+/**
+ * Determines if a string is a valid number
+ *
+ * @param {*} str - Number string
+ * @returns {boolean} - True if the string  is a valid number
+ */
+export function isNumber(str) {
+  return /^(\d+(\.\d+)?)$/.test(str);
 }
 
 /**

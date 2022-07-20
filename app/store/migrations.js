@@ -293,6 +293,13 @@ export const migrations = {
     };
     return state;
   },
+  11: (state) => {
+    state.engine.backgroundState.PreferencesController = {
+      ...state.engine.backgroundState.PreferencesController,
+      useTokenDetection: true,
+    };
+    return state;
+  },
 };
 
-export const version = 10;
+export const version = 11;

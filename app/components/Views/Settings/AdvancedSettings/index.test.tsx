@@ -12,6 +12,9 @@ const initialState = {
       PreferencesController: {
         ipfsGateway: 'https://ipfs.io/ipfs/',
       },
+      NetworkController: {
+        provider: { chainId: '1' },
+      },
     },
   },
 };

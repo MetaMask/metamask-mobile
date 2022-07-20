@@ -294,7 +294,6 @@
     "deposit_button": "Nạp",
     "copy_address": "Sao chép",
     "collectible_action_title": "Tùy chọn bộ sưu tập",
-    "remove_token_title": "Bạn có muốn gỡ bỏ Token này?",
     "remove_collectible_title": "Bạn có muốn gỡ bỏ bộ sưu tập này?",
     "refresh_metadata": "Làm mới Siêu dữ liệu",
     "token_removal_issue_title": "Sự cố khi gỡ bỏ Token.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Nếu đổi ý, bạn có thể thêm lại bằng cách chạm vào \"Nhập Token\"",
     "collectible_removed_title": "Đã gỡ bỏ bộ sưu tập!",
     "collectible_removed_desc": "Nếu đổi ý, bạn có thể thêm lại bằng cách chạm vào \"Nhập NFT\"",
-    "remove": "Gỡ bỏ",
     "cancel": "Hủy",
     "yes": "Có",
     "private_key_detected": "Đã phát hiện khóa cá nhân",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Biểu tượng Token",
     "token_address": "Địa chỉ Token",
-    "token_precision": "Token chính xác",
     "search_tokens_placeholder": "Tìm Token",
     "address_cant_be_empty": "Địa chỉ Token không thể để trống.",
     "address_must_be_valid": "Địa chỉ Token phải là địa chỉ hợp lệ.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "& cài đặt lại ứng dụng. Lưu ý: bạn KHÔNG thể khôi phục ví nếu không có Cụm từ khôi phục bí mật.",
     "copied_clipboard": "Đã sao chép vào bộ nhớ đệm",
     "ok": "OK"
-  },
-  "whats_new": {
-    "title": "Xem thông tin mới",
-    "feature_security_settings_title": "Chế độ cài đặt bảo mật nâng cao",
-    "feature_security_settings_text": "Giờ đây bạn có thể đổi mật khẩu ứng dụng MetaMask và xem lại cách sao lưu Cụm từ khôi phục bí mật cho ví của bạn từ phần Cài đặt > Bảo mật & Quyền riêng tư.",
-    "feature_security_settings_button": "Xem trong phần Cài đặt"
   },
   "invalid_network": {
     "title": "Phải nhập lại ID chuỗi cho mạng tùy chỉnh \n %{network} \n.",
