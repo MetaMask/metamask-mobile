@@ -4,6 +4,7 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
+  require('../app/component-library/components/BottomSheet/BottomSheet.stories');
   require('../app/components/Base/Alert.stories');
   require('../app/components/Base/ListItem.stories');
   require('../app/components/Base/Text.stories');
@@ -16,7 +17,6 @@ function loadStories() {
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/BaseButton/BaseButton.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
-  require('../app/component-library/components/BottomSheet/BottomSheet.stories');
   require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
@@ -39,6 +39,7 @@ function loadStories() {
 }
 
 const stories = [
+  '../app/component-library/components/BottomSheet/BottomSheet.stories',
   '../app/components/Base/Alert.stories',
   '../app/components/Base/ListItem.stories',
   '../app/components/Base/Text.stories',
@@ -51,7 +52,6 @@ const stories = [
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/BaseButton/BaseButton.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
-  '../app/component-library/components/BottomSheet/BottomSheet.stories',
   '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',

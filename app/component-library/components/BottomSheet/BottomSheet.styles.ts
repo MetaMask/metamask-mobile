@@ -35,6 +35,9 @@ const styleSheet = (params: {
     sheet: {
       backgroundColor: colors.background.default,
     },
+    fill: {
+      flex: 1,
+    },
   });
 };
 

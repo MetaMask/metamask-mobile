@@ -20,6 +20,7 @@ export interface BottomSheetProps extends TouchableOpacityProps {
 
 export interface BottomSheetRef {
   show: () => void;
+  hide: () => void;
 }
 
 /**
