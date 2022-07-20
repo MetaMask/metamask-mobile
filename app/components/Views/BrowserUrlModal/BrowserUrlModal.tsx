@@ -17,7 +17,7 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
-import Routes from 'app/constants/navigation/Routes';
+import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 
 export interface BrowserUrlParams {
