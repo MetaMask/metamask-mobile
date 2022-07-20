@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkPicker should render correctly 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 16,
+      "flexDirection": "row",
+      "height": 32,
+      "paddingHorizontal": 8,
+    }
+  }
+>
+  <NetworkAvatar
+    networkImageUrl="https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880"
+    size="16"
+  />
+  <BaseText
+    style={
+      Object {
+        "marginHorizontal": 8,
+      }
+    }
+    variant="sBodyMD"
+  >
+    Ethereum Mainnet
+  </BaseText>
+  <Icon
+    name="ArrowDownOutline"
+    size="12"
+  />
+</TouchableOpacity>
+`;
