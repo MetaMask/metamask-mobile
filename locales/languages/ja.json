@@ -294,7 +294,6 @@
     "deposit_button": "入金",
     "copy_address": "コピー",
     "collectible_action_title": "コレクティブルのオプション",
-    "remove_token_title": "このトークンを削除しますか？",
     "remove_collectible_title": "このコレクティブルを削除しますか？",
     "refresh_metadata": "メタデータを更新",
     "token_removal_issue_title": "トークンの削除中にエラーが発生しました。",
@@ -303,7 +302,6 @@
     "token_removed_desc": "気が変わったら、「トークンをインポート」をタップして再び追加できます",
     "collectible_removed_title": "コレクティブルが削除されました！",
     "collectible_removed_desc": "気が変わったら、「NFT をインポート」をタップして再び追加できます",
-    "remove": "削除",
     "cancel": "キャンセル",
     "yes": "はい",
     "private_key_detected": "秘密鍵が検出されました",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "トークンシンボル",
     "token_address": "トークンアドレス",
-    "token_precision": "正確なトークン",
     "search_tokens_placeholder": "トークンを検索",
     "address_cant_be_empty": "トークンアドレスは必須入力項目です。",
     "address_must_be_valid": "トークンアドレスは有効なアドレスである必要があります。",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "して、アプリを再インストールしてください。注: 秘密のリカバリーフレーズがないとウォレットを復元できません。",
     "copied_clipboard": "クリップボードにコピーされました",
     "ok": "OK"
-  },
-  "whats_new": {
-    "title": "新機能をご覧ください",
-    "feature_security_settings_title": "セキュリティ設定の改善",
-    "feature_security_settings_text": "「設定」 > 「セキュリティとプライバシー」から、MetaMask アプリのパスワードを変更したり、ウォレットの秘密のリカバリーフレーズのバックアップ方法を確認したりできるようになりました。",
-    "feature_security_settings_button": "設定に表示"
   },
   "invalid_network": {
     "title": "カスタムネットワーク\n%{network}\n のチェーンIDの再入力が必要です。",
