@@ -2,7 +2,10 @@
 
 import { Appearance, NativeModules } from 'react-native';
 import axios from 'axios';
-import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import {
+  AUTHENTICATION_TYPE,
+  STORAGE_TYPE,
+} from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
 import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
@@ -28,6 +31,7 @@ const USER_PROFILE_PROPERTY = {
   OFF: 'OFF',
   AUTHENTICATION_TYPE: 'Authentication Type',
   TOKEN_DETECTION: 'token_detection_enable',
+  STORAGE_TYPE: 'Storage type',
 };
 
 /**
@@ -367,11 +371,11 @@ class Analytics {
   };
 
   /**
-   * Apply User Property
+   * Apply User Authentication Type Property
    *
    * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
    */
-  applyUserProperty = (property) => {
+  applyUserAuthenticationTypeProperty = (property) => {
     switch (property) {
       case AUTHENTICATION_TYPE.BIOMETRIC:
         RCTAnalytics.setUserProfileProperty(
@@ -400,7 +404,34 @@ class Analytics {
       default:
         RCTAnalytics.setUserProfileProperty(
           USER_PROFILE_PROPERTY.AUTHENTICATION_TYPE,
-          AUTHENTICATION_TYPE.UNKOWN,
+          AUTHENTICATION_TYPE.UNKNOWN,
+        );
+    }
+  };
+
+  /**
+   * Apply Storage Type Property
+   *
+   * @param {string} property - A string representing the storage solution of the user. One of biometrics, AsyncStorage, FilesystemStorage or unknown
+   */
+  applyUserStorageTypeProperty = (property) => {
+    switch (property) {
+      case STORAGE_TYPE.ASYNC_STORAGE:
+        RCTAnalytics.setUserProfileProperty(
+          USER_PROFILE_PROPERTY.STORAGE_TYPE,
+          STORAGE_TYPE.ASYNC_STORAGE,
+        );
+        break;
+      case STORAGE_TYPE.FILE_SYSTEM_STORAGE:
+        RCTAnalytics.setUserProfileProperty(
+          USER_PROFILE_PROPERTY.STORAGE_TYPE,
+          STORAGE_TYPE.FILE_SYSTEM_STORAGE,
+        );
+        break;
+      default:
+        RCTAnalytics.setUserProfileProperty(
+          USER_PROFILE_PROPERTY.STORAGE_TYPE,
+          STORAGE_TYPE.UNKNOWN,
         );
     }
   };
@@ -574,8 +605,11 @@ export default {
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
   },
-  applyUserProperty(property) {
-    return instance && instance.applyUserProperty(property);
+  applyUserAuthenticationTypeProperty(property) {
+    return instance && instance.applyUserAuthenticationTypeProperty(property);
+  },
+  applyUserStorageTypeProperty(property) {
+    return instance && instance.applyUserStorageTypeProperty(property);
   },
   trackEventWithParameters(event, parameters, anonymously) {
     return (

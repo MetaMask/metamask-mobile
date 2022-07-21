@@ -13,7 +13,8 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import Device from '../util/device';
-import AnalyticsV2 from '../util/analyticsV2';
+import { STORAGE_TYPE } from '../constants/userProperties';
+import Analytics from '../core/Analytics/Analytics';
 
 const TIMEOUT = 40000;
 
@@ -23,9 +24,9 @@ const MigratedStorage = {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
         // Using new storage system
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
-          storage: 'FilesystemStorage',
-        });
+        Analytics.applyUserStorageTypeProperty(
+          STORAGE_TYPE.FILE_SYSTEM_STORAGE,
+        );
         return res;
       }
     } catch {
@@ -37,13 +38,12 @@ const MigratedStorage = {
       const res = await AsyncStorage.getItem(key);
       if (res) {
         // Using old storage system
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.STORAGE_MIGRATION, {
-          storage: 'AsyncStorage',
-        });
+        Analytics.applyUserStorageTypeProperty(STORAGE_TYPE.ASYNC_STORAGE);
         return res;
       }
     } catch (error) {
       Logger.error(error, { message: 'Failed to run migration' });
+      Analytics.applyUserStorageTypeProperty(STORAGE_TYPE.UNKNOWN);
       throw new Error('Failed async storage storage fetch.');
     }
   },

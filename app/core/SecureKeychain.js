@@ -25,7 +25,7 @@ const defaultOptions = {
   fingerprintPromptCancel: strings('authentication.fingerprint_prompt_cancel'),
 };
 import Analytics from './Analytics/Analytics';
-import AUTHENTICATION_TYPE from '../constants/userProperties';
+import { AUTHENTICATION_TYPE } from '../constants/userProperties';
 /**
  * Class that wraps Keychain from react-native-keychain
  * abstracting metamask specific functionality and settings
@@ -105,15 +105,23 @@ export default {
 
     if (type === this.TYPES.BIOMETRICS) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.BIOMETRY_CURRENT_SET;
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.BIOMETRIC);
+      Analytics.applyUserAuthenticationTypeProperty(
+        AUTHENTICATION_TYPE.BIOMETRIC,
+      );
     } else if (type === this.TYPES.PASSCODE) {
       authOptions.accessControl = Keychain.ACCESS_CONTROL.DEVICE_PASSCODE;
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.PASSCODE);
+      Analytics.applyUserAuthenticationTypeProperty(
+        AUTHENTICATION_TYPE.PASSCODE,
+      );
     } else if (type === this.TYPES.REMEMBER_ME) {
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.REMEMBER_ME);
+      Analytics.applyUserAuthenticationTypeProperty(
+        AUTHENTICATION_TYPE.REMEMBER_ME,
+      );
       //Don't need to add any parameter
     } else {
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.PASSWORD);
+      Analytics.applyUserAuthenticationTypeProperty(
+        AUTHENTICATION_TYPE.PASSWORD,
+      );
       // Setting a password without a type does not save it
       return await this.resetGenericPassword();
     }
