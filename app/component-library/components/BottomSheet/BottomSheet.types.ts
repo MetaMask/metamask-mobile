@@ -12,8 +12,10 @@ export interface BottomSheetProps {
   onDismiss?: () => void;
 }
 
+export type BottomSheetPostCallback = () => void;
+
 export interface BottomSheetRef {
-  hide: () => void;
+  hide: (callback?: BottomSheetPostCallback) => void;
 }
 
 /**

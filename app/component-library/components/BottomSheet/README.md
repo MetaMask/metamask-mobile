@@ -29,17 +29,20 @@ import BottomSheet, {
 } from 'app/component-library/components/BottomSheet/index.ts';
 
 const NavigationScreen = () => {
-  const bottomSheetRef = useRef<BottomSheetRef | null>(null);
+  const bottomSheetRef = (useRef < BottomSheetRef) | (null > null);
+
+  // Callback to trigger after sheet has been dismissed.
+  const postDismissCallback = () => {};
+
+  // Calling hide automatically navigates back once hide animation is complete. Hide takes an optional callback, which gets triggered post sheet dismissal.
+  const onConfirm = () => bottomSheetRef.current?.hide?.(postDismissCallback);
 
   // Optional callback for when sheet has finished hiding.
   const onDismiss = () => {};
 
-  // Calling hide automatically navigates back once hide animation is complete.
-  const dismissSheet = () => bottomSheetRef.current?.hide?.();
-
   return (
     <BottomSheet ref={bottomSheetRef} onDismiss={onDismiss}>
-      <Content onPress={dismissSheet} />
+      <Content onPress={onConfirm} />
     </BottomSheet>
   );
 };

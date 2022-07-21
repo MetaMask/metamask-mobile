@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from 'react';
 import {
   LayoutAnimation,
@@ -35,10 +36,15 @@ import {
   MANUAL_ANIMATION_DURATION,
 } from './BottomSheet.constants';
 import styleSheet from './BottomSheet.styles';
-import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
+import {
+  BottomSheetPostCallback,
+  BottomSheetProps,
+  BottomSheetRef,
+} from './BottomSheet.types';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
   ({ children, onDismiss, ...props }, ref) => {
+    const postCallback = useRef<BottomSheetPostCallback>();
     const { top: screenTopPadding } = useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {
@@ -64,6 +70,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const onHide = () => {
       navigation.goBack();
       onDismiss?.();
+      postCallback.current?.();
     };
 
     const gestureHandler = useAnimatedGestureHandler<
@@ -130,7 +137,10 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     };
 
     useImperativeHandle(ref, () => ({
-      hide,
+      hide: (callback) => {
+        postCallback.current = callback;
+        hide();
+      },
     }));
 
     const animatedSheetStyle = useAnimatedStyle(() => ({
