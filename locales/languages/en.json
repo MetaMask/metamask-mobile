@@ -394,9 +394,9 @@
     "action_description_6": "Never sell data for profit. Ever!"
   },
   "token": {
-    "token_symbol": "Token symbol",
-    "token_address": "Token address",
-    "token_decimal": "Token decimal",
+    "token_symbol": "Token Symbol",
+    "token_address": "Token Address",
+    "token_decimal": "Token Decimal",
     "search_tokens_placeholder": "Search Tokens",
     "address_cant_be_empty": "Token address can't be empty.",
     "address_must_be_valid": "Token address must be a valid address.",
