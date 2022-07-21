@@ -394,9 +394,9 @@
     "action_description_6": "Never sell data for profit. Ever!"
   },
   "token": {
-    "token_symbol": "Token symbol",
-    "token_address": "Token address",
-    "token_decimal": "Token decimal",
+    "token_symbol": "Token Symbol",
+    "token_address": "Token Address",
+    "token_decimal": "Token Decimal",
     "search_tokens_placeholder": "Search Tokens",
     "address_cant_be_empty": "Token address can't be empty.",
     "address_must_be_valid": "Token address must be a valid address.",
@@ -1651,9 +1651,9 @@
       "hours": "hours",
       "business_day": "business day",
       "business_days": "business days",
-      "lowest_limit": "lowest limit",
-      "medium_limit": "medium limit",
-      "highest_limit": "highest limit",
+      "lowest_limit": "lowest buy limit",
+      "medium_limit": "medium buy limit",
+      "highest_limit": "highest buy limit",
       "apple_cash_not_supported": "Apple Cash is not supported.",
       "card_fees": "Check with your card provider to understand any fees they may charge you. For example, credit card purchases may incur cash advance fees.",
       "continue_to_amount": "Continue to amount"
