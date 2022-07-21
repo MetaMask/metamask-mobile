@@ -1,6 +1,11 @@
 import { createClient } from '@segment/analytics-react-native';
 import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 
+enum STATES {
+  enabled = 'ENABLED',
+  disabled = 'DISABLED',
+}
+
 interface IAnalytics {
   enable(): void;
   disable(): void;
@@ -12,7 +17,11 @@ class Analytics implements IAnalytics {
 
   segmentClient;
 
-  enabled: boolean;
+  state: STATES = STATES.disabled;
+
+  dataDeletionTaskDate: string | undefined;
+
+  isDataRecorded = false;
 
   private constructor() {
     this.segmentClient = createClient({
@@ -21,7 +30,7 @@ class Analytics implements IAnalytics {
         : process.env.SEGMENT_PROD_KEY) as string,
     });
 
-    this.enabled = true;
+    this.state = STATES.enabled;
   }
 
   public static getInstance(): Analytics {
@@ -37,11 +46,11 @@ class Analytics implements IAnalytics {
   }
 
   public enable() {
-    this.enabled = true;
+    this.state = STATES.enabled;
   }
 
   public disable() {
-    this.enabled = false;
+    this.state = STATES.disabled;
   }
 
   public trackEvent() {
