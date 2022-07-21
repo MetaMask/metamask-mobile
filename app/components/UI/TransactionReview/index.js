@@ -425,7 +425,7 @@ class TransactionReview extends PureComponent {
               }
             >
               <View style={styles.actionViewChildren}>
-                <ScrollView>
+                <ScrollView nestedScrollEnabled>
                   <View
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}

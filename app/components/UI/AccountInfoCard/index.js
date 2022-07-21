@@ -38,9 +38,10 @@ const createStyles = (colors) =>
       width: '100%',
       flexDirection: 'row',
       justifyContent: 'flex-start',
+      flexWrap: 'wrap',
     },
     accountName: {
-      maxWidth: Device.isMediumDevice() ? '35%' : '45%',
+      maxWidth: '100%',
       ...fontStyles.bold,
       fontSize: 16,
       marginRight: 2,

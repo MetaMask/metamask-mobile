@@ -28,6 +28,9 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'flex-end',
     },
+    suggestedGasContainer: {
+      flexWrap: 'wrap',
+    },
     gasInfoContainer: {
       paddingLeft: 2,
     },
@@ -191,7 +194,7 @@ const TransactionReviewEIP1559 = ({
 
           {gasEstimationReady ? (
             <FadeAnimationView
-              style={styles.valuesContainer}
+              style={[styles.valuesContainer, styles.suggestedGasContainer]}
               valueToWatch={valueToWatchAnimation}
               animateOnChange={animateOnChange}
               onAnimationStart={onUpdatingValuesStart}
