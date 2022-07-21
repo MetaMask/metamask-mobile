@@ -1,9 +1,6 @@
 import { Theme } from 'app/util/theme/models';
 import { StyleSheet, ViewStyle } from 'react-native';
-import {
-  BottomSheetStyleSheet,
-  BottomSheetStyleSheetVars,
-} from './BottomSheet.types';
+import { BottomSheetStyleSheetVars } from './BottomSheet.types';
 
 /**
  * Style sheet function for BottomSheet component.
@@ -19,7 +16,7 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style } = vars;
+  const { style, maxSheetHeight } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
@@ -34,6 +31,10 @@ const styleSheet = (params: {
     },
     sheet: {
       backgroundColor: colors.background.default,
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      maxHeight: maxSheetHeight,
+      overflow: 'hidden',
     },
     fill: {
       flex: 1,

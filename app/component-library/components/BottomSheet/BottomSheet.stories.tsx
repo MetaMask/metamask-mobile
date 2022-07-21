@@ -2,11 +2,10 @@
 import React, { useRef } from 'react';
 import { storiesOf } from '@storybook/react-native';
 import BottomSheet from './BottomSheet';
-import { boolean } from '@storybook/addon-knobs';
 import { View } from 'react-native';
-import { mockTheme } from '../../../util/theme';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import { BottomSheetRef } from './BottomSheet.types';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const BottomSheetExample = () => {
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
@@ -15,7 +14,7 @@ const BottomSheetExample = () => {
     <BottomSheet ref={bottomSheetRef}>
       <View
         style={{
-          height: 200,
+          height: 300,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -28,6 +27,6 @@ const BottomSheetExample = () => {
   );
 };
 
-storiesOf('Component Library / BottomSheet', module).add('Default', () => (
-  <BottomSheetExample />
-));
+storiesOf('Component Library / BottomSheet', module)
+  .addDecorator((storyFn) => <SafeAreaProvider>{storyFn()}</SafeAreaProvider>)
+  .add('Default', () => <BottomSheetExample />);

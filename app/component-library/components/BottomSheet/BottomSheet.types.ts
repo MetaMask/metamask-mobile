@@ -16,6 +16,10 @@ export interface BottomSheetProps extends TouchableOpacityProps {
    * Content to wrap for multiselect.
    */
   children: React.ReactNode;
+  /**
+   * Callback that gets triggered when sheet is dismissed.
+   */
+  onDismiss?: () => void;
 }
 
 export interface BottomSheetRef {
@@ -24,14 +28,9 @@ export interface BottomSheetRef {
 }
 
 /**
- * BottomSheet component style sheet.
- */
-export interface BottomSheetStyleSheet {
-  base: ViewStyle;
-  checkbox: ViewStyle;
-}
-
-/**
  * Style sheet input parameters.
  */
-export type BottomSheetStyleSheetVars = Pick<BottomSheetProps, 'style'>;
+export interface BottomSheetStyleSheetVars
+  extends Pick<BottomSheetProps, 'style'> {
+  maxSheetHeight: number;
+}

@@ -1,25 +1,45 @@
 /* eslint-disable react/prop-types */
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
-import { LayoutChangeEvent, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
+import {
+  LayoutAnimation,
+  LayoutChangeEvent,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
+  runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles } from '../../hooks';
 import styleSheet from './BottomSheet.styles';
 import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ style, children, ...props }, ref) => {
-    const { styles } = useStyles(styleSheet, { style });
+  ({ style, children, onDismiss, ...props }, ref) => {
+    const { top: screenTopPadding } = useSafeAreaInsets();
+    const { height: screenHeight } = useWindowDimensions();
+
+    const { styles } = useStyles(styleSheet, {
+      style,
+      maxSheetHeight: screenHeight - screenTopPadding,
+    });
     const yOffset = useSharedValue(0);
     const defaultYOffset = useSharedValue(0);
     const sheetHeight = useSharedValue(0);
@@ -30,6 +50,16 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         [1, 0],
       ),
     );
+    const navigation = useNavigation();
+
+    useEffect(() => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }, [children]);
+
+    const onHide = () => {
+      navigation.goBack();
+      onDismiss?.();
+    };
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -47,7 +77,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         if (yOffset.value <= defaultYOffset.value) {
           yOffset.value = defaultYOffset.value;
         }
-        // console.log(yOffset.value);
       },
       onEnd: (event, ctx) => {
         const { translationY, velocityY } = event;
@@ -64,20 +93,20 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           } else {
             finalOffset = defaultYOffset.value;
           }
+        } else if (hasReachedDismissOffset) {
+          finalOffset = sheetHeight.value;
         } else {
-          if (hasReachedDismissOffset) {
-            finalOffset = sheetHeight.value;
-          } else {
-            finalOffset = defaultYOffset.value;
-          }
+          finalOffset = defaultYOffset.value;
         }
 
-        yOffset.value = withTiming(finalOffset, { duration: 200 }, () => {
-          console.log('FINSHED');
-        });
+        const isDismissed = finalOffset === sheetHeight.value;
+
+        yOffset.value = withTiming(
+          finalOffset,
+          { duration: 200 },
+          () => isDismissed && runOnJS(onHide)(),
+        );
       },
-      // onCancel: () => {},
-      // onFail: () => {},
     });
 
     const show = () => {
@@ -85,7 +114,9 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     };
 
     const hide = () => {
-      yOffset.value = withTiming(sheetHeight.value, { duration: 300 });
+      yOffset.value = withTiming(sheetHeight.value, { duration: 300 }, () =>
+        runOnJS(onHide)(),
+      );
     };
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
@@ -115,23 +146,14 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
 
     const combinedOverlayStyle = useMemo(
       () => [styles.overlay, animatedOverlayStyle],
-      [],
+      // eslint-disable-next-line
+      [styles.overlay],
     );
 
     return (
       <View style={styles.base} {...props}>
         <Animated.View style={combinedOverlayStyle}>
-          <TouchableOpacity style={styles.fill} onPress={hide}>
-            <TouchableOpacity
-              style={{
-                height: 50,
-                width: 50,
-                margin: 50,
-                backgroundColor: 'red',
-              }}
-              onPress={show}
-            />
-          </TouchableOpacity>
+          <TouchableOpacity style={styles.fill} onPress={hide} />
         </Animated.View>
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
