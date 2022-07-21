@@ -1,5 +1,5 @@
 import { Theme } from 'app/util/theme/models';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { BottomSheetStyleSheetVars } from './BottomSheet.types';
 
 /**
@@ -16,15 +16,12 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, maxSheetHeight } = vars;
+  const { maxSheetHeight } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        ...StyleSheet.absoluteFillObject,
-        justifyContent: 'flex-end',
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: {
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'flex-end',
+    },
     overlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: colors.overlay.default,

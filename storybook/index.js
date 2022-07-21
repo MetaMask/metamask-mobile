@@ -6,7 +6,7 @@ import {
 } from '@storybook/react-native';
 import { withKnobs } from '@storybook/addon-knobs';
 import { ThemeContext, mockTheme } from '../app/util/theme';
-import { NavigationDecorator } from './decorators';
+import { NavigationDecorator, SafeAreaDecorator } from './decorators';
 import { loadStories } from './storyLoader';
 import './rn-addons';
 
@@ -16,6 +16,8 @@ addDecorator(withKnobs);
 addDecorator((storyFn) => (
   <ThemeContext.Provider value={mockTheme}>{storyFn()}</ThemeContext.Provider>
 ));
+// Expose navigation to all safe area provider
+addDecorator(SafeAreaDecorator);
 // Expose navigation to all stories
 addDecorator(NavigationDecorator);
 

@@ -1,17 +1,7 @@
-import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
-
 /**
  * BottomSheet component props.
  */
-export interface BottomSheetProps extends TouchableOpacityProps {
-  // /**
-  //  * Determines if checkbox is selected.
-  //  */
-  // isSelected: boolean;
-  /**
-   * Escape hatch for applying extra styles. Only use if absolutely necessary.
-   */
-  style?: StyleProp<ViewStyle>;
+export interface BottomSheetProps {
   /**
    * Content to wrap for multiselect.
    */
@@ -23,14 +13,12 @@ export interface BottomSheetProps extends TouchableOpacityProps {
 }
 
 export interface BottomSheetRef {
-  show: () => void;
   hide: () => void;
 }
 
 /**
  * Style sheet input parameters.
  */
-export interface BottomSheetStyleSheetVars
-  extends Pick<BottomSheetProps, 'style'> {
+export interface BottomSheetStyleSheetVars {
   maxSheetHeight: number;
 }

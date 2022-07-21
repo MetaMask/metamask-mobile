@@ -28,16 +28,20 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles } from '../../hooks';
+import {
+  AUTOMATIC_ANIMATION_DURATION,
+  DISMISS_DISTANCE_THRESHOLD,
+  DISMISS_SWIPE_SPEED_THRESHOLD,
+  MANUAL_ANIMATION_DURATION,
+} from './BottomSheet.constants';
 import styleSheet from './BottomSheet.styles';
 import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ style, children, onDismiss, ...props }, ref) => {
+  ({ children, onDismiss, ...props }, ref) => {
     const { top: screenTopPadding } = useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
-
     const { styles } = useStyles(styleSheet, {
-      style,
       maxSheetHeight: screenHeight - screenTopPadding,
     });
     const yOffset = useSharedValue(0);
@@ -53,6 +57,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const navigation = useNavigation();
 
     useEffect(() => {
+      // Automatically handles animation when content changes
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }, [children]);
 
@@ -82,8 +87,10 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         const { translationY, velocityY } = event;
         let finalOffset: number;
         const latestOffset = ctx.startY + translationY;
-        const hasReachedDismissOffset = latestOffset > sheetHeight.value * 0.6;
-        const hasReachedSwipeThreshold = Math.abs(velocityY) > 300;
+        const hasReachedDismissOffset =
+          latestOffset > sheetHeight.value * DISMISS_DISTANCE_THRESHOLD;
+        const hasReachedSwipeThreshold =
+          Math.abs(velocityY) > DISMISS_SWIPE_SPEED_THRESHOLD;
         const isDismissing = velocityY > 0;
 
         if (hasReachedSwipeThreshold) {
@@ -103,19 +110,17 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
 
         yOffset.value = withTiming(
           finalOffset,
-          { duration: 200 },
+          { duration: AUTOMATIC_ANIMATION_DURATION },
           () => isDismissed && runOnJS(onHide)(),
         );
       },
     });
 
-    const show = () => {
-      yOffset.value = withTiming(0, { duration: 300 });
-    };
-
     const hide = () => {
-      yOffset.value = withTiming(sheetHeight.value, { duration: 300 }, () =>
-        runOnJS(onHide)(),
+      yOffset.value = withTiming(
+        sheetHeight.value,
+        { duration: MANUAL_ANIMATION_DURATION },
+        () => runOnJS(onHide)(),
       );
     };
 
@@ -125,11 +130,10 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     };
 
     useImperativeHandle(ref, () => ({
-      show,
       hide,
     }));
 
-    const animatedSheet = useAnimatedStyle(() => ({
+    const animatedSheetStyle = useAnimatedStyle(() => ({
       transform: [
         {
           translateY: yOffset.value,
@@ -150,6 +154,12 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       [styles.overlay],
     );
 
+    const combinedSheetStyle = useMemo(
+      () => [styles.sheet, animatedSheetStyle],
+      // eslint-disable-next-line
+      [styles.sheet],
+    );
+
     return (
       <View style={styles.base} {...props}>
         <Animated.View style={combinedOverlayStyle}>
@@ -158,7 +168,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         <PanGestureHandler onGestureEvent={gestureHandler}>
           <Animated.View
             onLayout={updateSheetHeight}
-            style={[styles.sheet, animatedSheet]}
+            style={combinedSheetStyle}
           >
             {children}
           </Animated.View>
