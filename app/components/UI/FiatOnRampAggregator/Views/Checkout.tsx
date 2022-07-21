@@ -155,11 +155,19 @@ const CheckoutWebView = () => {
         trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
           provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
             ?.provider?.name,
+          payment_method_id: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.paymentMethod?.id,
+          currency_source: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.fiatCurrency.symbol,
+          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.cryptoCurrency.symbol,
           chain_id_destination: selectedChainId,
           is_apple_pay: false,
           has_zero_native_balance: accounts[selectedAddress]?.balance
             ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
             : undefined,
+          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.cryptoCurrency.symbol,
         });
       } catch (navStateError) {
         setError((navStateError as Error)?.message);

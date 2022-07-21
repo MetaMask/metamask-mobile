@@ -10,7 +10,6 @@ const mockStore = configureMockStore();
 const initialState = {
   engine: {
     backgroundState: {
-      PreferencesController: { useStaticTokenList: true },
       NetworkController: {
         provider: {
           type: MAINNET,

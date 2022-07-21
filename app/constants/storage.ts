@@ -44,3 +44,5 @@ export const WHATS_NEW_APP_VERSION_SEEN = `${prefix}WhatsNewAppVersionSeen`;
 export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
+
+export const themeAppearanceLight = 'light';

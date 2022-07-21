@@ -9,7 +9,7 @@ const store = mockStore({
   engine: {
     backgroundState: {
       PreferencesController: {
-        useStaticTokenList: true,
+        useTokenDetection: true,
       },
     },
   },
