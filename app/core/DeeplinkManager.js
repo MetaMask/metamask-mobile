@@ -40,7 +40,7 @@ class DeeplinkManager {
    *
    * @param switchToChainId - Corresponding chain id for new network
    */
-  _handleNetworkSwitch = (switchToChainId) => {
+  _handleNetworkSwitch = async (switchToChainId) => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
     // If not specified, use the current network
@@ -88,9 +88,11 @@ class DeeplinkManager {
         }),
       );
     }
+
+    return;
   };
 
-  _approveTransaction = (ethUrl, origin) => {
+  _approveTransaction = async (ethUrl, origin) => {
     const {
       parameters: { address, uint256 },
       target_address,
@@ -112,12 +114,15 @@ class DeeplinkManager {
       value: '0x0',
       data: generateApproveData({ spender: address, value }),
     };
-
-    TransactionController.addTransaction(
-      txParams,
-      origin,
-      WalletDevice.MM_MOBILE,
-    );
+    try {
+      await TransactionController.addTransaction(
+        txParams,
+        origin,
+        WalletDevice.MM_MOBILE,
+      );
+    } catch (e) {
+      // add analytics
+    }
   };
 
   async _handleEthereumUrl(url, origin) {
@@ -135,7 +140,7 @@ class DeeplinkManager {
       /**
        * Validate and switch network before performing any other action
        */
-      this._handleNetworkSwitch(ethUrl.chain_id);
+      await this._handleNetworkSwitch(ethUrl.chain_id);
 
       switch (ethUrl.function_name) {
         case ETH_ACTIONS.TRANSFER: {
