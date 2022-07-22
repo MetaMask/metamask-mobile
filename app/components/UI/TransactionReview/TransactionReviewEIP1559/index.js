@@ -82,6 +82,13 @@ const Skeleton = ({ width, noStyle }) => {
 };
 
 const TransactionReviewEIP1559 = ({
+  gasFeeNative,
+  gasFeeConversion,
+  gasFeeMaxNative,
+  totalNative,
+  totalConversion,
+  totalMaxNative,
+  gasFeeMaxConversion,
   primaryCurrency,
   chainId,
   onEdit,
@@ -163,22 +170,22 @@ const {renderableGasFeeMinNative, renderableGasFeeMinConversion, renderableGasFe
     totalSecondary,
     totalMaxPrimary;
   if (nativeCurrencySelected) {
-    gasFeePrimary = renderableGasFeeMinNative;
-    gasFeeSecondary = renderableGasFeeMinConversion;
-    gasFeeMaxPrimary = renderableGasFeeMaxNative;
-    totalPrimary = renderableTotalMinNative;
-    totalSecondary = renderableTotalMinConversion;
-    totalMaxPrimary = renderableTotalMaxNative;
+    gasFeePrimary = gasFeeNative || renderableGasFeeMinNative;
+    gasFeeSecondary = gasFeeConversion || renderableGasFeeMinConversion;
+    gasFeeMaxPrimary = gasFeeMaxNative || renderableGasFeeMaxNative;
+    totalPrimary = totalNative || renderableTotalMinNative;
+    totalSecondary = totalConversion || renderableTotalMinConversion;
+    totalMaxPrimary = totalMaxNative || renderableTotalMaxNative;
   } else {
-    gasFeePrimary = renderableGasFeeMinConversion;
-    gasFeeSecondary = renderableGasFeeMinNative;
-    gasFeeMaxPrimary = renderableGasFeeMaxConversion;
-    totalPrimary = renderableTotalMinConversion;
-    totalSecondary = renderableTotalMinNative;
-    totalMaxPrimary = renderableGasFeeMaxConversion;
+    gasFeePrimary = gasFeeConversion || renderableGasFeeMinConversion;
+    gasFeeSecondary = gasFeeNative || renderableGasFeeMinNative;
+    gasFeeMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
+    totalPrimary = totalConversion || renderableTotalMinConversion;
+    totalSecondary = totalNative || renderableTotalMinNative;
+    totalMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
   }
 
-  const valueToWatchAnimation = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
+  const valueToWatchAnimation = `${gasFeeNative || renderableGasFeeMinNative}${gasFeeMaxNative || renderableGasFeeMaxNative}`;
 
   return (
     <Summary style={styles.overview(noMargin)}>
