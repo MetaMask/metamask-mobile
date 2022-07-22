@@ -137,9 +137,11 @@ export const getEIP1559TransactionData = ({
   conversionRate,
   currentCurrency,
   nativeCurrency,
-  suggestedGasLimit,
+  // suggestedGasLimit,
   onlyGas,
 }: GetEIP1559TransactionDataProps) => {
+  console.log('gas', gas);
+  // console.log('suggestedGasLimit', suggestedGasLimit);
   try {
     if (
       !gas ||
@@ -149,8 +151,7 @@ export const getEIP1559TransactionData = ({
       !contractExchangeRates ||
       !conversionRate ||
       !currentCurrency ||
-      !nativeCurrency ||
-      !suggestedGasLimit
+      !nativeCurrency 
     ) {
       return 'Incomplete data for EIP1559 transaction';
     }
@@ -166,7 +167,6 @@ export const getEIP1559TransactionData = ({
         swapsParams: undefined,
         selectedGasFee: {
           ...gas,
-          suggestedGasLimit,
           selectedOption,
           estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
         },
