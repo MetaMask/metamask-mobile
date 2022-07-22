@@ -89,6 +89,7 @@ const TurnOffRememberMeModal = () => {
               style={styles.input}
               testID={'TurnOffRememberMeConfirm'}
               autoFocus
+              secureTextEntry
               returnKeyType={'done'}
               onChangeText={checkPassword}
               autoCapitalize="none"
