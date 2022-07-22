@@ -15,8 +15,7 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
-import { fromWei } from '../../../../util/number';
-import { getEIP1559TransactionData } from '../../../../core/gasPolling';
+import { useGasTransaction } from '../../../../core/gasPolling';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -106,15 +105,6 @@ const TransactionReviewEIP1559 = ({
   gasEstimationReady,
   legacy,
   gasSelected,
-  transactionState,
-  gasFeeEstimates,
-  contractExchangeRates,
-  conversionRate,
-  currentCurrency,
-  nativeCurrency,
-  transactionState: {
-    transaction: { gas },
-  },
 }) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -130,24 +120,8 @@ const TransactionReviewEIP1559 = ({
   }, []);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  const suggestedGasLimit = fromWei(gas, 'wei');
 
-  const EIP1559TransactionData = getEIP1559TransactionData({
-    gas: {
-      ...gasFeeEstimates[gasSelected],
-      suggestedGasLimit,
-      selectedOption: gasSelected,
-    },
-    selectedOption: gasSelected,
-    gasFeeEstimates,
-    transactionState,
-    contractExchangeRates,
-    conversionRate,
-    currentCurrency,
-    nativeCurrency,
-    suggestedGasLimit,
-    onlyGas: undefined,
-  });
+  const EIP1559TransactionData = useGasTransaction(gasSelected, !!legacy);
 
   const {
     renderableGasFeeMinNative,
@@ -160,7 +134,13 @@ const TransactionReviewEIP1559 = ({
     timeEstimateColor: EIP1559TimeEstimateColor,
     timeEstimate: EIP1559TimeEstimate,
     timeEstimateId: EIP1559TimeEstimateId,
+    transactionTotalAmount,
+    transactionTotalAmountFiat,
+    transactionFee,
+    transactionFeeFiat,
   } = EIP1559TransactionData;
+
+  console.log(Boolean(legacy), 'transactionTotalAmount');
 
   const openLinkAboutGas = useCallback(
     () =>
@@ -183,24 +163,38 @@ const TransactionReviewEIP1559 = ({
     totalSecondary,
     totalMaxPrimary;
   if (nativeCurrencySelected) {
-    gasFeePrimary = gasFeeNative || renderableGasFeeMinNative;
-    gasFeeSecondary = gasFeeConversion || renderableGasFeeMinConversion;
+    gasFeePrimary =
+      gasFeeNative || (legacy ? transactionFee : renderableGasFeeMinNative);
+    gasFeeSecondary =
+      gasFeeConversion ||
+      (legacy ? transactionFeeFiat : renderableGasFeeMinConversion);
     gasFeeMaxPrimary = gasFeeMaxNative || renderableGasFeeMaxNative;
-    totalPrimary = totalNative || renderableTotalMinNative;
-    totalSecondary = totalConversion || renderableTotalMinConversion;
+    totalPrimary =
+      totalNative ||
+      (legacy ? transactionTotalAmount : renderableTotalMinNative);
+    totalSecondary =
+      totalConversion ||
+      (legacy ? transactionTotalAmountFiat : renderableTotalMinConversion);
     totalMaxPrimary = totalMaxNative || renderableTotalMaxNative;
   } else {
-    gasFeePrimary = gasFeeConversion || renderableGasFeeMinConversion;
-    gasFeeSecondary = gasFeeNative || renderableGasFeeMinNative;
+    gasFeePrimary =
+      gasFeeConversion ||
+      (legacy ? transactionFeeFiat : renderableGasFeeMinConversion);
+    gasFeeSecondary =
+      gasFeeNative || (legacy ? transactionFee : renderableGasFeeMinNative);
     gasFeeMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
-    totalPrimary = totalConversion || renderableTotalMinConversion;
-    totalSecondary = totalNative || renderableTotalMinNative;
+    totalPrimary =
+      totalConversion ||
+      (legacy ? transactionTotalAmountFiat : renderableTotalMinConversion);
+    totalSecondary =
+      totalNative ||
+      (legacy ? transactionTotalAmount : renderableTotalMinNative);
     totalMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
   }
 
-  const valueToWatchAnimation = `${gasFeeNative || renderableGasFeeMinNative}${
-    gasFeeMaxNative || renderableGasFeeMaxNative
-  }`;
+  const valueToWatchAnimation = `${
+    gasFeeNative || (legacy ? transactionFee : renderableGasFeeMinNative)
+  }${gasFeeMaxNative || renderableGasFeeMaxNative}`;
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -482,27 +476,27 @@ TransactionReviewEIP1559.propTypes = {
   /**
    * Total value in native currency
    */
-  // totalNative: PropTypes.string,
+  totalNative: PropTypes.string,
   /**
    * Total value converted to chosen currency
    */
-  // totalConversion: PropTypes.string,
+  totalConversion: PropTypes.string,
   /**
    * Total max value (amount + max fee) native
    */
-  // totalMaxNative: PropTypes.string,
+  totalMaxNative: PropTypes.string,
   /**
    * Gas fee in native currency
    */
-  // gasFeeNative: PropTypes.string,
+  gasFeeNative: PropTypes.string,
   /**
    * Gas fee converted to chosen currency
    */
-  // gasFeeConversion: PropTypes.string,
+  gasFeeConversion: PropTypes.string,
   /**
    * Maximum gas fee in native currency
    */
-  // gasFeeMaxNative: PropTypes.string,
+  gasFeeMaxNative: PropTypes.string,
   /**
    * Maximum gas fee onverted to chosen currency
    */
@@ -522,11 +516,11 @@ TransactionReviewEIP1559.propTypes = {
   /**
    * String that represents the time estimates
    */
-  // timeEstimate: PropTypes.string,
+  timeEstimate: PropTypes.string,
   /**
    * Time estimate name (unknown, low, medium, high, less_than, range)
    */
-  // timeEstimateId: PropTypes.string,
+  timeEstimateId: PropTypes.string,
   /**
    * Boolean to determine if the total section should be hidden
    */
@@ -571,17 +565,6 @@ TransactionReviewEIP1559.propTypes = {
 
 const mapStateToProps = (state) => ({
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  transactionState: state.transaction,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
 });
 
 export default connect(mapStateToProps)(TransactionReviewEIP1559);

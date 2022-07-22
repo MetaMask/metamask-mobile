@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import Engine from './Engine';
 import AppConstants from './AppConstants';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
@@ -33,26 +33,34 @@ export const stopGasPolling = () => {
 };
 
 export const useDataStore = () => {
-  const {
-    engine: {
-      backgroundState: {
-        GasFeeController: { gasEstimateType, gasFeeEstimates },
-        TokenRatesController: { contractExchangeRates },
-        CurrencyRateController: {
-          conversionRate,
-          currentCurrency,
-          nativeCurrency,
-        },
-        AccountTrackerController: { accounts },
-        TokenBalancesController: { contractBalances },
-      },
-    },
+  const [
+    gasFeeEstimates,
+    gasEstimateType,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    nativeCurrency,
+    accounts,
+    contractBalances,
+    ticker,
     transaction,
-  } = useSelector(
-    (state: any) =>
+    selectedAsset,
+  ] = useSelector(
+    (state: any) => [
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+      state.engine.backgroundState.GasFeeController.gasEstimateType,
+      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+      state.engine.backgroundState.CurrencyRateController.conversionRate,
+      state.engine.backgroundState.CurrencyRateController.currentCurrency,
+      state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+      state.engine.backgroundState.AccountTrackerController.accounts,
+      state.engine.backgroundState.TokenBalancesController.contractBalances,
+      state.engine.backgroundState.NetworkController.provider.ticker,
+      state.transaction,
+      state.transaction.selectedAsset,
+    ],
+    shallowEqual,
   );
-  const selectedAsset = transaction.selectedAsset;
 
   return {
     gasFeeEstimates,
@@ -65,6 +73,7 @@ export const useDataStore = () => {
     accounts,
     contractBalances,
     selectedAsset,
+    ticker,
   };
 };
 
@@ -121,6 +130,7 @@ interface LegacyProps {
   ticker: string;
   suggestedGasPrice: any;
   suggestedGasLimit: string;
+  onlyGas?: boolean;
 }
 
 /**
@@ -139,17 +149,6 @@ export const getEIP1559TransactionData = ({
   nativeCurrency,
   onlyGas,
 }: GetEIP1559TransactionDataProps) => {
-  // console.log({
-  //   gas,
-  //   selectedOption,
-  //   gasFeeEstimates,
-  //   transactionState,
-  //   contractExchangeRates,
-  //   conversionRate,
-  //   currentCurrency,
-  //   nativeCurrency,
-  //   onlyGas,
-  // })
   try {
     if (
       !gas ||
@@ -200,15 +199,22 @@ export const getLegacyTransactionData = ({
   ticker,
   suggestedGasPrice,
   suggestedGasLimit,
+  onlyGas,
 }: LegacyProps) => {
-  const parsedTransationData = parseTransactionLegacy({
-    contractExchangeRates,
-    conversionRate,
-    currentCurrency,
-    transactionState,
-    ticker,
-    selectedGasFee: { suggestedGasLimit, suggestedGasPrice },
-  });
+  const parsedTransationData = parseTransactionLegacy(
+    {
+      contractExchangeRates,
+      conversionRate,
+      currentCurrency,
+      transactionState,
+      ticker,
+      selectedGasFee: {
+        suggestedGasLimit,
+        suggestedGasPrice,
+      },
+    },
+    { onlyGas },
+  );
   return parsedTransationData;
 };
 
@@ -216,7 +222,10 @@ export const getLegacyTransactionData = ({
  *
  * @returns {Object} the transaction data for the current transaction.
  */
-export const useGasFeeEstimates = () => {
+export const useGasTransaction = (
+  gasSelected: string,
+  legacy: boolean | undefined,
+) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
 
@@ -228,6 +237,7 @@ export const useGasFeeEstimates = () => {
     conversionRate,
     currentCurrency,
     nativeCurrency,
+    ticker,
   } = useDataStore();
 
   useEffect(() => {
@@ -236,50 +246,42 @@ export const useGasFeeEstimates = () => {
     }
   }, [gasEstimateType, gasEstimateTypeChange]);
 
-  const gasSelected = gasEstimateTypeChange
-    ? AppConstants.GAS_OPTIONS.MEDIUM
-    : AppConstants.GAS_OPTIONS.MEDIUM;
-
   const {
     transaction: { gas: transactionGas },
   } = transactionState;
 
-  let transactionData;
+  const suggestedGasLimit = fromWei(transactionGas, 'wei');
 
-  if (gasEstimateTypeChange) {
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      const suggestedGasLimit = fromWei(transactionGas, 'wei');
-      const EIP1559TransactionData = getEIP1559TransactionData({
-        gas: gasFeeEstimates[gasSelected],
-        selectedOption: gasSelected,
-        gasFeeEstimates,
-        transactionState,
-        contractExchangeRates,
-        conversionRate,
-        currentCurrency,
-        nativeCurrency,
-        suggestedGasLimit,
-      });
-      transactionData = EIP1559TransactionData;
-    } else if (gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
-      const suggestedGasLimit = fromWei(transactionGas, 'wei');
-      const LegacyTransactionData = getLegacyTransactionData({
-        contractExchangeRates,
-        conversionRate,
-        currentCurrency,
-        transactionState,
-        ticker: 'ETH',
-        suggestedGasPrice:
-          gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-            ? gasFeeEstimates[gasSelected]
-            : gasFeeEstimates.gasPrice,
-        suggestedGasLimit,
-      });
-      transactionData = LegacyTransactionData;
-    }
-  } else {
-    return null;
+  if (legacy) {
+    return getLegacyTransactionData({
+      contractExchangeRates,
+      conversionRate,
+      currentCurrency,
+      transactionState,
+      ticker,
+      suggestedGasPrice:
+        gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
+          ? gasFeeEstimates[gasSelected]
+          : gasFeeEstimates.gasPrice,
+      suggestedGasLimit,
+      onlyGas: undefined,
+    });
   }
 
-  return transactionData;
+  return getEIP1559TransactionData({
+    gas: {
+      ...gasFeeEstimates[gasSelected],
+      suggestedGasLimit,
+      selectedOption: gasSelected,
+    },
+    selectedOption: gasSelected,
+    gasFeeEstimates,
+    transactionState,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    nativeCurrency,
+    suggestedGasLimit,
+    onlyGas: undefined,
+  });
 };

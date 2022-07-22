@@ -27,9 +27,8 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
-import { fromWei } from '../../../util/number';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { getEIP1559TransactionData } from '../../../core/gasPolling';
+import { useGasTransaction } from '../../../core/gasPolling';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -146,15 +145,6 @@ const createStyles = (colors) =>
   });
 
 const EditGasFee1559 = ({
-  transactionState,
-  gasFeeEstimates,
-  contractExchangeRates,
-  conversionRate,
-  currentCurrency,
-  nativeCurrency,
-  transactionState: {
-    transaction: { gas },
-  },
   gasSelectedTemp,
   selected,
   gasFee,
@@ -206,24 +196,8 @@ const EditGasFee1559 = ({
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  const suggestedGasLimit = fromWei(gas, 'wei');
 
-  const EIP1559TransactionData = getEIP1559TransactionData({
-    gas: {
-      ...gasOptions[gasSelectedTemp],
-      suggestedGasLimit,
-      selectedOption: gasSelectedTemp,
-    },
-    selectedOption: gasSelectedTemp,
-    gasFeeEstimates: gasOptions,
-    transactionState,
-    contractExchangeRates,
-    conversionRate,
-    currentCurrency,
-    nativeCurrency,
-    suggestedGasLimit,
-    onlyGas: undefined,
-  });
+  const EIP1559TransactionData = useGasTransaction(gasSelectedTemp);
 
   const {
     renderableGasFeeMinNative,
@@ -1080,17 +1054,6 @@ EditGasFee1559.propTypes = {
 
 const mapStateToProps = (state) => ({
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  transactionState: state.transaction,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
 });
 
 export default connect(mapStateToProps)(EditGasFee1559);
