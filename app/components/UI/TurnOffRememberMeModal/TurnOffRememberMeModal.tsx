@@ -1,5 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import BaseText, {
+  BaseTextVariant,
+} from '../../../component-library/components/BaseText';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
@@ -82,9 +85,18 @@ const TurnOffRememberMeModal = () => {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={styles.areYouSure}>
-            <Text style={[styles.heading, styles.delete]}>
+            <BaseText
+              variant={BaseTextVariant.sHeadingLG}
+              style={styles.textStyle}
+            >
+              {strings('turn_off_remember_me.title')}
+            </BaseText>
+            <BaseText
+              variant={BaseTextVariant.sBodyMD}
+              style={styles.textStyle}
+            >
               {strings('turn_off_remember_me.description')}
-            </Text>
+            </BaseText>
             <OutlinedTextField
               style={styles.input}
               testID={'TurnOffRememberMeConfirm'}
