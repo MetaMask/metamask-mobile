@@ -2,7 +2,11 @@
 import SecureKeychain from '../../core/SecureKeychain';
 import Engine from '../../core/Engine';
 import AsyncStorage from '@react-native-community/async-storage';
-import { BIOMETRY_CHOICE } from '../../constants/storage';
+import {
+  BIOMETRY_CHOICE,
+  PASSCODE_CHOICE,
+  TRUE,
+} from '../../constants/storage';
 import Logger from '../../util/Logger';
 
 /**
@@ -12,7 +16,14 @@ import Logger from '../../util/Logger';
 const checkIfUsingRememberMe = async (): Promise<boolean> => {
   const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
   // since we do not allow remember me to be used with biometrics we can eagerly return false
-  if (biometryChoice) return false;
+  if (biometryChoice) {
+    return false;
+  }
+  // since we do not allow remember me to be used with passcode we can eagerly return false
+  const passcodeChoice = await AsyncStorage.getItem(PASSCODE_CHOICE);
+  if (passcodeChoice !== '' && passcodeChoice === TRUE) {
+    return false;
+  }
   const credentials = await SecureKeychain.getGenericPassword();
   if (credentials) {
     // Restore vault with existing credentials
