@@ -1556,26 +1556,8 @@ class Confirm extends PureComponent {
             />
           ) : (
             <TransactionReviewEIP1559
-
-              // totalNative={EIP1559TransactionData.renderableTotalMinNative}
-              // totalConversion={
-              //   EIP1559TransactionData.renderableTotalMinConversion
-              // }
-              // totalMaxNative={EIP1559TransactionData.renderableTotalMaxNative}
-              // gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
-              // gasFeeConversion={
-              //   EIP1559TransactionData.renderableGasFeeMinConversion
-              // }
-              // gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
-              // gasFeeMaxConversion={
-              //   EIP1559TransactionData.renderableGasFeeMaxConversion
-              // }
               primaryCurrency={primaryCurrency}
-              timeEstimate={EIP1559TransactionData.timeEstimate}
-              timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
-              timeEstimateId={EIP1559TransactionData.timeEstimateId}
               onEdit={() => this.edit(EDIT_EIP1559)}
-              over={Boolean(EIP1559TransactionData.error)}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
               animateOnChange={animateOnChange}

@@ -16,7 +16,6 @@ import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import { fromWei } from '../../../../util/number';
-import { getNormalizedTxState } from '../../../../util/transactions';
 import {getEIP1559TransactionData} from '../../../../core/gasPolling'
 
 const createStyles = (colors) =>
@@ -83,17 +82,6 @@ const Skeleton = ({ width, noStyle }) => {
 };
 
 const TransactionReviewEIP1559 = ({
-
-  // totalNative,
-  // totalConversion,
-  // totalMaxNative,
-  // gasFeeNative,
-  // gasFeeConversion,
-  // gasFeeMaxNative,
-  // gasFeeMaxConversion,
-  timeEstimate,
-  timeEstimateColor,
-  timeEstimateId,
   primaryCurrency,
   chainId,
   onEdit,
@@ -108,19 +96,14 @@ const TransactionReviewEIP1559 = ({
   gasEstimationReady,
   legacy,
   gasSelected,
-  transaction,
   transactionState,
-  contractBalances,
-  selectedAsset,
   gasFeeEstimates,
-  gasEstimateType,
  contractExchangeRates,
   conversionRate,
   currentCurrency,
   nativeCurrency,
   transactionState: {
-    transactionTo,
-    transaction: { value, gas },
+    transaction: { gas },
   },
 }) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
@@ -157,10 +140,7 @@ const TransactionReviewEIP1559 = ({
     onlyGas: undefined
 })
 
-// EIP1559TransactionData.error = this.validateAmount({
-//   transaction,
-//   total: EIP1559TransactionData.totalMaxHex,
-// });
+const {renderableGasFeeMinNative, renderableGasFeeMinConversion, renderableGasFeeMaxNative, renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative, renderableGasFeeMaxConversion, timeEstimateColor, timeEstimate, timeEstimateId} = EIP1559TransactionData;
 
   const openLinkAboutGas = useCallback(
     () =>
@@ -176,7 +156,6 @@ const TransactionReviewEIP1559 = ({
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
-  console.log('nativeCurrencySelected', nativeCurrencySelected);
   let gasFeePrimary,
     gasFeeSecondary,
     gasFeeMaxPrimary,
@@ -184,22 +163,22 @@ const TransactionReviewEIP1559 = ({
     totalSecondary,
     totalMaxPrimary;
   if (nativeCurrencySelected) {
-    gasFeePrimary = EIP1559TransactionData.renderableGasFeeMinNative;
-    gasFeeSecondary = EIP1559TransactionData.renderableGasFeeMinConversion;
-    gasFeeMaxPrimary = EIP1559TransactionData.renderableGasFeeMaxNative;
-    totalPrimary = EIP1559TransactionData.renderableTotalMinNative;
-    totalSecondary = EIP1559TransactionData.renderableTotalMinConversion;
-    totalMaxPrimary = EIP1559TransactionData.renderableTotalMaxNative;
+    gasFeePrimary = renderableGasFeeMinNative;
+    gasFeeSecondary = renderableGasFeeMinConversion;
+    gasFeeMaxPrimary = renderableGasFeeMaxNative;
+    totalPrimary = renderableTotalMinNative;
+    totalSecondary = renderableTotalMinConversion;
+    totalMaxPrimary = renderableTotalMaxNative;
   } else {
-    gasFeePrimary = EIP1559TransactionData.renderableGasFeeMinConversion;
-    gasFeeSecondary = EIP1559TransactionData.renderableGasFeeMinNative;
-    gasFeeMaxPrimary = EIP1559TransactionData.renderableGasFeeMaxConversion;
-    totalPrimary = EIP1559TransactionData.renderableTotalMinConversion;
-    totalSecondary = EIP1559TransactionData.renderableTotalMinNative;
-    totalMaxPrimary = EIP1559TransactionData.renderableGasFeeMaxConversion;
+    gasFeePrimary = renderableGasFeeMinConversion;
+    gasFeeSecondary = renderableGasFeeMinNative;
+    gasFeeMaxPrimary = renderableGasFeeMaxConversion;
+    totalPrimary = renderableTotalMinConversion;
+    totalSecondary = renderableTotalMinNative;
+    totalMaxPrimary = renderableGasFeeMaxConversion;
   }
 
-  const valueToWatchAnimation = `${EIP1559TransactionData.renderableGasFeeMinNative}${EIP1559TransactionData.renderableGasFeeMaxNative}`;
+  const valueToWatchAnimation = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -514,15 +493,11 @@ TransactionReviewEIP1559.propTypes = {
   /**
    * String that represents the time estimates
    */
-  timeEstimate: PropTypes.string,
-  /**
-   * String that represents the color of the time estimate
-   */
-  timeEstimateColor: PropTypes.string,
+  // timeEstimate: PropTypes.string,
   /**
    * Time estimate name (unknown, low, medium, high, less_than, range)
    */
-  timeEstimateId: PropTypes.string,
+  // timeEstimateId: PropTypes.string,
   /**
    * Boolean to determine if the total section should be hidden
    */
@@ -576,7 +551,8 @@ currentCurrency:
   state.engine.backgroundState.CurrencyRateController.currentCurrency,
 nativeCurrency:
   state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  transaction: getNormalizedTxState(state),
+  conversionRate:
+  state.engine.backgroundState.CurrencyRateController.conversionRate,
 });
 
 export default connect(mapStateToProps)(TransactionReviewEIP1559);

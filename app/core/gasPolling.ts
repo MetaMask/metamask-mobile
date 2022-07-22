@@ -137,11 +137,8 @@ export const getEIP1559TransactionData = ({
   conversionRate,
   currentCurrency,
   nativeCurrency,
-  // suggestedGasLimit,
   onlyGas,
 }: GetEIP1559TransactionDataProps) => {
-  console.log('gas', gas);
-  // console.log('suggestedGasLimit', suggestedGasLimit);
   try {
     if (
       !gas ||
