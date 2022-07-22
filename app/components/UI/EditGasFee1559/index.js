@@ -21,12 +21,15 @@ import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
+import { connect } from 'react-redux';
 import FadeAnimationView from '../FadeAnimationView';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
+import { fromWei } from '../../../util/number';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { getEIP1559TransactionData } from '../../../core/gasPolling';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -143,6 +146,16 @@ const createStyles = (colors) =>
   });
 
 const EditGasFee1559 = ({
+  transactionState,
+  gasFeeEstimates,
+  contractExchangeRates,
+  conversionRate,
+  currentCurrency,
+  nativeCurrency,
+  transactionState: {
+    transaction: { gas },
+  },
+  gasSelectedTemp,
   selected,
   gasFee,
   gasOptions,
@@ -193,6 +206,38 @@ const EditGasFee1559 = ({
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+  const suggestedGasLimit = fromWei(gas, 'wei');
+
+  const EIP1559TransactionData = getEIP1559TransactionData({
+    gas: {
+      ...gasOptions[gasSelectedTemp],
+      suggestedGasLimit,
+      selectedOption: gasSelectedTemp,
+    },
+    selectedOption: gasSelectedTemp,
+    gasFeeEstimates: gasOptions,
+    transactionState,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    nativeCurrency,
+    suggestedGasLimit,
+    onlyGas: undefined,
+  });
+
+  const {
+    renderableGasFeeMinNative,
+    renderableGasFeeMaxNative,
+    renderableGasFeeMaxConversion,
+    renderableMaxFeePerGasNative,
+    renderableGasFeeMinConversion,
+    renderableMaxPriorityFeeNative,
+    renderableMaxFeePerGasConversion,
+    renderableMaxPriorityFeeConversion,
+    timeEstimateColor: EIP1559TimeEstimateColor,
+    timeEstimate: EIP1559TimeEstimate,
+    timeEstimateId: EIP1559TimeEstimateId,
+  } = EIP1559TransactionData;
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -239,6 +284,8 @@ const EditGasFee1559 = ({
     [onChange],
   );
 
+  const gasFeeUpdate = gasFee || EIP1559TransactionData;
+
   const changedMaxPriorityFee = useCallback(
     (value) => {
       const lowerValue = new BigNumber(
@@ -275,11 +322,17 @@ const EditGasFee1559 = ({
         setMaxPriorityFeeError('');
       }
 
-      const newGas = { ...gasFee, suggestedMaxPriorityFeePerGas: value };
+      const newGas = { ...gasFeeUpdate, suggestedMaxPriorityFeePerGas: value };
 
       changeGas(newGas, null);
     },
-    [changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption],
+    [
+      changeGas,
+      gasFeeUpdate,
+      gasOptions,
+      updateOption,
+      warningMinimumEstimateOption,
+    ],
   );
 
   const changedMaxFeePerGas = useCallback(
@@ -312,18 +365,24 @@ const EditGasFee1559 = ({
         setMaxFeeError('');
       }
 
-      const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
+      const newGas = { ...gasFeeUpdate, suggestedMaxFeePerGas: value };
       changeGas(newGas, null);
     },
-    [changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption],
+    [
+      changeGas,
+      gasFeeUpdate,
+      gasOptions,
+      updateOption,
+      warningMinimumEstimateOption,
+    ],
   );
 
   const changedGasLimit = useCallback(
     (value) => {
-      const newGas = { ...gasFee, suggestedGasLimit: value };
+      const newGas = { ...gasFeeUpdate, suggestedGasLimit: value };
       changeGas(newGas, null);
     },
-    [changeGas, gasFee],
+    [changeGas, gasFeeUpdate],
   );
 
   const selectOption = useCallback(
@@ -380,20 +439,25 @@ const EditGasFee1559 = ({
     maxPriorityFeePerGasPrimary,
     gasFeeMaxSecondary;
   if (nativeCurrencySelected) {
-    gasFeePrimary = gasFeeNative;
-    gasFeeMaxPrimary = gasFeeMaxNative;
-    gasFeeMaxSecondary = gasFeeMaxConversion;
-    maxFeePerGasPrimary = maxFeePerGasNative;
-    maxPriorityFeePerGasPrimary = maxPriorityFeeNative;
+    gasFeePrimary = gasFeeNative || renderableGasFeeMinNative;
+    gasFeeMaxPrimary = gasFeeMaxNative || renderableGasFeeMaxNative;
+    gasFeeMaxSecondary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
+    maxFeePerGasPrimary = maxFeePerGasNative || renderableMaxFeePerGasNative;
+    maxPriorityFeePerGasPrimary =
+      maxPriorityFeeNative || renderableMaxPriorityFeeNative;
   } else {
-    gasFeePrimary = gasFeeConversion;
-    gasFeeMaxPrimary = gasFeeMaxConversion;
-    gasFeeMaxSecondary = gasFeeMaxNative;
-    maxFeePerGasPrimary = maxFeePerGasConversion;
-    maxPriorityFeePerGasPrimary = maxPriorityFeeConversion;
+    gasFeePrimary = gasFeeConversion || renderableGasFeeMinConversion;
+    gasFeeMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
+    gasFeeMaxSecondary = gasFeeMaxNative || renderableGasFeeMaxNative;
+    maxFeePerGasPrimary =
+      maxFeePerGasConversion || renderableMaxFeePerGasConversion;
+    maxPriorityFeePerGasPrimary =
+      maxPriorityFeeConversion || renderableMaxPriorityFeeConversion;
   }
 
-  const valueToWatch = `${gasFeeNative}${gasFeeMaxNative}`;
+  const valueToWatch = `${gasFeeNative || renderableGasFeeMinNative}${
+    gasFeeMaxNative || renderableGasFeeMaxNative
+  }`;
 
   const renderInputs = () => (
     <View>
@@ -447,7 +511,7 @@ const EditGasFee1559 = ({
                     </View>
                   }
                   min={GAS_LIMIT_MIN}
-                  value={gasFee.suggestedGasLimit}
+                  value={gasFeeUpdate.suggestedGasLimit}
                   onChangeValue={changedGasLimit}
                   name={strings('edit_gas_fee_eip1559.gas_limit')}
                   increment={GAS_LIMIT_INCREMENT}
@@ -485,7 +549,7 @@ const EditGasFee1559 = ({
                       GWEI
                     </Text>
                   }
-                  value={gasFee.suggestedMaxPriorityFeePerGas}
+                  value={gasFeeUpdate.suggestedMaxPriorityFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_priority_fee')}
                   unit={'GWEI'}
                   min={GAS_MIN}
@@ -535,7 +599,7 @@ const EditGasFee1559 = ({
                       GWEI
                     </Text>
                   }
-                  value={gasFee.suggestedMaxFeePerGas}
+                  value={gasFeeUpdate.suggestedMaxFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_fee')}
                   unit={'GWEI'}
                   min={GAS_MIN}
@@ -707,14 +771,18 @@ const EditGasFee1559 = ({
               </Text>
               <View style={styles.labelTextContainer}>
                 <Text
-                  green={timeEstimateColor === 'green'}
-                  red={timeEstimateColor === 'red'}
+                  green={
+                    timeEstimateColor || EIP1559TimeEstimateColor === 'green'
+                  }
+                  red={timeEstimateColor || EIP1559TimeEstimateColor === 'red'}
                   bold
                 >
-                  {timeEstimate}
+                  {timeEstimate || EIP1559TimeEstimate}
                 </Text>
-                {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                  timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                {(timeEstimateId ||
+                  EIP1559TimeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                  timeEstimateId ||
+                  EIP1559TimeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
                   <TouchableOpacity
                     hitSlop={styles.hitSlop}
                     onPress={showTimeEstimateInfoModal}
@@ -847,7 +915,7 @@ const EditGasFee1559 = ({
             />
             <TimeEstimateInfoModal
               isVisible={isVisibleTimeEstimateInfoModal}
-              timeEstimateId={timeEstimateId}
+              timeEstimateId={timeEstimateId || EIP1559TimeEstimateId}
               onHideModal={hideTimeEstimateInfoModal}
             />
           </View>
@@ -1010,4 +1078,19 @@ EditGasFee1559.propTypes = {
   view: PropTypes.string.isRequired,
 };
 
-export default EditGasFee1559;
+const mapStateToProps = (state) => ({
+  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  gasFeeEstimates:
+    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  transactionState: state.transaction,
+  contractExchangeRates:
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  currentCurrency:
+    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  nativeCurrency:
+    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+  conversionRate:
+    state.engine.backgroundState.CurrencyRateController.conversionRate,
+});
+
+export default connect(mapStateToProps)(EditGasFee1559);

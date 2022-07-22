@@ -16,7 +16,7 @@ import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import { fromWei } from '../../../../util/number';
-import {getEIP1559TransactionData} from '../../../../core/gasPolling'
+import { getEIP1559TransactionData } from '../../../../core/gasPolling';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -82,6 +82,9 @@ const Skeleton = ({ width, noStyle }) => {
 };
 
 const TransactionReviewEIP1559 = ({
+  timeEstimate,
+  timeEstimateId,
+  timeEstimateColor,
   gasFeeNative,
   gasFeeConversion,
   gasFeeMaxNative,
@@ -105,7 +108,7 @@ const TransactionReviewEIP1559 = ({
   gasSelected,
   transactionState,
   gasFeeEstimates,
- contractExchangeRates,
+  contractExchangeRates,
   conversionRate,
   currentCurrency,
   nativeCurrency,
@@ -129,25 +132,35 @@ const TransactionReviewEIP1559 = ({
   const styles = createStyles(colors);
   const suggestedGasLimit = fromWei(gas, 'wei');
 
-
   const EIP1559TransactionData = getEIP1559TransactionData({
     gas: {
       ...gasFeeEstimates[gasSelected],
       suggestedGasLimit,
       selectedOption: gasSelected,
-    }, 
+    },
     selectedOption: gasSelected,
-    gasFeeEstimates: gasFeeEstimates,
-    transactionState: transactionState,
-    contractExchangeRates: contractExchangeRates,
-    conversionRate: conversionRate,
-    currentCurrency: currentCurrency,
-    nativeCurrency: nativeCurrency,
-    suggestedGasLimit: suggestedGasLimit,
-    onlyGas: undefined
-})
+    gasFeeEstimates,
+    transactionState,
+    contractExchangeRates,
+    conversionRate,
+    currentCurrency,
+    nativeCurrency,
+    suggestedGasLimit,
+    onlyGas: undefined,
+  });
 
-const {renderableGasFeeMinNative, renderableGasFeeMinConversion, renderableGasFeeMaxNative, renderableTotalMinNative, renderableTotalMinConversion, renderableTotalMaxNative, renderableGasFeeMaxConversion, timeEstimateColor, timeEstimate, timeEstimateId} = EIP1559TransactionData;
+  const {
+    renderableGasFeeMinNative,
+    renderableGasFeeMinConversion,
+    renderableGasFeeMaxNative,
+    renderableTotalMinNative,
+    renderableTotalMinConversion,
+    renderableTotalMaxNative,
+    renderableGasFeeMaxConversion,
+    timeEstimateColor: EIP1559TimeEstimateColor,
+    timeEstimate: EIP1559TimeEstimate,
+    timeEstimateId: EIP1559TimeEstimateId,
+  } = EIP1559TransactionData;
 
   const openLinkAboutGas = useCallback(
     () =>
@@ -185,7 +198,9 @@ const {renderableGasFeeMinNative, renderableGasFeeMinConversion, renderableGasFe
     totalMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
   }
 
-  const valueToWatchAnimation = `${gasFeeNative || renderableGasFeeMinNative}${gasFeeMaxNative || renderableGasFeeMaxNative}`;
+  const valueToWatchAnimation = `${gasFeeNative || renderableGasFeeMinNative}${
+    gasFeeMaxNative || renderableGasFeeMaxNative
+  }`;
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -285,13 +300,20 @@ const {renderableGasFeeMinNative, renderableGasFeeMinConversion, renderableGasFe
                 <View style={styles.timeEstimateContainer}>
                   <Text
                     small
-                    green={timeEstimateColor === 'green'}
-                    red={timeEstimateColor === 'red'}
+                    green={
+                      timeEstimateColor || EIP1559TimeEstimateColor === 'green'
+                    }
+                    red={
+                      timeEstimateColor || EIP1559TimeEstimateColor === 'red'
+                    }
                   >
-                    {timeEstimate}
+                    {timeEstimate || EIP1559TimeEstimate}
                   </Text>
-                  {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                    timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                  {(timeEstimateId ||
+                    EIP1559TimeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
+                    timeEstimateId ||
+                    EIP1559TimeEstimateId ===
+                      AppConstants.GAS_TIMES.UNKNOWN) && (
                     <TouchableOpacity
                       style={styles.gasInfoContainer}
                       onPress={showTimeEstimateInfoModal}
@@ -449,7 +471,7 @@ const {renderableGasFeeMinNative, renderableGasFeeMinConversion, renderableGasFe
       />
       <TimeEstimateInfoModal
         isVisible={isVisibleTimeEstimateInfoModal}
-        timeEstimateId={timeEstimateId}
+        timeEstimateId={timeEstimateId || EIP1559TimeEstimateId}
         onHideModal={hideTimeEstimateInfoModal}
       />
     </Summary>
@@ -550,16 +572,16 @@ TransactionReviewEIP1559.propTypes = {
 const mapStateToProps = (state) => ({
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   gasFeeEstimates:
-  state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   transactionState: state.transaction,
   contractExchangeRates:
-  state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-currentCurrency:
-  state.engine.backgroundState.CurrencyRateController.currentCurrency,
-nativeCurrency:
-  state.engine.backgroundState.CurrencyRateController.nativeCurrency,
+    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
+  currentCurrency:
+    state.engine.backgroundState.CurrencyRateController.currentCurrency,
+  nativeCurrency:
+    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
   conversionRate:
-  state.engine.backgroundState.CurrencyRateController.conversionRate,
+    state.engine.backgroundState.CurrencyRateController.conversionRate,
 });
 
 export default connect(mapStateToProps)(TransactionReviewEIP1559);
