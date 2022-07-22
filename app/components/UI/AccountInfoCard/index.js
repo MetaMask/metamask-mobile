@@ -41,7 +41,7 @@ const createStyles = (colors) =>
       flexWrap: 'wrap',
     },
     accountName: {
-      maxWidth: '100%',
+      maxWidth: '95%',
       ...fontStyles.bold,
       fontSize: 16,
       marginRight: 2,
