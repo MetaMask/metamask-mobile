@@ -57,6 +57,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import WatchCollectibleRequest from '../../../components/UI/WatchCollectibleRequest';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -86,6 +87,10 @@ const RootRPCMethodsUI = (props) => {
 
   const [watchAsset, setWatchAsset] = useState(false);
   const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
+
+  const [watchCollectible, setWatchCollectible] = useState(false);
+  const [suggestedCollectibleMeta, setSuggestedCollectibleMeta] =
+    useState(undefined);
 
   const setTransactionObject = props.setTransactionObject;
   const toggleApproveModal = props.toggleApproveModal;
@@ -684,6 +689,40 @@ const RootRPCMethodsUI = (props) => {
     </Modal>
   );
 
+  /**
+   * On rejection addinga an collectible
+   */
+  const onCancelWatchCollectible = () => {
+    setWatchCollectible(false);
+  };
+
+  /**
+   * Render the add collectible modal
+   */
+  const renderWatchCollectibleModal = () => (
+    <Modal
+      isVisible={watchCollectible}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+      animationInTiming={600}
+      animationOutTiming={600}
+      onBackdropPress={onCancelWatchCollectible}
+      onSwipeComplete={onCancelWatchCollectible}
+      swipeDirection={'down'}
+      propagateSwipe
+    >
+      <WatchCollectibleRequest
+        onCancel={onCancelWatchCollectible}
+        onConfirm={onCancelWatchCollectible}
+        suggestedCollectibleMeta={suggestedCollectibleMeta}
+        currentPageInformation={currentPageMeta}
+      />
+    </Modal>
+  );
+
   // unapprovedTransaction effect
   useEffect(() => {
     Engine.context.TransactionController.hub.on(
@@ -768,6 +807,14 @@ const RootRPCMethodsUI = (props) => {
       },
     );
 
+    Engine.context.CollectiblesController.hub.on(
+      'pendingSuggestedCollectible',
+      (suggestedCollectibleMeta) => {
+        setSuggestedCollectibleMeta(suggestedCollectibleMeta);
+        setWatchCollectible(true);
+      },
+    );
+
     return function cleanup() {
       Engine.context.PersonalMessageManager.hub.removeAllListeners();
       Engine.context.TypedMessageManager.hub.removeAllListeners();
@@ -792,6 +839,7 @@ const RootRPCMethodsUI = (props) => {
       {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
+      {renderWatchCollectibleModal()}
     </React.Fragment>
   );
 };

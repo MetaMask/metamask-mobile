@@ -2137,5 +2137,17 @@
   "download_files": {
     "error": "Failed to download attachment.",
     "unknownError": "Unknown error occurred"
+  },
+  "watch_collectible_request": {
+    "title": "Add Suggested NFT",
+    "cancel": "CANCEL",
+    "add": "ADD NFT",
+    "message": "Would you like to add this NFT?",
+    "token": "NFT",
+    "address": "Address",
+    "id": "ID"
+  },
+  "collectible_media": {
+    "show_nft_media": "⚠ Click to show NFT media"
   }
 }

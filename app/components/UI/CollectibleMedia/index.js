@@ -1,12 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, View, ViewPropTypes } from 'react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  ViewPropTypes,
+} from 'react-native';
 import RemoteImage from '../../Base/RemoteImage';
 import MediaPlayer from '../../Views/MediaPlayer';
 import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
 import Device from '../../../util/device';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 
@@ -55,6 +61,16 @@ const createStyles = (colors) =>
     mediaPlayer: {
       minHeight: 10,
     },
+    hideMediaView: {
+      backgroundColor: colors.background.alternative,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 10,
+    },
+    hideMediaText: {
+      fontSize: 20,
+      textAlign: 'center',
+    },
   });
 
 /**
@@ -69,10 +85,12 @@ export default function CollectibleMedia({
   big,
   cover,
   onClose,
+  hideMediaByDefault,
 }) {
   const [sourceUri, setSourceUri] = useState(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+  const [hideMedia, setHideMedia] = useState(hideMediaByDefault);
 
   const fallback = () => setSourceUri(null);
 
@@ -86,6 +104,22 @@ export default function CollectibleMedia({
   }, [collectible, small, big, setSourceUri]);
 
   const renderMedia = useCallback(() => {
+    if (hideMedia) {
+      return (
+        <TouchableOpacity
+          onPress={() => {
+            setHideMedia(false);
+          }}
+        >
+          <View style={[big && styles.bigImage, styles.hideMediaView]}>
+            <Text style={styles.hideMediaText}>
+              {strings('collectible_media.show_nft_media')}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
     if (
       renderAnimation &&
       collectible.animation &&
@@ -145,6 +179,7 @@ export default function CollectibleMedia({
     collectible,
     sourceUri,
     onClose,
+    hideMedia,
     renderAnimation,
     style,
     tiny,
@@ -194,4 +229,8 @@ CollectibleMedia.propTypes = {
    * On close callback
    */
   onClose: PropTypes.func,
+  /**
+   * Hide NFT media by default
+   */
+  hideMediaByDefault: PropTypes.bool,
 };

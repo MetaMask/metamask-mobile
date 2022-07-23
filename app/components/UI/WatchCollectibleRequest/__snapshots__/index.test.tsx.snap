@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WatchCollectibleRequest should render correctly 1`] = `
+<WatchCollectibleRequest
+  dispatch={[Function]}
+  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
+  suggestedCollectibleMeta={
+    Object {
+      "collectible": Object {
+        "address": "0xf5de760f2e916647fd33b4ad9e85ff443ce3a2d",
+        "tokenId": "417",
+      },
+    }
+  }
+/>
+`;

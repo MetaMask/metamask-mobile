@@ -519,6 +519,24 @@ export const getRpcMethodMiddleware = ({
         }
       },
 
+      wallet_addNFT: async () => {
+        const { CollectiblesController } = Engine.context;
+        checkTabActive();
+        try {
+          const watchNFTResult = await CollectiblesController.watchCollectible({
+            address: req.params[0].address,
+            tokenId: req.params[0].tokenId,
+          });
+          await watchNFTResult.result;
+          res.result = true;
+        } catch (error) {
+          if ((error as Error).message === 'User rejected to watch the NFT.') {
+            throw ethErrors.provider.userRejectedRequest();
+          }
+          throw error;
+        }
+      },
+
       metamask_removeFavorite: async () => {
         checkTabActive();
         if (!isHomepage()) {
