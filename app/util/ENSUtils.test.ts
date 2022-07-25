@@ -29,11 +29,7 @@ describe('ENSUtils', () => {
     let provider: any;
 
     beforeEach(async () => {
-      provider = sinon.fake();
-    });
-
-    afterEach(() => {
-      sinon.restore();
+      provider = jest.fn();
     });
 
     it('should return ensProvider if exists', () => {
