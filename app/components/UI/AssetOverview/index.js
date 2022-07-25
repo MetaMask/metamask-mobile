@@ -257,10 +257,10 @@ class AssetOverview extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const supportArticleUrl =
-      'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate';
     return (
-      <TouchableOpacity onPress={() => this.goToBrowserUrl(supportArticleUrl)}>
+      <TouchableOpacity
+        onPress={() => this.goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
+      >
         <Text style={styles.warning}>
           {strings('asset_overview.were_unable')} {symbol}{' '}
           {strings('asset_overview.balance')}{' '}
