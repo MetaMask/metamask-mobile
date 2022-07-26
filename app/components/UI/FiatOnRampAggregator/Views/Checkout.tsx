@@ -218,7 +218,7 @@ const CheckoutWebView = () => {
               setError(webviewHttpError);
             }
           }}
-          allowInlineMediaPlayback
+          allowsInlineMediaPlayback
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
