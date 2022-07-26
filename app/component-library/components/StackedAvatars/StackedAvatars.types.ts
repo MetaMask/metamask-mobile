@@ -1,6 +1,6 @@
-import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
+import { ViewProps } from 'react-native';
 
-interface TokenMetadata {
+interface StackedAvatarsToken {
   /**
    * Token id.
    */
@@ -18,9 +18,9 @@ interface TokenMetadata {
 /**
  * StackedAvatars component props.
  */
-export interface StackedAvatarsProps extends Omit<BaseAvatarProps, 'size'> {
+export interface StackedAvatarsProps extends ViewProps {
   /**
    * A list of Avatars to be horizontally stacked.
    */
-  tokenList: TokenMetadata[];
+  tokenList: StackedAvatarsToken[];
 }
