@@ -825,11 +825,7 @@
 				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskDebug.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-<<<<<<< HEAD
 				CURRENT_PROJECT_VERSION = 931;
-=======
-				CURRENT_PROJECT_VERSION = 933;
->>>>>>> 2a08bca1b (build numbers in project files)
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 48XVW22RCG;
@@ -865,11 +861,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-<<<<<<< HEAD
 				MARKETING_VERSION = 5.4.0;
-=======
-				MARKETING_VERSION = 5.3.4;
->>>>>>> 2a08bca1b (build numbers in project files)
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -935,11 +927,7 @@
 					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
 				);
 				LLVM_LTO = YES;
-<<<<<<< HEAD
 				MARKETING_VERSION = 5.4.0;
-=======
-				MARKETING_VERSION = 5.3.4;
->>>>>>> 2a08bca1b (build numbers in project files)
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"$(inherited)",

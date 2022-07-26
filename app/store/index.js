@@ -13,8 +13,6 @@ import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import EngineService from '../core/EngineService';
 import Device from '../util/device';
-import { STORAGE_TYPE } from '../constants/userProperties';
-import Analytics from '../core/Analytics/Analytics';
 
 const TIMEOUT = 40000;
 
@@ -24,9 +22,6 @@ const MigratedStorage = {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
         // Using new storage system
-        Analytics.applyUserStorageTypeProperty(
-          STORAGE_TYPE.FILE_SYSTEM_STORAGE,
-        );
         return res;
       }
     } catch {
@@ -38,12 +33,10 @@ const MigratedStorage = {
       const res = await AsyncStorage.getItem(key);
       if (res) {
         // Using old storage system
-        Analytics.applyUserStorageTypeProperty(STORAGE_TYPE.ASYNC_STORAGE);
         return res;
       }
     } catch (error) {
       Logger.error(error, { message: 'Failed to run migration' });
-      Analytics.applyUserStorageTypeProperty(STORAGE_TYPE.UNKNOWN);
       throw new Error('Failed async storage storage fetch.');
     }
   },
