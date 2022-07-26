@@ -45,7 +45,7 @@ const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
 
   return (
     <View style={styles.base}>
-      <View style={styles.stack}>{renderTokenList()}</View>
+      <View style={styles.stack}>{renderTokenList}</View>
       <View style={styles.overflowCounterWrapper}>
         {shouldRenderOverflowCounter && (
           <BaseText

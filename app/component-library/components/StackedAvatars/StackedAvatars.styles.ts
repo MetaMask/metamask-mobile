@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for TabBarItem component.
+ * Style sheet function for StackedAvatars component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -13,17 +13,19 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
   const { stackWidth } = vars;
 
+  const borderWidth = 1;
+
   return StyleSheet.create({
     base: { flexDirection: 'row' },
     stack: {
       flexDirection: 'row',
       alignItems: 'center',
-      width: stackWidth,
+      width: stackWidth + borderWidth * 2,
     },
     stackedAvatarWrapper: {
       position: 'absolute',
       borderRadius: 50,
-      borderWidth: 1,
+      borderWidth,
       borderColor: theme.colors.background.default,
     },
     overflowCounterWrapper: {
