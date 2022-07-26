@@ -15,6 +15,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { Logger } from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -127,14 +128,20 @@ class PersonalSign extends PureComponent {
     const { messageParams } = this.props;
     const { KeyringController, PersonalMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
-    const cleanMessageParams = await PersonalMessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signPersonalMessage(
-      cleanMessageParams,
-    );
-    PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+    try {
+      const cleanMessageParams = await PersonalMessageManager.approveMessage(
+        messageParams,
+      );
+      const rawSig = await KeyringController.signPersonalMessage(
+        cleanMessageParams,
+      );
+      PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+      this.showWalletConnectNotification(messageParams, true);
+    } catch (error) {
+      Logger.log(error, {
+        message: 'Error while personal signing message',
+      });
+    }
   };
 
   rejectMessage = () => {

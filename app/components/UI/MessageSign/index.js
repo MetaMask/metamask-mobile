@@ -14,6 +14,7 @@ import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { Logger } from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -122,12 +123,18 @@ class MessageSign extends PureComponent {
     const { messageParams } = this.props;
     const { KeyringController, MessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
-    const cleanMessageParams = await MessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signMessage(cleanMessageParams);
-    MessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+    try {
+      const cleanMessageParams = await MessageManager.approveMessage(
+        messageParams,
+      );
+      const rawSig = await KeyringController.signMessage(cleanMessageParams);
+      MessageManager.setMessageStatusSigned(messageId, rawSig);
+      this.showWalletConnectNotification(messageParams, true);
+    } catch (error) {
+      Logger.log(error, {
+        message: 'Error while signing message',
+      });
+    }
   };
 
   rejectMessage = () => {

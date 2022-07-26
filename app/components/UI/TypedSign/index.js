@@ -15,6 +15,7 @@ import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { Logger } from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -135,15 +136,21 @@ class TypedSign extends PureComponent {
     const { KeyringController, TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
-    const cleanMessageParams = await TypedMessageManager.approveMessage(
-      messageParams,
-    );
-    const rawSig = await KeyringController.signTypedMessage(
-      cleanMessageParams,
-      version,
-    );
-    TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
-    this.showWalletConnectNotification(messageParams, true);
+    try {
+      const cleanMessageParams = await TypedMessageManager.approveMessage(
+        messageParams,
+      );
+      const rawSig = await KeyringController.signTypedMessage(
+        cleanMessageParams,
+        version,
+      );
+      TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+      this.showWalletConnectNotification(messageParams, true);
+    } catch (error) {
+      Logger.log(error, {
+        message: 'Error while type signing message',
+      });
+    }
   };
 
   rejectMessage = () => {
