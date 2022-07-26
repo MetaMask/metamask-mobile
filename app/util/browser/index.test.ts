@@ -1,4 +1,4 @@
-import onUrlSubmit from '.';
+import onUrlSubmit, { isTLD } from '.';
 
 describe('Browser utils :: onUrlSubmit', () => {
   it('should sanitize url without protocol', () => {
@@ -72,5 +72,31 @@ describe('Browser utils :: onUrlSubmit', () => {
     const input = 'https://some.com/search?q=what+is+going&a=i+dont+know';
     const url = onUrlSubmit(input, 'DuckDuckGo');
     expect(url).toBe(input);
+  });
+});
+
+describe('Browser utils :: isTLD', () => {
+  it('should return true if it ends on .xyz', () => {
+    const hostname = 'evan.xyz';
+    const error = '';
+    expect(isTLD(hostname, error)).toBeTruthy();
+  });
+
+  it('should return true if it ends on .test', () => {
+    const hostname = 'evan.test';
+    const error = '';
+    expect(isTLD(hostname, error)).toBeTruthy();
+  });
+
+  it('should return true if the error contains is not standard', () => {
+    const hostname = 'ebisusbay.xyz';
+    const error = 'is not standard';
+    expect(isTLD(hostname, error)).toBeTruthy();
+  });
+
+  it('should return false if it ends on .eth', () => {
+    const hostname = 'evan.eth';
+    const error = '';
+    expect(isTLD(hostname, error)).toBeFalsy();
   });
 });
