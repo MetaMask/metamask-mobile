@@ -43,7 +43,7 @@ import {
 } from './BottomSheet.types';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ children, onDismiss, ...props }, ref) => {
+  ({ children, onDismiss, isInteractable = true, ...props }, ref) => {
     const postCallback = useRef<BottomSheetPostCallback>();
     const { top: screenTopPadding } = useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
@@ -170,16 +170,27 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       [styles.sheet],
     );
 
+    const renderNotch = () =>
+      isInteractable ? <View style={styles.notch} /> : null;
+
     return (
       <View style={styles.base} {...props}>
         <Animated.View style={combinedOverlayStyle}>
-          <TouchableOpacity style={styles.fill} onPress={hide} />
+          <TouchableOpacity
+            disabled={!isInteractable}
+            style={styles.fill}
+            onPress={hide}
+          />
         </Animated.View>
-        <PanGestureHandler onGestureEvent={gestureHandler}>
+        <PanGestureHandler
+          enabled={isInteractable}
+          onGestureEvent={gestureHandler}
+        >
           <Animated.View
             onLayout={updateSheetHeight}
             style={combinedSheetStyle}
           >
+            {renderNotch()}
             {children}
           </Animated.View>
         </PanGestureHandler>

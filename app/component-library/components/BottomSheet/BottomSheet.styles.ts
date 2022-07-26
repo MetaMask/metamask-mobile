@@ -36,6 +36,14 @@ const styleSheet = (params: {
     fill: {
       flex: 1,
     },
+    notch: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border.muted,
+      alignSelf: 'center',
+      marginVertical: 4,
+    },
   });
 };
 

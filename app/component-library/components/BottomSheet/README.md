@@ -12,6 +12,14 @@ Callback that gets triggered when sheet is dismissed.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | function                                            | No                                                      |
 
+### `isInteractable`
+
+Boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| boolean                                             | No                                                      |
+
 ### `children`
 
 Content to wrap in sheet.
