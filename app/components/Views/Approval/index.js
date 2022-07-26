@@ -412,19 +412,23 @@ class Approval extends PureComponent {
       to: safeToChecksumAddress(transaction.to),
     };
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      transactionToSend.to = safeToChecksumAddress(transaction.to);
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = BNToHex(transaction.gas);
-      transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+    try {
+      if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+        transactionToSend.gas = EIP1559GasData.gasLimitHex;
+        transactionToSend.maxFeePerGas = addHexPrefix(
+          EIP1559GasData.suggestedMaxFeePerGasHex,
+        ); //'0x2540be400'
+        transactionToSend.maxPriorityFeePerGas = addHexPrefix(
+          EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
+        ); //'0x3b9aca00';
+        transactionToSend.to = safeToChecksumAddress(transaction.to);
+        delete transactionToSend.gasPrice;
+      } else {
+        transactionToSend.gas = BNToHex(transaction.gas);
+        transactionToSend.gasPrice = BNToHex(undefined);
+      }
+    } catch (error) {
+      throw new Error(strings('transactions.transaction_error_gas_price'));
     }
 
     return transactionToSend;
@@ -449,18 +453,22 @@ class Approval extends PureComponent {
       to: selectedAsset.address,
     };
 
-    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = EIP1559GasData.gasLimitHex;
-      transactionToSend.maxFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxFeePerGasHex,
-      ); //'0x2540be400'
-      transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
-      ); //'0x3b9aca00';
-      delete transactionToSend.gasPrice;
-    } else {
-      transactionToSend.gas = BNToHex(transaction.gas);
-      transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+    try {
+      if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+        transactionToSend.gas = EIP1559GasData.gasLimitHex;
+        transactionToSend.maxFeePerGas = addHexPrefix(
+          EIP1559GasData.suggestedMaxFeePerGasHex,
+        ); //'0x2540be400'
+        transactionToSend.maxPriorityFeePerGas = addHexPrefix(
+          EIP1559GasData.suggestedMaxPriorityFeePerGasHex,
+        ); //'0x3b9aca00';
+        delete transactionToSend.gasPrice;
+      } else {
+        transactionToSend.gas = BNToHex(transaction.gas);
+        transactionToSend.gasPrice = BNToHex(transaction.gasPrice);
+      }
+    } catch (e) {
+      throw new Error(strings('transactions.transaction_error_gas_price'));
     }
 
     return transactionToSend;

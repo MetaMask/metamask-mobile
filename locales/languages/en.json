@@ -1035,6 +1035,7 @@
     "hash_copied_to_clipboard": "Transaction hash copied to clipboard",
     "address_copied_to_clipboard": "Address copied to clipboard",
     "transaction_error": "Transaction error",
+    "transaction_error_gas_price": "We were unable to determine gas prices",
     "address_to_placeholder": "Search, public address (0x), or ENS",
     "address_from_balance": "Balance:",
     "status": "Status",
