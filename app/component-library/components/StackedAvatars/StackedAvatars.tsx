@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../hooks';
 import { BaseAvatarSize } from '../BaseAvatar';
@@ -20,28 +20,32 @@ const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
 
   const { styles } = useStyles(styleSheet, { stackWidth });
 
+  const renderTokenList = useMemo(
+    () =>
+      tokenList
+        .slice(0, MAX_STACKED_AVATARS)
+        .map(({ name, imageUrl, id }, index) => {
+          const leftOffset = avatarSpacing * index;
+
+          return (
+            <View
+              key={`${name}-${id}`}
+              style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
+            >
+              <TokenAvatar
+                tokenName={name}
+                tokenImageUrl={imageUrl}
+                size={extraSmallSize}
+              />
+            </View>
+          );
+        }),
+    [tokenList, avatarSpacing, extraSmallSize, styles.stackedAvatarWrapper],
+  );
+
   return (
     <View style={styles.base}>
-      <View style={styles.stack}>
-        {tokenList
-          .slice(0, MAX_STACKED_AVATARS)
-          .map(({ name, imageUrl, id }, index) => {
-            const leftOffset = avatarSpacing * index;
-
-            return (
-              <View
-                key={`${name}-${id}`}
-                style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
-              >
-                <TokenAvatar
-                  tokenName={name}
-                  tokenImageUrl={imageUrl}
-                  size={extraSmallSize}
-                />
-              </View>
-            );
-          })}
-      </View>
+      <View style={styles.stack}>{renderTokenList()}</View>
       <View style={styles.overflowCounterWrapper}>
         {shouldRenderOverflowCounter && (
           <BaseText
