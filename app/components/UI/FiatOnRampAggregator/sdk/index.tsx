@@ -28,6 +28,8 @@ import {
   setFiatOrdersPaymentMethodAGG,
 } from '../../../../reducers/fiatOrders';
 import { Region } from '../types';
+
+import I18n, { I18nEvents } from '../../../../../locales/i18n';
 interface IFiatOnRampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
@@ -73,8 +75,13 @@ export const SDK = OnRampSdk.create(
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,
+    locale: I18n.locale,
   },
 );
+
+I18nEvents.addListener('localeChanged', (locale) => {
+  SDK.setLocale(locale);
+});
 
 export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp-content.metaswap-dev.codefi.network/regions/fake-callback'
