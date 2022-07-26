@@ -10,7 +10,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  StyleSheet,
   Alert,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -27,44 +26,9 @@ import {
   isValidMnemonic,
 } from '../../../util/validators';
 import { isValidHexAddress } from '../../../util/address';
+import { isValidUrl } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
-
-// TODO: This file needs typings
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: importedColors.black,
-  },
-  preview: {
-    flex: 1,
-  },
-  innerView: {
-    flex: 1,
-  },
-  closeIcon: {
-    marginTop: 20,
-    marginRight: 20,
-    width: 40,
-    alignSelf: 'flex-end',
-  },
-  frame: {
-    width: 250,
-    height: 250,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-    opacity: 0.5,
-  },
-  text: {
-    flex: 1,
-    fontSize: 17,
-    color: importedColors.white,
-    textAlign: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-  },
-});
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -160,7 +124,7 @@ const QRScanner = ({ navigation, route }: Props) => {
         return;
       }
 
-      if (/^(ftp|http|https):\/\/[^ "]+$/.test(content)) {
+      if (isValidUrl(content)) {
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
