@@ -102,7 +102,7 @@
     "@storybook/addon-actions/**/prismjs": "^1.27.0",
     "@storybook/addon-actions/**/highlight.js": "^10.4.1",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
-    "detox/**/moment": "^2.29.2",
+    "detox/**/moment": "^2.29.4",
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
