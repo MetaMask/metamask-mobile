@@ -80,3 +80,12 @@ export const renderShortText = (text, chars = 4) => {
     return text;
   }
 };
+
+export const isValidUrl = (url) => {
+  try {
+    new URL(url);
+  } catch {
+    return false;
+  }
+  return true;
+};
