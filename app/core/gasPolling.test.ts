@@ -28,33 +28,7 @@ jest.mock('./Engine', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({
-    engine: {
-      backgroundState: {
-        GasFeeController: {
-          gasEstimateType: '',
-          gasFeeEstimates: [],
-        },
-        TokenRatesController: {
-          constractExchangeRates: [],
-        },
-        CurrencyRateController: {
-          conversionRate: 1,
-          currentCurrency: 'ETH',
-          nativeCurrency: 'WEI',
-        },
-        AccountTrackerController: {
-          accounts: [],
-        },
-        TokenBalancesController: {
-          contractBalances: [],
-        },
-      },
-    },
-    transaction: {
-      selectedAsset: '',
-    },
-  })),
+  useSelector: jest.fn(() => ['', [], [], 1, 'ETH', 'wei', [], [], '', false]),
 }));
 
 const suggestedGasLimit = '0x123';

@@ -915,6 +915,10 @@ EditGasFee1559.propTypes = {
    */
   gasFee: PropTypes.object,
   /**
+   * Gas fee to be updated
+   */
+  gasSelectedTemp: PropTypes.string,
+  /**
    * Gas fee options to select from
    */
   gasOptions: PropTypes.object,

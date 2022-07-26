@@ -47,7 +47,6 @@ import {
   startGasPolling,
   stopGasPolling,
   getEIP1559TransactionData,
-  useGasFeeEstimates,
 } from '../../../../core/gasPolling';
 import Logger from '../../../../util/Logger';
 import AccountList from '../../../UI/AccountList';
@@ -152,6 +151,10 @@ class Confirm extends PureComponent {
      * Currency code of the currently-active currency
      */
     currentCurrency: PropTypes.string,
+    /**
+     * Current network nonce
+     */
+    nativeCurrency: PropTypes.string,
     /**
      * Object containing token exchange rates in the format address => exchangeRate
      */
@@ -1258,7 +1261,6 @@ class Confirm extends PureComponent {
       confusableCollection,
       mode,
       warningModalVisible,
-      LegacyTransactionData,
       isAnimating,
       animateOnChange,
     } = this.state;
@@ -1371,6 +1373,7 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
+
           {!showFeeMarket ? (
             <TransactionReviewEIP1559
               primaryCurrency={primaryCurrency}

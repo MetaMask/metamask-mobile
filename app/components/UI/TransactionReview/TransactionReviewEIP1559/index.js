@@ -140,8 +140,6 @@ const TransactionReviewEIP1559 = ({
     transactionFeeFiat,
   } = EIP1559TransactionData;
 
-  console.log(Boolean(legacy), 'transactionTotalAmount');
-
   const openLinkAboutGas = useCallback(
     () =>
       Linking.openURL(
@@ -162,39 +160,47 @@ const TransactionReviewEIP1559 = ({
     totalPrimary,
     totalSecondary,
     totalMaxPrimary;
+
+  const checkLegacy = (legacyProp, eip1559Prop) => {
+    if (legacy) {
+      return legacyProp;
+    }
+    return eip1559Prop;
+  };
+
+  const gasFeeValue =
+    gasFeeNative || checkLegacy(transactionFee, renderableGasFeeMinNative);
+  const gasFeeAltValue =
+    gasFeeConversion ||
+    checkLegacy(transactionFeeFiat, renderableGasFeeMinConversion);
+  const gasFeeMaxValue = gasFeeMaxNative || renderableGasFeeMaxNative;
+  const totalValue =
+    totalNative ||
+    checkLegacy(transactionTotalAmount, renderableTotalMinNative);
+  const totalAltValue =
+    totalConversion ||
+    checkLegacy(transactionTotalAmountFiat, renderableTotalMinConversion);
+  const totalMaxValue = totalMaxNative || renderableTotalMaxNative;
+  const gasFeeMaxAltValue =
+    gasFeeMaxConversion || renderableGasFeeMaxConversion;
+
   if (nativeCurrencySelected) {
-    gasFeePrimary =
-      gasFeeNative || (legacy ? transactionFee : renderableGasFeeMinNative);
-    gasFeeSecondary =
-      gasFeeConversion ||
-      (legacy ? transactionFeeFiat : renderableGasFeeMinConversion);
-    gasFeeMaxPrimary = gasFeeMaxNative || renderableGasFeeMaxNative;
-    totalPrimary =
-      totalNative ||
-      (legacy ? transactionTotalAmount : renderableTotalMinNative);
-    totalSecondary =
-      totalConversion ||
-      (legacy ? transactionTotalAmountFiat : renderableTotalMinConversion);
-    totalMaxPrimary = totalMaxNative || renderableTotalMaxNative;
+    gasFeePrimary = gasFeeValue;
+    gasFeeSecondary = gasFeeAltValue;
+    gasFeeMaxPrimary = gasFeeMaxValue;
+    totalPrimary = totalValue;
+    totalSecondary = totalAltValue;
+    totalMaxPrimary = totalMaxValue;
   } else {
-    gasFeePrimary =
-      gasFeeConversion ||
-      (legacy ? transactionFeeFiat : renderableGasFeeMinConversion);
-    gasFeeSecondary =
-      gasFeeNative || (legacy ? transactionFee : renderableGasFeeMinNative);
-    gasFeeMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
-    totalPrimary =
-      totalConversion ||
-      (legacy ? transactionTotalAmountFiat : renderableTotalMinConversion);
-    totalSecondary =
-      totalNative ||
-      (legacy ? transactionTotalAmount : renderableTotalMinNative);
-    totalMaxPrimary = gasFeeMaxConversion || renderableGasFeeMaxConversion;
+    gasFeePrimary = gasFeeAltValue;
+    gasFeeSecondary = gasFeeValue;
+    gasFeeMaxPrimary = gasFeeMaxAltValue;
+    totalPrimary = totalAltValue;
+    totalSecondary = totalValue;
+    totalMaxPrimary = gasFeeMaxAltValue;
   }
 
-  const valueToWatchAnimation = `${
-    gasFeeNative || (legacy ? transactionFee : renderableGasFeeMinNative)
-  }${gasFeeMaxNative || renderableGasFeeMaxNative}`;
+  const valueToWatchAnimation = `${gasFeeValue}${gasFeeMaxValue}`;
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -522,6 +528,10 @@ TransactionReviewEIP1559.propTypes = {
    */
   timeEstimateId: PropTypes.string,
   /**
+   * Color visualization for the time estimate
+   */
+  timeEstimateColor: PropTypes.string,
+  /**
    * Boolean to determine if the total section should be hidden
    */
   hideTotal: PropTypes.bool,
@@ -557,6 +567,10 @@ TransactionReviewEIP1559.propTypes = {
    * If should show legacy gas
    */
   legacy: PropTypes.bool,
+  /**
+   * the selected gas option
+   */
+  gasSelected: PropTypes.string,
   /**
    * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
    */

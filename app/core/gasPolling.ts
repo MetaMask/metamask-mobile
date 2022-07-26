@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import Engine from './Engine';
-import AppConstants from './AppConstants';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 
 import { fromWei } from '../util/number';
@@ -45,6 +44,7 @@ export const useDataStore = () => {
     ticker,
     transaction,
     selectedAsset,
+    showCustomNonce,
   ] = useSelector(
     (state: any) => [
       state.engine.backgroundState.GasFeeController.gasFeeEstimates,
@@ -58,6 +58,7 @@ export const useDataStore = () => {
       state.engine.backgroundState.NetworkController.provider.ticker,
       state.transaction,
       state.transaction.selectedAsset,
+      state.settings.showCustomNonce,
     ],
     shallowEqual,
   );
@@ -74,6 +75,7 @@ export const useDataStore = () => {
     contractBalances,
     selectedAsset,
     ticker,
+    showCustomNonce,
   };
 };
 
