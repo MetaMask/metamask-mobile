@@ -13,6 +13,7 @@ import { getTicker, parseTransactionEIP1559 } from '../../../util/transactions';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import {startGasPolling, stopGasPolling} from '../../../core/gasPolling'
 
 /**
  * View that renders a list of transactions for a specific asset
@@ -144,18 +145,13 @@ const UpdateEIP1559Tx = ({
   }, [animateOnGasChange]);
 
   useEffect(() => {
-    const { GasFeeController }: any = Engine.context;
     const startGasEstimatePolling = async () => {
-      pollToken.current =
-        await GasFeeController.getGasFeeEstimatesAndStartPolling(
-          pollToken.current,
-        );
+      pollToken.current = await startGasPolling(pollToken.current)
     };
-
     startGasEstimatePolling();
 
     return () => {
-      GasFeeController.stopPolling(pollToken.current);
+      stopGasPolling();
     };
   }, []);
 
@@ -327,6 +323,8 @@ const UpdateEIP1559Tx = ({
         selectedOption: gasSelected,
       });
 
+      // const EIP1559TransactionData = useGasTransaction(gasSelected, !!legacy);
+
       firstTime.current = false;
 
       setEIP1559TransactionData(parsedTransactionEIP1559);
@@ -362,12 +360,16 @@ const UpdateEIP1559Tx = ({
     speed_set: gasSelected || undefined,
   });
 
+
+  console.log('gasSelected', gasSelected);
+  // console.log('selected', selected);
   return (
     <EditGasFee1559
       selected={gasSelected}
       gasFee={EIP1559TransactionData}
       gasOptions={gasFeeEstimates}
       onChange={calculate1559TempGasFee}
+      gasSelectedTemp={gasSelected}
       gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
       gasFeeConversion={EIP1559TransactionData.renderableGasFeeMinConversion}
       gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}

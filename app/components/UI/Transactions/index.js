@@ -40,7 +40,6 @@ import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
-import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -103,10 +102,6 @@ class Transactions extends PureComponent {
      */
     close: PropTypes.func,
     /**
-     * Object containing token exchange rates in the format address => exchangeRate
-     */
-    contractExchangeRates: PropTypes.object,
-    /**
      * Frequent RPC list from PreferencesController
      */
     frequentRpcList: PropTypes.array,
@@ -118,14 +113,6 @@ class Transactions extends PureComponent {
      * Object representing the selected network
      */
     network: PropTypes.object,
-    /**
-     * An array that represents the user collectible contracts
-     */
-    collectibleContracts: PropTypes.array,
-    /**
-     * An array that represents the user tokens
-     */
-    tokens: PropTypes.object,
     /**
      * An array of transactions objects
      */
@@ -142,10 +129,6 @@ class Transactions extends PureComponent {
      * A string that represents the selected address
      */
     selectedAddress: PropTypes.string,
-    /**
-     * ETH to current currency conversion rate
-     */
-    conversionRate: PropTypes.number,
     /**
      * Currency code of the currently-active currency
      */
@@ -166,7 +149,6 @@ class Transactions extends PureComponent {
      * Optional header height
      */
     headerHeight: PropTypes.number,
-    exchangeRate: PropTypes.number,
     /**
      * Indicates whether third party API mode is enabled
      */
@@ -527,12 +509,6 @@ class Transactions extends PureComponent {
       testID={'txn-item'}
       onPressItem={this.toggleDetailsView}
       selectedAddress={this.props.selectedAddress}
-      tokens={this.props.tokens}
-      collectibleContracts={this.props.collectibleContracts}
-      contractExchangeRates={this.props.contractExchangeRates}
-      exchangeRate={this.props.exchangeRate}
-      conversionRate={this.props.conversionRate}
-      currentCurrency={this.props.currentCurrency}
       navigation={this.props.navigation}
     />
   );
@@ -732,34 +708,12 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  collectibleContracts: collectibleContractsSelector(state),
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   network: state.engine.backgroundState.NetworkController,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  primaryCurrency: state.settings.primaryCurrency,
-  tokens: state.engine.backgroundState.TokensController.tokens.reduce(
-    (tokens, token) => {
-      tokens[token.address] = token;
-      return tokens;
-    },
-    {},
-  ),
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
 });
 
 Transactions.contextType = ThemeContext;
