@@ -62,3 +62,15 @@ export function getUrlObj(url) {
   const urlObj = new URL(url);
   return urlObj;
 }
+
+/**
+ * This function verify if the hostname is a TLD
+ * @param {string} hostname - Represents the hostname of the URL
+ * @param {*} error - Represents the error of handleIpfsContent
+ * @returns {Boolean} - True if its a TLD, false if it's not
+ */
+export const isTLD = (hostname, error) =>
+  (hostname.slice(-4) !== '.eth' &&
+    error.toString().indexOf('is not standard') !== -1) ||
+  hostname.slice(-4) === '.xyz' ||
+  hostname.slice(-5) === '.test';

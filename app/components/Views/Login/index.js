@@ -410,10 +410,14 @@ class Login extends PureComponent {
           loading: false,
           error: strings('login.clean_vault_error'),
         });
+        Logger.error(
+          'Vault Corruption Error',
+          strings('login.clean_vault_error'),
+        );
       } else {
         this.setState({ loading: false, error });
       }
-      Logger.error(error, 'Failed to login');
+      Logger.error(error, 'Failed to unlock');
     }
   };
 
