@@ -477,6 +477,15 @@ class Engine {
       } else {
         allLastIncomingTxBlocks[`${selectedAddress}`] = {};
       }
+
+      if (!selectedAddress) {
+        Logger.error('Selected address not found while refreshing tx history', {
+          selectedAddress,
+          networkId,
+        });
+        return;
+      }
+
       //Fetch txs and get the new lastIncomingTxBlock number
       const newlastIncomingTxBlock = await TransactionController.fetchAll(
         selectedAddress,
