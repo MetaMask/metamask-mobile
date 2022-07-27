@@ -109,6 +109,11 @@ const QRScanner = () => {
       );
     });
 
+  const isContentRelevantForAddressScreen = (content: string): boolean =>
+    (origin === Routes.SEND_FLOW.SEND_TO ||
+      origin === Routes.SETTINGS.CONTACT_FORM) &&
+    !isValidHexAddress(content);
+
   const onBarCodeRead = useCallback(
     async (response) => {
       const content = response.data;
@@ -121,11 +126,7 @@ const QRScanner = () => {
         return;
       }
 
-      if (
-        (origin === Routes.SEND_FLOW.SEND_TO ||
-          origin === Routes.SETTINGS.CONTACT_FORM) &&
-        !isValidHexAddress(content)
-      ) {
+      if (isContentRelevantForAddressScreen(content)) {
         showAlertForInvalidAddress();
         end();
         return;
