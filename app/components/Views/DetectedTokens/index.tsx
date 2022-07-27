@@ -157,6 +157,7 @@ const DetectedTokens = () => {
 
     navigation.navigate('DetectedTokensConfirmation', {
       onConfirm: () => dismissModalAndTriggerAction(true),
+      isHidingAll: true,
     });
     InteractionManager.runAfterInteractions(() =>
       AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
