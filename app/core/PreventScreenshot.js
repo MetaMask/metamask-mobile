@@ -1,8 +1,8 @@
 export default {
   forbid: () => {
-    return true;
+    true;
   },
   allow: () => {
-    return true;
+    true;
   },
 };
