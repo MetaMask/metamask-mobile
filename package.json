@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.3.1",
+  "version": "5.4.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -90,7 +90,6 @@
     "@metamask/contract-metadata": "^1.30.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "react-devtools-core": "4.22.1",
-    "web3": "1.6.1",
     "**/got": "^11.8.5",
     "simple-get": "4.0.1",
     "shell-quote": "1.7.3",
@@ -104,11 +103,11 @@
     "@storybook/addon-actions/**/prismjs": "^1.27.0",
     "@storybook/addon-actions/**/highlight.js": "^10.4.1",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
-    "detox/**/moment": "^2.29.2",
+    "detox/**/moment": "^2.29.4",
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "^1.0.3",
+    "@consensys/on-ramp-sdk": "^1.0.9",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
@@ -424,11 +423,6 @@
       "dtrace-provider": false,
       "core-js": false,
       "sharp": true,
-      "web3": false,
-      "web3-bzz": false,
-      "bufferutil": false,
-      "utf-8-validate": false,
-      "web3-shh": false,
       "highlight.js": false,
       "es5-ext": false
     }
