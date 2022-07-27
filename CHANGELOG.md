@@ -1,27 +1,23 @@
 # Changelog
 
 ## Current Main Branch
-- [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [FEAT] Swaps support for hardware wallet
-- [#4627](https://github.com/MetaMask/metamask-mobile/pull/4627): Add typing support for payment methods to be used instead of payment IDs
-- [#4625](https://github.com/MetaMask/metamask-mobile/pull/4625): Handle SecureKeychain failed access while passcode enabled
-- Merge pull request from GHSA-92rc-9rfm-2h82
-- [#4655](https://github.com/MetaMask/metamask-mobile/pull/4655): Add log for vault corruption
-- [#4662](https://github.com/MetaMask/metamask-mobile/pull/4662): 5.4.0
-- [#4629](https://github.com/MetaMask/metamask-mobile/pull/4629): Add EventEmitter for locale change events and update On-ramp SDK
-- [#4685](https://github.com/MetaMask/metamask-mobile/pull/4685): Fix `allowsInlineMediaPlayback` prop name
-- [#4329](https://github.com/MetaMask/metamask-mobile/pull/4329): [FIX] Transaction of Matic submitted in polygon network goes to the activity view
-- [#4643](https://github.com/MetaMask/metamask-mobile/pull/4643): Add On-Ramp Aggregator a11y improvements
-- [#4173](https://github.com/MetaMask/metamask-mobile/pull/4173): [FIX] can't load dapp with unknown network
-- [#4676](https://github.com/MetaMask/metamask-mobile/pull/4676): Component/4087 toast
-- [#4704](https://github.com/MetaMask/metamask-mobile/pull/4704): Add wordd 'buy' to limit description
+
+## 5.5.0 - Jul 27, 2022
+- [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [IMPROVEMENT] Swaps support for hardware wallet
+- [#4627](https://github.com/MetaMask/metamask-mobile/pull/4627): [IMPROVEMENT] Add typing support for payment methods to be used instead of payment IDs
+- [#4625](https://github.com/MetaMask/metamask-mobile/pull/4625): [FIX] Handle SecureKeychain failed access while passcode enabled
+- [#4655](https://github.com/MetaMask/metamask-mobile/pull/4655): [IMPROVEMENT] Add log for vault corruption
+- [#4629](https://github.com/MetaMask/metamask-mobile/pull/4629): [IMPROVEMENT] Add EventEmitter for locale change events and update On-ramp SDK
+- [#4685](https://github.com/MetaMask/metamask-mobile/pull/4685): [FIX] Fix `allowsInlineMediaPlayback` prop name
+- [#4329](https://github.com/MetaMask/metamask-mobile/pull/4329): [IMPROVEMENT] Improve transaction activy for custom networks
+- [#4643](https://github.com/MetaMask/metamask-mobile/pull/4643): [IMPROVEMENT] Add On-Ramp Aggregator a11y improvements
+- [#4173](https://github.com/MetaMask/metamask-mobile/pull/4173): [FIX] Dapp domain resolver for ENS
+- [#4676](https://github.com/MetaMask/metamask-mobile/pull/4676): [IMPROVEMENT] Componentize Toast
+- [#4704](https://github.com/MetaMask/metamask-mobile/pull/4704): [IMPROVEMENT] Add word 'buy' to limit description
 - [#4711](https://github.com/MetaMask/metamask-mobile/pull/4711): [FIX] Token Texts
-- [#4708](https://github.com/MetaMask/metamask-mobile/pull/4708): Bump moment package
-- [#4703](https://github.com/MetaMask/metamask-mobile/pull/4703): Revert "Enable absolute imports (#4693)"
-- [#4693](https://github.com/MetaMask/metamask-mobile/pull/4693): Enable absolute imports
-- [#4677](https://github.com/MetaMask/metamask-mobile/pull/4677): Create network picker component
-- [#4689](https://github.com/MetaMask/metamask-mobile/pull/4689): Component/4233 account picker
-- [#4612](https://github.com/MetaMask/metamask-mobile/pull/4612): Component/4078 token avatar
-- [#4666](https://github.com/MetaMask/metamask-mobile/pull/4666): Fix CHANGELOG
+- [#4677](https://github.com/MetaMask/metamask-mobile/pull/4677): [IMPROVEMENT] Network Picker component
+- [#4689](https://github.com/MetaMask/metamask-mobile/pull/4689): [IMPROVEMENT] Componentize Account Picker
+- [#4612](https://github.com/MetaMask/metamask-mobile/pull/4612): [IMPROVEMENT] Componentize Token Avatar
 
 ## 5.4.0 - Jul 12, 2022
 - [#4604](https://github.com/MetaMask/metamask-mobile/pull/4604): [IMPROVEMENT] Change quotes error to individual events
