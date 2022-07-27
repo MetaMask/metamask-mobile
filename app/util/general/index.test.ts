@@ -67,13 +67,13 @@ describe('isValidUrl', () => {
   it('should be valid for ftp urls', () => {
     expect(isValidUrl('ftp://metamask.io/')).toBe(true);
   });
-  it('2', () => {
-    expect(isValidUrl('https://abc')).toBe(true);
+  it('should not be  valid for random string', () => {
+    expect(isValidUrl('wjidnciewncie')).toBe(false);
   });
-  it('3', () => {
+  it('should not be  valid for empty string', () => {
     expect(isValidUrl('')).toBe(false);
   });
-  it('6', () => {
+  it('should not be  valid for undefined', () => {
     expect(isValidUrl(undefined)).toBe(false);
   });
 });
