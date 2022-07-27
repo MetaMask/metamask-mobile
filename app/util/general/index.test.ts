@@ -73,7 +73,7 @@ describe('isValidUrl', () => {
   it('should not be  valid for empty string', () => {
     expect(isValidUrl('')).toBe(false);
   });
-  it('should not be  valid for undefined', () => {
+  it('should not be valid for undefined', () => {
     expect(isValidUrl(undefined)).toBe(false);
   });
 });
