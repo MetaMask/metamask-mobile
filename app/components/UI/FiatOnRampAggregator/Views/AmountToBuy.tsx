@@ -390,7 +390,7 @@ const AmountToBuy = () => {
 
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find?.(
+      filteredPaymentMethods?.find(
         (method) => method.id === selectedPaymentMethodId,
       ),
     [filteredPaymentMethods, selectedPaymentMethodId],
@@ -741,6 +741,7 @@ const AmountToBuy = () => {
           title={strings('fiat_on_ramp_aggregator.select_payment_method')}
           paymentMethods={filteredPaymentMethods}
           selectedPaymentMethodId={selectedPaymentMethodId}
+          selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
           location={'Amount to Buy Screen'}
         />
@@ -816,7 +817,9 @@ const AmountToBuy = () => {
             label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
               <PaymentIcon
-                iconType={getPaymentMethodIcon(selectedPaymentMethodId)}
+                iconType={getPaymentMethodIcon(
+                  currentPaymentMethod?.paymentType,
+                )}
                 size={20}
                 color={colors.icon.default}
               />
@@ -885,6 +888,7 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
         paymentMethods={filteredPaymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
+        selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
         location={'Amount to Buy Screen'}
       />
