@@ -332,7 +332,10 @@ class Login extends PureComponent {
         }
       }
     } catch (error) {
-      Logger.log(error, 'Failed to access SecureKeychain');
+      if (error.message === 'User canceled the operation.') {
+        return;
+      }
+      Logger.error(error, 'Failed to access SecureKeychain');
     }
   };
 
