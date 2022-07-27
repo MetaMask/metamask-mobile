@@ -1,9 +1,12 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+
+import { STACKED_AVATARS_OVERFLOW_COUNTER } from '../../../constants/test-ids';
 import { useStyles } from '../../hooks';
 import { BaseAvatarSize } from '../BaseAvatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import TokenAvatar from '../TokenAvatar';
+
 import styleSheet from './StackedAvatars.styles';
 import { StackedAvatarsProps } from './StackedAvatars.types';
 const MAX_STACKED_AVATARS = 4;
@@ -51,6 +54,7 @@ const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
           <BaseText
             variant={BaseTextVariant.sBodyMD}
             style={styles.textStyle}
+            testID={STACKED_AVATARS_OVERFLOW_COUNTER}
           >{`+${overflowCounter}`}</BaseText>
         )}
       </View>

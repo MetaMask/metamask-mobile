@@ -1,80 +1,23 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
+import { number } from '@storybook/addon-knobs';
+
+import { availableTokenList } from './StackedAvatars.data';
 import StackedAvatar from '.';
 
 storiesOf(' Component Library / StackedAvatar', module).add('Default', () => {
-  const tokenList = [
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '0',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '1',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '2',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '3',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '4',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '5',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '6',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '7',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '8',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '9',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '10',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '11',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '12',
-    },
-    {
-      name: 'Ethereum',
-      imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-      id: '13',
-    },
-  ];
+  const options = {
+    range: true,
+    min: 1,
+    max: 14,
+    step: 1,
+  };
+
+  const props = 'props';
+
+  const amountOfTokens = number('token list amount', 1, options, props);
+
+  const tokenList = availableTokenList.slice(0, amountOfTokens);
 
   return <StackedAvatar tokenList={tokenList} />;
 });
