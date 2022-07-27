@@ -61,6 +61,7 @@ const AssetIcon = memo((props: Props) => {
 
   return (
     <RemoteImage
+      key={props.logo}
       address={props.address}
       fadeIn
       placeholderStyle={styles.placeholder}
