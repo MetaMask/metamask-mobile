@@ -743,10 +743,16 @@
     "token_lists": "Token lists: {{listNames}}",
     "token_more": " + {{remainingListCount}} more",
     "confirm": {
-      "title": "Import selected tokens?",
-      "desc": "Only the tokens you've selected will appear in your wallet. You can always import hidden tokens later by searching for them.",
       "cancel_cta": "Cancel",
-      "confirm_cta": "Confirm"
+      "confirm_cta": "Confirm",
+      "import": {
+        "title": "Import selected tokens?",
+        "desc": "Only the tokens you've selected will appear in your wallet. You can always import hidden tokens later by searching for them."
+      },
+      "hide": {
+        "title": "Are you sure?",
+        "desc": "If you hide tokens, they will not be shown in your wallet. However, you can still add them by searching for them."
+      }
     },
     "address_copied_to_clipboard": "Token address copied to clipboard"
   },
