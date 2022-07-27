@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import Engine from './Engine';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
-
 import { fromWei } from '../util/number';
 import {
   parseTransactionEIP1559,
@@ -135,6 +134,13 @@ interface LegacyProps {
   onlyGas?: boolean;
 }
 
+interface UseGasTransactionProps {
+  onlyGas?: boolean;
+  gasSelected: string;
+  legacy: boolean;
+  gasLimit: string;
+}
+
 /**
  *
  * @param {GetEIP1559TransactionDataProps} props
@@ -224,10 +230,12 @@ export const getLegacyTransactionData = ({
  *
  * @returns {Object} the transaction data for the current transaction.
  */
-export const useGasTransaction = (
-  gasSelected: string,
-  legacy: boolean | undefined,
-) => {
+export const useGasTransaction = ({
+  onlyGas,
+  gasSelected,
+  legacy,
+  gasLimit,
+}: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
 
@@ -252,7 +260,7 @@ export const useGasTransaction = (
     transaction: { gas: transactionGas },
   } = transactionState;
 
-  const suggestedGasLimit = fromWei(transactionGas, 'wei');
+  const suggestedGasLimit = gasLimit || fromWei(transactionGas, 'wei');
 
   if (legacy) {
     return getLegacyTransactionData({
@@ -266,7 +274,7 @@ export const useGasTransaction = (
           ? gasFeeEstimates[gasSelected]
           : gasFeeEstimates.gasPrice,
       suggestedGasLimit,
-      onlyGas: undefined,
+      onlyGas,
     });
   }
 
@@ -284,6 +292,6 @@ export const useGasTransaction = (
     currentCurrency,
     nativeCurrency,
     suggestedGasLimit,
-    onlyGas: undefined,
+    onlyGas,
   });
 };

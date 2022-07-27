@@ -130,10 +130,6 @@ class Transactions extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * Currency code of the currently-active currency
-     */
-    currentCurrency: PropTypes.string,
-    /**
      * Loading flag from an external call
      */
     loading: PropTypes.bool,
