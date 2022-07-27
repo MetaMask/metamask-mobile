@@ -39,9 +39,9 @@ import {
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
 export interface QRScannerParams {
-  onScanSuccess: (arg1: any, arg2?: any) => void;
-  onScanError?: (arg1: any) => void;
-  onStartScan?: (arg1: any) => Promise<void>;
+  onScanSuccess: (data: any, content?: string) => void;
+  onScanError?: (error: string) => void;
+  onStartScan?: (data: any) => Promise<void>;
   origin?: string;
 }
 
