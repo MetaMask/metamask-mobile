@@ -19,7 +19,7 @@ interface Props {
   id?: string;
   time: number[];
   amountTier: number[];
-  paymentType: Icon;
+  paymentTypeIcon: Icon;
   onPress?: () => any;
   highlighted?: boolean;
 }
@@ -106,7 +106,7 @@ const PaymentOption: React.FC<Props> = ({
   time,
   id,
   amountTier,
-  paymentType,
+  paymentTypeIcon,
   onPress,
   highlighted,
 }: Props) => {
@@ -118,7 +118,11 @@ const PaymentOption: React.FC<Props> = ({
       <ListItem.Content>
         <ListItem.Icon>
           <View style={styles.iconWrapper}>
-            <PaymentIcon iconType={paymentType} size={16} style={styles.icon} />
+            <PaymentIcon
+              iconType={paymentTypeIcon}
+              size={16}
+              style={styles.icon}
+            />
           </View>
         </ListItem.Icon>
         <ListItem.Body>
