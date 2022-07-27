@@ -1,23 +1,29 @@
 # SheetHeader
 
-SheetHeader is a wrapper component used for providing a dropdown icon next to wrapped content.
+SheetHeader is a header component and is currently used within the [BottomSheet](../BottomSheet/BottomSheet.tsx) component.
 
 ## Props
 
-This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps Component](https://reactnative.dev/docs/touchableOpacity).
+### `title`
 
-### `onPress`
-
-Callback to trigger when pressed.
+Sheet title.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
+| string                                              | Yes                                                     |
 
-### `children`
+### `onBack`
 
-Content to wrap in SheetHeader.
+Optional callback when back button is pressed. The back button appears when this property is set.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
+| function                                            | No                                                      |
+
+### `actionOptions`
+
+Optional action options, which includes a callback when the action button is pressed. The action button appears when this property is set.
+
+| <span style="color:gray;font-size:14px">TYPE</span>   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :---------------------------------------------------- | :------------------------------------------------------ |
+| [SheetHeaderActionOptions](./SheetHeader.types.ts#L1) | No                                                      |

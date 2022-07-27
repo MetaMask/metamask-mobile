@@ -1,5 +1,4 @@
-import { StyleSheet, ViewStyle } from 'react-native';
-import { SheetHeaderStyleSheetVars } from './SheetHeader.types';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 /**
@@ -10,11 +9,8 @@ import { Theme } from '../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: SheetHeaderStyleSheetVars;
-}) => {
-  const { vars, theme } = params;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
     base: {
@@ -23,11 +19,12 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       backgroundColor: colors.background.default,
+      height: 32,
     },
-    leftItemContainer: {
+    leftAccessory: {
       flex: 1,
     },
-    rightItemContainer: {
+    rightAccessory: {
       flex: 1,
       alignItems: 'flex-end',
     },

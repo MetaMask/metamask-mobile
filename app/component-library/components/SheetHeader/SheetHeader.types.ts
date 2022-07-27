@@ -1,24 +1,22 @@
-import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
+export interface SheetHeaderActionOptions {
+  label: string;
+  onPress: () => void;
+}
 
 /**
  * SheetHeader component props.
  */
-export interface SheetHeaderProps extends TouchableOpacityProps {
+export interface SheetHeaderProps {
   /**
-   * Callback to trigger when pressed.
+   * Sheet title.
    */
-  // onPress: () => void;
+  title: string;
   /**
-   * Escape hatch for applying extra styles. Only use if absolutely necessary.
+   * Optional callback when back button is pressed. The back button appears when this property is set.
    */
-  // style?: StyleProp<ViewStyle>;
+  onBack?: () => void;
   /**
-   * Content to wrap for multiselect.
+   * Optional action options, which includes a callback when the action button is pressed. The action button appears when this property is set.
    */
-  // children: React.ReactNode;
+  actionOptions?: SheetHeaderActionOptions;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type SheetHeaderStyleSheetVars = Pick<SheetHeaderProps, 'style'>;

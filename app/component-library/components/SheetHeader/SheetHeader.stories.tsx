@@ -1,25 +1,35 @@
-/* eslint-disable no-console */
 import React from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 import SheetHeader from './SheetHeader';
-import { mockTheme } from '../../../util/theme';
-import BaseText, { BaseTextVariant } from '../BaseText';
+import { boolean, text } from '@storybook/addon-knobs';
+import { action } from '@storybook/addon-actions';
 
-const styles = StyleSheet.create({
-  wrappedContent: {
-    height: 50,
-    flex: 1,
-    backgroundColor: mockTheme.colors.background.alternative,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+storiesOf('Component Library / SheetHeader', module).add('Default', () => {
+  const groupId = 'Props';
+  const includesOnBack = boolean('Includes onBack', false, groupId);
+  const includesActionOptions = boolean(
+    'Includes actionOptions',
+    false,
+    groupId,
+  );
+  const onBack = includesOnBack ? action('onPress') : undefined;
+  const onPress = action('onPress');
+  const actionButtonLabel = includesActionOptions
+    ? text('actionOptions.label', 'Action', groupId)
+    : '';
+  const titleLabel = text('title', 'Title', groupId);
+  const actionOptions = includesActionOptions
+    ? {
+        label: actionButtonLabel,
+        onPress,
+      }
+    : undefined;
+
+  return (
+    <SheetHeader
+      onBack={onBack}
+      actionOptions={actionOptions}
+      title={titleLabel}
+    ></SheetHeader>
+  );
 });
-
-storiesOf('Component Library / SheetHeader', module).add('Default', () => (
-  <SheetHeader onPress={() => Alert.alert('Pressed picker!')}>
-    <View style={styles.wrappedContent}>
-      <BaseText variant={BaseTextVariant.sBodySM}>{'Wrapped Content'}</BaseText>
-    </View>
-  </SheetHeader>
-));
