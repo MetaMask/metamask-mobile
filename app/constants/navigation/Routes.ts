@@ -14,6 +14,7 @@ const Routes = {
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
   },
+  QR_SCANNER: 'QRScanner',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',

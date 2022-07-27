@@ -13,6 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { parse } from 'eth-url-parser';
@@ -29,25 +30,31 @@ import { isValidHexAddress } from '../../../util/address';
 import { isValidUrl } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import styles from './styles';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../util/navigation/navUtils';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
-interface Props {
-  /**
-   * Object that represents the navigator
-   */
-  navigation: any;
-  /**
-   * Object that represents the current route info like params passed to it
-   */
-  route: any;
+export interface QRScannerParams {
+  onScanSuccess: (arg1: any, arg2?: any) => void;
+  onScanError?: (arg1: any) => void;
+  onStartScan?: (arg1: any) => Promise<void>;
+  origin?: string;
 }
+
+export const createQRScannerNavDetails =
+  createNavigationDetails<QRScannerParams>(Routes.QR_SCANNER);
 
 /**
  * View that wraps the QR code scanner screen
  */
-const QRScanner = ({ navigation, route }: Props) => {
-  const { onScanError, onScanSuccess, onStartScan, origin } = route.params;
+const QRScanner = () => {
+  const navigation = useNavigation();
+  const { onScanError, onScanSuccess, onStartScan, origin } =
+    useParams<QRScannerParams>();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
