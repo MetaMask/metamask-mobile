@@ -4,12 +4,14 @@ import { shallow, ShallowWrapper } from 'enzyme';
 import { STACKED_AVATARS_OVERFLOW_COUNTER } from '../../../constants/test-ids';
 
 import StackedAvatars from '.';
-import { availableTokenList } from './StackedAvatars.data';
+import StackedAvatarData from './StackedAvatars.data';
 
 describe('StackedAvatars', () => {
   const findOverflowCounter = (
     node: ShallowWrapper<any, any, React.Component>,
   ) => node.prop('testID') === STACKED_AVATARS_OVERFLOW_COUNTER;
+
+  const { availableTokenList } = StackedAvatarData;
 
   it('should render correctly', () => {
     const wrapper = shallow(<StackedAvatars tokenList={availableTokenList} />);

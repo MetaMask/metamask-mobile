@@ -1,4 +1,4 @@
-export const availableTokenList = [
+const availableTokenList = [
   {
     name: 'Ethereum',
     imageUrl: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
@@ -71,3 +71,4 @@ export const availableTokenList = [
   },
 ];
 
+export default { availableTokenList };

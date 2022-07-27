@@ -2,21 +2,20 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { number } from '@storybook/addon-knobs';
 
-import { availableTokenList } from './StackedAvatars.data';
+import StackedAvatarData from './StackedAvatars.data';
 import StackedAvatar from '.';
 
 storiesOf(' Component Library / StackedAvatar', module).add('Default', () => {
+  const { availableTokenList } = StackedAvatarData;
+
   const options = {
     range: true,
     min: 1,
     max: 14,
     step: 1,
   };
-
   const props = 'props';
-
   const amountOfTokens = number('token list amount', 1, options, props);
-
   const tokenList = availableTokenList.slice(0, amountOfTokens);
 
   return <StackedAvatar tokenList={tokenList} />;

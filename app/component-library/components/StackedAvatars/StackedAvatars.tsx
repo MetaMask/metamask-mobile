@@ -9,6 +9,7 @@ import TokenAvatar from '../TokenAvatar';
 
 import styleSheet from './StackedAvatars.styles';
 import { StackedAvatarsProps } from './StackedAvatars.types';
+
 const MAX_STACKED_AVATARS = 4;
 
 const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
