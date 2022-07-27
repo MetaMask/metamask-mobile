@@ -297,36 +297,45 @@ class Login extends PureComponent {
    * into the application if it is enabled.
    */
   checkIfRememberMeEnabled = async () => {
-    const credentials = await SecureKeychain.getGenericPassword();
-    if (credentials) {
-      this.setState({ rememberMe: true });
-      // Restore vault with existing credentials
-      const { KeyringController } = Engine.context;
-      try {
-        await KeyringController.submitPassword(credentials.password);
-        const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-        if (encryptionLib !== ORIGINAL) {
-          await recreateVaultWithSamePassword(
-            credentials.password,
-            this.props.selectedAddress,
+    try {
+      const credentials = await SecureKeychain.getGenericPassword();
+      if (credentials) {
+        this.setState({ rememberMe: true });
+        // Restore vault with existing credentials
+        const { KeyringController } = Engine.context;
+        try {
+          await KeyringController.submitPassword(credentials.password);
+          const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+          if (encryptionLib !== ORIGINAL) {
+            await recreateVaultWithSamePassword(
+              credentials.password,
+              this.props.selectedAddress,
+            );
+            await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+          }
+          // Get onboarding wizard state
+          const onboardingWizard = await DefaultPreference.get(
+            ONBOARDING_WIZARD,
           );
-          await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-        }
-        // Get onboarding wizard state
-        const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-        if (!onboardingWizard) {
-          this.props.setOnboardingWizardStep(1);
-        }
+          if (!onboardingWizard) {
+            this.props.setOnboardingWizardStep(1);
+          }
 
-        // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-        this.setState({ hasBiometricCredentials: false });
-        delete credentials.password;
-        this.props.logIn();
-        this.props.navigation.replace('HomeNav');
-      } catch (error) {
-        this.setState({ rememberMe: false });
-        Logger.error(error, 'Failed to login using Remember Me');
+          // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+          this.setState({ hasBiometricCredentials: false });
+          delete credentials.password;
+          this.props.logIn();
+          this.props.navigation.replace('HomeNav');
+        } catch (error) {
+          this.setState({ rememberMe: false });
+          Logger.error(error, 'Failed to login using Remember Me');
+        }
       }
+    } catch (error) {
+      if (error.message === 'User canceled the operation.') {
+        return;
+      }
+      Logger.error(error, 'Failed to access SecureKeychain');
     }
   };
 

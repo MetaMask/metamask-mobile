@@ -128,7 +128,7 @@ export const FiatOnRampSDKProvider = ({
   const selectedAddress: string = useSelector(selectedAddressSelector);
   const selectedChainId: string = useSelector(chainIdSelector);
 
-  const INITIAL_PAYMENT_METHOD: string | null = useSelector(
+  const INITIAL_PAYMENT_METHOD_ID: string | null = useSelector(
     fiatOrdersPaymentMethodSelectorAgg,
   );
   const INITIAL_SELECTED_ASSET = null;
@@ -136,7 +136,7 @@ export const FiatOnRampSDKProvider = ({
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [selectedAsset, setSelectedAsset] = useState(INITIAL_SELECTED_ASSET);
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
-    INITIAL_PAYMENT_METHOD,
+    INITIAL_PAYMENT_METHOD_ID,
   );
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
   const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
