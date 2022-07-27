@@ -92,6 +92,7 @@ export const getAggregatorAnalyticsPayload = (fiatOrder) => {
     chain_id_destination: fiatOrder.network,
     payment_method_id: fiatOrder.data?.paymentMethod?.id,
     provider_onramp: fiatOrder.data?.provider?.name,
+    amount: fiatOrder.amount,
   };
 
   const completedPayload = {

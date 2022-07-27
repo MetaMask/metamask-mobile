@@ -328,69 +328,76 @@ const GetQuotes = () => {
       !isFetchingQuotes &&
       pollingCyclesLeft >= 0
     ) {
-      const quotesWihoutError: QuoteResponse[] = quotes
+      const quotesWithoutError: QuoteResponse[] = quotes
         .filter(({ error }) => !error)
         .sort(sortByAmountOut);
-      const totals = quotesWihoutError.reduce(
-        (acc, curr) => {
-          const totalFee =
-            acc.totalFee +
-            ((curr?.networkFee || 0) +
-              (curr?.providerFee || 0) +
-              (curr?.extraFee || 0));
-          return {
-            amountOut: acc.amountOut + (curr?.amountOut || 0),
-            totalFee,
-            totalGasFee: acc.totalGasFee + (curr?.networkFee || 0),
-            totalProccessingFee:
-              acc.totalProccessingFee + (curr?.providerFee || 0),
-            feeAmountRatio:
-              acc.feeAmountRatio + totalFee / (curr?.amountOut || 0),
-          };
-        },
-        {
-          amountOut: 0,
-          totalFee: 0,
-          totalGasFee: 0,
-          totalProccessingFee: 0,
-          feeAmountRatio: 0,
-        },
-      );
-      trackEvent('ONRAMP_QUOTES_RECEIVED', {
-        currency_source: (params as any)?.fiatCurrency?.symbol as string,
-        currency_destination: (params as any)?.asset?.symbol as string,
-        chain_id_destination: selectedChainId,
-        amount: (params as any)?.amount as number,
-        payment_method_id: selectedPaymentMethodId as string,
-        refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
-        results_count: filteredQuotes.length,
-        average_crypto_out: totals.amountOut / filteredQuotes.length,
-        average_total_fee: totals.totalFee / filteredQuotes.length,
-        average_gas_fee: totals.totalGasFee / filteredQuotes.length,
-        average_processing_fee:
-          totals.totalProccessingFee / filteredQuotes.length,
-        provider_onramp_list: filteredQuotes.map(
-          ({ provider }) => provider.name,
-        ),
-        provider_onramp_first: filteredQuotes[0]?.provider?.name,
-        average_total_fee_of_amount:
-          totals.feeAmountRatio / filteredQuotes.length,
-        provider_onramp_last:
-          filteredQuotes.length > 1
-            ? filteredQuotes[filteredQuotes.length - 1]?.provider?.name
-            : undefined,
-      });
-
-      if (quotes.length > quotesWihoutError.length) {
-        trackEvent('ONRAMP_QUOTE_ERROR', {
-          provider_onramp_list: quotes
-            .filter(({ error }) => Boolean(error))
-            .map(({ provider }) => provider.name),
+      if (quotesWithoutError.length > 0) {
+        const totals = quotesWithoutError.reduce(
+          (acc, curr) => {
+            const totalFee =
+              acc.totalFee +
+              ((curr?.networkFee || 0) +
+                (curr?.providerFee || 0) +
+                (curr?.extraFee || 0));
+            return {
+              amountOut: acc.amountOut + (curr?.amountOut || 0),
+              totalFee,
+              totalGasFee: acc.totalGasFee + (curr?.networkFee || 0),
+              totalProccessingFee:
+                acc.totalProccessingFee + (curr?.providerFee || 0),
+              feeAmountRatio:
+                acc.feeAmountRatio + totalFee / (curr?.amountOut || 0),
+            };
+          },
+          {
+            amountOut: 0,
+            totalFee: 0,
+            totalGasFee: 0,
+            totalProccessingFee: 0,
+            feeAmountRatio: 0,
+          },
+        );
+        trackEvent('ONRAMP_QUOTES_RECEIVED', {
           currency_source: (params as any)?.fiatCurrency?.symbol as string,
           currency_destination: (params as any)?.asset?.symbol as string,
           chain_id_destination: selectedChainId,
           amount: (params as any)?.amount as number,
+          payment_method_id: selectedPaymentMethodId as string,
+          refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+          results_count: quotesWithoutError.length,
+          average_crypto_out: totals.amountOut / quotesWithoutError.length,
+          average_total_fee: totals.totalFee / quotesWithoutError.length,
+          average_gas_fee: totals.totalGasFee / quotesWithoutError.length,
+          average_processing_fee:
+            totals.totalProccessingFee / quotesWithoutError.length,
+          provider_onramp_list: quotesWithoutError.map(
+            ({ provider }) => provider.name,
+          ),
+          provider_onramp_first: quotesWithoutError[0]?.provider?.name,
+          average_total_fee_of_amount:
+            totals.feeAmountRatio / quotesWithoutError.length,
+          provider_onramp_last:
+            quotesWithoutError.length > 1
+              ? quotesWithoutError[quotesWithoutError.length - 1]?.provider
+                  ?.name
+              : undefined,
         });
+      }
+
+      if (quotes.length > quotesWithoutError.length) {
+        quotes
+          .filter(({ error }) => Boolean(error))
+          .forEach((quote) =>
+            trackEvent('ONRAMP_QUOTE_ERROR', {
+              provider_onramp: quote.provider.name,
+              currency_source: (params as any)?.fiatCurrency?.symbol as string,
+              currency_destination: (params as any)?.asset?.symbol as string,
+              payment_method_id: selectedPaymentMethodId as string,
+              chain_id_destination: selectedChainId,
+              error_message: quote.message,
+              amount: (params as any)?.amount as number,
+            }),
+          );
       }
     }
   }, [

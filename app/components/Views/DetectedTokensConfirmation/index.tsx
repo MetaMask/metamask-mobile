@@ -50,13 +50,14 @@ const createStyles = (colors: any) =>
 interface Props {
   route: {
     params: {
+      isHidingAll?: boolean;
       onConfirm: () => void;
     };
   };
 }
 
 const DetectedTokensConfirmation = ({ route }: Props) => {
-  const { onConfirm } = route.params;
+  const { onConfirm, isHidingAll } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
@@ -69,13 +70,19 @@ const DetectedTokensConfirmation = ({ route }: Props) => {
 
   const renderHeader = () => (
     <Text style={styles.headerLabel}>
-      {strings('detected_tokens.confirm.title')}
+      {strings(
+        `detected_tokens.confirm.${
+          isHidingAll ? 'hide.title' : 'import.title'
+        }`,
+      )}
     </Text>
   );
 
   const renderDescription = () => (
     <Text style={styles.description}>
-      {strings('detected_tokens.confirm.desc')}
+      {strings(
+        `detected_tokens.confirm.${isHidingAll ? 'hide.desc' : 'import.desc'}`,
+      )}
     </Text>
   );
 
