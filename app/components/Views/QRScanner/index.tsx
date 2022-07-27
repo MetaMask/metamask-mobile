@@ -238,7 +238,14 @@ const QRScanner = () => {
 
       end();
     },
-    [isContentRelevantForAddressScreen, end, navigation, onStartScan, onScanSuccess, currentChainId],
+    [
+      isContentRelevantForAddressScreen,
+      end,
+      navigation,
+      onStartScan,
+      onScanSuccess,
+      currentChainId,
+    ],
   );
 
   const showCameraNotAuthorizedAlert = () =>
