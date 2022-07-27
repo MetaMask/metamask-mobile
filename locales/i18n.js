@@ -1,6 +1,9 @@
 import ReactNative from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import I18n from 'react-native-i18n';
+// eslint-disable-next-line import/no-nodejs-modules
+import { EventEmitter } from 'events';
+
 import { LANGUAGE } from '../app/constants/storage';
 // Polyfill Intl & include fallback locale (en) for Hermes iOS
 // import 'intl';
@@ -40,6 +43,8 @@ export const supportedTranslations = {
   vi,
   zh,
 };
+
+export const I18nEvents = new EventEmitter();
 
 // Should the app fallback to English if user locale doesn't exists
 I18n.fallbacks = true;
@@ -94,6 +99,7 @@ export async function setLocale(locale) {
   I18n.locale = locale;
   // Platform.OS === 'ios' && getLocaleData(locale);
   await AsyncStorage.setItem(LANGUAGE, locale);
+  I18nEvents.emit('localeChanged', locale);
 }
 
 // Get languages
