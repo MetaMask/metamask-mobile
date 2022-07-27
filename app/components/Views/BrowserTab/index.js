@@ -815,7 +815,6 @@ export const BrowserTab = (props) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
       changeUrl(nativeEvent);
-      changeAddressBar(nativeEvent);
     }
   };
 
@@ -979,7 +978,7 @@ export const BrowserTab = (props) => {
   const onLoadStart = async ({ nativeEvent }) => {
     const { hostname } = new URL(nativeEvent.url);
 
-    if (nativeEvent.url !== url.current) {
+    if (nativeEvent.url !== url.current && nativeEvent.loading) {
       changeAddressBar({ ...nativeEvent });
     }
 
@@ -989,12 +988,7 @@ export const BrowserTab = (props) => {
     webviewUrlPostMessagePromiseResolve.current = null;
     setError(false);
 
-    changeUrl(nativeEvent, 'start');
-
-    //For Android url on the navigation bar should only update upon load.
-    if (Device.isAndroid()) {
-      changeAddressBar(nativeEvent);
-    }
+    changeUrl(nativeEvent);
 
     icon.current = null;
     if (isHomepage(nativeEvent.url)) {
@@ -1358,6 +1352,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
+              originWhitelist={['*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (
