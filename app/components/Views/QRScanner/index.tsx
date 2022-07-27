@@ -109,10 +109,13 @@ const QRScanner = () => {
       );
     });
 
-  const isContentRelevantForAddressScreen = (content: string): boolean =>
-    (origin === Routes.SEND_FLOW.SEND_TO ||
-      origin === Routes.SETTINGS.CONTACT_FORM) &&
-    !isValidHexAddress(content);
+  const isContentRelevantForAddressScreen = useCallback(
+    (content: string): boolean =>
+      (origin === Routes.SEND_FLOW.SEND_TO ||
+        origin === Routes.SETTINGS.CONTACT_FORM) &&
+      !isValidHexAddress(content),
+    [origin],
+  );
 
   const onBarCodeRead = useCallback(
     async (response) => {
@@ -235,7 +238,7 @@ const QRScanner = () => {
 
       end();
     },
-    [origin, end, onStartScan, onScanSuccess, navigation, currentChainId],
+    [isContentRelevantForAddressScreen, end, navigation, onStartScan, onScanSuccess, currentChainId],
   );
 
   const showCameraNotAuthorizedAlert = () =>
