@@ -880,8 +880,8 @@ class Confirm extends PureComponent {
       accounts,
       contractBalances,
       selectedAsset,
+      ticker,
       transactionState: {
-        ticker,
         transaction: { value },
       },
     } = this.props;
