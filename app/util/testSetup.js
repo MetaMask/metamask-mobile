@@ -105,7 +105,7 @@ jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
 jest.mock('@react-native-community/cookies', () => 'RNCookies');
 jest.mock('react-native-detector', () => ({
-  addScreenshotListener: () => null,
+  addScreenshotListener: jest.fn(),
 }));
 
 NativeModules.RNGestureHandlerModule = {
