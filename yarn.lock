@@ -2433,10 +2433,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@^30.0.2":
-  version "30.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-30.0.2.tgz#0a5512598d2997e34d3542889cae7088fe1fa4b8"
-  integrity sha512-nIUQaaGPzy9whcAvzwHCRsMtw3YWdBv6mUiN9EA2CKdYUesnVj4bpXSSMEso1oEhsNRa2/XTZSb6i+Odo/raJw==
+"@metamask/controllers@^30.2.0":
+  version "30.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-30.2.0.tgz#e4f0e7b783f1d678ffcbe3cefb45ada32a055e00"
+  integrity sha512-qOglOWrgJsENPBXOxpzDSvMFO04nn4HYilHfJcI1HHc+DLrNwSc150I6xHgQSBTfHRaEuv5/mfeU8F9fn1Psig==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
