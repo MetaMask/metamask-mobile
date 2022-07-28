@@ -540,13 +540,14 @@ class ResetPassword extends PureComponent {
   };
 
   renderSwitch = () => {
-    const { biometryType } = this.state;
+    const { biometryType, biometryChoice } = this.state;
     const handleUpdateRememberMe = (rememberMe) => {
       this.setState({ rememberMe });
     };
     return (
       <LoginOptionsSwitch
         shouldRenderBiometricOption={biometryType}
+        initialBiometryChoice={biometryChoice}
         onUpdateBiometryChoice={this.updateBiometryChoice}
         onUpdateRememberMe={handleUpdateRememberMe}
       />

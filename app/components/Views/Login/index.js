@@ -477,6 +477,7 @@ class Login extends PureComponent {
     return (
       <LoginOptionsSwitch
         shouldRenderBiometricOption={shouldRenderBiometricLogin}
+        initialBiometryChoice={this.state.biometryChoice}
         onUpdateBiometryChoice={this.updateBiometryChoice}
         onUpdateRememberMe={handleUpdateRememberMe}
       />

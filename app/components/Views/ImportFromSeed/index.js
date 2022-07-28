@@ -461,6 +461,7 @@ class ImportFromSeed extends PureComponent {
     return (
       <LoginOptionsSwitch
         shouldRenderBiometricOption={this.state.biometryType}
+        initialBiometryChoice={this.state.biometryChoice}
         onUpdateBiometryChoice={this.updateBiometryChoice}
         onUpdateRememberMe={handleUpdateRememberMe}
       />
