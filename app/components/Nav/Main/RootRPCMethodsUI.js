@@ -24,11 +24,11 @@ import {
   getMethodData,
   TOKEN_METHOD_TRANSFER,
   APPROVE_FUNCTION_SIGNATURE,
-  decodeApproveData,
   getTokenValueParam,
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
+  isSwapTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -277,17 +277,7 @@ const RootRPCMethodsUI = (props) => {
       const to = transactionMeta.transaction.to?.toLowerCase();
       const { data } = transactionMeta.transaction;
 
-      // if approval data includes metaswap contract
-      // if destination address is metaswap contract
-      if (
-        transactionMeta.origin === process.env.MM_FOX_CODE &&
-        to &&
-        (swapsUtils.isValidContractAddress(props.chainId, to) ||
-          (data &&
-            data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
-            decodeApproveData(data).spenderAddress?.toLowerCase() ===
-              swapsUtils.getSwapsContractAddress(props.chainId)))
-      ) {
+      if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
         autoSign(transactionMeta);
       } else {
         const {

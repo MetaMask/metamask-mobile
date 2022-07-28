@@ -100,7 +100,7 @@ const AssetList = ({
 
   return (
     <View testID={'add-searched-token-screen'}>
-      {searchResults.slice(0, 6).map((_: any, i: number) => {
+      {searchResults.map((_: any, i: number) => {
         const { symbol, name } = searchResults[i] || {};
         return (
           <StyledButton
