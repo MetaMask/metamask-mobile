@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
 import PaymentOption from '../components/PaymentOption';
@@ -19,7 +20,6 @@ import ErrorView from '../components/ErrorView';
 import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
-
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
 const ListItem = BaseListItem as any;
@@ -74,6 +74,14 @@ const PaymentMethod = () => {
     }
     return null;
   }, [paymentMethods]);
+
+  const currentPaymentMethod = useMemo(
+    () =>
+      filteredPaymentMethods?.find(
+        (method) => method.id === selectedPaymentMethodId,
+      ),
+    [filteredPaymentMethods, selectedPaymentMethodId],
+  );
 
   useEffect(() => {
     if (!isFetching && !error && filteredPaymentMethods) {
@@ -167,34 +175,37 @@ const PaymentMethod = () => {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          {filteredPaymentMethods?.map(({ id, name, delay, amountTier }) => (
-            <View key={id} style={styles.row}>
-              <PaymentOption
-                highlighted={id === selectedPaymentMethodId}
-                title={name}
-                time={delay}
-                id={id}
-                onPress={
-                  id === selectedPaymentMethodId
-                    ? undefined
-                    : () => handlePaymentMethodPress(id)
-                }
-                amountTier={amountTier}
-                paymentType={getPaymentMethodIcon(id)}
-              />
-            </View>
-          ))}
+          {filteredPaymentMethods?.map(
+            ({ id, name, delay, amountTier, paymentType }) => (
+              <View key={id} style={styles.row}>
+                <PaymentOption
+                  highlighted={id === selectedPaymentMethodId}
+                  title={name}
+                  time={delay}
+                  id={id}
+                  onPress={
+                    id === selectedPaymentMethodId
+                      ? undefined
+                      : () => handlePaymentMethodPress(id)
+                  }
+                  amountTier={amountTier}
+                  paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                />
+              </View>
+            ),
+          )}
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.row}>
             <Text small grey centered>
-              {selectedPaymentMethodId === '/payments/apple-pay' &&
+              {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
                 strings(
                   'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
                 )}
-              {selectedPaymentMethodId === '/payments/debit-credit-card' &&
+              {currentPaymentMethod?.paymentType ===
+                PaymentType.DebitCreditCard &&
                 strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
             </Text>
           </View>

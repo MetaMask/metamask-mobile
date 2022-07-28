@@ -109,8 +109,8 @@ class AccountElement extends PureComponent {
 
   onPress = () => {
     const { onPress } = this.props;
-    const { index } = this.props.item;
-    onPress && onPress(index);
+    const { address } = this.props.item;
+    onPress && onPress(address);
   };
 
   onLongPress = () => {
