@@ -735,5 +735,5 @@ export const toHexadecimal = (decimal) => {
     decimal = String(decimal);
   }
   if (decimal.startsWith('0x')) return decimal;
-  return parseInt(decimal, 10).toString(16);
+  return toBigNumber.dec(decimal).toString(16);
 };
