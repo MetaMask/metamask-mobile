@@ -18,7 +18,6 @@ import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-// eslint-disable-next-line import/no-unresolved
 import { addScreenshotListener } from 'react-native-detector';
 import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
