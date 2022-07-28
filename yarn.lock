@@ -2433,9 +2433,9 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@file:./metamask-controllers-v30.1.2.tgz":
-  version "30.1.2"
-  resolved "file:./metamask-controllers-v30.1.2.tgz#268b2749292c55446f7e3e5ba861536a3178b619"
+"@metamask/controllers@git+https://github.com/MetaMask/controllers.git#13343472c19ec67515bf5b36c9095a5237fb3cbb":
+  version "30.0.2"
+  resolved "git+https://github.com/MetaMask/controllers.git#13343472c19ec67515bf5b36c9095a5237fb3cbb"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
