@@ -70,14 +70,10 @@ interface IProviderProps<T> {
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
-export const SDK = OnRampSdk.create(
-  isDevelopment ? Environment.Staging : Environment.Production,
-  Context.Mobile,
-  {
-    verbose: VERBOSE_SDK,
-    locale: I18n.locale,
-  },
-);
+export const SDK = OnRampSdk.create(Environment.Staging, Context.Mobile, {
+  verbose: VERBOSE_SDK,
+  locale: I18n.locale,
+});
 
 I18nEvents.addListener('localeChanged', (locale) => {
   SDK.setLocale(locale);
