@@ -65,11 +65,12 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.alternative,
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 10,
+      padding: 15,
     },
     hideMediaText: {
       fontSize: 20,
       textAlign: 'center',
+      marginBottom: 10,
     },
   });
 
@@ -112,8 +113,11 @@ export default function CollectibleMedia({
           }}
         >
           <View style={[big && styles.bigImage, styles.hideMediaView]}>
-            <Text style={styles.hideMediaText}>
+            <Text bold style={styles.hideMediaText}>
               {strings('collectible_media.show_nft_media')}
+            </Text>
+            <Text centered>
+              {strings('collectible_media.show_nft_media_warning')}
             </Text>
           </View>
         </TouchableOpacity>

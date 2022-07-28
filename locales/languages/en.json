@@ -2142,12 +2142,13 @@
     "title": "Add Suggested NFT",
     "cancel": "CANCEL",
     "add": "ADD NFT",
-    "message": "Would you like to add this NFT?",
+    "message": "This site is requesting to add this NFT to your account",
     "token": "NFT",
     "address": "Address",
     "id": "ID"
   },
   "collectible_media": {
-    "show_nft_media": "⚠ Click to show NFT media"
+    "show_nft_media": "Click to show NFT media",
+    "show_nft_media_warning": "⚠ Remotely hosted content may expose your IP address to 3rd party servers"
   }
 }
