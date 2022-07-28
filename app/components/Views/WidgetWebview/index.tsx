@@ -26,8 +26,8 @@ const createStyles = () =>
       textAlign: 'center',
     },
     experimentalText: {
-      marginTop: 50,
-      marginBottom: 30,
+      marginTop: 60,
+      marginBottom: 40,
       textAlign: 'center',
     },
     widgetContainer: {

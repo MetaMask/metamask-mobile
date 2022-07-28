@@ -2150,11 +2150,11 @@
     "show_nft_media": "⚠ Click to show NFT media"
   },
   "create_my_nft": {
-    "title": "Create my NFT"
+    "title": "Create NFT"
   },
   "widget_webview": {
     "experimental_title": "This feature is experimental",
-    "experimental_question": "Would you like to continue?",
-    "experimental_continue": "Continue"
+    "experimental_question": "That means there may be a few bumps along the way. Do you want to continue?",
+    "experimental_continue": "Yes, continue"
   }
 }
