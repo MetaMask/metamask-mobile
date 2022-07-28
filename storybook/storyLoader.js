@@ -13,6 +13,7 @@ function loadStories() {
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
   require('../app/component-library/components/AvatarIcon/AvatarIcon.stories');
+  require('../app/component-library/components/AvatarWithBadge/AvatarWithBadge.stories');
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/BaseButton/BaseButton.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
@@ -48,6 +49,7 @@ const stories = [
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
   '../app/component-library/components/AvatarIcon/AvatarIcon.stories',
+  '../app/component-library/components/AvatarWithBadge/AvatarWithBadge.stories',
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/BaseButton/BaseButton.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
