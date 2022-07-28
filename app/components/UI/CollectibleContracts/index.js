@@ -267,7 +267,10 @@ const CollectibleContracts = ({
   const goToCreateCollectible = () =>
     navigation.navigate('Webview', {
       screen: 'WidgetWebview',
-      params: { url: 'http://localhost:3000', experimental: true },
+      params: {
+        url: 'https://andrepimenta.github.io/create-my-nft',
+        experimental: true,
+      },
     });
 
   const renderEmpty = () => (
