@@ -32,7 +32,7 @@ const LoginOptionsSwitch = ({
   const allowLoginWithRememberMe = useSelector(
     (state: any) => state.security.allowLoginWithRememberMe,
   );
-  const [biometryEnabled, setBiometryEnabled] = useState<boolean>(false);
+  const [biometryEnabled, setBiometryEnabled] = useState<boolean>(true);
   const [rememberMeEnabled, setRememberMeEnabled] = useState<boolean>(false);
 
   const onBiometryValueChanged = useCallback(async () => {
