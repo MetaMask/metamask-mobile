@@ -195,7 +195,7 @@ const RevealPrivateCredential = ({
     navigation.pop();
   };
 
-  const cancelLol = () => {
+  const cancelReveal = () => {
     if (!unlocked)
       AnalyticsV2.trackEvent(
         isPrivateKey()
@@ -485,7 +485,7 @@ const RevealPrivateCredential = ({
             : strings('reveal_credential.cancel')
         }
         confirmText={strings('reveal_credential.confirm')}
-        onCancelPress={unlocked ? navigateBack : cancelLol}
+        onCancelPress={unlocked ? navigateBack : cancelReveal}
         testID={`next-button`}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
