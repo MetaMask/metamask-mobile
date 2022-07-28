@@ -106,6 +106,7 @@ const TurnOffRememberMeModal = () => {
               onChangeText={checkPassword}
               autoCapitalize="none"
               value={passwordText}
+              placeholder={strings('turn_off_remember_me.placeholder')}
               baseColor={colors.border.default}
               tintColor={colors.primary.default}
               placeholderTextColor={colors.text.muted}
