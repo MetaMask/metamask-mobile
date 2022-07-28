@@ -495,48 +495,59 @@ export const getRpcMethodMiddleware = ({
       wallet_watchAsset: async () => {
         const {
           params: {
-            options: { address, decimals, image, symbol },
+            options: { address, tokenId, decimals, image, symbol },
             type,
           },
         } = req;
         const { TokensController } = Engine.context;
-
-        checkTabActive();
-        try {
-          const watchAssetResult = await TokensController.watchAsset(
-            { address, symbol, decimals, image },
-            type,
-          );
-          await watchAssetResult.result;
-          res.result = true;
-        } catch (error) {
-          if (
-            (error as Error).message === 'User rejected to watch the asset.'
-          ) {
-            throw ethErrors.provider.userRejectedRequest();
-          }
-          throw error;
-        }
-      },
-
-      wallet_addNFT: async () => {
         const { CollectiblesController } = Engine.context;
+
         checkTabActive();
-        try {
-          const watchNFTResult = await CollectiblesController.watchCollectible({
-            address: req.params[0].address,
-            tokenId: req.params[0].tokenId,
-          });
-          await watchNFTResult.result;
-          res.result = true;
-        } catch (error) {
-          if ((error as Error).message === 'User rejected to watch the NFT.') {
-            throw ethErrors.provider.userRejectedRequest();
+
+        if (type === 'ERC721' || type === 'ERC1155' || type === 'NFT') {
+          try {
+            try {
+              const watchNFTResult =
+                await CollectiblesController.watchCollectible({
+                  address,
+                  tokenId,
+                });
+              await watchNFTResult.result;
+              res.result = true;
+            } catch (error) {
+              if (
+                (error as Error).message === 'User rejected to watch the NFT.'
+              ) {
+                throw ethErrors.provider.userRejectedRequest();
+              }
+              throw error;
+            }
+          } catch (error) {
+            if (
+              (error as Error).message === 'User rejected to watch the NFT.'
+            ) {
+              throw ethErrors.provider.userRejectedRequest();
+            }
+            throw error;
           }
-          throw error;
+        } else {
+          try {
+            const watchAssetResult = await TokensController.watchAsset(
+              { address, symbol, decimals, image },
+              type,
+            );
+            await watchAssetResult.result;
+            res.result = true;
+          } catch (error) {
+            if (
+              (error as Error).message === 'User rejected to watch the asset.'
+            ) {
+              throw ethErrors.provider.userRejectedRequest();
+            }
+            throw error;
+          }
         }
       },
-
       metamask_removeFavorite: async () => {
         checkTabActive();
         if (!isHomepage()) {
