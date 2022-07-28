@@ -14,8 +14,7 @@ storiesOf(' Component Library / StackedAvatar', module).add('Default', () => {
     max: 14,
     step: 1,
   };
-  const props = 'props';
-  const amountOfTokens = number('token list amount', 1, options, props);
+  const amountOfTokens = number('Amount of tokens', 1, options);
   const tokenList = availableTokenList.slice(0, amountOfTokens);
 
   return <StackedAvatar tokenList={tokenList} />;
