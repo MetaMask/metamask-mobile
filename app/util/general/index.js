@@ -80,3 +80,8 @@ export const renderShortText = (text, chars = 4) => {
     return text;
   }
 };
+
+export const chooseOption = (option1, option2) => {
+  if (option1) return option1;
+  return option2;
+};

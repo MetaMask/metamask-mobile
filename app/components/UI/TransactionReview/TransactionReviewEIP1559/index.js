@@ -15,6 +15,8 @@ import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { chooseOption } from '../../../../util/general';
+import { useGasTransaction } from '../../../../core/gasPolling';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -80,16 +82,16 @@ const Skeleton = ({ width, noStyle }) => {
 };
 
 const TransactionReviewEIP1559 = ({
-  totalNative,
-  totalConversion,
-  totalMaxNative,
+  timeEstimate,
+  timeEstimateId,
+  timeEstimateColor,
   gasFeeNative,
   gasFeeConversion,
   gasFeeMaxNative,
+  totalNative,
+  totalConversion,
+  totalMaxNative,
   gasFeeMaxConversion,
-  timeEstimate,
-  timeEstimateColor,
-  timeEstimateId,
   primaryCurrency,
   chainId,
   onEdit,
@@ -103,6 +105,7 @@ const TransactionReviewEIP1559 = ({
   isAnimating,
   gasEstimationReady,
   legacy,
+  gasSelected,
 }) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -118,6 +121,30 @@ const TransactionReviewEIP1559 = ({
   }, []);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+
+  const gasTransaction = useGasTransaction({
+    onlyGas: undefined,
+    gasSelected,
+    legacy: !!legacy,
+    gasLimit: null,
+  });
+
+  const {
+    renderableGasFeeMinNative,
+    renderableGasFeeMinConversion,
+    renderableGasFeeMaxNative,
+    renderableTotalMinNative,
+    renderableTotalMinConversion,
+    renderableTotalMaxNative,
+    renderableGasFeeMaxConversion,
+    timeEstimateColor: EIP1559TimeEstimateColor,
+    timeEstimate: EIP1559TimeEstimate,
+    timeEstimateId: EIP1559TimeEstimateId,
+    transactionTotalAmount,
+    transactionTotalAmountFiat,
+    transactionFee,
+    transactionFeeFiat,
+  } = gasTransaction;
 
   const openLinkAboutGas = useCallback(
     () =>
@@ -139,23 +166,47 @@ const TransactionReviewEIP1559 = ({
     totalPrimary,
     totalSecondary,
     totalMaxPrimary;
+
+  const checkLegacy = (legacyProp, eip1559Prop) => {
+    if (legacy) {
+      return legacyProp;
+    }
+    return eip1559Prop;
+  };
+
+  const gasFeeValue =
+    gasFeeNative || checkLegacy(transactionFee, renderableGasFeeMinNative);
+  const gasFeeAltValue =
+    gasFeeConversion ||
+    checkLegacy(transactionFeeFiat, renderableGasFeeMinConversion);
+  const gasFeeMaxValue = gasFeeMaxNative || renderableGasFeeMaxNative;
+  const totalValue =
+    totalNative ||
+    checkLegacy(transactionTotalAmount, renderableTotalMinNative);
+  const totalAltValue =
+    totalConversion ||
+    checkLegacy(transactionTotalAmountFiat, renderableTotalMinConversion);
+  const totalMaxValue = totalMaxNative || renderableTotalMaxNative;
+  const gasFeeMaxAltValue =
+    gasFeeMaxConversion || renderableGasFeeMaxConversion;
+
   if (nativeCurrencySelected) {
-    gasFeePrimary = gasFeeNative;
-    gasFeeSecondary = gasFeeConversion;
-    gasFeeMaxPrimary = gasFeeMaxNative;
-    totalPrimary = totalNative;
-    totalSecondary = totalConversion;
-    totalMaxPrimary = totalMaxNative;
+    gasFeePrimary = gasFeeValue;
+    gasFeeSecondary = gasFeeAltValue;
+    gasFeeMaxPrimary = gasFeeMaxValue;
+    totalPrimary = totalValue;
+    totalSecondary = totalAltValue;
+    totalMaxPrimary = totalMaxValue;
   } else {
-    gasFeePrimary = gasFeeConversion;
-    gasFeeSecondary = gasFeeNative;
-    gasFeeMaxPrimary = gasFeeMaxConversion;
-    totalPrimary = totalConversion;
-    totalSecondary = totalNative;
-    totalMaxPrimary = gasFeeMaxConversion;
+    gasFeePrimary = gasFeeAltValue;
+    gasFeeSecondary = gasFeeValue;
+    gasFeeMaxPrimary = gasFeeMaxAltValue;
+    totalPrimary = totalAltValue;
+    totalSecondary = totalValue;
+    totalMaxPrimary = gasFeeMaxAltValue;
   }
 
-  const valueToWatchAnimation = `${gasFeeNative}${gasFeeMaxNative}`;
+  const valueToWatchAnimation = `${gasFeeValue}${gasFeeMaxValue}`;
 
   return (
     <Summary style={styles.overview(noMargin)}>
@@ -255,13 +306,25 @@ const TransactionReviewEIP1559 = ({
                 <View style={styles.timeEstimateContainer}>
                   <Text
                     small
-                    green={timeEstimateColor === 'green'}
-                    red={timeEstimateColor === 'red'}
+                    green={
+                      chooseOption(
+                        timeEstimateColor,
+                        EIP1559TimeEstimateColor,
+                      ) === 'green'
+                    }
+                    red={
+                      chooseOption(
+                        timeEstimateColor,
+                        EIP1559TimeEstimateColor,
+                      ) === 'red'
+                    }
                   >
-                    {timeEstimate}
+                    {chooseOption(timeEstimate, EIP1559TimeEstimate)}
                   </Text>
-                  {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                    timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                  {(chooseOption(timeEstimateId, EIP1559TimeEstimateId) ===
+                    AppConstants.GAS_TIMES.MAYBE ||
+                    chooseOption(timeEstimateId, EIP1559TimeEstimateId) ===
+                      AppConstants.GAS_TIMES.UNKNOWN) && (
                     <TouchableOpacity
                       style={styles.gasInfoContainer}
                       onPress={showTimeEstimateInfoModal}
@@ -419,7 +482,7 @@ const TransactionReviewEIP1559 = ({
       />
       <TimeEstimateInfoModal
         isVisible={isVisibleTimeEstimateInfoModal}
-        timeEstimateId={timeEstimateId}
+        timeEstimateId={timeEstimateId || EIP1559TimeEstimateId}
         onHideModal={hideTimeEstimateInfoModal}
       />
     </Summary>
@@ -472,13 +535,13 @@ TransactionReviewEIP1559.propTypes = {
    */
   timeEstimate: PropTypes.string,
   /**
-   * String that represents the color of the time estimate
-   */
-  timeEstimateColor: PropTypes.string,
-  /**
    * Time estimate name (unknown, low, medium, high, less_than, range)
    */
   timeEstimateId: PropTypes.string,
+  /**
+   * Color visualization for the time estimate
+   */
+  timeEstimateColor: PropTypes.string,
   /**
    * Boolean to determine if the total section should be hidden
    */
@@ -515,6 +578,10 @@ TransactionReviewEIP1559.propTypes = {
    * If should show legacy gas
    */
   legacy: PropTypes.bool,
+  /**
+   * the selected gas option
+   */
+  gasSelected: PropTypes.string,
   /**
    * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
    */

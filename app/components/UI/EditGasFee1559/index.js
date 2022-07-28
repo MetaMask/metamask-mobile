@@ -26,7 +26,9 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
+import { useGasTransaction } from '../../../core/gasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { chooseOption } from '../../../util/general';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -143,6 +145,7 @@ const createStyles = (colors) =>
   });
 
 const EditGasFee1559 = ({
+  suggestedGasLimit,
   selected,
   gasFee,
   gasOptions,
@@ -193,6 +196,27 @@ const EditGasFee1559 = ({
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
+
+  const gasTransaction = useGasTransaction({
+    onlyGas: true,
+    gasSelected: selectedOption,
+    legacy: false,
+    gasLimit: suggestedGasLimit,
+  });
+
+  const {
+    renderableGasFeeMinNative,
+    renderableGasFeeMaxNative,
+    renderableGasFeeMaxConversion,
+    renderableMaxFeePerGasNative,
+    renderableGasFeeMinConversion,
+    renderableMaxPriorityFeeNative,
+    renderableMaxFeePerGasConversion,
+    renderableMaxPriorityFeeConversion,
+    timeEstimateColor: EIP1559TimeEstimateColor,
+    timeEstimate: EIP1559TimeEstimate,
+    timeEstimateId: EIP1559TimeEstimateId,
+  } = gasTransaction;
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -380,20 +404,47 @@ const EditGasFee1559 = ({
     maxPriorityFeePerGasPrimary,
     gasFeeMaxSecondary;
   if (nativeCurrencySelected) {
-    gasFeePrimary = gasFeeNative;
-    gasFeeMaxPrimary = gasFeeMaxNative;
-    gasFeeMaxSecondary = gasFeeMaxConversion;
-    maxFeePerGasPrimary = maxFeePerGasNative;
-    maxPriorityFeePerGasPrimary = maxPriorityFeeNative;
+    gasFeePrimary = chooseOption(gasFeeNative, renderableGasFeeMinNative);
+    gasFeeMaxPrimary = chooseOption(gasFeeMaxNative, renderableGasFeeMaxNative);
+    gasFeeMaxSecondary = chooseOption(
+      gasFeeMaxConversion,
+      renderableGasFeeMaxConversion,
+    );
+    maxFeePerGasPrimary = chooseOption(
+      maxFeePerGasNative,
+      renderableMaxFeePerGasNative,
+    );
+    maxPriorityFeePerGasPrimary = chooseOption(
+      maxPriorityFeeNative,
+      renderableMaxPriorityFeeNative,
+    );
   } else {
-    gasFeePrimary = gasFeeConversion;
-    gasFeeMaxPrimary = gasFeeMaxConversion;
-    gasFeeMaxSecondary = gasFeeMaxNative;
-    maxFeePerGasPrimary = maxFeePerGasConversion;
-    maxPriorityFeePerGasPrimary = maxPriorityFeeConversion;
+    gasFeePrimary = chooseOption(
+      gasFeeConversion,
+      renderableGasFeeMinConversion,
+    );
+    gasFeeMaxPrimary = chooseOption(
+      gasFeeMaxConversion,
+      renderableGasFeeMaxConversion,
+    );
+    gasFeeMaxSecondary = chooseOption(
+      gasFeeMaxNative,
+      renderableGasFeeMaxNative,
+    );
+    maxFeePerGasPrimary = chooseOption(
+      maxFeePerGasConversion,
+      renderableMaxFeePerGasConversion,
+    );
+    maxPriorityFeePerGasPrimary = chooseOption(
+      maxPriorityFeeConversion,
+      renderableMaxPriorityFeeConversion,
+    );
   }
 
-  const valueToWatch = `${gasFeeNative}${gasFeeMaxNative}`;
+  const valueToWatch = `${chooseOption(
+    gasFeeNative,
+    renderableGasFeeMinNative,
+  )}${chooseOption(gasFeeMaxNative, renderableGasFeeMaxNative)}`;
 
   const renderInputs = () => (
     <View>
@@ -707,14 +758,26 @@ const EditGasFee1559 = ({
               </Text>
               <View style={styles.labelTextContainer}>
                 <Text
-                  green={timeEstimateColor === 'green'}
-                  red={timeEstimateColor === 'red'}
+                  green={
+                    chooseOption(
+                      timeEstimateColor,
+                      EIP1559TimeEstimateColor,
+                    ) === 'green'
+                  }
+                  red={
+                    chooseOption(
+                      timeEstimateColor,
+                      EIP1559TimeEstimateColor,
+                    ) === 'red'
+                  }
                   bold
                 >
-                  {timeEstimate}
+                  {chooseOption(timeEstimate, EIP1559TimeEstimate)}
                 </Text>
-                {(timeEstimateId === AppConstants.GAS_TIMES.MAYBE ||
-                  timeEstimateId === AppConstants.GAS_TIMES.UNKNOWN) && (
+                {(chooseOption(timeEstimateId, EIP1559TimeEstimateId) ===
+                  AppConstants.GAS_TIMES.MAYBE ||
+                  chooseOption(timeEstimateId, EIP1559TimeEstimateId) ===
+                    AppConstants.GAS_TIMES.UNKNOWN) && (
                   <TouchableOpacity
                     hitSlop={styles.hitSlop}
                     onPress={showTimeEstimateInfoModal}
@@ -847,7 +910,10 @@ const EditGasFee1559 = ({
             />
             <TimeEstimateInfoModal
               isVisible={isVisibleTimeEstimateInfoModal}
-              timeEstimateId={timeEstimateId}
+              timeEstimateId={chooseOption(
+                timeEstimateId,
+                EIP1559TimeEstimateId,
+              )}
               onHideModal={hideTimeEstimateInfoModal}
             />
           </View>
@@ -908,6 +974,10 @@ EditGasFee1559.propTypes = {
    * Maximum priority gas fee in native currency
    */
   maxPriorityFeeNative: PropTypes.string,
+  /**
+   * Transaction suggested gas limit
+   */
+  suggestedGasLimit: PropTypes.string,
   /**
    * Maximum priority gas fee converted to chosen currency
    */

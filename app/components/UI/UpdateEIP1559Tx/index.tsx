@@ -11,8 +11,8 @@ import { hexToBN, fromWei, renderFromWei } from '../../../util/number';
 import BigNumber from 'bignumber.js';
 import { getTicker, parseTransactionEIP1559 } from '../../../util/transactions';
 import AppConstants from '../../../core/AppConstants';
-import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
+import { startGasPolling, stopGasPolling } from '../../../core/gasPolling';
 
 /**
  * View that renders a list of transactions for a specific asset
@@ -139,23 +139,20 @@ const UpdateEIP1559Tx = ({
   const pollToken = useRef(undefined);
   const firstTime = useRef(true);
 
+  const suggestedGasLimit = fromWei(gas, 'wei');
+
   useEffect(() => {
     if (animateOnGasChange) setAnimateOnGasChange(false);
   }, [animateOnGasChange]);
 
   useEffect(() => {
-    const { GasFeeController }: any = Engine.context;
     const startGasEstimatePolling = async () => {
-      pollToken.current =
-        await GasFeeController.getGasFeeEstimatesAndStartPolling(
-          pollToken.current,
-        );
+      pollToken.current = await startGasPolling(pollToken.current);
     };
-
     startGasEstimatePolling();
 
     return () => {
-      GasFeeController.stopPolling(pollToken.current);
+      stopGasPolling();
     };
   }, []);
 
@@ -271,8 +268,6 @@ const UpdateEIP1559Tx = ({
   useEffect(() => {
     if (stopUpdateGas.current) return;
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      const suggestedGasLimit = fromWei(gas, 'wei');
-
       let updateTxEstimates = gasFeeEstimates[gasSelected];
 
       if (firstTime.current) {
@@ -340,6 +335,7 @@ const UpdateEIP1559Tx = ({
     parseTransactionDataEIP1559,
     isCancel,
     gas,
+    suggestedGasLimit,
     isMaxFeePerGasMoreThanLegacy,
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
@@ -368,25 +364,9 @@ const UpdateEIP1559Tx = ({
       gasFee={EIP1559TransactionData}
       gasOptions={gasFeeEstimates}
       onChange={calculate1559TempGasFee}
-      gasFeeNative={EIP1559TransactionData.renderableGasFeeMinNative}
-      gasFeeConversion={EIP1559TransactionData.renderableGasFeeMinConversion}
-      gasFeeMaxNative={EIP1559TransactionData.renderableGasFeeMaxNative}
-      gasFeeMaxConversion={EIP1559TransactionData.renderableGasFeeMaxConversion}
-      maxPriorityFeeNative={
-        EIP1559TransactionData.renderableMaxPriorityFeeNative
-      }
-      maxPriorityFeeConversion={
-        EIP1559TransactionData.renderableMaxPriorityFeeConversion
-      }
-      maxFeePerGasNative={EIP1559TransactionData.renderableMaxFeePerGasNative}
-      maxFeePerGasConversion={
-        EIP1559TransactionData.renderableMaxFeePerGasConversion
-      }
       primaryCurrency={primaryCurrency}
+      suggestedGasLimit={suggestedGasLimit}
       chainId={chainId}
-      timeEstimate={EIP1559TransactionData.timeEstimate}
-      timeEstimateColor={EIP1559TransactionData.timeEstimateColor}
-      timeEstimateId={EIP1559TransactionData.timeEstimateId}
       onCancel={onCancel}
       onSave={() => onSave(EIP1559TransactionData)}
       error={EIP1559TransactionData.error}
