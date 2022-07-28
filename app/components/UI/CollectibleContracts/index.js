@@ -5,7 +5,6 @@ import {
   StyleSheet,
   View,
   InteractionManager,
-  Image,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -28,6 +27,7 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -40,7 +40,8 @@ const createStyles = (colors) =>
     emptyView: {
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: 10,
+      marginTop: 22,
+      marginBottom: 22,
     },
     add: {
       flexDirection: 'row',
@@ -79,6 +80,24 @@ const createStyles = (colors) =>
       color: colors.text.alternative,
       marginBottom: 8,
       fontSize: 14,
+    },
+    row: {
+      flexDirection: 'row',
+    },
+    createCollectibleButton: {
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      padding: 32,
+      borderRadius: 20,
+      borderStyle: 'dashed',
+    },
+    createCollectibleContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    createCollectibleText: {
+      color: colors.primary.default,
+      marginTop: 12,
     },
   });
 
@@ -152,17 +171,35 @@ const CollectibleContracts = ({
     });
   };
 
+  const goToLearnMore = () =>
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: { url: AppConstants.URLS.NFT },
+    });
+
   const renderFooter = () => (
     <View style={styles.footer} key={'collectible-contracts-footer'}>
-      <Text style={styles.emptyText}>{strings('wallet.no_collectibles')}</Text>
-      <TouchableOpacity
-        style={styles.add}
-        onPress={goToAddCollectible}
-        disabled={!isAddNFTEnabled}
-        testID={'add-collectible-button'}
-      >
-        <Text style={styles.addText}>{strings('wallet.add_collectibles')}</Text>
-      </TouchableOpacity>
+      <View style={styles.row}>
+        <Text center style={styles.emptyText}>
+          {strings('wallet.new_to_nfts')}{' '}
+        </Text>
+        <Text center link onPress={goToLearnMore}>
+          {strings('wallet.learn_more')}
+        </Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.emptyText}>
+          {strings('wallet.no_collectibles')}{' '}
+        </Text>
+        <Text
+          link
+          onPress={goToAddCollectible}
+          disabled={!isAddNFTEnabled}
+          testID={'add-collectible-button'}
+        >
+          {strings('wallet.add_collectibles')}
+        </Text>
+      </View>
     </View>
   );
 
@@ -223,31 +260,33 @@ const CollectibleContracts = ({
     ],
   );
 
-  const goToLearnMore = () =>
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: { url: AppConstants.URLS.NFT },
-    });
-
   const dismissNftInfo = async () => {
     setNftDetectionDismissed(true);
   };
 
+  const goToCreateCollectible = () =>
+    navigation.navigate('Webview', {
+      screen: 'WidgetWebview',
+      params: { url: 'http://localhost:3000', experimental: true },
+    });
+
   const renderEmpty = () => (
     <View style={styles.emptyView}>
-      <View style={styles.emptyContainer}>
-        <Image
-          style={styles.emptyImageContainer}
-          source={require('../../../images/no-nfts-placeholder.png')}
-          resizeMode={'contain'}
-        />
-        <Text center style={styles.emptyTitleText} bold>
-          {strings('wallet.no_nfts_yet')}
-        </Text>
-        <Text center big link onPress={goToLearnMore}>
-          {strings('wallet.learn_more')}
-        </Text>
-      </View>
+      <TouchableOpacity
+        onPress={goToCreateCollectible}
+        style={styles.createCollectibleButton}
+      >
+        <View style={styles.createCollectibleContainer}>
+          <FontAwesome5Icon
+            name="camera-retro"
+            size={30}
+            style={{ color: colors.primary.default }}
+          />
+          <Text style={styles.createCollectibleText}>
+            {strings('wallet.create_nft')}
+          </Text>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 
@@ -263,7 +302,8 @@ const CollectibleContracts = ({
             />
           </View>
         )}
-      {collectibleContracts.length > 0 ? renderList() : renderEmpty()}
+      {renderList()}
+      {renderEmpty()}
       {renderFooter()}
     </View>
   );

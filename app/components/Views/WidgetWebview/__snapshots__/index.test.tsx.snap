@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WidgetWebview should render correctly 1`] = `
+<View>
+  <View
+    style={
+      Array [
+        Object {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <Connect(withNavigation(BrowserTab))
+      allowAllAccounts={true}
+      initialUrl="https://etherscan.io"
+      isAlwaysActive={true}
+      newTab={[Function]}
+      showTabs={[Function]}
+      updateTabInfo={[Function]}
+    />
+  </View>
+</View>
+`;

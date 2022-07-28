@@ -65,6 +65,7 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
+import specialPermissions from '../../../core/RPCMethods/specialPermissions';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -313,12 +314,14 @@ export const BrowserTab = (props) => {
   const notifyAllConnections = useCallback(
     (payload, restricted = true) => {
       const fullHostname = new URL(url.current).hostname;
-
       // TODO:permissions move permissioning logic elsewhere
       backgroundBridges.current.forEach((bridge) => {
         if (
           bridge.hostname === fullHostname &&
-          (!props.privacyMode || !restricted || approvedHosts[bridge.hostname])
+          (!props.privacyMode ||
+            !restricted ||
+            approvedHosts[bridge.hostname] ||
+            specialPermissions[bridge.hostname].eth_requestAccounts)
         ) {
           bridge.sendNotification(payload);
         }
@@ -1346,7 +1349,10 @@ export const BrowserTab = (props) => {
   return (
     <ErrorBoundary view="BrowserTab">
       <View
-        style={[styles.wrapper, !isTabActive() && styles.hide]}
+        style={[
+          styles.wrapper,
+          !isTabActive() && !props.isAlwaysActive && styles.hide,
+        ]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
         <View style={styles.webview}>
@@ -1495,6 +1501,10 @@ BrowserTab.propTypes = {
    * the current version of the app
    */
   app_version: PropTypes.string,
+  /**
+   * Makes webview always active, used for Widgets
+   */
+  isAlwaysActive: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {

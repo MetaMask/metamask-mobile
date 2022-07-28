@@ -17,6 +17,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
+import specialPermissions from './specialPermissions';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -146,7 +147,10 @@ export const getRpcMethodMiddleware = ({
         Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 
       const isEnabled =
-        isWalletConnect || !privacyMode || getApprovedHosts()[hostname];
+        isWalletConnect ||
+        !privacyMode ||
+        getApprovedHosts()[hostname] ||
+        specialPermissions[hostname]?.eth_requestAccounts;
 
       return isEnabled && selectedAddress ? [selectedAddress] : [];
     };
@@ -241,7 +245,8 @@ export const getRpcMethodMiddleware = ({
         if (
           isWalletConnect ||
           !privacyMode ||
-          ((!params || !params.force) && getApprovedHosts()[hostname])
+          ((!params || !params.force) && getApprovedHosts()[hostname]) ||
+          specialPermissions[hostname]?.eth_requestAccounts
         ) {
           res.result = [selectedAddress];
         } else {
@@ -495,30 +500,50 @@ export const getRpcMethodMiddleware = ({
       wallet_watchAsset: async () => {
         const {
           params: {
-            options: { address, decimals, image, symbol },
+            options: { address, tokenId, decimals, image, symbol },
             type,
           },
         } = req;
         const { TokensController } = Engine.context;
+        const { CollectiblesController } = Engine.context;
 
         checkTabActive();
-        try {
-          const watchAssetResult = await TokensController.watchAsset(
-            { address, symbol, decimals, image },
-            type,
-          );
-          await watchAssetResult.result;
-          res.result = true;
-        } catch (error) {
-          if (
-            (error as Error).message === 'User rejected to watch the asset.'
-          ) {
-            throw ethErrors.provider.userRejectedRequest();
+
+        if (type === 'ERC721' || type === 'ERC1155' || type === 'NFT') {
+          try {
+            if (specialPermissions?.[hostname]?.wallet_addNFT) {
+              await CollectiblesController.addCollectible(address, tokenId);
+              res.result = true;
+            } else {
+              // HERE WILL BE THE ADD NFT IMPLEMENTATION
+              throw ethErrors.provider.userRejectedRequest();
+            }
+          } catch (error) {
+            if (
+              (error as Error).message === 'User rejected to watch the NFT.'
+            ) {
+              throw ethErrors.provider.userRejectedRequest();
+            }
+            throw error;
           }
-          throw error;
+        } else {
+          try {
+            const watchAssetResult = await TokensController.watchAsset(
+              { address, symbol, decimals, image },
+              type,
+            );
+            await watchAssetResult.result;
+            res.result = true;
+          } catch (error) {
+            if (
+              (error as Error).message === 'User rejected to watch the asset.'
+            ) {
+              throw ethErrors.provider.userRejectedRequest();
+            }
+            throw error;
+          }
         }
       },
-
       metamask_removeFavorite: async () => {
         checkTabActive();
         if (!isHomepage()) {
