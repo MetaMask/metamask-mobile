@@ -15,12 +15,12 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import FeatherIcons from 'react-native-vector-icons/Feather';
-import { addScreenshotListener } from 'react-native-detector';
+import { BlurView } from '@react-native-community/blur';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
+import useScreenshotWarning from '../../hooks/useScreenshotWarning';
 import { strings } from '../../../../locales/i18n';
-import { BlurView } from '@react-native-community/blur';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
@@ -310,18 +310,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     );
   }, []);
 
-  useEffect(() => {
-    const userDidScreenshot = () => {
-      if (view === SEED_PHRASE) {
-        showScreenshotAlert();
-      }
-    };
+  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
 
-    const unsubscribe = addScreenshotListener(userDidScreenshot);
-    return () => {
-      unsubscribe();
-    };
-  }, [showScreenshotAlert, view]);
+  useEffect(() => {
+    enableScreenshotWarning(view === SEED_PHRASE);
+  }, [enableScreenshotWarning, view]);
 
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>

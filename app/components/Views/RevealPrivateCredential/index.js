@@ -18,12 +18,12 @@ import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { addScreenshotListener } from 'react-native-detector';
 import { connect } from 'react-redux';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
+import useScreenshotWarning from '../../hooks/useScreenshotWarning';
 import { showAlert } from '../../../actions/alert';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import {
@@ -73,6 +73,38 @@ const RevealPrivateCredential = ({
   const privateCredentialName =
     credentialName || route.params.privateCredentialName;
 
+  const openSRPGuide = () => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
+    Linking.openURL(SRP_GUIDE_URL);
+  };
+
+  const showScreenshotAlert = useCallback(() => {
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
+    Alert.alert(
+      strings('reveal_credential.screenshot_warning_title'),
+      strings('reveal_credential.screenshot_warning_desc', {
+        credentialName:
+          privateCredentialName === PRIVATE_KEY
+            ? strings('reveal_credential.private_key_text')
+            : strings('reveal_credential.srp_abbreviation_text'),
+      }),
+      [
+        {
+          text: strings('reveal_credential.learn_more'),
+          onPress: openSRPGuide,
+          style: 'cancel',
+        },
+        {
+          text: strings('reveal_credential.got_it'),
+          onPress: () =>
+            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
+        },
+      ],
+    );
+  }, [privateCredentialName]);
+
+  const [enableScreenshotWarning] = useScreenshotWarning(showScreenshotAlert);
+
   const updateNavBar = () => {
     if (navBarDisabled) {
       return;
@@ -111,6 +143,7 @@ const RevealPrivateCredential = ({
 
       if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
         setClipboardPrivateCredential(privateCredential);
+        enableScreenshotWarning(true);
         setUnlocked(true);
       }
     } catch (e) {
@@ -124,40 +157,11 @@ const RevealPrivateCredential = ({
       }
 
       setIsModalVisible(false);
+      enableScreenshotWarning(false);
       setUnlocked(false);
       setWarningIncorrectPassword(msg);
     }
   };
-
-  const openSRPGuide = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
-    Linking.openURL(SRP_GUIDE_URL);
-  };
-
-  const showScreenshotAlert = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_WARNING);
-    Alert.alert(
-      strings('reveal_credential.screenshot_warning_title'),
-      strings('reveal_credential.screenshot_warning_desc', {
-        credentialName:
-          privateCredentialName === PRIVATE_KEY
-            ? strings('reveal_credential.private_key_text')
-            : strings('reveal_credential.srp_abbreviation_text'),
-      }),
-      [
-        {
-          text: strings('reveal_credential.learn_more'),
-          onPress: openSRPGuide,
-          style: 'cancel',
-        },
-        {
-          text: strings('reveal_credential.got_it'),
-          onPress: () =>
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SCREENSHOT_OK),
-        },
-      ],
-    );
-  }, [privateCredentialName]);
 
   useEffect(() => {
     updateNavBar();
@@ -172,19 +176,6 @@ const RevealPrivateCredential = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    const userDidScreenshot = () => {
-      if (unlocked) {
-        showScreenshotAlert();
-      }
-    };
-
-    const unsubscribe = addScreenshotListener(userDidScreenshot);
-    return () => {
-      unsubscribe();
-    };
-  }, [showScreenshotAlert, unlocked]);
 
   const isPrivateKey = () => {
     const credential = credentialName || route.params.privateCredentialName;
