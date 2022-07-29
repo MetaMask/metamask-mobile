@@ -18,6 +18,7 @@ import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { useDispatch } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
 import debounce from 'lodash/debounce';
+import { TURN_OFF_REMEMBER_ME_MODAL } from '../../../constants/test-ids';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -99,7 +100,7 @@ const TurnOffRememberMeModal = () => {
             </BaseText>
             <OutlinedTextField
               style={styles.input}
-              testID={'TurnOffRememberMeConfirm'}
+              testID={TURN_OFF_REMEMBER_ME_MODAL}
               autoFocus
               secureTextEntry
               returnKeyType={'done'}
