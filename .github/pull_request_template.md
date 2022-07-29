@@ -20,6 +20,8 @@ Progresses #???
 
 **Checklist**
 
+* [ ] Are metrics included if required
+* [ ] Are translations included if required
 * [ ] There is a related GitHub issue
 * [ ] Tests are included if applicable
 * [ ] Any added code is fully documented
