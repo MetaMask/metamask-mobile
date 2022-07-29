@@ -1,5 +1,5 @@
-import { ViewProps } from 'react-native';
 import BaseAvatar from '../BaseAvatar';
+import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
 
 /**
  * Avatar badge possible placement.
@@ -12,7 +12,7 @@ export enum AvatarBadgePosition {
 /**
  * AvatarWithBadge component props.
  */
-export interface AvatarWithBadgeProps extends ViewProps {
+export interface AvatarWithBadgeProps extends BaseAvatarProps {
   /**
    * Boolean that decides if the badge gets rendered or not.
    */
@@ -25,4 +25,8 @@ export interface AvatarWithBadgeProps extends ViewProps {
    * Enum to select the badge position.
    */
   children: typeof BaseAvatar;
+  /**
+   * Badge component.
+   */
+  badge: JSX.Element;
 }
