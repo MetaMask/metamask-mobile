@@ -1,6 +1,7 @@
 import { EventEmitter2 } from 'eventemitter2';
 import Socket from './Socket';
 import WebRTC from './WebRTC';
+import { validate } from 'uuid';
 
 interface RemoteCommunicationOptions {
   commLayer: string;
@@ -125,6 +126,7 @@ export default class RemoteCommunication extends EventEmitter2 {
   }
 
   connectToChannel(id) {
+    if (!validate(id)) throw new Error('Invalid channel');
     this.commLayer.connectToChannel(id);
   }
 
