@@ -22,6 +22,7 @@ Progresses #???
 
 * [ ] Are metrics included if required
 * [ ] Are translations included if required
+* [ ] Release label added
 * [ ] There is a related GitHub issue
 * [ ] Tests are included if applicable
 * [ ] Any added code is fully documented
