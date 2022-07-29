@@ -80,3 +80,59 @@ export const renderShortText = (text, chars = 4) => {
     return text;
   }
 };
+
+/**
+ * Decode a base64
+ * @param {string} input - base64 without the initial data type 'data:image/svg+xml;base64,'
+ * @returns the decoded base64
+ */
+export function base64Decode(input) {
+  const keyStr =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  let chr1,
+    chr2,
+    chr3 = '';
+  let enc1,
+    enc2,
+    enc3,
+    enc4 = '';
+  let i = 0;
+
+  // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+  const base64test = /[^A-Za-z0-9+/=]/g;
+  if (base64test.exec(input)) {
+    throw new Error(
+      'There were invalid base64 characters in the input text.\n' +
+        "Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='\n" +
+        'Expect errors in decoding.',
+    );
+  }
+
+  input = input.replace(/[^A-Za-z0-9+/=]/g, '');
+
+  do {
+    enc1 = keyStr.indexOf(input.charAt(i++));
+    enc2 = keyStr.indexOf(input.charAt(i++));
+    enc3 = keyStr.indexOf(input.charAt(i++));
+    enc4 = keyStr.indexOf(input.charAt(i++));
+
+    chr1 = (enc1 << 2) | (enc2 >> 4);
+    chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+    chr3 = ((enc3 & 3) << 6) | enc4;
+
+    output += String.fromCharCode(chr1);
+
+    if (enc3 !== 64) {
+      output += String.fromCharCode(chr2);
+    }
+    if (enc4 !== 64) {
+      output += String.fromCharCode(chr3);
+    }
+
+    chr1 = chr2 = chr3 = '';
+    enc1 = enc2 = enc3 = enc4 = '';
+  } while (i < input.length);
+
+  return output;
+}

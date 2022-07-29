@@ -1,6 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Image, ViewPropTypes, View, StyleSheet } from 'react-native';
+import {
+  Image,
+  ViewPropTypes,
+  View,
+  StyleSheet,
+  PixelRatio,
+} from 'react-native';
 import FadeIn from 'react-native-fade-in-image';
 // eslint-disable-next-line import/default
 import resolveAssetSource from 'react-native/Libraries/Image/resolveAssetSource';
@@ -10,6 +16,8 @@ import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 import { util } from '@metamask/controllers';
 import Identicon from '../../UI/Identicon';
+import { WebView } from 'react-native-webview';
+import { base64Decode } from '../../../util/general';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -46,6 +54,58 @@ const RemoteImage = (props) => {
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
+  }
+
+  if (uri && uri.includes('data:image/svg+xml;base64')) {
+    const xmlSvg = base64Decode(uri.split('data:image/svg+xml;base64,')[1]);
+
+    if (xmlSvg.includes('<style>')) {
+      const filterStyles = props.style.filter(
+        (a) => a && (a.width || a.height),
+      )[0];
+
+      const firstSvgTag = '<svg';
+      const indexOfFirstSvgTag = xmlSvg.indexOf(firstSvgTag);
+
+      const firstStr = xmlSvg.slice(0, indexOfFirstSvgTag);
+      const lastStr = xmlSvg.slice(
+        indexOfFirstSvgTag + firstSvgTag.length,
+        xmlSvg.length,
+      );
+      // Adding the styles to the svg code to fit on the webview
+      const finalSvg =
+        firstStr +
+        `<svg ${
+          filterStyles?.width
+            ? `width="${filterStyles.width * PixelRatio.get()}"`
+            : ''
+        } ${
+          filterStyles?.height
+            ? `height="${filterStyles.height * PixelRatio.get()}"`
+            : ''
+        }` +
+        lastStr;
+
+      const htmlPage = `<html><head>
+     <script type="text/javascript" src="https://unpkg.com/dompurify@2.3.5/dist/purify.js"></script>
+   </head>
+   <body>
+     <div id="render-svg"></div>
+     <script>
+       var svg = ${JSON.stringify(finalSvg)};
+       const clean = DOMPurify.sanitize(svg,{USE_PROFILES: {svg: true, svgFilters: true},ADD_TAGS: ['animate']});
+       console.log("clean", clean);
+       document.getElementById("render-svg").innerHTML = clean;
+     </script>
+   </body>
+   </html>`;
+
+      return (
+        <FadeIn>
+          <WebView {...props} source={{ html: htmlPage }} />
+        </FadeIn>
+      );
+    }
   }
 
   if (
