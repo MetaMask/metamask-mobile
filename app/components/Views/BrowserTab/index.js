@@ -482,7 +482,7 @@ export const BrowserTab = (props) => {
         };
       } catch (err) {
         //if it's not a ENS but a TLD (Top Level Domain)
-        if (isTLD(hostname, err)) {
+        if (isTLD(hostname)) {
           ensIgnoreList.push(hostname);
           return { url: fullUrl, reload: true };
         }

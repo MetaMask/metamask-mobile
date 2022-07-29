@@ -78,25 +78,26 @@ describe('Browser utils :: onUrlSubmit', () => {
 describe('Browser utils :: isTLD', () => {
   it('should return true if it ends on .xyz', () => {
     const hostname = 'evan.xyz';
-    const error = '';
-    expect(isTLD(hostname, error)).toBeTruthy();
+    expect(isTLD(hostname)).toBeTruthy();
   });
 
   it('should return true if it ends on .test', () => {
     const hostname = 'evan.test';
-    const error = '';
-    expect(isTLD(hostname, error)).toBeTruthy();
+    expect(isTLD(hostname)).toBeTruthy();
   });
 
   it('should return true if the error contains is not standard', () => {
     const hostname = 'ebisusbay.xyz';
-    const error = 'is not standard';
-    expect(isTLD(hostname, error)).toBeTruthy();
+    expect(isTLD(hostname)).toBeTruthy();
   });
 
-  it('should return false if it ends on .eth', () => {
+  it('should return true if it ends on .eth', () => {
     const hostname = 'evan.eth';
-    const error = '';
-    expect(isTLD(hostname, error)).toBeFalsy();
+    expect(isTLD(hostname)).toBeTruthy();
+  });
+
+  it('should return false if it ends on .com', () => {
+    const hostname = 'evan.com';
+    expect(isTLD(hostname)).toBeFalsy();
   });
 });

@@ -69,8 +69,7 @@ export function getUrlObj(url) {
  * @param {*} error - Represents the error of handleIpfsContent
  * @returns {Boolean} - True if its a TLD, false if it's not
  */
-export const isTLD = (hostname, error) =>
-  (hostname.slice(-4) !== '.eth' &&
-    error.toString().indexOf('is not standard') !== -1) ||
+export const isTLD = (hostname) =>
+  hostname.slice(-4) === '.eth' ||
   hostname.slice(-4) === '.xyz' ||
   hostname.slice(-5) === '.test';
