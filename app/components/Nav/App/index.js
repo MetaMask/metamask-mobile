@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -17,6 +23,7 @@ import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
 import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
+import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
@@ -43,6 +50,9 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
+import Toast, {
+  ToastContext,
+} from '../../../component-library/components/Toast';
 
 const Stack = createStackNavigator();
 /**
@@ -150,6 +160,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
   const [authCancelled, setAuthCancelled] = useState(false);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
+  const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
   const frequentRpcList = useSelector(
@@ -346,6 +357,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
       />
+      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     </Stack.Navigator>
   );
 
@@ -397,6 +409,7 @@ const App = ({ selectedAddress, userLoggedIn }) => {
           </Stack.Navigator>
         </NavigationContainer>
         {renderSplash()}
+        <Toast ref={toastRef} />
       </>
     )) ||
     null

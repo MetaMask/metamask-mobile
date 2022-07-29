@@ -160,8 +160,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 927
-		versionName "5.3.0"
+		versionCode 931
+		versionName "5.4.0"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"

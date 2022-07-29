@@ -294,7 +294,6 @@
     "deposit_button": "Mag-deposit",
     "copy_address": "Kopyahin",
     "collectible_action_title": "Mga Pagpipiliang Collectible",
-    "remove_token_title": "Gusto mo bang tanggalin ang token na ito?",
     "remove_collectible_title": "Gusto mo bang tanggalin ang collectible na ito?",
     "refresh_metadata": "I-refresh ang Metadata",
     "token_removal_issue_title": "Isyu sa pag-alis ng token.",
@@ -303,7 +302,6 @@
     "token_removed_desc": "Kung magbabago ang iyong isip, puwede mo itong ibalik sa pamamagitan ng pag-tap sa \"+ MAGDAGDAG NG MGA TOKEN\"",
     "collectible_removed_title": "Natanggal na ang collectible!",
     "collectible_removed_desc": "Kung magbabago ang iyong isip, puwede mo itong ibalik sa pamamagitan ng pag-tap sa \"+ MAGDAGDAG NG MGA NFT\"",
-    "remove": "Tanggalin",
     "cancel": "Kanselahin",
     "yes": "Oo",
     "private_key_detected": "Natukoy ang pribadong key",
@@ -362,7 +360,6 @@
   "token": {
     "token_symbol": "Simbolo ng Token",
     "token_address": "Address ng Token",
-    "token_precision": "Token ng Katumpakan",
     "search_tokens_placeholder": "Maghanap ng Mga Token",
     "address_cant_be_empty": "Hindi maaaring walang laman ang address ng token.",
     "address_must_be_valid": "Ang address ng token ay dapat na valid na address.",
@@ -1838,12 +1835,6 @@
     "save_seedphrase_3": "at i-install ulit ang app. Paalala: HINDI mo mare-restore ang iyong wallet nang wala ang iyong Lihim na Recovery Phrase.",
     "copied_clipboard": "Nakopya sa clipboard",
     "ok": "OK"
-  },
-  "whats_new": {
-    "title": "Tingnan kung ano'ng bago",
-    "feature_security_settings_title": "Mga setting ng pinaigting na seguridad",
-    "feature_security_settings_text": "Puwede mo na ngayong baguhin ang password ng iyong MetaMask app at suriin kung paano iba-backup ang Lihim na Recovery Phrase ng iyong wallet mula sa Mga Setting > Seguridad at Pagkapribado.",
-    "feature_security_settings_button": "Tingnan sa Mga Setting"
   },
   "invalid_network": {
     "title": "Kailangang ilagay ulit ang chain ID para sa custom na network na \n %{network} \n.",

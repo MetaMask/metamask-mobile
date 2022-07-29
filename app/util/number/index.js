@@ -354,6 +354,16 @@ export function toBN(value) {
 }
 
 /**
+ * Determines if a string is a valid number
+ *
+ * @param {*} str - Number string
+ * @returns {boolean} - True if the string  is a valid number
+ */
+export function isNumber(str) {
+  return /^(\d+(\.\d+)?)$/.test(str);
+}
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|BN} value - Value to convert
@@ -725,5 +735,5 @@ export const toHexadecimal = (decimal) => {
     decimal = String(decimal);
   }
   if (decimal.startsWith('0x')) return decimal;
-  return parseInt(decimal, 10).toString(16);
+  return toBigNumber.dec(decimal).toString(16);
 };

@@ -52,7 +52,6 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
-import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
@@ -975,7 +974,13 @@ class DrawerView extends PureComponent {
           icon: this.getImageIcon('wallet'),
           selectedIcon: this.getSelectedImageIcon('wallet'),
           action: this.showWallet,
-          routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
+          routeNames: [
+            'Wallet',
+            'WalletView',
+            'Asset',
+            'AddAsset',
+            'Collectible',
+          ],
         },
         {
           name: strings('drawer.transaction_activity'),
@@ -1163,7 +1168,6 @@ class DrawerView extends PureComponent {
 
     const {
       invalidCustomNetwork,
-      showProtectWalletModal,
       account: { name: nameFromState, ens: ensFromState },
       showModal,
       networkType,
@@ -1445,11 +1449,6 @@ class DrawerView extends PureComponent {
             showReceiveModal={this.showReceiveModal}
           />
         </Modal>
-        <WhatsNewModal
-          navigation={this.props.navigation}
-          enabled={showProtectWalletModal === false}
-        />
-
         {this.renderProtectModal()}
       </View>
     );

@@ -1,3 +1,4 @@
+import { PaymentType } from '@consensys/on-ramp-sdk';
 import { Icon } from '../components/PaymentIcon';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
@@ -94,21 +95,22 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function getPaymentMethodIcon(id: string | null) {
-  switch (id) {
-    case '/payments/apple-pay': {
+export function getPaymentMethodIcon(paymentType?: PaymentType) {
+  switch (paymentType) {
+    case PaymentType.ApplePay: {
       return Icon.Apple;
     }
-    case '/payments/bank-account':
-    case '/payments/gbp-bank-transfer':
-    case '/payments/sepa-bank-transfer':
-    case '/payments/ach-bank-transfer':
-    case '/payments/upi': {
+    case PaymentType.GooglePay: {
+      return Icon.GooglePay;
+    }
+    case PaymentType.BankTransfer: {
       return Icon.Bank;
     }
-    case '/payments/debit-credit-card':
-    default: {
+    case PaymentType.DebitCreditCard:
       return Icon.Card;
+    case PaymentType.Wallet:
+    default: {
+      return Icon.Wallet;
     }
   }
 }
