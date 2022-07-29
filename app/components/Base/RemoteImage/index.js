@@ -87,7 +87,7 @@ const RemoteImage = (props) => {
         lastStr;
 
       const htmlPage = `<html><head>
-     <script type="text/javascript" src="https://unpkg.com/dompurify@2.3.5/dist/purify.js"></script>
+     <script type="text/javascript" src="https://unpkg.com/dompurify@2.3.10/dist/purify.js"></script>
    </head>
    <body>
      <div id="render-svg"></div>
