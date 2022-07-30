@@ -35,6 +35,7 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
+import SecureKeychain from '../../../core/SecureKeychain';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -324,12 +325,12 @@ const RevealPrivateCredential = ({
           style={styles.tabContent}
         >
           <View style={styles.qrCodeWrapper}>
-            <QRCode
-              value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 160}
-              color={colors.text.default}
-              backgroundColor={colors.background.default}
-            />
+            <View style={styles.qrCode}>
+              <QRCode
+                value={clipboardPrivateCredential}
+                size={Dimensions.get('window').width - 176}
+              />
+            </View>
           </View>
         </View>
       </ScrollableTabView>
