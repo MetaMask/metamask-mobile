@@ -3,7 +3,7 @@
 exports[`NetworkInfo should render correctly 1`] = `
 <NetworkInfo
   dispatch={[Function]}
-  isTokenDetectionEnabled={false}
+  isTokenDetectionEnabled={true}
   networkProvider={
     Object {
       "rpcTarget": "",
