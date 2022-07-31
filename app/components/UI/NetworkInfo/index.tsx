@@ -246,7 +246,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled:
-    !state.engine.backgroundState.PreferencesController.useTokenDetection,
+    state.engine.backgroundState.PreferencesController.useTokenDetection,
   networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 

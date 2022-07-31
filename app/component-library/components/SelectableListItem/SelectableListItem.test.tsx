@@ -1,8 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
 import { shallow } from 'enzyme';
-import SelectableListItem from './SelectableListItem';
+
 import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from '../../../constants/test-ids';
+
+import SelectableListItem from './SelectableListItem';
 
 describe('SelectableListItem', () => {
   it('should render correctly', () => {
