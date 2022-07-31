@@ -19,6 +19,7 @@ import ScrollableTabView, {
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
+import AsyncStorage from '@react-native-community/async-storage';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
@@ -36,6 +37,7 @@ import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
+import { BIOMETRY_CHOICE } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -166,6 +168,23 @@ const RevealPrivateCredential = ({
 
   useEffect(() => {
     updateNavBar();
+
+    const unlockWithBiometrics = async () => {
+      const biometryType = await SecureKeychain.getSupportedBiometryType();
+      if (!this.props.passwordSet) {
+        this.tryUnlockWithPassword('');
+      } else if (biometryType) {
+        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+        if (biometryChoice !== '' && biometryChoice === biometryType) {
+          const credentials = await SecureKeychain.getGenericPassword();
+          if (credentials) {
+            this.tryUnlockWithPassword(credentials.password);
+          }
+        }
+      }
+    };
+
+    unlockWithBiometrics();
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
     });
