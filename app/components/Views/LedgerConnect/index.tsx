@@ -132,7 +132,7 @@ const LedgerConnect = () => {
     setLoading(true);
     ledgerLogicToRun(async () => {
       const defaultLedgerAccount =
-        await KeyringController.unlockLedgerDefaultAccount();
+        await KeyringController.unlockDefaultLedgerAccount();
       await AccountTrackerController.syncBalanceWithAddresses([
         defaultLedgerAccount,
       ]);
