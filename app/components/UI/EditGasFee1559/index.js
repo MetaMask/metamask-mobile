@@ -147,7 +147,6 @@ const createStyles = (colors) =>
 const EditGasFee1559 = ({
   suggestedGasLimit,
   selected,
-  gasFee,
   gasOptions,
   onChange,
   onCancel,
@@ -188,6 +187,7 @@ const EditGasFee1559 = ({
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [selectedOption, setSelectedOption] = useState(selected);
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
+  const [gasValue, setGasValue] = useState({});
   const [
     isVisibleTimeEstimateInfoModal,
     ,
@@ -201,7 +201,7 @@ const EditGasFee1559 = ({
     onlyGas: true,
     gasSelected: selectedOption,
     legacy: false,
-    gasLimit: suggestedGasLimit,
+    gasLimit: gasValue.suggestedGasLimit || suggestedGasLimit,
   });
 
   const {
@@ -258,6 +258,7 @@ const EditGasFee1559 = ({
   const changeGas = useCallback(
     (gas, selectedOption) => {
       setSelectedOption(selectedOption);
+      setGasValue(gas);
       onChange(gas, selectedOption);
     },
     [onChange],
@@ -299,11 +300,20 @@ const EditGasFee1559 = ({
         setMaxPriorityFeeError('');
       }
 
-      const newGas = { ...gasFee, suggestedMaxPriorityFeePerGas: value };
+      const newGas = {
+        ...gasTransaction,
+        suggestedMaxPriorityFeePerGas: value,
+      };
 
       changeGas(newGas, null);
     },
-    [changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption],
+    [
+      changeGas,
+      gasTransaction,
+      gasOptions,
+      updateOption,
+      warningMinimumEstimateOption,
+    ],
   );
 
   const changedMaxFeePerGas = useCallback(
@@ -336,18 +346,24 @@ const EditGasFee1559 = ({
         setMaxFeeError('');
       }
 
-      const newGas = { ...gasFee, suggestedMaxFeePerGas: value };
+      const newGas = { ...gasTransaction, suggestedMaxFeePerGas: value };
       changeGas(newGas, null);
     },
-    [changeGas, gasFee, gasOptions, updateOption, warningMinimumEstimateOption],
+    [
+      changeGas,
+      gasTransaction,
+      gasOptions,
+      updateOption,
+      warningMinimumEstimateOption,
+    ],
   );
 
   const changedGasLimit = useCallback(
     (value) => {
-      const newGas = { ...gasFee, suggestedGasLimit: value };
+      const newGas = { ...gasTransaction, suggestedGasLimit: value };
       changeGas(newGas, null);
     },
-    [changeGas, gasFee],
+    [changeGas, gasTransaction],
   );
 
   const selectOption = useCallback(
@@ -498,7 +514,7 @@ const EditGasFee1559 = ({
                     </View>
                   }
                   min={GAS_LIMIT_MIN}
-                  value={gasFee.suggestedGasLimit}
+                  value={gasTransaction.suggestedGasLimit}
                   onChangeValue={changedGasLimit}
                   name={strings('edit_gas_fee_eip1559.gas_limit')}
                   increment={GAS_LIMIT_INCREMENT}
@@ -536,7 +552,7 @@ const EditGasFee1559 = ({
                       GWEI
                     </Text>
                   }
-                  value={gasFee.suggestedMaxPriorityFeePerGas}
+                  value={gasTransaction.suggestedMaxPriorityFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_priority_fee')}
                   unit={'GWEI'}
                   min={GAS_MIN}
@@ -586,7 +602,7 @@ const EditGasFee1559 = ({
                       GWEI
                     </Text>
                   }
-                  value={gasFee.suggestedMaxFeePerGas}
+                  value={gasTransaction.suggestedMaxFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_fee')}
                   unit={'GWEI'}
                   min={GAS_MIN}
@@ -934,10 +950,6 @@ EditGasFee1559.propTypes = {
    * Gas option selected (low, medium, high)
    */
   selected: PropTypes.string,
-  /**
-   * Gas fee currently active
-   */
-  gasFee: PropTypes.object,
   /**
    * Gas fee options to select from
    */

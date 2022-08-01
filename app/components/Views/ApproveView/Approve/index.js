@@ -185,6 +185,11 @@ class Approve extends PureComponent {
         overrideGasLimit || transaction.gas,
         'wei',
       );
+      this.setState({
+        gasSelected,
+        gasSelectedTemp,
+        suggestedGasLimit,
+      });
 
       const EIP1559GasData = this.parseTransactionDataEIP1559({
         ...initialGas,
@@ -324,6 +329,7 @@ class Approve extends PureComponent {
   };
 
   parseTransactionDataEIP1559 = (gasFee, options) => {
+    // console.log('parseTransactionDataEIP1559', gasFee, options);
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
         ...this.props,
@@ -583,16 +589,8 @@ class Approve extends PureComponent {
     }
   };
 
-  calculateTempGasFee = (gas, selected) => {
-    const { transaction } = this.props;
-    if (selected && gas) {
-      gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-    }
+  calculateTempGasFee = (selected) => {
     this.setState({
-      EIP1559GasDataTemp: this.parseTransactionDataEIP1559({
-        ...gas,
-        selectedOption: selected,
-      }),
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
@@ -623,7 +621,6 @@ class Approve extends PureComponent {
       ready,
       over,
       EIP1559GasData,
-      EIP1559GasDataTemp,
       LegacyGasData,
       LegacyGasDataTemp,
       gasSelected,
@@ -693,8 +690,8 @@ class Approve extends PureComponent {
                   onCancel={this.onCancel}
                   onConfirm={this.onConfirm}
                   over={over}
+                  gasSelected={gasSelected}
                   onSetAnalyticsParams={this.setAnalyticsParams}
-                  EIP1559GasData={EIP1559GasData}
                   LegacyGasData={LegacyGasData}
                   gasEstimateType={gasEstimateType}
                   onUpdatingValuesStart={this.onUpdatingValuesStart}
@@ -720,37 +717,12 @@ class Approve extends PureComponent {
               (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
                 <EditGasFee1559
                   selected={gasSelected}
-                  gasFee={EIP1559GasDataTemp}
                   gasOptions={gasFeeEstimates}
                   onChange={this.calculateTempGasFee}
-                  gasFeeNative={EIP1559GasDataTemp.renderableGasFeeMinNative}
-                  gasFeeConversion={
-                    EIP1559GasDataTemp.renderableGasFeeMinConversion
-                  }
-                  gasFeeMaxNative={EIP1559GasDataTemp.renderableGasFeeMaxNative}
-                  gasFeeMaxConversion={
-                    EIP1559GasDataTemp.renderableGasFeeMaxConversion
-                  }
-                  maxPriorityFeeNative={
-                    EIP1559GasDataTemp.renderableMaxPriorityFeeNative
-                  }
-                  maxPriorityFeeConversion={
-                    EIP1559GasDataTemp.renderableMaxPriorityFeeConversion
-                  }
-                  maxFeePerGasNative={
-                    EIP1559GasDataTemp.renderableMaxFeePerGasNative
-                  }
-                  maxFeePerGasConversion={
-                    EIP1559GasDataTemp.renderableMaxFeePerGasConversion
-                  }
                   primaryCurrency={primaryCurrency}
                   chainId={chainId}
-                  timeEstimate={EIP1559GasDataTemp.timeEstimate}
-                  timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
-                  timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEdition}
-                  error={EIP1559GasDataTemp.error}
                   onUpdatingValuesStart={this.onUpdatingValuesStart}
                   onUpdatingValuesEnd={this.onUpdatingValuesEnd}
                   animateOnChange={animateOnChange}
