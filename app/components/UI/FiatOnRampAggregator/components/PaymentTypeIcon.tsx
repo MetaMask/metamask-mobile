@@ -4,15 +4,14 @@ import { Payment } from '@consensys/on-ramp-sdk';
 import { useAssetFromTheme } from '../../../../util/theme';
 import RemoteImage from '../../../Base/RemoteImage';
 interface Props {
-  id?: string;
   style?: StyleProp<ImageStyle>;
-  logo: Payment['logo'];
+  logosByTheme: Payment['logo'];
 }
 
-const PaymentTypeIcon: React.FC<Props> = ({ logo, style }: Props) => {
-  const mode: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
+const PaymentTypeIcon: React.FC<Props> = ({ logosByTheme, style }: Props) => {
+  const theme: 'light' | 'dark' = useAssetFromTheme('light', 'dark');
 
-  const logos = logo[mode];
+  const logos = logosByTheme[theme];
 
   return (
     <>

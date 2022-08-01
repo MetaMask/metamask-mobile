@@ -138,7 +138,7 @@ const PaymentOption: React.FC<Props> = ({
         <ListItem.Amounts>
           <ListItem.Amount>
             <View style={styles.cardIcons}>
-              <PaymentTypeIcon style={styles.cardIcon} logo={logo} />
+              <PaymentTypeIcon style={styles.cardIcon} logosByTheme={logo} />
             </View>
           </ListItem.Amount>
         </ListItem.Amounts>
