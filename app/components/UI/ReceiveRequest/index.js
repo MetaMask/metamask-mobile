@@ -28,7 +28,7 @@ import { showAlert } from '../../../actions/alert';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { protectWalletModalVisible } from '../../../actions/user';
 
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Text from '../../Base/Text';
 import ModalHandler from '../../Base/ModalHandler';
 import ModalDragger from '../../Base/ModalDragger';
@@ -52,7 +52,9 @@ const createStyles = (colors) =>
       paddingHorizontal: 15,
     },
     qrWrapper: {
-      margin: 15,
+      margin: 8,
+      padding: 8,
+      backgroundColor: importedColors.white,
     },
     addressWrapper: {
       flexDirection: 'row',
@@ -274,8 +276,6 @@ class ReceiveRequest extends PureComponent {
                   <QRCode
                     value={`ethereum:${this.props.selectedAddress}@${this.props.chainId}`}
                     size={Dimensions.get('window').width / 2}
-                    color={colors.text.default}
-                    backgroundColor={colors.background.default}
                   />
                 </TouchableOpacity>
                 <Modal
