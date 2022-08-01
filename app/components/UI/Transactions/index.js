@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import PropTypes, { string } from 'prop-types';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import {
   ScrollView,
@@ -17,6 +17,7 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
+  isMainnetByChainId,
 } from '../../../util/networks';
 import {
   getEtherscanAddressUrl,
@@ -44,7 +45,6 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { isQRHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
-import { isMainnetByChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -173,7 +173,7 @@ class Transactions extends PureComponent {
      */
     thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
-    chainId: string,
+    chainId: PropTypes.string,
   };
 
   static defaultProps = {
