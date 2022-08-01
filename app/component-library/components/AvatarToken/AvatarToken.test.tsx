@@ -2,13 +2,13 @@ import React from 'react';
 import { Image } from 'react-native';
 import { shallow } from 'enzyme';
 import { BaseAvatarSize } from '../BaseAvatar';
-import TokenAvatar from './TokenAvatar';
+import AvatarToken from './AvatarToken';
 import { TOKEN_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 // eslint-disable-next-line
 // @ts-ignore
 import ethLogo from '../../../images/eth-logo.png';
 
-describe('TokenAvatar', () => {
+describe('AvatarToken', () => {
   const tokenName = 'Ethereum';
   // turns out this method returns an object with testUri key when on jest context
   // eslint-disable-next-line
@@ -17,7 +17,7 @@ describe('TokenAvatar', () => {
 
   it('should render correctly', () => {
     const wrapper = shallow(
-      <TokenAvatar
+      <AvatarToken
         size={BaseAvatarSize.Xl}
         tokenName={tokenName}
         tokenImageUrl={testImageUrl}
@@ -28,7 +28,7 @@ describe('TokenAvatar', () => {
 
   it('should render network image', () => {
     const wrapper = shallow(
-      <TokenAvatar
+      <AvatarToken
         size={BaseAvatarSize.Xl}
         tokenName={tokenName}
         tokenImageUrl={testImageUrl}
@@ -43,7 +43,7 @@ describe('TokenAvatar', () => {
 
   it('should render fallback when image fails to load', () => {
     const wrapper = shallow(
-      <TokenAvatar
+      <AvatarToken
         size={BaseAvatarSize.Xl}
         tokenName={tokenName}
         tokenImageUrl={testImageUrl}
@@ -62,7 +62,7 @@ describe('TokenAvatar', () => {
 
   it('should render fallback when tokenImageUrl is not provided', () => {
     const wrapper = shallow(
-      <TokenAvatar size={BaseAvatarSize.Xl} tokenName={tokenName} />,
+      <AvatarToken size={BaseAvatarSize.Xl} tokenName={tokenName} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,

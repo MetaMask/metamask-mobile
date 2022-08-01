@@ -5,7 +5,7 @@ import { STACKED_AVATARS_OVERFLOW_COUNTER } from '../../../constants/test-ids';
 import { useStyles } from '../../hooks';
 import { BaseAvatarSize } from '../BaseAvatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
-import TokenAvatar from '../TokenAvatar';
+import AvatarToken from '../AvatarToken';
 
 import styleSheet from './StackedAvatars.styles';
 import { StackedAvatarsProps } from './StackedAvatars.types';
@@ -36,7 +36,7 @@ const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
               key={`${name}-${id}`}
               style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
             >
-              <TokenAvatar
+              <AvatarToken
                 tokenName={name}
                 tokenImageUrl={imageUrl}
                 size={extraSmallSize}

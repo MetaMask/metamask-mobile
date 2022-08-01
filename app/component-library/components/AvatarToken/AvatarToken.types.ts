@@ -1,9 +1,9 @@
 import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
 
 /**
- * TokenAvatar component props.
+ * AvatarToken component props.
  */
-export interface TokenAvatarProps extends BaseAvatarProps {
+export interface AvatarTokenProps extends BaseAvatarProps {
   /**
    * Token name.
    */
@@ -18,8 +18,8 @@ export interface TokenAvatarProps extends BaseAvatarProps {
   showHalo?: boolean;
 }
 
-export type TokenAvatarStyleSheetVars = Pick<
-  TokenAvatarProps,
+export type AvatarTokenStyleSheetVars = Pick<
+  AvatarTokenProps,
   'size' | 'showHalo' | 'style'
 > & {
   showFallback: boolean;

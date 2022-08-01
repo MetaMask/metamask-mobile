@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { Image, ImageBackground } from 'react-native';
 import BaseAvatar, { BaseAvatarSize } from '../BaseAvatar';
-import { TokenAvatarProps } from './TokenAvatar.types';
+import { AvatarTokenProps } from './AvatarToken.types';
 import BaseText, { BaseTextVariant } from '../BaseText';
-import stylesheet from './TokenAvatar.styles';
-import { useStyles } from '../../../component-library/hooks';
+import stylesheet from './AvatarToken.styles';
+import { useStyles } from '../../hooks';
 import { TOKEN_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 
-const TokenAvatar = ({
+const AvatarToken = ({
   size,
   style,
   tokenName,
   tokenImageUrl,
   showHalo,
-}: TokenAvatarProps) => {
+}: AvatarTokenProps) => {
   const [showFallback, setShowFallback] = useState(!tokenImageUrl);
 
   const { styles } = useStyles(stylesheet, {
@@ -62,4 +62,4 @@ const TokenAvatar = ({
   );
 };
 
-export default TokenAvatar;
+export default AvatarToken;

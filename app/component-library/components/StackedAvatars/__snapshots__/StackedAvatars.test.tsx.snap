@@ -33,7 +33,7 @@ exports[`StackedAvatars should render correctly 1`] = `
         ]
       }
     >
-      <TokenAvatar
+      <AvatarToken
         size="16"
         tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
         tokenName="Ethereum"
@@ -55,7 +55,7 @@ exports[`StackedAvatars should render correctly 1`] = `
         ]
       }
     >
-      <TokenAvatar
+      <AvatarToken
         size="16"
         tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
         tokenName="Ethereum"
@@ -77,7 +77,7 @@ exports[`StackedAvatars should render correctly 1`] = `
         ]
       }
     >
-      <TokenAvatar
+      <AvatarToken
         size="16"
         tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
         tokenName="Ethereum"
@@ -99,7 +99,7 @@ exports[`StackedAvatars should render correctly 1`] = `
         ]
       }
     >
-      <TokenAvatar
+      <AvatarToken
         size="16"
         tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
         tokenName="Ethereum"

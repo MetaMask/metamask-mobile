@@ -1,19 +1,19 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from 'app/util/theme/models';
 import { BaseAvatarSize } from '../BaseAvatar';
-import { TokenAvatarStyleSheetVars } from './TokenAvatar.types';
+import { AvatarTokenStyleSheetVars } from './AvatarToken.types';
 
 /**
- * Style sheet function for TokenAvatar component.
+ * Style sheet function for AvatarToken component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
- * @param params.vars TokenAvatar stylesheet vars.
+ * @param params.vars AvatarToken stylesheet vars.
  * @returns StyleSheet object.
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: TokenAvatarStyleSheetVars;
+  vars: AvatarTokenStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { size, style, showFallback, showHalo } = vars;

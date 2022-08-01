@@ -2,7 +2,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 import { BaseAvatarSize } from '../BaseAvatar';
-import TokenAvatar from '.';
+import AvatarToken from '.';
 import { View } from 'react-native';
 
 const someTokenImages = [
@@ -18,7 +18,7 @@ const someTokenImages = [
 
 const groupId = 'props';
 
-storiesOf(' Component Library / TokenAvatar', module)
+storiesOf(' Component Library / AvatarToken', module)
   // Component centered container
   .addDecorator((storyFn) => (
     //  eslint-disable-next-line
@@ -42,7 +42,7 @@ storiesOf(' Component Library / TokenAvatar', module)
     const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
 
     return (
-      <TokenAvatar
+      <AvatarToken
         size={sizeSelector}
         tokenName={tokenNameSelector}
         tokenImageUrl={imageUrlSelector}
@@ -65,12 +65,11 @@ storiesOf(' Component Library / TokenAvatar', module)
     const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
 
     return (
-      <TokenAvatar
+      <AvatarToken
         size={sizeSelector}
         tokenName={tokenNameSelector}
         tokenImageUrl={imageUrlSelector}
         showHalo
-        haloColor={'#00000050'}
       />
     );
   })
@@ -83,10 +82,10 @@ storiesOf(' Component Library / TokenAvatar', module)
     );
     const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
 
-    return <TokenAvatar size={sizeSelector} tokenName={tokenNameSelector} />;
+    return <AvatarToken size={sizeSelector} tokenName={tokenNameSelector} />;
   })
   .add('Without image and tokenName', () => {
     const sizeSelector = select('size', BaseAvatarSize, BaseAvatarSize.Md);
 
-    return <TokenAvatar size={sizeSelector} />;
+    return <AvatarToken size={sizeSelector} />;
   });
