@@ -616,6 +616,7 @@ class TransactionReviewInformation extends PureComponent {
       showCustomNonce,
       gasEstimateType,
       gasSelected,
+      network,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -660,7 +661,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {isTestNetwork || allowedToBuy(network) ? (
+            {this.isTestNetwork || allowedToBuy(network) ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (

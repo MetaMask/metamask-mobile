@@ -115,7 +115,6 @@ const UpdateEIP1559Tx = ({
   contractExchangeRates,
   primaryCurrency,
   currentCurrency,
-  nativeCurrency,
   conversionRate,
   isCancel,
   chainId,
@@ -263,7 +262,7 @@ const UpdateEIP1559Tx = ({
       conversionRate,
       currentCurrency,
       gasFeeEstimates,
-      nativeCurrency,
+      ticker,
       validateAmount,
     ],
   );
