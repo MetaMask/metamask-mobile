@@ -1,6 +1,6 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from 'app/util/theme/models';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import { NetworkAvatarStyleSheetVars } from './NetworkAvatar.types';
 
 /**
@@ -27,7 +27,7 @@ const styleSheet = (params: {
     : {};
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
-    label: size === BaseAvatarSize.Xs ? { lineHeight: 16 } : {},
+    label: size === AvatarSize.Xs ? { lineHeight: 16 } : {},
     image: {
       flex: 1,
     },

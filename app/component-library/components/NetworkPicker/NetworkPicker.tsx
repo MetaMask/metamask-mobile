@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import { NetworkPickerProps } from './NetworkPicker.types';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import stylesheet from './NetworkPicker.styles';
@@ -19,10 +19,7 @@ const NetworkPicker = ({
 
   return (
     <TouchableOpacity style={styles.base} onPress={onPress}>
-      <NetworkAvatar
-        size={BaseAvatarSize.Xs}
-        networkImageUrl={networkImageUrl}
-      />
+      <NetworkAvatar size={AvatarSize.Xs} networkImageUrl={networkImageUrl} />
       <BaseText style={styles.label} variant={BaseTextVariant.sBodyMD}>
         {networkLabel}
       </BaseText>

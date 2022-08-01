@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { STACKED_AVATARS_OVERFLOW_COUNTER } from '../../../constants/test-ids';
 import { useStyles } from '../../hooks';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import AvatarToken from '../AvatarToken';
 
@@ -13,7 +13,7 @@ import { StackedAvatarsProps } from './StackedAvatars.types';
 const MAX_STACKED_AVATARS = 4;
 
 const StackedAvatars = ({ tokenList }: StackedAvatarsProps) => {
-  const extraSmallSize = BaseAvatarSize.Xs;
+  const extraSmallSize = AvatarSize.Xs;
   const sizeAsNumber = Number(extraSmallSize);
   const overflowCounter = tokenList.length - MAX_STACKED_AVATARS;
   const avatarSpacing = sizeAsNumber / 2;

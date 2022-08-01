@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
-import BaseAvatar, { BaseAvatarSize } from '../BaseAvatar';
+import Avatar, { AvatarSize } from '../Avatar';
 import {
   FaviconAvatarProps,
   IconSizeByAvatarSize,
@@ -12,11 +12,11 @@ import Icon, { IconName, IconSize } from '../Icon';
 import { FAVICON_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 
 const iconSizeByAvatarSize: IconSizeByAvatarSize = {
-  [BaseAvatarSize.Xs]: IconSize.Xs,
-  [BaseAvatarSize.Sm]: IconSize.Sm,
-  [BaseAvatarSize.Md]: IconSize.Md,
-  [BaseAvatarSize.Lg]: IconSize.Lg,
-  [BaseAvatarSize.Xl]: IconSize.Xl,
+  [AvatarSize.Xs]: IconSize.Xs,
+  [AvatarSize.Sm]: IconSize.Sm,
+  [AvatarSize.Md]: IconSize.Md,
+  [AvatarSize.Lg]: IconSize.Lg,
+  [AvatarSize.Xl]: IconSize.Xl,
 };
 
 const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
@@ -34,7 +34,7 @@ const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
   );
 
   return (
-    <BaseAvatar size={size} style={styles.base}>
+    <Avatar size={size} style={styles.base}>
       {error ? (
         <Icon size={iconSizeByAvatarSize[size]} name={IconName.GlobalFilled} />
       ) : (
@@ -46,7 +46,7 @@ const FaviconAvatar: React.FC<FaviconAvatarProps> = ({
           onError={onError}
         />
       )}
-    </BaseAvatar>
+    </Avatar>
   );
 };
 

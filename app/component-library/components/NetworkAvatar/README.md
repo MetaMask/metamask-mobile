@@ -1,22 +1,22 @@
 # NetworkAvatar
 
-NetworkAvatar is a component that renders an avatar based on the user selected network. This component is based on the [BaseAvatar](../BaseAvatar/BaseAvatar.tsx) component.
+NetworkAvatar is a component that renders an avatar based on the user selected network. This component is based on the [Avatar](../Avatar/Avatar.tsx) component.
 
 ## Props
 
-This component extends [BaseAvatarProps](../BaseAvatar/BaseAvatar.types.ts#L17) from `BaseAvatar` component.
+This component extends [AvatarProps](../Avatar/Avatar.types.ts#L17) from `Avatar` component.
 
 ### `size`
 
 Enum to select between size variants.
 
-| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :----------------------------------------------------- | :------------------------------------------------------ |
-| [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6) | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarSize](../Avatar/Avatar.types.ts#L6)          | Yes                                                     |
 
 ### `networkName`
 
-Chain name 
+Chain name
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -29,4 +29,3 @@ Chain image URL
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [networkImageUrl](./NetworkAvatar.types.ts#L15)     | No                                                      |
-

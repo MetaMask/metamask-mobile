@@ -1,9 +1,9 @@
-import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
+import { AvatarProps } from '../Avatar/Avatar.types';
 
 /**
  * NetworkAvatar component props.
  */
-export interface NetworkAvatarProps extends BaseAvatarProps {
+export interface NetworkAvatarProps extends AvatarProps {
   /**
    * Chain name.
    */

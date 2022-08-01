@@ -1,13 +1,13 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import AvatarIcon from './AvatarIcon';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import { IconName } from '../Icon';
 
 describe('AvatarIcon', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarIcon size={BaseAvatarSize.Lg} icon={IconName.AddSquareFilled} />,
+      <AvatarIcon size={AvatarSize.Lg} icon={IconName.AddSquareFilled} />,
     );
     expect(wrapper).toMatchSnapshot();
   });

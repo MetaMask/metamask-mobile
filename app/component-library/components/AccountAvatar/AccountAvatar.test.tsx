@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import AccountAvatar, { AccountAvatarType } from '.';
 
 describe('AccountAvatar', () => {
@@ -10,7 +10,7 @@ describe('AccountAvatar', () => {
 
     const wrapper = shallow(
       <AccountAvatar
-        size={BaseAvatarSize.Xl}
+        size={AvatarSize.Xl}
         type={AccountAvatarType.JazzIcon}
         accountAddress={accountAddress}
       />,

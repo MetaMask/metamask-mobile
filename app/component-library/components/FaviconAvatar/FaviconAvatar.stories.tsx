@@ -1,7 +1,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import FaviconAvatar from '.';
 import { testImageUrl } from './FaviconAvatar.data';
 
@@ -10,8 +10,8 @@ storiesOf('Component Library / FaviconAvatar', module)
   .add('Default', () => {
     const sizeSelector = select(
       'size',
-      BaseAvatarSize,
-      BaseAvatarSize.Md,
+      AvatarSize,
+      AvatarSize.Md,
       'Avatar Size',
     );
 
@@ -20,8 +20,8 @@ storiesOf('Component Library / FaviconAvatar', module)
   .add('With Error', () => {
     const sizeSelector = select(
       'size',
-      BaseAvatarSize,
-      BaseAvatarSize.Md,
+      AvatarSize,
+      AvatarSize.Md,
       'Avatar Size',
     );
 

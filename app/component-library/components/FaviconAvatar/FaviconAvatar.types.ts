@@ -1,14 +1,11 @@
 import { ImageStyle, ViewStyle } from 'react-native';
-import {
-  BaseAvatarProps,
-  BaseAvatarSize,
-} from '../BaseAvatar/BaseAvatar.types';
+import { AvatarProps, AvatarSize } from '../Avatar/Avatar.types';
 import { IconSize } from '../Icon';
 
 /**
  * FaviconAvatar component props.
  */
-export interface FaviconAvatarProps extends BaseAvatarProps {
+export interface FaviconAvatarProps extends AvatarProps {
   /**
    * An icon URL
    */
@@ -32,8 +29,8 @@ export interface FaviconAvatarStyleSheetVars
 }
 
 /**
- * Mapping of IconSize by BaseAvatarSize.
+ * Mapping of IconSize by AvatarSize.
  */
 export type IconSizeByAvatarSize = {
-  [key in BaseAvatarSize]: IconSize;
+  [key in AvatarSize]: IconSize;
 };

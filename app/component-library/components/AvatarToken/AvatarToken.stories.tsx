@@ -1,7 +1,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import AvatarToken from '.';
 import { View } from 'react-native';
 
@@ -27,12 +27,7 @@ storiesOf(' Component Library / AvatarToken', module)
     </View>
   ))
   .add('With image', () => {
-    const sizeSelector = select(
-      'size',
-      BaseAvatarSize,
-      BaseAvatarSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const imageUrlSelector = select(
       'tokenImageUrl',
       someTokenImages,
@@ -50,12 +45,7 @@ storiesOf(' Component Library / AvatarToken', module)
     );
   })
   .add('With image & halo effect', () => {
-    const sizeSelector = select(
-      'size',
-      BaseAvatarSize,
-      BaseAvatarSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const imageUrlSelector = select(
       'tokenImageUrl',
       someTokenImages,
@@ -74,18 +64,13 @@ storiesOf(' Component Library / AvatarToken', module)
     );
   })
   .add('Without image', () => {
-    const sizeSelector = select(
-      'size',
-      BaseAvatarSize,
-      BaseAvatarSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
 
     return <AvatarToken size={sizeSelector} tokenName={tokenNameSelector} />;
   })
   .add('Without image and tokenName', () => {
-    const sizeSelector = select('size', BaseAvatarSize, BaseAvatarSize.Md);
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
 
     return <AvatarToken size={sizeSelector} />;
   });

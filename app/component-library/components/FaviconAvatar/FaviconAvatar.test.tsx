@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import FaviconAvatar from '.';
 import { testImageUrl } from './FaviconAvatar.data';
 import { FAVICON_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
@@ -8,14 +8,14 @@ import { FAVICON_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 describe('FaviconAvatar', () => {
   it('should match the snapshot', () => {
     const wrapper = shallow(
-      <FaviconAvatar size={BaseAvatarSize.Xl} imageUrl={testImageUrl} />,
+      <FaviconAvatar size={AvatarSize.Xl} imageUrl={testImageUrl} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render favicon', () => {
     const wrapper = shallow(
-      <FaviconAvatar size={BaseAvatarSize.Xl} imageUrl={testImageUrl} />,
+      <FaviconAvatar size={AvatarSize.Xl} imageUrl={testImageUrl} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
@@ -25,7 +25,7 @@ describe('FaviconAvatar', () => {
 
   it('should render fallback', () => {
     const wrapper = shallow(
-      <FaviconAvatar size={BaseAvatarSize.Xl} imageUrl={testImageUrl} />,
+      <FaviconAvatar size={AvatarSize.Xl} imageUrl={testImageUrl} />,
     );
     const prevImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,

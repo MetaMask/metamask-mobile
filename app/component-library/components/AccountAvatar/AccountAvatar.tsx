@@ -3,7 +3,7 @@ import React from 'react';
 import { Image } from 'react-native';
 import JazzIcon from 'react-native-jazzicon';
 import { toDataUrl } from '../../../util/blockies';
-import BaseAvatar from '../BaseAvatar';
+import Avatar from '../Avatar';
 import stylesheet from './AccountAvatar.styles';
 import { AccountAvatarProps, AccountAvatarType } from './AccountAvatar.types';
 
@@ -13,7 +13,7 @@ const AccountAvatar = ({
   size,
   style,
 }: AccountAvatarProps) => (
-  <BaseAvatar size={size} style={style}>
+  <Avatar size={size} style={style}>
     {
       {
         [AccountAvatarType.JazzIcon]: (
@@ -27,7 +27,7 @@ const AccountAvatar = ({
         ),
       }[type]
     }
-  </BaseAvatar>
+  </Avatar>
 );
 
 export default AccountAvatar;

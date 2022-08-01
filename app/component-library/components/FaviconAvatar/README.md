@@ -1,18 +1,18 @@
 # FaviconAvatar
 
-FaviconAvatar is an Image component that renders an icon that is provided in the form of a URL. This component is based on the [BaseAvatar](../BaseAvatar/BaseAvatar.tsx) component.
+FaviconAvatar is an Image component that renders an icon that is provided in the form of a URL. This component is based on the [Avatar](../Avatar/Avatar.tsx) component.
 
 ## Props
 
-This component extends [BaseAvatarProps](../BaseAvatar/BaseAvatar.types.ts#L17) from `BaseAvatar` component.
+This component extends [AvatarProps](../Avatar/Avatar.types.ts#L17) from `Avatar` component.
 
 ### `size`
 
 Enum to select between size variants.
 
-| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :----------------------------------------------------- | :------------------------------------------------------ |
-| [BaseAvatarSize](../BaseAvatar/BaseAvatar.types.ts#L6) | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarSize](../Avatar/Avatar.types.ts#L6)          | Yes                                                     |
 
 ### `imageUrl`
 

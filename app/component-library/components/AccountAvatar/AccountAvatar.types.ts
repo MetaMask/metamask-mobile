@@ -1,4 +1,4 @@
-import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
+import { AvatarProps } from '../Avatar/Avatar.types';
 
 /**
  * AccountAvatar variants.
@@ -11,7 +11,7 @@ export enum AccountAvatarType {
 /**
  * AccountAvatar component props.
  */
-export interface AccountAvatarProps extends BaseAvatarProps {
+export interface AccountAvatarProps extends AvatarProps {
   /**
    * Enum to select the avatar type between `JazzIcon` and `Blockies`.
    */

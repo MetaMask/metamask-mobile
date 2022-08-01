@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { shallow } from 'enzyme';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import AvatarToken from './AvatarToken';
 import { TOKEN_AVATAR_IMAGE_ID } from '../../../constants/test-ids';
 // eslint-disable-next-line
@@ -18,7 +18,7 @@ describe('AvatarToken', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={BaseAvatarSize.Xl}
+        size={AvatarSize.Xl}
         tokenName={tokenName}
         tokenImageUrl={testImageUrl}
       />,
@@ -29,7 +29,7 @@ describe('AvatarToken', () => {
   it('should render network image', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={BaseAvatarSize.Xl}
+        size={AvatarSize.Xl}
         tokenName={tokenName}
         tokenImageUrl={testImageUrl}
       />,
@@ -44,7 +44,7 @@ describe('AvatarToken', () => {
   it('should render fallback when image fails to load', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={BaseAvatarSize.Xl}
+        size={AvatarSize.Xl}
         tokenName={tokenName}
         tokenImageUrl={testImageUrl}
       />,
@@ -62,7 +62,7 @@ describe('AvatarToken', () => {
 
   it('should render fallback when tokenImageUrl is not provided', () => {
     const wrapper = shallow(
-      <AvatarToken size={BaseAvatarSize.Xl} tokenName={tokenName} />,
+      <AvatarToken size={AvatarSize.Xl} tokenName={tokenName} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,

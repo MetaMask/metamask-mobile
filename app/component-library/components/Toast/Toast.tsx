@@ -20,7 +20,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import Link from '../Link';
 import styles from './Toast.styles';
@@ -123,7 +123,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           <AccountAvatar
             accountAddress={accountAddress}
             type={AccountAvatarType.JazzIcon}
-            size={BaseAvatarSize.Md}
+            size={AvatarSize.Md}
             style={styles.avatar}
           />
         );
@@ -134,7 +134,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           return (
             <NetworkAvatar
               networkImageUrl={networkImageUrl}
-              size={BaseAvatarSize.Md}
+              size={AvatarSize.Md}
               style={styles.avatar}
             />
           );

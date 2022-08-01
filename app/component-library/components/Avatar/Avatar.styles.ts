@@ -1,14 +1,14 @@
 import { StyleSheet, ViewStyle } from 'react-native';
-import { BaseAvatarStyleSheetVars } from './BaseAvatar.types';
+import { AvatarStyleSheetVars } from './Avatar.types';
 
 /**
- * Style sheet function for BaseAvatar component.
+ * Style sheet function for Avatar component.
  *
  * @param params Style sheet params.
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { vars: BaseAvatarStyleSheetVars }) => {
+const styleSheet = (params: { vars: AvatarStyleSheetVars }) => {
   const {
     vars: { style, size },
   } = params;

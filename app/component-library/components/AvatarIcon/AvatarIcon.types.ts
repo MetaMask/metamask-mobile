@@ -1,14 +1,11 @@
 import { ViewStyle } from 'react-native';
-import {
-  BaseAvatarProps,
-  BaseAvatarSize,
-} from '../BaseAvatar/BaseAvatar.types';
+import { AvatarProps, AvatarSize } from '../Avatar/Avatar.types';
 import { IconProps, IconSize } from '../Icon/Icon.types';
 
 /**
  * AvatarIcon component props.
  */
-export interface AvatarIconProps extends BaseAvatarProps {
+export interface AvatarIconProps extends AvatarProps {
   /**
    * Icon to use.
    */
@@ -28,8 +25,8 @@ export interface AvatarIconStyleSheet {
 export type AvatarIconStyleSheetVars = Pick<AvatarIconProps, 'style'>;
 
 /**
- * Mapping of IconSize by BaseAvatarSize.
+ * Mapping of IconSize by AvatarSize.
  */
 export type IconSizeByAvatarSize = {
-  [key in BaseAvatarSize]: IconSize;
+  [key in AvatarSize]: IconSize;
 };

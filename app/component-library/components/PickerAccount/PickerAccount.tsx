@@ -7,7 +7,7 @@ import BaseText, { BaseTextVariant } from '../BaseText';
 import PickerItem from '../PickerItem';
 import styleSheet from './PickerAccount.styles';
 import { PickerAccountProps } from './PickerAccount.types';
-import { BaseAvatarSize } from '../BaseAvatar';
+import { AvatarSize } from '../Avatar';
 import { formatAddress } from '../../../util/address';
 
 const PickerAccount = ({
@@ -25,7 +25,7 @@ const PickerAccount = ({
       <AccountAvatar
         type={accountAvatarType}
         accountAddress={accountAddress}
-        size={BaseAvatarSize.Md}
+        size={AvatarSize.Md}
         style={styles.accountAvatar}
       />
       <View>

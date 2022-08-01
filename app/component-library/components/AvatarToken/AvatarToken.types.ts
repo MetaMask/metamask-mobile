@@ -1,9 +1,9 @@
-import { BaseAvatarProps } from '../BaseAvatar/BaseAvatar.types';
+import { AvatarProps } from '../Avatar/Avatar.types';
 
 /**
  * AvatarToken component props.
  */
-export interface AvatarTokenProps extends BaseAvatarProps {
+export interface AvatarTokenProps extends AvatarProps {
   /**
    * Token name.
    */
@@ -13,7 +13,8 @@ export interface AvatarTokenProps extends BaseAvatarProps {
    */
   tokenImageUrl?: string;
   /**
-   * Boolean to activate halo effect.
+   * Optional boolean to activate halo effect.
+   * @default false
    */
   showHalo?: boolean;
 }
