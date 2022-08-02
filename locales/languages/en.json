@@ -2145,11 +2145,11 @@
     "unknownError": "Unknown error occurred"
   },
   "remember_me": {
-    "enable_remember_me": "Allow \"Remember me\"",
-    "enable_remember_me_description": "Turn on at your own risk. When \"Remember me\" is on, it gives anyone access to your MetaMask if they can access your phone."
+    "enable_remember_me": "Turn on Remember me",
+    "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
   },
   "turn_off_remember_me": {
-    "title": "Enter your password to turn off the Remember me option",
+    "title": "Enter your password to turn off Remember me",
     "placeholder": "Password",
     "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
     "action": "Turn off Remember me"
