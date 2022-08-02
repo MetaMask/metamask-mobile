@@ -1,5 +1,5 @@
 import { EventEmitter2 } from 'eventemitter2';
-import ECDH from './ECDH';
+import ECIES from './ECIES';
 
 enum KeySteps {
   NONE = 'none',
@@ -11,11 +11,9 @@ enum KeySteps {
 export default class KeyExchange extends EventEmitter2 {
   keysExchanged = false;
 
-  myECDH = null;
+  myECIES = null;
 
-  otherPublicKey = null;
-
-  secretKey = null;
+  otherPublicKey = '';
 
   CommLayer: any;
 
@@ -28,10 +26,10 @@ export default class KeyExchange extends EventEmitter2 {
   constructor({ CommLayer, otherPublicKey, sendPublicKey }) {
     super();
 
-    this.myECDH = new ECDH();
-    this.myECDH.generateECDH();
+    this.myECIES = new ECIES();
+    this.myECIES.generateECIES();
     this.CommLayer = CommLayer;
-    this.myPublicKey = this.myECDH.getPublicKey();
+    this.myPublicKey = this.myECIES.getPublicKey();
 
     if (otherPublicKey) {
       this.onOtherPublicKey(otherPublicKey);
@@ -70,14 +68,13 @@ export default class KeyExchange extends EventEmitter2 {
     });
   }
 
-  clean() {
+  clean(): void {
     this.step = KeySteps.NONE;
-    this.secretKey = null;
     this.keysExchanged = false;
-    this.otherPublicKey = null;
+    this.otherPublicKey = '';
   }
 
-  start(isOriginator: boolean) {
+  start(isOriginator: boolean): void {
     if (isOriginator) {
       this.clean();
     }
@@ -89,29 +86,27 @@ export default class KeyExchange extends EventEmitter2 {
     });
   }
 
-  checkStep(step) {
+  checkStep(step: string): void {
     if (this.step !== step) {
       throw new Error(`Wrong Step ${this.step} ${step}`);
     }
   }
 
-  onOtherPublicKey(pubkey) {
+  onOtherPublicKey(pubkey: string): void {
     this.otherPublicKey = pubkey;
-    this.myECDH.computeECDHSecret(this.otherPublicKey);
-    this.secretKey = this.myECDH.secretKey;
   }
 
-  encryptMessage(message) {
-    if (!this.secretKey) {
+  encryptMessage(message: string): string {
+    if (!this.otherPublicKey) {
       throw new Error('Keys not exchanged');
     }
-    return this.myECDH.encryptAuthIV(message);
+    return this.myECIES.encrypt(message, this.otherPublicKey);
   }
 
-  decryptMessage(message) {
-    if (!this.secretKey) {
+  decryptMessage(message: string): string {
+    if (!this.otherPublicKey) {
       throw new Error('Keys not exchanged');
     }
-    return this.myECDH.decryptAuthIV(message);
+    return this.myECIES.decrypt(message);
   }
 }
