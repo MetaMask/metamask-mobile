@@ -14,18 +14,18 @@ import Tag from '../Tag';
 
 // Internal dependencies
 import {
-  CELL_SINGLE_SELECT_TEST_ID,
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_AVATAR_TEST_ID,
-  CELL_TITLE_TEST_ID,
-  CELL_SECONDARY_TEXT_TEST_ID,
-  CELL_TERTIARY_TEXT_TEST_ID,
-  CELL_TAG_LABEL_TEST_ID,
-} from './Cell.constants';
-import styleSheet from './Cell.styles';
-import { CellProps } from './Cell.types';
+  CELL_ACCOUNT_SINGLE_SELECT_TEST_ID,
+  CELL_ACCOUNT_MULTI_SELECT_TEST_ID,
+  CELL_ACCOUNT_AVATAR_TEST_ID,
+  CELL_ACCOUNT_TITLE_TEST_ID,
+  CELL_ACCOUNT_SECONDARY_TEXT_TEST_ID,
+  CELL_ACCOUNT_TERTIARY_TEXT_TEST_ID,
+  CELL_ACCOUNT_TAG_LABEL_TEST_ID,
+} from './CellAccount.constants';
+import styleSheet from './CellAccount.styles';
+import { CellAccountProps } from './CellAccount.types';
 
-const Cell = ({
+const CellAccount = ({
   style,
   accountAddress,
   accountAvatarType,
@@ -37,14 +37,14 @@ const Cell = ({
   isSelected = false,
   children,
   ...props
-}: CellProps) => {
+}: CellAccountProps) => {
   const { styles } = useStyles(styleSheet, { style });
   const ContainerComponent = isMultiSelect
     ? CellContainerMultiSelectItem
     : CellContainerSelectItem;
   const containerTestID = isMultiSelect
-    ? CELL_MULTI_SELECT_TEST_ID
-    : CELL_SINGLE_SELECT_TEST_ID;
+    ? CELL_ACCOUNT_MULTI_SELECT_TEST_ID
+    : CELL_ACCOUNT_SINGLE_SELECT_TEST_ID;
 
   return (
     <ContainerComponent
@@ -53,20 +53,20 @@ const Cell = ({
       testID={containerTestID}
       {...props}
     >
-      <View style={styles.cell}>
+      <View style={styles.cellAccount}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
         <AccountAvatar
           type={accountAvatarType}
           accountAddress={accountAddress}
           size={BaseAvatarSize.Md}
           style={styles.accountAvatar}
-          testID={CELL_AVATAR_TEST_ID}
+          testID={CELL_ACCOUNT_AVATAR_TEST_ID}
         />
-        <View style={styles.cellInfo}>
+        <View style={styles.cellAccountInfo}>
           <BaseText
             numberOfLines={1}
             variant={BaseTextVariant.sHeadingSMRegular}
-            testID={CELL_TITLE_TEST_ID}
+            testID={CELL_ACCOUNT_TITLE_TEST_ID}
           >
             {title}
           </BaseText>
@@ -75,7 +75,7 @@ const Cell = ({
               numberOfLines={1}
               variant={BaseTextVariant.sBodyMD}
               style={styles.secondaryText}
-              testID={CELL_SECONDARY_TEXT_TEST_ID}
+              testID={CELL_ACCOUNT_SECONDARY_TEXT_TEST_ID}
             >
               {secondaryText}
             </BaseText>
@@ -85,7 +85,7 @@ const Cell = ({
               numberOfLines={1}
               variant={BaseTextVariant.sBodyMD}
               style={styles.tertiaryText}
-              testID={CELL_TERTIARY_TEXT_TEST_ID}
+              testID={CELL_ACCOUNT_TERTIARY_TEXT_TEST_ID}
             >
               {tertiaryText}
             </BaseText>
@@ -94,7 +94,7 @@ const Cell = ({
             <Tag
               label={tagLabel}
               style={styles.tagLabel}
-              testID={CELL_TAG_LABEL_TEST_ID}
+              testID={CELL_ACCOUNT_TAG_LABEL_TEST_ID}
             />
           )}
         </View>
@@ -104,4 +104,4 @@ const Cell = ({
   );
 };
 
-export default Cell;
+export default CellAccount;

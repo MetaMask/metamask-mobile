@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Cell - Snapshot should render default settings correctly 1`] = `
+exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
 <CellContainerSelectOption
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-single-select"
+  testID="cell-account-single-select"
 >
   <View
     style={
@@ -22,7 +22,7 @@ exports[`Cell - Snapshot should render default settings correctly 1`] = `
           "marginRight": 16,
         }
       }
-      testID="cell-avatar"
+      testID="cell-account-avatar"
       type="JazzIcon"
     />
     <View
@@ -35,7 +35,7 @@ exports[`Cell - Snapshot should render default settings correctly 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        testID="cell-title"
+        testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
@@ -45,12 +45,12 @@ exports[`Cell - Snapshot should render default settings correctly 1`] = `
 </CellContainerSelectOption>
 `;
 
-exports[`Cell - Snapshot should render label when given 1`] = `
+exports[`CellAccount - Snapshot should render label when given 1`] = `
 <CellContainerSelectOption
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-single-select"
+  testID="cell-account-single-select"
 >
   <View
     style={
@@ -67,7 +67,7 @@ exports[`Cell - Snapshot should render label when given 1`] = `
           "marginRight": 16,
         }
       }
-      testID="cell-avatar"
+      testID="cell-account-avatar"
       type="JazzIcon"
     />
     <View
@@ -80,7 +80,7 @@ exports[`Cell - Snapshot should render label when given 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        testID="cell-title"
+        testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
@@ -92,19 +92,19 @@ exports[`Cell - Snapshot should render label when given 1`] = `
             "marginTop": 4,
           }
         }
-        testID="cell-label"
+        testID="cell-account-label"
       />
     </View>
   </View>
 </CellContainerSelectOption>
 `;
 
-exports[`Cell - Snapshot should render secondaryText when given 1`] = `
+exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
 <CellContainerSelectOption
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-single-select"
+  testID="cell-account-single-select"
 >
   <View
     style={
@@ -121,7 +121,7 @@ exports[`Cell - Snapshot should render secondaryText when given 1`] = `
           "marginRight": 16,
         }
       }
-      testID="cell-avatar"
+      testID="cell-account-avatar"
       type="JazzIcon"
     />
     <View
@@ -134,7 +134,7 @@ exports[`Cell - Snapshot should render secondaryText when given 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        testID="cell-title"
+        testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
@@ -146,7 +146,7 @@ exports[`Cell - Snapshot should render secondaryText when given 1`] = `
             "color": "#535A61",
           }
         }
-        testID="cell-secondary-text"
+        testID="cell-account-secondary-text"
         variant="sBodyMD"
       >
         0x2990079bcdEe240329a520d2444386FC119da21a
@@ -156,12 +156,12 @@ exports[`Cell - Snapshot should render secondaryText when given 1`] = `
 </CellContainerSelectOption>
 `;
 
-exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
+exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
 <CellContainerSelectOption
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-single-select"
+  testID="cell-account-single-select"
 >
   <View
     style={
@@ -178,7 +178,7 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
           "marginRight": 16,
         }
       }
-      testID="cell-avatar"
+      testID="cell-account-avatar"
       type="JazzIcon"
     />
     <View
@@ -191,7 +191,7 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        testID="cell-title"
+        testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
@@ -203,7 +203,7 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
             "color": "#535A61",
           }
         }
-        testID="cell-tertiary-text"
+        testID="cell-account-tertiary-text"
         variant="sBodyMD"
       >
         Updated 1 sec ago
@@ -213,12 +213,12 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
 </CellContainerSelectOption>
 `;
 
-exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
+exports[`CellAccount - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
 <CellContainerMultiSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-multi-select"
+  testID="cell-account-multi-select"
 >
   <View
     style={
@@ -235,7 +235,7 @@ exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect
           "marginRight": 16,
         }
       }
-      testID="cell-avatar"
+      testID="cell-account-avatar"
       type="JazzIcon"
     />
     <View
@@ -248,7 +248,7 @@ exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect
     >
       <BaseText
         numberOfLines={1}
-        testID="cell-title"
+        testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
@@ -258,12 +258,12 @@ exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect
 </CellContainerMultiSelectItem>
 `;
 
-exports[`Cell - Snapshot should render the proper selected state 1`] = `
+exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
 <CellContainerSelectOption
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-single-select"
+  testID="cell-account-single-select"
 >
   <View
     style={
@@ -280,7 +280,7 @@ exports[`Cell - Snapshot should render the proper selected state 1`] = `
           "marginRight": 16,
         }
       }
-      testID="cell-avatar"
+      testID="cell-account-avatar"
       type="JazzIcon"
     />
     <View
@@ -293,7 +293,7 @@ exports[`Cell - Snapshot should render the proper selected state 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        testID="cell-title"
+        testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth

@@ -1,5 +1,10 @@
+// 3rd library dependencies
 import { StyleSheet, ViewStyle } from 'react-native';
-import { CellStyleSheetVars } from './Cell.types';
+
+// External dependencies
+import { CellAccountStyleSheetVars } from './CellAccount.types';
+
+// Internal dependencies
 import { Theme } from '../../../util/theme/models';
 
 /**
@@ -10,20 +15,23 @@ import { Theme } from '../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: CellStyleSheetVars }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: CellAccountStyleSheetVars;
+}) => {
   const { vars, theme } = params;
   const { colors } = theme;
   const { style } = vars;
 
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    cell: {
+    cellAccount: {
       flexDirection: 'row',
     },
     accountAvatar: {
       marginRight: 16,
     },
-    cellInfo: {
+    cellAccountInfo: {
       flex: 1,
       alignItems: 'flex-start',
     },

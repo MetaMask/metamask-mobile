@@ -2,9 +2,9 @@ import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
 import { AccountAvatarType } from '../AccountAvatar';
 
 /**
- * Cell component props.
+ * Cell Account component props.
  */
-export interface CellProps extends TouchableOpacityProps {
+export interface CellAccountProps extends TouchableOpacityProps {
   /**
    * Callback to trigger when pressed.
    */
@@ -44,7 +44,7 @@ export interface CellProps extends TouchableOpacityProps {
    */
   isSelected?: boolean;
   /**
-   * Optional accessory that can be inserted on the right of Cell
+   * Optional accessory that can be inserted on the right of Cell Account
    */
   children?: React.ReactNode;
   /**
@@ -56,4 +56,4 @@ export interface CellProps extends TouchableOpacityProps {
 /**
  * Style sheet input parameters.
  */
-export type CellStyleSheetVars = Pick<CellProps, 'style'>;
+export type CellAccountStyleSheetVars = Pick<CellAccountProps, 'style'>;

@@ -9,30 +9,30 @@ import { storiesOf } from '@storybook/react-native';
 import { AccountAvatarType } from '../AccountAvatar';
 
 // Internal dependencies
-import Cell from './Cell';
+import CellAccount from './CellAccount';
 import {
   TEST_ACCOUNT_ADDRESS,
-  TEST_CELL_TITLE,
-  TEST_CELL_SECONDARY_TEXT,
-  TEST_CELL_TERTIARY_TEXT,
+  TEST_CELL_ACCOUNT_TITLE,
+  TEST_CELL_ACCOUNT_SECONDARY_TEXT,
+  TEST_CELL_ACCOUNT_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
-} from './Cell.constants';
+} from './CellAccount.constants';
 
 storiesOf('Component Library / Cell', module).add('Default', () => {
   const groupId = 'Props';
   const isMultiSelect = boolean('IsMultiSelect?', false, groupId);
-  const titleText = text('title', TEST_CELL_TITLE, groupId);
+  const titleText = text('title', TEST_CELL_ACCOUNT_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
     false,
     groupId,
   );
   const secondaryText = includeSecondaryText
-    ? text('secondaryText', TEST_CELL_SECONDARY_TEXT, groupId)
+    ? text('secondaryText', TEST_CELL_ACCOUNT_SECONDARY_TEXT, groupId)
     : '';
   const includeTertiaryText = boolean('Includes tertiaryText?', false, groupId);
   const tertiaryText = includeTertiaryText
-    ? text('tertiaryText', TEST_CELL_TERTIARY_TEXT, groupId)
+    ? text('tertiaryText', TEST_CELL_ACCOUNT_TERTIARY_TEXT, groupId)
     : '';
   const includeTagLabel = boolean('Includes label?', false, groupId);
   const tagLabel = includeTagLabel
@@ -41,7 +41,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
   const isSelected = boolean('isSelected?', false, groupId);
 
   return (
-    <Cell
+    <CellAccount
       accountAddress={TEST_ACCOUNT_ADDRESS}
       accountAvatarType={AccountAvatarType.JazzIcon}
       title={titleText}

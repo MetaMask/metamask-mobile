@@ -82,7 +82,7 @@ Default: false
 
 ### `children`
 
-Optional accessory that can be inserted on the right of Cell
+Optional accessory that can be inserted on the right of Cell Account
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
