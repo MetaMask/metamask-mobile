@@ -9,7 +9,7 @@ import { encrypt, decrypt, PrivateKey } from 'eciesjs';
  * The encryption/decryption is made using a symmetric key generated from the ECIES key exchange
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-class ECIES {
+export default class ECIES {
   ecies: any;
 
   constructor() {
