@@ -124,18 +124,21 @@ class Asset extends PureComponent {
     const isMainnet = isMainnetByChainId(chainId);
     const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
 
+    const shouldShowMoreOptionsInNavBar =
+      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
+
     navigation.setOptions(
       getNetworkNavbarOptions(
         route.params?.symbol ?? '',
         false,
         navigation,
         colors,
-        !isMainnet || (isNativeToken && !blockExplorer)
-          ? undefined
-          : () =>
+        shouldShowMoreOptionsInNavBar
+          ? () =>
               navigation.navigate('AssetOptions', {
                 isNativeCurrency: isNativeToken,
-              }),
+              })
+          : undefined,
         true,
       ),
     );
