@@ -2,7 +2,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../hooks';
-import AccountAvatar from '../AccountAvatar';
+import AvatarAccount from '../AvatarAccount';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import PickerItem from '../PickerItem';
 import styleSheet from './PickerAccount.styles';
@@ -22,7 +22,7 @@ const PickerAccount = ({
 
   const renderCellAccount = () => (
     <View style={styles.cellAccount}>
-      <AccountAvatar
+      <AvatarAccount
         type={accountAvatarType}
         accountAddress={accountAddress}
         size={AvatarSize.Md}

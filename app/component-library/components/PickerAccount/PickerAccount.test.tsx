@@ -5,7 +5,7 @@ import {
   TEST_ACCOUNT_ADDRESS,
   TEST_ACCOUNT_NAME,
 } from './PickerAccount.constants';
-import { AccountAvatarType } from '../AccountAvatar';
+import { AvatarAccountType } from '../AvatarAccount';
 
 describe('PickerAccount', () => {
   it('should render correctly', () => {
@@ -13,7 +13,7 @@ describe('PickerAccount', () => {
       <PickerAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
         accountName={TEST_ACCOUNT_NAME}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         onPress={jest.fn}
       />,
     );

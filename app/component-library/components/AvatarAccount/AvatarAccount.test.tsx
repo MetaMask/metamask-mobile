@@ -1,17 +1,14 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import { AvatarSize } from '../Avatar';
-import AccountAvatar, { AccountAvatarType } from '.';
+import AvatarAccount, { AvatarAccountType } from '.';
 
-describe('AccountAvatar', () => {
+describe('AvatarAccount', () => {
   it('should render correctly', () => {
-    const accountAddress =
-      '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092';
-
     const wrapper = shallow(
-      <AccountAvatar
+      <AvatarAccount
         size={AvatarSize.Xl}
-        type={AccountAvatarType.JazzIcon}
+        type={AvatarAccountType.JazzIcon}
         accountAddress={accountAddress}
       />,
     );

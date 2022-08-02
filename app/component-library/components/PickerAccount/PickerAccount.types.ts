@@ -1,5 +1,5 @@
 import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
-import { AccountAvatarType } from '../AccountAvatar';
+import { AvatarAccountType } from '../AvatarAccount';
 
 /**
  * PickerAccount component props.
@@ -14,9 +14,9 @@ export interface PickerAccountProps extends TouchableOpacityProps {
    */
   accountAddress: string;
   /**
-   * AccountAvatar variants.
+   * AvatarAccount variants.
    */
-  accountAvatarType: AccountAvatarType;
+  accountAvatarType: AvatarAccountType;
   /**
    * Name of the account.
    */

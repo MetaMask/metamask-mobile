@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountAvatar should render correctly 1`] = `
+exports[`AvatarAccount should render correctly 1`] = `
 <Avatar
   size="48"
 >

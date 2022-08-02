@@ -5,7 +5,7 @@ import { select } from '@storybook/addon-knobs';
 import Avatar from './Avatar';
 import { AvatarSize } from './Avatar.types';
 import { toDataUrl } from '../../../util/blockies';
-import { DUMMY_WALLET_ADDRESS } from './Avatar.constants';
+import { DUMMY_IMAGE_DATA } from './Avatar.constants';
 
 const styles = StyleSheet.create({ imageStyle: { flex: 1 } });
 
@@ -17,7 +17,7 @@ storiesOf('Component Library / Avatar', module)
     return (
       <Avatar size={sizeSelector}>
         <Image
-          source={{ uri: toDataUrl(DUMMY_WALLET_ADDRESS) }}
+          source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
           style={styles.imageStyle}
         />
       </Avatar>

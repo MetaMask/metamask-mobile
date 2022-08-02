@@ -4,22 +4,22 @@ import { Image } from 'react-native';
 import JazzIcon from 'react-native-jazzicon';
 import { toDataUrl } from '../../../util/blockies';
 import Avatar from '../Avatar';
-import stylesheet from './AccountAvatar.styles';
-import { AccountAvatarProps, AccountAvatarType } from './AccountAvatar.types';
+import stylesheet from './AvatarAccount.styles';
+import { AvatarAccountProps, AvatarAccountType } from './AvatarAccount.types';
 
-const AccountAvatar = ({
-  type,
+const AvatarAccount = ({
+  type = AvatarAccountType.JazzIcon,
   accountAddress,
   size,
   style,
-}: AccountAvatarProps) => (
+}: AvatarAccountProps) => (
   <Avatar size={size} style={style}>
     {
       {
-        [AccountAvatarType.JazzIcon]: (
+        [AvatarAccountType.JazzIcon]: (
           <JazzIcon size={Number(size)} address={accountAddress} />
         ),
-        [AccountAvatarType.Blockies]: (
+        [AvatarAccountType.Blockies]: (
           <Image
             source={{ uri: toDataUrl(accountAddress) }}
             style={stylesheet.imageStyle}
@@ -30,6 +30,6 @@ const AccountAvatar = ({
   </Avatar>
 );
 
-export default AccountAvatar;
+export default AvatarAccount;
 
-export { AccountAvatar };
+export { AvatarAccount };

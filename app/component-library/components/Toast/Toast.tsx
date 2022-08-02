@@ -19,7 +19,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
+import AvatarAccount, { AvatarAccountType } from '../AvatarAccount';
 import { AvatarSize } from '../Avatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import Link from '../Link';
@@ -120,9 +120,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       case ToastVariant.Account: {
         const { accountAddress } = toastOptions;
         return (
-          <AccountAvatar
+          <AvatarAccount
             accountAddress={accountAddress}
-            type={AccountAvatarType.JazzIcon}
+            type={AvatarAccountType.JazzIcon}
             size={AvatarSize.Md}
             style={styles.avatar}
           />

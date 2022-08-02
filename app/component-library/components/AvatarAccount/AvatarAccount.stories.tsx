@@ -2,24 +2,22 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { text, select } from '@storybook/addon-knobs';
 import { AvatarSize } from '../Avatar';
-import AccountAvatar, { AccountAvatarType } from '.';
+import AvatarAccount, { AvatarAccountType } from '.';
+import { DUMMY_WALLET_ADDRESS } from './AvatarAccount.constants';
 
-storiesOf(' Component Library / AccountAvatar', module)
+storiesOf(' Component Library / AvatarAccount', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
-    const accountAddress = text(
-      'accountAddress',
-      '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092',
-    );
+    const accountAddress = text('accountAddress', DUMMY_WALLET_ADDRESS);
     const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
     const typeSelector = select(
       'type',
-      AccountAvatarType,
-      AccountAvatarType.JazzIcon,
+      AvatarAccountType,
+      AvatarAccountType.JazzIcon,
     );
 
     return (
-      <AccountAvatar
+      <AvatarAccount
         size={sizeSelector}
         type={typeSelector}
         accountAddress={accountAddress}
