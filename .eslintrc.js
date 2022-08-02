@@ -108,7 +108,7 @@ module.exports = {
       },
     ],
     'no-unsafe-negation': 2,
-    'no-unused-expressions': 'off',
+    'no-unused-expressions': 2,
     'no-use-before-define': [2, 'nofunc'],
     'no-useless-call': 2,
     'no-useless-computed-key': 2,
