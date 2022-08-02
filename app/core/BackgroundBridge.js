@@ -111,15 +111,19 @@ export class BackgroundBridge extends EventEmitter {
     sendMessage,
     isWalletConnect,
     wcRequestActions,
+    getApprovedHosts,
+    remoteConnHost,
   }) {
     super();
     this.url = url;
     this.hostname = new URL(url).hostname;
+    this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isRemoteConn = isRemoteConn;
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
+    this.getApprovedHosts = getApprovedHosts;
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -246,6 +250,9 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   notifySelectedAddressChanged(selectedAddress) {
+    if (this.isRemoteConn) {
+      if (!this.getApprovedHosts?.()?.[this.remoteConnHost]) return;
+    }
     this.sendNotification({
       method: NOTIFICATION_NAMES.accountsChanged,
       params: [selectedAddress],

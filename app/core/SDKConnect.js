@@ -102,6 +102,8 @@ class Connection {
         url: originatorInfo?.url,
         isRemoteConn: true,
         sendMessage: this.sendMessage,
+        getApprovedHosts: () => approvedHosts,
+        remoteConnHost: this.host,
         getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
           getRpcMethodMiddleware({
             hostname: this.host,
