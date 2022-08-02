@@ -12,16 +12,77 @@ import {
   TEST_CELL_TITLE,
   TEST_CELL_SECONDARY_TEXT,
   TEST_CELL_TERTIARY_TEXT,
-  TEST_LABEL_TEXT,
+  TEST_TAG_LABEL_TEXT,
+  CELL_SINGLE_SELECT_TEST_ID,
+  CELL_MULTI_SELECT_TEST_ID,
   CELL_AVATAR_TEST_ID,
   CELL_TITLE_TEST_ID,
   CELL_SECONDARY_TEXT_TEST_ID,
   CELL_TERTIARY_TEXT_TEST_ID,
-  CELL_LABEL_TEST_ID
+  CELL_TAG_LABEL_TEST_ID,
 } from './Cell.constants';
 
-describe('Cell', () => {
-  it('should render multiselect if isMultiSelect is true', () => {
+describe('Cell - Snapshot', () => {
+  it('should render default settings correctly', () => {
+    const wrapper = shallow(
+      <Cell
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        accountAvatarType={AccountAvatarType.JazzIcon}
+        title={TEST_CELL_TITLE}
+        onPress={jest.fn}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render secondaryText when given', () => {
+    const wrapper = shallow(
+      <Cell
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        accountAvatarType={AccountAvatarType.JazzIcon}
+        title={TEST_CELL_TITLE}
+        secondaryText={TEST_CELL_SECONDARY_TEXT}
+        onPress={jest.fn}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render tertiaryText when given', () => {
+    const wrapper = shallow(
+      <Cell
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        accountAvatarType={AccountAvatarType.JazzIcon}
+        title={TEST_CELL_TITLE}
+        tertiaryText={TEST_CELL_TERTIARY_TEXT}
+        onPress={jest.fn}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render label when given', () => {
+    const wrapper = shallow(
+      <Cell
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        accountAvatarType={AccountAvatarType.JazzIcon}
+        title={TEST_CELL_TITLE}
+        tagLabel={TEST_TAG_LABEL_TEXT}
+        onPress={jest.fn}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render the proper selected state', () => {
+    const wrapper = shallow(
+      <Cell
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        accountAvatarType={AccountAvatarType.JazzIcon}
+        title={TEST_CELL_TITLE}
+        isSelected
+        onPress={jest.fn}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+  it('should render the proper multiselect when isMultiSelect is true', () => {
     const wrapper = shallow(
       <Cell
         accountAddress={TEST_ACCOUNT_ADDRESS}
@@ -29,29 +90,52 @@ describe('Cell', () => {
         title={TEST_CELL_TITLE}
         isMultiSelect
         onPress={jest.fn}
-      />
+      />,
     );
-    const multiSelectComponent = wrapper.find('CellContainerMultiSelectOption');
-    const singleSelectComponent = wrapper.find('CellContainerSelectOption');
-
-    expect(multiSelectComponent.exists()).toBe(true);
-    expect(singleSelectComponent.exists()).toBe(false);
+    expect(wrapper).toMatchSnapshot();
   });
-  it('should render single select if isMultiSelect is false', () => {
+});
+
+describe('Cell', () => {
+  it('should render singleSelect if isMultiSelect is false', () => {
     const wrapper = shallow(
       <Cell
         accountAddress={TEST_ACCOUNT_ADDRESS}
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
-        isMultiSelect={false}
         onPress={jest.fn}
-      />
+        isMultiSelect={false}
+      />,
     );
-    const multiSelectComponent = wrapper.find('CellContainerMultiSelectOption');
-    const singleSelectComponent = wrapper.find('CellContainerSelectOption');
-
+    const singleSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CELL_SINGLE_SELECT_TEST_ID,
+    );
     expect(singleSelectComponent.exists()).toBe(true);
+
+    const multiSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
+    );
     expect(multiSelectComponent.exists()).toBe(false);
+  });
+  it('should render multiSelect if isMultiSelect is true', () => {
+    const wrapper = shallow(
+      <Cell
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        accountAvatarType={AccountAvatarType.JazzIcon}
+        title={TEST_CELL_TITLE}
+        isMultiSelect
+        onPress={jest.fn}
+      />,
+    );
+    const singleSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CELL_SINGLE_SELECT_TEST_ID,
+    );
+    expect(singleSelectComponent.exists()).toBe(false);
+
+    const multiSelectComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === CELL_MULTI_SELECT_TEST_ID,
+    );
+    expect(multiSelectComponent.exists()).toBe(true);
   });
   it('should render Avatar', () => {
     const wrapper = shallow(
@@ -60,7 +144,7 @@ describe('Cell', () => {
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}
-      />
+      />,
     );
     const avatarComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_AVATAR_TEST_ID,
@@ -74,7 +158,7 @@ describe('Cell', () => {
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}
-      />
+      />,
     );
     const titleElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_TITLE_TEST_ID,
@@ -89,12 +173,14 @@ describe('Cell', () => {
         title={TEST_CELL_TITLE}
         secondaryText={TEST_CELL_SECONDARY_TEXT}
         onPress={jest.fn}
-      />
+      />,
     );
     const secondaryTextElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_SECONDARY_TEXT_TEST_ID,
     );
-    expect(secondaryTextElement.props().children).toBe(TEST_CELL_SECONDARY_TEXT);
+    expect(secondaryTextElement.props().children).toBe(
+      TEST_CELL_SECONDARY_TEXT,
+    );
   });
   it('should not render secondaryText if not given', () => {
     const wrapper = shallow(
@@ -103,7 +189,7 @@ describe('Cell', () => {
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}
-      />
+      />,
     );
     const secondaryTextElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_SECONDARY_TEXT_TEST_ID,
@@ -118,7 +204,7 @@ describe('Cell', () => {
         title={TEST_CELL_TITLE}
         tertiaryText={TEST_CELL_TERTIARY_TEXT}
         onPress={jest.fn}
-      />
+      />,
     );
     const tertiaryTextElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_TERTIARY_TEXT_TEST_ID,
@@ -132,7 +218,7 @@ describe('Cell', () => {
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}
-      />
+      />,
     );
     const tertiaryTextElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_TERTIARY_TEXT_TEST_ID,
@@ -145,12 +231,12 @@ describe('Cell', () => {
         accountAddress={TEST_ACCOUNT_ADDRESS}
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
-        label={TEST_LABEL_TEXT}
+        tagLabel={TEST_TAG_LABEL_TEXT}
         onPress={jest.fn}
-      />
+      />,
     );
     const tagComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_LABEL_TEST_ID,
+      (node) => node.prop('testID') === CELL_TAG_LABEL_TEST_ID,
     );
     expect(tagComponent.exists()).toBe(true);
   });
@@ -161,12 +247,11 @@ describe('Cell', () => {
         accountAvatarType={AccountAvatarType.JazzIcon}
         title={TEST_CELL_TITLE}
         onPress={jest.fn}
-      />
+      />,
     );
     const tagComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_LABEL_TEST_ID,
+      (node) => node.prop('testID') === CELL_TAG_LABEL_TEST_ID,
     );
     expect(tagComponent.exists()).toBe(false);
   });
 });
-

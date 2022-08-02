@@ -1,6 +1,6 @@
-# CellContainerMultiSelectOption
+# CellContainerMultiSelectItem
 
-CellContainerMultiSelectOption is a wrapper component typically used for multi-select scenarios.
+CellContainerMultiSelectItem is a wrapper component typically used for multi-select scenarios.
 
 ## Props
 

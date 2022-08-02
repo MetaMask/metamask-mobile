@@ -1,29 +1,24 @@
 /* eslint-disable no-console, react-native/no-inline-styles */
 import React, { useState } from 'react';
 import { storiesOf } from '@storybook/react-native';
-import CellContainerMultiSelectOption from './CellContainerMultiSelectOption';
+import CellContainerSelectItem from './CellContainerSelectItem';
 import { boolean } from '@storybook/addon-knobs';
 import { View } from 'react-native';
 import { mockTheme } from '../../../util/theme';
 import BaseText, { BaseTextVariant } from '../BaseText';
 
-const CellContainerMultiSelectOptionExample = () => {
-  const [data, setData] = useState([true, true, false]);
+const CellContainerSelectItemExample = () => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const renderItem = (isSelected: boolean, index: number) => (
-    <CellContainerMultiSelectOption
-      onPress={() => {
-        const newData = [...data];
-        newData[index] = !isSelected;
-        setData(newData);
-      }}
-      key={`item-${index}`}
-      isSelected={isSelected}
+  const renderItem = (item: number) => (
+    <CellContainerSelectItem
+      onPress={() => setSelectedIndex(item)}
+      key={`item-${item}`}
+      isSelected={item === selectedIndex}
     >
       <View
         style={{
           height: 50,
-          flex: 1,
           backgroundColor: mockTheme.colors.background.alternative,
           alignItems: 'center',
           justifyContent: 'center',
@@ -33,24 +28,23 @@ const CellContainerMultiSelectOptionExample = () => {
           {'Wrapped Content'}
         </BaseText>
       </View>
-    </CellContainerMultiSelectOption>
+    </CellContainerSelectItem>
   );
 
-  return <React.Fragment>{data.map(renderItem)}</React.Fragment>;
+  return <React.Fragment>{[0, 1, 2].map(renderItem)}</React.Fragment>;
 };
 
-storiesOf('Component Library / CellContainerMultiSelectOption', module)
+storiesOf('Component Library / CellContainerSelectItem', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
     const selectedSelector = boolean('isSelected', false, groupId);
 
     return (
-      <CellContainerMultiSelectOption isSelected={selectedSelector}>
+      <CellContainerSelectItem isSelected={selectedSelector}>
         <View
           style={{
             height: 50,
-            flex: 1,
             backgroundColor: mockTheme.colors.background.alternative,
             alignItems: 'center',
             justifyContent: 'center',
@@ -60,7 +54,7 @@ storiesOf('Component Library / CellContainerMultiSelectOption', module)
             {'Wrapped Content'}
           </BaseText>
         </View>
-      </CellContainerMultiSelectOption>
+      </CellContainerSelectItem>
     );
   })
-  .add('Multilist', () => <CellContainerMultiSelectOptionExample />);
+  .add('List', () => <CellContainerSelectItemExample />);

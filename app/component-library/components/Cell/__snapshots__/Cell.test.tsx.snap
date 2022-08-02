@@ -5,6 +5,7 @@ exports[`Cell - Snapshot should render default settings correctly 1`] = `
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
+  testID="cell-single-select"
 >
   <View
     style={
@@ -34,7 +35,6 @@ exports[`Cell - Snapshot should render default settings correctly 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        style={Object {}}
         testID="cell-title"
         variant="sHeadingSMRegular"
       >
@@ -50,6 +50,7 @@ exports[`Cell - Snapshot should render label when given 1`] = `
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
+  testID="cell-single-select"
 >
   <View
     style={
@@ -79,7 +80,6 @@ exports[`Cell - Snapshot should render label when given 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        style={Object {}}
         testID="cell-title"
         variant="sHeadingSMRegular"
       >
@@ -104,6 +104,7 @@ exports[`Cell - Snapshot should render secondaryText when given 1`] = `
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
+  testID="cell-single-select"
 >
   <View
     style={
@@ -133,7 +134,6 @@ exports[`Cell - Snapshot should render secondaryText when given 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        style={Object {}}
         testID="cell-title"
         variant="sHeadingSMRegular"
       >
@@ -161,6 +161,7 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
+  testID="cell-single-select"
 >
   <View
     style={
@@ -190,7 +191,6 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        style={Object {}}
         testID="cell-title"
         variant="sHeadingSMRegular"
       >
@@ -214,10 +214,11 @@ exports[`Cell - Snapshot should render tertiaryText when given 1`] = `
 `;
 
 exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
-<CellContainerMultiSelectOption
+<CellContainerMultiSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
+  testID="cell-multi-select"
 >
   <View
     style={
@@ -247,7 +248,6 @@ exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect
     >
       <BaseText
         numberOfLines={1}
-        style={Object {}}
         testID="cell-title"
         variant="sHeadingSMRegular"
       >
@@ -255,7 +255,7 @@ exports[`Cell - Snapshot should render the proper multiselect when isMultiSelect
       </BaseText>
     </View>
   </View>
-</CellContainerMultiSelectOption>
+</CellContainerMultiSelectItem>
 `;
 
 exports[`Cell - Snapshot should render the proper selected state 1`] = `
@@ -263,6 +263,7 @@ exports[`Cell - Snapshot should render the proper selected state 1`] = `
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
+  testID="cell-single-select"
 >
   <View
     style={
@@ -292,7 +293,6 @@ exports[`Cell - Snapshot should render the proper selected state 1`] = `
     >
       <BaseText
         numberOfLines={1}
-        style={Object {}}
         testID="cell-title"
         variant="sHeadingSMRegular"
       >

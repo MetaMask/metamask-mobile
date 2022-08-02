@@ -24,11 +24,11 @@ An Ethereum wallet address to retrieve avatar.
 
 ### `accountAvatarType`
 
-AccountAvatar variants.
+[AccountAvatar](../AccountAvatar/AccountAvatar.tsx) variants.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| AccountAvatarType                                   | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :---------------------------------------------------------- | :------------------------------------------------------ |
+| [AccountAvatar](../AccountAvatar/AccountAvatar.types.ts#L6) | Yes                                                     |
 
 ### `title`
 
@@ -48,7 +48,7 @@ Optional secondary text below the title, 1 line truncation.
 
 ### `tertiaryText`
 
-Optional tertiary text below the title, 1 line truncation.
+Optional tertiary text below the secondaryText, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -82,7 +82,7 @@ Default: false
 
 ### `children`
 
-Content to wrap in CellAccount.
+Optional accessory that can be inserted on the right of Cell
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |

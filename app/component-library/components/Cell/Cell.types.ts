@@ -32,7 +32,7 @@ export interface CellProps extends TouchableOpacityProps {
   /**
    * Optional label (using Tag component) below the title/secondaryText/tertiaryText
    */
-  label?: string;
+  tagLabel?: string;
   /**
    * Optional boolean to show Checkbox in Cell Account, applicable for multi select view
    * @default false
@@ -44,8 +44,7 @@ export interface CellProps extends TouchableOpacityProps {
    */
   isSelected?: boolean;
   /**
-   * Optional accessory that can be inserted
-   * @default false
+   * Optional accessory that can be inserted on the right of Cell
    */
   children?: React.ReactNode;
   /**

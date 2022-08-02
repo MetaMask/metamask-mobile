@@ -1,6 +1,6 @@
-# CellContainerSelectOption
+# CellContainerSelectItem
 
-CellContainerSelectOption is a wrapper component typically used for item selection scenarios.
+CellContainerSelectItem is a wrapper component typically used for item selection scenarios.
 
 ## Props
 

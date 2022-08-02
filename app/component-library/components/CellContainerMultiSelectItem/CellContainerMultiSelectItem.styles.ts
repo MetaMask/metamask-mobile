@@ -1,12 +1,9 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
-import {
-  CellContainerMultiSelectOptionStyleSheet,
-  CellContainerMultiSelectOptionStyleSheetVars,
-} from './CellContainerMultiSelectOption.types';
+import { CellContainerMultiSelectItemStyleSheetVars } from './CellContainerMultiSelectItem.types';
 
 /**
- * Style sheet function for CellContainerMultiSelectOption component.
+ * Style sheet function for CellContainerMultiSelectItem component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -15,8 +12,8 @@ import {
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: CellContainerMultiSelectOptionStyleSheetVars;
-}): CellContainerMultiSelectOptionStyleSheet => {
+  vars: CellContainerMultiSelectItemStyleSheetVars;
+}) => {
   const { vars, theme } = params;
   const { style } = vars;
   const { colors } = theme;
@@ -24,23 +21,34 @@ const styleSheet = (params: {
   return StyleSheet.create({
     base: Object.assign(
       {
-        flexDirection: 'row',
-        alignItems: 'center',
+        position: 'relative',
         padding: 16,
         borderRadius: 4,
-        backgroundColor: colors.background.default
+        backgroundColor: colors.background.default,
+        zIndex: 100,
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    baseSelected: {
+    selectedView: {
+      position: 'absolute',
+      flexDirection: 'row',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
       backgroundColor: colors.primary.muted,
+      zIndex: 200,
     },
     checkbox: {
       marginRight: 10,
     },
+    contentContainer: {
+      zIndex: 300,
+      flexDirection: 'row',
+    },
     childrenContainer: {
-      flex: 1
-    }
+      flex: 1,
+    },
   });
 };
 

@@ -10,30 +10,25 @@ import { Theme } from '../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: CellStyleSheetVars;
-}) => {
+const styleSheet = (params: { theme: Theme; vars: CellStyleSheetVars }) => {
   const { vars, theme } = params;
   const { colors } = theme;
   const { style } = vars;
-  
+
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
     cell: {
-      flexDirection: 'row'
+      flexDirection: 'row',
     },
     accountAvatar: {
       marginRight: 16,
     },
     cellInfo: {
       flex: 1,
-      alignItems: 'flex-start'
+      alignItems: 'flex-start',
     },
     optionalAccessory: {
       marginLeft: 16,
-    },
-    title: {
     },
     secondaryText: {
       color: colors.text.alternative,
@@ -41,9 +36,9 @@ const styleSheet = (params: {
     tertiaryText: {
       color: colors.text.alternative,
     },
-    label: {
+    tagLabel: {
       marginTop: 4,
-    }
+    },
   });
 };
 
