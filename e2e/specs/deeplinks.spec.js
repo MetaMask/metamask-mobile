@@ -59,7 +59,7 @@ describe('Deep linking Tests', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    //await ImportWalletView.toggleRememberMe();
+    await ImportWalletView.toggleRememberMe();
     await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
