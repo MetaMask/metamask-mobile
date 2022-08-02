@@ -55,10 +55,6 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
-    contentWrapper: {
-      paddingTop: 24,
-      paddingHorizontal: 24,
-    },
     title: {
       ...fontStyles.normal,
       fontSize: 16,
@@ -168,7 +164,7 @@ const createStyles = (colors) =>
       alignSelf: 'flex-end',
     },
     scrollViewContainer: {
-      flexGrow: 1,
+      padding: 24,
     },
     errorWrapper: {
       backgroundColor: colors.error.muted,
@@ -839,7 +835,6 @@ class PaymentRequest extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper}>
         <KeyboardAwareScrollView
-          style={styles.contentWrapper}
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"
         >

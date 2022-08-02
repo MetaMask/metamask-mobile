@@ -480,6 +480,9 @@ describe('toHexadecimal', () => {
     expect(toHexadecimal(2)).toEqual('2');
     expect(toHexadecimal()).toEqual(undefined);
     expect(toHexadecimal(1232)).toEqual('4d0');
+    expect(
+      toHexadecimal('123456789012345678901234567890123456789012345678'),
+    ).toEqual('159ffe6f22fd5cc42c524df6fd5e28d0de38f34e');
   });
 });
 
