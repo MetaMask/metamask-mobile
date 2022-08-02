@@ -38,7 +38,7 @@ const ETHEREUM_DEEPLINK_URL =
 const RINKEBY_DEEPLINK_URL =
   'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@4?value=1e13';
 
-const DAPP_DEEPLINK_URL = 'https://metamask.app.link/dapp/app.uniswap.org';
+const DAPP_DEEPLINK_URL = 'https://metamask.app.link/dapp/app.sushi.com';
 
 describe('Deep linking Tests', () => {
   beforeEach(() => {
@@ -59,12 +59,11 @@ describe('Deep linking Tests', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    await ImportWalletView.toggleRememberMe();
+    //await ImportWalletView.toggleRememberMe();
     await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
     await WalletView.isVisible();
-    ///
   });
 
   it('should tap on the close button in the whats new modal', async () => {
@@ -194,14 +193,14 @@ describe('Deep linking Tests', () => {
     await TransactionConfirmationView.tapCancelButton();
   });
 
-  it('should deep link to a dapp (Uniswap)', async () => {
+  it('should deep link to a dapp (Sushi swap)', async () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
     await TestHelpers.delay(4500);
 
     await ConnectModal.isVisible();
     await ConnectModal.tapConnectButton();
 
-    await TestHelpers.checkIfElementWithTextIsVisible('app.uniswap.org', 0);
+    await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
     await Browser.isVisible();
     await ConnectModal.isNotVisible();
