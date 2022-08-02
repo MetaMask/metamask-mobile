@@ -1,5 +1,4 @@
 import { isDefaultAccountName, getEnsProvider } from './ENSUtils';
-import sinon from 'sinon';
 
 describe('ENSUtils', () => {
   describe('isDefaultAccountName', () => {
