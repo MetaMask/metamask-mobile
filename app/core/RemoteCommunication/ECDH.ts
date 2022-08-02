@@ -11,16 +11,18 @@ import { Buffer } from 'buffer';
  * The encryption/decryption is made using a symmetric key coming from the ECDH key exchange
  */
 export default class ECDH {
-  ecdh = null; // ecdh instance
+  ecdh: any; // ecdh instance
 
-  secretKey = null; // symmetric secret key to use for webrtc encryption/decryption
+  secretKey = ''; // symmetric secret key
+
+  secretKeyHash = ''; // 256b hash of the symmetric secret key to use for encryption/decryption
 
   /**
    * Creates ECDH instance
    *
-   * @returns - ECDH instance
+   * @returns - generates an ECDH instance
    */
-  generateECDH() {
+  generateECDH(): void {
     this.ecdh = crypto.createECDH('secp256k1');
     this.ecdh.generateKeys();
   }
@@ -31,7 +33,7 @@ export default class ECDH {
    *
    * @returns - public key in base64 format
    */
-  getPublicKey() {
+  getPublicKey(): string {
     return this.ecdh.getPublicKey().toString('base64');
   }
 
@@ -41,23 +43,12 @@ export default class ECDH {
    * @param {string} otherPublicKey - ECDH key received in base64 format
    * @returns - secret key in hex
    */
-  computeECDHSecret(otherPublicKey) {
+  computeECDHSecret(otherPublicKey: string) {
     this.secretKey = this.ecdh.computeSecret(otherPublicKey, 'base64', 'hex');
-  }
-
-  /**
-   * Encrypts a data message using the secret key
-   *
-   * @param {string} data - data string to be encrypted
-   * @returns - encrypted string in base64
-   */
-  encrypt(data) {
-    const cipher = crypto.createCipher('aes-256-cbc', this.secretKey);
-
-    let encryptedData = cipher.update(data, 'utf8', 'base64');
-    encryptedData += cipher.final('base64');
-
-    return encryptedData;
+    this.secretKeyHash = crypto
+      .createHash('sha256')
+      .update(this.secretKey)
+      .digest('hex');
   }
 
   /**
@@ -67,11 +58,12 @@ export default class ECDH {
    * @param {string} data - data string to be encrypted
    * @returns - encrypted string in base64
    */
-  encryptAuthIV(data) {
+  encryptAuthIV(data: string): string {
     const iv = crypto.randomBytes(16);
+
     const cipher = crypto.createCipheriv(
       'aes-256-gcm',
-      Buffer.from(this.secretKey, 'hex'),
+      Buffer.from(this.secretKeyHash, 'hex'),
       iv,
     );
 
@@ -88,27 +80,12 @@ export default class ECDH {
 
   /**
    * Decrypts a data message using the secret key
-   *
-   * @param {string} encryptedData - base64 data string to be decrypted
-   * @returns - decrypted data
-   */
-  decrypt(encryptedData) {
-    const decipher = crypto.createDecipher('aes-256-cbc', this.secretKey);
-
-    let decryptedData = decipher.update(encryptedData, 'base64', 'utf8');
-    decryptedData += decipher.final('utf8');
-
-    return decryptedData;
-  }
-
-  /**
-   * Decrypts a data message using the secret key
    * with Authentication and IV (initialisation vector)
    *
    * @param {string} encryptedData - base64 data string to be decrypted
-   * @returns - decrypted data || false if error
+   * @returns - decrypted data || error message
    */
-  decryptAuthIV(encryptedData) {
+  decryptAuthIV(encryptedData: string): string {
     const payload = Buffer.from(encryptedData, 'base64').toString('hex');
 
     const iv = payload.substr(0, 32);
@@ -118,7 +95,7 @@ export default class ECDH {
     try {
       const decipher = crypto.createDecipheriv(
         'aes-256-gcm',
-        Buffer.from(this.secretKey, 'hex'),
+        Buffer.from(this.secretKeyHash, 'hex'),
         Buffer.from(iv, 'hex'),
       );
 
@@ -128,7 +105,7 @@ export default class ECDH {
       decrypted += decipher.final('utf8');
 
       return decrypted;
-    } catch (error) {
+    } catch (error: any) {
       return error.message;
     }
   }
