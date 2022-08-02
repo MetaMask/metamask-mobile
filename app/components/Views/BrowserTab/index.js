@@ -65,7 +65,7 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
-import specialPermissions from '../../../core/RPCMethods/specialPermissions';
+import PrivilegedDapps from '../../../core/RPCMethods/PrivilegedDapps';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -321,7 +321,7 @@ export const BrowserTab = (props) => {
           (!props.privacyMode ||
             !restricted ||
             approvedHosts[bridge.hostname] ||
-            specialPermissions[bridge.hostname].eth_requestAccounts)
+            PrivilegedDapps[bridge.hostname].eth_requestAccounts)
         ) {
           bridge.sendNotification(payload);
         }

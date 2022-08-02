@@ -1,4 +1,4 @@
-const specialPermissions: {
+const PrivilegedDapps: {
   [hostname: string]: { [hostname: string]: boolean };
 } = {
   /**
@@ -13,4 +13,4 @@ const specialPermissions: {
   },
 };
 
-export default specialPermissions;
+export default PrivilegedDapps;

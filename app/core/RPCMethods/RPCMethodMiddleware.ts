@@ -17,7 +17,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import specialPermissions from './specialPermissions';
+import PrivilegedDapps from './PrivilegedDapps';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -150,7 +150,7 @@ export const getRpcMethodMiddleware = ({
         isWalletConnect ||
         !privacyMode ||
         getApprovedHosts()[hostname] ||
-        specialPermissions[hostname]?.eth_requestAccounts;
+        PrivilegedDapps[hostname]?.eth_requestAccounts;
 
       return isEnabled && selectedAddress ? [selectedAddress] : [];
     };
@@ -246,7 +246,7 @@ export const getRpcMethodMiddleware = ({
           isWalletConnect ||
           !privacyMode ||
           ((!params || !params.force) && getApprovedHosts()[hostname]) ||
-          specialPermissions[hostname]?.eth_requestAccounts
+          PrivilegedDapps[hostname]?.eth_requestAccounts
         ) {
           res.result = [selectedAddress];
         } else {
@@ -511,7 +511,7 @@ export const getRpcMethodMiddleware = ({
 
         if (type === 'ERC721' || type === 'ERC1155' || type === 'NFT') {
           try {
-            if (specialPermissions?.[hostname]?.wallet_addNFT) {
+            if (PrivilegedDapps?.[hostname]?.wallet_addNFT) {
               await CollectiblesController.addCollectible(address, tokenId);
               res.result = true;
             } else {
