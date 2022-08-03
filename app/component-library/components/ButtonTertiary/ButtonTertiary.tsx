@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { GestureResponderEvent } from 'react-native';
 import { useStyles } from '../../hooks';
-import BaseButton from '../BaseButton';
+import Button from '../Button';
 import styleSheet from './ButtonTertiary.styles';
 import {
   ButtonTertiaryProps,
@@ -52,7 +52,7 @@ const ButtonTertiary = ({
   );
 
   return (
-    <BaseButton
+    <Button
       style={styles.base}
       labelColor={labelColor}
       onPressIn={triggerOnPressedIn}

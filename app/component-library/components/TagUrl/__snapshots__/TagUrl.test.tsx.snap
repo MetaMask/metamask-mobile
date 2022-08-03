@@ -16,7 +16,7 @@ exports[`TagUrl should render correctly 1`] = `
     }
   }
 >
-  <FaviconAvatar
+  <AvatarFavicon
     imageUrl="https://uniswap.org/favicon.ico"
     size="32"
   />

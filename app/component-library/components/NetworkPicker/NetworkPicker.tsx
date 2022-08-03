@@ -7,7 +7,7 @@ import BaseText, { BaseTextVariant } from '../BaseText';
 import stylesheet from './NetworkPicker.styles';
 import { useStyles } from '../../../component-library/hooks';
 import Icon, { IconName, IconSize } from '../Icon';
-import NetworkAvatar from '../NetworkAvatar';
+import AvatarNetwork from '../AvatarNetwork';
 
 const NetworkPicker = ({
   onPress,
@@ -19,7 +19,7 @@ const NetworkPicker = ({
 
   return (
     <TouchableOpacity style={styles.base} onPress={onPress}>
-      <NetworkAvatar size={AvatarSize.Xs} networkImageUrl={networkImageUrl} />
+      <AvatarNetwork size={AvatarSize.Xs} networkImageUrl={networkImageUrl} />
       <BaseText style={styles.label} variant={BaseTextVariant.sBodyMD}>
         {networkLabel}
       </BaseText>

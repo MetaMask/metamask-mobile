@@ -1,0 +1,27 @@
+// 3rd party dependencies
+import React from 'react';
+import { Image } from 'react-native';
+import { shallow } from 'enzyme';
+
+import { toDataUrl } from '../../../../util/blockies';
+
+import AvatarBase from './AvatarBase';
+import { AvatarBaseSize } from './AvatarBase.types';
+import { DUMMY_IMAGE_DATA } from './AvatarBase.constants';
+
+describe('AvatarBase', () => {
+  it('should render correctly', () => {
+    const blockieStyles = {
+      flex: 1,
+    };
+    const wrapper = shallow(
+      <AvatarBase size={AvatarBaseSize.Xl}>
+        <Image
+          source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
+          style={blockieStyles}
+        />
+      </AvatarBase>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+});

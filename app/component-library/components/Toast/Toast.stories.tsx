@@ -6,7 +6,7 @@ import Toast from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastVariant } from './Toast.types';
-import { BaseButtonSize } from '../BaseButton';
+import { ButtonSize } from '../Button';
 import ButtonTertiary, { ButtonTertiaryVariant } from '../ButtonTertiary';
 
 const ToastExample = () => {
@@ -16,7 +16,7 @@ const ToastExample = () => {
     <>
       <ButtonTertiary
         variant={ButtonTertiaryVariant.Normal}
-        size={BaseButtonSize.Md}
+        size={ButtonSize.Md}
         label={'Show Account Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
@@ -32,7 +32,7 @@ const ToastExample = () => {
       />
       <ButtonTertiary
         variant={ButtonTertiaryVariant.Normal}
-        size={BaseButtonSize.Md}
+        size={ButtonSize.Md}
         label={'Show Network Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
@@ -55,7 +55,7 @@ const ToastExample = () => {
       />
       <ButtonTertiary
         variant={ButtonTertiaryVariant.Normal}
-        size={BaseButtonSize.Md}
+        size={ButtonSize.Md}
         label={'Show Plain Toast'}
         onPress={() => {
           toastRef?.current?.showToast({

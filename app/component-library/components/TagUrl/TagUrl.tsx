@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { useStyles } from '../../hooks';
 import { AvatarSize } from '../Avatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
-import FaviconAvatar from '../FaviconAvatar';
+import AvatarFavicon from '../AvatarFavicon';
 import Link from '../Link';
 import styleSheet from './TagUrl.styles';
 import { TagUrlProps } from './TagUrl.types';
@@ -13,7 +13,7 @@ const TagUrl = ({ url, label, cta, style, ...props }: TagUrlProps) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
     <View style={styles.base} {...props}>
-      <FaviconAvatar imageUrl={url} size={AvatarSize.Md} />
+      <AvatarFavicon imageUrl={url} size={AvatarSize.Md} />
       <BaseText style={styles.label} variant={BaseTextVariant.sBodyMD}>
         {label}
       </BaseText>

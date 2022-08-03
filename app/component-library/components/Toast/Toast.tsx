@@ -31,7 +31,7 @@ import {
   ToastRef,
   ToastVariant,
 } from './Toast.types';
-import NetworkAvatar from '../NetworkAvatar';
+import AvatarNetwork from '../AvatarNetwork';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const visibilityDuration = 2500;
@@ -132,7 +132,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         {
           const { networkImageUrl } = toastOptions;
           return (
-            <NetworkAvatar
+            <AvatarNetwork
               networkImageUrl={networkImageUrl}
               size={AvatarSize.Md}
               style={styles.avatar}

@@ -14,7 +14,7 @@ exports[`NetworkPicker should render correctly 1`] = `
     }
   }
 >
-  <NetworkAvatar
+  <AvatarNetwork
     networkImageUrl="https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880"
     size="16"
   />

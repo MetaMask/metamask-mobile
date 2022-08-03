@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import { IconName } from '../Icon';
-import { BaseButtonSize } from '../BaseButton';
+import { ButtonSize } from '../Button';
 import ButtonSecondary from './ButtonSecondary';
 import { ButtonSecondaryVariant } from './ButtonSecondary.types';
 
@@ -10,7 +10,7 @@ describe('ButtonSecondary', () => {
     const wrapper = shallow(
       <ButtonSecondary
         icon={IconName.BankFilled}
-        size={BaseButtonSize.Md}
+        size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
         variant={ButtonSecondaryVariant.Normal}

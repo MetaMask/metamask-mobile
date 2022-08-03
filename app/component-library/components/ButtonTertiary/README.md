@@ -18,9 +18,9 @@ Button text.
 
 Enum to select between size variants.
 
-| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :----------------------------------------------------- | :------------------------------------------------------ |
-| [BaseButtonSize](../BaseButton/BaseButton.types.ts#L4) | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [ButtonSize](../Button/Button.types.ts#L4)          | Yes                                                     |
 
 ### `onPress`
 

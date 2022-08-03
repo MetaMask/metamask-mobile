@@ -3,7 +3,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 import { IconName } from '../Icon';
-import { BaseButtonSize } from '../BaseButton';
+import { ButtonSize } from '../Button';
 import ButtonPrimary from './ButtonPrimary';
 import { ButtonPrimaryVariant } from './ButtonPrimary.types';
 
@@ -11,12 +11,7 @@ storiesOf('Component Library / ButtonPrimary', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const sizeSelector = select(
-      'size',
-      BaseButtonSize,
-      BaseButtonSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', ButtonSize, ButtonSize.Md, groupId);
     const iconSelector = select(
       'icon',
       IconName,
@@ -37,7 +32,7 @@ storiesOf('Component Library / ButtonPrimary', module)
   })
   .add('Without icon', () => (
     <ButtonPrimary
-      size={BaseButtonSize.Md}
+      size={ButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
       variant={ButtonPrimaryVariant.Normal}
@@ -45,7 +40,7 @@ storiesOf('Component Library / ButtonPrimary', module)
   ))
   .add('Danger variant', () => (
     <ButtonPrimary
-      size={BaseButtonSize.Md}
+      size={ButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
       variant={ButtonPrimaryVariant.Danger}

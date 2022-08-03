@@ -1,5 +1,5 @@
 import { ViewStyle } from 'react-native';
-import { BaseButtonProps } from '../BaseButton';
+import { ButtonProps } from '../Button';
 
 /**
  * Enum used to select between variants.
@@ -12,8 +12,7 @@ export enum ButtonSecondaryVariant {
 /**
  * ButtonSecondary component props.
  */
-export interface ButtonSecondaryProps
-  extends Omit<BaseButtonProps, 'labelColor'> {
+export interface ButtonSecondaryProps extends Omit<ButtonProps, 'labelColor'> {
   variant: ButtonSecondaryVariant;
 }
 
