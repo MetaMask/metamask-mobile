@@ -136,21 +136,18 @@ class TypedSign extends PureComponent {
     const { KeyringController, TypedMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
     const version = messageParams.version;
-    try {
-      const cleanMessageParams = await TypedMessageManager.approveMessage(
-        messageParams,
-      );
-      const rawSig = await KeyringController.signTypedMessage(
-        cleanMessageParams,
-        version,
-      );
-      TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
-      this.showWalletConnectNotification(messageParams, true);
-    } catch (error) {
-      Logger.log(error, {
-        message: 'Error while type signing message',
-      });
+    if (!messageId) {
+      Logger.log('TypedSign message id:', messageId);
     }
+    const cleanMessageParams = await TypedMessageManager.approveMessage(
+      messageParams,
+    );
+    const rawSig = await KeyringController.signTypedMessage(
+      cleanMessageParams,
+      version,
+    );
+    TypedMessageManager.setMessageStatusSigned(messageId, rawSig);
+    this.showWalletConnectNotification(messageParams, true);
   };
 
   rejectMessage = () => {

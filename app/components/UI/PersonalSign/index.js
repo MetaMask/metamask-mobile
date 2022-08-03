@@ -128,20 +128,17 @@ class PersonalSign extends PureComponent {
     const { messageParams } = this.props;
     const { KeyringController, PersonalMessageManager } = Engine.context;
     const messageId = messageParams.metamaskId;
-    try {
-      const cleanMessageParams = await PersonalMessageManager.approveMessage(
-        messageParams,
-      );
-      const rawSig = await KeyringController.signPersonalMessage(
-        cleanMessageParams,
-      );
-      PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
-      this.showWalletConnectNotification(messageParams, true);
-    } catch (error) {
-      Logger.log(error, {
-        message: 'Error while personal signing message',
-      });
+    if (!messageId) {
+      Logger.log('Message id:', messageId);
     }
+    const cleanMessageParams = await PersonalMessageManager.approveMessage(
+      messageParams,
+    );
+    const rawSig = await KeyringController.signPersonalMessage(
+      cleanMessageParams,
+    );
+    PersonalMessageManager.setMessageStatusSigned(messageId, rawSig);
+    this.showWalletConnectNotification(messageParams, true);
   };
 
   rejectMessage = () => {
