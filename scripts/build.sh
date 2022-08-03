@@ -185,10 +185,18 @@ buildIosDevice(){
 
 generateArchivePackages() {
   scheme="$1"
+
+  if [ "$scheme" = "MetaMask-QA" ] ; then
+    exportOptionsPlist="MetaMask/IosExportOptionsInternalRelease.plist"
+  else
+    exportOptionsPlist="MetaMask/IosExportOptionsStoreRelease.plist"
+  fi
+
+  echo "exportOptionsPlist: $exportOptionsPlist"
   echo "Generating archive packages for $scheme"
 	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
   echo "Generating ipa for $scheme"
-  xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist MetaMask/IosExportOpitions.plist
+  xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 }
 
 buildIosRelease(){
