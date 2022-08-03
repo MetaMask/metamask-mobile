@@ -15,7 +15,7 @@ ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
 echo "IOS_ENV"
-echo "$IOS_ENV"
+echo $IOS_ENV
 
 envFileMissing() {
 	FILE="$1"
