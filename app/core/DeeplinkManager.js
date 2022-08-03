@@ -324,9 +324,9 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith('metamask://connect')) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           Alert.alert(strings('dapp_connect.warning'));
-        } else if (url.startsWith('metamask://wc')) {
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
 

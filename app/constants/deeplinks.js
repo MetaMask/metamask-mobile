@@ -29,4 +29,5 @@ export const PREFIXES = {
   [ACTIONS.APPROVE]: 'ethereum:',
   [ACTIONS.FOCUS]: '',
   [ACTIONS.EMPTY]: '',
+  METAMASK: 'metamask://',
 };
