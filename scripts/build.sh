@@ -14,6 +14,9 @@ JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
 
+echo "IOS_ENV"
+echo "$IOS_ENV"
+
 envFileMissing() {
 	FILE="$1"
 	echo "'$FILE' is missing, you'll need to add it to the root of the project."
@@ -237,6 +240,7 @@ buildIosQA(){
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
+    echo "$IOS_ENV"
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
