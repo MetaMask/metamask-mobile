@@ -237,6 +237,9 @@ buildIosReleaseE2E(){
 buildIosQA(){
 	prebuild_ios
 
+  echo "Start QA build..."
+  echo "BITRISE_GIT_BRANCH: $BITRISE_GIT_BRANCH"
+
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";

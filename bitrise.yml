@@ -22,17 +22,17 @@ workflows:
                       - cache_local_deps: 'yes'
                       - command: setup
                   title: Yarn Setup
-            - yarn@0:
-                  inputs:
-                      - cache_local_deps: 'yes'
-                      - command: audit:ci
-                  title: Audit Dependencies
-            - yarn@0:
-                  title: Lint
-                  inputs:
-                      - cache_local_deps: 'yes'
-                      - command: lint
-                  is_always_run: true
+            # - yarn@0:
+            #       inputs:
+            #           - cache_local_deps: 'yes'
+            #           - command: audit:ci
+            #       title: Audit Dependencies
+            # - yarn@0:
+            #       title: Lint
+            #       inputs:
+            #           - cache_local_deps: 'yes'
+            #           - command: lint
+            #       is_always_run: true
             - cache-push@2: {}
     code_setup:
         before_run:
@@ -308,6 +308,7 @@ workflows:
                       - content: |-
                             #!/usr/bin/env bash
                             node -v
+                            echo "BITRISE_GIT_BRANCH"
                             echo $BITRISE_GIT_BRANCH
                             GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='production' yarn build:ios:pre-qa
                   title: iOS Sourcemaps & Build
