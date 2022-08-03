@@ -20,6 +20,7 @@ export const ACTIONS = {
   FOCUS: 'focus',
   EMPTY: '',
   WC: 'wc',
+  CONNECT: 'connect',
 };
 
 export const PREFIXES = {

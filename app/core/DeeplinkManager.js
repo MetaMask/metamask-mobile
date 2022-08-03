@@ -239,7 +239,7 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === 'connect') {
+          if (action === ACTIONS.CONNECT) {
             Alert.alert(strings('dapp_connect.warning'));
           } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
