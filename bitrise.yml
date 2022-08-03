@@ -296,33 +296,34 @@ workflows:
         before_run:
             - code_setup_cache
         steps:
-            - certificate-and-profile-installer@1: {}
-            - set-xcode-build-number@1:
-                  inputs:
-                      - build_short_version_string: $VERSION_NAME
-                      - build_version: $VERSION_NUMBER
-                      - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-            - cocoapods-install@2: {}
+            # - certificate-and-profile-installer@1: {}
+            # - set-xcode-build-number@1:
+            #       inputs:
+            #           - build_short_version_string: $VERSION_NAME
+            #           - build_version: $VERSION_NUMBER
+            #           - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+            # - cocoapods-install@2: {}
             - script@1:
                   inputs:
                       - content: |-
                             #!/usr/bin/env bash
                             node -v
-                            METAMASK_ENVIRONMENT='production' yarn build:ios:pre-qa
+                            echo $BITRISE_GIT_BRANCH
+                            GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='production' yarn build:ios:pre-qa
                   title: iOS Sourcemaps & Build
                   is_always_run: false
-            - deploy-to-bitrise-io@1:
-                  inputs:
-                      - deploy_path: ios/build/output/MetaMask-QA.ipa
-                  title: Deploy iOS IPA
-            - deploy-to-bitrise-io@1:
-                  inputs:
-                      - deploy_path: ios/build/MetaMask-QA.xcarchive
-                  title: Deploy Symbols File
-            - deploy-to-bitrise-io@1:
-                  inputs:
-                      - deploy_path: sourcemaps/ios/index.js.map
-                  title: Deploy Source Map
+            # - deploy-to-bitrise-io@1:
+            #       inputs:
+            #           - deploy_path: ios/build/output/MetaMask-QA.ipa
+            #       title: Deploy iOS IPA
+            # - deploy-to-bitrise-io@1:
+            #       inputs:
+            #           - deploy_path: ios/build/MetaMask-QA.xcarchive
+            #       title: Deploy Symbols File
+            # - deploy-to-bitrise-io@1:
+            #       inputs:
+            #           - deploy_path: sourcemaps/ios/index.js.map
+            #       title: Deploy Source Map
 app:
     envs:
         - opts:
