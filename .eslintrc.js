@@ -108,7 +108,10 @@ module.exports = {
       },
     ],
     'no-unsafe-negation': 2,
-    'no-unused-expressions': 2,
+    'no-unused-expressions': [
+      2,
+      { allowShortCircuit: true, allowTernary: true },
+    ],
     'no-use-before-define': [2, 'nofunc'],
     'no-useless-call': 2,
     'no-useless-computed-key': 2,
@@ -148,6 +151,8 @@ module.exports = {
     'react/no-string-refs': 2,
     'react/no-unused-prop-types': 2,
     'react/prefer-es6-class': 2,
+    'no-unused-vars': 2,
+    'react/no-unused-class-component-methods': 2,
     radix: 0,
   },
 };
