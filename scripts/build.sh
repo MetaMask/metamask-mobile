@@ -232,9 +232,7 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
-  echo "Prebuild iOS QA started..."
 	prebuild_ios
-  echo "Prebuild iOS QA finished..."
 
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
