@@ -239,7 +239,9 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === ACTIONS.WC && params?.uri) {
+          if (action === 'connect') {
+            Alert.alert(strings('dapp_connect.warning'));
+          } else if (action === ACTIONS.WC && params?.uri) {
             WalletConnect.newSession(
               params.uri,
               params.redirectUrl,
@@ -322,8 +324,9 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-
-        if (url.startsWith('metamask://wc')) {
+        if (url.startsWith('metamask://connect')) {
+          Alert.alert(strings('dapp_connect.warning'));
+        } else if (url.startsWith('metamask://wc')) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
 
