@@ -457,15 +457,6 @@ class Login extends PureComponent {
     this.setState({ biometryChoice });
   };
 
-  updateBiometryChoice = async (biometryChoice) => {
-    if (!biometryChoice) {
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    } else {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-    }
-    this.setState({ biometryChoice });
-  };
-
   renderSwitch = () => {
     const handleUpdateRememberMe = (rememberMe) => {
       this.setState({ rememberMe });
@@ -477,7 +468,7 @@ class Login extends PureComponent {
     return (
       <LoginOptionsSwitch
         shouldRenderBiometricOption={shouldRenderBiometricLogin}
-        initialBiometryChoice={this.state.biometryChoice}
+        biometryChoiceState={this.state.biometryChoice}
         onUpdateBiometryChoice={this.updateBiometryChoice}
         onUpdateRememberMe={handleUpdateRememberMe}
       />
