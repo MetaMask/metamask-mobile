@@ -93,7 +93,7 @@ const RemoteImage = (props) => {
      <div id="render-svg"></div>
      <script>
        var svg = ${JSON.stringify(finalSvg)};
-       const clean = DOMPurify.sanitize(svg,{USE_PROFILES: {svg: true, svgFilters: true},ADD_TAGS: ['animate']});
+       const clean = DOMPurify.sanitize(svg,{USE_PROFILES: {svg: true, svgFilters: true},ADD_TAGS: ['animate'], FORBID_ATTR: ['style']});
        console.log("clean", clean);
        document.getElementById("render-svg").innerHTML = clean;
      </script>
@@ -102,7 +102,12 @@ const RemoteImage = (props) => {
 
       return (
         <FadeIn>
-          <WebView {...props} source={{ html: htmlPage }} />
+          <WebView
+            {...props}
+            source={{ html: htmlPage }}
+            javaScriptCanOpenWindowsAutomatically={false}
+            domStorageEnabled={false}
+          />
         </FadeIn>
       );
     }
