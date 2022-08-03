@@ -199,6 +199,7 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+
 	}
 
 	splits {
@@ -229,6 +230,26 @@ android {
 			signingConfig signingConfigs.release
 		}
 	}
+
+	flavorDimensions "version" 
+   		productFlavors {
+			dev {
+				dimension "version"
+				applicationIdSuffix ".dev"
+				applicationId "io.metamask.dev"
+			}
+
+        	qa {
+            	dimension "version"
+            	applicationIdSuffix ".qa"
+				applicationId "io.metamask.qa"
+        	}
+			prod {
+				dimension "version"
+				applicationId "io.metamask"
+			}
+    	}
+
 	buildTypes.each {
 		it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
 
@@ -287,6 +308,7 @@ dependencies {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
         releaseImplementation files(hermesPath + "hermes-release.aar")
+		
     } else {
         implementation jscFlavor
     }

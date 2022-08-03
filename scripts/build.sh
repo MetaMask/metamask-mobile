@@ -166,7 +166,7 @@ buildAndroidRunE2E(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
+	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro (13.3)"}"
 	react-native run-ios --simulator "$SIM"
 }
 
@@ -227,6 +227,20 @@ buildIosReleaseE2E(){
 	fi
 }
 
+buildAndroidQA(){
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask.qa
+	fi
+	
+	 	prebuild_android
+	 	# Generate APK
+	 	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+
+	 if [ "$PRE_RELEASE" = false ] ; then
+	 	adb install app/build/outputs/apk/release/app-qa-release.apk
+	 fi
+}
+
 buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
@@ -234,11 +248,11 @@ buildAndroidRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleRelease
+		./gradlew bundleProdRelease
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -249,7 +263,7 @@ buildAndroidRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/release/app-release.apk
+		adb install app/build/outputs/apk/release/app-prod-release.apk
 	fi
 }
 
@@ -260,7 +274,9 @@ buildAndroidReleaseE2E(){
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
-		buildAndroidRelease
+		buildAndroidRelease		
+	elif [ "$MODE" == "QA" ] ; then
+		buildAndroidQA
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then

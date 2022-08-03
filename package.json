@@ -35,6 +35,7 @@
     "build:attribution": "./scripts/generate-attributions.sh",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
+    "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
     "test:unit:update": "time jest -u ./app/",
