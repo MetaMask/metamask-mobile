@@ -11,6 +11,37 @@ index e30baa2..c93aeb2 100644
  require('./setUpRegeneratorRuntime');
  require('./setUpTimers');
  require('./setUpXHR');
+diff --git a/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m b/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m
+index e7fb791..624d9e2 100644
+--- a/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m
++++ b/node_modules/react-native/Libraries/NativeAnimation/RCTNativeAnimatedNodesManager.m
+@@ -137,11 +137,22 @@ - (void)disconnectAnimatedNodes:(nonnull NSNumber *)parentTag
+   RCTAnimatedNode *parentNode = _animationNodes[parentTag];
+   RCTAnimatedNode *childNode = _animationNodes[childTag];
+ 
+-  RCTAssertParam(parentNode);
+-  RCTAssertParam(childNode);
++  // Temporary patch!
++  // There is a race condition after removing
++  // the promise polifill and transform-regenerator.
++  //
++  // We'll set the investigation of the root cause
++  // as technical debt.
++  //
++  // The caller is at node_modules/react-native/Libraries/
++  //   /Animated/nodes/AnimatedWithChildren.js:__removeChild
++  if (parentNode) {
++    [parentNode removeChild:childNode];
++  }
+ 
+-  [parentNode removeChild:childNode];
+-  [childNode setNeedsUpdate];
++  if (childNode) {
++    [childNode setNeedsUpdate];
++  }
+ }
+ 
+ - (void)connectAnimatedNodeToView:(nonnull NSNumber *)nodeTag
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
 index edadad2..2cadd4f 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
