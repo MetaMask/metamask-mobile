@@ -166,8 +166,8 @@ buildAndroidRunE2E(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro (15.5)"}"
-	`react-native run-ios` --simulator "$SIM"
+	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
+	react-native run-ios --simulator $SIM
 }
 
 buildIosSimulatorE2E(){

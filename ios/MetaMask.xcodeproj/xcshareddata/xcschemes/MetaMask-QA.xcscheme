@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B339FE5F2899852C001B89FB"
+               BlueprintIdentifier = "B339FEF8289ABD70001B89FB"
                BuildableName = "MetaMask-QA.app"
                BlueprintName = "MetaMask-QA"
                ReferencedContainer = "container:MetaMask.xcodeproj">
@@ -44,7 +44,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B339FE5F2899852C001B89FB"
+            BlueprintIdentifier = "B339FEF8289ABD70001B89FB"
             BuildableName = "MetaMask-QA.app"
             BlueprintName = "MetaMask-QA"
             ReferencedContainer = "container:MetaMask.xcodeproj">
@@ -61,7 +61,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B339FE5F2899852C001B89FB"
+            BlueprintIdentifier = "B339FEF8289ABD70001B89FB"
             BuildableName = "MetaMask-QA.app"
             BlueprintName = "MetaMask-QA"
             ReferencedContainer = "container:MetaMask.xcodeproj">
