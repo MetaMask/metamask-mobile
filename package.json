@@ -32,6 +32,8 @@
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
+    "build:ios:qa": "./scripts/build.sh ios QA",
+    "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",
     "build:attribution": "./scripts/generate-attributions.sh",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",

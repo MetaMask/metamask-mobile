@@ -140,7 +140,7 @@ prebuild_android(){
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $ANDROID_ENV_FILE ]
 		then
@@ -166,8 +166,8 @@ buildAndroidRunE2E(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
-	react-native run-ios --simulator "$SIM"
+	SIM="${IOS_SIMULATOR:-"iPhone 12 Pro (15.5)"}"
+	`react-native run-ios` --simulator "$SIM"
 }
 
 buildIosSimulatorE2E(){
@@ -181,7 +181,11 @@ buildIosDevice(){
 }
 
 generateArchivePackages() {
-	xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/MetaMask.xcarchive -destination generic/platform=ios && xcodebuild -exportArchive -archivePath build/MetaMask.xcarchive -exportPath build/output -exportOptionsPlist MetaMask/IosExportOpitions.plist
+  scheme="$1"
+  echo "Generating archive packages for $scheme"
+	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Release COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+  echo "Generating ipa for $scheme"
+  xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist MetaMask/IosExportOpitions.plist
 }
 
 buildIosRelease(){
@@ -194,7 +198,7 @@ buildIosRelease(){
 		echo "Build started..."
 		brew install watchman
 		cd ios
-		generateArchivePackages
+		generateArchivePackages "MetaMask"
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -214,8 +218,8 @@ buildIosReleaseE2E(){
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Pre-release E2E Build started..."
 		brew install watchman
-		cd ios 
-		generateArchivePackages 
+		cd ios
+		generateArchivePackages "MetaMask"
 		# Generate sourcemaps
 		yarn sourcemaps:ios
 	else
@@ -226,6 +230,30 @@ buildIosReleaseE2E(){
 		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Release -sdk iphonesimulator -derivedDataPath build
 	fi
 }
+
+buildIosQA(){
+  echo "Prebuild iOS QA started..."
+	prebuild_ios
+  echo "Prebuild iOS QA finished..."
+
+	# Replace release.xcconfig with ENV vars
+	if [ "$PRE_RELEASE" = true ] ; then
+		echo "Setting up env vars...";
+		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+		echo "Build started..."
+		brew install watchman
+		cd ios
+		generateArchivePackages "MetaMask-QA"
+		# Generate sourcemaps
+		yarn sourcemaps:ios
+	else
+		if [ ! -f "ios/release.xcconfig" ] ; then
+			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
+		fi
+		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA  --configuration Release --simulator "iPhone 12 Pro"
+	fi
+}
+
 
 buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
@@ -271,12 +299,15 @@ buildAndroid() {
 }
 
 buildIos() {
+  echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
 		buildIosSimulatorE2E
+  elif [ "$MODE" == "QA" ] ; then
+    buildIosQA
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
