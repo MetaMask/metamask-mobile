@@ -118,14 +118,6 @@ export default class Collectibles extends PureComponent {
     });
   };
 
-  handleOnPress = (collectible) => {
-    this.props.onPress(collectible);
-  };
-
-  goToAddCollectible = () => {
-    this.props.navigation.push('AddAsset', { assetType: 'collectible' });
-  };
-
   showRemoveMenu = (collectible) => {
     this.longPressedCollectible = collectible;
     this.actionSheet.show();

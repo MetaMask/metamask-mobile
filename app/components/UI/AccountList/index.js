@@ -136,8 +136,6 @@ class AccountList extends PureComponent {
   };
 
   flatList = React.createRef();
-  lastPosition = 0;
-  updating = false;
 
   componentDidMount() {
     this.mounted = true;

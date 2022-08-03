@@ -447,18 +447,6 @@ class Send extends PureComponent {
     value: '0x0',
     to: selectedAsset.address,
   });
-
-  /**
-   * Returns transaction object with gas and gasPrice in hex format
-   *
-   * @param transaction - Transaction object
-   */
-  sanitizeTransaction = (transaction) => ({
-    ...transaction,
-    gas: BNToHex(transaction.gas),
-    gasPrice: BNToHex(transaction.gasPrice),
-  });
-
   /**
    * Removes collectible in case an ERC721 asset is being sent, when not in mainnet
    */

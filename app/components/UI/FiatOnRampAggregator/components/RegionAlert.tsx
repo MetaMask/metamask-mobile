@@ -37,8 +37,6 @@ interface Props {
   title?: string;
   subtitle?: string;
   body?: string;
-  footer?: string;
-  dismissButtonText?: string;
   link?: string;
   dismiss?: () => any;
 }

@@ -222,16 +222,6 @@ class ReceiveRequest extends PureComponent {
     toggleModal();
   };
 
-  /**
-   * Opens QR code modal
-   */
-  openQrModal = () => {
-    this.setState({ qrModalVisible: true });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_QR_CODE);
-    });
-  };
-
   onReceive = () => {
     this.props.toggleReceiveModal();
     this.props.navigation.navigate('PaymentRequestView', {

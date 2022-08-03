@@ -232,8 +232,6 @@ class NetworkSettings extends PureComponent {
   inputSymbol = React.createRef();
   inputBlockExplorerURL = React.createRef();
 
-  getOtherNetworks = () => allNetworks.slice(1);
-
   updateNavBar = () => {
     const { navigation, route } = this.props;
     const colors = this.context.colors || mockTheme.colors;

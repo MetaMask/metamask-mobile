@@ -394,10 +394,6 @@ class ImportFromSeed extends PureComponent {
     }
   };
 
-  onBiometryChoiceChange = (value) => {
-    this.setState({ biometryChoice: value });
-  };
-
   clearSecretRecoveryPhrase = async (seed) => {
     // get clipboard contents
     const clipboardContents = await Clipboard.getString();

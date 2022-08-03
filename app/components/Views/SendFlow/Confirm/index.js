@@ -794,25 +794,6 @@ class Confirm extends PureComponent {
     return parsedTransactionLegacy;
   };
 
-  handleSetGasSpeed = (speed) => {
-    this.setState({ gasSpeedSelected: speed });
-  };
-
-  validateGas = () => {
-    const { accounts } = this.props;
-    const { gas, gasPrice, value, from } =
-      this.props.transactionState.transaction;
-    let errorMessage;
-    const totalGas = gas.mul(gasPrice);
-    const valueBN = hexToBN(value);
-    const balanceBN = hexToBN(accounts[from].balance);
-    if (valueBN.add(totalGas).gt(balanceBN)) {
-      errorMessage = strings('transaction.insufficient');
-      this.setState({ errorMessage });
-    }
-    return errorMessage;
-  };
-
   prepareTransactionToSend = () => {
     const {
       transactionState: { transaction },

@@ -501,11 +501,6 @@ class Login extends PureComponent {
 
   setPassword = (val) => this.setState({ password: val });
 
-  onCancelPress = () => {
-    this.toggleWarningModal();
-    InteractionManager.runAfterInteractions(this.toggleDeleteModal);
-  };
-
   tryBiometric = async (e) => {
     if (e) e.preventDefault();
     const { current: field } = this.fieldRef;

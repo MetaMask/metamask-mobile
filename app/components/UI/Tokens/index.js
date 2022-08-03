@@ -296,20 +296,6 @@ class Tokens extends PureComponent {
     );
   };
 
-  goToBuy = () => {
-    this.props.navigation.navigate('FiatOnRampAggregator');
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
-        {
-          text: 'Buy Native Token',
-          location: 'Home Screen',
-          chain_id_destination: this.props.chainId,
-        },
-      );
-    });
-  };
-
   showDetectedTokens = () => {
     const { NetworkController } = Engine.context;
     const { detectedTokens } = this.props;

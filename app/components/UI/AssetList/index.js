@@ -51,11 +51,6 @@ export default class AssetList extends PureComponent {
     searchQuery: PropTypes.string,
   };
 
-  onToggleAsset = (key) => {
-    const { searchResults, handleSelectAsset } = this.props;
-    handleSelectAsset(searchResults[key]);
-  };
-
   render = () => {
     const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 

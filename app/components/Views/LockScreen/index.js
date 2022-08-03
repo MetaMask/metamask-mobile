@@ -90,7 +90,6 @@ class LockScreen extends PureComponent {
 
   appState = 'active';
   locked = true;
-  timedOut = false;
   firstAnimation = React.createRef();
   secondAnimation = React.createRef();
   animationName = React.createRef();

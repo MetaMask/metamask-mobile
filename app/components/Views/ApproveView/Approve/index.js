@@ -379,19 +379,6 @@ class Approve extends PureComponent {
     }
   };
 
-  trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType } =
-      this.props;
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
-        view: transaction.origin,
-        numberOfTokens: tokensLength,
-        numberOfAccounts: accountsLength,
-        network: providerType,
-      });
-    });
-  };
-
   cancelGasEdition = () => {
     this.setState({
       EIP1559GasDataTemp: { ...this.state.EIP1559GasData },

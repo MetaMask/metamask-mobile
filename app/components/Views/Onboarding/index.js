@@ -178,9 +178,6 @@ class Onboarding extends PureComponent {
   };
 
   notificationAnimated = new Animated.Value(100);
-  detailsYAnimated = new Animated.Value(0);
-  actionXAnimated = new Animated.Value(0);
-  detailsAnimated = new Animated.Value(0);
 
   animatedTimingStart = (animatedRef, toValue) => {
     Animated.timing(animatedRef, {
@@ -197,11 +194,6 @@ class Onboarding extends PureComponent {
     existingUser: false,
   };
 
-  seedwords = null;
-  importedAccounts = null;
-  channelName = null;
-  incomingDataStr = '';
-  dataToSync = null;
   mounted = false;
 
   warningCallback = () => true;

@@ -466,26 +466,8 @@ class DrawerView extends PureComponent {
 
   currentBalance = null;
   previousBalance = null;
-  processedNewBalance = false;
   animatingNetworksModal = false;
   animatingAccountsModal = false;
-
-  isCurrentAccountImported() {
-    let ret = false;
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(selectedAddress)) {
-        ret = keyring.type !== 'HD Key Tree';
-        break;
-      }
-    }
-
-    return ret;
-  }
 
   renderTag() {
     let tag = null;
@@ -931,18 +913,6 @@ class DrawerView extends PureComponent {
     );
   }
 
-  getSelectedMaterialIcon(name, size) {
-    const colors = this.context.colors || mockTheme.colors;
-
-    return (
-      <MaterialIcon
-        name={name}
-        size={size || 24}
-        color={colors.primary.default}
-      />
-    );
-  }
-
   getSelectedImageIcon(name) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1036,20 +1006,6 @@ class DrawerView extends PureComponent {
         },
       ],
     ];
-  };
-
-  copyAccountToClipboard = async () => {
-    const { selectedAddress } = this.props;
-    await ClipboardManager.setString(selectedAddress);
-    this.toggleReceiveModal();
-    InteractionManager.runAfterInteractions(() => {
-      this.props.showAlert({
-        isVisible: true,
-        autodismiss: 1500,
-        content: 'clipboard-alert',
-        data: { msg: strings('account_details.account_copied_to_clipboard') },
-      });
-    });
   };
 
   onShare = () => {

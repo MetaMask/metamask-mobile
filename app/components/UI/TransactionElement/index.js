@@ -381,10 +381,6 @@ class TransactionElement extends PureComponent {
       this.props.onSpeedUpAction(true, existingGas, this.props.tx);
   };
 
-  hideSpeedUpModal = () => {
-    this.mounted && this.props.onSpeedUpAction(false);
-  };
-
   showQRSigningModal = () => {
     this.mounted && this.props.signQRTransaction(this.props.tx);
   };

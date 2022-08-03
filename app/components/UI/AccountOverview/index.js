@@ -279,12 +279,6 @@ class AccountOverview extends PureComponent {
     }, 100);
   };
 
-  cancelAccountLabelEdition = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
-    this.setState({ accountLabelEditable: false, accountLabel });
-  };
-
   copyAccountToClipboard = async () => {
     const { selectedAddress } = this.props;
     await ClipboardManager.setString(selectedAddress);

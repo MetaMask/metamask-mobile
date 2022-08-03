@@ -276,10 +276,6 @@ class ManualBackupStep2 extends PureComponent {
     });
   };
 
-  goBack = () => {
-    this.props.navigation.goBack();
-  };
-
   goNext = () => {
     const { seedphraseBackedUp, route, navigation } = this.props;
     if (this.validateWords()) {

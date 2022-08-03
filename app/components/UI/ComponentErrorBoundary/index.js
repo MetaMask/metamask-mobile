@@ -33,7 +33,6 @@ class ComponentErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // eslint-disable-next-line no-unused-expressions
     this.props.onError?.();
 
     const { componentLabel, dontTrackAsError } = this.props;
@@ -46,9 +45,6 @@ class ComponentErrorBoundary extends React.Component {
     }
     Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
   }
-
-  getErrorMessage = () =>
-    `Component: ${this.props.componentLabel}\n${this.state.error.toString()}`;
 
   render() {
     return this.state.error ? null : this.props.children;
