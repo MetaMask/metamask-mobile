@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 5.4.1 - Aug 3, 2022
+- Version bump
+
 ## 5.4.0 - Jul 12, 2022
 - [#4604](https://github.com/MetaMask/metamask-mobile/pull/4604): [IMPROVEMENT] Change quotes error to individual events
 - [#4497](https://github.com/MetaMask/metamask-mobile/pull/4497): [IMPROVEMENT] Add amount to onramp analytics events
