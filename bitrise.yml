@@ -310,7 +310,7 @@ workflows:
                             node -v
                             echo "BITRISE_GIT_BRANCH"
                             echo $BITRISE_GIT_BRANCH
-                           METAMASK_ENVIRONMENT='production' yarn build:ios:pre-qa
+                            METAMASK_ENVIRONMENT='production' yarn build:ios:pre-qa
                   title: iOS Sourcemaps & Build
                   is_always_run: false
             - deploy-to-bitrise-io@1:
