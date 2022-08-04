@@ -928,7 +928,6 @@ class Confirm extends PureComponent {
 
   cancelGasEdition = () => {
     this.setState({
-      EIP1559TransactionDataTemp: { ...this.state.EIP1559TransactionData },
       LegacyTransactionDataTemp: { ...this.state.LegacyTransactionData },
       stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
@@ -938,7 +937,6 @@ class Confirm extends PureComponent {
 
   saveGasEdition = (gasSelected) => {
     this.setState({
-      EIP1559TransactionData: { ...this.state.EIP1559TransactionDataTemp },
       LegacyTransactionData: { ...this.state.LegacyTransactionDataTemp },
       gasSelected,
       gasSelectedTemp: gasSelected,
@@ -985,7 +983,6 @@ class Confirm extends PureComponent {
           contentContainerStyle={styles.keyboardAwareWrapper}
         >
           <EditGasFee1559
-            // gasSelectedTemp
             selected={gasSelected}
             gasSelectedTemp={this.state.gasSelectedTemp}
             gasOptions={gasFeeEstimates}
