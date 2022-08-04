@@ -1,0 +1,31 @@
+import { TouchableOpacityProps } from 'react-native';
+
+import { IconProps } from '../../Icon/Icon.types';
+
+export enum ButtonIconVariant {
+  Primary = 'Primary',
+  Secondary = 'Secondary',
+}
+
+/**
+ * ButtonIcon component props.
+ */
+export interface ButtonIconProps extends TouchableOpacityProps {
+  /**
+   * Icon to use.
+   */
+  icon: IconProps['name'];
+  /**
+   * Function to trigger when pressed.
+   */
+  onPress: () => void;
+  /**
+   * Optional enum to select between variants.
+   */
+  variant?: ButtonIconVariant;
+}
+
+/**
+ * Style sheet input parameters.
+ */
+export type ButtonIconStyleSheetVars = Pick<ButtonIconProps, 'style'>;

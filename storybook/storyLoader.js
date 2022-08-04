@@ -16,13 +16,13 @@ function loadStories() {
   require('../app/component-library/components/Avatar/Avatar.stories');
   require('../app/component-library/components/Button/Button.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
-  require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
+  require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/AvatarFavicon/AvatarFavicon.stories');
   require('../app/component-library/components/Icon/Icon.stories');
-  require('../app/component-library/components/IconButton/IconButton.stories');
+  require('../app/component-library/components/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Link/Link.stories');
   require('../app/component-library/components/MultiselectListItem/MultiselectListItem.stories');
   require('../app/component-library/components/AvatarNetwork/AvatarNetwork.stories');
@@ -36,7 +36,7 @@ function loadStories() {
   require('../app/component-library/components/Tag/Tag.stories');
   require('../app/component-library/components/TagUrl/TagUrl.stories');
   require('../app/component-library/components/Toast/Toast.stories');
-  require('../app/component-library/components/AvatarToken/AvatarToken.stories');
+  require('../app/component-library/components/Avatars/AvatarToken/AvatarToken.stories');
 }
 
 const stories = [
@@ -58,7 +58,7 @@ const stories = [
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/AvatarFavicon/AvatarFavicon.stories',
   '../app/component-library/components/Icon/Icon.stories',
-  '../app/component-library/components/IconButton/IconButton.stories',
+  '../app/component-library/components/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Link/Link.stories',
   '../app/component-library/components/MultiselectListItem/MultiselectListItem.stories',
   '../app/component-library/components/AvatarNetwork/AvatarNetwork.stories',

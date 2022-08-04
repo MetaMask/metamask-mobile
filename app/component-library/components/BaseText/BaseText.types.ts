@@ -1,4 +1,4 @@
-import { StyleProp, TextProps, TextStyle } from 'react-native';
+import { TextProps, TextStyle } from 'react-native';
 
 /**
  * BaseText component variants.
@@ -33,15 +33,7 @@ export interface BaseTextProps extends TextProps {
   /**
    * Enum to select between Typography variants.
    */
-  variant: BaseTextVariant;
-  /**
-   * Escape hatch for applying extra styles. Only use if absolutely necessary.
-   */
-  style?: StyleProp<TextStyle>;
-  /**
-   * Children component of a Text component.
-   */
-  children?: React.ReactNode;
+  variant?: BaseTextVariant;
 }
 
 /**
