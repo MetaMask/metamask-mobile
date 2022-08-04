@@ -112,7 +112,6 @@ interface AddNicknameProps {
   network: number;
   nicknameExists: boolean;
   nickname: string;
-  addressBook: [];
   showModalAlert: (config: any) => void;
   networkState: any;
   type: string;
@@ -271,7 +270,6 @@ const AddNickname = (props: AddNicknameProps) => {
 };
 
 const mapStateToProps = (state: any) => ({
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   networkState: state.engine.backgroundState.NetworkController,
 });
 

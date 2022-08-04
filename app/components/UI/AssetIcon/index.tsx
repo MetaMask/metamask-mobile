@@ -16,10 +16,6 @@ interface Props {
    */
   logo: string;
   /**
-   * Whether logo has to be fetched from @metamask/contract-metadata
-   */
-  watchedAsset?: boolean;
-  /**
    * Custom style to apply to image
    */
   customStyle?: StyleProp<ImageStyle>;

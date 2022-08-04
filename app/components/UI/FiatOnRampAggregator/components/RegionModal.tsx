@@ -199,7 +199,7 @@ const RegionModal: React.FC<Props> = ({
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }: { item: Region }) => (
+    ({ item: region }) => (
       <TouchableOpacity onPress={() => handleOnRegionPressCallback(region)}>
         <ListItem style={styles.listItem}>
           <ListItem.Content>

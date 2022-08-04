@@ -9,7 +9,6 @@ import {
   SafeAreaView,
   StyleSheet,
   Image,
-  InteractionManager,
   BackHandler,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';

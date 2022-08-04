@@ -50,8 +50,6 @@ interface Props {
   logos?: Logos;
   subtitle?: string;
   body?: string;
-  footer?: string;
-  dismissButtonText?: string;
   providerWebsite?: string;
   providerPrivacyPolicy?: string;
   providerSupport?: string;

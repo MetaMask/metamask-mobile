@@ -76,10 +76,6 @@ export default class Collectibles extends PureComponent {
      * Collectible contract object
      */
     collectibleContract: PropTypes.object,
-    /**
-     * Callback triggered when collectible pressed from collectibles list
-     */
-    onPress: PropTypes.func,
   };
 
   state = {

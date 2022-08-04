@@ -19,7 +19,6 @@ const createStyles = (colors: Colors) =>
     },
   });
 interface IProps {
-  id?: string;
   name?: string;
   label?: string;
   icon?: ReactNode;

@@ -220,10 +220,8 @@ function FiatOrders({ pendingOrders, updateFiatOrder }) {
 }
 
 FiatOrders.propTypes = {
-  orders: PropTypes.array,
-  selectedAddress: PropTypes.string,
-  network: PropTypes.string,
   updateFiatOrder: PropTypes.func,
+  pendingOrders: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({

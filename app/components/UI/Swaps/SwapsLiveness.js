@@ -10,6 +10,7 @@ import {
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
+import PropTypes from 'prop-types';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 
@@ -68,6 +69,12 @@ function SwapLiveness({ isLive, chainId, setLiveness }) {
 
   return null;
 }
+
+SwapLiveness.propTypes = {
+  isLive: PropTypes.boolean,
+  chainId: PropTypes.string,
+  setLiveness: PropTypes.func,
+};
 
 const mapStateToProps = (state) => ({
   isLive: swapsLivenessSelector(state),

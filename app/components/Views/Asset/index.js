@@ -86,10 +86,7 @@ class Asset extends PureComponent {
      * Array of ERC20 assets
      */
     tokens: PropTypes.array,
-    /**
-     * Indicates whether third party API mode is enabled
-     */
-    thirdPartyApiMode: PropTypes.bool,
+
     swapsTransactions: PropTypes.object,
     /**
      * Object that represents the current route info like params passed to it

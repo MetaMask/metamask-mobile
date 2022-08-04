@@ -87,10 +87,6 @@ class AccountApproval extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * Number of tokens
-     */
-    tokensLength: PropTypes.number,
-    /**
      * Number of accounts
      */
     accountsLength: PropTypes.number,
@@ -216,12 +212,8 @@ class AccountApproval extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
   networkType: state.engine.backgroundState.NetworkController.provider.type,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });

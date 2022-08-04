@@ -85,18 +85,6 @@ class Approve extends PureComponent {
      */
     transactions: PropTypes.array,
     /**
-     * Number of tokens
-     */
-    tokensLength: PropTypes.number,
-    /**
-     * Number of accounts
-     */
-    accountsLength: PropTypes.number,
-    /**
-     * A string representing the network name
-     */
-    providerType: PropTypes.string,
-    /**
      * Whether the modal is visible
      */
     modalVisible: PropTypes.bool,
@@ -781,10 +769,6 @@ const mapStateToProps = (state) => ({
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   transaction: getNormalizedTxState(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  accountsLength: Object.keys(
-    state.engine.backgroundState.AccountTrackerController.accounts || {},
-  ).length,
-  tokensLength: state.engine.backgroundState.TokensController.tokens.length,
   primaryCurrency: state.settings.primaryCurrency,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
   gasFeeEstimates:
