@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
-const createStyles = (colors: any) =>
+export const createStyles = (colors: any) =>
   StyleSheet.create({
     root: {
       backgroundColor: colors.background.default,
@@ -104,5 +104,3 @@ const createStyles = (colors: any) =>
       color: colors.error.default,
     },
   });
-
-export default createStyles;

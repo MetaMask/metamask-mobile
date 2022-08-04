@@ -23,8 +23,8 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { createStyles } from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import createStyles from './styles';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -173,7 +173,6 @@ const EditGasFee1559Update = ({
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
-
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
@@ -200,7 +199,7 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError(null);
+        setMaxPriorityFeeError('');
       }
 
       const newGas = {
@@ -760,6 +759,12 @@ const EditGasFee1559Update = ({
       </ScrollView>
     </View>
   );
+};
+
+EditGasFee1559Update.defaultProps = {
+  ignoreOptions: [],
+  warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
+  suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM,
 };
 
 export default EditGasFee1559Update;
