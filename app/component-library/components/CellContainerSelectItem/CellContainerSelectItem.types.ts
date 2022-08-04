@@ -1,9 +1,9 @@
 import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
 
 /**
- * MultiselectListItem component props.
+ * CellContainerSelectItem component props.
  */
-export interface MultiselectListItemProps extends TouchableOpacityProps {
+export interface CellContainerSelectItemProps extends TouchableOpacityProps {
   /**
    * Determines if checkbox is selected.
    */
@@ -13,23 +13,15 @@ export interface MultiselectListItemProps extends TouchableOpacityProps {
    */
   style?: StyleProp<ViewStyle>;
   /**
-   * Content to wrap for multiselect.
+   * Content to wrap for selection.
    */
   children: React.ReactNode;
 }
 
 /**
- * MultiselectListItem component style sheet.
- */
-export interface MultiselectListItemStyleSheet {
-  base: ViewStyle;
-  checkbox: ViewStyle;
-}
-
-/**
  * Style sheet input parameters.
  */
-export type MultiselectListItemStyleSheetVars = Pick<
-  MultiselectListItemProps,
+export type CellContainerSelectItemStyleSheetVars = Pick<
+  CellContainerSelectItemProps,
   'style' | 'isSelected'
 >;

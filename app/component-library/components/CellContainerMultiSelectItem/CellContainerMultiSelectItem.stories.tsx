@@ -1,17 +1,17 @@
 /* eslint-disable no-console, react-native/no-inline-styles */
 import React, { useState } from 'react';
 import { storiesOf } from '@storybook/react-native';
-import MultiselectListItem from './MultiselectListItem';
+import CellContainerMultiSelectItem from './CellContainerMultiSelectItem';
 import { boolean } from '@storybook/addon-knobs';
 import { View } from 'react-native';
 import { mockTheme } from '../../../util/theme';
 import BaseText, { BaseTextVariant } from '../BaseText';
 
-const MultiselectListItemExample = () => {
+const CellContainerMultiSelectItemExample = () => {
   const [data, setData] = useState([true, true, false]);
 
   const renderItem = (isSelected: boolean, index: number) => (
-    <MultiselectListItem
+    <CellContainerMultiSelectItem
       onPress={() => {
         const newData = [...data];
         newData[index] = !isSelected;
@@ -33,20 +33,20 @@ const MultiselectListItemExample = () => {
           {'Wrapped Content'}
         </BaseText>
       </View>
-    </MultiselectListItem>
+    </CellContainerMultiSelectItem>
   );
 
   return <React.Fragment>{data.map(renderItem)}</React.Fragment>;
 };
 
-storiesOf('Component Library / MultiselectListItem', module)
+storiesOf('Component Library / CellContainerMultiSelectItem', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
     const selectedSelector = boolean('isSelected', false, groupId);
 
     return (
-      <MultiselectListItem isSelected={selectedSelector}>
+      <CellContainerMultiSelectItem isSelected={selectedSelector}>
         <View
           style={{
             height: 50,
@@ -60,7 +60,7 @@ storiesOf('Component Library / MultiselectListItem', module)
             {'Wrapped Content'}
           </BaseText>
         </View>
-      </MultiselectListItem>
+      </CellContainerMultiSelectItem>
     );
   })
-  .add('Multilist', () => <MultiselectListItemExample />);
+  .add('Multilist', () => <CellContainerMultiSelectItemExample />);
