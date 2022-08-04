@@ -168,4 +168,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
 });
 
+Toast.displayName = 'Toast';
+
 export default Toast;
