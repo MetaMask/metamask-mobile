@@ -222,19 +222,19 @@ workflows:
           is_always_run: false
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/app-prod-release.apk
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/sha512sums.txt
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/release/mapping.txt
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/prodRelease/release/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-prod-release.aab
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/release/app-prod-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@1:
           inputs:
@@ -268,19 +268,19 @@ workflows:
           is_always_run: false
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/app-qa-release.apk
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
           title: Bitrise Deploy APK
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/release/sha512sums.txt
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
           title: Bitrise Deploy Checksum
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/release/mapping.txt
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/release/mapping.txt
           title: Bitrise ProGuard Map Files
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-qa-release.aab
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
           title: Bitrise Deploy AAB
       - deploy-to-bitrise-io@1:
           inputs:
@@ -293,7 +293,7 @@ workflows:
     steps:
       - google-play-deploy:
           inputs:
-            - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/release/app-prod-release.aab
+            - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
             - track: internal
             - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
             - package_name: $MM_ANDROID_PACKAGE_NAME
