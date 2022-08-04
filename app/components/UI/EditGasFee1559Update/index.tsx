@@ -184,7 +184,6 @@ const EditGasFee1559Update = ({
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
-
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
