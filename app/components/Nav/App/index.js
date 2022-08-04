@@ -54,6 +54,7 @@ import ConfirmationModal from '../../../component-library/components/Confirmatio
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import PropTypes from 'prop-types';
 
 const Stack = createStackNavigator();
 /**
@@ -406,6 +407,10 @@ const App = ({ userLoggedIn }) => {
     )) ||
     null
   );
+};
+
+App.propTypes = {
+  userLoggedIn: PropTypes.boolean,
 };
 
 const mapStateToProps = (state) => ({
