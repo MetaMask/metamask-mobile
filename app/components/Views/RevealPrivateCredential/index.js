@@ -345,17 +345,7 @@ class RevealPrivateCredential extends PureComponent {
   }
 
   tryUnlock = () => {
-    const { KeyringController } = Engine.context;
-    const { password } = this.state;
-    if (KeyringController.validatePassword(password)) {
-      this.setState({
-        isModalVisible: true,
-        warningIncorrectPassword: '',
-      });
-    } else {
-      const msg = strings('reveal_credential.warning_incorrect_password');
-      this.setState({ warningIncorrectPassword: msg });
-    }
+    this.setState({ isModalVisible: true });
   };
 
   onPasswordChange = (password) => {
