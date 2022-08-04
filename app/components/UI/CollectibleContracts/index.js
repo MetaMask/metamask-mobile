@@ -12,13 +12,13 @@ import { favoritesCollectiblesObjectSelector } from '../../../reducers/collectib
 import Text from '../../Base/Text';
 import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
+import chartLineImg from '../../../images/chart-line.png';
 
 const styles = StyleSheet.create({
 	wrapper: {
 		backgroundColor: colors.white,
 		flex: 1,
 		minHeight: 500,
-		marginTop: 16
 	},
 	emptyView: {
 		justifyContent: 'center',
@@ -55,9 +55,35 @@ const styles = StyleSheet.create({
 		color: colors.grey200
 	},
 	emptyText: {
-		color: colors.grey200,
-		marginBottom: 8
-	}
+		color: colors.greyAssetVisibility,
+		marginBottom: 8,
+	},
+	metalabsLink: {
+		width: '100%',
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1,
+		borderTopWidth: 1,
+		borderTopColor: colors.grey100,
+		marginBottom: 16,
+	},
+	metalabsText: {
+		color: colors.blue,
+		textAlign: 'center',
+		marginLeft: 8,
+		fontSize: 12,
+	},
+	metalabsImage: {
+		height: 12,
+		width: 12,
+	},
+	metalabsPress: {
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		flexDirection: 'row',
+		width: '100%',
+		padding: 10,
+	},
 });
 
 /**
@@ -65,6 +91,16 @@ const styles = StyleSheet.create({
  * also known as ERC-721 Tokens
  */
 const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, favoriteCollectibles }) => {
+	const onPortfolioViewPress = useCallback(() => {
+		this.props.navigation.navigate('BrowserTabHome', {
+			screen: 'BrowserView',
+			params: {
+				newTabUrl: 'https://metalabs.consensys.net',
+				timestamp: Date.now(),
+			},
+		});
+	}, []);
+
 	const onItemPress = useCallback(
 		(collectible, contractName) => {
 			navigation.navigate('CollectiblesDetails', { collectible, contractName });
@@ -161,6 +197,14 @@ const CollectibleContracts = ({ collectibleContracts, collectibles, navigation, 
 
 	return (
 		<View style={styles.wrapper} testID={'collectible-contracts'}>
+			<View style={styles.metalabsLink}>
+				<TouchableOpacity onPress={onPortfolioViewPress} style={styles.metalabsPress}>
+					<Image style={styles.metalabsImage} source={chartLineImg} resizeMode={'contain'} />
+					<Text centered numberOfLines={1} style={styles.metalabsText}>
+						{strings('wallet.goToPortfolio')}
+					</Text>
+				</TouchableOpacity>
+			</View>
 			{collectibles.length ? renderList() : renderEmpty()}
 			{renderFooter()}
 		</View>

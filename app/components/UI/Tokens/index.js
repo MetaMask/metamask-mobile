@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, Text, View, InteractionManager, Image } from 'react-native';
 import TokenImage from '../TokenImage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors, fontStyles } from '../../../styles/common';
@@ -18,6 +18,7 @@ import StyledButton from '../StyledButton';
 import { allowedToBuy } from '../FiatOrders';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isMainNet } from '../../../util/networks';
+import chartLineImg from 'images/chart-line.png';
 
 const styles = StyleSheet.create({
 	wrapper: {
@@ -91,8 +92,33 @@ const styles = StyleSheet.create({
 		width: 50,
 		height: 50,
 		overflow: 'hidden',
-		marginRight: 20
-	}
+		marginRight: 20,
+	},
+	metalabsLink: {
+		width: '100%',
+		borderBottomColor: colors.grey100,
+		borderBottomWidth: 1,
+		borderTopWidth: 1,
+		borderTopColor: colors.grey100,
+	},
+	metalabsText: {
+		color: colors.blue,
+		textAlign: 'center',
+		marginLeft: 8,
+		fontSize: 12,
+	},
+	metalabsImage: {
+		height: 12,
+		width: 12,
+	},
+	metalabsPress: {
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		flexDirection: 'row',
+		width: '100%',
+		padding: 12,
+	},
 });
 
 /**
@@ -304,10 +330,28 @@ class Tokens extends PureComponent {
 
 	onActionSheetPress = index => (index === 0 ? this.removeToken() : null);
 
+	onPortfolioViewPress = () => {
+		this.props.navigation.navigate('BrowserTabHome', {
+			screen: 'BrowserView',
+			params: {
+				newTabUrl: 'https://metalabs.consensys.net',
+				timestamp: Date.now(),
+			},
+		});
+	};
+
 	render = () => {
 		const { tokens } = this.props;
 		return (
 			<View style={styles.wrapper} testID={'tokens'}>
+				<View style={styles.metalabsLink}>
+					<TouchableOpacity onPress={this.onPortfolioViewPress} style={styles.metalabsPress}>
+						<Image style={styles.metalabsImage} source={chartLineImg} resizeMode={'contain'} />
+						<Text centered numberOfLines={1} style={styles.metalabsText}>
+							{strings('wallet.goToPortfolio')}
+						</Text>
+					</TouchableOpacity>
+				</View>
 				{tokens && tokens.length ? this.renderList() : this.renderEmpty()}
 				<ActionSheet
 					ref={this.createActionSheetRef}

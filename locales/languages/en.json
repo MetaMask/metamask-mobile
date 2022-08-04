@@ -298,7 +298,8 @@
 		"error": "Error",
 		"logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
 		"ready_to_explore": "Ready to start exploring blockchain applications?",
-		"unable_to_load": "Unable to load balance"
+		"unable_to_load": "Unable to load balance",
+		"goToPortfolio": "Go to portfolio"
 	},
 	"activity_view": {
 		"title": "Activity"

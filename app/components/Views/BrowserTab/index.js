@@ -229,9 +229,11 @@ const styles = StyleSheet.create({
 
 let wizardScrollAdjusted = false;
 
+const metalabsHost = new URL(process.env.METALABS_URL).hostname;
+
 const sessionENSNames = {};
 const ensIgnoreList = [];
-let approvedHosts = {};
+let approvedHosts = { [metalabsHost]: true };
 let appVersion = '';
 
 export const BrowserTab = props => {
@@ -384,7 +386,7 @@ export const BrowserTab = props => {
 	useEffect(() => {
 		const { approvedHosts: approvedHostsProps, selectedAddress } = props;
 
-		approvedHosts = approvedHostsProps;
+		approvedHosts = { ...approvedHosts, ...approvedHostsProps };
 
 		const numApprovedHosts = Object.keys(approvedHosts).length;
 
@@ -1032,7 +1034,7 @@ export const BrowserTab = props => {
 	 * Set initial url, dapp scripts and engine. Similar to componentDidMount
 	 */
 	useEffect(() => {
-		approvedHosts = props.approvedHosts;
+		approvedHosts = { ...approvedHosts, ...props.approvedHosts };
 		const initialUrl = props.initialUrl || HOMEPAGE_URL;
 		go(initialUrl, true);
 
