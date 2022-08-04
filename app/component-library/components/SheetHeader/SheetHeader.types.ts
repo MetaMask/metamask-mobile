@@ -1,4 +1,7 @@
-export interface SheetHeaderActionOptions {
+/**
+ * Options for displaying the action button on the right of the title.
+ */
+export interface SheetHeaderActionButtonOptions {
   label: string;
   onPress: () => void;
 }
@@ -18,5 +21,5 @@ export interface SheetHeaderProps {
   /**
    * Optional action options, which includes a callback when the action button is pressed. The action button appears when this property is set.
    */
-  actionOptions?: SheetHeaderActionOptions;
+  actionButtonOptions?: SheetHeaderActionButtonOptions;
 }

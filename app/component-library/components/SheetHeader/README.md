@@ -20,10 +20,23 @@ Optional callback when back button is pressed. The back button appears when this
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | function                                            | No                                                      |
 
-### `actionOptions`
+### `actionButtonOptions`
 
-Optional action options, which includes a callback when the action button is pressed. The action button appears when this property is set.
+Optional action option, which includes a callback when the action button is pressed. The action button appears when this property is set.
 
-| <span style="color:gray;font-size:14px">TYPE</span>   | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :---------------------------------------------------- | :------------------------------------------------------ |
-| [SheetHeaderActionOptions](./SheetHeader.types.ts#L1) | No                                                      |
+| <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :---------------------------------------------------------- | :------------------------------------------------------ |
+| [SheetHeaderActionButtonOptions](./SheetHeader.types.ts#L1) | No                                                      |
+
+## Usage
+
+```javascript
+// Replace with relative import.
+import SheetHeader from 'app/component-library/components/SheetHeader';
+
+<SheetHeader
+  onBack={ONBACK_HANDLER}
+  actionButtonOptions={{ label: ACTION_LABEL, onPress: ONPRESS_HANDLER }}
+  title={TITLE_LABEL}
+/>;
+```

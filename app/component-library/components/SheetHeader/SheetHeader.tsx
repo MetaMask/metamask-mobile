@@ -1,11 +1,17 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { useStyles } from '../../hooks';
-import BaseText, { BaseTextVariant } from '../BaseText';
-import { IconName } from '../Icon';
-import IconButton, { IconButtonVariant } from '../IconButton';
+
+// External dependencies.
 import Link from '../Link';
+import BaseText, { BaseTextVariant } from '../BaseText';
+import IconButton, { IconButtonVariant } from '../IconButton';
+import { IconName } from '../Icon';
+import { useStyles } from '../../hooks';
+
+// Internal dependencies.
 import styleSheet from './SheetHeader.styles';
 import { SheetHeaderProps } from './SheetHeader.types';
 import {
@@ -16,7 +22,7 @@ import {
 const SheetHeader = ({
   title,
   onBack,
-  actionOptions,
+  actionButtonOptions,
   ...props
 }: SheetHeaderProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -24,26 +30,27 @@ const SheetHeader = ({
   return (
     <View style={styles.base} {...props}>
       <View style={styles.leftAccessory}>
-        {onBack ? (
+        {onBack && (
           <IconButton
             testID={SHEET_HEADER_BACK_BUTTON_ID}
             variant={IconButtonVariant.Secondary}
             onPress={onBack}
             icon={IconName.ArrowLeftOutline}
           />
-        ) : null}
+        )}
       </View>
       <BaseText variant={BaseTextVariant.sHeadingMD}>{title}</BaseText>
       <View style={styles.rightAccessory}>
-        {actionOptions ? (
+        {actionButtonOptions && (
+          // TODO - Replace Link with ButtonTertiary once new variant is ready/
           <Link
             testID={SHEET_HEADER_ACTION_BUTTON_ID}
-            onPress={actionOptions.onPress}
+            onPress={actionButtonOptions.onPress}
             variant={BaseTextVariant.sBodyMD}
           >
-            {actionOptions.label}
+            {actionButtonOptions.label}
           </Link>
-        ) : null}
+        )}
       </View>
     </View>
   );

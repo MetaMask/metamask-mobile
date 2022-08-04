@@ -1,5 +1,8 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// Internal dependencies.
 import SheetHeader from './SheetHeader';
 import {
   SHEET_HEADER_ACTION_BUTTON_ID,
@@ -24,7 +27,7 @@ describe('SheetHeader', () => {
     const wrapper = shallow(
       <SheetHeader
         title={'Title'}
-        actionOptions={{ label: 'Action', onPress: jest.fn }}
+        actionButtonOptions={{ label: 'Action', onPress: jest.fn }}
       />,
     );
     const actionButton = wrapper.findWhere(
