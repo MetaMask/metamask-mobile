@@ -100,9 +100,6 @@ const EditGasFee1559Update = ({
     timeEstimateColor,
     timeEstimate,
     timeEstimateId,
-    suggestedMaxFeePerGas,
-    suggestedMaxPriorityFeePerGas,
-    suggestedGasLimit,
   } = gasTransaction;
 
   const getAnalyticsParams = useCallback(() => {
@@ -184,7 +181,6 @@ const EditGasFee1559Update = ({
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
-
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
