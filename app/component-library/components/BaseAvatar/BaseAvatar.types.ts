@@ -12,6 +12,14 @@ export enum BaseAvatarSize {
 }
 
 /**
+ * Avatar badge possible placement.
+ */
+export enum AvatarBadgePosition {
+  TopRight = 'top-right',
+  BottomRight = 'bottom-right',
+}
+
+/**
  * BaseAvatar component props.
  */
 export interface BaseAvatarProps extends ViewProps {
@@ -19,6 +27,18 @@ export interface BaseAvatarProps extends ViewProps {
    * Enum to select between Avatar sizes.
    */
   size: BaseAvatarSize;
+  /**
+   * Boolean that decides if the badge gets rendered or not.
+   */
+  showBadge?: boolean;
+  /**
+   * Enum to select the badge position.
+   */
+  badgePosition?: AvatarBadgePosition;
+  /**
+   * Badge component.
+   */
+  badgeComponent: JSX.Element;
 }
 
 /**
