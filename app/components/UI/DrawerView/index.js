@@ -61,7 +61,6 @@ import {
   isDefaultAccountName,
   doENSReverseLookup,
 } from '../../../util/ENSUtils';
-import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';

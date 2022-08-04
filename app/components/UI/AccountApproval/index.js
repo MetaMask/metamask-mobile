@@ -179,27 +179,6 @@ class AccountApproval extends PureComponent {
     this.showWalletConnectNotification();
   };
 
-  /**
-   * Returns corresponding tracking params to send
-   *
-   * @return {object} - Object containing numberOfTokens, numberOfAccounts, network and timeOpen
-   */
-  getTrackingParams = () => {
-    const {
-      tokensLength,
-      accountsLength,
-      networkType,
-      currentPageInformation: { url },
-    } = this.props;
-    return {
-      view: url,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: networkType,
-      timeOpen: (Date.now() - this.state.start) / 1000,
-    };
-  };
-
   render = () => {
     const { currentPageInformation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
