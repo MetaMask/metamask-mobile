@@ -244,6 +244,10 @@ class RevealPrivateCredential extends PureComponent {
 
   async componentDidMount() {
     this.updateNavBar();
+    // Track SRP Reveal screen rendered
+    if (!this.isPrivateKey()) {
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_SCREEN);
+    }
     // Try to use biometrics to unloc
     // (if available)
     const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -289,11 +293,17 @@ class RevealPrivateCredential extends PureComponent {
         { view: 'Enter password' },
       );
 
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.CANCEL_REVEAL_SRP_CTA,
+      );
     if (this.props.cancel) return this.props.cancel();
     this.navigateBack();
   };
 
   navigateBack = () => {
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SRP_DONE_CTA);
     const { navigation } = this.props;
     navigation.pop();
   };
@@ -345,6 +355,8 @@ class RevealPrivateCredential extends PureComponent {
   }
 
   tryUnlock = () => {
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA);
     this.setState({ isModalVisible: true });
   };
 
@@ -359,6 +371,9 @@ class RevealPrivateCredential extends PureComponent {
         : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
       { action: 'copied to clipboard' },
     );
+
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.COPY_SRP);
 
     const { clipboardPrivateCredential } = this.state;
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
@@ -423,6 +438,9 @@ class RevealPrivateCredential extends PureComponent {
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
+
+      if (!this.isPrivateKey())
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP);
     } else if (event.i === 1) {
       AnalyticsV2.trackEvent(
         this.isPrivateKey()
@@ -430,6 +448,9 @@ class RevealPrivateCredential extends PureComponent {
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
       );
+
+      if (!this.isPrivateKey())
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP_QR);
     }
   };
 
@@ -534,6 +555,11 @@ class RevealPrivateCredential extends PureComponent {
         : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
       { view: 'Hold to reveal' },
     );
+
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG,
+      );
 
     this.setState({
       isModalVisible: false,

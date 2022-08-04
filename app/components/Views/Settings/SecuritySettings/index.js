@@ -375,6 +375,7 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
@@ -594,6 +595,7 @@ class Settings extends PureComponent {
 
   goToRevealPrivateCredential = () => {
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_INITIATED);
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CTA);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'seed_phrase',
     });
