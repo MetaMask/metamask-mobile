@@ -1,14 +1,19 @@
 /* eslint-disable react/prop-types */
+// 3rd library dependencies
 import React from 'react';
 import { View } from 'react-native';
+
+// External dependencies
+import { formatAddress } from '../../../util/address';
 import { useStyles } from '../../hooks';
 import AccountAvatar from '../AccountAvatar';
+import { BaseAvatarSize } from '../BaseAvatar';
 import BaseText, { BaseTextVariant } from '../BaseText';
 import PickerItem from '../PickerItem';
+
+// Internal dependencies
 import styleSheet from './PickerAccount.styles';
 import { PickerAccountProps } from './PickerAccount.types';
-import { BaseAvatarSize } from '../BaseAvatar';
-import { formatAddress } from '../../../util/address';
 
 const PickerAccount = ({
   style,
@@ -29,11 +34,11 @@ const PickerAccount = ({
         style={styles.accountAvatar}
       />
       <View>
-        <BaseText variant={BaseTextVariant.lHeadingSMRegular}>
+        <BaseText variant={BaseTextVariant.sHeadingSMRegular}>
           {accountName}
         </BaseText>
         <BaseText
-          variant={BaseTextVariant.lBodyMD}
+          variant={BaseTextVariant.sBodyMD}
           style={styles.accountAddressLabel}
         >
           {shortenedAddress}
