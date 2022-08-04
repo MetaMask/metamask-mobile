@@ -69,5 +69,4 @@ export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 export const INPUT_NETWORK_NAME = 'input-network-name';
 
 // Component library test ids
-export const CHECKBOX_ICON_ID = 'checkbox-icon';
 export const SELECTABLE_LIST_ITEM_OVERLAY_ID = 'selectable-list-item-overlay';

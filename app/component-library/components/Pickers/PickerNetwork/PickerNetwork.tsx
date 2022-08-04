@@ -1,0 +1,37 @@
+/* eslint-disable react/prop-types */
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
+
+import { AvatarBaseSize } from '../../Avatars/AvatarBase';
+import AvatarNetwork from '../../Avatars/AvatarNetwork';
+import Icon, { IconName, IconSize } from '../../Icon';
+import Text, { TextVariant } from '../../Text';
+import { useStyles } from '../../../hooks';
+
+import { PickerNetworkProps } from './PickerNetwork.types';
+import stylesheet from './PickerNetwork.styles';
+
+const PickerNetwork = ({
+  onPress,
+  style,
+  networkLabel,
+  networkImageUrl,
+  ...props
+}: PickerNetworkProps) => {
+  const { styles } = useStyles(stylesheet, { style });
+
+  return (
+    <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
+      <AvatarNetwork
+        size={AvatarBaseSize.Xs}
+        networkImageUrl={networkImageUrl}
+      />
+      <Text style={styles.label} variant={TextVariant.sBodyMD}>
+        {networkLabel}
+      </Text>
+      <Icon size={IconSize.Xs} name={IconName.ArrowDownOutline} />
+    </TouchableOpacity>
+  );
+};
+
+export default PickerNetwork;

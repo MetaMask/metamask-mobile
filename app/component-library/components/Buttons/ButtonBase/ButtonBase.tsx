@@ -2,7 +2,7 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 import Icon, { IconSize } from '../../Icon';
 import { useStyles } from '../../../hooks';
 
@@ -34,9 +34,9 @@ const ButtonBase = ({
           style={styles.icon}
         />
       )}
-      <BaseText variant={BaseTextVariant.sBodyMD} style={styles.label}>
+      <Text variant={TextVariant.sBodyMD} style={styles.label}>
         {label}
-      </BaseText>
+      </Text>
     </TouchableOpacity>
   );
 };

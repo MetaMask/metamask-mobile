@@ -1,9 +1,9 @@
-import { BaseTextProps } from '../../BaseText/BaseText.types';
+import { TextProps } from '../../Text/Text.types';
 
 /**
  * ButtonLink component props.
  */
-export interface ButtonLinkProps extends BaseTextProps {
+export interface ButtonLinkProps extends TextProps {
   /**
    * Function to trigger when pressing the link.
    */

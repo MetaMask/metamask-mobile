@@ -15,7 +15,7 @@ function loadStories() {
   require('../app/component-library/components/AvatarIcon/AvatarIcon.stories');
   require('../app/component-library/components/Avatar/Avatar.stories');
   require('../app/component-library/components/Button/Button.stories');
-  require('../app/component-library/components/BaseText/BaseText.stories');
+  require('../app/component-library/components/Text/BaseText.stories');
   require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
@@ -24,17 +24,17 @@ function loadStories() {
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Link/Link.stories');
-  require('../app/component-library/components/MultiselectListItem/MultiselectListItem.stories');
+  require('../app/component-library/components/Cells/MultiselectListItem/MultiselectListItem.stories');
   require('../app/component-library/components/AvatarNetwork/AvatarNetwork.stories');
-  require('../app/component-library/components/NetworkPicker/NetworkPicker.stories');
-  require('../app/component-library/components/PickerAccount/PickerAccount.stories');
-  require('../app/component-library/components/PickerItem/PickerItem.stories');
+  require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
+  require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
+  require('../app/component-library/components/PickerBase/PickerBase.stories');
   require('../app/component-library/components/SelectableListItem/SelectableListItem.stories');
   require('../app/component-library/components/AvatarGroup/AvatarGroup.stories');
-  require('../app/component-library/components/TabBar/TabBar.stories');
-  require('../app/component-library/components/TabBarItem/TabBarItem.stories');
-  require('../app/component-library/components/Tag/Tag.stories');
-  require('../app/component-library/components/TagUrl/TagUrl.stories');
+  require('../app/component-library/components/Navigation/TabBar.stories');
+  require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
+  require('../app/component-library/components/Tags/Tag/Tag.stories');
+  require('../app/component-library/components/Tags/TagUrl/TagUrl.stories');
   require('../app/component-library/components/Toast/Toast.stories');
   require('../app/component-library/components/Avatars/AvatarToken/AvatarToken.stories');
 }
@@ -62,9 +62,9 @@ const stories = [
   '../app/component-library/components/Link/Link.stories',
   '../app/component-library/components/MultiselectListItem/MultiselectListItem.stories',
   '../app/component-library/components/AvatarNetwork/AvatarNetwork.stories',
-  '../app/component-library/components/NetworkPicker/NetworkPicker.stories',
+  '../app/component-library/components/PickerNetwork/PickerNetwork.stories',
   '../app/component-library/components/PickerAccount/PickerAccount.stories',
-  '../app/component-library/components/PickerItem/PickerItem.stories',
+  '../app/component-library/components/PickerBase/PickerBase.stories',
   '../app/component-library/components/SelectableListItem/SelectableListItem.stories',
   '../app/component-library/components/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/TabBar/TabBar.stories',

@@ -1,4 +1,5 @@
 import { StyleSheet, ImageStyle } from 'react-native';
+
 import { IconStyleSheetVars } from './Icon.types';
 
 /**

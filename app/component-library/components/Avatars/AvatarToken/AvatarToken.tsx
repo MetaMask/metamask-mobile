@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, ImageBackground } from 'react-native';
 
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
 import { AvatarTokenProps } from './AvatarToken.types';
@@ -27,8 +27,8 @@ const AvatarToken = ({
 
   const textVariant =
     size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
-      ? BaseTextVariant.lBodySM
-      : BaseTextVariant.lBodyMD;
+      ? TextVariant.lBodySM
+      : TextVariant.lBodyMD;
   const tokenNameFirstLetter = tokenName?.[0] ?? '?';
 
   const onError = () => setShowFallback(true);
@@ -36,9 +36,9 @@ const AvatarToken = ({
   const tokenImage = () => (
     <Avatar size={size} style={styles.base}>
       {showFallback ? (
-        <BaseText style={styles.label} variant={textVariant}>
+        <Text style={styles.label} variant={textVariant}>
           {tokenNameFirstLetter}
-        </BaseText>
+        </Text>
       ) : (
         <Image
           source={{ uri: tokenImageUrl }}

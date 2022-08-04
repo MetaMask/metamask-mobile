@@ -3,7 +3,7 @@ import { View } from 'react-native';
 
 import { useStyles } from '../../../hooks';
 import { AvatarBaseSize } from '../AvatarBase';
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 import AvatarToken from '../AvatarToken';
 
 import styleSheet from './AvatarGroup.styles';
@@ -53,11 +53,11 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
       <View style={styles.stack}>{renderTokenList}</View>
       <View style={styles.overflowCounterWrapper}>
         {shouldRenderOverflowCounter && (
-          <BaseText
-            variant={BaseTextVariant.sBodyMD}
+          <Text
+            variant={TextVariant.sBodyMD}
             style={styles.textStyle}
             testID={STACKED_AVATARS_OVERFLOW_COUNTER_ID}
-          >{`+${overflowCounter}`}</BaseText>
+          >{`+${overflowCounter}`}</Text>
         )}
       </View>
     </View>

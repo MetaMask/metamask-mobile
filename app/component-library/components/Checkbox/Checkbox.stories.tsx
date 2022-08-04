@@ -1,8 +1,9 @@
 /* eslint-disable no-console */
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import Checkbox from './Checkbox';
 import { boolean } from '@storybook/addon-knobs';
+
+import Checkbox from './Checkbox';
 
 storiesOf('Component Library / Checkbox', module)
   .addDecorator((getStory) => getStory())

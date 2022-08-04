@@ -15,6 +15,7 @@ export interface ButtonTertiaryProps
   extends Omit<ButtonBaseProps, 'labelColor'> {
   /**
    * Optional enum use to select between variants.
+   * @default Normal
    */
   variant?: ButtonTertiaryVariant;
 }

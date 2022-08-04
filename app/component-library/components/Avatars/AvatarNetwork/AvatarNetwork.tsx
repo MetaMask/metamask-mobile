@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { Image } from 'react-native';
 
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
 import { AvatarNetworkProps } from './AvatarNetwork.types';
@@ -20,8 +20,8 @@ const AvatarNetwork = ({
   const { styles } = useStyles(stylesheet, { style, size, showPlaceholder });
   const textVariant =
     size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
-      ? BaseTextVariant.lBodySM
-      : BaseTextVariant.lBodyMD;
+      ? TextVariant.lBodySM
+      : TextVariant.lBodyMD;
   const chainNameFirstLetter = networkName?.[0] ?? '?';
 
   const onError = useCallback(
@@ -32,9 +32,9 @@ const AvatarNetwork = ({
   return (
     <Avatar size={size} style={styles.base}>
       {showPlaceholder ? (
-        <BaseText style={styles.label} variant={textVariant}>
+        <Text style={styles.label} variant={textVariant}>
           {chainNameFirstLetter}
-        </BaseText>
+        </Text>
       ) : (
         <Image
           source={{ uri: networkImageUrl }}

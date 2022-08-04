@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
 import { ButtonLinkProps } from './ButtonLink.types';
@@ -11,12 +11,12 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
   onPress,
   style,
   children,
-  variant = BaseTextVariant.sBodyMD,
+  variant = TextVariant.sBodyMD,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
-    <BaseText
+    <Text
       onPress={onPress}
       suppressHighlighting
       variant={variant}
@@ -24,7 +24,7 @@ const ButtonLink: React.FC<ButtonLinkProps> = ({
       {...props}
     >
       {children}
-    </BaseText>
+    </Text>
   );
 };
 

@@ -4,7 +4,7 @@ ButtonLink is a component that we use for accessing external links or navigating
 
 ## Props
 
-This component extends [BaseTextProps](../../BaseText/BaseText.types.ts#L32) from [BaseText](../../BaseText) component.
+This component extends [TextProps](../../BaseText/Text.types.ts#L32) from [Text](../../Text) component.
 
 ### `onPress`
 
@@ -19,10 +19,10 @@ Function to trigger when pressing the link.
 ```javascript
 // Replace import with relative path.
 import ButtonLink, from 'app/component-library/components/ButtonLink';
-import { BaseTextVariant } from 'app/component-library/components/BaseText';
+import { TextVariant } from 'app/component-library/components/Text';
 
 <ButtonLink
-  variant={BaseTextVariant.lBodyMDBold}
+  variant={TextVariant.lBodyMDBold}
   onPress={ONPRESS_HANDLER)}
 >{LINK_LABEL}</ButtonLink>;
 ```

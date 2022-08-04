@@ -21,6 +21,7 @@ export interface ButtonIconProps extends TouchableOpacityProps {
   onPress: () => void;
   /**
    * Optional enum to select between variants.
+   * @default Primary
    */
   variant?: ButtonIconVariant;
 }

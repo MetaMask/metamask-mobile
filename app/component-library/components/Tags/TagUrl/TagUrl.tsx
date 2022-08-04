@@ -1,0 +1,31 @@
+/* eslint-disable react/prop-types */
+import React from 'react';
+import { View } from 'react-native';
+
+import { AvatarBaseSize } from '../../Avatars/AvatarBase';
+import AvatarFavicon from '../../Avatars/AvatarFavicon';
+import ButtonLink from '../../Buttons/ButtonLink';
+import Text, { TextVariant } from '../../Text';
+import { useStyles } from '../../../hooks';
+
+import styleSheet from './TagUrl.styles';
+import { TagUrlProps } from './TagUrl.types';
+
+const TagUrl = ({ url, label, cta, style, ...props }: TagUrlProps) => {
+  const { styles } = useStyles(styleSheet, { style });
+  return (
+    <View style={styles.base} {...props}>
+      <AvatarFavicon imageUrl={url} size={AvatarBaseSize.Md} />
+      <Text style={styles.label} variant={TextVariant.sBodyMD}>
+        {label}
+      </Text>
+      {cta ? (
+        <ButtonLink style={styles.cta} onPress={cta.onPress}>
+          {cta.label}
+        </ButtonLink>
+      ) : null}
+    </View>
+  );
+};
+
+export default TagUrl;

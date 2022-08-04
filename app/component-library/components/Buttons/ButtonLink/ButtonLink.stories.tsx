@@ -2,7 +2,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 
 import ButtonLink from './ButtonLink';
 
@@ -13,12 +13,12 @@ storiesOf('Component Library / ButtonLink', module)
       onPress={() => console.log("I'm clicked!")}
     >{`I'm a ButtonLink!`}</ButtonLink>
   ))
-  .add('Nested within BaseText', () => (
-    <BaseText variant={BaseTextVariant.lBodyMDBold}>
+  .add('Nested within Text', () => (
+    <Text variant={TextVariant.lBodyMDBold}>
       {`Need to learn more? `}
       <ButtonLink
-        variant={BaseTextVariant.lBodyMDBold}
+        variant={TextVariant.lBodyMDBold}
         onPress={() => console.log("I'm clicked!")}
       >{`Click Here!`}</ButtonLink>
-    </BaseText>
+    </Text>
   ));
