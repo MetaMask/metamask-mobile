@@ -25,6 +25,7 @@ import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics/Analytics';
+import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -127,6 +128,10 @@ const Wallet = ({ navigation }: any) => {
   const wizardStep = useSelector((state: any) => state.wizard.step);
 
   const { colors: themeColors } = useAppThemeFromContext() || mockTheme;
+
+  useEffect(() => {
+    MetaMetrics.trackEvent('test event', true);
+  }, []);
 
   /**
    * Check to see if we need to show What's New modal
