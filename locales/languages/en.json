@@ -281,6 +281,7 @@
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "transactions": "TRANSACTIONS",
+    "goToPortfolio": "Go to portfolio",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import Tokens",

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
   InteractionManager,
+  Image,
 } from 'react-native';
 import TokenImage from '../TokenImage';
 import { fontStyles } from '../../../styles/common';
@@ -28,6 +29,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId } from '../../../util/networks';
+import Routes from '../../../constants/navigation/Routes';
+import chartLineImg from '../../../images/chart-line.png';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -104,6 +107,31 @@ const createStyles = (colors) =>
       color: colors.text.alternative,
       marginBottom: 8,
       fontSize: 14,
+    },
+    metalabsLink: {
+      width: '100%',
+      borderBottomColor: colors.grey100,
+      borderBottomWidth: 1,
+      borderTopWidth: 1,
+      borderTopColor: colors.grey100,
+    },
+    metalabsText: {
+      color: colors.blue,
+      textAlign: 'center',
+      marginLeft: 8,
+      fontSize: 12,
+    },
+    metalabsImage: {
+      height: 12,
+      width: 12,
+    },
+    metalabsPress: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+      width: '100%',
+      padding: 12,
     },
   });
 
@@ -432,6 +460,16 @@ class Tokens extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeToken() : null);
 
+  onPortfolioViewPress = () => {
+    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
+      screen: Routes.BROWSER_VIEW,
+      params: {
+        newTabUrl: process.env.METALABS_URL,
+        timestamp: Date.now(),
+      },
+    });
+  };
+
   render = () => {
     const { tokens } = this.props;
     const styles = this.getStyles();
@@ -439,6 +477,21 @@ class Tokens extends PureComponent {
 
     return (
       <View style={styles.wrapper} testID={'tokens'}>
+        <View style={styles.metalabsLink}>
+          <TouchableOpacity
+            onPress={this.onPortfolioViewPress}
+            style={styles.metalabsPress}
+          >
+            <Image
+              style={styles.metalabsImage}
+              source={chartLineImg}
+              resizeMode={'contain'}
+            />
+            <Text centered numberOfLines={1} style={styles.metalabsText}>
+              {strings('wallet.goToPortfolio')}
+            </Text>
+          </TouchableOpacity>
+        </View>
         {tokens && tokens.length ? this.renderList() : this.renderEmpty()}
         <ActionSheet
           ref={this.createActionSheetRef}

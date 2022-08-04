@@ -28,6 +28,8 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
+import chartLineImg from '../../../images/chart-line.png';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -35,7 +37,6 @@ const createStyles = (colors) =>
       backgroundColor: colors.background.default,
       flex: 1,
       minHeight: 500,
-      marginTop: 16,
     },
     emptyView: {
       justifyContent: 'center',
@@ -80,6 +81,32 @@ const createStyles = (colors) =>
       marginBottom: 8,
       fontSize: 14,
     },
+    metalabsLink: {
+      width: '100%',
+      borderBottomColor: colors.grey100,
+      borderBottomWidth: 1,
+      borderTopWidth: 1,
+      borderTopColor: colors.grey100,
+      marginBottom: 16,
+    },
+    metalabsText: {
+      color: colors.blue,
+      textAlign: 'center',
+      marginLeft: 8,
+      fontSize: 12,
+    },
+    metalabsImage: {
+      height: 12,
+      width: 12,
+    },
+    metalabsPress: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+      width: '100%',
+      padding: 10,
+    },
   });
 
 /**
@@ -101,6 +128,16 @@ const CollectibleContracts = ({
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
+
+  const onPortfolioViewPress = useCallback(() => {
+    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME, {
+      screen: Routes.BROWSER_VIEW,
+      params: {
+        newTabUrl: process.env.METALABS_URL,
+        timestamp: Date.now(),
+      },
+    });
+  }, []);
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
@@ -253,6 +290,21 @@ const CollectibleContracts = ({
 
   return (
     <View style={styles.wrapper} testID={'collectible-contracts'}>
+      <View style={styles.metalabsLink}>
+        <TouchableOpacity
+          onPress={onPortfolioViewPress}
+          style={styles.metalabsPress}
+        >
+          <Image
+            style={styles.metalabsImage}
+            source={chartLineImg}
+            resizeMode={'contain'}
+          />
+          <Text centered numberOfLines={1} style={styles.metalabsText}>
+            {strings('wallet.goToPortfolio')}
+          </Text>
+        </TouchableOpacity>
+      </View>
       {isMainNet(chainId) &&
         !nftDetectionDismissed &&
         !useCollectibleDetection && (
