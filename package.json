@@ -26,7 +26,7 @@
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:checksum": "./scripts/checksum.sh",
-    "build:android:checksum:qa": "./scripts/checksum.sh qa",
+    "build:android:checksum:qa": "./scripts/checksum.sh QA",
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
