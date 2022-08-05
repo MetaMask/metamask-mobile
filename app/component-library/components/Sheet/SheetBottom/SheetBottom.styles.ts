@@ -1,9 +1,14 @@
-import { Theme } from 'app/util/theme/models';
+// Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { BottomSheetStyleSheetVars } from './BottomSheet.types';
+
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
+// Internal dependencies.
+import { SheetBottomStyleSheetVars } from './SheetBottom.types';
 
 /**
- * Style sheet function for BottomSheet component.
+ * Style sheet function for SheetBottom component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -12,7 +17,7 @@ import { BottomSheetStyleSheetVars } from './BottomSheet.types';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: BottomSheetStyleSheetVars;
+  vars: SheetBottomStyleSheetVars;
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;

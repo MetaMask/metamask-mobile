@@ -1,4 +1,6 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
@@ -28,23 +30,27 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStyles } from '../../hooks';
+
+// External dependencies.
+import { useStyles } from '../../../hooks';
+
+// Internal dependencies.
 import {
-  AUTOMATIC_ANIMATION_DURATION,
   DISMISS_DISTANCE_THRESHOLD,
   DISMISS_SWIPE_SPEED_THRESHOLD,
-  MANUAL_ANIMATION_DURATION,
-} from './BottomSheet.constants';
-import styleSheet from './BottomSheet.styles';
+  TAP_TRIGGERED_ANIMATION,
+  SWIPE_TRIGGERED_ANIMATION,
+} from './SheetBottom.constants';
+import styleSheet from './SheetBottom.styles';
 import {
-  BottomSheetPostCallback,
-  BottomSheetProps,
-  BottomSheetRef,
-} from './BottomSheet.types';
+  SheetBottomPostCallback,
+  SheetBottomProps,
+  SheetBottomRef,
+} from './SheetBottom.types';
 
-const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ children, onDismiss, isInteractable = true, ...props }, ref) => {
-    const postCallback = useRef<BottomSheetPostCallback>();
+const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
+  ({ children, onDismissed, isInteractable = true, ...props }, ref) => {
+    const postCallback = useRef<SheetBottomPostCallback>();
     const { top: screenTopPadding } = useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {
@@ -68,8 +74,9 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     }, [children]);
 
     const onHide = () => {
+      // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
-      onDismiss?.();
+      onDismissed?.();
       postCallback.current?.();
     };
 
@@ -117,7 +124,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
 
         yOffset.value = withTiming(
           finalOffset,
-          { duration: AUTOMATIC_ANIMATION_DURATION },
+          { duration: SWIPE_TRIGGERED_ANIMATION },
           () => isDismissed && runOnJS(onHide)(),
         );
       },
@@ -126,7 +133,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const hide = () => {
       yOffset.value = withTiming(
         sheetHeight.value,
-        { duration: MANUAL_ANIMATION_DURATION },
+        { duration: TAP_TRIGGERED_ANIMATION },
         () => runOnJS(onHide)(),
       );
     };
@@ -199,4 +206,4 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
   },
 );
 
-export default BottomSheet;
+export default SheetBottom;
