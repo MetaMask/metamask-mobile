@@ -38,8 +38,9 @@ import { useStyles } from '../../../hooks';
 import {
   DISMISS_DISTANCE_THRESHOLD,
   DISMISS_SWIPE_SPEED_THRESHOLD,
-  TAP_TRIGGERED_ANIMATION,
-  SWIPE_TRIGGERED_ANIMATION,
+  TAP_TRIGGERED_ANIMATION_DURATION,
+  SWIPE_TRIGGERED_ANIMATION_DURATION,
+  INITIAL_RENDER_ANIMATION_DURATION,
 } from './SheetBottom.constants';
 import styleSheet from './SheetBottom.styles';
 import {
@@ -56,24 +57,25 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight: screenHeight - screenTopPadding,
     });
-    const yOffset = useSharedValue(0);
-    const defaultYOffset = useSharedValue(0);
+    const currentYOffset = useSharedValue(screenHeight);
+    const visibleYOffset = useSharedValue(0);
     const sheetHeight = useSharedValue(0);
     const overlayOpacity = useDerivedValue(() =>
       interpolate(
-        yOffset.value,
-        [defaultYOffset.value, sheetHeight.value],
+        currentYOffset.value,
+        [visibleYOffset.value, sheetHeight.value],
         [1, 0],
       ),
     );
     const navigation = useNavigation();
+    const isMounted = useRef(false);
 
     useEffect(() => {
       // Automatically handles animation when content changes
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }, [children]);
 
-    const onHide = () => {
+    const onHidden = () => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
       onDismissed?.();
@@ -85,16 +87,16 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       { startY: number }
     >({
       onStart: (_, ctx) => {
-        ctx.startY = yOffset.value;
+        ctx.startY = currentYOffset.value;
       },
       onActive: (event, ctx) => {
         const { translationY } = event;
-        yOffset.value = ctx.startY + translationY;
-        if (yOffset.value >= sheetHeight.value) {
-          yOffset.value = sheetHeight.value;
+        currentYOffset.value = ctx.startY + translationY;
+        if (currentYOffset.value >= sheetHeight.value) {
+          currentYOffset.value = sheetHeight.value;
         }
-        if (yOffset.value <= defaultYOffset.value) {
-          yOffset.value = defaultYOffset.value;
+        if (currentYOffset.value <= visibleYOffset.value) {
+          currentYOffset.value = visibleYOffset.value;
         }
       },
       onEnd: (event, ctx) => {
@@ -112,35 +114,47 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
           if (isDismissing) {
             finalOffset = sheetHeight.value;
           } else {
-            finalOffset = defaultYOffset.value;
+            finalOffset = visibleYOffset.value;
           }
         } else if (hasReachedDismissOffset) {
           finalOffset = sheetHeight.value;
         } else {
-          finalOffset = defaultYOffset.value;
+          finalOffset = visibleYOffset.value;
         }
 
         const isDismissed = finalOffset === sheetHeight.value;
 
-        yOffset.value = withTiming(
+        currentYOffset.value = withTiming(
           finalOffset,
-          { duration: SWIPE_TRIGGERED_ANIMATION },
-          () => isDismissed && runOnJS(onHide)(),
+          { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
+          () => isDismissed && runOnJS(onHidden)(),
         );
       },
     });
 
+    // Animate in sheet on initial render.
+    const show = (initialSheetHeight: number) => {
+      currentYOffset.value = initialSheetHeight;
+      currentYOffset.value = withTiming(visibleYOffset.value, {
+        duration: INITIAL_RENDER_ANIMATION_DURATION,
+      });
+    };
+
     const hide = () => {
-      yOffset.value = withTiming(
+      currentYOffset.value = withTiming(
         sheetHeight.value,
-        { duration: TAP_TRIGGERED_ANIMATION },
-        () => runOnJS(onHide)(),
+        { duration: TAP_TRIGGERED_ANIMATION_DURATION },
+        () => runOnJS(onHidden)(),
       );
     };
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
       sheetHeight.value = height;
+      if (!isMounted.current) {
+        isMounted.current = true;
+        show(height);
+      }
     };
 
     useImperativeHandle(ref, () => ({
@@ -153,7 +167,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const animatedSheetStyle = useAnimatedStyle(() => ({
       transform: [
         {
-          translateY: yOffset.value,
+          translateY: currentYOffset.value,
         },
       ],
     }));
@@ -177,8 +191,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       [styles.sheet],
     );
 
-    const renderNotch = () =>
-      isInteractable ? <View style={styles.notch} /> : null;
+    const renderNotch = () => isInteractable && <View style={styles.notch} />;
 
     return (
       <View style={styles.base} {...props}>

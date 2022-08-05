@@ -9,8 +9,12 @@ export const DISMISS_SWIPE_SPEED_THRESHOLD = 300;
 /**
  * The animation duration of the sheet after tapping on an action.
  */
-export const TAP_TRIGGERED_ANIMATION = 300;
+export const TAP_TRIGGERED_ANIMATION_DURATION = 300;
 /**
  * The animation duration of the sheet after letting go of a swipe.
  */
-export const SWIPE_TRIGGERED_ANIMATION = 200;
+export const SWIPE_TRIGGERED_ANIMATION_DURATION = 200;
+/**
+ * The animation duration used for initial render.
+ */
+export const INITIAL_RENDER_ANIMATION_DURATION = 500;

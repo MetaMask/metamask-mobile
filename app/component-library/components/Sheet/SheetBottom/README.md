@@ -1,12 +1,12 @@
 # SheetBottom
 
-SheetBottom is a sheet component typically used when we need content that slides up from the bottom. This is a wrapper component that your screens utilize and **is meant to be used with React Navigation** as an action sheet.
+SheetBottom is a sheet component typically used when we need content that slides up from the bottom. This is a wrapper component that your screens utilize and **is meant to be used with [React Navigation](https://reactnavigation.org/)** as an action sheet.
 
 ## Props
 
 ### `onDismissed`
 
-Optional callback that gets triggered when sheet is fully dismissed.
+Optional callback that gets triggered when sheet is fully dismissed. This is called whenever the sheet is dismissed, which also includes dismissing via tapping on the overlay and swipe to dismiss.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
