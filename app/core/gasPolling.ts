@@ -84,8 +84,8 @@ interface GetEIP1559TransactionDataProps {
     minWaitTimeEstimate: number;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
+    selectedOption: string | null;
   };
-  selectedOption: string;
   gasFeeEstimates: {
     baseFeeTrend: string;
     estimatedBaseFee: string;
@@ -135,10 +135,11 @@ interface LegacyProps {
 }
 
 interface UseGasTransactionProps {
-  onlyGas?: boolean;
-  gasSelected: string;
-  legacy: boolean;
+  gasSelected: string | null;
   gasLimit: string;
+  onlyGas?: boolean;
+  legacy?: boolean;
+  existingGas?: { [key: string]: any };
 }
 
 /**
@@ -148,7 +149,6 @@ interface UseGasTransactionProps {
  */
 export const getEIP1559TransactionData = ({
   gas,
-  selectedOption,
   gasFeeEstimates,
   transactionState,
   contractExchangeRates,
@@ -160,7 +160,6 @@ export const getEIP1559TransactionData = ({
   try {
     if (
       !gas ||
-      !selectedOption ||
       !gasFeeEstimates ||
       !transactionState ||
       !contractExchangeRates ||
@@ -182,7 +181,6 @@ export const getEIP1559TransactionData = ({
         swapsParams: undefined,
         selectedGasFee: {
           ...gas,
-          selectedOption,
           estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
         },
       },
@@ -236,6 +234,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasLimit,
+  existingGas,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -281,11 +280,15 @@ export const useGasTransaction = ({
 
   return getEIP1559TransactionData({
     gas: {
-      ...gasFeeEstimates[gasSelected],
+      ...(gasSelected
+        ? gasFeeEstimates[gasSelected]
+        : {
+            suggestedMaxFeePerGas: existingGas?.maxFeePerGas,
+            suggestedMaxPriorityFeePerGas: existingGas?.maxPriorityFeePerGas,
+          }),
       suggestedGasLimit,
       selectedOption: gasSelected,
     },
-    selectedOption: gasSelected,
     gasFeeEstimates,
     transactionState,
     contractExchangeRates,

@@ -9,7 +9,7 @@ import {
 } from '@metamask/controllers';
 import { hexToBN, fromWei, renderFromWei } from '../../../util/number';
 import BigNumber from 'bignumber.js';
-import { getTicker, parseTransactionEIP1559 } from '../../../util/transactions';
+import { getTicker } from '../../../util/transactions';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import { startGasPolling, stopGasPolling } from '../../../core/gasPolling';
@@ -23,18 +23,6 @@ interface Props {
    * Map of accounts to information objects including balances
    */
   accounts: any;
-  /**
-   * ETH to current currency conversion rate
-   */
-  conversionRate: number;
-  /**
-   * Currency code of the currently-active currency
-   */
-  currentCurrency: string;
-  /**
-   * Object containing token exchange rates in the format address => exchangeRate
-   */
-  contractExchangeRates: any;
   /**
    * Chain Id
    */
@@ -67,10 +55,6 @@ interface Props {
    * The max fee and max priorty fee selected tx
    */
   existingGas: any;
-  /**
-   * Native currency set by user
-   */
-  nativeCurrency: string;
   /**
    * Gas object used to get suggestedGasLimit
    */
@@ -112,16 +96,12 @@ const UpdateEIP1559Tx = ({
   existingGas,
   gasFeeEstimates,
   gasEstimateType,
-  contractExchangeRates,
   primaryCurrency,
-  currentCurrency,
-  conversionRate,
   isCancel,
   chainId,
   onCancel,
   onSave,
 }: Props) => {
-  const [EIP1559TransactionData, setEIP1559TransactionData] = useState<any>({});
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [gasSelected, setGasSelected] = useState(
     AppConstants.GAS_OPTIONS.MEDIUM,
@@ -232,43 +212,9 @@ const UpdateEIP1559Tx = ({
     ],
   );
 
-  const parseTransactionDataEIP1559 = useCallback(
-    (gasFee) => {
-      const parsedTransactionEIP1559: any = parseTransactionEIP1559(
-        {
-          contractExchangeRates,
-          swapsParams: undefined,
-          conversionRate,
-          currentCurrency,
-          nativeCurrency: ticker,
-          selectedGasFee: {
-            ...gasFee,
-            estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
-          },
-          gasFeeEstimates,
-        },
-        { onlyGas: true },
-      );
-
-      parsedTransactionEIP1559.error = validateAmount(parsedTransactionEIP1559);
-
-      return parsedTransactionEIP1559;
-    },
-    [
-      contractExchangeRates,
-      conversionRate,
-      currentCurrency,
-      gasFeeEstimates,
-      ticker,
-      validateAmount,
-    ],
-  );
-
   useEffect(() => {
     if (stopUpdateGas.current) return;
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      let updateTxEstimates = gasFeeEstimates[gasSelected];
-
       if (firstTime.current) {
         const newDecMaxFeePerGas = new BigNumber(
           existingGas.maxFeePerGas,
@@ -293,12 +239,6 @@ const UpdateEIP1559Tx = ({
             isCancel,
           };
 
-          updateTxEstimates = {
-            selectedOption: undefined,
-            suggestedMaxFeePerGas: newDecMaxFeePerGas,
-            suggestedMaxPriorityFeePerGas: newDecMaxPriorityFeePerGas,
-          };
-
           onlyDisplayHigh.current = true;
           //Disable polling
           stopUpdateGas.current = true;
@@ -315,15 +255,7 @@ const UpdateEIP1559Tx = ({
         }
       }
 
-      const parsedTransactionEIP1559: any = parseTransactionDataEIP1559({
-        ...updateTxEstimates,
-        suggestedGasLimit,
-        selectedOption: gasSelected,
-      });
-
       firstTime.current = false;
-
-      setEIP1559TransactionData(parsedTransactionEIP1559);
     }
   }, [
     existingGas.maxFeePerGas,
@@ -331,7 +263,6 @@ const UpdateEIP1559Tx = ({
     gasEstimateType,
     gasFeeEstimates,
     gasSelected,
-    parseTransactionDataEIP1559,
     isCancel,
     gas,
     suggestedGasLimit,
@@ -339,15 +270,14 @@ const UpdateEIP1559Tx = ({
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
 
-  const calculate1559TempGasFee = (gasValues: any, selected: string) => {
-    if (selected && gas) {
-      gasValues.suggestedGasLimit = fromWei(gas, 'wei');
-    }
-    setEIP1559TransactionData(
-      parseTransactionDataEIP1559({ ...gasValues, selectedOption: selected }),
-    );
+  const calculate1559TempGasFee = (selected: string) => {
     stopUpdateGas.current = !selected;
     setGasSelected(selected);
+  };
+
+  const onSaveWithError = (gasTxn: any) => {
+    gasTxn.error = validateAmount(gasTxn);
+    onSave(gasTxn);
   };
 
   const getGasAnalyticsParams = () => ({
@@ -359,6 +289,7 @@ const UpdateEIP1559Tx = ({
 
   return (
     <EditGasFee1559Update
+      gasVal={gas}
       selectedGasValue={gasSelected}
       suggestedGasLimit={suggestedGasLimit}
       gasOptions={gasFeeEstimates}
@@ -366,8 +297,7 @@ const UpdateEIP1559Tx = ({
       chainId={chainId}
       onChange={calculate1559TempGasFee}
       onCancel={onCancel}
-      onSave={() => onSave(EIP1559TransactionData)}
-      error={EIP1559TransactionData.error}
+      onSave={onSaveWithError}
       ignoreOptions={
         onlyDisplayHigh.current
           ? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
@@ -377,6 +307,7 @@ const UpdateEIP1559Tx = ({
       analyticsParams={getGasAnalyticsParams()}
       view={isCancel ? 'Transactions (Cancel)' : 'Transactions (Speed Up)'}
       animateOnChange={animateOnGasChange}
+      existingGas={existingGas}
     />
   );
 };
@@ -390,14 +321,6 @@ const mapStateToProps = (state: any) => ({
     state.engine.backgroundState.GasFeeController.gasFeeEstimates,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  contractExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
   primaryCurrency: state.settings.primaryCurrency,
   chainId: state.engine.backgroundState.NetworkController.provider.chainId,
 });
