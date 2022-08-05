@@ -151,7 +151,7 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android
+	react-native run-android --variant=devDebug
 }
 
 buildAndroidRunE2E(){
