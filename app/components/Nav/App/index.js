@@ -50,6 +50,7 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
+import ConfirmationModal from '../../../component-library/components/ConfirmationModal';
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
@@ -344,6 +345,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.CONFIRMATION_MODAL}
+        component={ConfirmationModal}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     </Stack.Navigator>
