@@ -23,11 +23,25 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { style } = vars;
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    overlay: {
-      ...StyleSheet.absoluteFillObject,
+    base: Object.assign(
+      {
+        position: 'relative',
+        padding: 16,
+        borderRadius: 4,
+        backgroundColor: colors.background.default,
+        zIndex: 100,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
+    selectedView: {
+      position: 'absolute',
       flexDirection: 'row',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
       backgroundColor: colors.primary.muted,
+      zIndex: 200,
     },
     verticalBar: {
       marginVertical: 4,
@@ -35,6 +49,9 @@ const styleSheet = (params: {
       width: 4,
       borderRadius: 2,
       backgroundColor: colors.primary.default,
+    },
+    contentContainer: {
+      zIndex: 300,
     },
   });
 };

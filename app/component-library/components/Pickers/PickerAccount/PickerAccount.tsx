@@ -35,8 +35,8 @@ const PickerAccount = ({
         style={styles.accountAvatar}
       />
       <View>
-        <Text variant={TextVariant.lHeadingSMRegular}>{accountName}</Text>
-        <Text variant={TextVariant.lBodyMD} style={styles.accountAddressLabel}>
+        <Text variant={TextVariant.sHeadingSMRegular}>{accountName}</Text>
+        <Text variant={TextVariant.sBodyMD} style={styles.accountAddressLabel}>
           {shortenedAddress}
         </Text>
       </View>
