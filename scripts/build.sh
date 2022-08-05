@@ -241,6 +241,13 @@ buildAndroidQA(){
 		./gradlew bundleQaRelease
 	fi
 
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		yarn sourcemaps:android
+		# Generate checksum
+		yarn build:android:checksum:qa
+	fi
+
 	 if [ "$PRE_RELEASE" = false ] ; then
 	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
 	 fi
