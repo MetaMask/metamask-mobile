@@ -1,11 +1,15 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 
+// External dependencies.
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
 import { useStyles } from '../../../hooks';
 import Icon, { IconName } from '../../Icon';
 
+// Internal dependencies.
 import { AvatarFaviconProps } from './AvatarFavicon.types';
 import {
   ICON_SIZE_BY_AVATAR_SIZE,

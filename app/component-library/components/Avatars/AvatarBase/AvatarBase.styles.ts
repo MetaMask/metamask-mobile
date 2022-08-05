@@ -1,5 +1,7 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// Internal dependencies.
 import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
 
 /**

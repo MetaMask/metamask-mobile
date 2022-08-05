@@ -1,8 +1,11 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import AvatarIcon from './AvatarIcon';
 
+// Internal dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 import { IconName } from '../../Icon';
 

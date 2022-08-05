@@ -1,8 +1,11 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 import { Theme } from '../../../../util/theme/models';
 
+// Internal dependencies.
 import { AvatarTokenStyleSheetVars } from './AvatarToken.types';
 
 /**

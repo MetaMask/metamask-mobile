@@ -1,7 +1,9 @@
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { number } from '@storybook/addon-knobs';
 
+// Internal dependencies.
 import { AVAILABLE_TOKEN_LIST } from './AvatarGroup.constants';
 import AvatarGroup from './AvatarGroup';
 

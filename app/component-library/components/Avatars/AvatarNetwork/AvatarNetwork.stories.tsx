@@ -1,9 +1,12 @@
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 
+// External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 
+// Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
 import { TEST_IMAGE_URL } from './AvatarNetwork.constants';
 

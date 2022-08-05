@@ -1,5 +1,4 @@
-import { ViewStyle } from 'react-native';
-
+// External dependencies.
 import { AvatarBaseProps, AvatarBaseSize } from '../AvatarBase';
 import { IconProps, IconSize } from '../../Icon/Icon.types';
 
@@ -11,13 +10,6 @@ export interface AvatarIconProps extends AvatarBaseProps {
    * Icon to use.
    */
   icon: IconProps['name'];
-}
-
-/**
- * AvatarIcon component style sheet.
- */
-export interface AvatarIconStyleSheet {
-  base: ViewStyle;
 }
 
 /**

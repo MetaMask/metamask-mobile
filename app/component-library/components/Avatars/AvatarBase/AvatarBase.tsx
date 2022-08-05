@@ -1,12 +1,13 @@
 /* eslint-disable react/prop-types */
-// 3rd party dependencies
+
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
 
-// Third party dependencies.
+// External dependencies.
 import { useStyles } from '../../../hooks/useStyles';
 
-// Internal dependencies
+// Internal dependencies.
 import { AvatarBaseProps, AvatarBaseSize } from './AvatarBase.types';
 import styleSheet from './AvatarBase.styles';
 

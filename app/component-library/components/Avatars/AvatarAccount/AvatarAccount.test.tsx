@@ -1,8 +1,11 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 
+// Internal dependencies.
 import AvatarAccount from './AvatarAccount';
 import { AvatarAccountType } from './AvatarAccount.types';
 import { DUMMY_WALLET_ADDRESS } from './AvatarAccount.constants';

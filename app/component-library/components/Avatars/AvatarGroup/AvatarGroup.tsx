@@ -1,11 +1,14 @@
+// Third party dependencies.
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 
+// External dependencies.
 import { useStyles } from '../../../hooks';
 import { AvatarBaseSize } from '../AvatarBase';
 import Text, { TextVariant } from '../../Text';
 import AvatarToken from '../AvatarToken';
 
+// Internal dependencies.
 import styleSheet from './AvatarGroup.styles';
 import { AvatarGroupProps } from './AvatarGroup.types';
 import {

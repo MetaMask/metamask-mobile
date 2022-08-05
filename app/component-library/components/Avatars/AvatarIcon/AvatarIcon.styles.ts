@@ -1,11 +1,11 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
-import {
-  AvatarIconStyleSheet,
-  AvatarIconStyleSheetVars,
-} from './AvatarIcon.types';
+// Internal dependencies.
+import { AvatarIconStyleSheetVars } from './AvatarIcon.types';
 
 /**
  * Style sheet function for AvatarIcon component.
@@ -18,7 +18,7 @@ import {
 const styleSheet = (params: {
   theme: Theme;
   vars: AvatarIconStyleSheetVars;
-}): AvatarIconStyleSheet => {
+}) => {
   const { theme, vars } = params;
   const { colors } = theme;
   const { style } = vars;

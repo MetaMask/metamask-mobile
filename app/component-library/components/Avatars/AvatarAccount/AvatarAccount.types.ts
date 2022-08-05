@@ -1,3 +1,4 @@
+// External dependencies.
 import { AvatarBaseProps } from '../AvatarBase';
 
 /**

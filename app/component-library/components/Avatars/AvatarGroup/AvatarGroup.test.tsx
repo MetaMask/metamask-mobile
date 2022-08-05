@@ -1,6 +1,8 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow, ShallowWrapper } from 'enzyme';
 
+// Internal dependencies.
 import AvatarGroup from './AvatarGroup';
 import {
   AVAILABLE_TOKEN_LIST,

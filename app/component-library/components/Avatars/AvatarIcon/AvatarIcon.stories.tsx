@@ -1,10 +1,13 @@
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
 
+// External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 import { IconName } from '../../Icon';
 
+// Internal dependencies.
 import AvatarIcon from './AvatarIcon';
 
 storiesOf(' Component Library / AvatarIcon', module)

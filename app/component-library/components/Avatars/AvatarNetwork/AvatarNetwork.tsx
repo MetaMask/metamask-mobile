@@ -1,11 +1,15 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useCallback, useState } from 'react';
 import { Image } from 'react-native';
 
+// External dependencies.
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
 import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
+// Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
 import { NETWORK_AVATAR_IMAGE_ID } from './AvatarNetwork.constants';
 import stylesheet from './AvatarNetwork.styles';

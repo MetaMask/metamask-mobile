@@ -1,10 +1,12 @@
-// 3rd party dependencies
+// Third party dependencies.
 import React from 'react';
 import { Image } from 'react-native';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import { toDataUrl } from '../../../../util/blockies';
 
+// Internal dependencies.
 import AvatarBase from './AvatarBase';
 import { AvatarBaseSize } from './AvatarBase.types';
 import { DUMMY_IMAGE_DATA } from './AvatarBase.constants';

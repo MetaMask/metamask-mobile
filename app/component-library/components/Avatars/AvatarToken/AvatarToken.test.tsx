@@ -1,12 +1,15 @@
+// Third party dependencies.
 import React from 'react';
 import { Image } from 'react-native';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 // eslint-disable-next-line
 // @ts-ignore
 import ethLogo from '../../../images/eth-logo.png';
 import { AvatarBaseSize } from '../AvatarBase';
 
+// Internal dependencies.
 import AvatarToken from './AvatarToken';
 import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';
 

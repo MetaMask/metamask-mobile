@@ -1,5 +1,9 @@
+// Third party dependencies.
 import { ViewProps } from 'react-native';
 
+/**
+ * Token structure used in AvatarGroup.
+ */
 interface AvatarGroupToken {
   /**
    * Token id.

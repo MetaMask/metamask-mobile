@@ -1,8 +1,11 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 
+// Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
 import {
   NETWORK_AVATAR_IMAGE_ID,

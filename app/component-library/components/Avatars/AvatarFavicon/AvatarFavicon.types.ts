@@ -1,3 +1,4 @@
+// External dependencies.
 import { IconSize } from '../../Icon';
 import { AvatarBaseProps, AvatarBaseSize } from '../AvatarBase';
 

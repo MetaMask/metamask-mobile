@@ -1,10 +1,13 @@
+// Third party dependencies.
 import React, { useState } from 'react';
 import { Image, ImageBackground } from 'react-native';
 
+// External dependencies.
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
 import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
+// Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';
 import stylesheet from './AvatarToken.styles';
 import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';

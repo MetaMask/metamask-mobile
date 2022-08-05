@@ -1,4 +1,5 @@
 /* eslint-disable import/prefer-default-export */
+
 export const AVAILABLE_TOKEN_LIST = [
   {
     name: 'Ethereum',
