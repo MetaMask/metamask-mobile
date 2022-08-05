@@ -64,7 +64,7 @@ const EditGasFee1559Update = ({
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(selectedGasValue);
+  const [selectedOption, setSelectedOption] = useState();
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
   const [gasObject, updateGasObject] = useState({
     suggestedMaxFeePerGas: selectedGasObject.suggestedMaxFeePerGas,
@@ -256,7 +256,7 @@ const EditGasFee1559Update = ({
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
       } else {
-        setMaxFeeError('');
+        setMaxFeeError(null);
       }
 
       const newGas = {
