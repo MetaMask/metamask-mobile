@@ -84,7 +84,7 @@ const AssetOptions = (props: Props) => {
     });
   };
 
-  const openOnEtherscan = () => {
+  const openOnBlockExplorer = () => {
     let url = '';
     const title = new URL(explorer.baseUrl).hostname;
     if (isNativeCurrency) {
@@ -104,12 +104,12 @@ const AssetOptions = (props: Props) => {
   };
 
   const renderOptions = () => {
-    const options: Option[] = [
-      {
+    const options: Option[] = [];
+    Boolean(explorer.baseUrl) &&
+      options.push({
         label: strings('asset_details.options.view_on_block'),
-        onPress: openOnEtherscan,
-      },
-    ];
+        onPress: openOnBlockExplorer,
+      });
     !isNativeCurrency &&
       options.push({
         label: strings('asset_details.options.token_details'),
