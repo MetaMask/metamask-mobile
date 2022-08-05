@@ -24,7 +24,7 @@ Function to trigger when pressed.
 
 ### `variant`
 
-Enum to select between variants.
+Optional enum to select between variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |

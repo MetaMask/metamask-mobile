@@ -26,4 +26,7 @@ export interface AvatarBaseProps extends ViewProps {
 /**
  * Style sheet input parameters.
  */
-export type AvatarBaseStyleSheetVars = Pick<AvatarBaseProps, 'size' | 'style'>;
+export interface AvatarBaseStyleSheetVars
+  extends Pick<AvatarBaseProps, 'style'> {
+  size: AvatarBaseSize;
+}
