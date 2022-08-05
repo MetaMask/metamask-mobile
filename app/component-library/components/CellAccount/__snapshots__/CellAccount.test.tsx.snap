@@ -1,0 +1,304 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
+<CellContainerSelectOption
+  isSelected={false}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-account-single-select"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <AccountAvatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      testID="cell-account-avatar"
+      type="JazzIcon"
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <BaseText
+        numberOfLines={1}
+        testID="cell-account-title"
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </BaseText>
+    </View>
+  </View>
+</CellContainerSelectOption>
+`;
+
+exports[`CellAccount - Snapshot should render label when given 1`] = `
+<CellContainerSelectOption
+  isSelected={false}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-account-single-select"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <AccountAvatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      testID="cell-account-avatar"
+      type="JazzIcon"
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <BaseText
+        numberOfLines={1}
+        testID="cell-account-title"
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </BaseText>
+      <Tag
+        label="Imported"
+        style={
+          Object {
+            "marginTop": 4,
+          }
+        }
+        testID="cell-account-label"
+      />
+    </View>
+  </View>
+</CellContainerSelectOption>
+`;
+
+exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
+<CellContainerSelectOption
+  isSelected={false}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-account-single-select"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <AccountAvatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      testID="cell-account-avatar"
+      type="JazzIcon"
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <BaseText
+        numberOfLines={1}
+        testID="cell-account-title"
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </BaseText>
+      <BaseText
+        numberOfLines={1}
+        style={
+          Object {
+            "color": "#535A61",
+          }
+        }
+        testID="cell-account-secondary-text"
+        variant="sBodyMD"
+      >
+        0x2990079bcdEe240329a520d2444386FC119da21a
+      </BaseText>
+    </View>
+  </View>
+</CellContainerSelectOption>
+`;
+
+exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
+<CellContainerSelectOption
+  isSelected={false}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-account-single-select"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <AccountAvatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      testID="cell-account-avatar"
+      type="JazzIcon"
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <BaseText
+        numberOfLines={1}
+        testID="cell-account-title"
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </BaseText>
+      <BaseText
+        numberOfLines={1}
+        style={
+          Object {
+            "color": "#535A61",
+          }
+        }
+        testID="cell-account-tertiary-text"
+        variant="sBodyMD"
+      >
+        Updated 1 sec ago
+      </BaseText>
+    </View>
+  </View>
+</CellContainerSelectOption>
+`;
+
+exports[`CellAccount - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
+<CellContainerMultiSelectItem
+  isSelected={false}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-account-multi-select"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <AccountAvatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      testID="cell-account-avatar"
+      type="JazzIcon"
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <BaseText
+        numberOfLines={1}
+        testID="cell-account-title"
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </BaseText>
+    </View>
+  </View>
+</CellContainerMultiSelectItem>
+`;
+
+exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
+<CellContainerSelectOption
+  isSelected={true}
+  onPress={[Function]}
+  style={Object {}}
+  testID="cell-account-single-select"
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <AccountAvatar
+      accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+      size="32"
+      style={
+        Object {
+          "marginRight": 16,
+        }
+      }
+      testID="cell-account-avatar"
+      type="JazzIcon"
+    />
+    <View
+      style={
+        Object {
+          "alignItems": "flex-start",
+          "flex": 1,
+        }
+      }
+    >
+      <BaseText
+        numberOfLines={1}
+        testID="cell-account-title"
+        variant="sHeadingSMRegular"
+      >
+        Orangefox.eth
+      </BaseText>
+    </View>
+  </View>
+</CellContainerSelectOption>
+`;

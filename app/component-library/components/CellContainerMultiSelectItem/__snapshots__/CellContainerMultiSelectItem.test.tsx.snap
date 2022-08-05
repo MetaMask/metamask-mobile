@@ -1,0 +1,100 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellContainerMultiSelectItem - Snapshot should render default settings correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
+      "padding": 16,
+      "position": "relative",
+      "zIndex": 100,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+        "zIndex": 300,
+      }
+    }
+  >
+    <Checkbox
+      isSelected={false}
+      style={
+        Object {
+          "marginRight": 10,
+        }
+      }
+      testID="cell-container-multiselect-item-checkbox"
+    />
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <View />
+    </View>
+  </View>
+</TouchableOpacity>
+`;
+
+exports[`CellContainerMultiSelectItem - Snapshot should render the proper select state when isSelected is true 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
+      "padding": 16,
+      "position": "relative",
+      "zIndex": 100,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#037DD619",
+        "bottom": 0,
+        "flexDirection": "row",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "zIndex": 200,
+      }
+    }
+    testID="cell-container-multiselect-item-selected-view"
+  />
+  <View
+    style={
+      Object {
+        "flexDirection": "row",
+        "zIndex": 300,
+      }
+    }
+  >
+    <Checkbox
+      isSelected={true}
+      style={
+        Object {
+          "marginRight": 10,
+        }
+      }
+      testID="cell-container-multiselect-item-checkbox"
+    />
+    <View
+      style={
+        Object {
+          "flex": 1,
+        }
+      }
+    >
+      <View />
+    </View>
+  </View>
+</TouchableOpacity>
+`;
