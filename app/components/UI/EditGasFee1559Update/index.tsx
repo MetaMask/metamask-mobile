@@ -37,7 +37,6 @@ const EditGasFee1559Update = ({
   gasOptions,
   primaryCurrency,
   chainId,
-  onChange,
   onCancel,
   onSave,
   error,
@@ -64,12 +63,10 @@ const EditGasFee1559Update = ({
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(selectedGasValue);
+  const [selectedOption, setSelectedOption] = useState();
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
-  const [gasData, setGasData] = useState({
-    suggestedMaxFeePerGas: existingGas.maxFeePerGas,
-    suggestedMaxPriorityFeePerGas: existingGas.maxPriorityFeePerGas,
-    suggestedGasLimit: initialSuggestedGasLimit,
+  const [gasValue, setGasValue] = useState({
+    suggestedGasLimit,
   });
 
   const [
@@ -84,8 +81,8 @@ const EditGasFee1559Update = ({
     onlyGas: true,
     gasSelected: selectedOption || null,
     legacy: false,
-    gasLimit: gasData?.suggestedGasLimit || initialSuggestedGasLimit,
-    gasData,
+    gasLimit: gasValue?.suggestedGasLimit || suggestedGasLimit,
+    existingGas,
   });
 
   const {
@@ -149,14 +146,9 @@ const EditGasFee1559Update = ({
     onSave(gasTransaction);
   }, [getAnalyticsParams, onSave, gasTransaction]);
 
-  const changeGas = useCallback(
-    (gas, option) => {
-      setSelectedOption(option);
-      setGasData(gas);
-      onChange(option);
-    },
-    [onChange],
-  );
+  const changeGas = useCallback((gas) => {
+    setGasValue(gas);
+  }, []);
 
   const changedGasLimit = useCallback(
     (value) => {
@@ -246,7 +238,7 @@ const EditGasFee1559Update = ({
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
       } else {
-        setMaxFeeError('');
+        setMaxFeeError(null);
       }
 
       const newGas = {
@@ -413,7 +405,7 @@ const EditGasFee1559Update = ({
                     />
                   }
                   min={GAS_LIMIT_MIN}
-                  value={suggestedGasLimit}
+                  value={gasValue.suggestedGasLimit}
                   onChangeValue={changedGasLimit}
                   name={strings('edit_gas_fee_eip1559.gas_limit')}
                   increment={GAS_LIMIT_INCREMENT}
