@@ -7,10 +7,10 @@ export const DISMISS_DISTANCE_THRESHOLD = 0.6;
  */
 export const DISMISS_SWIPE_SPEED_THRESHOLD = 300;
 /**
- * This duration is used when the sheet animation is triggered by an action.
+ * The animation duration of the sheet after tapping on an action.
  */
-export const MANUAL_ANIMATION_DURATION = 300;
+export const TAP_TRIGGERED_ANIMATION = 300;
 /**
- * This duration is used when the sheet animation is automatically snapping back to position.
+ * The animation duration of the sheet after letting go of a swipe.
  */
-export const AUTOMATIC_ANIMATION_DURATION = 200;
+export const SWIPE_TRIGGERED_ANIMATION = 200;
