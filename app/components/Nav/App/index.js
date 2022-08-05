@@ -347,7 +347,7 @@ const App = ({ userLoggedIn }) => {
         component={DeleteWalletModal}
       />
       <Stack.Screen
-        name={Routes.MODAL.CONFIRMATION_MODAL}
+        name={Routes.MODAL.MODAL_CONFIRMATION}
         component={ModalConfirmation}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />

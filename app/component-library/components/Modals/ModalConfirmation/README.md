@@ -20,7 +20,7 @@ import Routes from 'app/constants/navigation/Routes.ts';
 import { ModalConfirmationVariant } from 'app/component-library/components/Modals/ModalConfirmation/index.ts';
 
 navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-  screen: Routes.MODAL.CONFIRMATION_MODAL,
+  screen: Routes.MODAL.MODAL_CONFIRMATION,
   params: {
     variant: ModalConfirmationVariant.Normal,
     title: TITLE_LABEL,
