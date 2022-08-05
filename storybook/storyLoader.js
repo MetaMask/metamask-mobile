@@ -29,11 +29,14 @@ function loadStories() {
   require('../app/component-library/components/Cells/CellContainerSelectItem/CellContainerSelectItem.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Icon/Icon.stories');
+  require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
   require('../app/component-library/components/Navigation/TabBar/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
+  require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
+  require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
   require('../app/component-library/components/Tags/Tag/Tag.stories');
   require('../app/component-library/components/Tags/TagUrl/TagUrl.stories');
   require('../app/component-library/components/Text/Text.stories');
@@ -66,11 +69,14 @@ const stories = [
   '../app/component-library/components/Cells/CellContainerSelectItem/CellContainerSelectItem.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Icon/Icon.stories',
+  '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
   '../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
+  '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
+  '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
   '../app/component-library/components/Tags/Tag/Tag.stories',
   '../app/component-library/components/Tags/TagUrl/TagUrl.stories',
   '../app/component-library/components/Text/Text.stories',

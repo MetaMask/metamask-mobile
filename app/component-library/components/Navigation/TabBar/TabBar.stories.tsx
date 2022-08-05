@@ -3,8 +3,6 @@
 // Third party dependencies.
 import React, { useState } from 'react';
 import { storiesOf } from '@storybook/react-native';
-// TODO - Remove this when we add in SafeAreaProvider as a decorator.
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 // Internal dependencies.
 import TabBar from './TabBar';
@@ -41,13 +39,7 @@ const TabBarStorybook = () => {
     },
   };
 
-  return (
-    <SafeAreaInsetsContext.Provider
-      value={{ bottom: 24, top: 24, left: 24, right: 24 }}
-    >
-      <TabBar {...mockTabBarProps} />
-    </SafeAreaInsetsContext.Provider>
-  );
+  return <TabBar {...mockTabBarProps} />;
 };
 
 storiesOf('Component Library / TabBar', module)
