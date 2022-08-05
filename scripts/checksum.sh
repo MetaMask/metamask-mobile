@@ -2,8 +2,7 @@
 
 MODE=$1
 
-if ["$MODE" == 'QA']; then
-
+if [ "$MODE" == "QA" ]; then
 FILE=./android/app/build/outputs/apk/qa/release/app-qa-release.apk
 
   if test -f "$FILE"; then
