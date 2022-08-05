@@ -226,6 +226,7 @@ const UpdateEIP1559Tx = ({
   };
   return (
     <EditGasFee1559Update
+      gasVal={gas}
       selectedGasValue={gasSelected}
       gasOptions={gasFeeEstimates}
       primaryCurrency={primaryCurrency}
