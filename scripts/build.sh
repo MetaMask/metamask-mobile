@@ -232,9 +232,14 @@ buildAndroidQA(){
 		adb uninstall io.metamask.qa
 	fi
 	
-	 	prebuild_android
-	 	# Generate APK
-	 	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+	prebuild_android
+	# Generate APK
+	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+
+	# GENERATE BUNDLE
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleQaRelease
+	fi
 
 	 if [ "$PRE_RELEASE" = false ] ; then
 	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
@@ -269,7 +274,7 @@ buildAndroidRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
