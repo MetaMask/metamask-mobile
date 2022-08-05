@@ -24,7 +24,7 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
-  require('../app/component-library/components/CellAccount/CellAccount.stories');
+  require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
   require('../app/component-library/components/Cells/CellContainerMultiselectItem/CellContainerMultiselectItem.stories');
   require('../app/component-library/components/Cells/CellContainerSelectItem/CellContainerSelectItem.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
@@ -61,7 +61,7 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
-  '../app/component-library/components/CellAccount/CellAccount.stories',
+  '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
   '../app/component-library/components/Cells/CellContainerMultiselectItem/CellContainerMultiselectItem.stories',
   '../app/component-library/components/Cells/CellContainerSelectItem/CellContainerSelectItem.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',

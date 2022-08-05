@@ -1,14 +1,15 @@
 /* eslint-disable no-console */
-// 3rd party dependencies
+
+// Third party dependencies.
 import React from 'react';
 import { Alert } from 'react-native';
 import { boolean, text } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
-// External dependencies
-import { AccountAvatarType } from '../AccountAvatar';
+// External dependencies.
+import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
-// Internal dependencies
+// Internal dependencies.
 import CellAccount from './CellAccount';
 import {
   TEST_ACCOUNT_ADDRESS,
@@ -18,7 +19,7 @@ import {
   TEST_TAG_LABEL_TEXT,
 } from './CellAccount.constants';
 
-storiesOf('Component Library / Cell', module).add('Default', () => {
+storiesOf('Component Library / CellAccount', module).add('Default', () => {
   const groupId = 'Props';
   const isMultiSelect = boolean('IsMultiSelect?', false, groupId);
   const titleText = text('title', TEST_CELL_ACCOUNT_TITLE, groupId);
@@ -43,7 +44,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
   return (
     <CellAccount
       accountAddress={TEST_ACCOUNT_ADDRESS}
-      accountAvatarType={AccountAvatarType.JazzIcon}
+      accountAvatarType={AvatarAccountType.JazzIcon}
       title={titleText}
       secondaryText={secondaryText}
       tertiaryText={tertiaryText}

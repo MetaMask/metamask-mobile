@@ -1,11 +1,11 @@
-// 3rd party dependencies
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
-// External dependencies
-import { AccountAvatarType } from '../AccountAvatar';
+// External dependencies.
+import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
-// Internal dependencies
+// Internal dependencies.
 import CellAccount from './CellAccount';
 import {
   TEST_ACCOUNT_ADDRESS,
@@ -27,7 +27,7 @@ describe('CellAccount - Snapshot', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,
@@ -38,7 +38,7 @@ describe('CellAccount - Snapshot', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         secondaryText={TEST_CELL_ACCOUNT_SECONDARY_TEXT}
         onPress={jest.fn}
@@ -50,7 +50,7 @@ describe('CellAccount - Snapshot', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tertiaryText={TEST_CELL_ACCOUNT_TERTIARY_TEXT}
         onPress={jest.fn}
@@ -62,7 +62,7 @@ describe('CellAccount - Snapshot', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tagLabel={TEST_TAG_LABEL_TEXT}
         onPress={jest.fn}
@@ -74,7 +74,7 @@ describe('CellAccount - Snapshot', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         isSelected
         onPress={jest.fn}
@@ -86,7 +86,7 @@ describe('CellAccount - Snapshot', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         isMultiSelect
         onPress={jest.fn}
@@ -101,7 +101,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
         isMultiSelect={false}
@@ -121,7 +121,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         isMultiSelect
         onPress={jest.fn}
@@ -141,7 +141,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,
@@ -155,7 +155,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,
@@ -169,7 +169,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         secondaryText={TEST_CELL_ACCOUNT_SECONDARY_TEXT}
         onPress={jest.fn}
@@ -186,7 +186,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,
@@ -200,7 +200,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tertiaryText={TEST_CELL_ACCOUNT_TERTIARY_TEXT}
         onPress={jest.fn}
@@ -217,7 +217,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,
@@ -231,7 +231,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tagLabel={TEST_TAG_LABEL_TEXT}
         onPress={jest.fn}
@@ -246,7 +246,7 @@ describe('CellAccount', () => {
     const wrapper = shallow(
       <CellAccount
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AccountAvatarType.JazzIcon}
+        accountAvatarType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,

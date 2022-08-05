@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import CellContainerSelectItem from './CellContainerSelectItem';
-import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from './CellContainerSelectItem.constants';
+import { SELECTABLE_ITEM_UNDERLAY_ID } from './CellContainerSelectItem.constants';
 
 describe('CellContainerSelectItem', () => {
   it('should render correctly', () => {
@@ -23,10 +23,10 @@ describe('CellContainerSelectItem', () => {
         <View />
       </CellContainerSelectItem>,
     );
-    const overlayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === SELECTABLE_LIST_ITEM_OVERLAY_ID,
+    const underlayComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === SELECTABLE_ITEM_UNDERLAY_ID,
     );
-    expect(overlayComponent.exists()).toBe(true);
+    expect(underlayComponent.exists()).toBe(true);
   });
 
   it('should not be highlighted when not selected', () => {
@@ -35,9 +35,9 @@ describe('CellContainerSelectItem', () => {
         <View />
       </CellContainerSelectItem>,
     );
-    const overlayComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === SELECTABLE_LIST_ITEM_OVERLAY_ID,
+    const underlayComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === SELECTABLE_ITEM_UNDERLAY_ID,
     );
-    expect(overlayComponent.exists()).toBe(false);
+    expect(underlayComponent.exists()).toBe(false);
   });
 });

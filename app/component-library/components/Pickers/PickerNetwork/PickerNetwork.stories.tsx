@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   },
 });
 
-storiesOf('Component Library / Network Picker', module).add('Default', () => {
+storiesOf('Component Library / PickerNetwork', module).add('Default', () => {
   const groupId = 'Props';
   const networkLabelSelector = text(
     'networkLabel',

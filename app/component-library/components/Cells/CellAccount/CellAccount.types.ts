@@ -1,5 +1,8 @@
+// Third party dependencies.
 import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
-import { AccountAvatarType } from '../AccountAvatar';
+
+// External dependencies.
+import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
 /**
  * Cell Account component props.
@@ -14,9 +17,9 @@ export interface CellAccountProps extends TouchableOpacityProps {
    */
   accountAddress: string;
   /**
-   * AccountAvatar variants.
+   * AvatarAccount variants.
    */
-  accountAvatarType: AccountAvatarType;
+  accountAvatarType: AvatarAccountType;
   /**
    * Title of the Cell Account, 1 line truncation
    */

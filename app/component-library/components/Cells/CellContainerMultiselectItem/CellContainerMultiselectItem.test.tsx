@@ -5,6 +5,7 @@ import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import CellContainerMultiselectItem from './CellContainerMultiselectItem';
+import { MULTISELECT_ITEM_UNDERLAY_ID } from './CellContainerMultiselectItem.constants';
 
 describe('CellContainerMultiselectItem', () => {
   it('should render correctly', () => {
@@ -16,25 +17,27 @@ describe('CellContainerMultiselectItem', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should be checked when selected', () => {
+  it('should be highlighted when selected', () => {
     const wrapper = shallow(
       <CellContainerMultiselectItem isSelected>
         <View />
       </CellContainerMultiselectItem>,
     );
-    const checkboxComponent = wrapper.childAt(0);
-    const isSelected = checkboxComponent.props().isSelected;
-    expect(isSelected).toBe(true);
+    const underlayComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === MULTISELECT_ITEM_UNDERLAY_ID,
+    );
+    expect(underlayComponent.exists()).toBe(true);
   });
 
-  it('should not be checked when not selected', () => {
+  it('should not be highlighted when not selected', () => {
     const wrapper = shallow(
       <CellContainerMultiselectItem isSelected={false}>
         <View />
       </CellContainerMultiselectItem>,
     );
-    const checkboxComponent = wrapper.childAt(0);
-    const isSelected = checkboxComponent.props().isSelected;
-    expect(isSelected).toBe(false);
+    const underlayComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === MULTISELECT_ITEM_UNDERLAY_ID,
+    );
+    expect(underlayComponent.exists()).toBe(false);
   });
 });

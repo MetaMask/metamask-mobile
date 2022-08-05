@@ -33,7 +33,6 @@ const styleSheet = (params: {
     cellAccount: {
       flex: 1,
       flexDirection: 'row',
-      marginVertical: 16,
     },
   });
 };

@@ -1,11 +1,11 @@
-// 3rd library dependencies
+// Third library dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
-// External dependencies
+// External dependencies.
 import { CellAccountStyleSheetVars } from './CellAccount.types';
 
-// Internal dependencies
-import { Theme } from '../../../util/theme/models';
+// Internal dependencies.
+import { Theme } from '../../../../util/theme/models';
 
 /**
  * Style sheet function for CellAccount component.

@@ -1,6 +1,6 @@
 # Checkbox
 
-Checkbox is a component typically used for multi-select scenarios.
+Checkbox is a component use to show a checkable box.
 
 ## Props
 
@@ -16,10 +16,7 @@ Determines if checkbox is selected.
 
 ```javascript
 // Replace import with relative path.
-import Icon, {
-  IconSize,
-  IconName,
-} from 'app/component-library/components/Icon';
+import Checkbox from 'app/component-library/components/Checkbox';
 
-<Icon name={IconName.BankFilled} size={IconSize.Md} color={ICON_COLOR} />;
+<Checkbox isSelected={true} />;
 ```

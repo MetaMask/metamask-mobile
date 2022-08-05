@@ -29,29 +29,20 @@ const styleSheet = (params: {
         padding: 16,
         borderRadius: 4,
         backgroundColor: colors.background.default,
-        zIndex: 100,
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    selectedView: {
-      position: 'absolute',
+    underlay: {
+      ...StyleSheet.absoluteFillObject,
       flexDirection: 'row',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
       backgroundColor: colors.primary.muted,
-      zIndex: 200,
     },
-    verticalBar: {
+    underlayBar: {
       marginVertical: 4,
       marginLeft: 4,
       width: 4,
       borderRadius: 2,
       backgroundColor: colors.primary.default,
-    },
-    contentContainer: {
-      zIndex: 300,
     },
   });
 };

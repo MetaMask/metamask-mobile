@@ -7,7 +7,7 @@ import { number } from '@storybook/addon-knobs';
 import { AVAILABLE_TOKEN_LIST } from './AvatarGroup.constants';
 import AvatarGroup from './AvatarGroup';
 
-storiesOf(' Component Library / StackedAvatar', module).add('Default', () => {
+storiesOf(' Component Library / AvatarGroup', module).add('Default', () => {
   const options = {
     range: true,
     min: 1,

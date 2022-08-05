@@ -214,7 +214,7 @@ exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
 `;
 
 exports[`CellAccount - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
-<CellContainerMultiSelectItem
+<CellContainerMultiselectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -255,7 +255,7 @@ exports[`CellAccount - Snapshot should render the proper multiselect when isMult
       </BaseText>
     </View>
   </View>
-</CellContainerMultiSelectItem>
+</CellContainerMultiselectItem>
 `;
 
 exports[`CellAccount - Snapshot should render the proper selected state 1`] = `

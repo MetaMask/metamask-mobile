@@ -4,7 +4,7 @@ CellAccount is a component used for accessing account selection.
 
 ## Props
 
-This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps Component](https://reactnative.dev/docs/touchableOpacity).
+This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) component.
 
 ### `onPress`
 
@@ -91,18 +91,18 @@ Optional accessory that can be inserted on the right of Cell Account
 
 ```javascript
 // Change import path to relative path
-import { CellAccount } from 'app/component-library/components/CellAccount/CellAccount'
+import { CellAccount } from 'app/component-library/components/CellAccount/CellAccount';
 import { AccountAvatarType } from 'app/component-library/components/AccountAvatar/AccountAvatar';
 
 <CellAccount
-    accountAddress={ACCOUNT_ADDRESS}
-    accountAvatarType={AccountAvatarType.JazzIcon}
-    title={TITLE}
-    secondaryText={SECONDARY_TEXT}
-    tertiaryText={TERTIARY_TEXT}
-    tagLabel={TAG_LABEL}
-    isSelected={false}
-    isMultiSelect={false}
-    onPress={() => Alert.alert('Pressed account Cell!')}
-/>
+  accountAddress={ACCOUNT_ADDRESS}
+  accountAvatarType={AccountAvatarType.JazzIcon}
+  title={TITLE}
+  secondaryText={SECONDARY_TEXT}
+  tertiaryText={TERTIARY_TEXT}
+  tagLabel={TAG_LABEL}
+  isSelected={false}
+  isMultiSelect={false}
+  onPress={() => Alert.alert('Pressed account Cell!')}
+/>;
 ```

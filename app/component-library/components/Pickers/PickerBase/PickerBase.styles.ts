@@ -27,7 +27,7 @@ const styleSheet = (params: {
       {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
+        padding: 16,
         borderWidth: 1,
         borderColor: colors.border.default,
         borderRadius: 4,

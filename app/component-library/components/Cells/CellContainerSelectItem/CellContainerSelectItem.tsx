@@ -10,7 +10,7 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies.
 import styleSheet from './CellContainerSelectItem.styles';
 import { CellContainerSelectItemProps } from './CellContainerSelectItem.types';
-import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from './CellContainerSelectItem.constants';
+import { SELECTABLE_ITEM_UNDERLAY_ID } from './CellContainerSelectItem.constants';
 
 const CellContainerSelectItem: React.FC<CellContainerSelectItemProps> = ({
   style,
@@ -23,8 +23,8 @@ const CellContainerSelectItem: React.FC<CellContainerSelectItemProps> = ({
   const renderOverlay = useCallback(
     () =>
       isSelected ? (
-        <View testID={SELECTABLE_LIST_ITEM_OVERLAY_ID} style={styles.overlay}>
-          <View style={styles.verticalBar} />
+        <View testID={SELECTABLE_ITEM_UNDERLAY_ID} style={styles.underlay}>
+          <View style={styles.underlayBar} />
         </View>
       ) : null,
     [isSelected, styles],
@@ -32,8 +32,8 @@ const CellContainerSelectItem: React.FC<CellContainerSelectItemProps> = ({
 
   return (
     <TouchableOpacity style={styles.base} {...props}>
-      {children}
       {renderOverlay()}
+      {children}
     </TouchableOpacity>
   );
 };

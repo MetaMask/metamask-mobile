@@ -1,6 +1,9 @@
 // Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
 // Internal dependencies.
 import { CellContainerMultiselectItemStyleSheetVars } from './CellContainerMultiselectItem.types';
 
@@ -13,19 +16,26 @@ import { CellContainerMultiselectItemStyleSheetVars } from './CellContainerMulti
  * @returns StyleSheet object.
  */
 const styleSheet = (params: {
+  theme: Theme;
   vars: CellContainerMultiselectItemStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
+  const { colors } = theme;
   const { style } = vars;
   return StyleSheet.create({
     base: Object.assign(
       {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 16,
+        padding: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    underlay: {
+      ...StyleSheet.absoluteFillObject,
+      flexDirection: 'row',
+      backgroundColor: colors.primary.muted,
+    },
     checkbox: {
       marginRight: 16,
     },

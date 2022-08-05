@@ -1,18 +1,19 @@
 /* eslint-disable react/prop-types */
-// 3rd library dependencies
+
+// Third library dependencies.
 import React from 'react';
 import { View } from 'react-native';
 
-// External dependencies
-import { useStyles } from '../../hooks';
-import AccountAvatar from '../AccountAvatar';
-import BaseText, { BaseTextVariant } from '../BaseText';
-import { BaseAvatarSize } from '../BaseAvatar';
-import CellContainerMultiSelectItem from '../CellContainerMultiSelectItem';
+// External dependencies.
+import { useStyles } from '../../../hooks';
+import AvatarAccount from '../../Avatars/AvatarAccount';
+import Text, { TextVariant } from '../../Text';
+import { AvatarBaseSize } from '../../Avatars/AvatarBase';
+import CellContainerMultiselectItem from '../CellContainerMultiselectItem';
 import CellContainerSelectItem from '../CellContainerSelectItem';
-import Tag from '../Tag';
+import Tag from '../../Tags/Tag';
 
-// Internal dependencies
+// Internal dependencies.
 import {
   CELL_ACCOUNT_SINGLE_SELECT_TEST_ID,
   CELL_ACCOUNT_MULTI_SELECT_TEST_ID,
@@ -40,7 +41,7 @@ const CellAccount = ({
 }: CellAccountProps) => {
   const { styles } = useStyles(styleSheet, { style });
   const ContainerComponent = isMultiSelect
-    ? CellContainerMultiSelectItem
+    ? CellContainerMultiselectItem
     : CellContainerSelectItem;
   const containerTestID = isMultiSelect
     ? CELL_ACCOUNT_MULTI_SELECT_TEST_ID
@@ -55,40 +56,40 @@ const CellAccount = ({
     >
       <View style={styles.cellAccount}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-        <AccountAvatar
+        <AvatarAccount
           type={accountAvatarType}
           accountAddress={accountAddress}
-          size={BaseAvatarSize.Md}
+          size={AvatarBaseSize.Md}
           style={styles.accountAvatar}
           testID={CELL_ACCOUNT_AVATAR_TEST_ID}
         />
         <View style={styles.cellAccountInfo}>
-          <BaseText
+          <Text
             numberOfLines={1}
-            variant={BaseTextVariant.sHeadingSMRegular}
+            variant={TextVariant.sHeadingSMRegular}
             testID={CELL_ACCOUNT_TITLE_TEST_ID}
           >
             {title}
-          </BaseText>
+          </Text>
           {!!secondaryText && (
-            <BaseText
+            <Text
               numberOfLines={1}
-              variant={BaseTextVariant.sBodyMD}
+              variant={TextVariant.sBodyMD}
               style={styles.secondaryText}
               testID={CELL_ACCOUNT_SECONDARY_TEXT_TEST_ID}
             >
               {secondaryText}
-            </BaseText>
+            </Text>
           )}
           {!!tertiaryText && (
-            <BaseText
+            <Text
               numberOfLines={1}
-              variant={BaseTextVariant.sBodyMD}
+              variant={TextVariant.sBodyMD}
               style={styles.tertiaryText}
               testID={CELL_ACCOUNT_TERTIARY_TEXT_TEST_ID}
             >
               {tertiaryText}
-            </BaseText>
+            </Text>
           )}
           {!!tagLabel && (
             <Tag
