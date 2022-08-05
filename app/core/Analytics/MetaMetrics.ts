@@ -65,6 +65,7 @@ class MetaMetrics implements IMetaMetrics {
       );
       await DefaultPreference.set(METAMETRICS_ID, metametricsId);
     }
+    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${metametricsId}`);
     return metametricsId;
   }
 
