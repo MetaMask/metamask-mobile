@@ -24,12 +24,12 @@ function loadStories() {
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Link/Link.stories');
-  require('../app/component-library/components/Cells/MultiselectListItem/MultiselectListItem.stories');
+  require('../app/component-library/components/Cells/CellContainerMultiselectItem/CellContainerMultiselectItem.stories');
   require('../app/component-library/components/AvatarNetwork/AvatarNetwork.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/PickerBase/PickerBase.stories');
-  require('../app/component-library/components/SelectableListItem/SelectableListItem.stories');
+  require('../app/component-library/components/CellContainerSelectItem/CellContainerSelectItem.stories');
   require('../app/component-library/components/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Navigation/TabBar.stories');
   require('../app/component-library/components/Navigation/TabBarItem/TabBarItem.stories');
@@ -60,12 +60,12 @@ const stories = [
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Link/Link.stories',
-  '../app/component-library/components/MultiselectListItem/MultiselectListItem.stories',
+  '../app/component-library/components/CellContainerMultiselectItem/CellContainerMultiselectItem.stories',
   '../app/component-library/components/AvatarNetwork/AvatarNetwork.stories',
   '../app/component-library/components/PickerNetwork/PickerNetwork.stories',
   '../app/component-library/components/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/PickerBase/PickerBase.stories',
-  '../app/component-library/components/SelectableListItem/SelectableListItem.stories',
+  '../app/component-library/components/CellContainerSelectItem/CellContainerSelectItem.stories',
   '../app/component-library/components/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/TabBar/TabBar.stories',
   '../app/component-library/components/TabBarItem/TabBarItem.stories',

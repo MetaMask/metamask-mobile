@@ -1,11 +1,11 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
-import {
-  MultiselectListItemStyleSheet,
-  MultiselectListItemStyleSheetVars,
-} from './MultiselectListItem.types';
+
+// Internal dependencies.
+import { CellContainerMultiselectItemStyleSheetVars } from './CellContainerMultiselectItem.types';
 
 /**
- * Style sheet function for MultiselectListItem component.
+ * Style sheet function for CellContainerMultiselectItem component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -13,8 +13,8 @@ import {
  * @returns StyleSheet object.
  */
 const styleSheet = (params: {
-  vars: MultiselectListItemStyleSheetVars;
-}): MultiselectListItemStyleSheet => {
+  vars: CellContainerMultiselectItemStyleSheetVars;
+}) => {
   const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({

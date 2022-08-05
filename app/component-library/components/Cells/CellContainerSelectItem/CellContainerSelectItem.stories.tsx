@@ -1,17 +1,23 @@
 /* eslint-disable no-console, react-native/no-inline-styles */
-import React, { useState } from 'react';
-import { storiesOf } from '@storybook/react-native';
-import SelectableListItem from './SelectableListItem';
-import { boolean } from '@storybook/addon-knobs';
-import { View } from 'react-native';
-import { mockTheme } from '../../../util/theme';
-import BaseText, { BaseTextVariant } from '../BaseText';
 
-const SelectableListItemExample = () => {
+// Third party dependencies.
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import { storiesOf } from '@storybook/react-native';
+import { boolean } from '@storybook/addon-knobs';
+
+// External dependencies.
+import { mockTheme } from '../../../../util/theme';
+import Text, { TextVariant } from '../../Text';
+
+// Internal dependencies.
+import CellContainerSelectItem from './CellContainerSelectItem';
+
+const CellContainerSelectItemExample = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const renderItem = (item: number) => (
-    <SelectableListItem
+    <CellContainerSelectItem
       onPress={() => setSelectedIndex(item)}
       key={`item-${item}`}
       isSelected={item === selectedIndex}
@@ -24,24 +30,22 @@ const SelectableListItemExample = () => {
           justifyContent: 'center',
         }}
       >
-        <BaseText variant={BaseTextVariant.sBodySM}>
-          {'Wrapped Content'}
-        </BaseText>
+        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
       </View>
-    </SelectableListItem>
+    </CellContainerSelectItem>
   );
 
   return <React.Fragment>{[0, 1, 2].map(renderItem)}</React.Fragment>;
 };
 
-storiesOf('Component Library / SelectableListItem', module)
+storiesOf('Component Library / CellContainerSelectItem', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
     const selectedSelector = boolean('isSelected', false, groupId);
 
     return (
-      <SelectableListItem isSelected={selectedSelector}>
+      <CellContainerSelectItem isSelected={selectedSelector}>
         <View
           style={{
             height: 50,
@@ -50,11 +54,9 @@ storiesOf('Component Library / SelectableListItem', module)
             justifyContent: 'center',
           }}
         >
-          <BaseText variant={BaseTextVariant.sBodySM}>
-            {'Wrapped Content'}
-          </BaseText>
+          <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
         </View>
-      </SelectableListItem>
+      </CellContainerSelectItem>
     );
   })
-  .add('List', () => <SelectableListItemExample />);
+  .add('List', () => <CellContainerSelectItemExample />);

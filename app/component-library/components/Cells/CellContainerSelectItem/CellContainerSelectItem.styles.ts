@@ -1,12 +1,14 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-import {
-  SelectableListItemStyleSheet,
-  SelectableListItemStyleSheetVars,
-} from './SelectableListItem.types';
+
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
+// Internal dependencies.
+import { CellContainerSelectItemStyleSheetVars } from './CellContainerSelectItem.types';
 
 /**
- * Style sheet function for SelectableListItem component.
+ * Style sheet function for CellContainerSelectItem component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -15,8 +17,8 @@ import {
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: SelectableListItemStyleSheetVars;
-}): SelectableListItemStyleSheet => {
+  vars: CellContainerSelectItemStyleSheetVars;
+}) => {
   const { vars, theme } = params;
   const { colors } = theme;
   const { style } = vars;

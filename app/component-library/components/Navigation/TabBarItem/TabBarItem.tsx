@@ -1,9 +1,15 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { useStyles } from '../../hooks';
-import BaseText, { BaseTextVariant } from '../BaseText';
-import Icon, { IconSize } from '../Icon';
+
+// Third party dependencies.
+import Text, { TextVariant } from '../../Text';
+import Icon, { IconSize } from '../../Icon';
+import { useStyles } from '../../../hooks';
+
+// Internal dependencies
 import styleSheet from './TabBarItem.styles';
 import { TabBarItemProps } from './TabBarItem.types';
 
@@ -24,9 +30,9 @@ const TabBarItem = ({
   return (
     <TouchableOpacity {...props} style={styles.base}>
       <Icon size={IconSize.Lg} name={icon} color={tabColor} />
-      <BaseText variant={BaseTextVariant.sBodyMD} style={styles.label}>
+      <Text variant={TextVariant.sBodyMD} style={styles.label}>
         {label}
-      </BaseText>
+      </Text>
     </TouchableOpacity>
   );
 };

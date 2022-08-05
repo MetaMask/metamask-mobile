@@ -1,5 +1,8 @@
+// Third party dependencies.
 import { StyleSheet } from 'react-native';
-import { TabBarStyleSheet, TabBarStyleSheetVars } from './TabBar.types';
+
+// Internal dependencies.
+import { TabBarStyleSheetVars } from './TabBar.types';
 
 /**
  * Style sheet function for TabBar component.
@@ -9,9 +12,7 @@ import { TabBarStyleSheet, TabBarStyleSheetVars } from './TabBar.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  vars: TabBarStyleSheetVars;
-}): TabBarStyleSheet => {
+const styleSheet = (params: { vars: TabBarStyleSheetVars }) => {
   const { vars } = params;
   const { bottomInset } = vars;
   return StyleSheet.create({

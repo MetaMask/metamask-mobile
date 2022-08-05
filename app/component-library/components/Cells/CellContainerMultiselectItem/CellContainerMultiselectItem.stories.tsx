@@ -1,17 +1,23 @@
 /* eslint-disable no-console, react-native/no-inline-styles */
-import React, { useState } from 'react';
-import { storiesOf } from '@storybook/react-native';
-import MultiselectListItem from './MultiselectListItem';
-import { boolean } from '@storybook/addon-knobs';
-import { View } from 'react-native';
-import { mockTheme } from '../../../util/theme';
-import BaseText, { BaseTextVariant } from '../BaseText';
 
-const MultiselectListItemExample = () => {
+// Third party dependencies.
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import { storiesOf } from '@storybook/react-native';
+import { boolean } from '@storybook/addon-knobs';
+
+// External dependencies.
+import { mockTheme } from '../../../../util/theme';
+import Text, { TextVariant } from '../../Text';
+
+// Internal dependencies.
+import CellContainerMultiselectItem from './CellContainerMultiselectItem';
+
+const CellContainerMultiselectItemExample = () => {
   const [data, setData] = useState([true, true, false]);
 
   const renderItem = (isSelected: boolean, index: number) => (
-    <MultiselectListItem
+    <CellContainerMultiselectItem
       onPress={() => {
         const newData = [...data];
         newData[index] = !isSelected;
@@ -29,24 +35,22 @@ const MultiselectListItemExample = () => {
           justifyContent: 'center',
         }}
       >
-        <BaseText variant={BaseTextVariant.sBodySM}>
-          {'Wrapped Content'}
-        </BaseText>
+        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
       </View>
-    </MultiselectListItem>
+    </CellContainerMultiselectItem>
   );
 
   return <React.Fragment>{data.map(renderItem)}</React.Fragment>;
 };
 
-storiesOf('Component Library / MultiselectListItem', module)
+storiesOf('Component Library / CellContainerMultiselectItem', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
     const selectedSelector = boolean('isSelected', false, groupId);
 
     return (
-      <MultiselectListItem isSelected={selectedSelector}>
+      <CellContainerMultiselectItem isSelected={selectedSelector}>
         <View
           style={{
             height: 50,
@@ -56,11 +60,9 @@ storiesOf('Component Library / MultiselectListItem', module)
             justifyContent: 'center',
           }}
         >
-          <BaseText variant={BaseTextVariant.sBodySM}>
-            {'Wrapped Content'}
-          </BaseText>
+          <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
         </View>
-      </MultiselectListItem>
+      </CellContainerMultiselectItem>
     );
   })
-  .add('Multilist', () => <MultiselectListItemExample />);
+  .add('Multilist', () => <CellContainerMultiselectItemExample />);

@@ -1,17 +1,18 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useStyles } from '../../hooks';
-import { IconName } from '../Icon';
-import TabBarItem from '../TabBarItem';
-import styleSheet from './TabBar.styles';
-import { TabBarLabel, TabBarProps, IconByTabBarLabel } from './TabBar.types';
 
-const iconByTabBarLabel: IconByTabBarLabel = {
-  [TabBarLabel.Wallet]: IconName.WalletFilled,
-  [TabBarLabel.Browser]: IconName.ExploreFilled,
-};
+// Third party dependencies
+import TabBarItem from '../TabBarItem';
+import { useStyles } from '../../../hooks';
+
+// Internal dependencies.
+import { TabBarLabel, TabBarProps } from './TabBar.types';
+import styleSheet from './TabBar.styles';
+import { ICON_BY_TAB_BAR_LABEL } from './TabBar.constants';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -22,7 +23,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const label = descriptors[route.key].options.tabBarLabel as TabBarLabel;
       const key = `tab-bar-item-${label}`;
       const isSelected = state.index === index;
-      const icon = iconByTabBarLabel[label];
+      const icon = ICON_BY_TAB_BAR_LABEL[label];
       const onPress = () => !isSelected && navigation.navigate(route.name);
 
       return (

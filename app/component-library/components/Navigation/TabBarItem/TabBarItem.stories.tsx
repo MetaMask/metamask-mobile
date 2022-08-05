@@ -1,9 +1,15 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { boolean, select, text } from '@storybook/addon-knobs';
+
+// Third party dependencies.
+import { IconName } from '../../Icon';
+
+// Internal dependencies
 import TabBarItem from './TabBarItem';
-import { IconName } from '../Icon';
 
 storiesOf('Component Library / TabBarItem', module)
   .addDecorator((getStory) => getStory())

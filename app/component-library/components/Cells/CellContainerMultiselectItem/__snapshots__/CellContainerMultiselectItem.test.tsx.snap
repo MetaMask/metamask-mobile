@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MultiselectListItem should render correctly 1`] = `
+exports[`CellContainerMultiselectItem should render correctly 1`] = `
 <TouchableOpacity
   style={
     Object {

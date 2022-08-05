@@ -1,10 +1,8 @@
-import {
-  StyleProp,
-  TextStyle,
-  TouchableOpacityProps,
-  ViewStyle,
-} from 'react-native';
-import { IconProps } from '../Icon';
+// Third party dependencies.
+import { TouchableOpacityProps } from 'react-native';
+
+// Third party dependencies.
+import { IconProps } from '../../Icon';
 
 /**
  * TabBarItem component props.
@@ -26,18 +24,6 @@ export interface TabBarItemProps extends TouchableOpacityProps {
    * Function to call when pressed.
    */
   onPress: () => void;
-  /**
-   * Escape hatch for applying extra styles. Only use if absolutely necessary.
-   */
-  style?: StyleProp<ViewStyle>;
-}
-
-/**
- * TabBarItem component style sheet.
- */
-export interface TabBarItemStyleSheet {
-  base: ViewStyle;
-  label: TextStyle;
 }
 
 /**

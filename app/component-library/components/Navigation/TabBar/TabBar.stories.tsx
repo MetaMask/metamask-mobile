@@ -1,9 +1,14 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React, { useState } from 'react';
 import { storiesOf } from '@storybook/react-native';
+// TODO - Remove this when we add in SafeAreaProvider as a decorator.
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
+
+// Internal dependencies.
 import TabBar from './TabBar';
 import { TabBarLabel } from './TabBar.types';
-import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 const TabBarStorybook = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);

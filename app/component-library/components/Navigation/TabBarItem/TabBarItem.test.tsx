@@ -1,7 +1,12 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// Third party dependencies.
+import { IconName } from '../../Icon';
+
+// Internal dependencies
 import TabBarItem from './TabBarItem';
-import { IconName } from '../Icon';
 
 describe('TabBarItem', () => {
   it('should render correctly', () => {

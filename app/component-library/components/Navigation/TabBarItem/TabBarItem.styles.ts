@@ -1,9 +1,11 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
-import {
-  TabBarItemStyleSheet,
-  TabBarItemStyleSheetVars,
-} from './TabBarItem.types';
-import { Theme } from '../../../util/theme/models';
+
+// Third party dependencies.
+import { Theme } from '../../../../util/theme/models';
+
+// Internal dependencies
+import { TabBarItemStyleSheetVars } from './TabBarItem.types';
 
 /**
  * Style sheet function for TabBarItem component.
@@ -16,7 +18,7 @@ import { Theme } from '../../../util/theme/models';
 const styleSheet = (params: {
   theme: Theme;
   vars: TabBarItemStyleSheetVars;
-}): TabBarItemStyleSheet => {
+}) => {
   const { theme, vars } = params;
   const { style, isSelected } = vars;
   return StyleSheet.create({

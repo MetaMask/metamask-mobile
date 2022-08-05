@@ -1,14 +1,14 @@
-# SelectableListItem
+# CellContainerMultiselectItem
 
-SelectableListItem is a wrapper component typically used for item selection scenarios.
+CellContainerMultiselectItem is a wrapper component typically used for multi-select scenarios.
 
 ## Props
 
-This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps Component](https://reactnative.dev/docs/touchableOpacity).
+This component extends `TouchableOpacityProps` from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
 
 ### `isSelected`
 
-Determines item is selected.
+Determines if checkbox is selected.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -16,8 +16,19 @@ Determines item is selected.
 
 ### `children`
 
-Content to wrap for selection.
+Content to wrap for multiselect.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | ReactNode                                           | Yes                                                     |
+
+## Usage
+
+```javascript
+// Replace import with relative path.
+import CellContainerMultiselectItem from 'app/component-library/components/Cells/CellContainerMultiselectItem';
+
+<CellContainerMultiselectItem onPress={ONPRESS_HANDLER} isSelected={true}>
+  <SampleContent />
+</CellContainerMultiselectItem>;
+```

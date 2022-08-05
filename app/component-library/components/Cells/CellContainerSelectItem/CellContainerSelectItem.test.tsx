@@ -1,26 +1,27 @@
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
 import { shallow } from 'enzyme';
 
-import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from '../../../constants/test-ids';
+// Internal dependencies.
+import CellContainerSelectItem from './CellContainerSelectItem';
+import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from './CellContainerSelectItem.constants';
 
-import SelectableListItem from './SelectableListItem';
-
-describe('SelectableListItem', () => {
+describe('CellContainerSelectItem', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <SelectableListItem isSelected>
+      <CellContainerSelectItem isSelected>
         <View />
-      </SelectableListItem>,
+      </CellContainerSelectItem>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should be highlighted when selected', () => {
     const wrapper = shallow(
-      <SelectableListItem isSelected>
+      <CellContainerSelectItem isSelected>
         <View />
-      </SelectableListItem>,
+      </CellContainerSelectItem>,
     );
     const overlayComponent = wrapper.findWhere(
       (node) => node.prop('testID') === SELECTABLE_LIST_ITEM_OVERLAY_ID,
@@ -30,9 +31,9 @@ describe('SelectableListItem', () => {
 
   it('should not be highlighted when not selected', () => {
     const wrapper = shallow(
-      <SelectableListItem isSelected={false}>
+      <CellContainerSelectItem isSelected={false}>
         <View />
-      </SelectableListItem>,
+      </CellContainerSelectItem>,
     );
     const overlayComponent = wrapper.findWhere(
       (node) => node.prop('testID') === SELECTABLE_LIST_ITEM_OVERLAY_ID,

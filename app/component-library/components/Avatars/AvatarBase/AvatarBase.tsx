@@ -3,7 +3,7 @@
 import React from 'react';
 import { View } from 'react-native';
 
-// External dependencies
+// Third party dependencies.
 import { useStyles } from '../../../hooks/useStyles';
 
 // Internal dependencies

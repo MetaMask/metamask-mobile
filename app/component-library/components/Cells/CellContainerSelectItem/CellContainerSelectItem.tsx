@@ -1,12 +1,18 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../hooks';
-import styleSheet from './SelectableListItem.styles';
-import { SelectableListItemProps } from './SelectableListItem.types';
-import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from '../../../constants/test-ids';
 
-const SelectableListItem: React.FC<SelectableListItemProps> = ({
+// External dependencies.
+import { useStyles } from '../../../hooks';
+
+// Internal dependencies.
+import styleSheet from './CellContainerSelectItem.styles';
+import { CellContainerSelectItemProps } from './CellContainerSelectItem.types';
+import { SELECTABLE_LIST_ITEM_OVERLAY_ID } from './CellContainerSelectItem.constants';
+
+const CellContainerSelectItem: React.FC<CellContainerSelectItemProps> = ({
   style,
   isSelected,
   children,
@@ -32,4 +38,4 @@ const SelectableListItem: React.FC<SelectableListItemProps> = ({
   );
 };
 
-export default SelectableListItem;
+export default CellContainerSelectItem;
