@@ -113,7 +113,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     }
   >
-    <BaseText
+    <Text
       style={
         Object {
           "color": "#535A61",
@@ -124,7 +124,7 @@ exports[`AvatarGroup should render correctly 1`] = `
       variant="sBodyMD"
     >
       +10
-    </BaseText>
+    </Text>
   </View>
 </View>
 `;

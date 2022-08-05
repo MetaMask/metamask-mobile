@@ -20,7 +20,7 @@ exports[`TagUrl should render correctly 1`] = `
     imageUrl="https://uniswap.org/favicon.ico"
     size="32"
   />
-  <BaseText
+  <Text
     style={
       Object {
         "color": "#535A61",
@@ -30,6 +30,6 @@ exports[`TagUrl should render correctly 1`] = `
     variant="sBodyMD"
   >
     https://uniswap.org
-  </BaseText>
+  </Text>
 </View>
 `;

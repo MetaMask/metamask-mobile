@@ -15,7 +15,7 @@ exports[`TabBarItem should render correctly 1`] = `
     name="BankFilled"
     size="24"
   />
-  <BaseText
+  <Text
     style={
       Object {
         "color": "#037DD6",
@@ -24,6 +24,6 @@ exports[`TabBarItem should render correctly 1`] = `
     variant="sBodyMD"
   >
     Tab
-  </BaseText>
+  </Text>
 </TouchableOpacity>
 `;

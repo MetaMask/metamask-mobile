@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ButtonLink should render correctly 1`] = `
-<BaseText
+exports[`Link should render correctly 1`] = `
+<Text
   onPress={[Function]}
   style={
     Object {
@@ -12,5 +12,5 @@ exports[`ButtonLink should render correctly 1`] = `
   variant="sBodyMD"
 >
   I'm a Link!
-</BaseText>
+</Text>
 `;

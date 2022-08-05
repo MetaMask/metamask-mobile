@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AvatarIcon should render correctly 1`] = `
-<Avatar
+<AvatarBase
   size="40"
   style={
     Object {
@@ -16,5 +16,5 @@ exports[`AvatarIcon should render correctly 1`] = `
     name="AddSquareFilled"
     size="24"
   />
-</Avatar>
+</AvatarBase>
 `;

@@ -24,7 +24,7 @@ exports[`ButtonBase should render correctly 1`] = `
       }
     }
   />
-  <BaseText
+  <Text
     style={
       Object {
         "color": undefined,
@@ -33,6 +33,6 @@ exports[`ButtonBase should render correctly 1`] = `
     variant="sBodyMD"
   >
     Click me!
-  </BaseText>
+  </Text>
 </TouchableOpacity>
 `;

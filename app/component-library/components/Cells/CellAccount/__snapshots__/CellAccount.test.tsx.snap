@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
-<CellContainerSelectOption
+<CellContainerSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -14,7 +14,7 @@ exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
       }
     }
   >
-    <AccountAvatar
+    <AvatarAccount
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -33,20 +33,20 @@ exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
         }
       }
     >
-      <BaseText
+      <Text
         numberOfLines={1}
         testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
-      </BaseText>
+      </Text>
     </View>
   </View>
-</CellContainerSelectOption>
+</CellContainerSelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render label when given 1`] = `
-<CellContainerSelectOption
+<CellContainerSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -59,7 +59,7 @@ exports[`CellAccount - Snapshot should render label when given 1`] = `
       }
     }
   >
-    <AccountAvatar
+    <AvatarAccount
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -78,13 +78,13 @@ exports[`CellAccount - Snapshot should render label when given 1`] = `
         }
       }
     >
-      <BaseText
+      <Text
         numberOfLines={1}
         testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
-      </BaseText>
+      </Text>
       <Tag
         label="Imported"
         style={
@@ -96,11 +96,11 @@ exports[`CellAccount - Snapshot should render label when given 1`] = `
       />
     </View>
   </View>
-</CellContainerSelectOption>
+</CellContainerSelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
-<CellContainerSelectOption
+<CellContainerSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -113,7 +113,7 @@ exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
       }
     }
   >
-    <AccountAvatar
+    <AvatarAccount
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -132,14 +132,14 @@ exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
         }
       }
     >
-      <BaseText
+      <Text
         numberOfLines={1}
         testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
-      </BaseText>
-      <BaseText
+      </Text>
+      <Text
         numberOfLines={1}
         style={
           Object {
@@ -150,14 +150,14 @@ exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
         variant="sBodyMD"
       >
         0x2990079bcdEe240329a520d2444386FC119da21a
-      </BaseText>
+      </Text>
     </View>
   </View>
-</CellContainerSelectOption>
+</CellContainerSelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
-<CellContainerSelectOption
+<CellContainerSelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -170,7 +170,7 @@ exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
       }
     }
   >
-    <AccountAvatar
+    <AvatarAccount
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -189,14 +189,14 @@ exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
         }
       }
     >
-      <BaseText
+      <Text
         numberOfLines={1}
         testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
-      </BaseText>
-      <BaseText
+      </Text>
+      <Text
         numberOfLines={1}
         style={
           Object {
@@ -207,10 +207,10 @@ exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
         variant="sBodyMD"
       >
         Updated 1 sec ago
-      </BaseText>
+      </Text>
     </View>
   </View>
-</CellContainerSelectOption>
+</CellContainerSelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
@@ -227,7 +227,7 @@ exports[`CellAccount - Snapshot should render the proper multiselect when isMult
       }
     }
   >
-    <AccountAvatar
+    <AvatarAccount
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -246,20 +246,20 @@ exports[`CellAccount - Snapshot should render the proper multiselect when isMult
         }
       }
     >
-      <BaseText
+      <Text
         numberOfLines={1}
         testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
-      </BaseText>
+      </Text>
     </View>
   </View>
 </CellContainerMultiselectItem>
 `;
 
 exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
-<CellContainerSelectOption
+<CellContainerSelectItem
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
@@ -272,7 +272,7 @@ exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
       }
     }
   >
-    <AccountAvatar
+    <AvatarAccount
       accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
       size="32"
       style={
@@ -291,14 +291,14 @@ exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
         }
       }
     >
-      <BaseText
+      <Text
         numberOfLines={1}
         testID="cell-account-title"
         variant="sHeadingSMRegular"
       >
         Orangefox.eth
-      </BaseText>
+      </Text>
     </View>
   </View>
-</CellContainerSelectOption>
+</CellContainerSelectItem>
 `;

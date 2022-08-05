@@ -11,7 +11,7 @@ exports[`PickerBase should render correctly 1`] = `
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
-      "paddingHorizontal": 16,
+      "padding": 16,
     }
   }
 >

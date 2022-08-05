@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ButtonPrimary should render correctly 1`] = `
-<Button
+<ButtonBase
   icon="BankFilled"
   label="Click me!"
   labelColor="#FCFCFC"

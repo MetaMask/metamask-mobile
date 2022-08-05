@@ -6,7 +6,7 @@ import { shallow } from 'enzyme';
 // External dependencies.
 // eslint-disable-next-line
 // @ts-ignore
-import ethLogo from '../../../images/eth-logo.png';
+import ethLogo from '../../../../images/eth-logo.png';
 import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.

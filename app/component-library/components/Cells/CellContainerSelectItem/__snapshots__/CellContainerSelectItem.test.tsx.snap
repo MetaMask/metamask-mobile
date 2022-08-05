@@ -2,9 +2,15 @@
 
 exports[`CellContainerSelectItem should render correctly 1`] = `
 <TouchableOpacity
-  style={Object {}}
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
+      "padding": 16,
+      "position": "relative",
+    }
+  }
 >
-  <View />
   <View
     style={
       Object {
@@ -17,7 +23,7 @@ exports[`CellContainerSelectItem should render correctly 1`] = `
         "top": 0,
       }
     }
-    testID="selectable-list-item-overlay"
+    testID="selectable-item-underlay"
   >
     <View
       style={
@@ -31,5 +37,6 @@ exports[`CellContainerSelectItem should render correctly 1`] = `
       }
     />
   </View>
+  <View />
 </TouchableOpacity>
 `;

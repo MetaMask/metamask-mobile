@@ -14,7 +14,7 @@ exports[`Tag should render correctly 1`] = `
     }
   }
 >
-  <BaseText
+  <Text
     style={
       Object {
         "bottom": 2,
@@ -23,6 +23,6 @@ exports[`Tag should render correctly 1`] = `
     variant="sBodyMD"
   >
     Imported
-  </BaseText>
+  </Text>
 </View>
 `;

@@ -18,7 +18,7 @@ exports[`PickerNetwork should render correctly 1`] = `
     networkImageUrl="https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880"
     size="16"
   />
-  <BaseText
+  <Text
     style={
       Object {
         "marginHorizontal": 8,
@@ -27,7 +27,7 @@ exports[`PickerNetwork should render correctly 1`] = `
     variant="sBodyMD"
   >
     Ethereum Mainnet
-  </BaseText>
+  </Text>
   <Icon
     name="ArrowDownOutline"
     size="12"
