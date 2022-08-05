@@ -301,7 +301,7 @@ const CollectibleContracts = ({
             resizeMode={'contain'}
           />
           <Text centered numberOfLines={1} style={styles.metalabsText}>
-            {strings('wallet.goToPortfolio')}
+            {strings('wallet.go_to_portfolio')}
           </Text>
         </TouchableOpacity>
       </View>
