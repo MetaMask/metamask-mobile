@@ -37,7 +37,6 @@ const EditGasFee1559Update = ({
   gasOptions,
   primaryCurrency,
   chainId,
-  onChange,
   onCancel,
   onSave,
   error,
@@ -64,7 +63,7 @@ const EditGasFee1559Update = ({
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(selectedGasValue);
+  const [selectedOption, setSelectedOption] = useState();
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
   const [gasData, setGasData] = useState({
     suggestedMaxFeePerGas: existingGas.maxFeePerGas,
@@ -199,7 +198,7 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError('');
+        setMaxPriorityFeeError(null);
       }
 
       const newGas = {
@@ -245,7 +244,7 @@ const EditGasFee1559Update = ({
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
       } else {
-        setMaxFeeError('');
+        setMaxFeeError(null);
       }
 
       const newGas = {
@@ -759,12 +758,6 @@ const EditGasFee1559Update = ({
       </ScrollView>
     </View>
   );
-};
-
-EditGasFee1559Update.defaultProps = {
-  ignoreOptions: [],
-  warningMinimumEstimateOption: AppConstants.GAS_OPTIONS.LOW,
-  suggestedEstimateOption: AppConstants.GAS_OPTIONS.MEDIUM,
 };
 
 export default EditGasFee1559Update;
