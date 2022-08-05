@@ -165,13 +165,18 @@ export function isprivateConnection(hostname) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTarget
+ * @param {string} rpcTargetUrl
  * @param {array<object>} frequentRpcList
  */
-export function findBlockExplorerForRpc(rpcTarget, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(
-    ({ rpcUrl }) => rpcTarget === rpcUrl,
-  );
+export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
+  const frequentRpc = frequentRpcList.find(({ rpcUrl }) => {
+    if (rpcUrl && rpcTargetUrl) {
+      const rpc = new URL(rpcUrl);
+      const rpcTarget = new URL(rpcTargetUrl);
+      return rpcTarget.host === rpc.host;
+    }
+    return false;
+  });
   if (frequentRpc) {
     return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
   }
