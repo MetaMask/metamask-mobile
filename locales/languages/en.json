@@ -2156,5 +2156,9 @@
   },
   "dapp_connect": {
     "warning": "In order to use this feature, please update the app to the newest version"
+  },
+  "confirmation_modal": {
+    "cancel_cta": "Cancel",
+    "confirm_cta": "Confirm"
   }
 }
