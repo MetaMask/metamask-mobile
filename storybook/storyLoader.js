@@ -4,6 +4,7 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
+  require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/components/Base/Alert.stories');
   require('../app/components/Base/ListItem.stories');
   require('../app/components/Base/Text.stories');
@@ -19,17 +20,22 @@ function loadStories() {
   require('../app/component-library/components/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/component-library/components/CellAccount/CellAccount.stories');
+  require('../app/component-library/components/CellContainerMultiSelectItem/CellContainerMultiSelectItem.stories');
+  require('../app/component-library/components/CellContainerSelectItem/CellContainerSelectItem.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
+  require('../app/component-library/components/ConfirmationModal/ConfirmationModal.stories');
   require('../app/component-library/components/FaviconAvatar/FaviconAvatar.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/IconButton/IconButton.stories');
   require('../app/component-library/components/Link/Link.stories');
-  require('../app/component-library/components/MultiselectListItem/MultiselectListItem.stories');
   require('../app/component-library/components/NetworkAvatar/NetworkAvatar.stories');
   require('../app/component-library/components/NetworkPicker/NetworkPicker.stories');
   require('../app/component-library/components/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/PickerItem/PickerItem.stories');
   require('../app/component-library/components/SelectableListItem/SelectableListItem.stories');
+  require('../app/component-library/components/SheetHeader/SheetHeader.stories');
+  require('../app/component-library/components/StackedAvatars/StackedAvatars.stories');
   require('../app/component-library/components/TabBar/TabBar.stories');
   require('../app/component-library/components/TabBarItem/TabBarItem.stories');
   require('../app/component-library/components/Tag/Tag.stories');
@@ -39,6 +45,7 @@ function loadStories() {
 }
 
 const stories = [
+  '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/components/Base/Alert.stories',
   '../app/components/Base/ListItem.stories',
   '../app/components/Base/Text.stories',
@@ -54,17 +61,22 @@ const stories = [
   '../app/component-library/components/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/ButtonTertiary/ButtonTertiary.stories',
+  '../app/component-library/components/CellAccount/CellAccount.stories',
+  '../app/component-library/components/CellContainerMultiSelectItem/CellContainerMultiSelectItem.stories',
+  '../app/component-library/components/CellContainerSelectItem/CellContainerSelectItem.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
+  '../app/component-library/components/ConfirmationModal/ConfirmationModal.stories',
   '../app/component-library/components/FaviconAvatar/FaviconAvatar.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/IconButton/IconButton.stories',
   '../app/component-library/components/Link/Link.stories',
-  '../app/component-library/components/MultiselectListItem/MultiselectListItem.stories',
   '../app/component-library/components/NetworkAvatar/NetworkAvatar.stories',
   '../app/component-library/components/NetworkPicker/NetworkPicker.stories',
   '../app/component-library/components/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/PickerItem/PickerItem.stories',
   '../app/component-library/components/SelectableListItem/SelectableListItem.stories',
+  '../app/component-library/components/SheetHeader/SheetHeader.stories',
+  '../app/component-library/components/StackedAvatars/StackedAvatars.stories',
   '../app/component-library/components/TabBar/TabBar.stories',
   '../app/component-library/components/TabBarItem/TabBarItem.stories',
   '../app/component-library/components/Tag/Tag.stories',
