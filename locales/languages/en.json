@@ -2153,5 +2153,8 @@
     "placeholder": "Password",
     "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
     "action": "Turn off Remember me"
+  },
+  "dapp_connect": {
+    "warning": "In order to use this feature, please update the app to the newest version"
   }
 }
