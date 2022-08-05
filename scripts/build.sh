@@ -237,7 +237,7 @@ buildAndroidQA(){
 	 	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
 
 	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/release/app-qa-release.apk
+	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
 	 fi
 }
 
@@ -263,7 +263,7 @@ buildAndroidRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/release/app-prod-release.apk
+		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
 	fi
 }
 

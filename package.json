@@ -26,6 +26,7 @@
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
     "build:android:checksum": "./scripts/checksum.sh",
+    "build:android:checksum:qa": "./scripts/checksum.sh qa",
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
@@ -355,7 +356,7 @@
         }
       },
       "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+        "binaryPath": "android/app/build/outputs/apk/qa/debug/app-qa-debug.apk",
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
@@ -363,7 +364,7 @@
         }
       },
       "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
+        "binaryPath": "android/app/build/outputs/apk/qa/release/app-qa-release.apk",
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {
