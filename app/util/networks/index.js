@@ -169,18 +169,29 @@ export function isprivateConnection(hostname) {
  * @param {array<object>} frequentRpcList
  */
 export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(({ rpcUrl }) => {
-    if (rpcUrl && rpcTargetUrl) {
-      const rpc = new URL(rpcUrl);
-      const rpcTarget = new URL(rpcTargetUrl);
-      return rpcTarget.host === rpc.host;
-    }
-    return false;
-  });
+  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
+    compareRpcUrls(rpcUrl, rpcTargetUrl),
+  );
   if (frequentRpc) {
     return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
   }
   return undefined;
+}
+
+/**
+ * Returns a boolean indicating if both URLs have the same host
+ *
+ * @param {string} rpcOne
+ * @param {string} rpcTwo
+ */
+export function compareRpcUrls(rpcOne, rpcTwo) {
+  // First check that both objects are of the type string
+  if (typeof rpcOne === 'string' && typeof rpcTwo === 'string') {
+    const rpcUrlOne = new URL(rpcOne);
+    const rpcUrlTwo = new URL(rpcTwo);
+    return rpcUrlOne.host === rpcUrlTwo.host;
+  }
+  return false;
 }
 
 /**
