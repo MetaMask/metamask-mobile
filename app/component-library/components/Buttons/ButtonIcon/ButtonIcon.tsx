@@ -1,10 +1,14 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useCallback, useMemo, useState } from 'react';
 import { GestureResponderEvent, TouchableOpacity } from 'react-native';
 
+// External dependencies.
 import Icon, { IconSize } from '../../Icon';
 import { useStyles } from '../../../../component-library/hooks';
 
+// Internal dependencies.
 import { ButtonIconProps, ButtonIconVariant } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
 

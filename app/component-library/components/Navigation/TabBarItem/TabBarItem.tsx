@@ -4,7 +4,7 @@
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 
-// Third party dependencies.
+// External dependencies.
 import Text, { TextVariant } from '../../Text';
 import Icon, { IconSize } from '../../Icon';
 import { useStyles } from '../../../hooks';

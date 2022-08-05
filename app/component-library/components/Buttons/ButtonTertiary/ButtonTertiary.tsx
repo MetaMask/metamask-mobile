@@ -1,10 +1,14 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useCallback, useMemo, useState } from 'react';
 import { GestureResponderEvent } from 'react-native';
 
+// External dependencies.
 import Button from '../ButtonBase';
 import { useStyles } from '../../../hooks';
 
+// Internal dependencies.
 import {
   ButtonTertiaryProps,
   ButtonTertiaryVariant,

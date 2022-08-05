@@ -1,11 +1,15 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 
+// External dependencies.
 import { mockTheme } from '../../../../util/theme';
 import Text, { TextVariant } from '../../Text';
 
+// Internal dependencies.
 import PickerBase from './PickerBase';
 
 const styles = StyleSheet.create({

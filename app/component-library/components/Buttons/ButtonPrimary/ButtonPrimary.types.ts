@@ -1,3 +1,4 @@
+// Internal dependencies.
 import { ButtonBaseProps } from '../ButtonBase';
 
 /**

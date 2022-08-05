@@ -1,6 +1,8 @@
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
+// Internal dependencies.
 import Text from './Text';
 import { TextVariant } from './Text.types';
 

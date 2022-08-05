@@ -1,9 +1,13 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, { useMemo } from 'react';
 
+// External dependencies.
 import Icon, { IconName, IconSize } from '../Icon';
 import { useStyles } from '../../hooks';
 
+// Internal dependencies.
 import { CheckboxProps } from './Checkbox.types';
 import { CHECKBOX_ICON_ID } from './Checkbox.constants';
 import styleSheet from './Checkbox.styles';

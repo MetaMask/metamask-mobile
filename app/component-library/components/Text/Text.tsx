@@ -1,9 +1,13 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React from 'react';
 import { Text as RNText } from 'react-native';
 
+// External dependencies.
 import { useStyles } from '../../hooks';
 
+// Internal dependencies.
 import { TextProps, TextVariant } from './Text.types';
 import styleSheet from './Text.styles';
 

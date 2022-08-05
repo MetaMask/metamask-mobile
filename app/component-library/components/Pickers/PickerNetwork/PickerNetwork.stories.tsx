@@ -1,9 +1,12 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 import { text } from '@storybook/addon-knobs';
 
+// Internal dependencies.
 import PickerNetwork from './PickerNetwork';
 import { TEST_IMAGE_URL } from './PickerNetwork.constants';
 

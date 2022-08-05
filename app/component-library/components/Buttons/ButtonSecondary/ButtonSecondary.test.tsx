@@ -1,9 +1,12 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import { ButtonBaseSize } from '../ButtonBase';
 import { IconName } from '../../Icon';
 
+// Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';
 import { ButtonSecondaryVariant } from './ButtonSecondary.types';
 

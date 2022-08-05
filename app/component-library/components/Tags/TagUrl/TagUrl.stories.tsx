@@ -1,8 +1,11 @@
 /* eslint-disable react-native/no-inline-styles, no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 
+// Internal dependencies.
 import TagUrl from './TagUrl';
 
 storiesOf('Component Library / TagUrl', module)

@@ -1,9 +1,13 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React from 'react';
 
+// External dependencies.
 import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
+// Internal dependencies.
 import { ButtonLinkProps } from './ButtonLink.types';
 import styleSheet from './ButtonLink.styles';
 

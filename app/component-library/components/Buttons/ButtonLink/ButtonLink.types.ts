@@ -1,3 +1,4 @@
+// External dependencies.
 import { TextProps } from '../../Text/Text.types';
 
 /**

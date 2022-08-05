@@ -1,7 +1,10 @@
+// Third party dependencies.
 import { StyleSheet, TextStyle } from 'react-native';
 
+// External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
+// Internal dependencies.
 import { ButtonLinkStyleSheetVars } from './ButtonLink.types';
 /**
  * Style sheet function for ButtonLink component.

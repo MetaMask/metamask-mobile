@@ -1,11 +1,15 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 
+// External dependencies.
 import { ButtonBaseSize } from '../ButtonBase';
 import { IconName } from '../../Icon';
 
+// Internal dependencies.
 import ButtonTertiary from './ButtonTertiary';
 import { ButtonTertiaryVariant } from './ButtonTertiary.types';
 

@@ -1,7 +1,10 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
+// Internal dependencies.
 import {
   ButtonSecondaryStyleSheetVars,
   ButtonSecondaryVariant,

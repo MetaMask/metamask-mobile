@@ -1,5 +1,7 @@
+// Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
 
+// External dependencies.
 import { IconProps } from '../../Icon/Icon.types';
 
 export enum ButtonIconVariant {

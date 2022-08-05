@@ -4,7 +4,7 @@ import {
   BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
 
-// Third party dependencies
+// External dependencies.
 import { IconName } from '../../Icon';
 
 /**

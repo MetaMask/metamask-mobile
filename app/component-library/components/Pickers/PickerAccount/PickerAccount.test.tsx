@@ -1,8 +1,11 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
+// Internal dependencies.
 import PickerAccount from './PickerAccount';
 import {
   TEST_ACCOUNT_ADDRESS,

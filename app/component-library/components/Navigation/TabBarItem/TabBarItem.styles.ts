@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
-// Third party dependencies.
+// External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies

@@ -1,10 +1,14 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
 
+// External dependencies.
 import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
+// Internal dependencies.
 import styleSheet from './Tag.styles';
 import { TagProps } from './Tag.types';
 

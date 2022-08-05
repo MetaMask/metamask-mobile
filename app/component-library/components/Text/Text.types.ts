@@ -1,3 +1,4 @@
+// Third party dependencies.
 import { TextProps as RNTextProps } from 'react-native';
 
 /**

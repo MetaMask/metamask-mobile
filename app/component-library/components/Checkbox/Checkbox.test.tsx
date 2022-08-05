@@ -1,8 +1,11 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
 import { IconName } from '../Icon';
 
+// Internal dependencies.
 import Checkbox from './Checkbox';
 import { CHECKBOX_ICON_ID } from './Checkbox.constants';
 

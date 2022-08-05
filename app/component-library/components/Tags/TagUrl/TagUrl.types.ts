@@ -1,3 +1,4 @@
+// Third party dependencies.
 import { ViewProps } from 'react-native';
 
 interface TagUrlCta {

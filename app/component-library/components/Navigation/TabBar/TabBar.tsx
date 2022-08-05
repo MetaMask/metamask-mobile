@@ -5,7 +5,7 @@ import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Third party dependencies
+// External dependencies.
 import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
 

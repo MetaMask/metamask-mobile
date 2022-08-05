@@ -1,6 +1,8 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// Internal dependencies.
 import TagUrl from './TagUrl';
 
 describe('TagUrl', () => {

@@ -5,7 +5,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { boolean, select, text } from '@storybook/addon-knobs';
 
-// Third party dependencies.
+// External dependencies.
 import { IconName } from '../../Icon';
 
 // Internal dependencies

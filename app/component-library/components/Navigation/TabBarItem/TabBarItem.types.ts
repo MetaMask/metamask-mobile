@@ -1,7 +1,7 @@
 // Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
 
-// Third party dependencies.
+// External dependencies.
 import { IconProps } from '../../Icon';
 
 /**

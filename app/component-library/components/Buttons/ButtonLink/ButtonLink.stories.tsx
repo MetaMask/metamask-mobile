@@ -1,9 +1,13 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
+// External dependencies.
 import Text, { TextVariant } from '../../Text';
 
+// Internal dependencies.
 import ButtonLink from './ButtonLink';
 
 storiesOf('Component Library / ButtonLink', module)

@@ -1,7 +1,12 @@
+// Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
 
+// Third party dependencies.
 import { IconProps } from '../../Icon';
 
+/**
+ * Size variants of ButtonBase.
+ */
 export enum ButtonBaseSize {
   Sm = '32',
   Md = '40',

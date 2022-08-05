@@ -2,7 +2,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-// Third party dependencies.
+// External dependencies.
 import { IconName } from '../../Icon';
 
 // Internal dependencies

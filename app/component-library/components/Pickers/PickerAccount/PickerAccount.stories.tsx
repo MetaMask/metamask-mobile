@@ -1,10 +1,14 @@
 /* eslint-disable no-console */
+
+// Third party dependencies.
 import React from 'react';
 import { Alert } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 
+// External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
+// Internal dependencies.
 import PickerAccount from './PickerAccount';
 import {
   TEST_ACCOUNT_ADDRESS,

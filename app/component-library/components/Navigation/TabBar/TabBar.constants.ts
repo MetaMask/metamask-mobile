@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 
-// Third party dependencies
+// Third party dependencies.
 import { IconName } from '../../Icon';
 
 // Internal dependencies.

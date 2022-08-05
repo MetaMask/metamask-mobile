@@ -1,10 +1,14 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
+// External dependencies.
 import { useStyles } from '../../../hooks';
 import Icon, { IconName, IconSize } from '../../Icon';
 
+// Internal dependencies.
 import { PickerBaseProps } from './PickerBase.types';
 import styleSheet from './PickerBase.styles';
 

@@ -1,3 +1,4 @@
+// Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
 
 /**

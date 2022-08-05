@@ -1,6 +1,8 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// Internal dependencies.
 import PickerNetwork from './PickerNetwork';
 import { TEST_IMAGE_URL } from './PickerNetwork.constants';
 

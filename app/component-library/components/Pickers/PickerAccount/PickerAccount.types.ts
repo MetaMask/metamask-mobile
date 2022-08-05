@@ -1,3 +1,4 @@
+// External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 import { PickerBaseProps } from '../PickerBase';
 
