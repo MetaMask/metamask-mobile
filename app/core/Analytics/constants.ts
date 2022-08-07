@@ -13,3 +13,10 @@ export enum ResponseStatus {
   ok = 'ok',
   error = 'error',
 }
+
+export enum States {
+  enabled = 'ENABLED',
+  disabled = 'DISABLED',
+}
+
+export const METAMETRICS_ANONYMOUS_ID = '0x0000000000000000';
