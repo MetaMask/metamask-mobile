@@ -1,6 +1,11 @@
 import { createClient } from '@segment/analytics-react-native';
 import DefaultPreference from 'react-native-default-preference';
 import { bufferToHex, keccak } from 'ethereumjs-util';
+import {
+  getApplicationName,
+  getVersion,
+  getBuildNumber,
+} from 'react-native-device-info';
 import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import Logger from '../../util/Logger';
 import {
@@ -13,41 +18,38 @@ import {
   ANALYTICS_DATA_RECORDED,
 } from '../../constants/storage';
 
-enum STATES {
-  enabled = 'ENABLED',
-  disabled = 'DISABLED',
-}
-
-interface IMetaMetrics {
-  enable(): void;
-  disable(): void;
-  trackEvent(
-    event: string,
-    anonymously: boolean,
-    properties?: Map<string, string>,
-  ): void;
-}
-
-const ANON_ID = '0x0000000000000000';
+import {
+  IMetaMetrics,
+  SegmentEventPayload,
+  MetaMetricsContext,
+} from './interface';
+import { METAMETRICS_ANONYMOUS_ID, States } from './constants';
 
 class MetaMetrics implements IMetaMetrics {
   private static _instance: MetaMetrics;
 
   #metametricsId = '';
   #segmentClient: any;
-  #state: STATES = STATES.disabled;
+  #state: States = States.disabled;
   #dataDeletionTaskDate: string | undefined;
   #isDataRecorded = false;
 
+  #appName = '';
+  #appVersion = '';
+  #buildNumber = '';
+
   private constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
-    this.#state = STATES.enabled;
-    this.__init();
+    this.#state = States.enabled;
+    this._init();
   }
 
-  private async __init() {
+  private async _init() {
     this.#metametricsId = await this._generateMetaMetricsId();
-    this._identify(this.#metametricsId);
+    this.#appName = await getApplicationName();
+    this.#appVersion = await getVersion();
+    this.#buildNumber = await getBuildNumber();
+    // eslint-disable-next-line no-console
     console.log(this.#metametricsId);
   }
 
@@ -69,35 +71,68 @@ class MetaMetrics implements IMetaMetrics {
     return metametricsId;
   }
 
-  private _identify(userId: string, userTraits?: Map<string, string>): void {
+  private _identify(userId: string, userTraits?: Record<string, string>): void {
     this.#segmentClient.identify(userId, userTraits);
+  }
+
+  private _generateMetaMetricsContext(): MetaMetricsContext {
+    return {
+      app: {
+        name: this.#appName,
+        version: this.#appVersion,
+        build: this.#buildNumber,
+      },
+    };
+  }
+
+  private _validatePayload(payload: SegmentEventPayload): boolean {
+    return true;
   }
 
   private _trackEvent(
     event: string,
     anonymously: boolean,
-    properties?: Map<string, string>,
+    properties?: Record<string, string>,
   ): void {
+    // const metaMetricsContext = this._generateMetaMetricsContext();
+    // const payload: SegmentEventPayload = {
+    //   event,
+    //   metaMetricsContext,
+    //   properties: properties ?? {},
+    // };
+    // if (anonymously) {
+    //   this.#segmentClient.identify(METAMETRICS_ANONYMOUS_ID, {
+    //     user: 'TestUser',
+    //     appVersion: this.#appVersion,
+    //     appName: this.#appName,
+    //   });
+    // } else {
+    // this.#segmentClient.identify(this.#metametricsId, {
+    //   appVersion: this.#appVersion,
+    //   appName: this.#appName,
+    // });
+    // }
     if (anonymously) {
-      this.__trackEventAnonymously(event, properties);
-    } else {
-      this.#segmentClient.track(event, properties);
+      this.#segmentClient.track(
+        'Now it should work for real with anon IDs',
+        properties ?? {},
+        undefined,
+        METAMETRICS_ANONYMOUS_ID,
+      );
     }
-  }
-
-  private __trackEventAnonymously(
-    event: string,
-    properties?: Map<string, string>,
-  ): void {
-    this._identify(ANON_ID);
-    this.#segmentClient.track(event, properties);
+    this.#segmentClient.track(
+      'Now it should work for real with non anon ID',
+      properties ?? {},
+      this.#metametricsId,
+      METAMETRICS_ANONYMOUS_ID,
+    );
   }
 
   private __storeMetricsOptInPreference = async () => {
     try {
       await DefaultPreference.set(
         METRICS_OPT_IN,
-        this.#state === STATES.enabled ? AGREED : DENIED,
+        this.#state === States.enabled ? AGREED : DENIED,
       );
     } catch (e: any) {
       const errorMsg = 'Error storing Metrics OptIn flag in user preferences';
@@ -119,23 +154,23 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   public enable() {
-    this.#state = STATES.enabled;
+    this.#state = States.enabled;
   }
 
   public disable() {
-    this.#state = STATES.disabled;
+    this.#state = States.disabled;
   }
 
-  public identity(userId: string, userTraits?: Map<string, string>): void {
+  public identity(userId: string, userTraits?: Record<string, string>): void {
     this._identify(userId, userTraits);
   }
 
   public trackEvent(
     event: string,
     anonymously = false,
-    properties?: Map<string, string>,
+    properties?: Record<string, string>,
   ): void {
-    if (this.#state === STATES.enabled) {
+    if (this.#state === States.enabled) {
       this._trackEvent(event, anonymously, properties);
     }
   }
