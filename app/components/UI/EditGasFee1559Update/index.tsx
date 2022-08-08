@@ -37,6 +37,7 @@ const EditGasFee1559Update = ({
   gasOptions,
   primaryCurrency,
   chainId,
+  onChange,
   onCancel,
   onSave,
   error,
@@ -63,7 +64,7 @@ const EditGasFee1559Update = ({
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState();
+  const [selectedOption, setSelectedOption] = useState(null);
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
   const [gasData, setGasData] = useState({
     suggestedMaxFeePerGas: existingGas.maxFeePerGas,
@@ -172,6 +173,7 @@ const EditGasFee1559Update = ({
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
+
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
