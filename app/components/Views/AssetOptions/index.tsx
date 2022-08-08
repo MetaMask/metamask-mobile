@@ -6,7 +6,7 @@ import { fontStyles } from '../../../styles/common';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 
 const createStyles = (colors: any) =>
@@ -58,7 +58,7 @@ interface Props {
 
 const AssetOptions = (props: Props) => {
   const { address, isNativeCurrency } = props.route.params;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();

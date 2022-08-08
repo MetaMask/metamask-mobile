@@ -27,7 +27,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import chartLineImg from '../../../images/chart-line.png';
 
@@ -125,7 +125,7 @@ const CollectibleContracts = ({
   setNftDetectionDismissed,
   nftDetectionDismissed,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
 
