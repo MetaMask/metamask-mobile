@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
@@ -138,7 +138,7 @@ const AddCustomNetwork = ({
   onConfirm,
 }) => {
   const [viewDetails, setViewDetails] = useState(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   /**

@@ -13,7 +13,7 @@ import {
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { DrawerContext } from '../../../../components/Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const styles = StyleSheet.create({
   main: {
@@ -39,7 +39,7 @@ const Step4 = (props) => {
   const { coachmarkRef, setOnboardingWizardStep } = props;
   const [viewTop, setViewTop] = useState(0);
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
 
   /**

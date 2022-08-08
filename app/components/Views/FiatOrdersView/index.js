@@ -7,7 +7,7 @@ import { getOrders } from '../../../reducers/fiatOrders';
 import ModalHandler from '../../Base/ModalHandler';
 import OrderListItem from './OrderListItem';
 import OrderDetails from './OrderDetails';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import Routes from '../../../constants/navigation/Routes';
@@ -27,7 +27,7 @@ const createStyles = (colors) =>
     },
   });
 function FiatOrdersView({ orders, ...props }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
