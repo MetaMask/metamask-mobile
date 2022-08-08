@@ -37,6 +37,7 @@ const EditGasFee1559Update = ({
   gasOptions,
   primaryCurrency,
   chainId,
+  onChange,
   onCancel,
   onSave,
   error,
@@ -59,12 +60,13 @@ const EditGasFee1559Update = ({
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(
     !selectedGasValue,
   );
-  const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
-  const [maxFeeError, setMaxFeeError] = useState(null);
+  const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
+  const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState();
+  const [selectedOption, setSelectedOption] = useState(null);
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
   const [gasValue, setGasValue] = useState({
+    ...existingGas,
     suggestedGasLimit,
   });
 
@@ -81,7 +83,8 @@ const EditGasFee1559Update = ({
     gasSelected: selectedOption || null,
     legacy: false,
     gasLimit: gasValue?.suggestedGasLimit || suggestedGasLimit,
-    existingGas,
+    existingGas: gasValue.existingGas || existingGas,
+    gasValue,
   });
 
   const {
@@ -98,6 +101,7 @@ const EditGasFee1559Update = ({
     timeEstimateId,
     suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas,
+    suggestedGasLimit: suggestedGasLimit12,
   } = gasTransaction;
 
   const getAnalyticsParams = useCallback(() => {
@@ -145,9 +149,22 @@ const EditGasFee1559Update = ({
     onSave(gasTransaction);
   }, [getAnalyticsParams, onSave, gasTransaction]);
 
-  const changeGas = useCallback((gas) => {
-    setGasValue(gas);
-  }, []);
+  const changeGas = useCallback(
+    (gas, option) => {
+      setSelectedOption(option);
+      setGasValue(gas);
+      onChange(option);
+    },
+    [onChange],
+  );
+
+  const changedGasLimit = useCallback(
+    (value) => {
+      const newGas = { ...gasTransaction, suggestedGasLimit: value };
+      changeGas(newGas, null);
+    },
+    [onChange, gasTransaction],
+  );
 
   const changedMaxPriorityFee = useCallback(
     (value) => {
@@ -156,6 +173,7 @@ const EditGasFee1559Update = ({
           warningMinimumEstimateOption
         ]?.suggestedMaxPriorityFeePerGas,
       );
+
       const higherValue = new BigNumber(
         gasOptions?.high?.suggestedMaxPriorityFeePerGas,
       ).multipliedBy(new BigNumber(1.5));
@@ -231,7 +249,11 @@ const EditGasFee1559Update = ({
         setMaxFeeError(null);
       }
 
-      const newGas = { ...gasTransaction, suggestedMaxFeePerGas: value };
+      const newGas = {
+        ...gasTransaction,
+        suggestedMaxFeePerGas: value,
+      };
+
       changeGas(newGas, null);
     },
     [
@@ -243,20 +265,12 @@ const EditGasFee1559Update = ({
     ],
   );
 
-  const changedGasLimit = useCallback(
-    (value) => {
-      const newGas = { suggestedGasLimit: value };
-      changeGas(newGas, null);
-    },
-    [changeGas],
-  );
-
   const selectOption = useCallback(
     (option) => {
       setSelectedOption(option);
-      setMaxFeeError(null);
-      setMaxPriorityFeeError(null);
-      changeGas({ ...gasOptions[option] }, option);
+      setMaxFeeError('');
+      setMaxPriorityFeeError('');
+      changeGas({ ...gasOptions?.[option] }, option);
     },
     [changeGas, gasOptions],
   );
@@ -407,7 +421,7 @@ const EditGasFee1559Update = ({
                     />
                   }
                   min={GAS_LIMIT_MIN}
-                  value={gasValue.suggestedGasLimit}
+                  value={suggestedGasLimit12}
                   onChangeValue={changedGasLimit}
                   name={strings('edit_gas_fee_eip1559.gas_limit')}
                   increment={GAS_LIMIT_INCREMENT}
