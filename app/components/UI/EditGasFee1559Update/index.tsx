@@ -100,7 +100,7 @@ const EditGasFee1559Update = ({
     timeEstimateId,
     suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas,
-    suggestedGasLimit: suggestedGasLimit12,
+    suggestedGasLimit,
   } = gasTransaction;
 
   const getAnalyticsParams = useCallback(() => {
@@ -245,7 +245,7 @@ const EditGasFee1559Update = ({
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
       } else {
-        setMaxFeeError(null);
+        setMaxFeeError('');
       }
 
       const newGas = {
@@ -420,7 +420,7 @@ const EditGasFee1559Update = ({
                     />
                   }
                   min={GAS_LIMIT_MIN}
-                  value={suggestedGasLimit12}
+                  value={suggestedGasLimit}
                   onChangeValue={changedGasLimit}
                   name={strings('edit_gas_fee_eip1559.gas_limit')}
                   increment={GAS_LIMIT_INCREMENT}
