@@ -222,6 +222,7 @@ const CheckoutWebView = () => {
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          userAgent={params.provider?.features?.buy?.userAgent ?? undefined}
         />
       </View>
     );
