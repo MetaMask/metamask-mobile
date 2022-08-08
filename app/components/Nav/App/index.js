@@ -46,7 +46,7 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
@@ -158,7 +158,7 @@ const App = ({ userLoggedIn }) => {
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const [animationPlayed, setAnimationPlayed] = useState();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);

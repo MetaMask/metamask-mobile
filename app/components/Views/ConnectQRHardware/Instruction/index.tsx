@@ -12,7 +12,7 @@ import {
   fontStyles,
   colors as importedColors,
 } from '../../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import StyledButton from '../../../UI/StyledButton';
 
 interface IConnectQRInstructionProps {
@@ -83,7 +83,7 @@ const createStyles = (colors: any) =>
 
 const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
   const { onConnect, renderAlert, navigation } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const navigateToVideo = () => {

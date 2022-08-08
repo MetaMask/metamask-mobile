@@ -53,7 +53,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
 });
 const RootRPCMethodsUI = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const [showPendingApproval, setShowPendingApproval] = useState(false);
   const [signMessageParams, setSignMessageParams] = useState({ data: '' });
   const [signType, setSignType] = useState(false);
