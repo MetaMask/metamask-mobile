@@ -26,8 +26,6 @@ const createStyles = () =>
       fontSize: 22,
     },
     ledgerImageStyle: {
-      resizeMode: 'cover',
-      width: 100,
       height: 54,
       overflow: 'visible',
     },
@@ -35,6 +33,7 @@ const createStyles = () =>
       flexDirection: 'row',
       marginTop: 30,
       alignItems: 'center',
+      marginHorizontal: 'auto',
     },
     activityIndicator: {
       marginLeft: 20,
@@ -43,8 +42,7 @@ const createStyles = () =>
       paddingLeft: 7,
     },
     instructionsWrapper: {
-      marginTop: 40,
-      flex: 1,
+      marginTop: 30,
     },
     howToInstallEthAppText: {
       marginTop: 40,

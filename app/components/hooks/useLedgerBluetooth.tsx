@@ -143,7 +143,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         // Open Ethereum App
         try {
           setIsAppLaunchConfirmationNeeded(true);
-          await KeyringController.openEthereumApp();
+          await KeyringController.openEthereumAppOnLedger();
         } catch (e: any) {
           if (e.name === 'TransportStatusError') {
             switch (e.statusCode) {
@@ -176,7 +176,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         return;
       } else if (appName !== 'Ethereum') {
         try {
-          await KeyringController.closeRunningApp();
+          await KeyringController.closeRunningAppOnLedger();
         } catch (e) {
           throw new LedgerError(
             strings('ledger.running_app_close_error'),
