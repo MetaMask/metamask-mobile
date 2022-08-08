@@ -221,7 +221,6 @@ const UpdateEIP1559Tx = ({
 
   return (
     <EditGasFee1559Update
-      gasVal={gas}
       selectedGasValue={gasSelected}
       initialSuggestedGasLimit={suggestedGasLimit}
       gasOptions={gasFeeEstimates}
