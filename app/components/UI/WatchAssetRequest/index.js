@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
 
 const createStyles = (colors) =>
@@ -95,7 +95,7 @@ const WatchAssetRequest = ({
   const { asset } = suggestedAssetMeta;
   let [balance] = useTokenBalance(asset.address, selectedAddress);
   balance = renderFromTokenMinimalUnit(balance, asset.decimals);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(
