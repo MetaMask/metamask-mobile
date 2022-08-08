@@ -36,7 +36,6 @@ const EditGasFee1559Update = ({
   gasOptions,
   primaryCurrency,
   chainId,
-  onChange,
   onCancel,
   onChange,
   onSave,
@@ -103,7 +102,7 @@ const EditGasFee1559Update = ({
     timeEstimateId,
     suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas,
-    suggestedGasLimit: suggestedGasLimit12,
+    suggestedGasLimit,
   } = gasTransaction;
 
   const getAnalyticsParams = useCallback(() => {
