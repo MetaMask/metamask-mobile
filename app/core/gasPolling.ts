@@ -139,7 +139,35 @@ interface UseGasTransactionProps {
   gasLimit: string;
   onlyGas?: boolean;
   legacy?: boolean;
-  existingGas?: { [key: string]: any };
+  gasData: {
+    estimatedBaseFee: string;
+    estimatedBaseFeeHex: string;
+    gasFeeMaxConversion: string;
+    gasFeeMaxNative: string;
+    gasFeeMinConversion: string;
+    gasFeeMinNative: string;
+    gasLimitHex: string;
+    maxPriorityFeeConversion: string;
+    maxPriorityFeeNative: string;
+    renderableGasFeeMaxConversion: string;
+    renderableGasFeeMaxNative: string;
+    renderableGasFeeMinConversion: string;
+    renderableGasFeeMinNative: string;
+    renderableMaxFeePerGasConversion: string;
+    renderableMaxFeePerGasNative: string;
+    renderableMaxPriorityFeeConversion: string;
+    renderableMaxPriorityFeeNative: string;
+    suggestedEstimatedGasLimit: string | undefined;
+    suggestedGasLimit: string;
+    suggestedMaxFeePerGas: string;
+    suggestedMaxFeePerGasHex: string;
+    suggestedMaxPriorityFeePerGas: string;
+    suggestedMaxPriorityFeePerGasHex: string;
+    timeEstimate: string;
+    timeEstimateColor: string;
+    timeEstimateId: string;
+    totalMaxHex: string;
+  };
 }
 
 /**
@@ -234,7 +262,7 @@ export const useGasTransaction = ({
   gasSelected,
   legacy,
   gasLimit,
-  gasValue,
+  gasData,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -283,11 +311,9 @@ export const useGasTransaction = ({
       ...(gasSelected
         ? gasFeeEstimates[gasSelected]
         : {
-            suggestedMaxFeePerGas:
-              gasValue?.maxFeePerGas || gasValue?.suggestedMaxFeePerGas,
+            suggestedMaxFeePerGas: gasData?.suggestedMaxFeePerGas,
             suggestedMaxPriorityFeePerGas:
-              gasValue?.maxPriorityFeePerGas ||
-              gasValue?.suggestedMaxPriorityFeePerGas,
+              gasData?.suggestedMaxPriorityFeePerGas,
           }),
       suggestedGasLimit,
       selectedOption: gasSelected,

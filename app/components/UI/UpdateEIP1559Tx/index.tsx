@@ -69,6 +69,37 @@ interface Props {
   onSave: (tx: any) => void;
 }
 
+interface GasTxnProp {
+  error: any;
+  estimatedBaseFee: string;
+  estimatedBaseFeeHex: string;
+  gasFeeMaxConversion: string;
+  gasFeeMaxNative: string;
+  gasFeeMinConversion: string;
+  gasFeeMinNative: string;
+  gasLimitHex: string;
+  maxPriorityFeeConversion: string;
+  maxPriorityFeeNative: string;
+  renderableGasFeeMaxConversion: string;
+  renderableGasFeeMaxNative: string;
+  renderableGasFeeMinConversion: string;
+  renderableGasFeeMinNative: string;
+  renderableMaxFeePerGasConversion: string;
+  renderableMaxFeePerGasNative: string;
+  renderableMaxPriorityFeeConversion: string;
+  renderableMaxPriorityFeeNative: string;
+  suggestedEstimatedGasLimit: string | undefined;
+  suggestedGasLimit: string;
+  suggestedMaxFeePerGas: string;
+  suggestedMaxFeePerGasHex: string;
+  suggestedMaxPriorityFeePerGas: string;
+  suggestedMaxPriorityFeePerGasHex: string;
+  timeEstimate: string;
+  timeEstimateColor: string;
+  timeEstimateId: string;
+  totalMaxHex: string;
+}
+
 interface UpdateTx1559Options {
   /**
    * The legacy calculated max priorty fee used in subcomponent for threshold warning messages
@@ -275,7 +306,7 @@ const UpdateEIP1559Tx = ({
     setGasSelected(selected);
   };
 
-  const onSaveWithError = (gasTxn: any) => {
+  const onSaveTxnWithError = (gasTxn: GasTxnProp) => {
     gasTxn.error = validateAmount(gasTxn);
     onSave(gasTxn);
   };
@@ -285,19 +316,19 @@ const UpdateEIP1559Tx = ({
     gas_estimate_type: gasEstimateType,
     gas_mode: gasSelected ? 'Basic' : 'Advanced',
     speed_set: gasSelected || undefined,
+    view: isCancel ? AppConstants.CANCEL_RATE : AppConstants.SPEED_UP_RATE,
   });
 
   return (
     <EditGasFee1559Update
-      gasVal={gas}
       selectedGasValue={gasSelected}
-      suggestedGasLimit={suggestedGasLimit}
+      initialSuggestedGasLimit={suggestedGasLimit}
       gasOptions={gasFeeEstimates}
       primaryCurrency={primaryCurrency}
       chainId={chainId}
       onChange={calculate1559TempGasFee}
       onCancel={onCancel}
-      onSave={onSaveWithError}
+      onSave={onSaveTxnWithError}
       ignoreOptions={
         onlyDisplayHigh.current
           ? [AppConstants.GAS_OPTIONS.LOW, AppConstants.GAS_OPTIONS.MEDIUM]
@@ -305,7 +336,6 @@ const UpdateEIP1559Tx = ({
       }
       updateOption={updateTx1559Options.current}
       analyticsParams={getGasAnalyticsParams()}
-      view={isCancel ? 'Transactions (Cancel)' : 'Transactions (Speed Up)'}
       animateOnChange={animateOnGasChange}
       existingGas={existingGas}
     />
