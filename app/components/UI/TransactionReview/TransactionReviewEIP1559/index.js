@@ -14,7 +14,7 @@ import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,7 +67,7 @@ const createStyles = (colors) =>
 
 // eslint-disable-next-line react/prop-types
 const Skeleton = ({ width, noStyle }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -116,7 +116,7 @@ const TransactionReviewEIP1559 = ({
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
   }, []);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const openLinkAboutGas = useCallback(
