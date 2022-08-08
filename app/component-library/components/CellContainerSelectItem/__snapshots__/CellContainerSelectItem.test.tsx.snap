@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellContainerSelectItem - Snapshot should render default settings correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
+      "padding": 16,
+      "position": "relative",
+      "zIndex": 100,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "zIndex": 300,
+      }
+    }
+  >
+    <View />
+  </View>
+</TouchableOpacity>
+`;
+
+exports[`CellContainerSelectItem - Snapshot should render the proper select state when isSelected is true 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
+      "padding": 16,
+      "position": "relative",
+      "zIndex": 100,
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#037DD619",
+        "bottom": 0,
+        "flexDirection": "row",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "zIndex": 200,
+      }
+    }
+    testID="cell-container-select-item-selected-view"
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "#037DD6",
+          "borderRadius": 2,
+          "marginLeft": 4,
+          "marginVertical": 4,
+          "width": 4,
+        }
+      }
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "zIndex": 300,
+      }
+    }
+  >
+    <View />
+  </View>
+</TouchableOpacity>
+`;

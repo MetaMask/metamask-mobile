@@ -4,7 +4,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -59,7 +59,7 @@ interface Props {
 const DetectedTokensConfirmation = ({ route }: Props) => {
   const { onConfirm, isHidingAll } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const triggerCancel = () => modalRef.current?.dismissModal();
