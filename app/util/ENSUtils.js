@@ -47,12 +47,17 @@ export async function doENSReverseLookup(address, network) {
 export async function doENSLookup(ensName, network) {
   const { provider } = Engine.context.NetworkController;
   const ensProvider = await getEnsProvider(network, provider);
+  console.log('**doENSLookup1', ensName, ensProvider)
   if (ensProvider) {
     try {
+      console.log('**doENSLookup2')
       const resolvedAddress = await ensProvider.resolveName(ensName);
+      console.log('**doENSLookup3', resolvedAddress)
       return resolvedAddress;
       // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) {
+      console.log('**doENSLookup4', e)
+    }
   }
 }
 
