@@ -257,7 +257,7 @@ const EditGasFee1559Update = ({
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
       } else {
-        setMaxFeeError(null);
+        setMaxFeeError('');
       }
 
       const newGas = {
