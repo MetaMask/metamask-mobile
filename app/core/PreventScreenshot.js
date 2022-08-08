@@ -7,7 +7,7 @@ const isAndroid = Platform.OS === 'android';
 
 export default {
   forbid: isQa
-    ? true
+    ? () => true
     : isAndroid
     ? NativeModules.PreventScreenshot.forbid
     : () => true,
