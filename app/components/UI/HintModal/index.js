@@ -12,7 +12,7 @@ import ActionModal from '../../UI/ActionModal';
 import Icon from 'react-native-vector-icons/Octicons';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,7 +67,7 @@ const HintModal = ({
   value,
   onChangeText,
 }) => {
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   return (

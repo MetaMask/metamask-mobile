@@ -6,7 +6,7 @@ import MediaPlayer from '../../Views/MediaPlayer';
 import scaling from '../../../util/scaling';
 import Text from '../../Base/Text';
 import Device from '../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const MEDIA_WIDTH_MARGIN = Device.isMediumDevice() ? 32 : 0;
 
@@ -71,7 +71,7 @@ export default function CollectibleMedia({
   onClose,
 }) {
   const [sourceUri, setSourceUri] = useState(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const fallback = () => setSourceUri(null);
