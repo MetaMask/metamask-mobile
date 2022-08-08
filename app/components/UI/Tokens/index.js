@@ -116,7 +116,7 @@ const createStyles = (colors) =>
       borderTopColor: colors.grey100,
     },
     metalabsText: {
-      color: colors.blue,
+      color: colors.primary.default,
       textAlign: 'center',
       marginLeft: 8,
       fontSize: 12,
