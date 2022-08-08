@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { ViewPropTypes, StyleSheet } from 'react-native';
 import GenericButton from '../GenericButton'; // eslint-disable-line import/no-unresolved
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -23,7 +23,7 @@ const createStyles = (colors) =>
  * which renders the appropiate UI elements for each platform (android & iOS)
  */
 const Button = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

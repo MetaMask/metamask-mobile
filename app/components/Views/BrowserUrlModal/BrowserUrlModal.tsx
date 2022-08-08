@@ -10,7 +10,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
 import { BROWSER_URL_MODAL_ID } from '../../../constants/test-ids';
 import {
@@ -31,7 +31,7 @@ export const createBrowserUrlModalNavDetails =
 const BrowserUrlModal = () => {
   const { onUrlInputSubmit, url } = useParams<BrowserUrlParams>();
   const modalRef = useRef<ReusableModalRef | null>(null);
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const [autocompleteValue, setAutocompleteValue] = useState<
     string | undefined

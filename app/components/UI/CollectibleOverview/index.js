@@ -41,7 +41,7 @@ import {
   ScrollView,
 } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -150,7 +150,7 @@ const CollectibleOverview = ({
   const [position, setPosition] = useState(0);
   const positionAnimated = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const translationHeight = useMemo(
