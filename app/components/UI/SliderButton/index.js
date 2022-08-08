@@ -16,7 +16,7 @@ import {
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const SliderBgImg = require('./assets/slider_button_gradient.png');
@@ -117,7 +117,7 @@ function SliderButton({
 
   const onCompleteCallback = useRef(onComplete);
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const handleIsPressed = useCallback(

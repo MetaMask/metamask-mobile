@@ -6,7 +6,7 @@ import TransactionHeader from '../TransactionHeader';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
 
 const createStyles = (colors) =>
@@ -86,7 +86,7 @@ const SwitchCustomNetwork = ({
   onConfirm,
   type,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   /**
