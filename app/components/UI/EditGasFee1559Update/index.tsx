@@ -21,7 +21,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
-import { useGasTransaction } from '../../../core/gasPolling';
+import { useGasTransaction } from '../../../core/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import { EditGasFee1559UpdateProps } from './type';
 import createStyles from './styles';
@@ -314,14 +314,17 @@ const EditGasFee1559Update = ({
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
 
-  const switchNativeCurrencyOptions = (option1: string, option2: string) => {
-    if (nativeCurrencySelected) return option1;
-    return option2;
+  const switchNativeCurrencyDisplayOptions = (
+    nativeValue: string,
+    fiatValue: string,
+  ) => {
+    if (nativeCurrencySelected) return nativeValue;
+    return fiatValue;
   };
 
   const valueToWatch = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
-  const LeftComponent = ({
+  const LeftLabelComponent = ({
     value,
     infoValue,
   }: {
@@ -345,7 +348,7 @@ const EditGasFee1559Update = ({
     </View>
   );
 
-  const RightComponent = ({ value }: { value: string }) => (
+  const RightLabelComponent = ({ value }: { value: string }) => (
     <Text noMargin small grey>
       <Text bold reset>
         {strings(value)}:
@@ -402,7 +405,7 @@ const EditGasFee1559Update = ({
               <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
-                    <LeftComponent
+                    <LeftLabelComponent
                       value="edit_gas_fee_eip1559.gas_limit"
                       infoValue="gas_limit"
                     />
@@ -417,13 +420,13 @@ const EditGasFee1559Update = ({
               <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
-                    <LeftComponent
+                    <LeftLabelComponent
                       value="edit_gas_fee_eip1559.max_priority_fee"
                       infoValue="max_priority_fee"
                     />
                   }
                   rightLabelComponent={
-                    <RightComponent value="edit_gas_fee_eip1559.estimate" />
+                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
                   }
                   value={suggestedMaxPriorityFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_priority_fee')}
@@ -432,7 +435,7 @@ const EditGasFee1559Update = ({
                   increment={GAS_INCREMENT}
                   inputInsideLabel={
                     renderableMaxPriorityFeeNative &&
-                    `≈ ${switchNativeCurrencyOptions(
+                    `≈ ${switchNativeCurrencyDisplayOptions(
                       renderableMaxPriorityFeeNative,
                       renderableMaxPriorityFeeConversion,
                     )}`
@@ -444,13 +447,13 @@ const EditGasFee1559Update = ({
               <View style={styles.rangeInputContainer}>
                 <RangeInput
                   leftLabelComponent={
-                    <LeftComponent
+                    <LeftLabelComponent
                       value="edit_gas_fee_eip1559.max_fee"
                       infoValue="max_fee"
                     />
                   }
                   rightLabelComponent={
-                    <RightComponent value="edit_gas_fee_eip1559.estimate" />
+                    <RightLabelComponent value="edit_gas_fee_eip1559.estimate" />
                   }
                   value={suggestedMaxFeePerGas}
                   name={strings('edit_gas_fee_eip1559.max_fee')}
@@ -461,7 +464,7 @@ const EditGasFee1559Update = ({
                   onChangeValue={changedMaxFeePerGas}
                   inputInsideLabel={
                     renderableMaxFeePerGasNative &&
-                    `≈ ${switchNativeCurrencyOptions(
+                    `≈ ${switchNativeCurrencyDisplayOptions(
                       renderableMaxFeePerGasNative,
                       renderableMaxFeePerGasConversion,
                     )}`
@@ -618,7 +621,7 @@ const EditGasFee1559Update = ({
                   noMargin
                 >
                   ~
-                  {switchNativeCurrencyOptions(
+                  {switchNativeCurrencyDisplayOptions(
                     renderableGasFeeMinNative,
                     renderableGasFeeMinConversion,
                   )}
@@ -628,12 +631,12 @@ const EditGasFee1559Update = ({
                 <Text bold black noMargin>
                   {strings('edit_gas_fee_eip1559.max_fee')}:{' '}
                 </Text>
-                {switchNativeCurrencyOptions(
+                {switchNativeCurrencyDisplayOptions(
                   renderableGasFeeMaxNative,
                   renderableGasFeeMaxConversion,
                 )}{' '}
                 (
-                {switchNativeCurrencyOptions(
+                {switchNativeCurrencyDisplayOptions(
                   renderableGasFeeMaxConversion,
                   renderableGasFeeMaxNative,
                 )}

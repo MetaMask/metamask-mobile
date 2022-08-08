@@ -12,7 +12,7 @@ import BigNumber from 'bignumber.js';
 import { getTicker } from '../../../util/transactions';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-import { startGasPolling, stopGasPolling } from '../../../core/gasPolling';
+import { startGasPolling, stopGasPolling } from '../../../core/GasPolling';
 
 /**
  * View that renders a list of transactions for a specific asset
