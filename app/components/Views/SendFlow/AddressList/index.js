@@ -207,10 +207,9 @@ class AddressList extends PureComponent {
       const initial = nameInitial
         ? nameInitial[0]
         : strings('address_book.others');
+      if (contact.isSmartContract && !this.props.onlyRenderAddressBook) return;
       if (Object.keys(addressBookTree).includes(initial)) {
         addressBookTree[initial].push(contact);
-      } else if (contact.isSmartContract && !this.props.onlyRenderAddressBook) {
-        null;
       } else {
         addressBookTree[initial] = [contact];
       }

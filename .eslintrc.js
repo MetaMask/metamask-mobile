@@ -153,6 +153,7 @@ module.exports = {
     'react/prefer-es6-class': 2,
     'no-unused-vars': 2,
     'react/no-unused-class-component-methods': 2,
+    'react/display-name': 1,
     radix: 0,
   },
 };
