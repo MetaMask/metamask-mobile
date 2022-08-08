@@ -54,15 +54,17 @@ const EditGasFee1559Update = ({
   warning,
   existingGas,
 }: EditGasFee1559UpdateProps) => {
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showInfoModalValue, setShowInfoModalValue] = useState('');
+  const [modalInfo, updateModalInfo] = useState({
+    isVisible: false,
+    value: '',
+  });
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(
     !selectedGasValue,
   );
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState('');
   const [maxFeeError, setMaxFeeError] = useState('');
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(selectedGasValue);
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
   const [gasData, setGasData] = useState({
     suggestedMaxFeePerGas: existingGas.maxFeePerGas,
@@ -133,10 +135,9 @@ const EditGasFee1559Update = ({
 
   const toggleInfoModal = useCallback(
     (value: string) => {
-      setShowInfoModal(!showInfoModal);
-      setShowInfoModalValue(value);
+      updateModalInfo({ isVisible: !modalInfo.isVisible, value });
     },
-    [showInfoModal, setShowInfoModal, setShowInfoModalValue],
+    [updateModalInfo, modalInfo.isVisible],
   );
 
   const save = useCallback(() => {
@@ -312,24 +313,11 @@ const EditGasFee1559Update = ({
 
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
-  let gasFeePrimary,
-    gasFeeMaxPrimary,
-    maxFeePerGasPrimary: string,
-    maxPriorityFeePerGasPrimary: string,
-    gasFeeMaxSecondary;
-  if (nativeCurrencySelected) {
-    gasFeePrimary = renderableGasFeeMinNative;
-    gasFeeMaxPrimary = renderableGasFeeMaxNative;
-    gasFeeMaxSecondary = renderableGasFeeMaxConversion;
-    maxFeePerGasPrimary = renderableMaxFeePerGasNative;
-    maxPriorityFeePerGasPrimary = renderableMaxPriorityFeeNative;
-  } else {
-    gasFeePrimary = renderableGasFeeMinConversion;
-    gasFeeMaxPrimary = renderableGasFeeMaxConversion;
-    gasFeeMaxSecondary = renderableGasFeeMaxNative;
-    maxFeePerGasPrimary = renderableMaxFeePerGasConversion;
-    maxPriorityFeePerGasPrimary = renderableMaxPriorityFeeConversion;
-  }
+
+  const switchNativeCurrencyOptions = (option1: string, option2: string) => {
+    if (nativeCurrencySelected) return option1;
+    return option2;
+  };
 
   const valueToWatch = `${renderableGasFeeMinNative}${renderableGasFeeMaxNative}`;
 
@@ -443,8 +431,11 @@ const EditGasFee1559Update = ({
                   min={GAS_MIN}
                   increment={GAS_INCREMENT}
                   inputInsideLabel={
-                    maxPriorityFeePerGasPrimary &&
-                    `≈ ${maxPriorityFeePerGasPrimary}`
+                    renderableMaxPriorityFeeNative &&
+                    `≈ ${switchNativeCurrencyOptions(
+                      renderableMaxPriorityFeeNative,
+                      renderableMaxPriorityFeeConversion,
+                    )}`
                   }
                   error={maxPriorityFeeError}
                   onChangeValue={changedMaxPriorityFee}
@@ -469,7 +460,11 @@ const EditGasFee1559Update = ({
                   error={maxFeeError}
                   onChangeValue={changedMaxFeePerGas}
                   inputInsideLabel={
-                    maxFeePerGasPrimary && `≈ ${maxFeePerGasPrimary}`
+                    renderableMaxFeePerGasNative &&
+                    `≈ ${switchNativeCurrencyOptions(
+                      renderableMaxFeePerGasNative,
+                      renderableMaxFeePerGasConversion,
+                    )}`
                   }
                 />
               </View>
@@ -622,14 +617,27 @@ const EditGasFee1559Update = ({
                   numberOfLines={1}
                   noMargin
                 >
-                  ~{gasFeePrimary}
+                  ~
+                  {switchNativeCurrencyOptions(
+                    renderableGasFeeMinNative,
+                    renderableGasFeeMinConversion,
+                  )}
                 </Text>
               </View>
               <Text big black style={styles.subheader} noMargin>
                 <Text bold black noMargin>
                   {strings('edit_gas_fee_eip1559.max_fee')}:{' '}
                 </Text>
-                {gasFeeMaxPrimary} ({gasFeeMaxSecondary})
+                {switchNativeCurrencyOptions(
+                  renderableGasFeeMaxNative,
+                  renderableGasFeeMaxConversion,
+                )}{' '}
+                (
+                {switchNativeCurrencyOptions(
+                  renderableGasFeeMaxConversion,
+                  renderableGasFeeMaxNative,
+                )}
+                )
               </Text>
               <View style={styles.labelTextContainer}>
                 <Text
@@ -669,31 +677,33 @@ const EditGasFee1559Update = ({
             )}
 
             <InfoModal
-              isVisible={Boolean(showInfoModal)}
+              isVisible={Boolean(modalInfo.isVisible)}
               title={
-                showInfoModalValue === 'gas_limit'
+                modalInfo.value === 'gas_limit'
                   ? strings('edit_gas_fee_eip1559.gas_limit')
-                  : showInfoModalValue === 'max_priority_fee'
+                  : modalInfo.value === 'max_priority_fee'
                   ? strings('edit_gas_fee_eip1559.max_priority_fee')
-                  : showInfoModalValue === 'max_fee'
+                  : modalInfo.value === 'max_fee'
                   ? strings('edit_gas_fee_eip1559.max_fee')
-                  : showInfoModalValue === 'new_gas_fee'
+                  : modalInfo.value === 'new_gas_fee'
                   ? strings('edit_gas_fee_eip1559.new_gas_fee')
                   : null
               }
-              toggleModal={() => setShowInfoModal(false)}
+              toggleModal={() =>
+                updateModalInfo({ ...modalInfo, isVisible: false })
+              }
               body={
                 <View>
                   <Text grey infoModal>
-                    {showInfoModalValue === 'gas_limit' &&
+                    {modalInfo.value === 'gas_limit' &&
                       strings('edit_gas_fee_eip1559.learn_more_gas_limit')}
-                    {showInfoModalValue === 'max_priority_fee' &&
+                    {modalInfo.value === 'max_priority_fee' &&
                       strings(
                         'edit_gas_fee_eip1559.learn_more_max_priority_fee',
                       )}
-                    {showInfoModalValue === 'max_fee' &&
+                    {modalInfo.value === 'max_fee' &&
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
-                    {showInfoModalValue === 'new_gas_fee' &&
+                    {modalInfo.value === 'new_gas_fee' &&
                     updateOption &&
                     updateOption.isCancel
                       ? strings(

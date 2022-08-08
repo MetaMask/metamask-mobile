@@ -301,7 +301,7 @@ const UpdateEIP1559Tx = ({
     isMaxPriorityFeePerGasMoreThanLegacy,
   ]);
 
-  const calculate1559TempGasFee = (selected: string) => {
+  const update1559TempGasValue = (selected: string) => {
     stopUpdateGas.current = !selected;
     setGasSelected(selected);
   };
@@ -326,7 +326,7 @@ const UpdateEIP1559Tx = ({
       gasOptions={gasFeeEstimates}
       primaryCurrency={primaryCurrency}
       chainId={chainId}
-      onChange={calculate1559TempGasFee}
+      onChange={update1559TempGasValue}
       onCancel={onCancel}
       onSave={onSaveTxnWithError}
       ignoreOptions={
