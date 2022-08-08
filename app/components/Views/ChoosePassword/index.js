@@ -281,8 +281,6 @@ class ChoosePassword extends PureComponent {
     inputWidth: { width: '99%' },
   };
 
-  mounted = true;
-
   confirmPasswordInput = React.createRef();
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
@@ -320,10 +318,6 @@ class ChoosePassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
   }
 
   setSelection = () => {

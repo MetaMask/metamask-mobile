@@ -26,10 +26,6 @@ export default class Root extends PureComponent {
     foxCode: 'null',
   };
 
-  errorHandler = (error, stackTrace) => {
-    Logger.error(error, stackTrace);
-  };
-
   constructor(props) {
     super(props);
     if (props.foxCode === '') {
@@ -53,11 +49,15 @@ export default class Root extends PureComponent {
 const ConnectedRoot = () => {
   const theme = useAppTheme();
 
+  const errorHandler = (error, stackTrace) => {
+    Logger.error(error, stackTrace);
+  };
+
   return (
     <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
         <ToastContextWrapper>
-          <ErrorBoundary onError={this.errorHandler} view="Root">
+          <ErrorBoundary onError={errorHandler} view="Root">
             <App />
           </ErrorBoundary>
         </ToastContextWrapper>

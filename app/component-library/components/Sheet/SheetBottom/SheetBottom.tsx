@@ -219,4 +219,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
   },
 );
 
+SheetBottom.displayName = 'SheetBottom';
+
 export default SheetBottom;

@@ -100,7 +100,6 @@ class LockScreen extends PureComponent {
     // Check if is the app is launching or it went to background mode
     this.appState = 'background';
     AppState.addEventListener('change', this.handleAppStateChange);
-    this.mounted = true;
   }
 
   handleAppStateChange = async (nextAppState) => {
@@ -118,7 +117,6 @@ class LockScreen extends PureComponent {
   };
 
   componentWillUnmount() {
-    this.mounted = false;
     AppState.removeEventListener('change', this.handleAppStateChange);
   }
 

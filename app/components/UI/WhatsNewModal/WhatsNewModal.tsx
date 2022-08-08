@@ -124,11 +124,7 @@ const createStyles = (colors: Colors) =>
     horizontalScrollView: { flexGrow: 0 },
   });
 
-interface WhatsNewModalProps {
-  navigation: any;
-}
-
-const WhatsNewModal = (props: WhatsNewModalProps) => {
+const WhatsNewModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const slideIds = [0, 1];
   const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
@@ -144,7 +140,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
     modalRef.current?.dismissModal(callback);
 
   const callButton = (onPress: any) => {
-    dismissModal(() => onPress(props));
+    dismissModal(() => onPress());
   };
 
   const renderSlideElement = (elementInfo: any) => {

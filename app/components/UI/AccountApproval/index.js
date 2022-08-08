@@ -87,10 +87,6 @@ class AccountApproval extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * Number of accounts
-     */
-    accountsLength: PropTypes.number,
-    /**
      * A string representing the network name
      */
     networkType: PropTypes.string,

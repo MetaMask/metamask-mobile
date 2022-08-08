@@ -320,8 +320,6 @@ class ResetPassword extends PureComponent {
     ready: true,
   };
 
-  mounted = true;
-
   confirmPasswordInput = React.createRef();
 
   updateNavBar = () => {
@@ -367,10 +365,6 @@ class ResetPassword extends PureComponent {
         headerLeft: () => <View />,
       });
     }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
   }
 
   setSelection = () => {

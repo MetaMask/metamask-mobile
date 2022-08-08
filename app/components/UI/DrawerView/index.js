@@ -33,7 +33,6 @@ import {
   toggleAccountsModal,
   toggleReceiveModal,
 } from '../../../actions/modals';
-import { showAlert } from '../../../actions/alert';
 import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
@@ -358,10 +357,6 @@ class DrawerView extends PureComponent {
      * Action that toggles the receive modal
      */
     toggleReceiveModal: PropTypes.func,
-    /**
-     * Action that shows the global alert
-     */
-    showAlert: PropTypes.func.isRequired,
     /**
      * Boolean that determines the status of the networks modal
      */
@@ -1450,7 +1445,6 @@ const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
   toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
-  showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),

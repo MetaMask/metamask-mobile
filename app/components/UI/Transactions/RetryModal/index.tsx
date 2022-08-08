@@ -38,7 +38,6 @@ interface Props {
   retryIsOpen: boolean;
   onConfirmPress: () => void;
   onCancelPress: () => void;
-  errorMsg: string;
 }
 
 const RetryModal = ({ retryIsOpen, onConfirmPress, onCancelPress }: Props) => {

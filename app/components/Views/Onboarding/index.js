@@ -194,8 +194,6 @@ class Onboarding extends PureComponent {
     existingUser: false,
   };
 
-  mounted = false;
-
   warningCallback = () => true;
 
   showNotification = () => {
@@ -226,7 +224,6 @@ class Onboarding extends PureComponent {
 
   componentDidMount() {
     this.updateNavBar();
-    this.mounted = true;
     this.checkIfExistingUser();
     InteractionManager.runAfterInteractions(() => {
       PreventScreenshot.forbid();
@@ -241,7 +238,6 @@ class Onboarding extends PureComponent {
   }
 
   componentWillUnmount() {
-    this.mounted = false;
     this.pubnubWrapper && this.pubnubWrapper.disconnectWebsockets();
     this.props.unsetLoading();
     InteractionManager.runAfterInteractions(PreventScreenshot.allow);

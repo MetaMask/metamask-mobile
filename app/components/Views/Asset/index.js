@@ -145,7 +145,6 @@ class Asset extends PureComponent {
     this.updateNavBar();
     InteractionManager.runAfterInteractions(() => {
       this.normalizeTransactions();
-      this.mounted = true;
     });
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
@@ -172,10 +171,6 @@ class Asset extends PureComponent {
     this.setState({ loading: true }, () => {
       this.normalizeTransactions();
     });
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
   }
 
   didTxStatusesChange = (newTxsPending) =>

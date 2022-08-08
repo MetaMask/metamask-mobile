@@ -66,8 +66,6 @@ export default class EnterPasswordSimple extends PureComponent {
     error: null,
   };
 
-  mounted = true;
-
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -87,10 +85,6 @@ export default class EnterPasswordSimple extends PureComponent {
 
   componentDidUpdate = () => {
     this.updateNavBar();
-  };
-
-  componentWillUnmount = () => {
-    this.mounted = false;
   };
 
   onPressConfirm = async () => {
