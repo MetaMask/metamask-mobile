@@ -1,7 +1,8 @@
 import Engine from '../core/Engine';
-import networkMap from 'ethjs-ens/lib/network-map.json';
-import ENS from 'ethjs-ens';
+import ensNetworkMap from 'ethereum-ens-network-map';
+import { ethers } from 'ethers';
 import { toLowerCaseEquals } from '../util/general';
+import { getEthersNetworkTypeById } from './networks';
 
 /**
  * Utility class with the single responsibility
@@ -11,21 +12,29 @@ class ENSCache {
   static cache = {};
 }
 
+export function getEnsProvider(network, provider) {
+  const ensAddress = ensNetworkMap[network];
+  if (ensAddress) {
+    const networkType = getEthersNetworkTypeById(network);
+    return new ethers.providers.Web3Provider(provider, {
+      chainId: parseInt(network, 10),
+      name: networkType,
+      ensAddress,
+    });
+  }
+}
+
 export async function doENSReverseLookup(address, network) {
   const cache = ENSCache.cache[network + address];
+  const { provider } = Engine.context.NetworkController;
   if (cache) {
     return Promise.resolve(cache);
   }
-
-  const { provider } = Engine.context.NetworkController;
-
-  const networkHasEnsSupport = Boolean(networkMap[network]);
-
-  if (networkHasEnsSupport) {
-    this.ens = new ENS({ provider, network });
+  const ensProvider = await getEnsProvider(network, provider);
+  if (ensProvider) {
     try {
-      const name = await this.ens.reverse(address);
-      const resolvedAddress = await this.ens.lookup(name);
+      const name = await ensProvider.lookupAddress(address);
+      const resolvedAddress = await ensProvider.resolveName(name);
       if (toLowerCaseEquals(address, resolvedAddress)) {
         ENSCache.cache[network + address] = name;
         return name;
@@ -37,16 +46,18 @@ export async function doENSReverseLookup(address, network) {
 
 export async function doENSLookup(ensName, network) {
   const { provider } = Engine.context.NetworkController;
-
-  const networkHasEnsSupport = Boolean(networkMap[network]);
-
-  if (networkHasEnsSupport) {
-    this.ens = new ENS({ provider, network });
+  const ensProvider = await getEnsProvider(network, provider);
+  console.log('**doENSLookup1', ensName)
+  if (ensProvider) {
     try {
-      const resolvedAddress = await this.ens.lookup(ensName);
+      console.log('**doENSLookup2')
+      const resolvedAddress = await ensProvider.resolveName(ensName);
+      console.log('**doENSLookup3', resolvedAddress)
       return resolvedAddress;
       // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) {
+      console.log('**doENSLookup4', e.message)
+    }
   }
 }
 
