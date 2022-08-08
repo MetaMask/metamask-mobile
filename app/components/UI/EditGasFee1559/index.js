@@ -643,8 +643,6 @@ const EditGasFee1559 = ({
     return strings('edit_gas_fee_eip1559.edit_priority');
   }, [updateOption]);
 
-  // console.log(gasFeePrimary, 'gasFeePrimary')
-
   return (
     <View style={styles.root}>
       <ScrollView style={styles.wrapper}>
