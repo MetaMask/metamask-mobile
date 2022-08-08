@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -158,7 +158,7 @@ const BaseNotification = ({
   onHide,
   autoDismiss,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
