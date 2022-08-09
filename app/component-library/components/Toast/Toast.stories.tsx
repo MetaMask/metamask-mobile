@@ -53,7 +53,7 @@ const ToastExample = () => {
               { label: ' Mainnet', isBold: true },
               { label: ' network.' },
             ],
-            networkImageUrl: TEST_NETWORK_IMAGE_URL,
+            networkImageSource: { uri: TEST_NETWORK_IMAGE_URL },
             linkButtonOptions: {
               label: 'Click here!',
               onPress: () => {

@@ -31,22 +31,23 @@ const AvatarFavicon = ({
     [setError],
   );
 
+  const renderError = () => (
+    <Icon size={ICON_SIZE_BY_AVATAR_SIZE[size]} name={IconName.GlobalFilled} />
+  );
+
+  const renderImage = () => (
+    <Image
+      testID={FAVICON_AVATAR_IMAGE_ID}
+      source={imageSource}
+      style={styles.image}
+      resizeMode={'contain'}
+      onError={onError}
+    />
+  );
+
   return (
     <Avatar size={size} style={styles.base}>
-      {error ? (
-        <Icon
-          size={ICON_SIZE_BY_AVATAR_SIZE[size]}
-          name={IconName.GlobalFilled}
-        />
-      ) : (
-        <Image
-          testID={FAVICON_AVATAR_IMAGE_ID}
-          source={imageSource}
-          style={styles.image}
-          resizeMode={'contain'}
-          onError={onError}
-        />
-      )}
+      {error ? renderError() : renderImage()}
     </Avatar>
   );
 };

@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 storiesOf('Component Library / PickerNetwork', module).add('Default', () => {
   const groupId = 'Props';
   const networkLabelSelector = text('label', 'Ethereum Mainnet', groupId);
-  const includesImage = boolean('Includes image', false, groupId);
+  const includesImage = boolean('Includes image', true, groupId);
   const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
   const imageSource = (includesImage && {
     uri: imageUrl,

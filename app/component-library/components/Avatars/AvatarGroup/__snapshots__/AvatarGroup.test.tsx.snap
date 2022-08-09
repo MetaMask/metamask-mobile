@@ -34,9 +34,13 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
         size="16"
-        tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
-        tokenName="Ethereum"
       />
     </View>
     <View
@@ -56,9 +60,13 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
         size="16"
-        tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
-        tokenName="Ethereum"
       />
     </View>
     <View
@@ -78,9 +86,13 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
         size="16"
-        tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
-        tokenName="Ethereum"
       />
     </View>
     <View
@@ -100,9 +112,13 @@ exports[`AvatarGroup should render correctly 1`] = `
       }
     >
       <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
         size="16"
-        tokenImageUrl="https://cryptologos.cc/logos/avalanche-avax-logo.png"
-        tokenName="Ethereum"
       />
     </View>
   </View>

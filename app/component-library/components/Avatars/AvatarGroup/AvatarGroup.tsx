@@ -32,7 +32,7 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
     () =>
       tokenList
         .slice(0, MAX_STACKED_AVATARS)
-        .map(({ name, imageUrl, id }, index) => {
+        .map(({ name, imageSource, id }, index) => {
           const leftOffset = avatarSpacing * index;
 
           return (
@@ -41,8 +41,8 @@ const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
               style={[styles.stackedAvatarWrapper, { left: leftOffset }]}
             >
               <AvatarToken
-                tokenName={name}
-                tokenImageUrl={imageUrl}
+                name={name}
+                imageSource={imageSource}
                 size={extraSmallSize}
               />
             </View>
