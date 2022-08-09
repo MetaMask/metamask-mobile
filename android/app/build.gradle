@@ -236,13 +236,13 @@ android {
 			dev {
 				dimension "version"
 				applicationIdSuffix ".dev"
-				applicationId "io.metamask.dev"
+				applicationId "io.metamask"
 			}
 
         	qa {
             	dimension "version"
             	applicationIdSuffix ".qa"
-				applicationId "io.metamask.qa"
+				applicationId "io.metamask"
         	}
 			prod {
 				dimension "version"
