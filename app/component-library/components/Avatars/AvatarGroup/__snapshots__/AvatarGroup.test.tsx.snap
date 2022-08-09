@@ -1,0 +1,146 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarGroup should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "width": 42,
+      }
+    }
+  >
+    <View
+      key="Ethereum-0"
+      style={
+        Array [
+          Object {
+            "borderColor": "#FFFFFF",
+            "borderRadius": 50,
+            "borderWidth": 1,
+            "position": "absolute",
+          },
+          Object {
+            "left": 0,
+          },
+        ]
+      }
+    >
+      <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
+        size="16"
+      />
+    </View>
+    <View
+      key="Ethereum-1"
+      style={
+        Array [
+          Object {
+            "borderColor": "#FFFFFF",
+            "borderRadius": 50,
+            "borderWidth": 1,
+            "position": "absolute",
+          },
+          Object {
+            "left": 8,
+          },
+        ]
+      }
+    >
+      <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
+        size="16"
+      />
+    </View>
+    <View
+      key="Ethereum-2"
+      style={
+        Array [
+          Object {
+            "borderColor": "#FFFFFF",
+            "borderRadius": 50,
+            "borderWidth": 1,
+            "position": "absolute",
+          },
+          Object {
+            "left": 16,
+          },
+        ]
+      }
+    >
+      <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
+        size="16"
+      />
+    </View>
+    <View
+      key="Ethereum-3"
+      style={
+        Array [
+          Object {
+            "borderColor": "#FFFFFF",
+            "borderRadius": 50,
+            "borderWidth": 1,
+            "position": "absolute",
+          },
+          Object {
+            "left": 24,
+          },
+        ]
+      }
+    >
+      <AvatarToken
+        imageSource={
+          Object {
+            "uri": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
+          }
+        }
+        name="Ethereum"
+        size="16"
+      />
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Text
+      style={
+        Object {
+          "color": "#535A61",
+          "marginLeft": 2,
+        }
+      }
+      testID="stacked-avatar-overflow-counter"
+      variant="sBodyMD"
+    >
+      +10
+    </Text>
+  </View>
+</View>
+`;
