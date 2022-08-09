@@ -9,7 +9,7 @@ import {
 import PropTypes from 'prop-types';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -34,7 +34,7 @@ const androidFaceRecognition = require('../../../images/android-face-recognition
 const androidIris = require('../../../images/android-iris.png');
 
 const BiometryButton = ({ onPress, hidden, type }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const renderIcon = (type) => {
