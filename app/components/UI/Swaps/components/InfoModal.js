@@ -6,7 +6,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { colors as importedColors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -68,7 +68,7 @@ function InfoModal({
   urlText,
   url,
 }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const CloseButton = () => (
