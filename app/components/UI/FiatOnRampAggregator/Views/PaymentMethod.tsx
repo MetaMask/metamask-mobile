@@ -141,7 +141,10 @@ const PaymentMethod = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Payment Method Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -151,7 +154,11 @@ const PaymentMethod = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={queryGetPaymentMethods} />
+          <ErrorView
+            description={error}
+            ctaOnPress={queryGetPaymentMethods}
+            location={'Payment Method Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
