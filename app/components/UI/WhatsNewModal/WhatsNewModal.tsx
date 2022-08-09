@@ -19,7 +19,7 @@ import {
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
 import StyledButton from '../StyledButton';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
@@ -132,7 +132,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
   const modalRef = useRef<ReusableModalRef>(null);
   const slideIds = [0, 1];
   const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const recordSeenModal = async () => {

@@ -56,11 +56,7 @@ import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import {
-  useAppThemeFromContext,
-  mockTheme,
-  ThemeContext,
-} from '../../../../util/theme';
+import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
@@ -188,7 +184,7 @@ const createStyles = (colors) =>
   });
 
 const Heading = ({ children, first }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -199,7 +195,7 @@ const Heading = ({ children, first }) => {
 };
 
 const WarningIcon = () => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   return (
     <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
