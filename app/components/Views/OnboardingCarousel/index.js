@@ -188,7 +188,10 @@ class OnboardingCarousel extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-carousel-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        accessibilityLabel={'onboarding-carousel-screen'}
+      >
         <OnboardingScreenWithBg screen={'carousel'}>
           <ScrollView
             style={baseStyles.flexGrow}
@@ -208,7 +211,7 @@ class OnboardingCarousel extends PureComponent {
                       <View style={styles.tab}>
                         <Text
                           style={styles.title}
-                          testID={`carousel-screen-${value}`}
+                          accessibilityLabel={`carousel-screen-${value}`}
                         >
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
@@ -221,7 +224,7 @@ class OnboardingCarousel extends PureComponent {
                           source={carousel_images[index]}
                           style={[styles.carouselImage, styles[imgStyleKey]]}
                           resizeMethod={'auto'}
-                          testID={`carousel-${value}-image`}
+                          accessibilityLabel={`carousel-${value}-image`}
                         />
                       </View>
                     </View>
@@ -243,12 +246,11 @@ class OnboardingCarousel extends PureComponent {
             </View>
           </ScrollView>
           <View style={styles.ctas}>
-            <View style={styles.ctaWrapper}>
-              <StyledButton
-                type={'normal'}
-                onPress={this.onPressGetStarted}
-                testID={'onboarding-get-started-button'}
-              >
+            <View
+              style={styles.ctaWrapper}
+              accessibilityLabel={'onboarding-get-started-button'}
+            >
+              <StyledButton type={'normal'} onPress={this.onPressGetStarted}>
                 {strings('onboarding_carousel.get_started')}
               </StyledButton>
             </View>
