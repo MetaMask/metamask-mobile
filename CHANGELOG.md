@@ -1,25 +1,23 @@
 # Changelog
 
-## Current Main Branch
-- [#4736](https://github.com/MetaMask/metamask-mobile/pull/4736): 5.5.0
-- [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): Fix staging env redirection url for onramp
-- [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): Add On-Ramp generic error view event
-- [#4743](https://github.com/MetaMask/metamask-mobile/pull/4743): Add Payment Method logos
-- [#4818](https://github.com/MetaMask/metamask-mobile/pull/4818): Add provider user agent to on-ramp Checkout WebView
-- [#4642](https://github.com/MetaMask/metamask-mobile/pull/4642): Refactor theme hooks to useTheme
-- [#4640](https://github.com/MetaMask/metamask-mobile/pull/4640): Create confirmation modal component
-- [#4749](https://github.com/MetaMask/metamask-mobile/pull/4749): Add current network to Fiat On-ramp titles
-- [#4718](https://github.com/MetaMask/metamask-mobile/pull/4718): Component/4226 bottom sheet
+## 5.6.0 - Aug 15, 2022
+- [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): [FIX] Staging env redirection url for onramp
+- [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): [ADD] On-Ramp generic error view event
+- [#4743](https://github.com/MetaMask/metamask-mobile/pull/4743): [ADD] Payment Method logos
+- [#4818](https://github.com/MetaMask/metamask-mobile/pull/4818): [ADD] Provider user agent to on-ramp Checkout WebView
+- [#4640](https://github.com/MetaMask/metamask-mobile/pull/4640): [ADD] Confirmation modal component
+- [#4749](https://github.com/MetaMask/metamask-mobile/pull/4749): [ADD] Current network to Fiat On-ramp titles
+- [#4718](https://github.com/MetaMask/metamask-mobile/pull/4718): [ADD] Component/4226 bottom sheet
 - [#4780](https://github.com/MetaMask/metamask-mobile/pull/4780): [FIX] Block explorer crash
-- [#4740](https://github.com/MetaMask/metamask-mobile/pull/4740): Fix duplicate property
-- [#4793](https://github.com/MetaMask/metamask-mobile/pull/4793): Dapp connect Warning
+- [#4740](https://github.com/MetaMask/metamask-mobile/pull/4740): [FIX] Duplicate property
+- [#4793](https://github.com/MetaMask/metamask-mobile/pull/4793): [ADD] Dapp connect Warning
 - [#4634](https://github.com/MetaMask/metamask-mobile/pull/4634): [IMPROVEMENT] safeNumberToBN Method
-- [#4795](https://github.com/MetaMask/metamask-mobile/pull/4795): urls updated
+- [#4795](https://github.com/MetaMask/metamask-mobile/pull/4795): [UPDATE] urls updated
 - [#4756](https://github.com/MetaMask/metamask-mobile/pull/4756): [PS] Componentize Cell #4083
-- [#4784](https://github.com/MetaMask/metamask-mobile/pull/4784): Hide Remember me strings
-- [#4639](https://github.com/MetaMask/metamask-mobile/pull/4639): Use default QR code colors
-- [#4613](https://github.com/MetaMask/metamask-mobile/pull/4613): Component/4079 avatar group
-- [#4636](https://github.com/MetaMask/metamask-mobile/pull/4636): Fix NFT transfer with big token id
+- [#4784](https://github.com/MetaMask/metamask-mobile/pull/4784): [ADD] Hide Remember me strings
+- [#4639](https://github.com/MetaMask/metamask-mobile/pull/4639): [FIX] Use default QR code colors
+- [#4613](https://github.com/MetaMask/metamask-mobile/pull/4613): [ADD] Component/4079 avatar group
+- [#4636](https://github.com/MetaMask/metamask-mobile/pull/4636): [FIX] NFT transfer with big token id
 
 ## 5.5.0 - Jul 27, 2022
 - [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [IMPROVEMENT] Swaps support for hardware wallet
