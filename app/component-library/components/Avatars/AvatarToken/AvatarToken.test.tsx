@@ -1,31 +1,30 @@
 // Third party dependencies.
 import React from 'react';
-import { Image } from 'react-native';
+import { ImageSourcePropType } from 'react-native';
 import { shallow } from 'enzyme';
 
 // External dependencies.
 // eslint-disable-next-line
 // @ts-ignore
-import ethLogo from '../../../../images/eth-logo.png';
 import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
-import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';
+import {
+  TOKEN_AVATAR_IMAGE_ID,
+  TEST_NETWORK_NAME,
+} from './AvatarToken.constants';
 
 describe('AvatarToken', () => {
-  const tokenName = 'Ethereum';
-  // turns out this method returns an object with testUri key when on jest context
-  // eslint-disable-next-line
-  // @ts-ignore
-  const testImageUrl = Image.resolveAssetSource(ethLogo).testUri;
+  /* eslint-disable-next-line */
+  const ethLogo: ImageSourcePropType = require('../../../../images/eth-logo.png');
 
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarToken
         size={AvatarBaseSize.Xl}
-        tokenName={tokenName}
-        tokenImageUrl={testImageUrl}
+        name={TEST_NETWORK_NAME}
+        imageSource={ethLogo}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -35,8 +34,8 @@ describe('AvatarToken', () => {
     const wrapper = shallow(
       <AvatarToken
         size={AvatarBaseSize.Xl}
-        tokenName={tokenName}
-        tokenImageUrl={testImageUrl}
+        name={TEST_NETWORK_NAME}
+        imageSource={ethLogo}
       />,
     );
 
@@ -50,8 +49,8 @@ describe('AvatarToken', () => {
     const wrapper = shallow(
       <AvatarToken
         size={AvatarBaseSize.Xl}
-        tokenName={tokenName}
-        tokenImageUrl={testImageUrl}
+        name={TEST_NETWORK_NAME}
+        imageSource={ethLogo}
       />,
     );
     const prevImageComponent = wrapper.findWhere(
@@ -67,7 +66,7 @@ describe('AvatarToken', () => {
 
   it('should render fallback when tokenImageUrl is not provided', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} tokenName={tokenName} />,
+      <AvatarToken size={AvatarBaseSize.Xl} name={TEST_NETWORK_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,

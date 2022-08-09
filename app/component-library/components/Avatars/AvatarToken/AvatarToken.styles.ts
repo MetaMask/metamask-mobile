@@ -21,10 +21,10 @@ const styleSheet = (params: {
   vars: AvatarTokenStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { size, style, showFallback, showHalo } = vars;
+  const { size, style, showFallback, isHaloEnabled } = vars;
 
   const avatarSizeWithHalo =
-    showHalo && !showFallback
+    isHaloEnabled && !showFallback
       ? {
           width: 20,
           height: 20,

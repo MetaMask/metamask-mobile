@@ -9,18 +9,18 @@ import { AvatarBaseSize } from '../AvatarBase';
 import AvatarNetwork from './AvatarNetwork';
 import {
   NETWORK_AVATAR_IMAGE_ID,
-  TEST_IMAGE_URL,
+  TEST_IMAGE_SOURCE,
 } from './AvatarNetwork.constants';
 
 describe('AvatarNetwork', () => {
-  it('should render correctly', () => {
-    const networkName = 'Ethereum';
+  const networkName = 'Ethereum';
 
+  it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
-        networkName={networkName}
-        networkImageUrl={TEST_IMAGE_URL}
+        name={networkName}
+        imageSource={TEST_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -30,8 +30,8 @@ describe('AvatarNetwork', () => {
     const wrapper = shallow(
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
-        networkName={'Ethereum'}
-        networkImageUrl={TEST_IMAGE_URL}
+        name={networkName}
+        imageSource={TEST_IMAGE_SOURCE}
       />,
     );
 
@@ -45,8 +45,8 @@ describe('AvatarNetwork', () => {
     const wrapper = shallow(
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
-        networkName={'Ethereum'}
-        networkImageUrl={TEST_IMAGE_URL}
+        name={networkName}
+        imageSource={TEST_IMAGE_SOURCE}
       />,
     );
     const prevImageComponent = wrapper.findWhere(
@@ -60,9 +60,9 @@ describe('AvatarNetwork', () => {
     expect(currentImageComponent.exists()).toBe(false);
   });
 
-  it('should render fallback when networkImageUrl is not provided', () => {
+  it('should render fallback when image is not provided', () => {
     const wrapper = shallow(
-      <AvatarNetwork size={AvatarBaseSize.Xl} networkName={'Ethereum'} />,
+      <AvatarNetwork size={AvatarBaseSize.Xl} name={networkName} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,

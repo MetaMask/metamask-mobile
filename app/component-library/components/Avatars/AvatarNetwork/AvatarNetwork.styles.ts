@@ -21,8 +21,8 @@ const styleSheet = (params: {
   vars: AvatarNetworkStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { size, style, showPlaceholder } = vars;
-  const baseStyle: ViewStyle = showPlaceholder
+  const { size, style, showFallback } = vars;
+  const baseStyle: ViewStyle = showFallback
     ? {
         backgroundColor: theme.colors.background.alternative,
         justifyContent: 'center',

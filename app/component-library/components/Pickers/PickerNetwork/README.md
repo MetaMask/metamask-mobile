@@ -6,15 +6,15 @@ PickerNetwork is a component that renders an avatar based on the user selected n
 
 This component extends `TouchableOpacityProps` from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
 
-### `networkImageUrl`
+### `image`
 
-Network image url.
+Network image from either a local or remote source.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------------------------- | :------------------------------------------------------ |
+| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | Yes                                                     |
 
-### `networkLabel`
+### `label`
 
 Network label to display.
 
@@ -36,7 +36,7 @@ import PickerNetwork from 'app/component-library/components/Pickers/PickerNetwor
 
 <PickerNetwork
   onPress={ONPRESS_CALLBACK}
-  networkLabel={NETWORK_LABEL}
-  networkImageUrl={NETWORK_IMAGE_URL}
+  label={NETWORK_LABEL}
+  image={{ uri: NETWORK_IMAGE_URL }}
 />;
 ```

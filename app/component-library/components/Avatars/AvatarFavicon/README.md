@@ -6,13 +6,13 @@ AvatarFavicon is an image component that renders an icon that is provided in the
 
 This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
 
-### `imageUrl`
+### `imageSource`
 
-An icon URL.
+A favicon image from either a local or remote source.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| String                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------------------------- | :------------------------------------------------------ |
+| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | Yes                                                     |
 
 ## Usage
 
@@ -21,5 +21,5 @@ An icon URL.
 import AvatarFavicon from 'app/component-library/components/Avatars/AvatarAccount';
 import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarBase';
 
-<AvatarFavicon size={AvatarBaseSize.Md} imageUrl={IMAGE_URL} />;
+<AvatarFavicon size={AvatarBaseSize.Md} imageSource={{ uri: IMAGE_URL }} />;
 ```
