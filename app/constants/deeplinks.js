@@ -20,6 +20,7 @@ export const ACTIONS = {
   FOCUS: 'focus',
   EMPTY: '',
   WC: 'wc',
+  CONNECT: 'connect',
 };
 
 export const PREFIXES = {
@@ -28,4 +29,5 @@ export const PREFIXES = {
   [ACTIONS.APPROVE]: 'ethereum:',
   [ACTIONS.FOCUS]: '',
   [ACTIONS.EMPTY]: '',
+  METAMASK: 'metamask://',
 };
