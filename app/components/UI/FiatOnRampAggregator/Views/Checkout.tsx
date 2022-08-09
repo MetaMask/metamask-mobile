@@ -177,7 +177,10 @@ const CheckoutWebView = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Provider Webview'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -193,6 +196,7 @@ const CheckoutWebView = () => {
               setKey((prevKey) => prevKey + 1);
               setError('');
             }}
+            location={'Provider Webview'}
           />
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -222,6 +226,7 @@ const CheckoutWebView = () => {
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          userAgent={params.provider?.features?.buy?.userAgent ?? undefined}
         />
       </View>
     );

@@ -24,6 +24,10 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  findBlockExplorerForRpc,
+  isMainnetByChainId,
+} from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -91,6 +95,8 @@ class Asset extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    rpcTarget: PropTypes.string,
+    frequentRpcList: PropTypes.array,
   };
 
   state = {
@@ -111,9 +117,15 @@ class Asset extends PureComponent {
   navAddress = undefined;
 
   updateNavBar = () => {
-    const { navigation, route } = this.props;
+    const { navigation, route, chainId, rpcTarget, frequentRpcList } =
+      this.props;
     const colors = this.context.colors || mockTheme.colors;
-    const { isETH } = route.params;
+    const isNativeToken = route.params.isETH;
+    const isMainnet = isMainnetByChainId(chainId);
+    const blockExplorer = findBlockExplorerForRpc(rpcTarget, frequentRpcList);
+
+    const shouldShowMoreOptionsInNavBar =
+      isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
 
     navigation.setOptions(
       getNetworkNavbarOptions(
@@ -121,7 +133,12 @@ class Asset extends PureComponent {
         false,
         navigation,
         colors,
-        () => navigation.navigate('AssetOptions', { isNativeCurrency: isETH }),
+        shouldShowMoreOptionsInNavBar
+          ? () =>
+              navigation.navigate('AssetOptions', {
+                isNativeCurrency: isNativeToken,
+              })
+          : undefined,
         true,
       ),
     );
@@ -407,6 +424,9 @@ const mapStateToProps = (state) => ({
   tokens: state.engine.backgroundState.TokensController.tokens,
   transactions: state.engine.backgroundState.TransactionController.transactions,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
+  rpcTarget: state.engine.backgroundState.NetworkController.provider.rpcTarget,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 export default connect(mapStateToProps)(Asset);

@@ -2148,5 +2148,22 @@
   "download_files": {
     "error": "Failed to download attachment.",
     "unknownError": "Unknown error occurred"
+  },
+  "remember_me": {
+    "enable_remember_me": "Turn on Remember me",
+    "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
+  },
+  "turn_off_remember_me": {
+    "title": "Enter your password to turn off Remember me",
+    "placeholder": "Password",
+    "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
+    "action": "Turn off Remember me"
+  },
+  "dapp_connect": {
+    "warning": "In order to use this feature, please update the app to the newest version"
+  },
+  "confirmation_modal": {
+    "cancel_cta": "Cancel",
+    "confirm_cta": "Confirm"
   }
 }
