@@ -37,7 +37,7 @@ import {
 } from 'react-native-gesture-handler';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -143,7 +143,7 @@ const CollectibleOverview = ({
   const [favorite, setFavorite] = useState(collectible.favorite);
   const positionAnimated = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const translationHeight = useMemo(

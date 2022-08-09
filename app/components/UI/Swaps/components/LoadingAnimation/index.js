@@ -16,7 +16,7 @@ import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
 import Fox from '../../../Fox';
 import backgroundShapes from './backgroundShapes';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import { useTheme } from '../../../../../util/theme';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
@@ -144,7 +144,7 @@ function LoadingAnimation({
     outputRange: ['0%', '100%'],
   });
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   /* Animation constructions */

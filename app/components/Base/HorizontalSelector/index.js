@@ -2,7 +2,7 @@ import React, { Fragment, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text from '../Text';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const INNER_CIRCLE_SCALE = 0.445;
 const OPTION_WIDTH = 110;
@@ -103,7 +103,7 @@ const createStyles = (colors) =>
   });
 
 function Circle({ size = 22, selected, disabled, error }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -138,7 +138,7 @@ Circle.propTypes = {
 };
 
 function Option({ onPress, name, ...props }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const handlePress = useCallback(() => onPress(name), [name, onPress]);
   return (
@@ -159,7 +159,7 @@ function HorizontalSelector({
   disabled,
   ...props
 }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const hasTopLabels = useMemo(
     () => options.some((option) => option.topLabel),
