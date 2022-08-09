@@ -27,7 +27,7 @@ export interface ModalConfirmationRoute {
     /**
      * Optional callback to trigger when pressing the confirm button.
      */
-    onConfirm: () => void;
+    onConfirm?: () => void;
     /**
      * Optional callback to trigger when pressing the cancel button.
      */

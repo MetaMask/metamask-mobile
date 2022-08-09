@@ -26,9 +26,9 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   labelColor?: string;
   /**
-   * Button icon.
+   * Icon name of the icon that will be displayed.
    */
-  icon?: IconProps['name'];
+  iconName?: IconProps['name'];
   /**
    * Size of the button.
    */

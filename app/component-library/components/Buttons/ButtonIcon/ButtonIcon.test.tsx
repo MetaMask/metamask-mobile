@@ -14,7 +14,7 @@ describe('ButtonIcon', () => {
     const wrapper = shallow(
       <ButtonIcon
         variant={ButtonIconVariant.Primary}
-        icon={IconName.AddSquareFilled}
+        iconName={IconName.AddSquareFilled}
         onPress={jest.fn}
       />,
     );

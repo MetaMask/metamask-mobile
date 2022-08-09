@@ -15,7 +15,7 @@ import { ICON_SIZE_BY_AVATAR_SIZE } from './AvatarIcon.constants';
 
 const AvatarIcon = ({
   size = AvatarBaseSize.Md,
-  icon,
+  name,
   style,
   ...props
 }: AvatarIconProps) => {
@@ -24,7 +24,7 @@ const AvatarIcon = ({
 
   return (
     <Avatar size={size} style={styles.base} {...props}>
-      <Icon name={icon} size={iconSize} color={theme.colors.primary.default} />
+      <Icon name={name} size={iconSize} color={theme.colors.primary.default} />
     </Avatar>
   );
 };

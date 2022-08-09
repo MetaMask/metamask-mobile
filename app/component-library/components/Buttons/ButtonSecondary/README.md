@@ -26,7 +26,7 @@ import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonSecondary
   label={LABEL}
-  icon={IconName.BankFilled}
+  iconName={IconName.BankFilled}
   size={ButtonBaseSize.Md}
   onPress={ONPRESS_HANDLER}
   variant={ButtonSecondaryVariant.Normal}

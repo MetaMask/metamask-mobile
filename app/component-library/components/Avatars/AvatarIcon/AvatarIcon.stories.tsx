@@ -20,7 +20,12 @@ storiesOf(' Component Library / AvatarIcon', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const iconSelector = select('name', IconName, IconName.LockFilled, groupId);
+    const iconNameSelector = select(
+      'name',
+      IconName,
+      IconName.LockFilled,
+      groupId,
+    );
 
-    return <AvatarIcon size={sizeSelector} icon={iconSelector} />;
+    return <AvatarIcon size={sizeSelector} name={iconNameSelector} />;
   });

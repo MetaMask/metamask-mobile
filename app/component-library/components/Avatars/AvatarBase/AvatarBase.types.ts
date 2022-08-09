@@ -2,7 +2,7 @@
 import { ViewProps } from 'react-native';
 
 /**
- * AvatarBase AvatarBase sizes
+ * AvatarBase sizes.
  */
 export enum AvatarBaseSize {
   Xs = '16',

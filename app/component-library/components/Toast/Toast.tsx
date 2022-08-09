@@ -111,14 +111,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
 
   const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
-    linkButtonOptions ? (
+    linkButtonOptions && (
       <ButtonLink
         onPress={linkButtonOptions.onPress}
         variant={TextVariant.sBodyMD}
       >
         {linkButtonOptions.label}
       </ButtonLink>
-    ) : null;
+    );
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {

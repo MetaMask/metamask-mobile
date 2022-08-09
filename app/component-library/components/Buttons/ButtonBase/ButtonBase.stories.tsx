@@ -22,8 +22,8 @@ storiesOf('Component Library / ButtonBase', module)
       ButtonBaseSize.Md,
       groupId,
     );
-    const iconSelector = select(
-      'icon',
+    const iconNameSelector = select(
+      'iconName',
       IconName,
       IconName.AddSquareFilled,
       groupId,
@@ -32,7 +32,7 @@ storiesOf('Component Library / ButtonBase', module)
 
     return (
       <ButtonBase
-        icon={iconSelector}
+        iconName={iconNameSelector}
         size={sizeSelector}
         label={labelSelector}
         onPress={() => console.log("I'm clicked!")}
@@ -41,7 +41,7 @@ storiesOf('Component Library / ButtonBase', module)
   })
   .add('With label color', () => (
     <ButtonBase
-      icon={IconName.BankTokenFilled}
+      iconName={IconName.BankTokenFilled}
       size={ButtonBaseSize.Md}
       label={"I'm a button!"}
       onPress={() => console.log("I'm clicked!")}

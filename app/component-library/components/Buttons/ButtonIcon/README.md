@@ -6,9 +6,9 @@ ButtonIcon is a icon component in the form of a button.
 
 This component extends `TouchableOpacityProps` from React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
 
-### `icon`
+### `iconName`
 
-Icon to use.
+Icon name of the icon that will be displayed.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -38,7 +38,7 @@ import ButtonIcon, {ButtonIconVariant} from 'app/component-library/components/Bu
 import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonIcon
-  icon={IconName.BankFilled}
+  iconName={IconName.BankFilled}
   onPress={ONPRESS_HANDLER}
   variant={ButtonIconVariant.}
 />;

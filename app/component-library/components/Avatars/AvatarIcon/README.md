@@ -6,9 +6,9 @@ AvatarIcon is a component that renders an icon contained within an avatar.
 
 This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
 
-### `icon`
+### `name`
 
-Icon to use.
+Name of icon to use.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -24,5 +24,5 @@ import AvatarIcon, {
 import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarBase';
 import { IconName } from 'app/component-library/components/Icon';
 
-<AvatarIcon size={AvatarBaseSize.Md} icon={IconName.BankFilled} />;
+<AvatarIcon size={AvatarBaseSize.Md} name={IconName.BankFilled} />;
 ```

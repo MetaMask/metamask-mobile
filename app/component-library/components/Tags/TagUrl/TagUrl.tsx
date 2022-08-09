@@ -23,11 +23,11 @@ const TagUrl = ({ url, label, cta, style, ...props }: TagUrlProps) => {
       <Text style={styles.label} variant={TextVariant.sBodyMD}>
         {label}
       </Text>
-      {cta ? (
+      {cta && (
         <ButtonLink style={styles.cta} onPress={cta.onPress}>
           {cta.label}
         </ButtonLink>
-      ) : null}
+      )}
     </View>
   );
 };

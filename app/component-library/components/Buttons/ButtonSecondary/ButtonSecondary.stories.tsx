@@ -23,8 +23,8 @@ storiesOf('Component Library / ButtonSecondary', module)
       ButtonBaseSize.Md,
       groupId,
     );
-    const iconSelector = select(
-      'icon',
+    const iconNameSelector = select(
+      'iconName',
       IconName,
       IconName.AddSquareFilled,
       groupId,
@@ -33,7 +33,7 @@ storiesOf('Component Library / ButtonSecondary', module)
 
     return (
       <ButtonSecondary
-        icon={iconSelector}
+        iconName={iconNameSelector}
         size={sizeSelector}
         label={labelSelector}
         onPress={() => console.log("I'm clicked!")}

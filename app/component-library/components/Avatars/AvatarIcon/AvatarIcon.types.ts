@@ -7,9 +7,9 @@ import { IconProps, IconSize } from '../../Icon/Icon.types';
  */
 export interface AvatarIconProps extends AvatarBaseProps {
   /**
-   * Icon to use.
+   * Name of icon to use.
    */
-  icon: IconProps['name'];
+  name: IconProps['name'];
 }
 
 /**

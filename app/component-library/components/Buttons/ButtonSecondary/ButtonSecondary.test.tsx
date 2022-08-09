@@ -14,7 +14,7 @@ describe('ButtonSecondary', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonSecondary
-        icon={IconName.BankFilled}
+        iconName={IconName.BankFilled}
         size={ButtonBaseSize.Md}
         label={'Click me!'}
         onPress={() => null}

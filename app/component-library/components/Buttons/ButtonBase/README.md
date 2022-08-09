@@ -38,9 +38,9 @@ Function to trigger when pressing the button.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | Function                                            | Yes                                                     |
 
-### `icon`
+### `iconName`
 
-Icon to use.
+Icon name of the icon that will be displayed.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -58,7 +58,7 @@ import { IconName } from 'app/component-library/components/Icon';
 <ButtonBase
   label={LABEL}
   labelColor={LABEL_COLOR}
-  icon={IconName.BankFilled}
+  iconName={IconName.BankFilled}
   size={ButtonBaseSize.Md}
   onPress={ONPRESS_HANDLER}
 />;

@@ -14,9 +14,9 @@ export enum ButtonIconVariant {
  */
 export interface ButtonIconProps extends TouchableOpacityProps {
   /**
-   * Icon to use.
+   * Icon name of the icon that will be displayed.
    */
-  icon: IconProps['name'];
+  iconName: IconProps['name'];
   /**
    * Function to trigger when pressed.
    */

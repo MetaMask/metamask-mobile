@@ -37,7 +37,7 @@ const styleSheet = (params: {
       backgroundColor: colors.primary.muted,
     },
     checkbox: {
-      marginRight: 16,
+      marginRight: 8,
     },
   });
 };

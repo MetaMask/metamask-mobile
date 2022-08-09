@@ -16,7 +16,12 @@ storiesOf(' Component Library / ButtonIcon', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const iconSelector = select('icon', IconName, IconName.LockFilled, groupId);
+    const iconNameSelector = select(
+      'iconName',
+      IconName,
+      IconName.LockFilled,
+      groupId,
+    );
     const variantSelector = select(
       'variant',
       ButtonIconVariant,
@@ -28,7 +33,7 @@ storiesOf(' Component Library / ButtonIcon', module)
     return (
       <ButtonIcon
         variant={variantSelector}
-        icon={iconSelector}
+        iconName={iconNameSelector}
         disabled={disabledSelector}
         onPress={() => console.log("I'm clicked!")}
       />

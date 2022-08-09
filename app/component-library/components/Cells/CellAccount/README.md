@@ -72,7 +72,7 @@ Optional boolean to show Checkbox in Cell Account, applicable for multi select v
 
 ### `isSelected`
 
-Optional boolean to show Selected state in Cell Account
+Optional boolean to show Selected state in Cell Account.
 Default: false
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
@@ -81,7 +81,7 @@ Default: false
 
 ### `children`
 
-Optional accessory that can be inserted on the right of Cell Account
+Optional accessory that can be inserted on the right of Cell Account.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -90,7 +90,7 @@ Optional accessory that can be inserted on the right of Cell Account
 ## Usage
 
 ```javascript
-// Change import path to relative path
+// Change import path to relative path.
 import { CellAccount } from 'app/component-library/components/CellAccount/CellAccount';
 import { AccountAvatarType } from 'app/component-library/components/AccountAvatar/AccountAvatar';
 

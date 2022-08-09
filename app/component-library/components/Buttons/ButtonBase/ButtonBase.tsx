@@ -15,7 +15,7 @@ import styleSheet from './ButtonBase.styles';
 
 const ButtonBase = ({
   label,
-  icon,
+  iconName,
   size = ButtonBaseSize.Md,
   onPress,
   style,
@@ -30,10 +30,10 @@ const ButtonBase = ({
       style={styles.base}
       {...props}
     >
-      {icon && (
+      {iconName && (
         <Icon
           color={labelColor}
-          name={icon}
+          name={iconName}
           size={IconSize.Sm}
           style={styles.icon}
         />

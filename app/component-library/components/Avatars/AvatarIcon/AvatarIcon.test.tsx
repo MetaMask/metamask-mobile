@@ -12,7 +12,7 @@ import { IconName } from '../../Icon';
 describe('AvatarIcon', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarIcon size={AvatarBaseSize.Lg} icon={IconName.AddSquareFilled} />,
+      <AvatarIcon size={AvatarBaseSize.Lg} name={IconName.AddSquareFilled} />,
     );
     expect(wrapper).toMatchSnapshot();
   });

@@ -13,7 +13,7 @@ export interface CellAccountProps extends TouchableOpacityProps {
    */
   onPress: () => void;
   /**
-   * An Ethereum wallet address to retrieve avatar
+   * An Ethereum wallet address to retrieve avatar.
    */
   accountAddress: string;
   /**
@@ -21,33 +21,33 @@ export interface CellAccountProps extends TouchableOpacityProps {
    */
   accountAvatarType: AvatarAccountType;
   /**
-   * Title of the Cell Account, 1 line truncation
+   * Title of the Cell Account, 1 line truncation.
    */
   title: string;
   /**
-   * Optional secondary text below the title, 1 line truncation
+   * Optional secondary text below the title, 1 line truncation.
    */
   secondaryText?: string;
   /**
-   * Optional tertiary text below the secondaryText, 1 line truncation
+   * Optional tertiary text below the secondaryText, 1 line truncation.
    */
   tertiaryText?: string;
   /**
-   * Optional label (using Tag component) below the title/secondaryText/tertiaryText
+   * Optional label (using Tag component) below the title/secondaryText/tertiaryText.
    */
   tagLabel?: string;
   /**
-   * Optional boolean to show Checkbox in Cell Account, applicable for multi select view
+   * Optional boolean to show Checkbox in Cell Account, applicable for multi select view.
    * @default false
    */
   isMultiSelect?: boolean;
   /**
-   * Optional boolean to show Selected state in Cell Account
+   * Optional boolean to show Selected state in Cell Account.
    * @default false
    */
   isSelected?: boolean;
   /**
-   * Optional accessory that can be inserted on the right of Cell Account
+   * Optional accessory that can be inserted on the right of Cell Account.
    */
   children?: React.ReactNode;
   /**

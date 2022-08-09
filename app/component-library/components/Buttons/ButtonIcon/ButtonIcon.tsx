@@ -13,7 +13,7 @@ import { ButtonIconProps, ButtonIconVariant } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
 
 const ButtonIcon = ({
-  icon,
+  iconName,
   variant = ButtonIconVariant.Primary,
   disabled,
   onPressIn,
@@ -67,7 +67,7 @@ const ButtonIcon = ({
       activeOpacity={1}
       {...props}
     >
-      <Icon name={icon} size={IconSize.Lg} color={iconColor} />
+      <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
     </TouchableOpacity>
   );
 };
