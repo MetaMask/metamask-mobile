@@ -5,7 +5,7 @@ import { storiesOf } from '@storybook/react-native';
 import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
-import BaseText, { BaseTextVariant } from '../../BaseText';
+import Text, { TextVariant } from '../../Text';
 
 // Internal dependencies.
 import SheetBottom from './SheetBottom';
@@ -31,9 +31,7 @@ const SheetBottomExample = () => {
       isInteractable={isInteractable}
     >
       <View style={styles.wrappedContent}>
-        <BaseText variant={BaseTextVariant.sBodySM}>
-          {'Wrapped Content'}
-        </BaseText>
+        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
       </View>
     </SheetBottom>
   );

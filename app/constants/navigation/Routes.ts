@@ -17,7 +17,7 @@ const Routes = {
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
-    CONFIRMATION_MODAL: 'ConfirmationModal',
+    MODAL_CONFIRMATION: 'ModalConfirmation',
     WHATS_NEW: 'WhatsNewModal',
   },
   ONBOARDING: {
