@@ -28,7 +28,7 @@ import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -122,7 +122,7 @@ const AccountBackupStep1 = (props) => {
   const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
   const [skipCheckbox, setToggleSkipCheckbox] = useState(false);
   const [hasFunds, setHasFunds] = useState(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(() => {
