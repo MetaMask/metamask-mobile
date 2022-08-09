@@ -10,6 +10,7 @@ import { TimeDescriptions, timeToDescription } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import PaymentTypeIcon from './PaymentTypeIcon';
+import { Payment } from '@consensys/on-ramp-sdk';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -20,6 +21,7 @@ interface Props {
   time: number[];
   amountTier: number[];
   paymentTypeIcon: Icon;
+  logo: Payment['logo'];
   onPress?: () => any;
   highlighted?: boolean;
 }
@@ -42,7 +44,8 @@ const createStyles = (colors: Colors) =>
     },
     cardIcon: {
       marginLeft: 6,
-      marginBottom: 14,
+      width: 30,
+      height: 20,
     },
     line: {
       backgroundColor: colors.border.muted,
@@ -104,9 +107,9 @@ const renderTiers = (tiers: number[]) => {
 const PaymentOption: React.FC<Props> = ({
   title,
   time,
-  id,
   amountTier,
   paymentTypeIcon,
+  logo,
   onPress,
   highlighted,
 }: Props) => {
@@ -135,7 +138,7 @@ const PaymentOption: React.FC<Props> = ({
         <ListItem.Amounts>
           <ListItem.Amount>
             <View style={styles.cardIcons}>
-              <PaymentTypeIcon id={id} style={styles.cardIcon} />
+              <PaymentTypeIcon style={styles.cardIcon} logosByTheme={logo} />
             </View>
           </ListItem.Amount>
         </ListItem.Amounts>

@@ -84,7 +84,7 @@ I18nEvents.addListener('localeChanged', (locale) => {
 });
 
 export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp-content.metaswap-dev.codefi.network/regions/fake-callback'
+  ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
 const appConfig = {

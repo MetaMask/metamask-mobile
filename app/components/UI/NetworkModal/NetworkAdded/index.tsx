@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import {
   NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
   NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
@@ -38,7 +38,7 @@ interface NetworkAddedProps {
 
 const NetworkAdded = (props: NetworkAddedProps) => {
   const { nickname, closeModal, switchNetwork } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

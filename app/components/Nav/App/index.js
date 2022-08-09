@@ -46,10 +46,11 @@ import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
+import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
@@ -157,7 +158,7 @@ const App = ({ userLoggedIn }) => {
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const [animationPlayed, setAnimationPlayed] = useState();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
@@ -344,6 +345,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_CONFIRMATION}
+        component={ModalConfirmation}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
     </Stack.Navigator>
