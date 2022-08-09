@@ -28,7 +28,7 @@ exports[`CellContainerMultiselectItem should render correctly 1`] = `
     isSelected={true}
     style={
       Object {
-        "marginRight": 16,
+        "marginRight": 8,
       }
     }
   />

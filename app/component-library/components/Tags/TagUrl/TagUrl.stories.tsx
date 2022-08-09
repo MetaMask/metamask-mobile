@@ -7,14 +7,15 @@ import { storiesOf } from '@storybook/react-native';
 
 // Internal dependencies.
 import TagUrl from './TagUrl';
+import { TEST_IMAGE_SOURCE, TEST_LABEL } from './TagUrl.constants';
 
 storiesOf('Component Library / TagUrl', module)
   .addDecorator((getStory) => getStory())
   .add('With Cta', () => (
     <View style={{ alignItems: 'flex-start' }}>
       <TagUrl
-        url={'https://uniswap.org/favicon.ico'}
-        label={'https://uniswap.org'}
+        imageSource={TEST_IMAGE_SOURCE}
+        label={TEST_LABEL}
         cta={{
           label: 'Permissions',
           onPress: () => console.log("I'm clicked!"),
@@ -24,9 +25,6 @@ storiesOf('Component Library / TagUrl', module)
   ))
   .add('Without Cta', () => (
     <View style={{ alignItems: 'flex-start' }}>
-      <TagUrl
-        url={'https://uniswap.org/favicon.ico'}
-        label={'https://uniswap.org'}
-      />
+      <TagUrl imageSource={TEST_IMAGE_SOURCE} label={TEST_LABEL} />
     </View>
   ));

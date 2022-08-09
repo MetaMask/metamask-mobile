@@ -6,13 +6,13 @@ TagUrl is a component used to display Dapp information within a container.
 
 This component extends `ViewProps` from React Native's [View Component](https://reactnative.dev/docs/view).
 
-### `url`
+### `imageSource`
 
-Url of the favicon.
+Favicon image from either a local or remote source.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------------------------- | :------------------------------------------------------ |
+| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | Yes                                                     |
 
 ### `label`
 

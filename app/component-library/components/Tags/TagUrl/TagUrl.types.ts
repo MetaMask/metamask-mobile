@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { ImageSourcePropType, ViewProps } from 'react-native';
 
 interface TagUrlCta {
   label: string;
@@ -11,9 +11,9 @@ interface TagUrlCta {
  */
 export interface TagUrlProps extends ViewProps {
   /**
-   * Url of the favicon.
+   * Favicon image from either a local or remote source.
    */
-  url: string;
+  imageSource: ImageSourcePropType;
   /**
    * Label of the tag.
    */

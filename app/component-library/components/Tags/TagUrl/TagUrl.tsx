@@ -15,11 +15,11 @@ import { useStyles } from '../../../hooks';
 import styleSheet from './TagUrl.styles';
 import { TagUrlProps } from './TagUrl.types';
 
-const TagUrl = ({ url, label, cta, style, ...props }: TagUrlProps) => {
+const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
     <View style={styles.base} {...props}>
-      <AvatarFavicon imageUrl={url} size={AvatarBaseSize.Md} />
+      <AvatarFavicon imageSource={imageSource} size={AvatarBaseSize.Md} />
       <Text style={styles.label} variant={TextVariant.sBodyMD}>
         {label}
       </Text>

@@ -140,7 +140,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           const { networkImageSource } = toastOptions;
           return (
             <AvatarNetwork
-              image={networkImageSource}
+              imageSource={networkImageSource}
               size={AvatarBaseSize.Md}
               style={styles.avatar}
             />

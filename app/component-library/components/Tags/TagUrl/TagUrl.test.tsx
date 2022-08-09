@@ -4,14 +4,12 @@ import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import TagUrl from './TagUrl';
+import { TEST_IMAGE_SOURCE, TEST_LABEL } from './TagUrl.constants';
 
 describe('TagUrl', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <TagUrl
-        url={'https://uniswap.org/favicon.ico'}
-        label={'https://uniswap.org'}
-      />,
+      <TagUrl imageSource={TEST_IMAGE_SOURCE} label={TEST_LABEL} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
