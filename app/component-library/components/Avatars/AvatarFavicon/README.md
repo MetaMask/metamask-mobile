@@ -6,7 +6,7 @@ AvatarFavicon is an image component that renders an icon that is provided in the
 
 This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
 
-### `image`
+### `imageSource`
 
 A favicon image from either a local or remote source.
 
@@ -21,5 +21,5 @@ A favicon image from either a local or remote source.
 import AvatarFavicon from 'app/component-library/components/Avatars/AvatarAccount';
 import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarBase';
 
-<AvatarFavicon size={AvatarBaseSize.Md} image={{ uri: IMAGE_URL }} />;
+<AvatarFavicon size={AvatarBaseSize.Md} imageSource={{ uri: IMAGE_URL }} />;
 ```

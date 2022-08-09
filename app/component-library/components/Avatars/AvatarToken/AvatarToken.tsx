@@ -16,15 +16,15 @@ const AvatarToken = ({
   size,
   style,
   name,
-  image,
-  showHalo,
+  imageSource,
+  isHaloEnabled,
 }: AvatarTokenProps) => {
-  const [showFallback, setShowFallback] = useState(!image);
+  const [showFallback, setShowFallback] = useState(!imageSource);
 
   const { styles } = useStyles(stylesheet, {
     style,
     size,
-    showHalo,
+    isHaloEnabled,
     showFallback,
   });
 
@@ -44,7 +44,7 @@ const AvatarToken = ({
         </Text>
       ) : (
         <Image
-          source={image as ImageSourcePropType}
+          source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
           testID={TOKEN_AVATAR_IMAGE_ID}
@@ -53,14 +53,14 @@ const AvatarToken = ({
     </Avatar>
   );
 
-  return !showHalo || showFallback ? (
+  return !isHaloEnabled || showFallback ? (
     tokenImage()
   ) : (
     <ImageBackground
       blurRadius={20}
       style={styles.halo}
       imageStyle={styles.haloImage}
-      source={image as ImageSourcePropType}
+      source={imageSource as ImageSourcePropType}
     >
       {tokenImage()}
     </ImageBackground>

@@ -19,14 +19,14 @@ const PickerNetwork = ({
   onPress,
   style,
   label,
-  image,
+  imageSource,
   ...props
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
 
   return (
     <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
-      <AvatarNetwork size={AvatarBaseSize.Xs} image={image} />
+      <AvatarNetwork size={AvatarBaseSize.Xs} imageSource={imageSource} />
       <Text style={styles.label} variant={TextVariant.sBodyMD}>
         {label}
       </Text>

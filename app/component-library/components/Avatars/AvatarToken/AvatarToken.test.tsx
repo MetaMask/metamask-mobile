@@ -10,23 +10,33 @@ import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
-import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';
+import {
+  TOKEN_AVATAR_IMAGE_ID,
+  TEST_NETWORK_NAME,
+} from './AvatarToken.constants';
 
 describe('AvatarToken', () => {
-  const tokenName = 'Ethereum';
   /* eslint-disable-next-line */
   const ethLogo: ImageSourcePropType = require('../../../../images/eth-logo.png');
 
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} name={tokenName} image={ethLogo} />,
+      <AvatarToken
+        size={AvatarBaseSize.Xl}
+        name={TEST_NETWORK_NAME}
+        imageSource={ethLogo}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render network image', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} name={tokenName} image={ethLogo} />,
+      <AvatarToken
+        size={AvatarBaseSize.Xl}
+        name={TEST_NETWORK_NAME}
+        imageSource={ethLogo}
+      />,
     );
 
     const imageComponent = wrapper.findWhere(
@@ -37,7 +47,11 @@ describe('AvatarToken', () => {
 
   it('should render fallback when image fails to load', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} name={tokenName} image={ethLogo} />,
+      <AvatarToken
+        size={AvatarBaseSize.Xl}
+        name={TEST_NETWORK_NAME}
+        imageSource={ethLogo}
+      />,
     );
     const prevImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,
@@ -52,7 +66,7 @@ describe('AvatarToken', () => {
 
   it('should render fallback when tokenImageUrl is not provided', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} name={tokenName} />,
+      <AvatarToken size={AvatarBaseSize.Xl} name={TEST_NETWORK_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,

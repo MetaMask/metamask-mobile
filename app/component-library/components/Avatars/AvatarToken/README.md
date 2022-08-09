@@ -14,7 +14,7 @@ Optional token name.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [tokenName](./AvatarToken.types.ts#L10)             | No                                                      |
 
-### `image`
+### `imageSource`
 
 Optional token image from either a local or remote source.
 
@@ -22,13 +22,13 @@ Optional token image from either a local or remote source.
 | :-------------------------------------------------------------------- | :------------------------------------------------------ |
 | [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | No                                                      |
 
-### `showHalo`
+### `isHaloEnabled`
 
 Boolean value that activates halo effect (blurred image colors around).
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [showHalo](./AvatarToken.types.ts#L18)              | No                                                      |
+| [isHaloEnabled](./AvatarToken.types.ts#L18)         | No                                                      |
 
 ## Usage
 
@@ -40,7 +40,7 @@ import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarB
 <AvatarToken
   size={AvatarBaseSize.Md}
   name={TOKEN_NAME}
-  image={{ uri: TOKEN_IMAGE_URL }}
-  showHalo
+  imageSource={{ uri: TOKEN_IMAGE_URL }}
+  isHaloEnabled
 />;
 ```

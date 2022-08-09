@@ -20,7 +20,7 @@ storiesOf(' Component Library / AvatarNetwork', module)
       <AvatarNetwork
         size={sizeSelector}
         name={networkNameSelector}
-        image={TEST_IMAGE_SOURCE}
+        imageSource={TEST_IMAGE_SOURCE}
       />
     );
   })

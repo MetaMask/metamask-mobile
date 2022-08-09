@@ -12,7 +12,7 @@ describe('PickerNetwork', () => {
       <PickerNetwork
         onPress={jest.fn}
         label={'Ethereum Mainnet'}
-        image={{ uri: TEST_IMAGE_URL }}
+        imageSource={{ uri: TEST_IMAGE_URL }}
       />,
     );
     expect(wrapper).toMatchSnapshot();

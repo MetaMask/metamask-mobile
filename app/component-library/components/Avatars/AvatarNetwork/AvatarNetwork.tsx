@@ -18,30 +18,27 @@ const AvatarNetwork = ({
   size = AvatarBaseSize.Md,
   style,
   name,
-  image,
+  imageSource,
 }: AvatarNetworkProps) => {
-  const [showPlaceholder, setShowPlaceholder] = useState(!image);
-  const { styles } = useStyles(stylesheet, { style, size, showPlaceholder });
+  const [showFallback, setShowFallback] = useState(!imageSource);
+  const { styles } = useStyles(stylesheet, { style, size, showFallback });
   const textVariant =
     size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
       ? TextVariant.lBodySM
       : TextVariant.lBodyMD;
   const chainNameFirstLetter = name?.[0] ?? '?';
 
-  const onError = useCallback(
-    () => setShowPlaceholder(true),
-    [setShowPlaceholder],
-  );
+  const onError = useCallback(() => setShowFallback(true), [setShowFallback]);
 
   return (
     <Avatar size={size} style={styles.base}>
-      {showPlaceholder ? (
+      {showFallback ? (
         <Text style={styles.label} variant={textVariant}>
           {chainNameFirstLetter}
         </Text>
       ) : (
         <Image
-          source={image as ImageSourcePropType}
+          source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
           testID={NETWORK_AVATAR_IMAGE_ID}

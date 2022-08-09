@@ -20,7 +20,7 @@ describe('AvatarNetwork', () => {
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
         name={networkName}
-        image={TEST_IMAGE_SOURCE}
+        imageSource={TEST_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -31,7 +31,7 @@ describe('AvatarNetwork', () => {
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
         name={networkName}
-        image={TEST_IMAGE_SOURCE}
+        imageSource={TEST_IMAGE_SOURCE}
       />,
     );
 
@@ -46,7 +46,7 @@ describe('AvatarNetwork', () => {
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
         name={networkName}
-        image={TEST_IMAGE_SOURCE}
+        imageSource={TEST_IMAGE_SOURCE}
       />,
     );
     const prevImageComponent = wrapper.findWhere(

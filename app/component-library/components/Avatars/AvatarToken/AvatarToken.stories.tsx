@@ -9,10 +9,9 @@ import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
-import { TEST_TOKEN_IMAGES } from './AvatarToken.constants';
+import { TEST_TOKEN_IMAGES, TEST_NETWORK_NAME } from './AvatarToken.constants';
 
 const groupId = 'props';
-const networkName = 'Ethereum';
 
 storiesOf('Component Library / AvatarToken', module)
   // Component centered container
@@ -31,7 +30,7 @@ storiesOf('Component Library / AvatarToken', module)
     );
     const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
-      'image.uri',
+      'imageSource.uri',
       TEST_TOKEN_IMAGES,
       TEST_TOKEN_IMAGES[0],
       groupId,
@@ -39,10 +38,14 @@ storiesOf('Component Library / AvatarToken', module)
     const image = (includesImage && {
       uri: imageUrlSelector,
     }) as ImageSourcePropType;
-    const tokenNameSelector = text('name', networkName, groupId);
+    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
 
     return (
-      <AvatarToken size={sizeSelector} name={tokenNameSelector} image={image} />
+      <AvatarToken
+        size={sizeSelector}
+        name={tokenNameSelector}
+        imageSource={image}
+      />
     );
   })
   .add('With image & halo effect', () => {
@@ -54,7 +57,7 @@ storiesOf('Component Library / AvatarToken', module)
     );
     const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
-      'iamge.uri',
+      'imageSource.uri',
       TEST_TOKEN_IMAGES,
       TEST_TOKEN_IMAGES[0],
       groupId,
@@ -62,14 +65,14 @@ storiesOf('Component Library / AvatarToken', module)
     const image = (includesImage && {
       uri: imageUrlSelector,
     }) as ImageSourcePropType;
-    const tokenNameSelector = text('name', networkName, groupId);
+    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
 
     return (
       <AvatarToken
         size={sizeSelector}
         name={tokenNameSelector}
-        image={image}
-        showHalo
+        imageSource={image}
+        isHaloEnabled
       />
     );
   })
@@ -80,7 +83,7 @@ storiesOf('Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const tokenNameSelector = text('name', networkName, groupId);
+    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
 
     return <AvatarToken size={sizeSelector} name={tokenNameSelector} />;
   })

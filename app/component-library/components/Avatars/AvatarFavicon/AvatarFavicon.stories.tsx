@@ -2,7 +2,7 @@
 import React from 'react';
 import { ImageSourcePropType } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import { boolean, select, text } from '@storybook/addon-knobs';
+import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
@@ -22,13 +22,12 @@ storiesOf('Component Library / AvatarFavicon', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const includesImage = boolean('Includes image', true, groupId);
-    const imageUrlSelector = text('image.uri', TEST_IMAGE_URL, groupId);
-    const image = (includesImage && {
-      uri: imageUrlSelector,
-    }) as ImageSourcePropType;
+    const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
+    const imageSource: ImageSourcePropType = {
+      uri: imageUrl,
+    };
 
-    return <AvatarFavicon size={sizeSelector} image={image} />;
+    return <AvatarFavicon size={sizeSelector} imageSource={imageSource} />;
   })
   .add('With Error', () => {
     const sizeSelector = select(
@@ -38,5 +37,5 @@ storiesOf('Component Library / AvatarFavicon', module)
       'Avatar Size',
     );
 
-    return <AvatarFavicon size={sizeSelector} image={{ uri: '' }} />;
+    return <AvatarFavicon size={sizeSelector} imageSource={{ uri: '' }} />;
   });

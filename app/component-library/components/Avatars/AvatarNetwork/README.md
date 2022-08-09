@@ -14,7 +14,7 @@ Optional network name.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [name](./AvatarNetwork.types.ts#L11)                | No                                                      |
 
-### `image`
+### `imageSource`
 
 Optional network image from either a local or remote source.
 
@@ -32,6 +32,6 @@ import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarB
 <AvatarNetwork
   size={AvatarBaseSize.Md}
   name={NETWORK_NAME}
-  image={{ uri: NETWORK_IMAGE_URL }}
+  imageSource={{ uri: NETWORK_IMAGE_URL }}
 />;
 ```

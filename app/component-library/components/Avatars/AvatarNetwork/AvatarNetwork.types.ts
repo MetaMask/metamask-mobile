@@ -15,10 +15,10 @@ export interface AvatarNetworkProps extends AvatarBaseProps {
   /**
    * Optional network image from either a local or remote source.
    */
-  image?: ImageSourcePropType;
+  imageSource?: ImageSourcePropType;
 }
 
 export interface AvatarNetworkStyleSheetVars
   extends Pick<AvatarNetworkProps, 'size' | 'style'> {
-  showPlaceholder: boolean;
+  showFallback: boolean;
 }

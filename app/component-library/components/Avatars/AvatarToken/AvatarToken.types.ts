@@ -15,17 +15,17 @@ export interface AvatarTokenProps extends AvatarBaseProps {
   /**
    * Optional token image from either a local or remote source.
    */
-  image?: ImageSourcePropType;
+  imageSource?: ImageSourcePropType;
   /**
    * Optional boolean to activate halo effect.
    * @default false
    */
-  showHalo?: boolean;
+  isHaloEnabled?: boolean;
 }
 
 export type AvatarTokenStyleSheetVars = Pick<
   AvatarTokenProps,
-  'size' | 'showHalo' | 'style'
+  'size' | 'isHaloEnabled' | 'style'
 > & {
   showFallback: boolean;
 };

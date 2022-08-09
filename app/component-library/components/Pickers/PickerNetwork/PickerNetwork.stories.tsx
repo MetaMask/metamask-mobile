@@ -20,9 +20,9 @@ storiesOf('Component Library / PickerNetwork', module).add('Default', () => {
   const groupId = 'Props';
   const networkLabelSelector = text('label', 'Ethereum Mainnet', groupId);
   const includesImage = boolean('Includes image', false, groupId);
-  const imageUrlSelector = text('image.uri', TEST_IMAGE_URL, groupId);
-  const image = (includesImage && {
-    uri: imageUrlSelector,
+  const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
+  const imageSource = (includesImage && {
+    uri: imageUrl,
   }) as ImageSourcePropType;
 
   return (
@@ -31,7 +31,7 @@ storiesOf('Component Library / PickerNetwork', module).add('Default', () => {
         console.log('Picking network!');
       }}
       label={networkLabelSelector}
-      image={image}
+      imageSource={imageSource}
       style={styles.networkPicker}
     />
   );

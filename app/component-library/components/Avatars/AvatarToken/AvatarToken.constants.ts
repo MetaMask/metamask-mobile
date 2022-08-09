@@ -2,6 +2,8 @@
 
 export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
 
+export const TEST_NETWORK_NAME = 'Ethereum';
+
 export const TEST_TOKEN_IMAGES = [
   'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
   'https://cryptologos.cc/logos/bnb-bnb-logo.png',

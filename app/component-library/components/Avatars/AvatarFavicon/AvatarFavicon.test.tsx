@@ -15,14 +15,20 @@ import {
 describe('AvatarFavicon', () => {
   it('should match the snapshot', () => {
     const wrapper = shallow(
-      <AvatarFavicon size={AvatarBaseSize.Xl} image={TEST_IMAGE_SOURCE} />,
+      <AvatarFavicon
+        size={AvatarBaseSize.Xl}
+        imageSource={TEST_IMAGE_SOURCE}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render favicon', () => {
     const wrapper = shallow(
-      <AvatarFavicon size={AvatarBaseSize.Xl} image={TEST_IMAGE_SOURCE} />,
+      <AvatarFavicon
+        size={AvatarBaseSize.Xl}
+        imageSource={TEST_IMAGE_SOURCE}
+      />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
@@ -32,7 +38,10 @@ describe('AvatarFavicon', () => {
 
   it('should render fallback', () => {
     const wrapper = shallow(
-      <AvatarFavicon size={AvatarBaseSize.Xl} image={TEST_IMAGE_SOURCE} />,
+      <AvatarFavicon
+        size={AvatarBaseSize.Xl}
+        imageSource={TEST_IMAGE_SOURCE}
+      />,
     );
     const prevImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
