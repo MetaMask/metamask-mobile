@@ -101,6 +101,17 @@ export const isMainnetByChainId = (chainId) =>
 export const getNetworkName = (id) =>
   NetworkListKeys.find((key) => NetworkList[key].networkId === Number(id));
 
+export const isTestNet = (networkId) => {
+  const networkName = getNetworkName(networkId);
+
+  return (
+    networkName === ROPSTEN ||
+    networkName === GOERLI ||
+    networkName === KOVAN ||
+    networkName === RINKEBY
+  );
+};
+
 export function getNetworkTypeById(id) {
   if (!id) {
     throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);
@@ -154,17 +165,33 @@ export function isprivateConnection(hostname) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTarget
+ * @param {string} rpcTargetUrl
  * @param {array<object>} frequentRpcList
  */
-export function findBlockExplorerForRpc(rpcTarget, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(
-    ({ rpcUrl }) => rpcTarget === rpcUrl,
+export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
+  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
+    compareRpcUrls(rpcUrl, rpcTargetUrl),
   );
   if (frequentRpc) {
     return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
   }
   return undefined;
+}
+
+/**
+ * Returns a boolean indicating if both URLs have the same host
+ *
+ * @param {string} rpcOne
+ * @param {string} rpcTwo
+ */
+export function compareRpcUrls(rpcOne, rpcTwo) {
+  // First check that both objects are of the type string
+  if (typeof rpcOne === 'string' && typeof rpcTwo === 'string') {
+    const rpcUrlOne = new URL(rpcOne);
+    const rpcUrlTwo = new URL(rpcTwo);
+    return rpcUrlOne.host === rpcUrlTwo.host;
+  }
+  return false;
 }
 
 /**

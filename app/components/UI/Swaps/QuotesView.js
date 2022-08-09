@@ -11,11 +11,15 @@ import {
 import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FAIcon from 'react-native-vector-icons/FontAwesome';
 import BigNumber from 'bignumber.js';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { WalletDevice, util, GAS_ESTIMATE_TYPES } from '@metamask/controllers/';
+import {
+  WalletDevice,
+  util,
+  GAS_ESTIMATE_TYPES,
+  TransactionStatus,
+} from '@metamask/controllers/';
 
 import {
   addHexPrefix,
@@ -38,7 +42,7 @@ import { strings } from '../../../../locales/i18n';
 
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
@@ -67,7 +71,8 @@ import { swapsTokensSelector } from '../../../reducers/swaps';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
+import { isQRHardwareAccount } from '../../../util/address';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -143,7 +148,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     arrowDown: {
-      color: colors.icon.default,
+      color: colors.icon.alternative,
       fontSize: Device.isSmallDevice() ? 22 : 25,
       marginHorizontal: 15,
       marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -206,7 +211,7 @@ const createStyles = (colors) =>
     infoIcon: {
       fontSize: 12,
       margin: 3,
-      color: colors.icon.muted,
+      color: colors.icon.alternative,
     },
     ctaButton: {
       width: '100%',
@@ -230,7 +235,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 2,
     },
     gasInfoIcon: {
-      color: colors.icon.muted,
+      color: colors.icon.alternative,
     },
     hitSlop: {
       top: 10,
@@ -353,7 +358,7 @@ function SwapsQuotesView({
   /* Get params from navigation */
   const route = useRoute();
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const {
@@ -801,50 +806,111 @@ function SwapsQuotesView({
     ],
   );
 
-  const handleCompleteSwap = useCallback(async () => {
-    if (!selectedQuote) {
-      return;
-    }
+  const startSwapAnalytics = useCallback(
+    (selectedQuote) => {
+      InteractionManager.runAfterInteractions(() => {
+        const parameters = {
+          token_from: sourceToken.symbol,
+          token_from_amount: fromTokenMinimalUnitString(
+            sourceAmount,
+            sourceToken.decimals,
+          ),
+          token_to: destinationToken.symbol,
+          token_to_amount: fromTokenMinimalUnitString(
+            selectedQuote.destinationAmount,
+            destinationToken.decimals,
+          ),
+          request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
+          slippage,
+          custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
+          best_quote_source: selectedQuote.aggregator,
+          available_quotes: allQuotes,
+          other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
+          network_fees_USD: weiToFiat(
+            toWei(selectedQuoteValue?.ethFee),
+            conversionRate,
+            'usd',
+          ),
+          network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
+          chain_id: chainId,
+        };
+        Analytics.trackEventWithParameters(
+          ANALYTICS_EVENT_OPTS.SWAP_STARTED,
+          {},
+        );
+        Analytics.trackEventWithParameters(
+          ANALYTICS_EVENT_OPTS.SWAP_STARTED,
+          parameters,
+          true,
+        );
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      chainId,
+      sourceAmount,
+      hasEnoughTokenBalance,
+      slippage,
+      allQuotes,
+      selectedQuoteValue,
+      selectedQuoteId,
+      conversionRate,
+      destinationToken,
+    ],
+  );
 
-    InteractionManager.runAfterInteractions(() => {
-      const parameters = {
-        token_from: sourceToken.symbol,
-        token_from_amount: fromTokenMinimalUnitString(
-          sourceAmount,
-          sourceToken.decimals,
-        ),
-        token_to: destinationToken.symbol,
-        token_to_amount: fromTokenMinimalUnitString(
-          selectedQuote.destinationAmount,
-          destinationToken.decimals,
-        ),
-        request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
-        slippage,
-        custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-        best_quote_source: selectedQuote.aggregator,
-        available_quotes: allQuotes,
-        other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
-        network_fees_USD: weiToFiat(
-          toWei(selectedQuoteValue?.ethFee),
-          conversionRate,
-          'usd',
-        ),
-        network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
-        chain_id: chainId,
-      };
-      Analytics.trackEventWithParameters(ANALYTICS_EVENT_OPTS.SWAP_STARTED, {});
-      Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SWAP_STARTED,
-        parameters,
-        true,
-      );
-    });
+  const handleSwapTransaction = useCallback(
+    async (
+      TransactionController,
+      newSwapsTransactions,
+      approvalTransactionMetaId,
+    ) => {
+      if (!selectedQuote) {
+        return;
+      }
 
-    const { TransactionController } = Engine.context;
-    const newSwapsTransactions =
-      TransactionController.state.swapsTransactions || {};
-    let approvalTransactionMetaId;
-    if (approvalTransaction) {
+      try {
+        const { transactionMeta } = await TransactionController.addTransaction(
+          {
+            ...selectedQuote.trade,
+            ...getTransactionPropertiesFromGasEstimates(
+              gasEstimateType,
+              gasEstimates,
+            ),
+            gas: new BigNumber(gasLimit).toString(16),
+          },
+          process.env.MM_FOX_CODE,
+          WalletDevice.MM_MOBILE,
+        );
+        updateSwapsTransactions(
+          transactionMeta,
+          approvalTransactionMetaId,
+          newSwapsTransactions,
+        );
+        await addTokenToAssetsController(destinationToken);
+        await addTokenToAssetsController(sourceToken);
+      } catch (e) {
+        // send analytics
+      }
+    },
+    [
+      destinationToken,
+      gasEstimateType,
+      gasEstimates,
+      gasLimit,
+      selectedQuote,
+      sourceToken,
+      updateSwapsTransactions,
+    ],
+  );
+
+  const handleApprovaltransaction = useCallback(
+    async (
+      TransactionController,
+      newSwapsTransactions,
+      approvalTransactionMetaId,
+      isHardwareAccount,
+    ) => {
       try {
         const { transactionMeta } = await TransactionController.addTransaction(
           {
@@ -870,54 +936,79 @@ function SwapsQuotesView({
             16,
           ).toString(10),
         };
+        if (isHardwareAccount) {
+          TransactionController.hub.once(
+            `${transactionMeta.id}:finished`,
+            (transactionMeta) => {
+              if (transactionMeta.status === TransactionStatus.submitted) {
+                handleSwapTransaction(
+                  TransactionController,
+                  newSwapsTransactions,
+                  approvalTransactionMetaId,
+                  isHardwareAccount,
+                );
+              }
+            },
+          );
+        }
       } catch (e) {
         // send analytics
       }
+    },
+    [
+      approvalTransaction,
+      gasEstimateType,
+      gasEstimates,
+      handleSwapTransaction,
+      sourceToken.address,
+      sourceToken.decimals,
+    ],
+  );
+
+  const handleCompleteSwap = useCallback(async () => {
+    if (!selectedQuote) {
+      return;
     }
 
-    try {
-      const { transactionMeta } = await TransactionController.addTransaction(
-        {
-          ...selectedQuote.trade,
-          ...getTransactionPropertiesFromGasEstimates(
-            gasEstimateType,
-            gasEstimates,
-          ),
-          gas: new BigNumber(gasLimit).toString(16),
-        },
-        process.env.MM_FOX_CODE,
-        WalletDevice.MM_MOBILE,
-      );
-      updateSwapsTransactions(
-        transactionMeta,
-        approvalTransactionMetaId,
+    const isHardwareAccount = isQRHardwareAccount(selectedAddress);
+
+    startSwapAnalytics(selectedQuote);
+
+    const { TransactionController } = Engine.context;
+    const newSwapsTransactions =
+      TransactionController.state.swapsTransactions || {};
+    let approvalTransactionMetaId;
+
+    if (approvalTransaction) {
+      handleApprovaltransaction(
+        TransactionController,
         newSwapsTransactions,
+        approvalTransactionMetaId,
+        isHardwareAccount,
       );
-      await addTokenToAssetsController(destinationToken);
-      await addTokenToAssetsController(sourceToken);
-    } catch (e) {
-      // send analytics
+
+      if (isHardwareAccount) {
+        navigation.dangerouslyGetParent()?.pop();
+        return;
+      }
     }
+
+    handleSwapTransaction(
+      TransactionController,
+      newSwapsTransactions,
+      approvalTransactionMetaId,
+      isHardwareAccount,
+    );
 
     navigation.dangerouslyGetParent()?.pop();
   }, [
-    chainId,
-    navigation,
     selectedQuote,
+    selectedAddress,
     approvalTransaction,
-    sourceToken,
-    sourceAmount,
-    destinationToken,
-    hasEnoughTokenBalance,
-    slippage,
-    allQuotes,
-    selectedQuoteValue,
-    selectedQuoteId,
-    conversionRate,
-    gasEstimateType,
-    gasEstimates,
-    gasLimit,
-    updateSwapsTransactions,
+    startSwapAnalytics,
+    handleApprovaltransaction,
+    handleSwapTransaction,
+    navigation,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {
@@ -1975,7 +2066,10 @@ function SwapsQuotesView({
                     {`${strings('swaps.quotes_include_fee', {
                       fee: selectedQuote.fee,
                     })} `}
-                    <FAIcon name="info-circle" style={styles.infoIcon} />
+                    <MaterialCommunityIcons
+                      name="information"
+                      style={styles.infoIcon}
+                    />
                   </Text>
                 </TouchableOpacity>
               </View>

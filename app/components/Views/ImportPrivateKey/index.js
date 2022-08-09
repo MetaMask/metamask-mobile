@@ -75,7 +75,7 @@ const createStyles = (colors) =>
       fontSize: 50,
       marginTop: 0,
       marginLeft: 0,
-      color: colors.text.default,
+      color: colors.icon.alternative,
     },
     buttonWrapper: {
       flex: 1,

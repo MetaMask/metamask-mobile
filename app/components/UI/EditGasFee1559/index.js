@@ -26,7 +26,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_INCREMENT = new BigNumber(1);
@@ -191,7 +191,7 @@ const EditGasFee1559 = ({
     showTimeEstimateInfoModal,
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const getAnalyticsParams = useCallback(() => {
@@ -350,11 +350,11 @@ const EditGasFee1559 = ({
         },
         {
           name: AppConstants.GAS_OPTIONS.MEDIUM,
-          label: strings('edit_gas_fee_eip1559.medium'),
+          label: strings('edit_gas_fee_eip1559.market'),
         },
         {
           name: AppConstants.GAS_OPTIONS.HIGH,
-          label: strings('edit_gas_fee_eip1559.high'),
+          label: strings('edit_gas_fee_eip1559.aggressive'),
         },
       ]
         .filter(({ name }) => !shouldIgnore(name))
@@ -796,40 +796,42 @@ const EditGasFee1559 = ({
                           bold
                           style={styles.learnMoreLabels}
                         >
-                          {strings(
-                            'edit_gas_fee_eip1559.learn_more.high_label',
-                          )}
-                        </Text>
-                        <Text noMargin grey infoModal>
-                          {strings('edit_gas_fee_eip1559.learn_more.high_text')}
-                        </Text>
-                        <Text
-                          noMargin
-                          primary
-                          infoModal
-                          bold
-                          style={styles.learnMoreLabels}
-                        >
-                          {strings(
-                            'edit_gas_fee_eip1559.learn_more.medium_label',
-                          )}
-                        </Text>
-                        <Text noMargin grey infoModal>
-                          {strings(
-                            'edit_gas_fee_eip1559.learn_more.medium_text',
-                          )}
-                        </Text>
-                        <Text
-                          noMargin
-                          primary
-                          infoModal
-                          bold
-                          style={styles.learnMoreLabels}
-                        >
                           {strings('edit_gas_fee_eip1559.learn_more.low_label')}
                         </Text>
                         <Text noMargin grey infoModal>
                           {strings('edit_gas_fee_eip1559.learn_more.low_text')}
+                        </Text>
+                        <Text
+                          noMargin
+                          primary
+                          infoModal
+                          bold
+                          style={styles.learnMoreLabels}
+                        >
+                          {strings(
+                            'edit_gas_fee_eip1559.learn_more.market_label',
+                          )}
+                        </Text>
+                        <Text noMargin grey infoModal>
+                          {strings(
+                            'edit_gas_fee_eip1559.learn_more.market_text',
+                          )}
+                        </Text>
+                        <Text
+                          noMargin
+                          primary
+                          infoModal
+                          bold
+                          style={styles.learnMoreLabels}
+                        >
+                          {strings(
+                            'edit_gas_fee_eip1559.learn_more.aggressive_label',
+                          )}
+                        </Text>
+                        <Text noMargin grey infoModal>
+                          {strings(
+                            'edit_gas_fee_eip1559.learn_more.aggressive_text',
+                          )}
                         </Text>
                         {/* TODO(eip1559) add link when available
                         <TouchableOpacity style={styles.learnMoreLink}>

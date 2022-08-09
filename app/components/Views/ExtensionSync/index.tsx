@@ -16,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import PubNubWrapper from '../../../util/syncWithExtension';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import {
@@ -45,7 +45,7 @@ import {
 import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -107,7 +107,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const seedWordsRef = useRef(null);
   const importedAccountsRef = useRef(null);
   const dataToSyncRef = useRef<any>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
@@ -167,7 +167,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const track = useCallback(
     (...eventArgs) => {
       InteractionManager.runAfterInteractions(async () => {
-        if (Analytics.getEnabled()) {
+        if (Analytics.checkEnabled()) {
           AnalyticsV2.trackEvent(eventArgs[0], eventArgs[1]);
           return;
         }

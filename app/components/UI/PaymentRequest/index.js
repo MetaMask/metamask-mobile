@@ -46,6 +46,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/controllers/dist/util';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -53,10 +54,6 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-    },
-    contentWrapper: {
-      paddingTop: 24,
-      paddingHorizontal: 24,
     },
     title: {
       ...fontStyles.normal,
@@ -167,7 +164,7 @@ const createStyles = (colors) =>
       alignSelf: 'flex-end',
     },
     scrollViewContainer: {
-      flexGrow: 1,
+      padding: 24,
     },
     errorWrapper: {
       backgroundColor: colors.error.muted,
@@ -410,11 +407,15 @@ class PaymentRequest extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
+    const isTDSupportedForNetwork =
+      isTokenDetectionSupportedForNetwork(chainId);
 
-    if (chainId === '1') {
-      results = this.state.searchInputValue
-        ? this.state.results
-        : defaultAssets;
+    if (isTDSupportedForNetwork) {
+      const defaults =
+        chainId === NetworksChainId.mainnet
+          ? defaultAssets
+          : [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
+      results = this.state.searchInputValue ? this.state.results : defaults;
     } else if (
       Object.values(NetworksChainId).find((value) => value === chainId)
     ) {
@@ -437,7 +438,7 @@ class PaymentRequest extends PureComponent {
             {strings('payment_request.choose_asset')}
           </Text>
         </View>
-        {chainId === '1' && (
+        {isTDSupportedForNetwork && (
           <View style={styles.searchWrapper}>
             <FeatherIcon
               name="search"
@@ -782,7 +783,7 @@ class PaymentRequest extends PureComponent {
                     <FontAwesome
                       name="exchange"
                       size={18}
-                      color={colors.icon.default}
+                      color={colors.primary.default}
                       style={{ transform: [{ rotate: '270deg' }] }}
                     />
                   </TouchableOpacity>
@@ -834,7 +835,6 @@ class PaymentRequest extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper}>
         <KeyboardAwareScrollView
-          style={styles.contentWrapper}
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"
         >

@@ -10,7 +10,9 @@ import { KeyringTypes } from '@metamask/controllers';
  */
 export const getSeedPhrase = async (password = '') => {
   const { KeyringController } = Engine.context;
-  const mnemonic = await KeyringController.exportSeedPhrase(password);
+  const mnemonic = await KeyringController.exportSeedPhrase(
+    password,
+  ).toString();
   return JSON.stringify(mnemonic).replace(/"/g, '');
 };
 
@@ -91,10 +93,15 @@ export const recreateVaultWithSamePassword = async (
   await PreferencesController.update(prefUpdates);
   await AccountTrackerController.update(updateAccounts);
 
+  const recreatedKeyrings = KeyringController.state.keyrings;
   // Reselect previous selected account if still available
-  if (hdKeyring.accounts.includes(selectedAddress)) {
-    PreferencesController.setSelectedAddress(selectedAddress);
-  } else {
-    PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
+  for (const keyring of recreatedKeyrings) {
+    if (keyring.accounts.includes(selectedAddress)) {
+      PreferencesController.setSelectedAddress(selectedAddress);
+      return;
+    }
   }
+
+  // Default to first account as fallback
+  PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
 };

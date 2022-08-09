@@ -23,7 +23,7 @@ import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
@@ -109,7 +109,7 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
  *
  * @param {string} title - Title in string format
  * @param {Object} navigation - Navigation object required to push new views
@@ -554,7 +554,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
 /**
  * Function that returns the navigation options
  * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or Metamask Logo and current network, and settings icon
+ * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
  *
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
@@ -1003,8 +1003,11 @@ export function getWalletNavbarOptions(
  * Function that returns the navigation options containing title and network indicator
  *
  * @param {string} title - Title in string format
- * @param {string} translate - Boolean that specifies if the title needs translation
+ * @param {boolean} translate - Boolean that specifies if the title needs translation
  * @param {Object} navigation - Navigation object required to push new views
+ * @param {Object} themeColors - Colors from theme
+ * @param {Function} onRightPress - Callback that determines if right button exists
+ * @param {boolean} disableNetwork - Boolean that determines if network is accessible from navbar
  * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
  */
 export function getNetworkNavbarOptions(
@@ -1012,6 +1015,8 @@ export function getNetworkNavbarOptions(
   translate,
   navigation,
   themeColors,
+  onRightPress = undefined,
+  disableNetwork = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1024,7 +1029,13 @@ export function getNetworkNavbarOptions(
     },
   });
   return {
-    headerTitle: () => <NavbarTitle title={title} translate={translate} />,
+    headerTitle: () => (
+      <NavbarTitle
+        disableNetwork={disableNetwork}
+        title={title}
+        translate={translate}
+      />
+    ),
     headerLeft: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -1039,7 +1050,18 @@ export function getNetworkNavbarOptions(
         />
       </TouchableOpacity>
     ),
-    headerRight: () => <View />,
+    headerRight: onRightPress
+      ? () => (
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <MaterialCommunityIcon
+              name={'dots-horizontal'}
+              size={28}
+              style={innerStyles.headerIcon}
+            />
+          </TouchableOpacity>
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )
+      : () => <View />,
     headerStyle: innerStyles.headerStyle,
   };
 }
@@ -1442,14 +1464,16 @@ export function getFiatOnRampAggNavbar(
       ...(!showBack && { textAlign: 'center' }),
     },
   });
-  const headerTitle = title ?? 'No title';
+  const headerTitle = title ?? 'Buy';
 
   const leftActionText = strings('navigation.back');
 
   const leftAction = () => navigation.pop();
 
   return {
-    headerTitle,
+    headerTitle: () => (
+      <NavbarTitle title={headerTitle} disableNetwork translate={false} />
+    ),
     headerLeft: () => {
       if (!showBack) return <View />;
 

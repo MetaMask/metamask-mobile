@@ -240,7 +240,7 @@ class DeeplinkManager {
           // action is the first part of the pathname
           const action = urlObj.pathname.split('/')[1];
 
-          if (action === 'connect') {
+          if (action === ACTIONS.CONNECT) {
             if (params.redirect) {
               Minimizer.goBack();
             } else {
@@ -334,7 +334,7 @@ class DeeplinkManager {
       // For ex. go to settings
       case PROTOCOLS.METAMASK:
         handled();
-        if (url.startsWith('metamask://connect')) {
+        if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
           if (params.redirect) {
             Minimizer.goBack();
           } else {
@@ -345,7 +345,7 @@ class DeeplinkManager {
               otherPublicKey: params.pubkey,
             });
           }
-        } else if (url.startsWith('metamask://wc')) {
+        } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
           const href = cleanUrlObj.href;
 

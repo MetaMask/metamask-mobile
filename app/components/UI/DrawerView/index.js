@@ -43,7 +43,7 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import URL from 'url-parse';
@@ -53,7 +53,6 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import { logOut, protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
-import WhatsNewModal from '../WhatsNewModal';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
@@ -145,7 +144,7 @@ const createStyles = (colors) =>
       marginLeft: 7,
       marginTop: 3,
       fontSize: 18,
-      color: colors.icon.default,
+      color: colors.icon.alternative,
     },
     accountBalance: {
       fontSize: 14,
@@ -242,7 +241,7 @@ const createStyles = (colors) =>
     menuItemIconImage: {
       width: 22,
       height: 22,
-      tintColor: colors.icon.default,
+      tintColor: colors.icon.alternative,
     },
     selectedMenuItemIconImage: {
       width: 22,
@@ -260,10 +259,10 @@ const createStyles = (colors) =>
       paddingVertical: 3,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.icon.default,
+      borderColor: colors.icon.alternative,
     },
     importedText: {
-      color: colors.icon.default,
+      color: colors.icon.alternative,
       fontSize: 10,
       ...fontStyles.bold,
     },
@@ -738,7 +737,7 @@ class DrawerView extends PureComponent {
   };
 
   logOut = () => {
-    this.props.navigation.navigate('Login');
+    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
     this.props.logOut();
   };
 
@@ -749,7 +748,7 @@ class DrawerView extends PureComponent {
     await KeyringController.setLocked();
     if (!passwordSet) {
       this.props.navigation.navigate('OnboardingRootNav', {
-        screen: 'OnboardingNav',
+        screen: Routes.ONBOARDING.NAV,
         params: { screen: 'Onboarding' },
       });
     } else {
@@ -874,14 +873,20 @@ class DrawerView extends PureComponent {
   getIcon(name, size) {
     const colors = this.context.colors || mockTheme.colors;
 
-    return <Icon name={name} size={size || 24} color={colors.icon.default} />;
+    return (
+      <Icon name={name} size={size || 24} color={colors.icon.alternative} />
+    );
   }
 
   getFeatherIcon(name, size) {
     const colors = this.context.colors || mockTheme.colors;
 
     return (
-      <FeatherIcon name={name} size={size || 24} color={colors.icon.default} />
+      <FeatherIcon
+        name={name}
+        size={size || 24}
+        color={colors.icon.alternative}
+      />
     );
   }
 
@@ -889,7 +894,11 @@ class DrawerView extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return (
-      <MaterialIcon name={name} size={size || 24} color={colors.icon.default} />
+      <MaterialIcon
+        name={name}
+        size={size || 24}
+        color={colors.icon.alternative}
+      />
     );
   }
 
@@ -972,7 +981,13 @@ class DrawerView extends PureComponent {
           icon: this.getImageIcon('wallet'),
           selectedIcon: this.getSelectedImageIcon('wallet'),
           action: this.showWallet,
-          routeNames: ['WalletView', 'Asset', 'AddAsset', 'Collectible'],
+          routeNames: [
+            'Wallet',
+            'WalletView',
+            'Asset',
+            'AddAsset',
+            'Collectible',
+          ],
         },
         {
           name: strings('drawer.transaction_activity'),
@@ -1152,7 +1167,7 @@ class DrawerView extends PureComponent {
       currentRoute,
       networkOnboarding,
       networkOnboardedState,
-      switchedNetwork,
+      switchedNetwork: { networkUrl, networkStatus },
       networkModalVisible,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -1160,7 +1175,6 @@ class DrawerView extends PureComponent {
 
     const {
       invalidCustomNetwork,
-      showProtectWalletModal,
       account: { name: nameFromState, ens: ensFromState },
       showModal,
       networkType,
@@ -1186,8 +1200,18 @@ class DrawerView extends PureComponent {
     const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
     const checkIfCustomNetworkExists = networkOnboardedState.filter(
-      (item) => item.network === sanitizeUrl(switchedNetwork.networkUrl),
+      (item) => item.network === sanitizeUrl(networkUrl),
     );
+
+    const networkSwitchedAndInWalletView =
+      currentRoute === 'WalletView' &&
+      networkStatus &&
+      checkIfCustomNetworkExists.length === 0;
+
+    const canShowNetworkInfoModal =
+      showModal ||
+      networkOnboarding.showNetworkOnboarding ||
+      networkSwitchedAndInWalletView;
 
     return (
       <View style={styles.wrapper} testID={'drawer-screen'}>
@@ -1355,7 +1379,9 @@ class DrawerView extends PureComponent {
           isVisible={
             networkModalVisible || networkOnboarding.showNetworkOnboarding
           }
-          onBackdropPress={showModal ? null : this.toggleNetworksModal}
+          onBackdropPress={
+            canShowNetworkInfoModal ? null : this.toggleNetworksModal
+          }
           onBackButtonPress={showModal ? null : this.toggleNetworksModa}
           onSwipeComplete={showModal ? null : this.toggleNetworksModa}
           swipeDirection={'down'}
@@ -1363,11 +1389,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          {showModal ||
-          networkOnboarding.showNetworkOnboarding ||
-          (currentRoute === 'WalletView' &&
-            switchedNetwork.networkStatus &&
-            checkIfCustomNetworkExists.length === 0) ? (
+          {canShowNetworkInfoModal ? (
             <NetworkInfo
               onClose={this.onInfoNetworksModalClose}
               type={networkType || networkOnboarding.networkType}
@@ -1434,11 +1456,6 @@ class DrawerView extends PureComponent {
             showReceiveModal={this.showReceiveModal}
           />
         </Modal>
-        <WhatsNewModal
-          navigation={this.props.navigation}
-          enabled={showProtectWalletModal === false}
-        />
-
         {this.renderProtectModal()}
       </View>
     );

@@ -11,7 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFiatOnRampSDK, useSDKMethod } from '../sdk';
 
 import useModalHandler from '../../../Base/hooks/useModalHandler';
@@ -49,6 +49,7 @@ import { Colors } from '../../../../util/theme/models';
 import { CryptoCurrency } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
+import { Region } from '../types';
 
 // TODO: Convert into typescript and correctly type
 const Text = BaseText as any;
@@ -93,6 +94,7 @@ const createStyles = (colors: Colors) =>
 
 const AmountToBuy = () => {
   const navigation = useNavigation();
+  const { params } = useRoute();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const trackEvent = useAnalytics();
@@ -216,6 +218,38 @@ const AmountToBuy = () => {
   /**
    * * Defaults and validation of selected values
    */
+
+  useEffect(() => {
+    if (
+      selectedRegion &&
+      !isFetchingCountries &&
+      !errorCountries &&
+      countries
+    ) {
+      const allRegions: Region[] = countries.reduce(
+        (acc: Region[], region: Region) => [
+          ...acc,
+          region,
+          ...((region.states as Region[]) || []),
+        ],
+        [],
+      );
+      const selectedRegionFromAPI =
+        allRegions.find((region) => region.id === selectedRegion.id) ?? null;
+
+      if (!selectedRegionFromAPI || selectedRegionFromAPI.unsupported) {
+        navigation.reset({
+          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+        });
+      }
+    }
+  }, [
+    countries,
+    errorCountries,
+    isFetchingCountries,
+    navigation,
+    selectedRegion,
+  ]);
 
   const filteredPaymentMethods = useMemo(() => {
     if (paymentMethods) {
@@ -356,7 +390,7 @@ const AmountToBuy = () => {
 
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find?.(
+      filteredPaymentMethods?.find(
         (method) => method.id === selectedPaymentMethodId,
       ),
     [filteredPaymentMethods, selectedPaymentMethodId],
@@ -400,12 +434,17 @@ const AmountToBuy = () => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
-        { title: strings('fiat_on_ramp_aggregator.amount_to_buy') },
+        {
+          title: strings('fiat_on_ramp_aggregator.amount_to_buy'),
+          // @ts-expect-error navigation params error
+          showBack: params?.showBack,
+        },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+    // @ts-expect-error navigation params error
+  }, [navigation, colors, handleCancelPress, params?.showBack]);
 
   /**
    * * Keypad style, handlers and effects
@@ -625,7 +664,10 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Amount to Buy Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -635,7 +677,11 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={retryMethod} />
+          <ErrorView
+            description={error}
+            ctaOnPress={retryMethod}
+            location={'Amount to Buy Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -683,6 +729,8 @@ const AmountToBuy = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ErrorView
+            icon="info"
+            title={strings('fiat_on_ramp_aggregator.no_tokens_available_title')}
             description={strings(
               'fiat_on_ramp_aggregator.no_tokens_available',
               {
@@ -690,17 +738,20 @@ const AmountToBuy = () => {
                 region: selectedRegion?.name,
               },
             )}
-            ctaLabel={strings('fiat_on_ramp_aggregator.try_different_region')}
-            ctaOnPress={toggleRegionModal as () => void}
+            ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
+            ctaOnPress={showPaymentMethodsModal as () => void}
+            location={'Amount to Buy Screen'}
           />
         </ScreenLayout.Body>
-        <RegionModal
-          isVisible={isRegionModalVisible}
-          title={strings('fiat_on_ramp_aggregator.region.title')}
-          description={strings('fiat_on_ramp_aggregator.region.description')}
-          data={countries}
-          dismiss={hideRegionModal as () => void}
-          onRegionPress={handleRegionPress}
+        <PaymentMethodModal
+          isVisible={isPaymentMethodModalVisible}
+          dismiss={hidePaymentMethodModal as () => void}
+          title={strings('fiat_on_ramp_aggregator.select_payment_method')}
+          paymentMethods={filteredPaymentMethods}
+          selectedPaymentMethodId={selectedPaymentMethodId}
+          selectedPaymentMethodType={currentPaymentMethod?.paymentType}
+          onItemPress={handleChangePaymentMethod}
+          location={'Amount to Buy Screen'}
         />
       </ScreenLayout>
     );
@@ -709,7 +760,11 @@ const AmountToBuy = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <Pressable onPress={handleKeypadDone} style={styles.viewContainer}>
+        <Pressable
+          onPress={handleKeypadDone}
+          style={styles.viewContainer}
+          accessible={false}
+        >
           <ScreenLayout.Content>
             <View style={[styles.selectors, styles.row]}>
               <AccountSelector />
@@ -770,7 +825,9 @@ const AmountToBuy = () => {
             label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
               <PaymentIcon
-                iconType={getPaymentMethodIcon(selectedPaymentMethodId)}
+                iconType={getPaymentMethodIcon(
+                  currentPaymentMethod?.paymentType,
+                )}
                 size={20}
                 color={colors.icon.default}
               />
@@ -807,6 +864,7 @@ const AmountToBuy = () => {
           value={amount}
           onChange={handleKeypadChange}
           currency={currentFiatCurrency?.symbol}
+          decimals={currentFiatCurrency?.decimals}
         />
         <ScreenLayout.Content>
           <StyledButton type="confirm" onPress={handleKeypadDone}>
@@ -838,6 +896,7 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
         paymentMethods={filteredPaymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
+        selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
         location={'Amount to Buy Screen'}
       />

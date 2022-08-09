@@ -5,7 +5,7 @@ import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import SettingsNotification from '../SettingsNotification';
 import { strings } from '../../../../locales/i18n';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -39,7 +39,7 @@ const createStyles = (colors) =>
     },
     icon: {
       bottom: 8,
-      color: colors.icon.muted,
+      color: colors.icon.alternative,
       left: 4,
       position: 'relative',
     },
@@ -82,7 +82,7 @@ const defaultProps = {
 };
 
 const SettingsDrawer = ({ title, description, noBorder, onPress, warning }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

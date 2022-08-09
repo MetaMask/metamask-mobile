@@ -12,5 +12,6 @@ exports[`NetworkSettings should render correctly 1`] = `
     ]
   }
   showNetworkOnboardingAction={[Function]}
+  thirdPartyApiMode={true}
 />
 `;

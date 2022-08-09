@@ -37,7 +37,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import SecureKeychain from '../../../core/SecureKeychain';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -144,6 +144,10 @@ const createStyles = (colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    qrCode: {
+      padding: 8,
+      backgroundColor: importedColors.white,
     },
     tabUnderlineStyle: {
       height: 2,
@@ -302,7 +306,9 @@ class RevealPrivateCredential extends PureComponent {
     try {
       let privateCredential;
       if (!isPrivateKeyReveal) {
-        const mnemonic = await KeyringController.exportSeedPhrase(password);
+        const mnemonic = await KeyringController.exportSeedPhrase(
+          password,
+        ).toString();
         privateCredential = JSON.stringify(mnemonic).replace(/"/g, '');
       } else {
         privateCredential = await KeyringController.exportAccount(
@@ -400,7 +406,7 @@ class RevealPrivateCredential extends PureComponent {
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
         activeTextColor={colors.primary.default}
-        inactiveTextColor={colors.text.muted}
+        inactiveTextColor={colors.text.alternative}
         backgroundColor={colors.background.default}
         tabStyle={styles.tabStyle}
         textStyle={styles.textStyle}
@@ -485,12 +491,12 @@ class RevealPrivateCredential extends PureComponent {
           style={styles.tabContent}
         >
           <View style={styles.qrCodeWrapper}>
-            <QRCode
-              value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 160}
-              color={colors.text.default}
-              backgroundColor={colors.background.default}
-            />
+            <View style={styles.qrCode}>
+              <QRCode
+                value={clipboardPrivateCredential}
+                size={Dimensions.get('window').width - 176}
+              />
+            </View>
           </View>
         </View>
       </ScrollableTabView>

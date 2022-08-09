@@ -39,7 +39,7 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -68,7 +68,7 @@ import InfoModal from './components/InfoModal';
 import { toLowerCaseEquals } from '../../../util/general';
 import { AlertType } from '../../Base/Alert';
 import { isZero, gte } from '../../../util/lodash';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -178,7 +178,7 @@ function SwapsAmountView({
 }) {
   const navigation = useNavigation();
   const route = useRoute();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const explorer = useBlockExplorer(provider, frequentRpcList);

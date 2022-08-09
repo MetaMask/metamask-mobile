@@ -8,5 +8,9 @@ files: [
  {
   "source" : "locales/languages/en.json",
   "translation" : "/locales/languages/%two_letters_code%.json",
+ },
+ {
+   "source" : "app/videos/subtitles/secretPhrase/subtitles-en.vtt",
+   "translation" : "/app/videos/subtitles/secretPhrase/subtitles-%two_letters_code%.vtt",
  }
 ]

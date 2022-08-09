@@ -75,7 +75,7 @@ const createStyles = (colors) =>
       paddingVertical: 3,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.icon.default,
+      borderColor: colors.border.default,
     },
   });
 
@@ -109,8 +109,8 @@ class AccountElement extends PureComponent {
 
   onPress = () => {
     const { onPress } = this.props;
-    const { index } = this.props.item;
-    onPress && onPress(index);
+    const { address } = this.props.item;
+    onPress && onPress(address);
   };
 
   onLongPress = () => {

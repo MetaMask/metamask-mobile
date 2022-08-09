@@ -60,7 +60,7 @@ const createStyles = (colors: Colors) =>
     },
     searchIcon: {
       marginHorizontal: 8,
-      color: colors.icon.default,
+      color: colors.icon.alternative,
     },
     input: {
       ...fontStyles.normal,
@@ -189,7 +189,7 @@ const RegionModal: React.FC<Props> = ({
         onRegionPress(region);
       }
       trackEvent('ONRAMP_REGION_SELECTED', {
-        is_supported: region.unsupported,
+        is_unsupported: region.unsupported,
         country_onramp_id: regionInTransit?.id ?? region.id,
         state_onramp_id: regionInTransit ? region.id : undefined,
         location,
@@ -316,7 +316,7 @@ const RegionModal: React.FC<Props> = ({
                         name="ios-close-circle"
                         size={20}
                         style={styles.searchIcon}
-                        color={colors.icon.default}
+                        color={colors.icon.alternative}
                       />
                     </TouchableOpacity>
                   )}

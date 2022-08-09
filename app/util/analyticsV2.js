@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import Analytics from '../core/Analytics';
+import Analytics from '../core/Analytics/Analytics';
 import Logger from './Logger';
 
 const generateOpt = (name) => ({ category: name });
@@ -71,6 +71,9 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED: generateOpt('Analytics Preference Selected'),
+  ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
+    'Delete MetaMetrics Data Request Submitted',
+  ),
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt('Welcome Message Viewed'),
   ONBOARDING_WELCOME_SCREEN_ENGAGEMENT: generateOpt(
@@ -108,8 +111,6 @@ export const ANALYTICS_EVENTS_V2 = {
   BROWSER_RELOAD: generateOpt('Reload Browser'),
   BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
   // Settings
-  SETTINGS_TOKEN_DETECTION_ON: generateOpt(`Token detection turned ON`),
-  SETTINGS_TOKEN_DETECTION_OFF: generateOpt(`Token detection turned OFF`),
   // Reveal Credentials
   REVEAL_SRP_INITIATED: generateOpt('Reveal SRP Initiated'),
   REVEAL_SRP_CANCELLED: generateOpt('Reveal SRP Cancelled'),
@@ -131,6 +132,12 @@ export const ANALYTICS_EVENTS_V2 = {
     'User canceled QR hardware transaction',
   ),
   HARDWARE_WALLET_ERROR: generateOpt('Hardware wallet error'),
+
+  // TOKENS
+  TOKEN_DETECTED: generateOpt('Token Detected'),
+  TOKEN_IMPORT_CLICKED: generateOpt('Token Import Clicked'),
+  TOKEN_IMPORT_CANCELED: generateOpt('Token Import Canceled'),
+  TOKENS_HIDDEN: generateOpt('Tokens Hidden'),
 
   // ONRAMP AGGREGATOR
   BUY_BUTTON_CLICKED: generateOpt('Buy Button Clicked'),
@@ -154,6 +161,7 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
+  ONRAMP_ERROR: generateOpt('On-ramp Error'),
 };
 
 /**

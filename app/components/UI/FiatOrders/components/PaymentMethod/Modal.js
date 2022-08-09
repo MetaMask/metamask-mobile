@@ -14,7 +14,7 @@ import Title from '../Title';
 import { colors as importedColors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
 import Device from '../../../../../util/device';
-import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
+import { useTheme } from '../../../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -70,7 +70,7 @@ const createStyles = (colors) =>
   });
 
 const CloseIcon = (props) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -79,7 +79,7 @@ const CloseIcon = (props) => {
 };
 
 const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
