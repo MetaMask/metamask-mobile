@@ -138,4 +138,12 @@ export interface AnalyticsEvents {
     error_message?: string;
     amount: number;
   };
+  ONRAMP_ERROR: {
+    location: ScreenLocation;
+    message: string;
+    payment_method_id?: string;
+    region?: string;
+    currency_source?: string;
+    currency_destination?: string;
+  };
 }

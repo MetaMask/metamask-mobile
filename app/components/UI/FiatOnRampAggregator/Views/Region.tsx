@@ -110,7 +110,7 @@ const RegionView = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting error={sdkError} location={'Region Screen'} />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -120,7 +120,11 @@ const RegionView = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={queryGetCountries} />
+          <ErrorView
+            description={error}
+            ctaOnPress={queryGetCountries}
+            location={'Region Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
