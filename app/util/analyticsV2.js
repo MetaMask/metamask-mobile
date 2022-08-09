@@ -115,6 +115,7 @@ export const ANALYTICS_EVENTS_V2 = {
   // Reveal SRP
   REVEAL_SRP_CTA: generateOpt('Clicks Reveal Secret Recovery Phrase'),
   REVEAL_SRP_SCREEN: generateOpt('Views Reveal Secret Recovery Phrase'),
+  GO_BACK_SRP_SCREEN: generateOpt('Clicked Back on Reveal SRP Password Page'),
   CANCEL_REVEAL_SRP_CTA: generateOpt(
     'Clicks Cancel on Reveal Secret Recovery Phrase Page',
   ),

@@ -238,6 +238,7 @@ class RevealPrivateCredential extends PureComponent {
         navigation,
         false,
         colors,
+        AnalyticsV2.ANALYTICS_EVENTS.GO_BACK_SRP_SCREEN,
       ),
     );
   };
@@ -302,10 +303,14 @@ class RevealPrivateCredential extends PureComponent {
   };
 
   navigateBack = () => {
-    if (!this.isPrivateKey())
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SRP_DONE_CTA);
     const { navigation } = this.props;
     navigation.pop();
+  };
+
+  done = () => {
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SRP_DONE_CTA);
+    this.navigateBack();
   };
 
   async tryUnlockWithPassword(password, privateCredentialName) {
@@ -695,7 +700,7 @@ class RevealPrivateCredential extends PureComponent {
               : strings('reveal_credential.cancel')
           }
           confirmText={strings('reveal_credential.confirm')}
-          onCancelPress={unlocked ? this.navigateBack : this.cancel}
+          onCancelPress={unlocked ? this.done : this.cancel}
           testID={`next-button`}
           onConfirmPress={() => this.tryUnlock()}
           showConfirmButton={!unlocked}
