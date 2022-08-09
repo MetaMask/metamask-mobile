@@ -1,3 +1,4 @@
+/* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -411,6 +412,12 @@ class Onboarding extends PureComponent {
         <Text style={styles.title} testID={'onboarding-screen-title'}>
           {strings('onboarding.title')}
         </Text>
+        <Text
+          style={styles.title}
+        >{`ENV: ${process.env['METAMASK_ENVIRONMENT']}`}</Text>
+        <Text
+          style={styles.title}
+        >{`BRANCH: ${process.env['GIT_BRANCH']}`}</Text>
         <View style={styles.importWrapper}>
           <Text style={styles.buttonDescription}>
             {strings('onboarding.import')}
