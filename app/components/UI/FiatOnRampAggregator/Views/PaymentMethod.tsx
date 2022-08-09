@@ -183,7 +183,7 @@ const PaymentMethod = () => {
       <ScreenLayout.Body>
         <ScreenLayout.Content>
           {filteredPaymentMethods?.map(
-            ({ id, name, delay, amountTier, paymentType }) => (
+            ({ id, name, delay, amountTier, paymentType, logo }) => (
               <View key={id} style={styles.row}>
                 <PaymentOption
                   highlighted={id === selectedPaymentMethodId}
@@ -197,6 +197,7 @@ const PaymentMethod = () => {
                   }
                   amountTier={amountTier}
                   paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                  logo={logo}
                 />
               </View>
             ),
