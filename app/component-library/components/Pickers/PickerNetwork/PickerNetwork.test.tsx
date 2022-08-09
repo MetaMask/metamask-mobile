@@ -11,8 +11,8 @@ describe('PickerNetwork', () => {
     const wrapper = shallow(
       <PickerNetwork
         onPress={jest.fn}
-        networkLabel={'Ethereum Mainnet'}
-        networkImageUrl={TEST_IMAGE_URL}
+        label={'Ethereum Mainnet'}
+        image={{ uri: TEST_IMAGE_URL }}
       />,
     );
     expect(wrapper).toMatchSnapshot();

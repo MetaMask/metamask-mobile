@@ -1,3 +1,6 @@
+// Third party dependencies.
+import { ImageSourcePropType } from 'react-native';
+
 // External dependencies.
 import { IconSize } from '../../Icon';
 import { AvatarBaseProps, AvatarBaseSize } from '../AvatarBase';
@@ -7,9 +10,9 @@ import { AvatarBaseProps, AvatarBaseSize } from '../AvatarBase';
  */
 export interface AvatarFaviconProps extends AvatarBaseProps {
   /**
-   * An icon URL
+   * A favicon image from either a local or remote source.
    */
-  imageUrl: string;
+  image: ImageSourcePropType;
 }
 
 /**

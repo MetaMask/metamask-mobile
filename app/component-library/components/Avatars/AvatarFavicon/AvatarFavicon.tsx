@@ -18,7 +18,7 @@ import {
 import stylesheet from './AvatarFavicon.styles';
 
 const AvatarFavicon = ({
-  imageUrl,
+  image,
   size = AvatarBaseSize.Md,
   style,
 }: AvatarFaviconProps) => {
@@ -41,7 +41,7 @@ const AvatarFavicon = ({
       ) : (
         <Image
           testID={FAVICON_AVATAR_IMAGE_ID}
-          source={{ uri: imageUrl }}
+          source={image}
           style={styles.image}
           resizeMode={'contain'}
           onError={onError}

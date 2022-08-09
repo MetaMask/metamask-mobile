@@ -6,28 +6,29 @@ AvatarToken is a component that renders a token image.
 
 This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
 
-### `tokenName`
+### `name`
 
-Token name
+Optional token name.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | [tokenName](./AvatarToken.types.ts#L10)             | No                                                      |
 
-### `tokenImageUrl`
+### `image`
 
-Token image URL
+Optional token image from either a local or remote source.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [tokenImageUrl](./AvatarToken.types.ts#L10)         | No                                                      |
+| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------------------------- | :------------------------------------------------------ |
+| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | No                                                      |
 
 ### `showHalo`
 
-Boolean value that activates halo effect(blurred image colors around)
+Boolean value that activates halo effect (blurred image colors around).
+
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [showHalo](./AvatarToken.types.ts#L18) | No |
+| [showHalo](./AvatarToken.types.ts#L18)              | No                                                      |
 
 ## Usage
 
@@ -38,8 +39,8 @@ import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarB
 
 <AvatarToken
   size={AvatarBaseSize.Md}
-  tokenName={TOKEN_NAME}
-  tokenImageUrl={TOKEN_IMAGE_URL}
+  name={TOKEN_NAME}
+  image={{ uri: TOKEN_IMAGE_URL }}
   showHalo
 />;
 ```

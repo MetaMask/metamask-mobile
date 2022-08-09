@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { Image } from 'react-native';
+import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
@@ -17,16 +17,16 @@ import stylesheet from './AvatarNetwork.styles';
 const AvatarNetwork = ({
   size = AvatarBaseSize.Md,
   style,
-  networkName,
-  networkImageUrl,
+  name,
+  image,
 }: AvatarNetworkProps) => {
-  const [showPlaceholder, setShowPlaceholder] = useState(!networkImageUrl);
+  const [showPlaceholder, setShowPlaceholder] = useState(!image);
   const { styles } = useStyles(stylesheet, { style, size, showPlaceholder });
   const textVariant =
     size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
       ? TextVariant.lBodySM
       : TextVariant.lBodyMD;
-  const chainNameFirstLetter = networkName?.[0] ?? '?';
+  const chainNameFirstLetter = name?.[0] ?? '?';
 
   const onError = useCallback(
     () => setShowPlaceholder(true),
@@ -41,7 +41,7 @@ const AvatarNetwork = ({
         </Text>
       ) : (
         <Image
-          source={{ uri: networkImageUrl }}
+          source={image as ImageSourcePropType}
           style={styles.image}
           onError={onError}
           testID={NETWORK_AVATAR_IMAGE_ID}

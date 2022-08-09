@@ -8,7 +8,7 @@ import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
-import { TEST_IMAGE_URL } from './AvatarFavicon.constants';
+import { TEST_IMAGE_SOURCE } from './AvatarFavicon.constants';
 
 storiesOf('Component Library / AvatarFavicon', module)
   .addDecorator((getStory) => getStory())
@@ -20,7 +20,7 @@ storiesOf('Component Library / AvatarFavicon', module)
       'Avatar Size',
     );
 
-    return <AvatarFavicon size={sizeSelector} imageUrl={TEST_IMAGE_URL} />;
+    return <AvatarFavicon size={sizeSelector} image={TEST_IMAGE_SOURCE} />;
   })
   .add('With Error', () => {
     const sizeSelector = select(
@@ -30,5 +30,5 @@ storiesOf('Component Library / AvatarFavicon', module)
       'Avatar Size',
     );
 
-    return <AvatarFavicon size={sizeSelector} imageUrl={''} />;
+    return <AvatarFavicon size={sizeSelector} image={{ uri: '' }} />;
   });

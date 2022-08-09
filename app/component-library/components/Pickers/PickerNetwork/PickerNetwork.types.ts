@@ -1,18 +1,18 @@
 // Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
+import { ImageSourcePropType, TouchableOpacityProps } from 'react-native';
 
 /**
  * PickerNetwork component props.
  */
 export interface PickerNetworkProps extends TouchableOpacityProps {
   /**
-   * Network image url.
+   * Network image from either a local or remote source.
    */
-  networkImageUrl: string;
+  image: ImageSourcePropType;
   /**
    * Network label to display.
    */
-  networkLabel: string;
+  label: string;
   /**
    * Callback to trigger when picker is pressed.
    */

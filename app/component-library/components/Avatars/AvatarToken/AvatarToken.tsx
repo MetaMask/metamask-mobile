@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useState } from 'react';
-import { Image, ImageBackground } from 'react-native';
+import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import Avatar, { AvatarBaseSize } from '../AvatarBase';
@@ -15,11 +15,11 @@ import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';
 const AvatarToken = ({
   size,
   style,
-  tokenName,
-  tokenImageUrl,
+  name,
+  image,
   showHalo,
 }: AvatarTokenProps) => {
-  const [showFallback, setShowFallback] = useState(!tokenImageUrl);
+  const [showFallback, setShowFallback] = useState(!image);
 
   const { styles } = useStyles(stylesheet, {
     style,
@@ -32,7 +32,7 @@ const AvatarToken = ({
     size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
       ? TextVariant.lBodySM
       : TextVariant.lBodyMD;
-  const tokenNameFirstLetter = tokenName?.[0] ?? '?';
+  const tokenNameFirstLetter = name?.[0] ?? '?';
 
   const onError = () => setShowFallback(true);
 
@@ -44,7 +44,7 @@ const AvatarToken = ({
         </Text>
       ) : (
         <Image
-          source={{ uri: tokenImageUrl }}
+          source={image as ImageSourcePropType}
           style={styles.image}
           onError={onError}
           testID={TOKEN_AVATAR_IMAGE_ID}
@@ -60,7 +60,7 @@ const AvatarToken = ({
       blurRadius={20}
       style={styles.halo}
       imageStyle={styles.haloImage}
-      source={{ uri: tokenImageUrl }}
+      source={image as ImageSourcePropType}
     >
       {tokenImage()}
     </ImageBackground>

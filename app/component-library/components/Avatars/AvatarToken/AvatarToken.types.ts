@@ -1,3 +1,6 @@
+// Third party dependencies.
+import { ImageSourcePropType } from 'react-native';
+
 // External dependencies.
 import { AvatarBaseProps } from '../AvatarBase/AvatarBase.types';
 
@@ -6,13 +9,13 @@ import { AvatarBaseProps } from '../AvatarBase/AvatarBase.types';
  */
 export interface AvatarTokenProps extends AvatarBaseProps {
   /**
-   * Token name.
+   * Optional token name.
    */
-  tokenName?: string;
+  name?: string;
   /**
-   * Token image URL.
+   * Optional token image from either a local or remote source.
    */
-  tokenImageUrl?: string;
+  image?: ImageSourcePropType;
   /**
    * Optional boolean to activate halo effect.
    * @default false

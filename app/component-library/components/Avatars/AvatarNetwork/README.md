@@ -6,21 +6,21 @@ AvatarNetwork is a component that renders an network image based on the user sel
 
 This component extends [AvatarBaseProps](../AvatarBase/AvatarBase.types.ts#L18) from [AvatarBase](../Avatar/Avatar.tsx) component.
 
-### `networkName`
+### `name`
 
-Chain name
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [networkName](./AvatarNetwork.types.ts#L11)         | No                                                      |
-
-### `networkImageUrl`
-
-Chain image URL
+Optional network name.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [networkImageUrl](./AvatarNetwork.types.ts#L15)     | No                                                      |
+| [name](./AvatarNetwork.types.ts#L11)                | No                                                      |
+
+### `image`
+
+Optional network image from either a local or remote source.
+
+| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------------------------- | :------------------------------------------------------ |
+| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | No                                                      |
 
 ## Usage
 
@@ -31,7 +31,7 @@ import { AvatarBaseSize } from 'app/component-library/components/Avatars/AvatarB
 
 <AvatarNetwork
   size={AvatarBaseSize.Md}
-  networkName={NETWORK_NAME}
-  networkImageUrl={NETWORK_IMAGE_URL}
+  name={NETWORK_NAME}
+  image={{ uri: NETWORK_IMAGE_URL }}
 />;
 ```
