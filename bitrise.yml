@@ -250,6 +250,7 @@ workflows:
                       - track: internal
                       - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
                       - package_name: $MM_ANDROID_PACKAGE_NAME
+                  is_always_run: false
         envs:
             - opts:
                   is_expand: false
