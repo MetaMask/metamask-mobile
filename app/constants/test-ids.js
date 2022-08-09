@@ -67,16 +67,3 @@ export const WHATS_NEW_MODAL_CLOSE_BUTTON_ID = 'whats-new-modal-close-button';
 export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
 export const INPUT_NETWORK_NAME = 'input-network-name';
-
-// Component library test ids
-export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
-export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
-export const CHECKBOX_ICON_ID = 'checkbox-icon';
-export const SELECTABLE_LIST_ITEM_OVERLAY_ID = 'selectable-list-item-overlay';
-export const CONFIRMATION_MODAL_NORMAL_BUTTON_ID =
-  'confirmation-modal-normal-button';
-export const CONFIRMATION_MODAL_DANGER_BUTTON_ID =
-  'confirmation-modal-danger-button';
-export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
-export const STACKED_AVATARS_OVERFLOW_COUNTER =
-  'stacked-avatar-overflow-counter';
