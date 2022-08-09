@@ -1,14 +1,17 @@
 // Third party dependencies.
 import React from 'react';
+import { ImageSourcePropType } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
+import { boolean, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
-import { TEST_IMAGE_SOURCE } from './AvatarFavicon.constants';
+import { TEST_IMAGE_URL } from './AvatarFavicon.constants';
+
+const groupId = 'Props';
 
 storiesOf('Component Library / AvatarFavicon', module)
   .addDecorator((getStory) => getStory())
@@ -17,10 +20,15 @@ storiesOf('Component Library / AvatarFavicon', module)
       'size',
       AvatarBaseSize,
       AvatarBaseSize.Md,
-      'Avatar Size',
+      groupId,
     );
+    const includesImage = boolean('Includes image', true, groupId);
+    const imageUrlSelector = text('image.uri', TEST_IMAGE_URL, groupId);
+    const image = (includesImage && {
+      uri: imageUrlSelector,
+    }) as ImageSourcePropType;
 
-    return <AvatarFavicon size={sizeSelector} image={TEST_IMAGE_SOURCE} />;
+    return <AvatarFavicon size={sizeSelector} image={image} />;
   })
   .add('With Error', () => {
     const sizeSelector = select(

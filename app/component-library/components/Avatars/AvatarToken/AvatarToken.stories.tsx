@@ -29,7 +29,7 @@ storiesOf('Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const includesImage = boolean('Includes image', false, groupId);
+    const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
       'image.uri',
       TEST_TOKEN_IMAGES,
@@ -52,7 +52,7 @@ storiesOf('Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const includesImage = boolean('Includes image', false, groupId);
+    const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
       'iamge.uri',
       TEST_TOKEN_IMAGES,
