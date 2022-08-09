@@ -8,19 +8,19 @@ import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
-import { TEST_IMAGE_URL } from './AvatarNetwork.constants';
+import { TEST_IMAGE_SOURCE } from './AvatarNetwork.constants';
 
 storiesOf(' Component Library / AvatarNetwork', module)
   .addDecorator((getStory) => getStory())
   .add('With image', () => {
     const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
-    const networkNameSelector = text('networkName', 'Ethereum');
+    const networkNameSelector = text('name', 'Ethereum');
 
     return (
       <AvatarNetwork
         size={sizeSelector}
-        networkName={networkNameSelector}
-        networkImageUrl={TEST_IMAGE_URL}
+        name={networkNameSelector}
+        imageSource={TEST_IMAGE_SOURCE}
       />
     );
   })
@@ -28,9 +28,7 @@ storiesOf(' Component Library / AvatarNetwork', module)
     const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
     const networkNameSelector = text('networkName', 'Ethereum');
 
-    return (
-      <AvatarNetwork size={sizeSelector} networkName={networkNameSelector} />
-    );
+    return <AvatarNetwork size={sizeSelector} name={networkNameSelector} />;
   })
   .add('Without image and networkName', () => {
     const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);

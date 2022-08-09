@@ -1,3 +1,6 @@
+// Third party dependencies.
+import { ImageSourcePropType } from 'react-native';
+
 // External dependencies.
 import { AvatarBaseProps } from '../AvatarBase/AvatarBase.types';
 
@@ -6,16 +9,16 @@ import { AvatarBaseProps } from '../AvatarBase/AvatarBase.types';
  */
 export interface AvatarNetworkProps extends AvatarBaseProps {
   /**
-   * Chain name.
+   * Optional network name.
    */
-  networkName?: string;
+  name?: string;
   /**
-   * Chain image URL.
+   * Optional network image from either a local or remote source.
    */
-  networkImageUrl?: string;
+  imageSource?: ImageSourcePropType;
 }
 
 export interface AvatarNetworkStyleSheetVars
   extends Pick<AvatarNetworkProps, 'size' | 'style'> {
-  showPlaceholder: boolean;
+  showFallback: boolean;
 }

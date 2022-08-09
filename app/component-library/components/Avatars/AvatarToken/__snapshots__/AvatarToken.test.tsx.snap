@@ -9,7 +9,7 @@ exports[`AvatarToken should render correctly 1`] = `
     onError={[Function]}
     source={
       Object {
-        "uri": "../../../app/images/eth-logo.png",
+        "testUri": "../../../app/images/eth-logo.png",
       }
     }
     style={

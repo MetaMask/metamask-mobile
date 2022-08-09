@@ -1,3 +1,6 @@
+// Third party dependencies.
+import { ImageSourcePropType } from 'react-native';
+
 /**
  * Toast variants.
  */
@@ -51,7 +54,7 @@ interface AccountToastOption extends BaseToastVariant {
  */
 interface NetworkToastOption extends BaseToastVariant {
   variant: ToastVariant.Network;
-  networkImageUrl: string;
+  networkImageSource: ImageSourcePropType;
 }
 
 /**

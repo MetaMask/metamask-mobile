@@ -1,7 +1,8 @@
 // Third party dependencies.
 import React from 'react';
+import { ImageSourcePropType } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
+import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
@@ -10,6 +11,8 @@ import { AvatarBaseSize } from '../AvatarBase';
 import AvatarFavicon from './AvatarFavicon';
 import { TEST_IMAGE_URL } from './AvatarFavicon.constants';
 
+const groupId = 'Props';
+
 storiesOf('Component Library / AvatarFavicon', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
@@ -17,10 +20,14 @@ storiesOf('Component Library / AvatarFavicon', module)
       'size',
       AvatarBaseSize,
       AvatarBaseSize.Md,
-      'Avatar Size',
+      groupId,
     );
+    const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
+    const imageSource: ImageSourcePropType = {
+      uri: imageUrl,
+    };
 
-    return <AvatarFavicon size={sizeSelector} imageUrl={TEST_IMAGE_URL} />;
+    return <AvatarFavicon size={sizeSelector} imageSource={imageSource} />;
   })
   .add('With Error', () => {
     const sizeSelector = select(
@@ -30,5 +37,5 @@ storiesOf('Component Library / AvatarFavicon', module)
       'Avatar Size',
     );
 
-    return <AvatarFavicon size={sizeSelector} imageUrl={''} />;
+    return <AvatarFavicon size={sizeSelector} imageSource={{ uri: '' }} />;
   });

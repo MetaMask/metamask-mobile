@@ -1,19 +1,19 @@
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import { select, text } from '@storybook/addon-knobs';
+import { boolean, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
-import { TEST_TOKEN_IMAGES } from './AvatarToken.constants';
+import { TEST_TOKEN_IMAGES, TEST_NETWORK_NAME } from './AvatarToken.constants';
 
 const groupId = 'props';
 
-storiesOf(' Component Library / AvatarToken', module)
+storiesOf('Component Library / AvatarToken', module)
   // Component centered container
   .addDecorator((storyFn) => (
     //  eslint-disable-next-line
@@ -28,19 +28,23 @@ storiesOf(' Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
+    const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
-      'tokenImageUrl',
+      'imageSource.uri',
       TEST_TOKEN_IMAGES,
       TEST_TOKEN_IMAGES[0],
       groupId,
     );
-    const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
+    const image = (includesImage && {
+      uri: imageUrlSelector,
+    }) as ImageSourcePropType;
+    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
 
     return (
       <AvatarToken
         size={sizeSelector}
-        tokenName={tokenNameSelector}
-        tokenImageUrl={imageUrlSelector}
+        name={tokenNameSelector}
+        imageSource={image}
       />
     );
   })
@@ -51,20 +55,24 @@ storiesOf(' Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
+    const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
-      'tokenImageUrl',
+      'imageSource.uri',
       TEST_TOKEN_IMAGES,
       TEST_TOKEN_IMAGES[0],
       groupId,
     );
-    const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
+    const image = (includesImage && {
+      uri: imageUrlSelector,
+    }) as ImageSourcePropType;
+    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
 
     return (
       <AvatarToken
         size={sizeSelector}
-        tokenName={tokenNameSelector}
-        tokenImageUrl={imageUrlSelector}
-        showHalo
+        name={tokenNameSelector}
+        imageSource={image}
+        isHaloEnabled
       />
     );
   })
@@ -75,11 +83,11 @@ storiesOf(' Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const tokenNameSelector = text('tokenName', 'Ethereum', groupId);
+    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
 
-    return <AvatarToken size={sizeSelector} tokenName={tokenNameSelector} />;
+    return <AvatarToken size={sizeSelector} name={tokenNameSelector} />;
   })
-  .add('Without image and tokenName', () => {
+  .add('Without image and name', () => {
     const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
 
     return <AvatarToken size={sizeSelector} />;

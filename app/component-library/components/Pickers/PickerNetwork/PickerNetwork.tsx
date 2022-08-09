@@ -18,20 +18,17 @@ import stylesheet from './PickerNetwork.styles';
 const PickerNetwork = ({
   onPress,
   style,
-  networkLabel,
-  networkImageUrl,
+  label,
+  imageSource,
   ...props
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
 
   return (
     <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
-      <AvatarNetwork
-        size={AvatarBaseSize.Xs}
-        networkImageUrl={networkImageUrl}
-      />
+      <AvatarNetwork size={AvatarBaseSize.Xs} imageSource={imageSource} />
       <Text style={styles.label} variant={TextVariant.sBodyMD}>
-        {networkLabel}
+        {label}
       </Text>
       <Icon size={IconSize.Xs} name={IconName.ArrowDownOutline} />
     </TouchableOpacity>

@@ -2,9 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { ImageSourcePropType, StyleSheet } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import { text } from '@storybook/addon-knobs';
+import { boolean, text } from '@storybook/addon-knobs';
 
 // Internal dependencies.
 import PickerNetwork from './PickerNetwork';
@@ -18,19 +18,20 @@ const styles = StyleSheet.create({
 
 storiesOf('Component Library / PickerNetwork', module).add('Default', () => {
   const groupId = 'Props';
-  const networkLabelSelector = text(
-    'networkLabel',
-    'Ethereum Mainnet',
-    groupId,
-  );
+  const networkLabelSelector = text('label', 'Ethereum Mainnet', groupId);
+  const includesImage = boolean('Includes image', false, groupId);
+  const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
+  const imageSource = (includesImage && {
+    uri: imageUrl,
+  }) as ImageSourcePropType;
 
   return (
     <PickerNetwork
       onPress={() => {
         console.log('Picking network!');
       }}
-      networkLabel={networkLabelSelector}
-      networkImageUrl={TEST_IMAGE_URL}
+      label={networkLabelSelector}
+      imageSource={imageSource}
       style={styles.networkPicker}
     />
   );
