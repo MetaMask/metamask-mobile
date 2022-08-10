@@ -21,9 +21,9 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
-import { useGasTransaction } from '../../../core/GasPolling';
+import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { EditGasFee1559UpdateProps } from './type';
+import { EditGasFee1559UpdateProps } from './types';
 import createStyles from './styles';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);

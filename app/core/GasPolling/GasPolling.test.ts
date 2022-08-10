@@ -1,14 +1,14 @@
 jest.useFakeTimers();
 
-import Engine from './Engine';
+import Engine from '../Engine';
 import {
   startGasPolling,
   getEIP1559TransactionData,
   stopGasPolling,
   useDataStore,
 } from './GasPolling';
-import { parseTransactionEIP1559 } from '../util/transactions';
-jest.mock('../util/transactions');
+import { parseTransactionEIP1559 } from '../../util/transactions';
+jest.mock('../../util/transactions');
 const mockedParseTransactionEIP1559 =
   parseTransactionEIP1559 as jest.MockedFunction<
     typeof parseTransactionEIP1559
@@ -16,7 +16,7 @@ const mockedParseTransactionEIP1559 =
 
 const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
 
-jest.mock('./Engine', () => ({
+jest.mock('../Engine', () => ({
   context: {
     GasFeeController: {
       gasFeeEstimates: {},

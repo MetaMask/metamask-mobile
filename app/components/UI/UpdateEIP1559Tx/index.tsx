@@ -12,112 +12,12 @@ import BigNumber from 'bignumber.js';
 import { getTicker } from '../../../util/transactions';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-import { startGasPolling, stopGasPolling } from '../../../core/GasPolling';
-
-/**
- * View that renders a list of transactions for a specific asset
- */
-
-interface Props {
-  /**
-   * Map of accounts to information objects including balances
-   */
-  accounts: any;
-  /**
-   * Chain Id
-   */
-  chainId: string;
-  /**
-   * ETH or fiat, depending on user setting
-   */
-  primaryCurrency: string;
-  /**
-   * Gas fee estimates returned by the gas fee controller
-   */
-  gasFeeEstimates: any;
-  /**
-   * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
-   */
-  gasEstimateType: string;
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: string;
-  /**
-   * A bool indicates whether tx is speed up/cancel
-   */
-  isCancel: boolean;
-  /**
-   * Current provider ticker
-   */
-  ticker: string;
-  /**
-   * The max fee and max priorty fee selected tx
-   */
-  existingGas: any;
-  /**
-   * Gas object used to get suggestedGasLimit
-   */
-  gas: any;
-  /**
-   * Function that cancels the tx update
-   */
-  onCancel: () => void;
-  /**
-   * Function that performs the rest of the tx update
-   */
-  onSave: (tx: any) => void;
-}
-
-interface GasTxnProp {
-  error: any;
-  estimatedBaseFee: string;
-  estimatedBaseFeeHex: string;
-  gasFeeMaxConversion: string;
-  gasFeeMaxNative: string;
-  gasFeeMinConversion: string;
-  gasFeeMinNative: string;
-  gasLimitHex: string;
-  maxPriorityFeeConversion: string;
-  maxPriorityFeeNative: string;
-  renderableGasFeeMaxConversion: string;
-  renderableGasFeeMaxNative: string;
-  renderableGasFeeMinConversion: string;
-  renderableGasFeeMinNative: string;
-  renderableMaxFeePerGasConversion: string;
-  renderableMaxFeePerGasNative: string;
-  renderableMaxPriorityFeeConversion: string;
-  renderableMaxPriorityFeeNative: string;
-  suggestedEstimatedGasLimit: string | undefined;
-  suggestedGasLimit: string;
-  suggestedMaxFeePerGas: string;
-  suggestedMaxFeePerGasHex: string;
-  suggestedMaxPriorityFeePerGas: string;
-  suggestedMaxPriorityFeePerGasHex: string;
-  timeEstimate: string;
-  timeEstimateColor: string;
-  timeEstimateId: string;
-  totalMaxHex: string;
-}
-
-interface UpdateTx1559Options {
-  /**
-   * The legacy calculated max priorty fee used in subcomponent for threshold warning messages
-   */
-  maxPriortyFeeThreshold: BigNumber;
-  /**
-   * The legacy calculated max fee used in subcomponent for threshold warning messages
-   */
-  maxFeeThreshold: BigNumber;
-  /**
-   * Boolean to indicate to sumcomponent if the view should display only advanced settings
-   */
-  showAdvanced: boolean;
-  /**
-   * Boolean to indicate if this is a cancel tx update
-   */
-  isCancel: boolean;
-}
+import {
+  startGasPolling,
+  stopGasPolling,
+} from '../../../core/GasPolling/GasPolling';
+import { GasTransactionProps } from '../../../core/GasPolling/types';
+import { UpdateEIP1559Props, UpdateTx1559Options } from './types';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -132,7 +32,7 @@ const UpdateEIP1559Tx = ({
   chainId,
   onCancel,
   onSave,
-}: Props) => {
+}: UpdateEIP1559Props) => {
   const [animateOnGasChange, setAnimateOnGasChange] = useState(false);
   const [gasSelected, setGasSelected] = useState(
     AppConstants.GAS_OPTIONS.MEDIUM,
@@ -306,7 +206,7 @@ const UpdateEIP1559Tx = ({
     setGasSelected(selected);
   };
 
-  const onSaveTxnWithError = (gasTxn: GasTxnProp) => {
+  const onSaveTxnWithError = (gasTxn: GasTransactionProps) => {
     gasTxn.error = validateAmount(gasTxn);
     onSave(gasTxn);
   };
