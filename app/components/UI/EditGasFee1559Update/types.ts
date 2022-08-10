@@ -67,7 +67,7 @@ export interface EditGasFee1559UpdateProps {
   /**
    * An array of selected gas value and lower that should be ignored.
    */
-  ignoreOptions: string[];
+  ignoreOptions: string[] | undefined;
   /**
    * Extend options object. Object has option keys and properties will be spread
    */
