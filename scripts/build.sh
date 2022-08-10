@@ -336,22 +336,22 @@ startWatcher() {
 checkAuthToken() {
 	local propertiesFileName="$1"
 
-#	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-#		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-#	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
-#		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
-#		exit 1
-#	fi
-#
-#	if [ ! -e "./${propertiesFileName}" ]; then
-#		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
-#			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
-#			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
-#		else
-#			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
-#			exit 1
-#		fi
-#	fi
+	if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+		sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+	elif ! grep -qE '^auth.token=[[:alnum:]]+$' "./${propertiesFileName}"; then
+		printError "Missing auth token in '${propertiesFileName}'; add the token, or set it as MM_SENTRY_AUTH_TOKEN"
+		exit 1
+	fi
+
+	if [ ! -e "./${propertiesFileName}" ]; then
+		if [ -n "${MM_SENTRY_AUTH_TOKEN}" ]; then
+			cp "./${propertiesFileName}.example" "./${propertiesFileName}"
+			sed -i'' -e "s/auth.token.*/auth.token=${MM_SENTRY_AUTH_TOKEN}/" "./${propertiesFileName}";
+		else
+			printError "Missing '${propertiesFileName}' file (see '${propertiesFileName}.example' or set MM_SENTRY_AUTH_TOKEN to generate)"
+			exit 1
+		fi
+	fi
 }
 
 checkParameters "$@"
@@ -362,12 +362,12 @@ if [ "$MODE" == "release" ] || [ "$MODE" == "releaseE2E" ]; then
 
 	if [ "$PRE_RELEASE" = false ]; then
 		echo "RELEASE SENTRY PROPS"
- 	#	checkAuthToken 'sentry.release.properties'
- 	#	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+ 		checkAuthToken 'sentry.release.properties'
+ 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
  	else
 	 	echo "DEBUG SENTRY PROPS"
- 	#	checkAuthToken 'sentry.debug.properties'
- 	#	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
+ 		checkAuthToken 'sentry.debug.properties'
+ 		export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
  	fi
 
 
