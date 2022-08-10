@@ -109,13 +109,12 @@ project.ext.react = [
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
-
-project.ext.sentryCli = [
+ project.ext.sentryCli = [
 	logLevel: "debug",
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
 ]
 
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+apply from: "../../node_modules/@sentry/react-native/sentry.gradle" 
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -199,6 +198,7 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+
 	}
 
 	splits {
@@ -229,6 +229,26 @@ android {
 			signingConfig signingConfigs.release
 		}
 	}
+
+	flavorDimensions "version" 
+   		productFlavors {
+			dev {
+				dimension "version"
+				applicationIdSuffix ".dev"
+				applicationId "io.metamask"
+			}
+
+        	qa {
+            	dimension "version"
+            	applicationIdSuffix ".qa"
+				applicationId "io.metamask"
+        	}
+			prod {
+				dimension "version"
+				applicationId "io.metamask"
+			}
+    	}
+
 	buildTypes.each {
 		it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
 
@@ -287,6 +307,7 @@ dependencies {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
         releaseImplementation files(hermesPath + "hermes-release.aar")
+		
     } else {
         implementation jscFlavor
     }
