@@ -593,7 +593,7 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
-const LedgerConnectFlow = ({ navigation }) => (
+const LedgerConnectFlow = () => (
   <Stack.Navigator initialRouteName={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}>
     <Stack.Screen
       name={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}
