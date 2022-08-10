@@ -15,8 +15,8 @@ import {
   SEGMENT_REGULATIONS_ENDPOINT,
 } from '../../constants/storage';
 
-import { IMetaMetrics } from './interface';
-import { METAMETRICS_ANONYMOUS_ID, States } from './constants';
+import { IMetaMetrics } from './MetaMetrics.interface';
+import { METAMETRICS_ANONYMOUS_ID, States } from './MetaMetrics.constants';
 
 class MetaMetrics implements IMetaMetrics {
   private static _instance: MetaMetrics;
