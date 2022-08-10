@@ -4,7 +4,7 @@ import Analytics from '../../../../../core/Analytics/Analytics';
 import {
   DeletionTaskStatus,
   ResponseStatus,
-} from '../../../../../core/Analytics/constants';
+} from '../../../../../core/Analytics/MetaMetrics.constants';
 import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
