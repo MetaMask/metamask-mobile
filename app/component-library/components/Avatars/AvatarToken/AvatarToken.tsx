@@ -48,6 +48,7 @@ const AvatarToken = ({
           style={styles.image}
           onError={onError}
           testID={TOKEN_AVATAR_IMAGE_ID}
+          resizeMode={'contain'}
         />
       )}
     </Avatar>

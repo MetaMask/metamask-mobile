@@ -9,13 +9,16 @@ import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
-import { TEST_IMAGE_URL } from './AvatarFavicon.constants';
+import {
+  TEST_IMAGE_URL,
+  TEST_LOCAL_IMAGE_SOURCE,
+} from './AvatarFavicon.constants';
 
 const groupId = 'Props';
 
 storiesOf('Component Library / AvatarFavicon', module)
   .addDecorator((getStory) => getStory())
-  .add('Default', () => {
+  .add('Default with remote image', () => {
     const sizeSelector = select(
       'size',
       AvatarBaseSize,
@@ -29,7 +32,13 @@ storiesOf('Component Library / AvatarFavicon', module)
 
     return <AvatarFavicon size={sizeSelector} imageSource={imageSource} />;
   })
-  .add('With Error', () => {
+  .add('With local image', () => (
+    <AvatarFavicon
+      size={AvatarBaseSize.Lg}
+      imageSource={TEST_LOCAL_IMAGE_SOURCE}
+    />
+  ))
+  .add('With error', () => {
     const sizeSelector = select(
       'size',
       AvatarBaseSize,

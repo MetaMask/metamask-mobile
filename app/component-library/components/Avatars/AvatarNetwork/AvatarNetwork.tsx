@@ -42,6 +42,7 @@ const AvatarNetwork = ({
           style={styles.image}
           onError={onError}
           testID={NETWORK_AVATAR_IMAGE_ID}
+          resizeMode={'contain'}
         />
       )}
     </Avatar>

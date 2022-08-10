@@ -32,7 +32,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
-    image: { flex: 1 },
+    image: { flex: 1, height: undefined, width: undefined },
   });
 };
 
