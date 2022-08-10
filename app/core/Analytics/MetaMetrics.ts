@@ -1,11 +1,7 @@
 import { createClient } from '@segment/analytics-react-native';
+import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import { bufferToHex, keccak } from 'ethereumjs-util';
-import {
-  getApplicationName,
-  getVersion,
-  getBuildNumber,
-} from 'react-native-device-info';
 import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import Logger from '../../util/Logger';
 import {
@@ -16,27 +12,24 @@ import {
   ANALYTICS_DATA_DELETION_TASK_ID,
   ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
+  SEGMENT_REGULATIONS_ENDPOINT,
 } from '../../constants/storage';
 
-import {
-  IMetaMetrics,
-  SegmentEventPayload,
-  MetaMetricsContext,
-} from './interface';
+import { IMetaMetrics } from './interface';
 import { METAMETRICS_ANONYMOUS_ID, States } from './constants';
 
 class MetaMetrics implements IMetaMetrics {
   private static _instance: MetaMetrics;
 
+  // PRIVATE CLASS VARIABLES
+
   #metametricsId = '';
   #segmentClient: any;
   #state: States = States.disabled;
-  #dataDeletionTaskDate: string | undefined;
+  #suppressWithDeleteRegulationDate = '';
   #isDataRecorded = false;
 
-  #appName = '';
-  #appVersion = '';
-  #buildNumber = '';
+  // CONSTRUCTOR
 
   private constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
@@ -44,15 +37,22 @@ class MetaMetrics implements IMetaMetrics {
     this._init();
   }
 
+  // PRIVATE METHODS
+
+  /**
+   * Method to initialize private variables async.
+   */
   private async _init() {
     this.#metametricsId = await this._generateMetaMetricsId();
-    this.#appName = await getApplicationName();
-    this.#appVersion = await getVersion();
-    this.#buildNumber = await getBuildNumber();
     // eslint-disable-next-line no-console
     console.log(this.#metametricsId);
   }
 
+  /**
+   * Method to generate or retrieve the analytics user ID.
+   *
+   * @returns Promise containing the user ID.
+   */
   private async _generateMetaMetricsId(): Promise<string> {
     let metametricsId: string;
     metametricsId = await DefaultPreference.get(METAMETRICS_ID);
@@ -71,64 +71,75 @@ class MetaMetrics implements IMetaMetrics {
     return metametricsId;
   }
 
+  /**
+   * Method to associate traits or properties to an user.
+   * Check Segment documentation for more information.
+   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#identify
+   *
+   * @param userId - User ID generated for Segment
+   * @param userTraits - Object containing user relevant traits or properties (optional).
+   */
   private _identify(userId: string, userTraits?: Record<string, string>): void {
+    // The identify method lets you tie a user to their actions
+    // and record traits about them. This includes a unique user ID
+    // and any optional traits you know about them
     this.#segmentClient.identify(userId, userTraits);
   }
 
-  private _generateMetaMetricsContext(): MetaMetricsContext {
-    return {
-      app: {
-        name: this.#appName,
-        version: this.#appVersion,
-        build: this.#buildNumber,
-      },
-    };
+  /**
+   * Method to associate an user to a specific group.
+   * Check Segment documentation for more information.
+   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#group
+   *
+   * @param groupId - Group ID to associate user
+   * @param groupTraits - Object containing group relevant traits or properties (optional).
+   */
+  private _group(groupId: string, groupTraits?: Record<string, string>): void {
+    //The Group method lets you associate an individual user with a group—
+    // whether it’s a company, organization, account, project, or team.
+    // This includes a unique group identifier and any additional
+    // group traits you may know
+    this.#segmentClient.group(groupId, groupTraits);
   }
 
-  private _validatePayload(payload: SegmentEventPayload): boolean {
-    return true;
-  }
-
+  /**
+   * Method to track an analytics event.
+   * Check Segment documentation for more information.
+   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
+   *
+   * @param event - Analytics event name.
+   * @param anonymously - Boolean indicating if the event should be anonymous.
+   * @param properties - Object containing any event relevant traits or properties (optional).
+   */
   private _trackEvent(
     event: string,
     anonymously: boolean,
     properties?: Record<string, string>,
   ): void {
-    // const metaMetricsContext = this._generateMetaMetricsContext();
-    // const payload: SegmentEventPayload = {
-    //   event,
-    //   metaMetricsContext,
-    //   properties: properties ?? {},
-    // };
-    // if (anonymously) {
-    //   this.#segmentClient.identify(METAMETRICS_ANONYMOUS_ID, {
-    //     user: 'TestUser',
-    //     appVersion: this.#appVersion,
-    //     appName: this.#appName,
-    //   });
-    // } else {
-    // this.#segmentClient.identify(this.#metametricsId, {
-    //   appVersion: this.#appVersion,
-    //   appName: this.#appName,
-    // });
-    // }
     if (anonymously) {
       this.#segmentClient.track(
-        'Now it should work for real with anon IDs',
+        `Anonymous Test Event: ${event}`,
         properties ?? {},
         undefined,
         METAMETRICS_ANONYMOUS_ID,
       );
     }
+    // The Track method lets you record the actions your users perform.
+    // Every action triggers an event, which also has associated properties
+    // that the track method records.
     this.#segmentClient.track(
-      'Now it should work for real with non anon ID',
+      `Test Event: ${event}`,
       properties ?? {},
       this.#metametricsId,
       METAMETRICS_ANONYMOUS_ID,
     );
   }
 
-  private __storeMetricsOptInPreference = async () => {
+  /**
+   * Method to update the user analytics preference and
+   * store it in DefaultPreference.
+   */
+  private _storeMetricsOptInPreference = async () => {
     try {
       await DefaultPreference.set(
         METRICS_OPT_IN,
@@ -139,6 +150,62 @@ class MetaMetrics implements IMetaMetrics {
       Logger.error(e, errorMsg);
     }
   };
+
+  /**
+   * Method to store the date (format: DAY/MONTH/YEAR)
+   * a request to create a suppress with delete regulation
+   * was created in DefaultPreference.
+   */
+  private _storeSuppressWithDeleteRegulationCreationDate =
+    async (): Promise<void> => {
+      const currentDate = new Date();
+      const month = currentDate.getUTCMonth() + 1;
+      const day = currentDate.getUTCDate();
+      const year = currentDate.getUTCFullYear();
+
+      this.#suppressWithDeleteRegulationDate = `${day}/${month}/${year}`;
+      await DefaultPreference.set(
+        ANALYTICS_DATA_DELETION_DATE,
+        this.#suppressWithDeleteRegulationDate,
+      );
+    };
+
+  /**
+   * Method to generate a new suppress and delete regulation for an user.
+   * This is necessary to respect the GDPR and CCPA regulations.
+   * Check Segment documentation for more information.
+   * https://segment.com/docs/privacy/user-deletion-and-suppression/
+   */
+  private _createSuppressWithDeleteRegulation = async (): Promise<void> => {
+    const segmentToken = process.env.MM_MIXPANEL_TOKEN;
+    const regulationType = 'Suppress_With_Delete';
+    try {
+      const response = await axios({
+        url: SEGMENT_REGULATIONS_ENDPOINT,
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${segmentToken}`,
+        },
+        data: JSON.stringify({
+          regulation_type: regulationType,
+          attributes: {
+            name: this.#metametricsId,
+            values: [],
+          },
+        }),
+      });
+
+      await this._storeSuppressWithDeleteRegulationCreationDate();
+      // eslint-disable-next-line no-console
+      console.log(response.data);
+    } catch (e: any) {
+      // eslint-disable-next-line no-console
+      console.log(e);
+    }
+  };
+
+  // PUBLIC METHODS
 
   public static getInstance(): IMetaMetrics {
     if (!MetaMetrics._instance) {
@@ -153,16 +220,26 @@ class MetaMetrics implements IMetaMetrics {
     return MetaMetrics._instance;
   }
 
-  public enable() {
+  public enable(): void {
     this.#state = States.enabled;
+    this._storeMetricsOptInPreference();
   }
 
-  public disable() {
+  public disable(): void {
     this.#state = States.disabled;
+    this._storeMetricsOptInPreference();
+  }
+
+  public state(): States {
+    return this.#state;
   }
 
   public identity(userId: string, userTraits?: Record<string, string>): void {
     this._identify(userId, userTraits);
+  }
+
+  public group(groupId: string, groupTraits?: Record<string, string>): void {
+    this._group(groupId, groupTraits);
   }
 
   public trackEvent(
@@ -173,6 +250,10 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#state === States.enabled) {
       this._trackEvent(event, anonymously, properties);
     }
+  }
+
+  public createSuppressWithDeleteRegulation(): void {
+    this._createSuppressWithDeleteRegulation();
   }
 }
 
