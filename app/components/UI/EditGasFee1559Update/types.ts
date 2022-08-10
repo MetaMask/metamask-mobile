@@ -1,3 +1,4 @@
+import { GasFeeOptions } from '../../../core/GasPolling/types';
 export interface EditGasFee1559UpdateProps {
   /**
    * The selected gas value (low, medium, high)
@@ -9,35 +10,9 @@ export interface EditGasFee1559UpdateProps {
    */
   initialSuggestedGasLimit: string;
   /**
-   * Gas fee data for the selected gas value.
+   * Gas fee options.
    */
-  gasOptions: {
-    baseFeeTrend: string;
-    estimatedBaseFee: string;
-    high: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    historicalBaseFeeRange: [string, string];
-    historicalPriorityFeeRange: [string, string];
-    latestPriorityFeeRange: [string, string];
-    low: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    medium: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    networkCongestion: number;
-    priorityFeeTrend: string;
-  };
+  gasOptions: GasFeeOptions;
   /**
    * Primary currency, either ETH or Fiat
    */

@@ -74,6 +74,39 @@ export interface GasTransactionProps {
   totalMaxHex: string;
 }
 
+export interface GasFeeOptions {
+  /**
+   * This gasFeeEstimate object is returned from Codefi
+   */
+  gasFeeEstimates: {
+    baseFeeTrend: string;
+    estimatedBaseFee: string;
+    low: {
+      maxWaitTimeEstimate: number;
+      minWaitTimeEstimate: number;
+      suggestedMaxFeePerGas: string;
+      suggestedMaxPriorityFeePerGas: string;
+    };
+    medium: {
+      maxWaitTimeEstimate: number;
+      minWaitTimeEstimate: number;
+      suggestedMaxFeePerGas: string;
+      suggestedMaxPriorityFeePerGas: string;
+    };
+    high: {
+      maxWaitTimeEstimate: number;
+      minWaitTimeEstimate: number;
+      suggestedMaxFeePerGas: string;
+      suggestedMaxPriorityFeePerGas: string;
+    };
+    historicalBaseFeeRange: string[];
+    historicalPriorityFeeRange: string[];
+    latestPriorityFeeRange: string[];
+    networkCongestion: number;
+    priorityFeeTrend: string;
+  };
+}
+
 export interface UseGasTransactionProps extends GasTransactionProps {
   /**
    * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
@@ -141,36 +174,7 @@ export interface TransactionSharedProps {
 }
 
 export interface GetEIP1559TransactionDataProps extends TransactionSharedProps {
-  /**
-   * This gasFeeEstimate object is returned from Codefi
-   */
-  gasFeeEstimates: {
-    baseFeeTrend: string;
-    estimatedBaseFee: string;
-    low: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    medium: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    high: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    historicalBaseFeeRange: string[];
-    historicalPriorityFeeRange: string[];
-    latestPriorityFeeRange: string[];
-    networkCongestion: number;
-    priorityFeeTrend: string;
-  };
+  gasFeeEstimates: GasFeeOptions;
   /**
    * if the selected option is not null, use the equivalent from the gasFeeEstimates object. Else, handle the gasFeeEstimates object differently.
    */
