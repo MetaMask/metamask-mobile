@@ -152,7 +152,7 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android
+	react-native run-android --variant=devDebug
 }
 
 buildAndroidRunE2E(){
@@ -266,6 +266,32 @@ buildIosQA(){
 }
 
 
+buildAndroidQA(){
+	if [ "$PRE_RELEASE" = false ] ; then
+		adb uninstall io.metamask.qa
+	fi
+
+	prebuild_android
+	# Generate APK
+	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+
+	# GENERATE BUNDLE
+	if [ "$GENERATE_BUNDLE" = true ] ; then
+		./gradlew bundleQaRelease
+	fi
+
+	if [ "$PRE_RELEASE" = true ] ; then
+		# Generate sourcemaps
+		yarn sourcemaps:android
+		# Generate checksum
+		yarn build:android:checksum:qa
+	fi
+
+	 if [ "$PRE_RELEASE" = false ] ; then
+	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
+	 fi
+}
+
 buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
@@ -273,11 +299,11 @@ buildAndroidRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleRelease
+		./gradlew bundleProdRelease
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -288,20 +314,29 @@ buildAndroidRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = false ] ; then
-		adb install app/build/outputs/apk/release/app-release.apk
+		adb install app/build/outputs/apk/prod/release/app-prod-release.apk
 	fi
 }
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+}
+
+buildAndroidQAE2E(){
+	prebuild_android
+	cd android && ./gradlew assembleQaRelease assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 }
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] ; then
 		buildAndroidRelease
+	elif [ "$MODE" == "QA" ] ; then
+		buildAndroidQA
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildAndroidReleaseE2E
+	elif [ "$MODE" == "QAE2E" ] ; then
+		buildAndroidQAE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	else
