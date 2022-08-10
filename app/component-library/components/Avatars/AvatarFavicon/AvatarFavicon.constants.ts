@@ -10,10 +10,10 @@ import { AvatarBaseSize } from '../AvatarBase';
 // Internal dependencies.
 import { IconSizeByAvatarSize } from './AvatarFavicon.types';
 
-export const TEST_IMAGE_URL = 'https://uniswap.org/favicon.ico';
+export const TEST_REMOTE_IMAGE_URL = 'https://uniswap.org/favicon.ico';
 
 export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
-  uri: TEST_IMAGE_URL,
+  uri: TEST_REMOTE_IMAGE_URL,
 };
 
 /* eslint-disable-next-line */

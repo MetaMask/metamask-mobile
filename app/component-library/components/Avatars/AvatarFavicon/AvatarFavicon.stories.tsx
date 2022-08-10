@@ -10,7 +10,7 @@ import { AvatarBaseSize } from '../AvatarBase';
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
 import {
-  TEST_IMAGE_URL,
+  TEST_REMOTE_IMAGE_URL,
   TEST_LOCAL_IMAGE_SOURCE,
 } from './AvatarFavicon.constants';
 
@@ -25,7 +25,7 @@ storiesOf('Component Library / AvatarFavicon', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
+    const imageUrl = text('imageSource.uri', TEST_REMOTE_IMAGE_URL, groupId);
     const imageSource: ImageSourcePropType = {
       uri: imageUrl,
     };
