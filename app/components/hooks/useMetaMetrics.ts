@@ -6,12 +6,12 @@ const useMetaMetrics = () => {
   const trackEventHook = useCallback(
     ({
       event,
-      anonymous,
-      params,
+      params = {},
+      anonymous = false,
     }: {
       event: string;
-      anonymous: boolean;
-      params: Record<string, string>;
+      params?: Record<string, string>;
+      anonymous?: boolean;
     }) => {
       InteractionManager.runAfterInteractions(() => {
         if (anonymous) {
