@@ -17,6 +17,7 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
+  isMainnetByChainId,
 } from '../../../util/networks';
 import {
   getEtherscanAddressUrl,
@@ -172,6 +173,7 @@ class Transactions extends PureComponent {
      */
     thirdPartyApiMode: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
+    chainId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -367,6 +369,21 @@ class Transactions extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const { chainId } = this.props;
+    const blockExplorerText = () => {
+      if (isMainnetByChainId(chainId)) {
+        return strings('transactions.view_full_history_on_etherscan');
+      }
+
+      if (NO_RPC_BLOCK_EXPLORER !== this.state.rpcBlockExplorer) {
+        return `${strings(
+          'transactions.view_full_history_on',
+        )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
+      }
+
+      return null;
+    };
+
     return (
       <View style={styles.viewMoreBody}>
         <TouchableOpacity
@@ -374,11 +391,7 @@ class Transactions extends PureComponent {
           style={styles.touchableViewOnEtherscan}
         >
           <Text reset style={styles.viewOnEtherscan}>
-            {(this.state.rpcBlockExplorer &&
-              `${strings(
-                'transactions.view_full_history_on',
-              )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`) ||
-              strings('transactions.view_full_history_on_etherscan')}
+            {blockExplorerText()}
           </Text>
         </TouchableOpacity>
       </View>

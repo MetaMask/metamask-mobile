@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Text as RNText, StyleSheet } from 'react-native';
 import { fontStyles } from '../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -109,7 +109,7 @@ const Text = ({
   noMargin,
   ...props
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const style = createStyles(colors);
 
   return (

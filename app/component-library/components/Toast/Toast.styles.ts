@@ -1,3 +1,4 @@
+// Third party dependencies.
 import { StyleSheet, Dimensions } from 'react-native';
 import { darkTheme } from '@metamask/design-tokens';
 

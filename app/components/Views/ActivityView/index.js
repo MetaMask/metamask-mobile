@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import FiatOrdersView from '../FiatOrdersView';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
 
 function ActivityView({ hasOrders }) {
   const { drawerRef } = useContext(DrawerContext);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const navigation = useNavigation();
 
   useEffect(

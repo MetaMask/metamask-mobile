@@ -1464,14 +1464,16 @@ export function getFiatOnRampAggNavbar(
       ...(!showBack && { textAlign: 'center' }),
     },
   });
-  const headerTitle = title ?? 'No title';
+  const headerTitle = title ?? 'Buy';
 
   const leftActionText = strings('navigation.back');
 
   const leftAction = () => navigation.pop();
 
   return {
-    headerTitle,
+    headerTitle: () => (
+      <NavbarTitle title={headerTitle} disableNetwork translate={false} />
+    ),
     headerLeft: () => {
       if (!showBack) return <View />;
 
