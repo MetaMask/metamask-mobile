@@ -850,6 +850,12 @@ class Confirm extends PureComponent {
     this.review();
   };
 
+  existingGas = {
+    isEIP1559Transaction: false,
+    maxFeePerGas: '123',
+    maxPriorityFeePerGas: '123',
+  };
+
   renderCustomGasModalEIP1559 = () => {
     const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
     const {
