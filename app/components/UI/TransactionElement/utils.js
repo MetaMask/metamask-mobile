@@ -600,14 +600,22 @@ function decodeConfirmTx(args) {
     symbol = tokenList[renderTo].symbol;
   }
   let transactionType;
-  if (actionKey === strings('transactions.approve'))
+
+  if (actionKey.toLowerCase() === strings('transactions.approve').toLowerCase())
     transactionType = TRANSACTION_TYPES.APPROVE;
-  else if (actionKey === strings('transactions.swaps_transaction'))
+  else if (
+    actionKey.toLowerCase() ===
+    strings('transactions.swaps_transaction').toLowerCase()
+  )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (
     actionKey === strings('transactions.smart_contract_interaction') ||
-    (!actionKey.includes(strings('transactions.sent')) &&
-      !actionKey.includes(strings('transactions.received')))
+    (!actionKey
+      .toLowerCase()
+      .includes(strings('transactions.sent').toLowerCase()) &&
+      !actionKey
+        .toLowerCase()
+        .includes(strings('transactions.received').toLowerCase()))
   )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (renderFrom === selectedAddress)
