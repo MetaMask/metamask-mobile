@@ -161,6 +161,7 @@ export const ANALYTICS_EVENTS_V2 = {
   ),
   ONRAMP_EXTERNAL_LINK_CLICKED: generateOpt('External Link Clicked'),
   ONRAMP_QUOTE_ERROR: generateOpt('On-ramp Quote Error'),
+  ONRAMP_ERROR: generateOpt('On-ramp Error'),
 };
 
 /**
