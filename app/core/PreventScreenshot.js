@@ -13,7 +13,7 @@ export default {
     ? NativeModules.PreventScreenshot.forbid
     : () => true,
   allow: isQa
-    ? true
+    ? () => true
     : isAndroid
     ? NativeModules.PreventScreenshot.allow
     : () => true,
