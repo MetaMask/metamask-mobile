@@ -5,24 +5,24 @@ const CREATE_WALLET_BUTTON_ID = 'create-wallet-button';
 const IMPORT_WALLET_BUTTON_ID = 'import-wallet-import-from-seed-button';
 //const importUsingSecretRecoveryPhrase = 'import-wallet-import-from-seed-button';
 class OnboardingView {
-  get createWallet() {
-    return $(`~${CREATE_WALLET_BUTTON_ID}`);
+  get onboardingViewContainer() {
+    return $(`~${ONBOARDING_SCREEN_ID}`);
   }
 
   async tapCreateWallet() {
-    await Gestures.tap(CREATE_WALLET_BUTTON_ID);
+    await Gestures.waitAndTap(CREATE_WALLET_BUTTON_ID);
   }
 
-  static async tapImportWalletFromSeedPhrase() {
-    await TestHelpers.tap(IMPORT_WALLET_BUTTON_ID);
+  async tapImportWalletFromSeedPhrase() {
+    await Gestures.tap(IMPORT_WALLET_BUTTON_ID);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ONBOARDING_SCREEN_ID);
+  async isVisible() {
+    await expect(this.onboardingViewContainer).toBeDisplayed();
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ONBOARDING_SCREEN_ID);
+  async isNotVisible() {
+    await expect(this.onboardingViewContainer).not.toBeDisplayed();
   }
 }
 export default new OnboardingView();

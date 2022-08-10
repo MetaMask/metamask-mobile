@@ -7,7 +7,7 @@ config.capabilities = [
     noReset: true,
     fullReset: false,
     maxInstances: 1,
-    deviceName: 'Pixel_4_API_30',
+    deviceName: 'Pixel_5_API_30',
     platformVersion: '11',
     app: '../../android/app/build/outputs/apk/debug/app-debug.apk',
     appPackage: 'io.metamask',

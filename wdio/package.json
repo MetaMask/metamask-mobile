@@ -12,7 +12,7 @@
     },
     "scripts": {
         "wdio": "wdio run wdio.conf.js",
-        "android": "wdio ./config/android.config.js",
+        "android-test": "wdio ./config/android.config.js",
         "ios-test": "wdio ./config/ios.config.js"
     }
 }

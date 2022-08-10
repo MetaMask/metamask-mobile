@@ -10,55 +10,57 @@ const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'carousel-two-image';
 const CAROUSEL_SCREEN_THREE_IMAGE_ID = 'carousel-three-image';
 
 class OnboardingCarouselView {
-  get OnboardingCarouselContainer() {
+  get onboardingCarouselContainer() {
     return $(`~${ONBOARDING_CAROUSEL_ID}`);
   }
 
-  static async swipeCarousel() {
-    await TestHelpers.swipe(ONBOARDING_CAROUSEL_ID, 'left');
+  async swipeCarousel() {
+    await Gestures.swipeLeft();
+    await Gestures.swipeLeft();
   }
+
   async tapOnGetStartedButton() {
     await Gestures.tap(GET_STARTED_BUTTON_ID);
   }
 
-  static async isMetaMaskWelcomeTextVisible() {
+  async isMetaMaskWelcomeTextVisible() {
     await TestHelpers.checkIfElementHasString(
       ONBOARDING_CAROUSEL_ID,
       'Welcome to MetaMask',
     );
   }
-  static async isWelcomeToMetaMaskImageVisible() {
+  async isWelcomeToMetaMaskImageVisible() {
     await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_ONE_IMAGE_ID);
   }
 
-  static async isManageYourDigitalTextVisible() {
+  async isManageYourDigitalTextVisible() {
     await TestHelpers.checkIfElementHasString(
       CAROUSEL_SCREEN_TWO_ID,
       'Manage your digital assets',
     );
   }
 
-  static async isManageYourDigitalImageVisible() {
+  async isManageYourDigitalImageVisible() {
     await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_TWO_IMAGE_ID);
   }
 
-  static async isYourGatewayToWeb3TextVisible() {
+  async isYourGatewayToWeb3TextVisible() {
     await TestHelpers.checkIfElementHasString(
       CAROUSEL_SCREEN_THREE_ID,
       'Your gateway to web3',
     );
   }
 
-  static async isYourGatewayToWeb3ImageVisible() {
+  async isYourGatewayToWeb3ImageVisible() {
     await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_THREE_IMAGE_ID);
   }
 
   async isVisible() {
-    await expect(this.OnboardingCarouselContainer).toBeDisplayed();
+    await expect(this.onboardingCarouselContainer).toBeDisplayed();
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ONBOARDING_CAROUSEL_ID);
+  async isNotVisible() {
+    await expect(this.onboardingCarouselContainer).not.toBeDisplayed();
   }
 }
 export default new OnboardingCarouselView();
