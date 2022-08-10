@@ -601,21 +601,22 @@ function decodeConfirmTx(args) {
   }
   let transactionType;
 
-  if (actionKey.toLowerCase() === strings('transactions.approve').toLowerCase())
+  const actionKeyLowerCase = actionKey.toLowerCase();
+
+  if (actionKeyLowerCase === strings('transactions.approve').toLowerCase())
     transactionType = TRANSACTION_TYPES.APPROVE;
   else if (
-    actionKey.toLowerCase() ===
+    actionKeyLowerCase ===
     strings('transactions.swaps_transaction').toLowerCase()
   )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (
-    actionKey === strings('transactions.smart_contract_interaction') ||
-    (!actionKey
-      .toLowerCase()
-      .includes(strings('transactions.sent').toLowerCase()) &&
-      !actionKey
-        .toLowerCase()
-        .includes(strings('transactions.received').toLowerCase()))
+    actionKeyLowerCase ===
+      strings('transactions.smart_contract_interaction').toLowerCase() ||
+    (!actionKeyLowerCase.includes(strings('transactions.sent').toLowerCase()) &&
+      !actionKeyLowerCase.includes(
+        strings('transactions.received').toLowerCase(),
+      ))
   )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (renderFrom === selectedAddress)
