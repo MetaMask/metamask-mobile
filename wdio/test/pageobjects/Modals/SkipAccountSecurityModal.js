@@ -1,3 +1,4 @@
+import { getDefaultProvider } from 'ethers';
 import Gestures from '../Gestures';
 
 const SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID = 'skip-backup-modal';
@@ -10,7 +11,11 @@ class SkipAccountSecurityModal {
   }
 
   async tapIUnderstandCheckBox() {
-    await Gestures.tap(iOS_I_UNDERSTAND_BUTTON_ID);
+    if (driver.capabilities.platformName === 'Android') {
+      await Gestures.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
+    } else {
+      await Gestures.tap(iOS_I_UNDERSTAND_BUTTON_ID);
+    }
   }
 
   // static async tapIUnderstandCheckBox() {

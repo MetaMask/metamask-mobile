@@ -298,7 +298,10 @@ class OptinMetrics extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.root} testID={'metaMetrics-OptIn'}>
+      <SafeAreaView
+        style={styles.root}
+        accessibilityLabel={'metaMetrics-OptIn'}
+      >
         <ScrollView style={styles.root}>
           <View style={styles.wrapper}>
             <Text style={styles.title}>
@@ -316,18 +319,18 @@ class OptinMetrics extends PureComponent {
 
           <View style={styles.actionContainer}>
             <StyledButton
+              accessibilityLabel={'cancel-button'}
               containerStyle={[styles.button, styles.cancel]}
               type={'cancel'}
               onPress={this.onCancel}
-              testID={'cancel-button'}
             >
               {strings('privacy_policy.decline')}
             </StyledButton>
             <StyledButton
+              accessibilityLabel={'agree-button'}
               containerStyle={[styles.button, styles.confirm]}
               type={'confirm'}
               onPress={this.onConfirm}
-              testID={'agree-button'}
             >
               {strings('privacy_policy.agree')}
             </StyledButton>

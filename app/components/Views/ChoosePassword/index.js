@@ -606,7 +606,7 @@ class ChoosePassword extends PureComponent {
               }}
               thumbColor={importedColors.white}
               ios_backgroundColor={colors.border.muted}
-              testID={'remember-me-toggle'}
+              accessibilityLabel={'remember-me-toggle'}
             />
           </>
         )}
@@ -690,7 +690,7 @@ class ChoosePassword extends PureComponent {
               contentContainerStyle={styles.keyboardScrollableWrapper}
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
-              <View testID={CREATE_PASSWORD_CONTAINER_ID}>
+              <View accessibilityLabel={CREATE_PASSWORD_CONTAINER_ID}>
                 <View style={styles.content}>
                   <Text style={styles.title}>
                     {strings('choose_password.title')}
@@ -720,7 +720,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    testID={CREATE_PASSWORD_INPUT_BOX_ID}
+                    accessibilityLabel={CREATE_PASSWORD_INPUT_BOX_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -750,7 +750,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    accessibilityLabel={CONFIRM_PASSWORD_INPUT_BOX_ID}
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
@@ -782,12 +782,12 @@ class ChoosePassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={IOS_I_UNDERSTAND_BUTTON_ID}
+                    accessibilityLabel={IOS_I_UNDERSTAND_BUTTON_ID}
                   />
                   <Text
                     style={styles.label}
                     onPress={this.setSelection}
-                    testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+                    accessibilityLabel={ANDROID_I_UNDERSTAND_BUTTON_ID}
                   >
                     {strings('choose_password.i_understand')}{' '}
                     <Text onPress={this.learnMore} style={styles.learnMore}>
@@ -803,7 +803,7 @@ class ChoosePassword extends PureComponent {
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressCreate}
-                  testID={'submit-button'}
+                  accessibilityLabel={'submit-button'}
                   disabled={!canSubmit}
                 >
                   {strings('choose_password.create_button')}

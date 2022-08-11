@@ -318,7 +318,7 @@ const AccountBackupStep1B = (props) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={goNext}
-              testID={'submit-button'}
+              accessibilityLabel={'submit-button'}
             >
               {strings('account_backup_step_1B.cta_text')}
             </StyledButton>

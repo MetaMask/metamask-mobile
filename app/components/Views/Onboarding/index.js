@@ -408,7 +408,10 @@ class Onboarding extends PureComponent {
 
     return (
       <View style={styles.ctas}>
-        <Text style={styles.title} testID={'onboarding-screen-title'}>
+        <Text
+          style={styles.title}
+          accessibilityLabel={'onboarding-screen-title'}
+        >
           {strings('onboarding.title')}
         </Text>
         <View style={styles.importWrapper}>
@@ -439,12 +442,11 @@ class Onboarding extends PureComponent {
               </StyledButton>
             </View>
           )}
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              type={'blue'}
-              onPress={this.onPressCreate}
-              testID={'create-wallet-button'}
-            >
+          <View
+            style={styles.buttonWrapper}
+            accessibilityLabel={'create-wallet-button'}
+          >
+            <StyledButton type={'blue'} onPress={this.onPressCreate}>
               {strings('onboarding.start_exploring_now')}
             </StyledButton>
           </View>
@@ -486,7 +488,10 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        accessibilityLabel={'onboarding-screen'}
+      >
         <OnboardingScreenWithBg screen={'c'}>
           <ScrollView
             style={baseStyles.flexGrow}

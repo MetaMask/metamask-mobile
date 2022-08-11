@@ -702,7 +702,7 @@ class ResetPassword extends PureComponent {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={this.tryUnlock}
-                testID={'submit-button'}
+                accessibilityLabel={'submit-button'}
               >
                 {strings('manual_backup_step_1.confirm')}
               </StyledButton>
@@ -878,7 +878,7 @@ class ResetPassword extends PureComponent {
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressCreate}
-                  testID={'submit-button'}
+                  accessibilityLabel={'submit-button'}
                   disabled={!canSubmit}
                 >
                   {strings('reset_password.reset_button')}

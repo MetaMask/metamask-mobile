@@ -428,7 +428,7 @@ class ManualBackupStep1 extends PureComponent {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={this.tryUnlock}
-                testID={'submit-button'}
+                accessibilityLabel={'submit-button'}
               >
                 {strings('manual_backup_step_1.confirm')}
               </StyledButton>

@@ -142,7 +142,7 @@ export default class EnterPasswordSimple extends PureComponent {
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressConfirm}
-                  testID={'submit-button'}
+                  accessibilityLabel={'submit-button'}
                   disabled={
                     !(
                       this.state.password !== '' ||

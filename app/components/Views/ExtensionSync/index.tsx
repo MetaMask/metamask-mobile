@@ -452,7 +452,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
       <StyledButton
         type={'blue'}
         onPress={triggerScan}
-        testID={'create-wallet-button'}
+        accessibilityLabel={'create-wallet-button'}
       >
         {strings('onboarding.scan')}
       </StyledButton>

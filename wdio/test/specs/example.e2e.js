@@ -13,16 +13,22 @@ const PASSWORD = '111111111';
 describe('Browser Tests', () => {
   it('should create new wallet and dismiss tutorial', async () => {
     // Check that we are on the onboarding carousel screen
-    await driver.setTimeouts(15000);
+    await driver.pause(21000);
     await OnboardingCarouselView.isVisible();
-    await Gestures.swipeLeft();
+    // console.log(
+    //   '********* HERE MY GOOOOD SIR',
+    //   driver.capabilities.platformName,
+    // );
+    //await Gestures.swipeLeft();
     await OnboardingCarouselView.tapOnGetStartedButton();
+
+    //let caps = await driver.getPlatformName();
 
     await OnboardingView.isVisible();
     await OnboardingView.tapCreateWallet();
 
-    await MetaMetricsOptIn.isVisible();
-    await MetaMetricsOptIn.tapNoThanksButton();
+    // await MetaMetricsOptIn.isVisible();
+    // await MetaMetricsOptIn.tapAgreeButton();
 
     await CreatePasswordView.isVisible();
     await CreatePasswordView.enterPassword(PASSWORD);
@@ -30,13 +36,13 @@ describe('Browser Tests', () => {
     await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.tapCreatePasswordButton();
   });
-  it('Should skip backup check', async () => {
-    // Check that we are on the Secure your wallet screen
-    await ProtectYourWalletView.isVisible();
-    await ProtectYourWalletView.tapOnRemindMeLaterButton();
+  // it('Should skip backup check', async () => {
+  //   // Check that we are on the Secure your wallet screen
+  //   await ProtectYourWalletView.isVisible();
+  //   await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-    await SkipAccountSecurityModal.tapSkipButton();
-    //await WalletView.isVisible();
-  });
+  //   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+  //   await SkipAccountSecurityModal.tapSkipButton();
+  //   //await WalletView.isVisible();
+  // });
 });

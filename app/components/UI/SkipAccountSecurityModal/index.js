@@ -97,14 +97,14 @@ const SkipAccountSecurityModal = ({
           name="alert-triangle"
           size={38}
           style={styles.imageWarning}
-          testID={'skip_backup_warning'}
+          accessibilityLabel={'skip_backup_warning'}
         />
         <Text style={styles.skipTitle}>
           {strings('account_backup_step_1.skip_title')}
         </Text>
         <View
           style={styles.skipModalActionButtons}
-          testID={'skip-backup-modal'}
+          accessibilityLabel={'skip-backup-modal'}
         >
           <CheckBox
             style={styles.skipModalCheckbox}
@@ -115,12 +115,12 @@ const SkipAccountSecurityModal = ({
               true: colors.primary.default,
               false: colors.border.default,
             }}
-            testID={'skip-backup-check'}
+            accessibilityLabel={'skip-backup-check'}
           />
           <Text
             onPress={toggleSkipCheckbox}
             style={styles.skipModalText}
-            testID={'skip-backup-text'}
+            accessibilityLabel={'skip-backup-text'}
           >
             {strings('account_backup_step_1.skip_check')}
           </Text>
