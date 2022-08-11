@@ -13,7 +13,7 @@ import { isNumber } from '../../../../util/number';
 import ConnectHeader from '../../ConnectHeader';
 import Device from '../../../../util/device';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import formatNumber from '../../../../util/formatNumber';
 
 const createStyles = (colors: any) =>
@@ -136,7 +136,7 @@ function EditPermission({
   });
   const [disableBtn, setDisableBtn] = useState(false);
   const [displayErrorMsg, setDisplayErrorMsg] = useState(false);
-  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import ConnectHeader from '../../../UI/ConnectHeader';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -31,7 +31,7 @@ interface NetworkDetailsProps {
 
 const NetworkDetails = (props: NetworkDetailsProps) => {
   const { goBack, chainId, ticker, nickname, rpcUrl, blockExplorerUrl } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const DisplayData = [
