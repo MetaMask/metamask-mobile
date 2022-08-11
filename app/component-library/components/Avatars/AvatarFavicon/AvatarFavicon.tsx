@@ -5,7 +5,7 @@ import React, { useCallback, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarBaseSize } from '../AvatarBase';
+import AvatarBase, { AvatarBaseSize } from '../AvatarBase';
 import { useStyles } from '../../../hooks';
 import Icon, { IconName } from '../../Icon';
 
@@ -46,9 +46,9 @@ const AvatarFavicon = ({
   );
 
   return (
-    <Avatar size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base}>
       {error ? renderError() : renderImage()}
-    </Avatar>
+    </AvatarBase>
   );
 };
 
