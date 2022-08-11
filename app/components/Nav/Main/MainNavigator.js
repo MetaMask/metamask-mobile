@@ -593,6 +593,7 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+// eslint-disable-next-line react/prop-types
 const LedgerConnectFlow = ({ navigation }) => (
   <Stack.Navigator initialRouteName={Routes.LEDGER_CONNECT_FLOW.LEDGER_CONNECT}>
     <Stack.Screen
