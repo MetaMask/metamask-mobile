@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Badge - snapshots should render badge with default position correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignSelf": "flex-start",
+    }
+  }
+>
+  <View>
+    <Tag
+      label="Children"
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "position": "absolute",
+        "right": -4,
+        "top": -4,
+      }
+    }
+    testID="badge-content"
+  >
+    <Tag
+      label="Badge"
+    />
+  </View>
+</View>
+`;
