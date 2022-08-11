@@ -1,5 +1,8 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
-import { CheckboxStyleSheet, CheckboxStyleSheetVars } from './Checkbox.types';
+
+// Internal dependencies.
+import { CheckboxStyleSheetVars } from './Checkbox.types';
 
 /**
  * Style sheet function for Checkbox component.
@@ -9,9 +12,7 @@ import { CheckboxStyleSheet, CheckboxStyleSheetVars } from './Checkbox.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  vars: CheckboxStyleSheetVars;
-}): CheckboxStyleSheet => {
+const styleSheet = (params: { vars: CheckboxStyleSheetVars }) => {
   const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({
