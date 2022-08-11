@@ -4,7 +4,6 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
-  require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/components/Base/Alert.stories');
   require('../app/components/Base/ListItem.stories');
   require('../app/components/Base/Text.stories');
@@ -14,6 +13,7 @@ function loadStories() {
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/component-library/components/AccountAvatar/AccountAvatar.stories');
   require('../app/component-library/components/AvatarIcon/AvatarIcon.stories');
+  require('../app/component-library/components/Badge/Badge.stories');
   require('../app/component-library/components/BaseAvatar/BaseAvatar.stories');
   require('../app/component-library/components/BaseButton/BaseButton.stories');
   require('../app/component-library/components/BaseText/BaseText.stories');
@@ -33,7 +33,7 @@ function loadStories() {
   require('../app/component-library/components/NetworkPicker/NetworkPicker.stories');
   require('../app/component-library/components/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/PickerItem/PickerItem.stories');
-  require('../app/component-library/components/SelectableListItem/SelectableListItem.stories');
+  require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/SheetHeader/SheetHeader.stories');
   require('../app/component-library/components/StackedAvatars/StackedAvatars.stories');
   require('../app/component-library/components/TabBar/TabBar.stories');
@@ -45,7 +45,6 @@ function loadStories() {
 }
 
 const stories = [
-  '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/components/Base/Alert.stories',
   '../app/components/Base/ListItem.stories',
   '../app/components/Base/Text.stories',
@@ -55,6 +54,7 @@ const stories = [
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/component-library/components/AccountAvatar/AccountAvatar.stories',
   '../app/component-library/components/AvatarIcon/AvatarIcon.stories',
+  '../app/component-library/components/Badge/Badge.stories',
   '../app/component-library/components/BaseAvatar/BaseAvatar.stories',
   '../app/component-library/components/BaseButton/BaseButton.stories',
   '../app/component-library/components/BaseText/BaseText.stories',
@@ -74,7 +74,7 @@ const stories = [
   '../app/component-library/components/NetworkPicker/NetworkPicker.stories',
   '../app/component-library/components/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/PickerItem/PickerItem.stories',
-  '../app/component-library/components/SelectableListItem/SelectableListItem.stories',
+  '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/SheetHeader/SheetHeader.stories',
   '../app/component-library/components/StackedAvatars/StackedAvatars.stories',
   '../app/component-library/components/TabBar/TabBar.stories',
