@@ -8,8 +8,9 @@ import { AvatarBaseSize } from '../AvatarBase';
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
 import {
-  TEST_IMAGE_SOURCE,
+  TEST_REMOTE_IMAGE_SOURCE,
   FAVICON_AVATAR_IMAGE_ID,
+  TEST_LOCAL_IMAGE_SOURCE,
 } from './AvatarFavicon.constants';
 
 describe('AvatarFavicon', () => {
@@ -17,17 +18,30 @@ describe('AvatarFavicon', () => {
     const wrapper = shallow(
       <AvatarFavicon
         size={AvatarBaseSize.Xl}
-        imageSource={TEST_IMAGE_SOURCE}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render favicon', () => {
+  it('should render favicon with remote image', () => {
     const wrapper = shallow(
       <AvatarFavicon
         size={AvatarBaseSize.Xl}
-        imageSource={TEST_IMAGE_SOURCE}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+      />,
+    );
+    const imageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === FAVICON_AVATAR_IMAGE_ID,
+    );
+    expect(imageComponent.exists()).toBe(true);
+  });
+
+  it('should render favicon with local image', () => {
+    const wrapper = shallow(
+      <AvatarFavicon
+        size={AvatarBaseSize.Xl}
+        imageSource={TEST_LOCAL_IMAGE_SOURCE}
       />,
     );
     const imageComponent = wrapper.findWhere(
@@ -40,7 +54,7 @@ describe('AvatarFavicon', () => {
     const wrapper = shallow(
       <AvatarFavicon
         size={AvatarBaseSize.Xl}
-        imageSource={TEST_IMAGE_SOURCE}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
     const prevImageComponent = wrapper.findWhere(

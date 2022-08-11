@@ -65,6 +65,8 @@ const styleSheet = (params: {
     label: size === AvatarBaseSize.Xs ? { lineHeight: 16 } : {},
     image: {
       flex: 1,
+      height: undefined,
+      width: undefined,
     },
   });
 };
