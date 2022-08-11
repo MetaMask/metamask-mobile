@@ -1,32 +1,25 @@
 /* eslint-disable no-console */
-// 3rd party dependencies
+// Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
+import { storiesOf } from '@storybook/react-native';
+import { View } from 'react-native';
 
-// External dependencies
+// External dependencies.
 import { mockTheme } from '../../../util/theme';
+import { AvatarBaseSize } from '../Avatars/AvatarBase';
 import AvatarAccount, { AvatarAccountType } from '../Avatars/AvatarAccount';
 import { DUMMY_WALLET_ADDRESS } from '../Avatars/AvatarAccount/AvatarAccount.constants';
 import AvatarNetwork from '../Avatars/AvatarNetwork';
 import { TEST_IMAGE_SOURCE } from '../Avatars/AvatarNetwork/AvatarNetwork.constants';
-import { AvatarBaseSize } from '../Avatars/AvatarBase';
 import Tag from '../Tags/Tag';
 import Text, { TextVariant } from '../Text';
 
-// Internal dependencies
+// Internal dependencies.
 import Badge from './Badge';
-import { BadgePositionVariant } from './Badge.types';
 
 storiesOf('Component Library / Badge', module).add('Default', () => {
   const groupId = 'Props';
-  const position = select(
-    'position',
-    BadgePositionVariant,
-    BadgePositionVariant.TopRight,
-    groupId,
-  );
 
   const sampleTag = <Tag label={'Tag'} />;
   const sampleAvatarAccount = (
@@ -61,7 +54,7 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
   const badgeContent = sampleComponents[badgeContentKey];
 
   return (
-    <Badge badgeContent={badgeContent} position={position}>
+    <Badge badgeContent={badgeContent}>
       <View
         // eslint-disable-next-line react-native/no-inline-styles
         style={{

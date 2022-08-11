@@ -22,23 +22,21 @@ Any given component for the badge to attach itself to.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | ReactNode                                              | Yes                                                     |
 
-### `position`
+### `badgeContentStyle`
 
-Optional placement position of the badge relative to the children. The value can either be a preset position, or a custom positioning object
+Optional style opject that can be passed to the badge content.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [BadgePositionVariant](./Badge.types.ts#L6) / [BadgeCustomPosition](./Badge.types.ts#L11)          | No                                                     | TopRight                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [StyleProp]([./AvatarBase.types.ts#L17](https://reactnative.dev/docs/view-style-props))          | No                                                     |
 
 ## Usage
 
 ```javascript
 // Change import path to relative path.
 import Badge from 'app/component-library/components/Badge';
-import Tag from 'app/component-library/components/Tags/Tag';
 
-const badgeContent = <Tag label={'Badge'} />;
-<Badge badgeContent={badgeContent}>
+<Badge badgeContent={SAMPLE_BADGE_CONTENT}>
     <Tag label={'Children'} />
 </Badge>,
 ```

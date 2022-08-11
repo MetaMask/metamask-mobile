@@ -1,6 +1,5 @@
 // Third party dependencies.
 import { ViewProps } from 'react-native';
-
 /**
  * AvatarBase sizes.
  */
@@ -13,6 +12,14 @@ export enum AvatarBaseSize {
 }
 
 /**
+ * Current available positions for badge placement
+ */
+export enum AvatarBadgePositionVariant {
+  TopRight = 'top-right',
+  BottomRight = 'bottom-right',
+}
+
+/**
  * AvatarBase component props.
  */
 export interface AvatarBaseProps extends ViewProps {
@@ -21,12 +28,20 @@ export interface AvatarBaseProps extends ViewProps {
    * @default Md
    */
   size?: AvatarBaseSize;
+  /**
+   * The content of the badge itself. This can take in any component.
+   */
+  badgeContent?: React.ReactNode;
+  /**
+   * Placement position of the badge relative to the avatar.
+   */
+  badgePosition?: AvatarBadgePositionVariant;
 }
 
 /**
  * Style sheet input parameters.
  */
 export interface AvatarBaseStyleSheetVars
-  extends Pick<AvatarBaseProps, 'style'> {
+  extends Pick<AvatarBaseProps, 'style' | 'badgePosition'> {
   size: AvatarBaseSize;
 }

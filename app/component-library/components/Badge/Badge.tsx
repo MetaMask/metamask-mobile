@@ -1,31 +1,31 @@
 /* eslint-disable react/prop-types */
-// 3rd library dependencies
+// Third library dependencies.
 import React from 'react';
 import { View } from 'react-native';
 
-// External dependencies
+// External dependencies.
 import { useStyles } from '../../hooks';
 
 // Internal dependencies
-import styleSheet from './Badge.styles';
-import { BadgeProps, BadgePositionVariant } from './Badge.types';
 import { BADGE_CONTENT_TEST_ID } from './Badge.constants';
+import { BadgeProps } from './Badge.types';
+import styleSheet from './Badge.styles';
 
 const Badge: React.FC<BadgeProps> = ({
   badgeContent,
   children,
-  position = BadgePositionVariant.TopRight,
+  badgeContentStyle,
   style,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     style,
-    position,
+    badgeContentStyle,
   });
 
   return (
     <View style={styles.base} {...props}>
-      <View style={styles.children}>{children}</View>
+      <View>{children}</View>
       <View style={styles.badgeContent} testID={BADGE_CONTENT_TEST_ID}>
         {badgeContent}
       </View>

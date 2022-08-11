@@ -2,10 +2,12 @@
 import React from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
+import { boolean, select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { toDataUrl } from '../../../../util/blockies';
+import AvatarNetwork from '../AvatarNetwork/AvatarNetwork';
+import { TEST_IMAGE_SOURCE } from '../AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
 import AvatarBase from './AvatarBase';
@@ -18,9 +20,17 @@ storiesOf('Component Library / AvatarBase', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const sizeSelector = select('Size', AvatarBaseSize, AvatarBaseSize.Md);
+    const includesBadge = boolean('Include Badge?', false);
 
+    const badgeContent = includesBadge ? (
+      <AvatarNetwork
+        size={AvatarBaseSize.Xs}
+        name={'Ethereum'}
+        imageSource={TEST_IMAGE_SOURCE}
+      />
+    ) : null;
     return (
-      <AvatarBase size={sizeSelector}>
+      <AvatarBase size={sizeSelector} badgeContent={badgeContent}>
         <Image
           source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
           style={styles.imageStyle}

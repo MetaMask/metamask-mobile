@@ -1,27 +1,19 @@
+// Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+
+// External dependencies.
+import Tag from '../Tags/Tag';
+
+// Internal dependencies.
 import Badge from './Badge';
 import { BADGE_CONTENT_TEST_ID } from './Badge.constants';
-import { BadgePositionVariant } from './Badge.types';
-import Tag from '../Tags/Tag';
 
 describe('Badge - snapshots', () => {
   it('should render badge with default position correctly', () => {
     const badgeContent = <Tag label={'Badge'} />;
     const wrapper = shallow(
       <Badge badgeContent={badgeContent}>
-        <Tag label={'Children'} />
-      </Badge>,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-  it('should render badge with bottom right position correctly', () => {
-    const badgeContent = <Tag label={'Badge'} />;
-    const wrapper = shallow(
-      <Badge
-        badgeContent={badgeContent}
-        position={BadgePositionVariant.BottomRight}
-      >
         <Tag label={'Children'} />
       </Badge>,
     );

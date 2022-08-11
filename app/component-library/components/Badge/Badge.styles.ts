@@ -1,11 +1,11 @@
+// Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
-import {
-  BadgeCustomPosition,
-  BadgePositionVariant,
-  BadgeStyleSheetVars,
-} from './Badge.types';
+
+// External dependencies.
 import { Theme } from '../../../util/theme/models';
-import { DEFAULT_BADGE_POSITION } from './Badge.constants';
+
+// Internal dependencies.
+import { BadgeStyleSheetVars } from './Badge.types';
 
 /**
  * Style sheet function for Badge component.
@@ -17,35 +17,7 @@ import { DEFAULT_BADGE_POSITION } from './Badge.constants';
  */
 const styleSheet = (params: { theme: Theme; vars: BadgeStyleSheetVars }) => {
   const { vars } = params;
-  const { style, position } = vars;
-
-  let finalPosition: BadgeCustomPosition;
-
-  switch (position) {
-    case BadgePositionVariant.TopRight: {
-      finalPosition = {
-        ...DEFAULT_BADGE_POSITION,
-        top: -4,
-        right: -4,
-      };
-      break;
-    }
-    case BadgePositionVariant.BottomRight: {
-      finalPosition = {
-        ...DEFAULT_BADGE_POSITION,
-        bottom: -4,
-        right: -4,
-      };
-      break;
-    }
-    default: {
-      finalPosition = {
-        ...DEFAULT_BADGE_POSITION,
-        ...position,
-      };
-      break;
-    }
-  }
+  const { style, badgeContentStyle } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
@@ -54,14 +26,14 @@ const styleSheet = (params: { theme: Theme; vars: BadgeStyleSheetVars }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    badgeContent: {
-      position: 'absolute',
-      top: finalPosition.top,
-      right: finalPosition.right,
-      bottom: finalPosition.bottom,
-      left: finalPosition.left,
-    },
-    children: {},
+    badgeContent: Object.assign(
+      {
+        position: 'absolute',
+        top: -4,
+        right: -4,
+      } as ViewStyle,
+      badgeContentStyle,
+    ) as ViewStyle,
   });
 };
 
