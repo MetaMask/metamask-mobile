@@ -9,7 +9,11 @@ import { AvatarBaseSize } from '../AvatarBase';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
-import { TEST_TOKEN_IMAGES, TEST_NETWORK_NAME } from './AvatarToken.constants';
+import {
+  TEST_LOCAL_IMAGE_SOURCE,
+  TEST_REMOTE_TOKEN_IMAGES,
+  TEST_TOKEN_NAME,
+} from './AvatarToken.constants';
 
 const groupId = 'props';
 
@@ -21,7 +25,7 @@ storiesOf('Component Library / AvatarToken', module)
       {storyFn()}
     </View>
   ))
-  .add('With image', () => {
+  .add('With remote image', () => {
     const sizeSelector = select(
       'size',
       AvatarBaseSize,
@@ -31,14 +35,14 @@ storiesOf('Component Library / AvatarToken', module)
     const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
       'imageSource.uri',
-      TEST_TOKEN_IMAGES,
-      TEST_TOKEN_IMAGES[0],
+      TEST_REMOTE_TOKEN_IMAGES,
+      TEST_REMOTE_TOKEN_IMAGES[0],
       groupId,
     );
     const image = (includesImage && {
       uri: imageUrlSelector,
     }) as ImageSourcePropType;
-    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
+    const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
 
     return (
       <AvatarToken
@@ -48,7 +52,7 @@ storiesOf('Component Library / AvatarToken', module)
       />
     );
   })
-  .add('With image & halo effect', () => {
+  .add('With remote image & halo effect', () => {
     const sizeSelector = select(
       'size',
       AvatarBaseSize,
@@ -58,14 +62,14 @@ storiesOf('Component Library / AvatarToken', module)
     const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
       'imageSource.uri',
-      TEST_TOKEN_IMAGES,
-      TEST_TOKEN_IMAGES[0],
+      TEST_REMOTE_TOKEN_IMAGES,
+      TEST_REMOTE_TOKEN_IMAGES[0],
       groupId,
     );
     const image = (includesImage && {
       uri: imageUrlSelector,
     }) as ImageSourcePropType;
-    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
+    const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
 
     return (
       <AvatarToken
@@ -76,6 +80,13 @@ storiesOf('Component Library / AvatarToken', module)
       />
     );
   })
+  .add('With local image', () => (
+    <AvatarToken
+      size={AvatarBaseSize.Lg}
+      name={TEST_TOKEN_NAME}
+      imageSource={TEST_LOCAL_IMAGE_SOURCE}
+    />
+  ))
   .add('Without image', () => {
     const sizeSelector = select(
       'size',
@@ -83,7 +94,7 @@ storiesOf('Component Library / AvatarToken', module)
       AvatarBaseSize.Md,
       groupId,
     );
-    const tokenNameSelector = text('name', TEST_NETWORK_NAME, groupId);
+    const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
 
     return <AvatarToken size={sizeSelector} name={tokenNameSelector} />;
   })
