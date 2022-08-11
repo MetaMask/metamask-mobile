@@ -6,7 +6,6 @@ import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import Engine from './Engine';
-import { WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WalletDevice } from '@metamask/controllers';
 
 import {
@@ -24,6 +23,8 @@ import { AppState } from 'react-native';
 import Device from '../util/device';
 
 import BackgroundTimer from 'react-native-background-timer';
+
+export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 
 const webrtc = {
   RTCPeerConnection,
@@ -61,6 +62,14 @@ const approveHost = ({ host, hostname }) => {
   AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify(approvedHosts));
 };
 
+const parseSource = (source) => {
+  if (source === 'web-desktop') return 'web-desktop';
+  if (source === 'web-mobile') return 'web-mobile';
+  if (source === 'nodejs') return 'nodejs';
+  if (source === 'unity') return 'unity';
+  return 'undefined';
+};
+
 class Connection {
   channelId = null;
   RemoteConn = null;
@@ -72,7 +81,7 @@ class Connection {
   constructor({ id, otherPublicKey, commLayer, origin, reconnect }) {
     this.origin = origin;
     this.channelId = id;
-    this.host = `SDK:${this.channelId}`;
+    this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
 
     this.RemoteConn = new RemoteCommunication({
       commLayer,
@@ -127,6 +136,10 @@ class Connection {
             wizardScrollAdjusted: () => null,
             tabId: false,
             isWalletConnect: false,
+            analytics: {
+              isRemoteConn: true,
+              platform: parseSource(originatorInfo?.platform),
+            },
           }),
         isMainFrame: true,
       });
@@ -144,7 +157,7 @@ class Connection {
               await TransactionController.addTransaction(
                 message.params[0],
                 originatorInfo?.url
-                  ? WALLET_CONNECT_ORIGIN + originatorInfo?.url
+                  ? MM_SDK_REMOTE_ORIGIN + originatorInfo?.url
                   : undefined,
                 WalletDevice.MM_MOBILE,
               )
