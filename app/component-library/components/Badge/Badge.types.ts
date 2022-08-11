@@ -57,6 +57,7 @@ export interface BadgeProps extends ViewProps {
   children: React.ReactNode;
   /**
    * Optional placement position of the badge relative to the children.
+   * The value can either be a preset position, or a custom positioning object.
    * @default TopRight
    */
   position?: BadgePositionVariant | BadgeCustomPosition;

@@ -1,13 +1,19 @@
 /* eslint-disable no-console */
 // 3rd party dependencies
 import React from 'react';
+import { View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
 
 // External dependencies
-import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
-import { BaseAvatarSize } from '../BaseAvatar';
-import Tag from '../Tag';
+import { mockTheme } from '../../../util/theme';
+import AvatarAccount, { AvatarAccountType } from '../Avatars/AvatarAccount';
+import { DUMMY_WALLET_ADDRESS } from '../Avatars/AvatarAccount/AvatarAccount.constants';
+import AvatarNetwork from '../Avatars/AvatarNetwork';
+import { TEST_IMAGE_SOURCE } from '../Avatars/AvatarNetwork/AvatarNetwork.constants';
+import { AvatarBaseSize } from '../Avatars/AvatarBase';
+import Tag from '../Tags/Tag';
+import Text, { TextVariant } from '../Text';
 
 // Internal dependencies
 import Badge from './Badge';
@@ -23,19 +29,25 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
   );
 
   const sampleTag = <Tag label={'Tag'} />;
-  const sampleAccountAvatar = (
-    <AccountAvatar
-      size={BaseAvatarSize.Md}
-      type={AccountAvatarType.JazzIcon}
-      accountAddress={
-        '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092'
-      }
+  const sampleAvatarAccount = (
+    <AvatarAccount
+      size={AvatarBaseSize.Md}
+      type={AvatarAccountType.JazzIcon}
+      accountAddress={DUMMY_WALLET_ADDRESS}
+    />
+  );
+  const sampleAvatarNetwork = (
+    <AvatarNetwork
+      size={AvatarBaseSize.Md}
+      name={'Ethereum'}
+      imageSource={TEST_IMAGE_SOURCE}
     />
   );
 
   const sampleComponents: any = {
     tag: sampleTag,
-    accountAvatar: sampleAccountAvatar,
+    avatarAccount: sampleAvatarAccount,
+    avatarNetwork: sampleAvatarNetwork,
   };
   const sampleComponentsKeys = Object.keys(sampleComponents);
 
@@ -50,7 +62,17 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
 
   return (
     <Badge badgeContent={badgeContent} position={position}>
-      <Tag label={'Children'} />
+      <View
+        // eslint-disable-next-line react-native/no-inline-styles
+        style={{
+          height: 50,
+          backgroundColor: mockTheme.colors.background.alternative,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
+      </View>
     </Badge>
   );
 });

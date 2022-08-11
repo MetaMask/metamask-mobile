@@ -9,6 +9,7 @@ import { useStyles } from '../../hooks';
 // Internal dependencies
 import styleSheet from './Badge.styles';
 import { BadgeProps, BadgePositionVariant } from './Badge.types';
+import { BADGE_CONTENT_TEST_ID } from './Badge.constants';
 
 const Badge: React.FC<BadgeProps> = ({
   badgeContent,
@@ -25,7 +26,9 @@ const Badge: React.FC<BadgeProps> = ({
   return (
     <View style={styles.base} {...props}>
       <View style={styles.children}>{children}</View>
-      <View style={styles.badgeContent}>{badgeContent}</View>
+      <View style={styles.badgeContent} testID={BADGE_CONTENT_TEST_ID}>
+        {badgeContent}
+      </View>
     </View>
   );
 };

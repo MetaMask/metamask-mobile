@@ -7,3 +7,5 @@ export const DEFAULT_BADGE_POSITION: BadgeCustomPosition = {
   bottom: 'auto',
   left: 'auto',
 };
+
+export const BADGE_CONTENT_TEST_ID = 'badge-content';
