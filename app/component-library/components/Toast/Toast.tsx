@@ -1,4 +1,6 @@
 /* eslint-disable react/prop-types */
+
+// Third party dependencies.
 import React, {
   forwardRef,
   useImperativeHandle,
@@ -19,20 +21,24 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import AccountAvatar, { AccountAvatarType } from '../AccountAvatar';
-import { BaseAvatarSize } from '../BaseAvatar';
-import BaseText, { BaseTextVariant } from '../BaseText';
-import Link from '../Link';
-import styles from './Toast.styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// External dependencies.
+import AvatarAccount, { AvatarAccountType } from '../Avatars/AvatarAccount';
+import AvatarNetwork from '../Avatars/AvatarNetwork';
+import { AvatarBaseSize } from '../Avatars/AvatarBase';
+import Text, { TextVariant } from '../Text';
+import ButtonLink from '../Buttons/ButtonLink';
+
+// Internal dependencies.
 import {
   ToastLabelOptions,
-  ToastLinkOption,
+  ToastLinkButtonOptions,
   ToastOptions,
   ToastRef,
   ToastVariant,
 } from './Toast.types';
-import NetworkAvatar from '../NetworkAvatar';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import styles from './Toast.styles';
 
 const visibilityDuration = 2500;
 const animationDuration = 250;
@@ -91,27 +97,28 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <BaseText variant={BaseTextVariant.sBodyMD}>
+    <Text variant={TextVariant.sBodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
-        <BaseText
+        <Text
           key={`toast-label-${index}`}
-          variant={
-            isBold ? BaseTextVariant.sBodyMDBold : BaseTextVariant.sBodyMD
-          }
+          variant={isBold ? TextVariant.sBodyMDBold : TextVariant.sBodyMD}
           style={styles.label}
         >
           {label}
-        </BaseText>
+        </Text>
       ))}
-    </BaseText>
+    </Text>
   );
 
-  const renderLink = (linkOption?: ToastLinkOption) =>
-    linkOption ? (
-      <Link onPress={linkOption.onPress} variant={BaseTextVariant.sBodyMD}>
-        {linkOption.label}
-      </Link>
-    ) : null;
+  const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
+    linkButtonOptions && (
+      <ButtonLink
+        onPress={linkButtonOptions.onPress}
+        variant={TextVariant.sBodyMD}
+      >
+        {linkButtonOptions.label}
+      </ButtonLink>
+    );
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
@@ -120,21 +127,21 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       case ToastVariant.Account: {
         const { accountAddress } = toastOptions;
         return (
-          <AccountAvatar
+          <AvatarAccount
             accountAddress={accountAddress}
-            type={AccountAvatarType.JazzIcon}
-            size={BaseAvatarSize.Md}
+            type={AvatarAccountType.JazzIcon}
+            size={AvatarBaseSize.Md}
             style={styles.avatar}
           />
         );
       }
       case ToastVariant.Network: {
         {
-          const { networkImageUrl } = toastOptions;
+          const { networkImageSource } = toastOptions;
           return (
-            <NetworkAvatar
-              networkImageUrl={networkImageUrl}
-              size={BaseAvatarSize.Md}
+            <AvatarNetwork
+              imageSource={networkImageSource}
+              size={AvatarBaseSize.Md}
               style={styles.avatar}
             />
           );
@@ -144,14 +151,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkOption } = options;
+    const { labelOptions, linkButtonOptions } = options;
 
     return (
       <>
         {renderAvatar()}
         <View style={styles.labelsContainer}>
           {renderLabel(labelOptions)}
-          {renderLink(linkOption)}
+          {renderButtonLink(linkButtonOptions)}
         </View>
       </>
     );

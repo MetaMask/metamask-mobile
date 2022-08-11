@@ -26,7 +26,7 @@ import { getQuotesSourceMessage } from '../utils';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import Ratio from './Ratio';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import { colors as importedColors } from '../../../../styles/common';
 
 const createStyles = (colors) =>
@@ -158,7 +158,7 @@ function QuotesModal({
   const [displayDetails, setDisplayDetails] = useState(false);
   const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] =
     useState(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   // When index/quotes change we get a new selected quote in case it exists
