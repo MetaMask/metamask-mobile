@@ -17,6 +17,8 @@ import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+/* eslint-disable-next-line */
+const ethLogo = require('../../images/eth-logo.png');
 /**
  * List of the supported networks
  * including name, id, and color
@@ -33,6 +35,7 @@ const NetworkList = {
     hexChainId: '0x1',
     color: '#3cc29e',
     networkType: 'mainnet',
+    imageSource: ethLogo,
   },
   [ROPSTEN]: {
     name: 'Ropsten Test Network',
@@ -42,6 +45,7 @@ const NetworkList = {
     hexChainId: '0x3',
     color: '#ff4a8d',
     networkType: 'ropsten',
+    imageSource: ethLogo,
   },
   [KOVAN]: {
     name: 'Kovan Test Network',
@@ -51,6 +55,7 @@ const NetworkList = {
     hexChainId: '0x2a',
     color: '#7057ff',
     networkType: 'kovan',
+    imageSource: ethLogo,
   },
   [RINKEBY]: {
     name: 'Rinkeby Test Network',
@@ -60,6 +65,7 @@ const NetworkList = {
     hexChainId: '0x4',
     color: '#f6c343',
     networkType: 'rinkeby',
+    imageSource: ethLogo,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -69,6 +75,7 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
+    imageSource: ethLogo,
   },
   [RPC]: {
     name: 'Private Network',
