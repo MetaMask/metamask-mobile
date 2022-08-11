@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   Image,
   TouchableWithoutFeedback,
   NativeSyntheticEvent,
@@ -20,7 +19,7 @@ import {
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
 import StyledButton from '../StyledButton';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
@@ -28,6 +27,7 @@ import {
   WHATS_NEW_MODAL_CONTAINER_ID,
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
 } from '../../../constants/test-ids';
+import { ScrollView } from 'react-native-gesture-handler';
 const modalMargin = 24;
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
@@ -132,7 +132,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
   const modalRef = useRef<ReusableModalRef>(null);
   const slideIds = [0, 1];
   const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const recordSeenModal = async () => {
@@ -215,7 +215,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
           onPress={() => dismissModal()}
           hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
         >
-          <Icon name="times" size={16} />
+          <Icon name="times" size={16} color={colors.icon.default} />
         </TouchableOpacity>
       </View>
     </View>

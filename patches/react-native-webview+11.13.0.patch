@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..e88f145 100644
+index f743bbc..6ae5402 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -10,7 +10,7 @@ index f743bbc..e88f145 100644
  import android.content.pm.ActivityInfo;
  import android.content.pm.PackageManager;
  import android.graphics.Bitmap;
-@@ -24,12 +25,15 @@ import android.view.View;
+@@ -24,12 +25,17 @@ import android.view.View;
  import android.view.ViewGroup;
  import android.view.ViewGroup.LayoutParams;
  import android.view.WindowManager;
@@ -20,13 +20,15 @@ index f743bbc..e88f145 100644
  import android.webkit.DownloadListener;
  import android.webkit.GeolocationPermissions;
  import android.webkit.JavascriptInterface;
++import android.webkit.JsPromptResult;
++import android.webkit.JsResult;
  import android.webkit.RenderProcessGoneDetail;
 +import android.webkit.ServiceWorkerClient;
 +import android.webkit.ServiceWorkerController;
  import android.webkit.SslErrorHandler;
  import android.webkit.PermissionRequest;
  import android.webkit.URLUtil;
-@@ -88,18 +92,37 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
+@@ -88,18 +94,37 @@ import com.reactnativecommunity.webview.events.TopRenderProcessGoneEvent;
  import org.json.JSONException;
  import org.json.JSONObject;
  
@@ -64,7 +66,7 @@ index f743bbc..e88f145 100644
  /**
   * Manages instances of {@link WebView}
   * <p>
-@@ -137,13 +160,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -137,13 +162,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    public static final int COMMAND_LOAD_URL = 7;
    public static final int COMMAND_FOCUS = 8;
  
@@ -85,7 +87,7 @@ index f743bbc..e88f145 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -158,11 +187,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -158,11 +189,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    protected @Nullable String mUserAgent = null;
    protected @Nullable String mUserAgentWithApplicationName = null;
  
@@ -106,7 +108,7 @@ index f743bbc..e88f145 100644
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -182,6 +220,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +222,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
@@ -114,7 +116,7 @@ index f743bbc..e88f145 100644
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -247,9 +286,96 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -247,9 +288,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -188,7 +190,6 @@ index f743bbc..e88f145 100644
 +
 +      Response response = httpClient.newCall(req).execute();
 +
-+
 +      if (!responseRequiresJSInjection(response)) {
 +        return null;
 +      }
@@ -211,7 +212,7 @@ index f743bbc..e88f145 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,13 +968,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -842,13 +969,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -329,8 +330,19 @@ index f743bbc..e88f145 100644
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -872,9 +1101,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -865,16 +1095,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+ 
+         emitFinishEvent(webView, url);
+       }
++      if(Objects.nonNull(mWebChromeClient)) mWebChromeClient.blockJsDuringLoading = false;
+     }
+ 
++
++
+     @Override
+     public void onPageStarted(WebView webView, String url, Bitmap favicon) {
        super.onPageStarted(webView, url, favicon);
++      if(Objects.nonNull(mWebChromeClient)) mWebChromeClient.blockJsDuringLoading = true;
        mLastLoadFailed = false;
  
 -      RNCWebView reactWebView = (RNCWebView) webView;
@@ -339,15 +351,16 @@ index f743bbc..e88f145 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1108,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1113,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
 +    @Override
 +    public WebResourceResponse shouldInterceptRequest(WebView webView, WebResourceRequest request) {
 +        WebResourceResponse response = RNCWebViewManager.this.shouldInterceptRequest(request, true, (RNCWebView)webView);
++
 +        if (response != null) {
-+            return response;
++          return response;
 +        }
 +
 +        return super.shouldInterceptRequest(webView, request);
@@ -356,7 +369,15 @@ index f743bbc..e88f145 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -919,6 +1155,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -891,7 +1133,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+         final Pair<Integer, AtomicReference<ShouldOverrideCallbackState>> lock = RNCWebViewModule.shouldOverrideUrlLoadingLock.getNewLock();
+         final int lockIdentifier = lock.first;
+         final AtomicReference<ShouldOverrideCallbackState> lockObject = lock.second;
+-
+         final WritableMap event = createWebViewEvent(view, url);
+         event.putInt("lockIdentifier", lockIdentifier);
+         rncWebView.sendDirectMessage("onShouldStartLoadWithRequest", event);
+@@ -919,6 +1160,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
  
          return shouldOverride;
@@ -374,10 +395,11 @@ index f743bbc..e88f145 100644
        } else {
          FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
          progressChangedFilter.setWaitingForCommandLoadUrl(true);
-@@ -934,6 +1181,21 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,10 +1186,29 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
++      if(Objects.nonNull(mWebChromeClient)) mWebChromeClient.blockJsDuringLoading = true;
 +
 +      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 +
@@ -394,9 +416,40 @@ index f743bbc..e88f145 100644
 +      }
 +
        final String url = request.getUrl().toString();
++
        return this.shouldOverrideUrlLoading(view, url);
      }
-@@ -1447,6 +1709,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+ 
++
++
+     @Override
+     public void onReceivedSslError(final WebView webView, final SslErrorHandler handler, final SslError error) {
+         // onReceivedSslError is called for most requests, per Android docs: https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedSslError(android.webkit.WebView,%2520android.webkit.SslErrorHandler,%2520android.net.http.SslError)
+@@ -1138,6 +1409,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+ 
+     protected View mVideoView;
+     protected WebChromeClient.CustomViewCallback mCustomViewCallback;
++    protected boolean blockJsDuringLoading = true; //This boolean block JS prompts and alerts from displaying during loading
+ 
+     /*
+      * - Permissions -
+@@ -1402,6 +1674,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       }
+     }
+ 
++    @Override
++    public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
++      if(blockJsDuringLoading) {
++        result.cancel();
++        return true;
++      } else
++        return super.onJsPrompt(view, url, message, defaultValue, result);
++    }
++
+     @Override
+     public void onHostPause() { }
+ 
+@@ -1447,6 +1728,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -410,7 +463,7 @@ index f743bbc..e88f145 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1744,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1763,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
@@ -453,11 +506,52 @@ index f743bbc..e88f145 100644
      @Override
      public void onHostResume() {
        // do nothing
+@@ -1533,6 +1857,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+       }
+     }
+ 
++
++
+     public @Nullable
+     RNCWebViewClient getRNCWebViewClient() {
+       return mRNCWebViewClient;
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
-index 28c078a..4c8a7fc 100644
+index 28c078a..b1cb2f2 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
 +++ b/node_modules/react-native-webview/apple/RNCWebView.m
-@@ -851,11 +851,13 @@ - (void)                    webView:(WKWebView *)webView
+@@ -105,6 +105,7 @@ @implementation RNCWebView
+   UIStatusBarStyle _savedStatusBarStyle;
+ #endif // !TARGET_OS_OSX
+   BOOL _savedStatusBarHidden;
++  BOOL _disablePromptDuringLoading; //Disables the display of prompts during site navigation/loading
+ 
+ #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000 /* __IPHONE_11_0 */
+   UIScrollViewContentInsetAdjustmentBehavior _savedContentInsetAdjustmentBehavior;
+@@ -139,6 +140,7 @@ - (instancetype)initWithFrame:(CGRect)frame
+     _injectedJavaScriptForMainFrameOnly = YES;
+     _injectedJavaScriptBeforeContentLoaded = nil;
+     _injectedJavaScriptBeforeContentLoadedForMainFrameOnly = YES;
++    _disablePromptDuringLoading = YES;
+       
+ #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000 /* __IPHONE_11_0 */
+     _savedContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+@@ -417,6 +419,7 @@ -(void)keyboardDisplacementFix
+ - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context{
+     if ([keyPath isEqual:@"estimatedProgress"] && object == self.webView) {
+         if(_onLoadingProgress){
++            _disablePromptDuringLoading = YES;
+              NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+             [event addEntriesFromDictionary:@{@"progress":[NSNumber numberWithDouble:self.webView.estimatedProgress]}];
+             _onLoadingProgress(event);
+@@ -492,6 +495,7 @@ - (void)userContentController:(WKUserContentController *)userContentController
+       NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+       [event addEntriesFromDictionary: @{@"navigationType": message.body}];
+       _onLoadingFinish(event);
++      _disablePromptDuringLoading = NO;
+     }
+   } else if ([message.name isEqualToString:MessageHandlerName]) {
+     if (_onMessage) {
+@@ -851,11 +855,13 @@ - (void)                    webView:(WKWebView *)webView
  - (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler
  {
  #if !TARGET_OS_OSX
@@ -476,3 +570,96 @@ index 28c078a..4c8a7fc 100644
  #else
    NSAlert *alert = [[NSAlert alloc] init];
    [alert setMessageText:message];
+@@ -894,44 +900,49 @@ - (void)webView:(WKWebView *)webView runJavaScriptConfirmPanelWithMessage:(NSStr
+  * prompt
+  */
+ - (void)webView:(WKWebView *)webView runJavaScriptTextInputPanelWithPrompt:(NSString *)prompt defaultText:(NSString *)defaultText initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(NSString *))completionHandler{
+-#if !TARGET_OS_OSX
+-  UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:prompt preferredStyle:UIAlertControllerStyleAlert];
+-  [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+-    textField.text = defaultText;
+-  }];
+-  UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+-    completionHandler([[alert.textFields lastObject] text]);
+-  }];
+-  [alert addAction:okAction];
+-  UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+-    completionHandler(nil);
+-  }];
+-  [alert addAction:cancelAction];
+-  alert.preferredAction = okAction;
+-  [[self topViewController] presentViewController:alert animated:YES completion:NULL];
+-#else
+-  NSAlert *alert = [[NSAlert alloc] init];
+-  [alert setMessageText:prompt];
+-
+-  const NSRect RCTSingleTextFieldFrame = NSMakeRect(0.0, 0.0, 275.0, 22.0);
+-  NSTextField *textField = [[NSTextField alloc] initWithFrame:RCTSingleTextFieldFrame];
+-  textField.cell.scrollable = YES;
+-  if (@available(macOS 10.11, *)) {
+-    textField.maximumNumberOfLines = 1;
+-  }
+-  textField.stringValue = defaultText;
+-  [alert setAccessoryView:textField];
+ 
+-  [alert addButtonWithTitle:NSLocalizedString(@"OK", @"OK button")];
+-  [alert addButtonWithTitle:NSLocalizedString(@"Cancel", @"Cancel button")];
+-  [alert beginSheetModalForWindow:[NSApp keyWindow] completionHandler:^(NSModalResponse response) {
+-    if (response == NSAlertFirstButtonReturn) {
+-      completionHandler([textField stringValue]);
++    if(!_disablePromptDuringLoading) {
++        #if !TARGET_OS_OSX
++          UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"" message:prompt preferredStyle:UIAlertControllerStyleAlert];
++          [alert addTextFieldWithConfigurationHandler:^(UITextField *textField) {
++            textField.text = defaultText;
++          }];
++          UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"Ok" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
++            completionHandler([[alert.textFields lastObject] text]);
++          }];
++          [alert addAction:okAction];
++          UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
++            completionHandler(nil);
++          }];
++          [alert addAction:cancelAction];
++          alert.preferredAction = okAction;
++          [[self topViewController] presentViewController:alert animated:YES completion:NULL];
++        #else
++          NSAlert *alert = [[NSAlert alloc] init];
++          [alert setMessageText:prompt];
++
++          const NSRect RCTSingleTextFieldFrame = NSMakeRect(0.0, 0.0, 275.0, 22.0);
++          NSTextField *textField = [[NSTextField alloc] initWithFrame:RCTSingleTextFieldFrame];
++          textField.cell.scrollable = YES;
++          if (@available(macOS 10.11, *)) {
++            textField.maximumNumberOfLines = 1;
++          }
++          textField.stringValue = defaultText;
++          [alert setAccessoryView:textField];
++
++          [alert addButtonWithTitle:NSLocalizedString(@"OK", @"OK button")];
++          [alert addButtonWithTitle:NSLocalizedString(@"Cancel", @"Cancel button")];
++          [alert beginSheetModalForWindow:[NSApp keyWindow] completionHandler:^(NSModalResponse response) {
++            if (response == NSAlertFirstButtonReturn) {
++              completionHandler([textField stringValue]);
++            } else {
++              completionHandler(nil);
++            }
++          }];
++        #endif // !TARGET_OS_OSX
+     } else {
+-      completionHandler(nil);
++        completionHandler(nil);
+     }
+-  }];
+-#endif // !TARGET_OS_OSX
+ }
+ 
+ #if !TARGET_OS_OSX
+@@ -1157,6 +1168,7 @@ - (void)webView:(WKWebView *)webView
+   }
+ 
+   if (_onLoadingFinish) {
++      _disablePromptDuringLoading = NO;
+     _onLoadingFinish([self baseEvent]);
+   }
+ }

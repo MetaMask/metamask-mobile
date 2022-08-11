@@ -4,7 +4,7 @@ import StyledButton from '../../../UI/StyledButton';
 import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -53,7 +53,7 @@ interface Props {
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const isFullScreenModal = route?.params?.isFullScreenModal;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   useEffect(

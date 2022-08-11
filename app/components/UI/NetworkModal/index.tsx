@@ -19,7 +19,7 @@ import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import sanitizeUrl from '../../../util/sanitizeUrl';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 
 import {
@@ -129,7 +129,7 @@ const NetworkModals = (props: NetworkProps) => {
 
   const showDetailsModal = () => setShowDetails(!showDetails);
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const dispatch = useDispatch();

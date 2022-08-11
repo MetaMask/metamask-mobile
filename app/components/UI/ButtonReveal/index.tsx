@@ -14,7 +14,7 @@ import Animated, {
   Extrapolate,
   runOnUI,
 } from 'react-native-reanimated';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const radius = 14;
@@ -95,7 +95,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
   // Value for scaling down the progress container
   const postCompleteControl = useSharedValue(0);
   // Colors
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   // Animate SVG via props
