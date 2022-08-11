@@ -1,6 +1,5 @@
 // Third party dependencies.
 import React from 'react';
-import { ImageSourcePropType } from 'react-native';
 import { shallow } from 'enzyme';
 
 // External dependencies.
@@ -12,30 +11,46 @@ import { AvatarBaseSize } from '../AvatarBase';
 import AvatarToken from './AvatarToken';
 import {
   TOKEN_AVATAR_IMAGE_ID,
-  TEST_NETWORK_NAME,
+  TEST_TOKEN_NAME,
+  TEST_LOCAL_IMAGE_SOURCE,
+  TEST_REMOTE_IMAGE_SOURCE,
 } from './AvatarToken.constants';
 
 describe('AvatarToken', () => {
   /* eslint-disable-next-line */
-  const ethLogo: ImageSourcePropType = require('../../../../images/eth-logo.png');
 
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarToken
         size={AvatarBaseSize.Xl}
-        name={TEST_NETWORK_NAME}
-        imageSource={ethLogo}
+        name={TEST_TOKEN_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render network image', () => {
+  it('should render remote network image', () => {
     const wrapper = shallow(
       <AvatarToken
         size={AvatarBaseSize.Xl}
-        name={TEST_NETWORK_NAME}
-        imageSource={ethLogo}
+        name={TEST_TOKEN_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+      />,
+    );
+
+    const imageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,
+    );
+    expect(imageComponent.exists()).toBe(true);
+  });
+
+  it('should render local network image', () => {
+    const wrapper = shallow(
+      <AvatarToken
+        size={AvatarBaseSize.Xl}
+        name={TEST_TOKEN_NAME}
+        imageSource={TEST_LOCAL_IMAGE_SOURCE}
       />,
     );
 
@@ -49,8 +64,8 @@ describe('AvatarToken', () => {
     const wrapper = shallow(
       <AvatarToken
         size={AvatarBaseSize.Xl}
-        name={TEST_NETWORK_NAME}
-        imageSource={ethLogo}
+        name={TEST_TOKEN_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
     const prevImageComponent = wrapper.findWhere(
@@ -66,7 +81,7 @@ describe('AvatarToken', () => {
 
   it('should render fallback when tokenImageUrl is not provided', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} name={TEST_NETWORK_NAME} />,
+      <AvatarToken size={AvatarBaseSize.Xl} name={TEST_TOKEN_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,
