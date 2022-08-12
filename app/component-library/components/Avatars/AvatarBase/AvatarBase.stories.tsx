@@ -16,25 +16,23 @@ import { DUMMY_IMAGE_DATA } from './AvatarBase.constants';
 
 const styles = StyleSheet.create({ imageStyle: { flex: 1 } });
 
-storiesOf('Component Library / AvatarBase', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const sizeSelector = select('Size', AvatarBaseSize, AvatarBaseSize.Md);
-    const includesBadge = boolean('Include Badge?', false);
+storiesOf('Component Library / AvatarBase', module).add('Default', () => {
+  const sizeSelector = select('Size', AvatarBaseSize, AvatarBaseSize.Md);
+  const includesBadge = boolean('Includes badge?', false);
 
-    const badgeContent = includesBadge ? (
-      <AvatarNetwork
-        size={AvatarBaseSize.Xs}
-        name={'Ethereum'}
-        imageSource={TEST_IMAGE_SOURCE}
+  const badgeContent = includesBadge ? (
+    <AvatarNetwork
+      size={AvatarBaseSize.Xs}
+      name={'Ethereum'}
+      imageSource={TEST_IMAGE_SOURCE}
+    />
+  ) : null;
+  return (
+    <AvatarBase size={sizeSelector} badge={{ content: badgeContent }}>
+      <Image
+        source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
+        style={styles.imageStyle}
       />
-    ) : null;
-    return (
-      <AvatarBase size={sizeSelector} badgeContent={badgeContent}>
-        <Image
-          source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
-          style={styles.imageStyle}
-        />
-      </AvatarBase>
-    );
-  });
+    </AvatarBase>
+  );
+});

@@ -8,7 +8,7 @@ export interface BadgeProps extends ViewProps {
   /**
    * The content of the badge itself. This can take in any component.
    */
-  badgeContent: React.ReactNode | JSX.Element;
+  content: React.ReactNode | JSX.Element;
   /**
    * The children element that the badge will attach itself to.
    */
@@ -16,13 +16,10 @@ export interface BadgeProps extends ViewProps {
   /**
    * Optional style opject that can be passed to the badge content.
    */
-  badgeContentStyle?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type BadgeStyleSheetVars = Pick<
-  BadgeProps,
-  'style' | 'badgeContentStyle'
->;
+export type BadgeStyleSheetVars = Pick<BadgeProps, 'style' | 'contentStyle'>;

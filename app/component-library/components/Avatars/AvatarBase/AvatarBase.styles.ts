@@ -1,8 +1,12 @@
 // Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
 // Internal dependencies.
 import {
+  AvatarBaseSize,
   AvatarBaseStyleSheetVars,
   AvatarBadgePositionVariant,
 } from './AvatarBase.types';
@@ -14,38 +18,37 @@ import {
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { vars: AvatarBaseStyleSheetVars }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: AvatarBaseStyleSheetVars;
+}) => {
   const {
-    vars: { style, size, badgePosition },
+    theme,
+    vars: { style, size, badge },
   } = params;
   const sizeAsNum = Number(size);
+  const badgeSize = Number(AvatarBaseSize.Xs);
   let position;
 
-  switch (badgePosition) {
+  switch (badge?.position) {
     case AvatarBadgePositionVariant.TopRight: {
       position = {
         top: -4,
         right: -4,
-        bottom: 'auto',
-        left: 'auto',
       };
       break;
     }
     case AvatarBadgePositionVariant.BottomRight: {
       position = {
-        top: 'auto',
         right: -4,
         bottom: -4,
-        left: 'auto',
       };
       break;
     }
     default: {
       position = {
-        top: 'auto',
-        right: 'auto',
-        bottom: 'auto',
-        left: 'auto',
+        top: -4,
+        right: -4,
       };
     }
   }
@@ -57,18 +60,15 @@ const styleSheet = (params: { vars: AvatarBaseStyleSheetVars }) => {
         width: sizeAsNum,
         borderRadius: sizeAsNum / 2,
         overflow: 'hidden',
-        backgroundColor: 'white',
+        backgroundColor: theme.colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
     badgeContent: {
-      top: position.top,
-      right: position.right,
-      bottom: position.bottom,
-      left: position.left,
-      width: 16,
-      height: 16,
-      borderRadius: 8,
+      ...position,
+      width: badgeSize,
+      height: badgeSize,
+      borderRadius: badgeSize / 2,
       overflow: 'hidden',
     },
   });

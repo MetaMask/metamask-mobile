@@ -17,7 +17,7 @@ import { BadgeStyleSheetVars } from './Badge.types';
  */
 const styleSheet = (params: { theme: Theme; vars: BadgeStyleSheetVars }) => {
   const { vars } = params;
-  const { style, badgeContentStyle } = vars;
+  const { style, contentStyle } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
@@ -26,13 +26,13 @@ const styleSheet = (params: { theme: Theme; vars: BadgeStyleSheetVars }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    badgeContent: Object.assign(
+    content: Object.assign(
       {
         position: 'absolute',
         top: -4,
         right: -4,
       } as ViewStyle,
-      badgeContentStyle,
+      contentStyle,
     ) as ViewStyle,
   });
 };

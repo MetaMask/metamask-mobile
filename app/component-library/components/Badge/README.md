@@ -4,7 +4,7 @@ Badge is a wrapper component that enables any custom component to be attached to
 
 ## Props
 
-This component extends `ViewProps` from React Native's [View Component](https://reactnative.dev/docs/view).
+This component extends `ViewProps` from React Native's [View](https://reactnative.dev/docs/view) component.
 
 ### `badgeContent`
 

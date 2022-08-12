@@ -11,9 +11,9 @@ import { BADGE_CONTENT_TEST_ID } from './Badge.constants';
 
 describe('Badge - snapshots', () => {
   it('should render badge with default position correctly', () => {
-    const badgeContent = <Tag label={'Badge'} />;
+    const content = <Tag label={'Badge'} />;
     const wrapper = shallow(
-      <Badge badgeContent={badgeContent}>
+      <Badge content={content}>
         <Tag label={'Children'} />
       </Badge>,
     );
@@ -22,17 +22,17 @@ describe('Badge - snapshots', () => {
 });
 
 describe('Badge', () => {
-  it('should render badge with the given badgeContent', () => {
-    const badgeContent = <Tag label={'Badge'} />;
+  it('should render badge with the given content', () => {
+    const content = <Tag label={'Badge'} />;
     const wrapper = shallow(
-      <Badge badgeContent={badgeContent}>
+      <Badge content={content}>
         <Tag label={'Children'} />
       </Badge>,
     );
 
-    const badgeContentElement = wrapper.findWhere(
+    const contentElement = wrapper.findWhere(
       (node) => node.prop('testID') === BADGE_CONTENT_TEST_ID,
     );
-    expect(badgeContentElement.exists()).toBe(true);
+    expect(contentElement.exists()).toBe(true);
   });
 });

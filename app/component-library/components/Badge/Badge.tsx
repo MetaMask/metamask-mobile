@@ -12,22 +12,22 @@ import { BadgeProps } from './Badge.types';
 import styleSheet from './Badge.styles';
 
 const Badge: React.FC<BadgeProps> = ({
-  badgeContent,
+  content,
   children,
-  badgeContentStyle,
+  contentStyle,
   style,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     style,
-    badgeContentStyle,
+    contentStyle,
   });
 
   return (
     <View style={styles.base} {...props}>
       <View>{children}</View>
-      <View style={styles.badgeContent} testID={BADGE_CONTENT_TEST_ID}>
-        {badgeContent}
+      <View style={styles.content} testID={BADGE_CONTENT_TEST_ID}>
+        {content}
       </View>
     </View>
   );

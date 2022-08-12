@@ -44,17 +44,17 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
   };
   const sampleComponentsKeys = Object.keys(sampleComponents);
 
-  const badgeContentKey = select(
-    'badgeContent',
+  const contentKey = select(
+    'content',
     sampleComponentsKeys,
     sampleComponentsKeys[0],
     groupId,
   );
 
-  const badgeContent = sampleComponents[badgeContentKey];
+  const content = sampleComponents[contentKey];
 
   return (
-    <Badge badgeContent={badgeContent}>
+    <Badge content={content}>
       <View
         // eslint-disable-next-line react-native/no-inline-styles
         style={{
