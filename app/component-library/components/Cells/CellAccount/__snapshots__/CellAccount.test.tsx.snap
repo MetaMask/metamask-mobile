@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
-<CellContainerSelectItem
+<SelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -42,11 +42,11 @@ exports[`CellAccount - Snapshot should render default settings correctly 1`] = `
       </Text>
     </View>
   </View>
-</CellContainerSelectItem>
+</SelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render label when given 1`] = `
-<CellContainerSelectItem
+<SelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -96,11 +96,11 @@ exports[`CellAccount - Snapshot should render label when given 1`] = `
       />
     </View>
   </View>
-</CellContainerSelectItem>
+</SelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
-<CellContainerSelectItem
+<SelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -153,11 +153,11 @@ exports[`CellAccount - Snapshot should render secondaryText when given 1`] = `
       </Text>
     </View>
   </View>
-</CellContainerSelectItem>
+</SelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
-<CellContainerSelectItem
+<SelectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -210,11 +210,11 @@ exports[`CellAccount - Snapshot should render tertiaryText when given 1`] = `
       </Text>
     </View>
   </View>
-</CellContainerSelectItem>
+</SelectItem>
 `;
 
 exports[`CellAccount - Snapshot should render the proper multiselect when isMultiSelect is true 1`] = `
-<CellContainerMultiselectItem
+<MultiselectItem
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
@@ -255,11 +255,11 @@ exports[`CellAccount - Snapshot should render the proper multiselect when isMult
       </Text>
     </View>
   </View>
-</CellContainerMultiselectItem>
+</MultiselectItem>
 `;
 
 exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
-<CellContainerSelectItem
+<SelectItem
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
@@ -300,5 +300,5 @@ exports[`CellAccount - Snapshot should render the proper selected state 1`] = `
       </Text>
     </View>
   </View>
-</CellContainerSelectItem>
+</SelectItem>
 `;

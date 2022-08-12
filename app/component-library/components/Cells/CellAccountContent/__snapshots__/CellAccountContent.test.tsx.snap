@@ -1,0 +1,186 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellAccountContent - Snapshot should render default settings correctly 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <AvatarAccount
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    size="32"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-account-avatar"
+    type="JazzIcon"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-account-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`CellAccountContent - Snapshot should render label when given 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <AvatarAccount
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    size="32"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-account-avatar"
+    type="JazzIcon"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-account-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+    <Tag
+      label="Imported"
+      style={
+        Object {
+          "marginTop": 4,
+        }
+      }
+      testID="cell-account-label"
+    />
+  </View>
+</View>
+`;
+
+exports[`CellAccountContent - Snapshot should render secondaryText when given 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <AvatarAccount
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    size="32"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-account-avatar"
+    type="JazzIcon"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-account-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "color": "#535A61",
+        }
+      }
+      testID="cell-account-secondary-text"
+      variant="sBodyMD"
+    >
+      0x2990079bcdEe240329a520d2444386FC119da21a
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`CellAccountContent - Snapshot should render tertiaryText when given 1`] = `
+<View
+  style={
+    Object {
+      "flexDirection": "row",
+    }
+  }
+>
+  <AvatarAccount
+    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    size="32"
+    style={
+      Object {
+        "marginRight": 16,
+      }
+    }
+    testID="cell-account-avatar"
+    type="JazzIcon"
+  />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      numberOfLines={1}
+      testID="cell-account-title"
+      variant="sHeadingSMRegular"
+    >
+      Orangefox.eth
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        Object {
+          "color": "#535A61",
+        }
+      }
+      testID="cell-account-tertiary-text"
+      variant="sBodyMD"
+    >
+      Updated 1 sec ago
+    </Text>
+  </View>
+</View>
+`;
