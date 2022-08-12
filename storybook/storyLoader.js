@@ -35,6 +35,8 @@ function loadStories() {
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
+  require('../app/component-library/components/Select/Multiselect/CellContainerMultiselectItem/MultiselectItem.stories');
+  require('../app/component-library/components/Select/Select/SelectItem/SelectItem.stories');
   require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
   require('../app/component-library/components/Tags/Tag/Tag.stories');
@@ -75,6 +77,8 @@ const stories = [
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
+  '../app/component-library/components/Select/Multiselect/CellContainerMultiselectItem/MultiselectItem.stories',
+  '../app/component-library/components/Select/Select/SelectItem/SelectItem.stories',
   '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
   '../app/component-library/components/Tags/Tag/Tag.stories',
