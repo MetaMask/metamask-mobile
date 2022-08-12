@@ -173,7 +173,7 @@ const conversionUtil = (
 };
 
 const getBigNumber = (value, base) => {
-	if (!isValidBase(base)) {
+  if (!isValidBase(base)) {
 		throw new Error('Must specify valid base');
 	}
 
