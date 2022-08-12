@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -149,10 +149,9 @@ const createStyles = (colors) =>
       borderRadius: 8,
     },
     qrCodeWrapper: {
-      borderColor: colors.border.default,
-      borderRadius: 8,
-      borderWidth: 1,
-      padding: 15,
+      marginVertical: 8,
+      padding: 8,
+      backgroundColor: importedColors.white,
     },
   });
 
@@ -389,8 +388,6 @@ class PaymentRequestSuccess extends PureComponent {
                 <QRCode
                   value={this.state.qrLink}
                   size={Dimensions.get('window').width - 160}
-                  color={colors.text.default}
-                  backgroundColor={colors.background.default}
                 />
               </View>
             </View>
