@@ -1,5 +1,9 @@
+import { States } from './MetaMetrics.constants';
+
 // Represents the interface for the core class MetaMetrics
 export interface IMetaMetrics {
+  // Method to get current MetaMetrics state
+  state(): States;
   // Method to enable data tracking
   enable(): void;
   // Method to disable data tracking
