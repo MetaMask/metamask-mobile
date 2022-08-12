@@ -9,8 +9,8 @@ import { useStyles } from '../../../hooks';
 import AvatarAccount from '../../Avatars/AvatarAccount';
 import Text, { TextVariant } from '../../Text';
 import { AvatarBaseSize } from '../../Avatars/AvatarBase';
-import CellContainerMultiselectItem from '../CellContainerMultiselectItem';
-import CellContainerSelectItem from '../CellContainerSelectItem';
+import MultiselectItem from '../../Select/Multiselect/MultiselectItem';
+import SelectItem from '../../Select/Select/SelectItem';
 import Tag from '../../Tags/Tag';
 
 // Internal dependencies.
@@ -40,9 +40,7 @@ const CellAccount = ({
   ...props
 }: CellAccountProps) => {
   const { styles } = useStyles(styleSheet, { style });
-  const ContainerComponent = isMultiSelect
-    ? CellContainerMultiselectItem
-    : CellContainerSelectItem;
+  const ContainerComponent = isMultiSelect ? MultiselectItem : SelectItem;
   const containerTestID = isMultiSelect
     ? CELL_ACCOUNT_MULTI_SELECT_TEST_ID
     : CELL_ACCOUNT_SINGLE_SELECT_TEST_ID;
