@@ -390,7 +390,7 @@ const AmountToBuy = () => {
 
   const currentPaymentMethod = useMemo(
     () =>
-      filteredPaymentMethods?.find?.(
+      filteredPaymentMethods?.find(
         (method) => method.id === selectedPaymentMethodId,
       ),
     [filteredPaymentMethods, selectedPaymentMethodId],
@@ -664,7 +664,10 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Amount to Buy Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -674,7 +677,11 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={retryMethod} />
+          <ErrorView
+            description={error}
+            ctaOnPress={retryMethod}
+            location={'Amount to Buy Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -733,6 +740,7 @@ const AmountToBuy = () => {
             )}
             ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
             ctaOnPress={showPaymentMethodsModal as () => void}
+            location={'Amount to Buy Screen'}
           />
         </ScreenLayout.Body>
         <PaymentMethodModal
@@ -741,6 +749,7 @@ const AmountToBuy = () => {
           title={strings('fiat_on_ramp_aggregator.select_payment_method')}
           paymentMethods={filteredPaymentMethods}
           selectedPaymentMethodId={selectedPaymentMethodId}
+          selectedPaymentMethodType={currentPaymentMethod?.paymentType}
           onItemPress={handleChangePaymentMethod}
           location={'Amount to Buy Screen'}
         />
@@ -816,7 +825,9 @@ const AmountToBuy = () => {
             label={strings('fiat_on_ramp_aggregator.update_payment_method')}
             icon={
               <PaymentIcon
-                iconType={getPaymentMethodIcon(selectedPaymentMethodId)}
+                iconType={getPaymentMethodIcon(
+                  currentPaymentMethod?.paymentType,
+                )}
                 size={20}
                 color={colors.icon.default}
               />
@@ -885,6 +896,7 @@ const AmountToBuy = () => {
         title={strings('fiat_on_ramp_aggregator.select_payment_method')}
         paymentMethods={filteredPaymentMethods}
         selectedPaymentMethodId={selectedPaymentMethodId}
+        selectedPaymentMethodType={currentPaymentMethod?.paymentType}
         onItemPress={handleChangePaymentMethod}
         location={'Amount to Buy Screen'}
       />

@@ -12,7 +12,7 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
 } from '../../../../util/transactions';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
@@ -45,7 +45,7 @@ function ApprovalTransactionEditionModal({
     useState(minimumSpendLimit);
   const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] =
     useState(true);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   const onSpendLimitCustomValueChange = useCallback(
     (approvalCustomValue) => setApprovalCustomValue(approvalCustomValue),

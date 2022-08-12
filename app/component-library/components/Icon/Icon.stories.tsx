@@ -1,7 +1,11 @@
+// Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
-import Icon, { IconSize, IconName } from './';
+
+// Internal dependencies.
+import Icon from './Icon';
+import { IconSize, IconName } from './Icon.types';
 
 storiesOf('Component Library / Icon', module)
   .addDecorator((getStory) => getStory())

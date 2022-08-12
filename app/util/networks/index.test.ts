@@ -3,6 +3,8 @@ import {
   getNetworkName,
   getAllNetworks,
   getNetworkTypeById,
+  findBlockExplorerForRpc,
+  compareRpcUrls,
 } from '.';
 import {
   MAINNET,
@@ -16,7 +18,7 @@ import {
   NETWORK_ERROR_UNKNOWN_NETWORK_ID,
 } from '../../../app/constants/error';
 
-describe('getAllNetworks', () => {
+describe('NetworkUtils::getAllNetworks', () => {
   const allNetworks = getAllNetworks();
   it('should get all networks', () => {
     expect(allNetworks.includes(MAINNET)).toEqual(true);
@@ -28,7 +30,7 @@ describe('getAllNetworks', () => {
   });
 });
 
-describe('isMainNet', () => {
+describe('NetworkUtils::isMainNet', () => {
   it(`should return true if the selected network is ${MAINNET}`, () => {
     expect(isMainNet('1')).toEqual(true);
     expect(
@@ -53,7 +55,7 @@ describe('isMainNet', () => {
   });
 });
 
-describe('getNetworkName', () => {
+describe('NetworkUtils::getNetworkName', () => {
   it(`should get network name for ${MAINNET} id`, () => {
     const main = getNetworkName(String(1));
     expect(main).toEqual(MAINNET);
@@ -75,7 +77,7 @@ describe('getNetworkName', () => {
   });
 });
 
-describe('getNetworkTypeById', () => {
+describe('NetworkUtils::getNetworkTypeById', () => {
   it('should get network type by Id', () => {
     const type = getNetworkTypeById(42);
     expect(type).toEqual(KOVAN);
@@ -96,5 +98,67 @@ describe('getNetworkTypeById', () => {
         `${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`,
       );
     }
+  });
+});
+
+describe('NetworkUtils::findBlockExplorerForRpc', () => {
+  const frequentRpcListMock = [
+    {
+      chainId: '137',
+      nickname: 'Polygon Mainnet',
+      rpcPrefs: {
+        blockExplorerUrl: 'https://polygonscan.com',
+      },
+      rpcUrl: 'https://polygon-mainnet.infura.io/v3',
+      ticker: 'MATIC',
+    },
+    {
+      chainId: '56',
+      nickname: 'Binance Smart Chain',
+      rpcPrefs: {},
+      rpcUrl: 'https://bsc-dataseed.binance.org/',
+      ticker: 'BNB',
+    },
+    {
+      chainId: '10',
+      nickname: 'Optimism',
+      rpcPrefs: { blockExplorerUrl: 'https://optimistic.ethereum.io' },
+      rpcUrl: 'https://mainnet.optimism.io/',
+      ticker: 'ETH',
+    },
+  ];
+
+  it('should find the block explorer is it exists', () => {
+    const mockRpcUrl = frequentRpcListMock[2].rpcUrl;
+    const expectedBlockExplorer =
+      frequentRpcListMock[2].rpcPrefs.blockExplorerUrl;
+    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+      expectedBlockExplorer,
+    );
+  });
+  it('should return undefined if the block explorer does not exist', () => {
+    const mockRpcUrl = frequentRpcListMock[1].rpcUrl;
+    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+      undefined,
+    );
+  });
+  it('should return undefined if the RPC does not exist', () => {
+    const mockRpcUrl = 'https://arb1.arbitrum.io/rpc';
+    expect(findBlockExplorerForRpc(mockRpcUrl, frequentRpcListMock)).toBe(
+      undefined,
+    );
+  });
+});
+
+describe('NetworkUtils::compareRpcUrls', () => {
+  it('should return true if both URLs have the same host', () => {
+    const mockRpcOne = 'https://mainnet.optimism.io/';
+    const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
+    expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(true);
+  });
+  it('should return false if both URLs have the same host', () => {
+    const mockRpcOne = 'https://bsc-dataseed.binance.org/';
+    const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
+    expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(false);
   });
 });

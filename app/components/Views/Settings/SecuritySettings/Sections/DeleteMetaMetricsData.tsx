@@ -5,7 +5,7 @@ import {
   DeletionTaskStatus,
   ResponseStatus,
 } from '../../../../../core/Analytics/constants';
-import { mockTheme, useAppThemeFromContext } from '../../../../../util/theme';
+import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
@@ -35,7 +35,7 @@ const createStyles = (colors: any) =>
   });
 
 const DeleteMetaMetricsData = () => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
