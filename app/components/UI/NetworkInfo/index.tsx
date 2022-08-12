@@ -7,13 +7,14 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { MAINNET, RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../../../constants/test-ids';
 import { fontStyles } from '../../../styles/common';
+import { util as controllerUtils } from '@metamask/controllers';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -110,6 +111,7 @@ interface NetworkInfoProps {
       networkTicker: string;
     };
     rpcTarget: string;
+    chainId: string;
   };
   isTokenDetectionEnabled: boolean;
 }
@@ -119,17 +121,25 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     onClose,
     ticker,
     isTokenDetectionEnabled,
-    networkProvider: { nickname, type, ticker: networkTicker, rpcTarget },
+    networkProvider: {
+      nickname,
+      type,
+      ticker: networkTicker,
+      rpcTarget,
+      chainId,
+    },
   } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
+  const isTokenDetectionSupported =
+    controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
 
-  const isMainnetTokenDetectionEnabled = useMemo(() => {
-    if (type === MAINNET && isTokenDetectionEnabled) {
+  const isTokenDetectionEnabledForNetwork = useMemo(() => {
+    if (isTokenDetectionSupported && isTokenDetectionEnabled) {
       return true;
     }
     return false;
-  }, [isTokenDetectionEnabled, type]);
+  }, [isTokenDetectionEnabled, isTokenDetectionSupported]);
 
   return (
     <View style={styles.wrapper}>
@@ -205,19 +215,20 @@ const NetworkInfo = (props: NetworkInfoProps) => {
           />
           <Description
             description={
-              isMainnetTokenDetectionEnabled
+              isTokenDetectionEnabledForNetwork
                 ? strings('network_information.token_detection_mainnet_title')
                 : strings('network_information.third_description')
             }
             clickableText={
-              isMainnetTokenDetectionEnabled
+              isTokenDetectionEnabledForNetwork
                 ? strings('network_information.token_detection_mainnet_link')
                 : strings('network_information.add_token_manually')
             }
             number={3}
-            isMainnetTokenDetectionEnabled={isMainnetTokenDetectionEnabled}
+            isTokenDetectionLinkEnabled={
+              isTokenDetectionSupported && !isTokenDetectionEnabled
+            }
             onClose={onClose}
-            network={type}
           />
         </View>
         <StyledButton
@@ -235,7 +246,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled:
-    !state.engine.backgroundState.PreferencesController.useStaticTokenList,
+    state.engine.backgroundState.PreferencesController.useTokenDetection,
   networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 

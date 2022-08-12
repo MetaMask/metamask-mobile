@@ -15,7 +15,7 @@ const initialState = {
       NetworkController: {
         provider: { type: MAINNET, rpcTarget: '' },
       },
-      PreferencesController: { useStaticTokenList: true, frequentRpcList: [] },
+      PreferencesController: { useTokenDetection: true, frequentRpcList: [] },
     },
   },
   networkOnboarded: {

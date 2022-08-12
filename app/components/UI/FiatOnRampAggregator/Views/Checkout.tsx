@@ -155,6 +155,12 @@ const CheckoutWebView = () => {
         trackEvent('ONRAMP_PURCHASE_SUBMITTED', {
           provider_onramp: ((transformedOrder as FiatOrder)?.data as Order)
             ?.provider?.name,
+          payment_method_id: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.paymentMethod?.id,
+          currency_source: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.fiatCurrency.symbol,
+          currency_destination: ((transformedOrder as FiatOrder)?.data as Order)
+            ?.cryptoCurrency.symbol,
           chain_id_destination: selectedChainId,
           is_apple_pay: false,
           has_zero_native_balance: accounts[selectedAddress]?.balance
@@ -171,7 +177,10 @@ const CheckoutWebView = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Provider Webview'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -187,6 +196,7 @@ const CheckoutWebView = () => {
               setKey((prevKey) => prevKey + 1);
               setError('');
             }}
+            location={'Provider Webview'}
           />
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -212,10 +222,11 @@ const CheckoutWebView = () => {
               setError(webviewHttpError);
             }
           }}
-          allowInlineMediaPlayback
+          allowsInlineMediaPlayback
           enableApplePay
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          userAgent={params.provider?.features?.buy?.userAgent ?? undefined}
         />
       </View>
     );

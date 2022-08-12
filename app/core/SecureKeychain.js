@@ -79,6 +79,8 @@ export default {
     const options = { service: defaultOptions.service };
     await AsyncStorage.removeItem(BIOMETRY_CHOICE);
     await AsyncStorage.removeItem(PASSCODE_CHOICE);
+    // This is called to remove other auth types and set the user back to the default password login
+    Analytics.applyUserProperty(AUTHENTICATION_TYPE.PASSWORD);
     return Keychain.resetGenericPassword(options);
   },
 
@@ -113,7 +115,6 @@ export default {
       Analytics.applyUserProperty(AUTHENTICATION_TYPE.REMEMBER_ME);
       //Don't need to add any parameter
     } else {
-      Analytics.applyUserProperty(AUTHENTICATION_TYPE.PASSWORD);
       // Setting a password without a type does not save it
       return await this.resetGenericPassword();
     }

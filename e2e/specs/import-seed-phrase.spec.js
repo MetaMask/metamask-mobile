@@ -17,6 +17,7 @@ import LoginView from '../pages/LoginView';
 //import SettingsView from '../pages/Drawer/Settings/SettingsView';
 
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const INCORRECT_SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just falcon';
@@ -71,6 +72,17 @@ describe('Import seedphrase flow', () => {
     await ImportWalletView.enterPassword(CORRECT_PASSWORD);
     await ImportWalletView.reEnterPassword(CORRECT_PASSWORD);
     await WalletView.isVisible();
+  });
+
+  it('should tap on the close button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapCloseButton();
+    } catch {
+      //
+    }
   });
 
   it('should dismiss the onboarding wizard', async () => {

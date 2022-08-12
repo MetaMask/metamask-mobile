@@ -12,7 +12,7 @@ import {
   decodeApproveData,
   generateTxWithNewTokenAllowance,
 } from '../../../../util/transactions';
-import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import Logger from '../../../../util/Logger';
 
 const styles = StyleSheet.create({
@@ -37,22 +37,26 @@ function ApprovalTransactionEditionModal({
   chainId,
 }) {
   /* Approval transaction if any */
+  const [customApprovalTransaction, setCustomApprovalTransaction] =
+    useState(approvalTransaction);
   const [approvalTransactionAmount, setApprovalTransactionAmount] =
     useState('');
   const [approvalCustomValue, setApprovalCustomValue] =
     useState(minimumSpendLimit);
   const [spendLimitUnlimitedSelected, setSpendLimitUnlimitedSelected] =
     useState(true);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   const onSpendLimitCustomValueChange = useCallback(
     (approvalCustomValue) => setApprovalCustomValue(approvalCustomValue),
     [],
   );
+
   const onPressSpendLimitUnlimitedSelected = useCallback(
     () => setSpendLimitUnlimitedSelected(true),
     [],
   );
+
   const onPressSpendLimitCustomSelected = useCallback(
     () => setSpendLimitUnlimitedSelected(false),
     [],
@@ -66,8 +70,9 @@ function ApprovalTransactionEditionModal({
           : approvalCustomValue,
         sourceToken.decimals,
         swapsUtils.getSwapsContractAddress(chainId),
-        approvalTransaction,
+        customApprovalTransaction,
       );
+      setCustomApprovalTransaction(newApprovalTransaction);
       setApprovalTransaction(newApprovalTransaction);
       onCancelEditQuoteTransactions();
     } catch (err) {
@@ -78,27 +83,32 @@ function ApprovalTransactionEditionModal({
     spendLimitUnlimitedSelected,
     approvalTransactionAmount,
     approvalCustomValue,
-    approvalTransaction,
+    customApprovalTransaction,
     sourceToken,
     chainId,
     onCancelEditQuoteTransactions,
   ]);
 
   useEffect(() => {
-    setApprovalTransaction(originalApprovalTransaction);
-    if (originalApprovalTransaction) {
+    const newApprovalTx = spendLimitUnlimitedSelected
+      ? originalApprovalTransaction
+      : customApprovalTransaction;
+    setApprovalTransaction(newApprovalTx);
+    if (newApprovalTx) {
       const approvalTransactionAmount = decodeApproveData(
-        originalApprovalTransaction.data,
+        newApprovalTx.data,
       ).encodedAmount;
       const amountDec = hexToBN(approvalTransactionAmount).toString(10);
       setApprovalTransactionAmount(
         fromTokenMinimalUnitString(amountDec, sourceToken.decimals),
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     originalApprovalTransaction,
-    sourceToken.decimals,
     setApprovalTransaction,
+    spendLimitUnlimitedSelected,
+    customApprovalTransaction,
   ]);
 
   return (
@@ -120,7 +130,7 @@ function ApprovalTransactionEditionModal({
       <KeyboardAwareScrollView
         contentContainerStyle={styles.keyboardAwareWrapper}
       >
-        {Boolean(approvalTransaction) && (
+        {Boolean(customApprovalTransaction) && (
           <EditPermission
             host={'Swaps'}
             minimumSpendLimit={minimumSpendLimit}

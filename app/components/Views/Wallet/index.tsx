@@ -30,7 +30,10 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { DrawerContext } from '../../Nav/Main/MainNavigator';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
+import { shouldShowWhatsNewModal } from '../../../util/onboarding';
+import Logger from '../../../util/Logger';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -68,7 +71,7 @@ const Wallet = ({ navigation }: any) => {
   const { drawerRef } = useContext(DrawerContext);
   const [refreshing, setRefreshing] = useState(false);
   const accountOverviewRef = useRef(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   /**
    * Map of accounts to information objects including balances
@@ -123,7 +126,30 @@ const Wallet = ({ navigation }: any) => {
    */
   const wizardStep = useSelector((state: any) => state.wizard.step);
 
-  const { colors: themeColors } = useAppThemeFromContext() || mockTheme;
+  const { colors: themeColors } = useTheme();
+
+  /**
+   * Check to see if we need to show What's New modal
+   */
+  useEffect(() => {
+    if (wizardStep > 0) {
+      // Do not check since it will conflict with the onboarding wizard
+      return;
+    }
+    const checkWhatsNewModal = async () => {
+      try {
+        const shouldShowWhatsNew = await shouldShowWhatsNewModal();
+        if (shouldShowWhatsNew) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.MODAL.WHATS_NEW,
+          });
+        }
+      } catch (error) {
+        Logger.log(error, "Error while checking What's New modal!");
+      }
+    };
+    checkWhatsNewModal();
+  }, [wizardStep, navigation]);
 
   useEffect(
     () => {
