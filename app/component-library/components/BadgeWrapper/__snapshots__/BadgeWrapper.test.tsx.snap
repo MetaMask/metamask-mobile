@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Badge - snapshots should render badge with default position correctly 1`] = `
+exports[`BadgeWrapper - snapshots should render badge with default position correctly 1`] = `
 <View
   style={
     Object {
@@ -21,7 +21,7 @@ exports[`Badge - snapshots should render badge with default position correctly 1
         "top": -4,
       }
     }
-    testID="badge-content"
+    testID="badge-wrapper-content"
   >
     <Tag
       label="Badge"

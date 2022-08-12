@@ -11,14 +11,14 @@ import { AvatarBaseSize } from '../Avatars/AvatarBase';
 import AvatarAccount, { AvatarAccountType } from '../Avatars/AvatarAccount';
 import { DUMMY_WALLET_ADDRESS } from '../Avatars/AvatarAccount/AvatarAccount.constants';
 import AvatarNetwork from '../Avatars/AvatarNetwork';
-import { TEST_IMAGE_SOURCE } from '../Avatars/AvatarNetwork/AvatarNetwork.constants';
+import { TEST_REMOTE_IMAGE_SOURCE } from '../Avatars/AvatarNetwork/AvatarNetwork.constants';
 import Tag from '../Tags/Tag';
 import Text, { TextVariant } from '../Text';
 
 // Internal dependencies.
-import Badge from './Badge';
+import BadgeWrapper from './BadgeWrapper';
 
-storiesOf('Component Library / Badge', module).add('Default', () => {
+storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
   const groupId = 'Props';
 
   const sampleTag = <Tag label={'Tag'} />;
@@ -33,7 +33,7 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
     <AvatarNetwork
       size={AvatarBaseSize.Md}
       name={'Ethereum'}
-      imageSource={TEST_IMAGE_SOURCE}
+      imageSource={TEST_REMOTE_IMAGE_SOURCE}
     />
   );
 
@@ -54,7 +54,7 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
   const content = sampleComponents[contentKey];
 
   return (
-    <Badge content={content}>
+    <BadgeWrapper content={content}>
       <View
         // eslint-disable-next-line react-native/no-inline-styles
         style={{
@@ -66,6 +66,6 @@ storiesOf('Component Library / Badge', module).add('Default', () => {
       >
         <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
       </View>
-    </Badge>
+    </BadgeWrapper>
   );
 });

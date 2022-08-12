@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks/useStyles';
-import Badge from '../../Badge';
+import BadgeWrapper from '../../BadgeWrapper';
 
 // Internal dependencies.
 import { AvatarBaseProps, AvatarBaseSize } from './AvatarBase.types';
@@ -26,9 +26,9 @@ const AvatarBase: React.FC<AvatarBaseProps> = ({
 
   const renderChildren = () => <View style={styles.container}>{children}</View>;
   const renderChildrenWithBadge = () => (
-    <Badge contentStyle={styles.badgeContent} content={badge?.content}>
+    <BadgeWrapper contentStyle={styles.badgeContent} content={badge?.content}>
       {renderChildren()}
-    </Badge>
+    </BadgeWrapper>
   );
 
   return badge ? renderChildrenWithBadge() : renderChildren();

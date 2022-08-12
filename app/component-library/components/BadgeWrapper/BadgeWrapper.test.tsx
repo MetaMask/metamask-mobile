@@ -6,32 +6,32 @@ import { shallow } from 'enzyme';
 import Tag from '../Tags/Tag';
 
 // Internal dependencies.
-import Badge from './Badge';
-import { BADGE_CONTENT_TEST_ID } from './Badge.constants';
+import BadgeWrapper from './BadgeWrapper';
+import { BADGE_WRAPPER_CONTENT_TEST_ID } from './BadgeWrapper.constants';
 
-describe('Badge - snapshots', () => {
+describe('BadgeWrapper - snapshots', () => {
   it('should render badge with default position correctly', () => {
     const content = <Tag label={'Badge'} />;
     const wrapper = shallow(
-      <Badge content={content}>
+      <BadgeWrapper content={content}>
         <Tag label={'Children'} />
-      </Badge>,
+      </BadgeWrapper>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 });
 
-describe('Badge', () => {
+describe('BadgeWrapper', () => {
   it('should render badge with the given content', () => {
     const content = <Tag label={'Badge'} />;
     const wrapper = shallow(
-      <Badge content={content}>
+      <BadgeWrapper content={content}>
         <Tag label={'Children'} />
-      </Badge>,
+      </BadgeWrapper>,
     );
 
     const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_CONTENT_TEST_ID,
+      (node) => node.prop('testID') === BADGE_WRAPPER_CONTENT_TEST_ID,
     );
     expect(contentElement.exists()).toBe(true);
   });

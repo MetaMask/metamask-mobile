@@ -7,11 +7,11 @@ import { View } from 'react-native';
 import { useStyles } from '../../hooks';
 
 // Internal dependencies
-import { BADGE_CONTENT_TEST_ID } from './Badge.constants';
-import { BadgeProps } from './Badge.types';
-import styleSheet from './Badge.styles';
+import { BADGE_WRAPPER_CONTENT_TEST_ID } from './BadgeWrapper.constants';
+import { BadgeWrapperProps } from './BadgeWrapper.types';
+import styleSheet from './BadgeWrapper.styles';
 
-const Badge: React.FC<BadgeProps> = ({
+const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   content,
   children,
   contentStyle,
@@ -26,11 +26,11 @@ const Badge: React.FC<BadgeProps> = ({
   return (
     <View style={styles.base} {...props}>
       <View>{children}</View>
-      <View style={styles.content} testID={BADGE_CONTENT_TEST_ID}>
+      <View style={styles.content} testID={BADGE_WRAPPER_CONTENT_TEST_ID}>
         {content}
       </View>
     </View>
   );
 };
 
-export default Badge;
+export default BadgeWrapper;

@@ -7,7 +7,10 @@ import { boolean, select } from '@storybook/addon-knobs';
 // External dependencies.
 import { toDataUrl } from '../../../../util/blockies';
 import AvatarNetwork from '../AvatarNetwork/AvatarNetwork';
-import { TEST_IMAGE_SOURCE } from '../AvatarNetwork/AvatarNetwork.constants';
+import {
+  TEST_NETWORK_NAME,
+  TEST_REMOTE_IMAGE_SOURCE,
+} from '../AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
 import AvatarBase from './AvatarBase';
@@ -23,8 +26,8 @@ storiesOf('Component Library / AvatarBase', module).add('Default', () => {
   const badgeContent = includesBadge ? (
     <AvatarNetwork
       size={AvatarBaseSize.Xs}
-      name={'Ethereum'}
-      imageSource={TEST_IMAGE_SOURCE}
+      name={TEST_NETWORK_NAME}
+      imageSource={TEST_REMOTE_IMAGE_SOURCE}
     />
   ) : null;
   return (

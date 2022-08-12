@@ -1,6 +1,6 @@
-# Badge
+# BadgeWrapper
 
-Badge is a wrapper component that enables any custom component to be attached to a child component.
+BadgeWrapper is a wrapper component that enables any custom component to be attached to a child component.
 
 ## Props
 

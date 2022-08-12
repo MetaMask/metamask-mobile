@@ -4,7 +4,7 @@ import { StyleProp, ViewProps, ViewStyle } from 'react-native';
 /**
  * Badge component props.
  */
-export interface BadgeProps extends ViewProps {
+export interface BadgeWrapperProps extends ViewProps {
   /**
    * The content of the badge itself. This can take in any component.
    */
@@ -22,4 +22,7 @@ export interface BadgeProps extends ViewProps {
 /**
  * Style sheet input parameters.
  */
-export type BadgeStyleSheetVars = Pick<BadgeProps, 'style' | 'contentStyle'>;
+export type BadgeWrapperStyleSheetVars = Pick<
+  BadgeWrapperProps,
+  'style' | 'contentStyle'
+>;

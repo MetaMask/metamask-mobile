@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 // Internal dependencies.
-import { BadgeStyleSheetVars } from './Badge.types';
+import { BadgeWrapperStyleSheetVars } from './BadgeWrapper.types';
 
 /**
  * Style sheet function for Badge component.
@@ -15,7 +15,10 @@ import { BadgeStyleSheetVars } from './Badge.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme; vars: BadgeStyleSheetVars }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: BadgeWrapperStyleSheetVars;
+}) => {
   const { vars } = params;
   const { style, contentStyle } = vars;
 

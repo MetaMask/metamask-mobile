@@ -1,6 +1,6 @@
 // Third party dependencies.
 import { ViewProps } from 'react-native';
-import { BadgeProps } from '../../Badge';
+import { BadgeWrapperProps } from '../../BadgeWrapper';
 
 /**
  * AvatarBase sizes.
@@ -22,7 +22,7 @@ export enum AvatarBadgePositionVariant {
 }
 
 export interface AvatarBadgeProps
-  extends Omit<BadgeProps, 'badgeContentStyle' | 'children'> {
+  extends Omit<BadgeWrapperProps, 'badgeContentStyle' | 'children'> {
   /**
    * Placement position of the badge relative to the avatar.
    * @default TopRight
