@@ -175,7 +175,7 @@ const conversionUtil = (
 const getBigNumber = (value, base) => {
   if (!isValidBase(base)) {
     throw new Error('Must specify valid base');
-	}
+  }
 
   // We don't include 'number' here, because BigNumber will throw if passed
   // a number primitive it considers unsafe.
