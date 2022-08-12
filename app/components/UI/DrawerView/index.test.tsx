@@ -8,12 +8,12 @@ const mockStore = configureMockStore();
 const store = mockStore({});
 
 describe('DrawerView', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<DrawerView />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <DrawerView />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

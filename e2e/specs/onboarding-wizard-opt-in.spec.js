@@ -19,116 +19,128 @@ import LoginView from '../pages/LoginView';
 import SkipAccountSecurityModal from '../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
+import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
 const PASSWORD = '12345678';
 
 describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
-	it('should be able to opt-in of the onboarding-wizard', async () => {
-		await OnboardingCarouselView.isVisible();
-		await OnboardingCarouselView.tapOnGetStartedButton();
+  it('should be able to opt-in of the onboarding-wizard', async () => {
+    await OnboardingCarouselView.isVisible();
+    await OnboardingCarouselView.tapOnGetStartedButton();
 
-		await OnboardingView.isVisible();
-		await OnboardingView.tapCreateWallet();
+    await OnboardingView.isVisible();
+    await OnboardingView.tapCreateWallet();
 
-		await MetaMetricsOptIn.isVisible();
-		await MetaMetricsOptIn.tapAgreeButton();
+    await MetaMetricsOptIn.isVisible();
+    await MetaMetricsOptIn.tapAgreeButton();
 
-		await CreatePasswordView.isVisible();
-	});
-	it('should be able to create a new wallet', async () => {
-		await CreatePasswordView.enterPassword(PASSWORD);
-		await CreatePasswordView.reEnterPassword(PASSWORD);
-		await CreatePasswordView.tapIUnderstandCheckBox();
-		await CreatePasswordView.tapCreatePasswordButton();
-	});
+    await CreatePasswordView.isVisible();
+  });
+  it('should be able to create a new wallet', async () => {
+    await CreatePasswordView.enterPassword(PASSWORD);
+    await CreatePasswordView.reEnterPassword(PASSWORD);
+    await CreatePasswordView.tapIUnderstandCheckBox();
+    await CreatePasswordView.tapCreatePasswordButton();
+  });
 
-	it('Should skip backup check', async () => {
-		// Check that we are on the Secure your wallet screen
-		await ProtectYourWalletView.isVisible();
-		await ProtectYourWalletView.tapOnRemindMeLaterButton();
+  it('Should skip backup check', async () => {
+    // Check that we are on the Secure your wallet screen
+    await ProtectYourWalletView.isVisible();
+    await ProtectYourWalletView.tapOnRemindMeLaterButton();
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
-		await WalletView.isVisible();
-	});
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await WalletView.isVisible();
+  });
 
-	it('should dismiss the onboarding wizard', async () => {
-		// dealing with flakiness on bitrise.
-		await TestHelpers.delay(1000);
-		try {
-			await OnboardingWizardModal.isVisible();
-			await OnboardingWizardModal.tapNoThanksButton();
-			await OnboardingWizardModal.isNotVisible();
-		} catch {
-			//
-		}
-	});
+  it('should tap on "Got it" Button in the whats new modal', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(2500);
+    try {
+      await WhatsNewModal.isVisible();
+      await WhatsNewModal.tapGotItButton();
+    } catch {
+      //
+    }
+  });
 
-	it('should dismiss the protect your wallet modal', async () => {
-		await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-		await TestHelpers.delay(1000);
+  it('should dismiss the onboarding wizard', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(1000);
+    try {
+      await OnboardingWizardModal.isVisible();
+      await OnboardingWizardModal.tapNoThanksButton();
+      await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
 
-		await ProtectYourWalletModal.tapRemindMeLaterButton();
+  it('should dismiss the protect your wallet modal', async () => {
+    await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
+    await TestHelpers.delay(1000);
 
-		await SkipAccountSecurityModal.tapIUnderstandCheckBox();
-		await SkipAccountSecurityModal.tapSkipButton();
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
 
-		await WalletView.isVisible();
-	});
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
 
-	it('should check that metametrics is enabled in settings', async () => {
-		await WalletView.tapDrawerButton(); // tapping burger menu
+    await WalletView.isVisible();
+  });
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSettings();
+  it('should check that metametrics is enabled in settings', async () => {
+    await WalletView.tapDrawerButton(); // tapping burger menu
 
-		await SettingsView.tapSecurityAndPrivacy();
+    await DrawerView.isVisible();
+    await DrawerView.tapSettings();
 
-		await SecurityAndPrivacy.scrollToBottomOfView();
-		await SecurityAndPrivacy.isMetaMetricsToggleOn();
+    await SettingsView.tapSecurityAndPrivacy();
 
-		TestHelpers.delay(1500);
-	});
+    await SecurityAndPrivacy.scrollToBottomOfView();
+    await SecurityAndPrivacy.isMetaMetricsToggleOn();
 
-	it('should disable metametrics', async () => {
-		await SecurityAndPrivacy.tapMetaMetricsToggle();
-		await SecurityAndPrivacy.isMetaMetricsToggleOff();
+    TestHelpers.delay(1500);
+  });
 
-		TestHelpers.delay(1500);
-		await SecurityAndPrivacy.tapOKAlertButton();
-		await SecurityAndPrivacy.isMetaMetricsToggleOff();
-	});
-	it('should relaunch the app and log in', async () => {
-		// Relaunch app
-		await TestHelpers.relaunchApp();
+  it('should disable metametrics', async () => {
+    await SecurityAndPrivacy.tapMetaMetricsToggle();
+    await SecurityAndPrivacy.isMetaMetricsToggleOff();
 
-		await LoginView.isVisible();
-		await LoginView.enterPassword(PASSWORD);
+    TestHelpers.delay(1500);
+    await SecurityAndPrivacy.tapOKAlertButton();
+    await SecurityAndPrivacy.isMetaMetricsToggleOff();
+  });
+  it('should relaunch the app and log in', async () => {
+    // Relaunch app
+    await TestHelpers.relaunchApp();
 
-		await WalletView.isVisible();
-	});
+    await LoginView.isVisible();
+    await LoginView.enterPassword(PASSWORD);
 
-	it('should dismiss the onboarding wizard after logging in', async () => {
-		// dealing with flakiness on bitrise.
-		await TestHelpers.delay(1000);
-		try {
-			await OnboardingWizardModal.isVisible();
-			await OnboardingWizardModal.tapNoThanksButton();
-			await OnboardingWizardModal.isNotVisible();
-		} catch {
-			//
-		}
-	});
+    await WalletView.isVisible();
+  });
 
-	it('should verify metametrics is turned off', async () => {
-		await WalletView.tapDrawerButton(); // tapping burger menu
+  it('should dismiss the onboarding wizard after logging in', async () => {
+    // dealing with flakiness on bitrise.
+    await TestHelpers.delay(1000);
+    try {
+      await OnboardingWizardModal.isVisible();
+      await OnboardingWizardModal.tapNoThanksButton();
+      await OnboardingWizardModal.isNotVisible();
+    } catch {
+      //
+    }
+  });
 
-		await DrawerView.isVisible();
-		await DrawerView.tapSettings();
+  it('should verify metametrics is turned off', async () => {
+    await WalletView.tapDrawerButton(); // tapping burger menu
 
-		await SettingsView.tapSecurityAndPrivacy();
+    await DrawerView.isVisible();
+    await DrawerView.tapSettings();
 
-		await SecurityAndPrivacy.scrollToBottomOfView();
-		await SecurityAndPrivacy.isMetaMetricsToggleOff();
-	});
+    await SettingsView.tapSecurityAndPrivacy();
+
+    await SecurityAndPrivacy.scrollToBottomOfView();
+    await SecurityAndPrivacy.isMetaMetricsToggleOff();
+  });
 });

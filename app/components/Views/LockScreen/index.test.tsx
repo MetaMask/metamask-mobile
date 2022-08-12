@@ -6,19 +6,19 @@ import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
-	user: {
-		passwordSet: false,
-	},
+  user: {
+    passwordSet: false,
+  },
 };
 const store = mockStore(initialState);
 
 describe('LockScreen', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<LockScreen />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <LockScreen />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

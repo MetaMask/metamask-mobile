@@ -35,7 +35,7 @@
   
   // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
-  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES]; // <-- add this
+  [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
   NSURL *jsCodeLocation;
 
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
@@ -81,11 +81,9 @@
   #endif
 }
 
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
-    if ([RNBranch application:app openURL:url options:options])  {
-        // do other deep link routing for the specific SDK
-    }
-    return YES;
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  return [RNBranch application:app openURL:url options:options];
 }
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {

@@ -17,7 +17,7 @@ export const WEI = 'WEI';
  * @returns {Object} - BN instance containing gas price in wei
  */
 export function apiEstimateModifiedToWEI(estimate) {
-	return toWei(estimate, 'gwei');
+  return toWei(estimate, 'gwei');
 }
 
 /**
@@ -27,7 +27,7 @@ export function apiEstimateModifiedToWEI(estimate) {
  * @returns {string} - The GWEI value as a string
  */
 export function convertApiValueToGWEI(val) {
-	return parseInt(val, 10).toString();
+  return parseInt(val, 10).toString();
 }
 
 /**
@@ -38,9 +38,9 @@ export function convertApiValueToGWEI(val) {
  * @returns {Object} - BN instance containing gas price in wei
  */
 export function getWeiGasFee(estimate, gasLimit = 21000) {
-	const apiEstimate = apiEstimateModifiedToWEI(estimate);
-	const gasFee = apiEstimate.mul(new BN(gasLimit, 10));
-	return gasFee;
+  const apiEstimate = apiEstimateModifiedToWEI(estimate);
+  const gasFee = apiEstimate.mul(new BN(gasLimit, 10));
+  return gasFee;
 }
 
 /**
@@ -51,8 +51,8 @@ export function getWeiGasFee(estimate, gasLimit = 21000) {
  * @returns {Object} - BN instance containing gas price in wei
  */
 export function getRenderableEthGasFee(estimate, gasLimit = 21000) {
-	const gasFee = getWeiGasFee(estimate, gasLimit);
-	return renderFromWei(gasFee);
+  const gasFee = getWeiGasFee(estimate, gasLimit);
+  return renderFromWei(gasFee);
 }
 
 /**
@@ -64,9 +64,14 @@ export function getRenderableEthGasFee(estimate, gasLimit = 21000) {
  * @param {number} gasLimit - Number corresponding to transaction gas limit
  * @returns {Object} - BN instance containing gas price in wei
  */
-export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, gasLimit = 21000) {
-	const wei = getWeiGasFee(estimate, gasLimit);
-	return weiToFiat(wei, conversionRate, currencyCode);
+export function getRenderableFiatGasFee(
+  estimate,
+  conversionRate,
+  currencyCode,
+  gasLimit = 21000,
+) {
+  const wei = getWeiGasFee(estimate, gasLimit);
+  return weiToFiat(wei, conversionRate, currencyCode);
 }
 
 /**
@@ -76,65 +81,65 @@ export function getRenderableFiatGasFee(estimate, conversionRate, currencyCode, 
  * @returns {string} - Readable wait time
  */
 export function parseWaitTime(min) {
-	let tempMin = min,
-		parsed = '',
-		val;
-	const timeUnits = [
-		[strings('unit.week'), 10080],
-		[strings('unit.day'), 1440],
-		[strings('unit.hour'), 60],
-		[strings('unit.minute'), 1],
-	];
-	timeUnits.forEach((unit) => {
-		if (parsed.includes(' ')) return;
-		val = Math.floor(tempMin / unit[1]);
-		if (val) {
-			if (parsed !== '') parsed += ' ';
-			parsed += `${val}${unit[0]}`;
-		}
-		tempMin = min % unit[1];
-	});
-	if (parsed === '') {
-		val = (Math.round(tempMin * 100) * 3) / 5;
-		if (val) {
-			parsed += ` ${Math.ceil(val)}${strings('unit.second')}`;
-		}
-	}
-	return parsed.trim();
+  let tempMin = min,
+    parsed = '',
+    val;
+  const timeUnits = [
+    [strings('unit.week'), 10080],
+    [strings('unit.day'), 1440],
+    [strings('unit.hour'), 60],
+    [strings('unit.minute'), 1],
+  ];
+  timeUnits.forEach((unit) => {
+    if (parsed.includes(' ')) return;
+    val = Math.floor(tempMin / unit[1]);
+    if (val) {
+      if (parsed !== '') parsed += ' ';
+      parsed += `${val}${unit[0]}`;
+    }
+    tempMin = min % unit[1];
+  });
+  if (parsed === '') {
+    val = (Math.round(tempMin * 100) * 3) / 5;
+    if (val) {
+      parsed += ` ${Math.ceil(val)}${strings('unit.second')}`;
+    }
+  }
+  return parsed.trim();
 }
 
 export async function getGasLimit(transaction) {
-	const { TransactionController } = Engine.context;
+  const { TransactionController } = Engine.context;
 
-	let estimation;
-	try {
-		estimation = await TransactionController.estimateGas(transaction);
-	} catch (error) {
-		estimation = {
-			gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
-		};
-	}
+  let estimation;
+  try {
+    estimation = await TransactionController.estimateGas(transaction);
+  } catch (error) {
+    estimation = {
+      gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+    };
+  }
 
-	const gas = hexToBN(estimation.gas);
-	return { gas };
+  const gas = hexToBN(estimation.gas);
+  return { gas };
 }
 
 export function getValueFromWeiHex({
-	value,
-	fromCurrency = ETH,
-	toCurrency,
-	conversionRate,
-	numberOfDecimals,
-	toDenomination,
+  value,
+  fromCurrency = ETH,
+  toCurrency,
+  conversionRate,
+  numberOfDecimals,
+  toDenomination,
 }) {
-	return conversionUtil(value, {
-		fromNumericBase: 'hex',
-		toNumericBase: 'dec',
-		fromCurrency,
-		toCurrency,
-		numberOfDecimals,
-		fromDenomination: WEI,
-		toDenomination,
-		conversionRate,
-	});
+  return conversionUtil(value, {
+    fromNumericBase: 'hex',
+    toNumericBase: 'dec',
+    fromCurrency,
+    toCurrency,
+    numberOfDecimals,
+    fromDenomination: WEI,
+    toDenomination,
+    conversionRate,
+  });
 }

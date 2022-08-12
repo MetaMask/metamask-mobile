@@ -1,36 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MessageSign should render correctly 1`] = `
-<Connect(SignatureRequest)
+<Connect(MessageSign)
   currentPageInformation={
     Object {
       "title": "title",
       "url": "url",
     }
   }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  showWarning={true}
-  truncateMessage={false}
-  type="ethSign"
->
-  <View
-    style={
-      Object {
-        "marginBottom": 4,
-      }
+  messageParams={
+    Object {
+      "data": "message",
     }
-  >
-    <Text
-      onTextLayout={[Function]}
-      style={
-        Object {
-          "color": "#24272A",
-        }
-      }
-    >
-      message
-    </Text>
-  </View>
-</Connect(SignatureRequest)>
+  }
+/>
 `;
