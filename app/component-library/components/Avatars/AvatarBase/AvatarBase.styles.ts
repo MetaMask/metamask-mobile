@@ -6,9 +6,9 @@ import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
 import {
-  AvatarBaseSize,
+  // AvatarBaseSize,
   AvatarBaseStyleSheetVars,
-  AvatarBadgePositionVariant,
+  // AvatarBadgePositionVariant,
 } from './AvatarBase.types';
 
 /**
@@ -24,34 +24,9 @@ const styleSheet = (params: {
 }) => {
   const {
     theme,
-    vars: { style, size, badge },
+    vars: { style, size },
   } = params;
   const sizeAsNum = Number(size);
-  const badgeSize = Number(AvatarBaseSize.Xs);
-  let position;
-
-  switch (badge?.position) {
-    case AvatarBadgePositionVariant.TopRight: {
-      position = {
-        top: -4,
-        right: -4,
-      };
-      break;
-    }
-    case AvatarBadgePositionVariant.BottomRight: {
-      position = {
-        right: -4,
-        bottom: -4,
-      };
-      break;
-    }
-    default: {
-      position = {
-        top: -4,
-        right: -4,
-      };
-    }
-  }
 
   return StyleSheet.create({
     container: Object.assign(
@@ -64,13 +39,6 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    badgeContent: {
-      ...position,
-      width: badgeSize,
-      height: badgeSize,
-      borderRadius: badgeSize / 2,
-      overflow: 'hidden',
-    },
   });
 };
 

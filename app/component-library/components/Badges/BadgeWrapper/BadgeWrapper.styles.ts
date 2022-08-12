@@ -2,7 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
 import { BadgeWrapperStyleSheetVars } from './BadgeWrapper.types';
@@ -20,22 +20,12 @@ const styleSheet = (params: {
   vars: BadgeWrapperStyleSheetVars;
 }) => {
   const { vars } = params;
-  const { style, contentStyle } = vars;
+  const { style } = vars;
 
   return StyleSheet.create({
     base: Object.assign(
-      {
-        alignSelf: 'flex-start',
-      } as ViewStyle,
+      { alignSelf: 'flex-start' } as ViewStyle,
       style,
-    ) as ViewStyle,
-    content: Object.assign(
-      {
-        position: 'absolute',
-        top: -4,
-        right: -4,
-      } as ViewStyle,
-      contentStyle,
     ) as ViewStyle,
   });
 };
