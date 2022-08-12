@@ -16,7 +16,7 @@ import {
   ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
 } from '../../constants/storage';
-import { ResponseStatus, DeletionTaskStatus } from './constants';
+import { ResponseStatus, DeletionTaskStatus } from './MetaMetrics.constants';
 
 const RCTAnalytics = NativeModules.Analytics;
 
