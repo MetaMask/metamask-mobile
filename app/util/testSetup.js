@@ -162,3 +162,7 @@ jest.mock('../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
+
+jest.mock('@segment/analytics-react-native', () => ({
+  createClient: jest.fn(),
+}));

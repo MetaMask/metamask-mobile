@@ -2,7 +2,6 @@ import { createClient } from '@segment/analytics-react-native';
 import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import { bufferToHex, keccak } from 'ethereumjs-util';
-import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import Logger from '../../util/Logger';
 import {
   AGREED,
