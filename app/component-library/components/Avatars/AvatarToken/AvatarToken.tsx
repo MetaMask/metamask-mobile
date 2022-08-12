@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarBaseSize } from '../AvatarBase';
+import AvatarBase, { AvatarBaseSize } from '../AvatarBase';
 import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
@@ -37,7 +37,7 @@ const AvatarToken = ({
   const onError = () => setShowFallback(true);
 
   const tokenImage = () => (
-    <Avatar size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base}>
       {showFallback ? (
         <Text style={styles.label} variant={textVariant}>
           {tokenNameFirstLetter}
@@ -48,9 +48,10 @@ const AvatarToken = ({
           style={styles.image}
           onError={onError}
           testID={TOKEN_AVATAR_IMAGE_ID}
+          resizeMode={'contain'}
         />
       )}
-    </Avatar>
+    </AvatarBase>
   );
 
   return !isHaloEnabled || showFallback ? (
