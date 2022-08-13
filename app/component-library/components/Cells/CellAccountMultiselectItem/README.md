@@ -4,7 +4,15 @@ CellAccountMultiselectItem is a component used for accessing account selection.
 
 ## Props
 
-This component extends React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) and [MultiselectItemProps](../../Select/Multiselect/MultiselectItem/MultiselectItem.types.ts#L7).
+This component extends [MultiselectItemProps](../../Select/Multiselect/MultiselectItem/MultiselectItem.types.ts#L7) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
+
+### `type`
+
+Type of CellAccount.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [CellAccountBaseItemType.Multiselect](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
 
 ### `onPress`
 
@@ -85,8 +93,10 @@ Optional accessory that can be inserted on the right of Cell Account.
 // Change import path to relative path.
 import { CellAccountMultiselectItem } from 'app/component-library/components/CellAccountMultiselectItem/CellAccountMultiselectItem';
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
+import { CellAccountBaseItemType } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem.types';
 
 <CellAccountMultiselectItem
+  type={CellAccountBaseItemType.Multiselect}
   avatarAccountAddress={ACCOUNT_ADDRESS}
   avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}

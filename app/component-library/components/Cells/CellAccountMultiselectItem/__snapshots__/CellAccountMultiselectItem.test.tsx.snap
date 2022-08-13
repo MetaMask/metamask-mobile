@@ -6,8 +6,9 @@ exports[`CellAccountMultiselectItem - Snapshot should render default settings co
   onPress={[Function]}
   style={Object {}}
   testID="cell-account-multi-select"
+  type="Multiselect"
 >
-  <CellAccountContent
+  <CellAccountBaseItem
     avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
     avatarAccountType="JazzIcon"
     title="Orangefox.eth"
@@ -21,8 +22,9 @@ exports[`CellAccountMultiselectItem - Snapshot should render the proper selected
   onPress={[Function]}
   style={Object {}}
   testID="cell-account-multi-select"
+  type="Multiselect"
 >
-  <CellAccountContent
+  <CellAccountBaseItem
     avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
     avatarAccountType="JazzIcon"
     title="Orangefox.eth"

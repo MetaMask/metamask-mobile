@@ -1,13 +1,21 @@
 // External dependencies.
-import { CellAccountContentProps } from '../CellAccountContent/CellAccountContent.types';
+import {
+  CellAccountBaseItemProps,
+  CellAccountBaseItemType,
+} from '../CellAccountBaseItem/CellAccountBaseItem.types';
 import { MultiselectItemProps } from '../../Select/Multiselect/MultiselectItem/MultiselectItem.types';
 
 /**
  * Cell Account Multiselect Item component props.
  */
 export interface CellAccountMultiselectItemProps
-  extends CellAccountContentProps,
-    Omit<MultiselectItemProps, 'children'> {}
+  extends CellAccountBaseItemProps,
+    Omit<MultiselectItemProps, 'children'> {
+  /**
+   * Type of CellAccountItem
+   */
+  type: CellAccountBaseItemType.Multiselect;
+}
 
 /**
  * Style sheet input parameters.

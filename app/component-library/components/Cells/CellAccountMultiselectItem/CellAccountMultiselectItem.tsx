@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import MultiselectItem from '../../Select/Multiselect/MultiselectItem';
-import CellAccountContent from '../CellAccountContent';
+import CellAccountBaseItem from '../CellAccountBaseItem';
 
 // Internal dependencies.
 import { CELL_ACCOUNT_MULTI_SELECT_TEST_ID } from './CellAccountMultiselectItem.constants';
@@ -34,7 +34,7 @@ const CellAccountMultiselectItem = ({
       testID={CELL_ACCOUNT_MULTI_SELECT_TEST_ID}
       {...props}
     >
-      <CellAccountContent
+      <CellAccountBaseItem
         avatarAccountAddress={avatarAccountAddress}
         avatarAccountType={avatarAccountType}
         title={title}
@@ -43,7 +43,7 @@ const CellAccountMultiselectItem = ({
         tagLabel={tagLabel}
       >
         {children}
-      </CellAccountContent>
+      </CellAccountBaseItem>
     </MultiselectItem>
   );
 };

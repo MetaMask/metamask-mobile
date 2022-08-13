@@ -25,6 +25,7 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
+  require('../app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.stories');
   require('../app/component-library/components/Cells/CellAccountContent/CellAccountContent.stories');
   require('../app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem.stories');
   require('../app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories');
@@ -70,6 +71,7 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
+  '../app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.stories',
   '../app/component-library/components/Cells/CellAccountContent/CellAccountContent.stories',
   '../app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem.stories',
   '../app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories',

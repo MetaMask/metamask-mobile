@@ -15,6 +15,7 @@ import {
   TEST_CELL_ACCOUNT_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../CellAccountContent/CellAccountContent.constants';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountMultiselectItem from './CellAccountMultiselectItem';
@@ -48,6 +49,7 @@ storiesOf('Component Library / CellAccountMultiselectItem', module).add(
 
     return (
       <CellAccountMultiselectItem
+        type={CellAccountBaseItemType.Multiselect}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={titleText}

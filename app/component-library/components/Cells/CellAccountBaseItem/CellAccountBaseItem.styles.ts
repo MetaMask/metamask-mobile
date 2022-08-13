@@ -2,13 +2,13 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { CellAccountSelectItemStyleSheetVars } from './CellAccountSelectItem.types';
+import { CellAccountBaseItemStyleSheetVars } from './CellAccountBaseItem.types';
 
 // Internal dependencies.
 import { Theme } from '../../../../util/theme/models';
 
 /**
- * Style sheet function for CellAccountSelectItem component.
+ * Style sheet function for CellAccountBaseItem component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -17,13 +17,16 @@ import { Theme } from '../../../../util/theme/models';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: CellAccountSelectItemStyleSheetVars;
+  vars: CellAccountBaseItemStyleSheetVars;
 }) => {
   const { vars } = params;
   const { style } = vars;
 
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    CellAccountBaseItem: {
+      flexDirection: 'row',
+    },
   });
 };
 

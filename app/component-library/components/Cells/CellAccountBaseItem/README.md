@@ -1,26 +1,10 @@
-# CellAccountSelectItem
+# CellAccountBaseItem
 
-CellAccountSelectItem is a component used for accessing account selection.
+CellAccountBaseItem is a base component used for cell accounts.
 
 ## Props
 
-This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
-
-### `type`
-
-Type of CellAccount.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellAccountBaseItemType.Select](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
-
-### `onPress`
-
-Callback to trigger when pressed.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
+This component extends React Native's [ViewProps](https://reactnative.dev/docs/view) and [CellAccountContentProps](../CellAccountContent/CellAccountContent.types.ts#L10).
 
 ### `avatarAccountAddress`
 
@@ -70,15 +54,6 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `isSelected`
-
-Optional boolean to show Selected state in Cell Account.
-Default: false
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | No                                                      | false                                                  |
-
 ### `children`
 
 Optional accessory that can be inserted on the right of Cell Account.
@@ -91,19 +66,15 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { CellAccountSelectItem } from 'app/component-library/components/CellAccountSelectItem/CellAccountSelectItem';
+import { CellAccountBaseItem } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem';
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import { CellAccountBaseItemType } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem.types';
 
-<CellAccountSelectItem
-  type={CellAccountBaseItemType.Select}
+<CellAccountBaseItem
   avatarAccountAddress={ACCOUNT_ADDRESS}
   avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
-  isSelected={false}
-  onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

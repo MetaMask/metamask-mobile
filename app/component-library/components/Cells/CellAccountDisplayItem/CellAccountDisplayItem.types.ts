@@ -1,13 +1,21 @@
 // External dependencies.
-import { CellAccountContentProps } from '../CellAccountContent/CellAccountContent.types';
 import { CellAccountDisplayItemContainerProps } from '../CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.types';
+import {
+  CellAccountBaseItemProps,
+  CellAccountBaseItemType,
+} from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 /**
- * Cell Account Display Item component props.
+ * Cell Account Select Item component props.
  */
 export interface CellAccountDisplayItemProps
-  extends CellAccountContentProps,
-    Omit<CellAccountDisplayItemContainerProps, 'children'> {}
+  extends CellAccountBaseItemProps,
+    Omit<CellAccountDisplayItemContainerProps, 'children'> {
+  /**
+   * Type of CellAccountItem
+   */
+  type: CellAccountBaseItemType.Display;
+}
 
 /**
  * Style sheet input parameters.

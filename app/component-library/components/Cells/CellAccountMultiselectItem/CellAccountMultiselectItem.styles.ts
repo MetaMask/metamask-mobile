@@ -24,9 +24,6 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    cellAccountMultiselectItem: {
-      flexDirection: 'row',
-    },
   });
 };
 

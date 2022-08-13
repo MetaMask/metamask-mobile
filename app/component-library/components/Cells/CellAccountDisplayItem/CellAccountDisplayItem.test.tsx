@@ -8,6 +8,7 @@ import {
   TEST_ACCOUNT_ADDRESS,
   TEST_CELL_ACCOUNT_TITLE,
 } from '../CellAccountContent/CellAccountContent.constants';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountDisplayItem from './CellAccountDisplayItem';
@@ -17,6 +18,7 @@ describe('CellAccountDisplayItem - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellAccountDisplayItem
+        type={CellAccountBaseItemType.Display}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -30,6 +32,7 @@ describe('CellAccountDisplayItem', () => {
   it('should render CellAccountDisplayItem', () => {
     const wrapper = shallow(
       <CellAccountDisplayItem
+        type={CellAccountBaseItemType.Display}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}

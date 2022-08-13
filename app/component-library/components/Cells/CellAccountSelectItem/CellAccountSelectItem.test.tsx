@@ -8,6 +8,7 @@ import {
   TEST_ACCOUNT_ADDRESS,
   TEST_CELL_ACCOUNT_TITLE,
 } from '../CellAccountContent/CellAccountContent.constants';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountSelectItem from './CellAccountSelectItem';
@@ -17,6 +18,7 @@ describe('CellAccountSelectItem - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellAccountSelectItem
+        type={CellAccountBaseItemType.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -28,6 +30,7 @@ describe('CellAccountSelectItem - Snapshot', () => {
   it('should render the proper selected state', () => {
     const wrapper = shallow(
       <CellAccountSelectItem
+        type={CellAccountBaseItemType.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -43,6 +46,7 @@ describe('CellAccountSelectItem', () => {
   it('should render singleSelect', () => {
     const wrapper = shallow(
       <CellAccountSelectItem
+        type={CellAccountBaseItemType.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}

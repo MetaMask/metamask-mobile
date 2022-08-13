@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 import SelectItem from '../../Select/Select/SelectItem';
-import CellAccountContent from '../CellAccountContent';
+import CellAccountBaseItem from '../CellAccountBaseItem';
 
 // Internal dependencies.
 import { CELL_ACCOUNT_SINGLE_SELECT_TEST_ID } from './CellAccountSelectItem.constants';
@@ -34,7 +34,7 @@ const CellAccountSelectItem = ({
       testID={CELL_ACCOUNT_SINGLE_SELECT_TEST_ID}
       {...props}
     >
-      <CellAccountContent
+      <CellAccountBaseItem
         avatarAccountAddress={avatarAccountAddress}
         avatarAccountType={avatarAccountType}
         title={title}
@@ -43,7 +43,7 @@ const CellAccountSelectItem = ({
         tagLabel={tagLabel}
       >
         {children}
-      </CellAccountContent>
+      </CellAccountBaseItem>
     </SelectItem>
   );
 };

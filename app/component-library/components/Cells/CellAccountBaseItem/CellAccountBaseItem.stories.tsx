@@ -14,12 +14,11 @@ import {
   TEST_CELL_ACCOUNT_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../CellAccountContent/CellAccountContent.constants';
-import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
-import CellAccountDisplayItem from './CellAccountDisplayItem';
+import CellAccountBaseItem from './CellAccountBaseItem';
 
-storiesOf('Component Library / CellAccountDisplayItem', module).add(
+storiesOf('Component Library / CellAccountBaseItem', module).add(
   'Default',
   () => {
     const groupId = 'Props';
@@ -46,8 +45,7 @@ storiesOf('Component Library / CellAccountDisplayItem', module).add(
       : '';
 
     return (
-      <CellAccountDisplayItem
-        type={CellAccountBaseItemType.Display}
+      <CellAccountBaseItem
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={titleText}

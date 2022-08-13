@@ -4,7 +4,15 @@ CellAccountDisplayItem is a component used for displaying cell account.
 
 ## Props
 
-This component extends React Native's [ViewProps](https://reactnative.dev/docs/view) and [CellAccountDisplayContainerProps](../CellAccountDisplayContainer/../CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.types.ts).
+This component extends [CellAccountDisplayContainerProps](../CellAccountDisplayItemContainer/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.types.ts) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
+
+### `type`
+
+Type of CellAccount.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [CellAccountBaseItemType.Display](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
 
 ### `avatarAccountAddress`
 
@@ -66,10 +74,12 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { CellAccountDisplayItem } from 'app/component-library/components/CellAccountDisplayItem/CellAccountDisplayItem';
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
+import { CellAccountDisplayItem } from 'app/component-library/components/CellAccountDisplayItem/CellAccountDisplayItem';
+import { CellAccountBaseItemType } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem.types';
 
 <CellAccountDisplayItem
+  type={CellAccountBaseItemType.Display}
   avatarAccountAddress={ACCOUNT_ADDRESS}
   avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}

@@ -6,8 +6,9 @@ exports[`CellAccountSelectItem - Snapshot should render default settings correct
   onPress={[Function]}
   style={Object {}}
   testID="cell-account-single-select"
+  type="Select"
 >
-  <CellAccountContent
+  <CellAccountBaseItem
     avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
     avatarAccountType="JazzIcon"
     title="Orangefox.eth"
@@ -21,8 +22,9 @@ exports[`CellAccountSelectItem - Snapshot should render the proper selected stat
   onPress={[Function]}
   style={Object {}}
   testID="cell-account-single-select"
+  type="Select"
 >
-  <CellAccountContent
+  <CellAccountBaseItem
     avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
     avatarAccountType="JazzIcon"
     title="Orangefox.eth"

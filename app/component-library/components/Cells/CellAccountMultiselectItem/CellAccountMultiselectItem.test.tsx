@@ -12,11 +12,13 @@ import {
 // Internal dependencies.
 import CellAccountMultiselectItem from './CellAccountMultiselectItem';
 import { CELL_ACCOUNT_MULTI_SELECT_TEST_ID } from './CellAccountMultiselectItem.constants';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 describe('CellAccountMultiselectItem - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellAccountMultiselectItem
+        type={CellAccountBaseItemType.Multiselect}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -28,6 +30,7 @@ describe('CellAccountMultiselectItem - Snapshot', () => {
   it('should render the proper selected state', () => {
     const wrapper = shallow(
       <CellAccountMultiselectItem
+        type={CellAccountBaseItemType.Multiselect}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -43,6 +46,7 @@ describe('CellAccountMultiselectItem', () => {
   it('should render singleSelect', () => {
     const wrapper = shallow(
       <CellAccountMultiselectItem
+        type={CellAccountBaseItemType.Multiselect}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}

@@ -15,6 +15,7 @@ import {
   TEST_CELL_ACCOUNT_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../CellAccountContent/CellAccountContent.constants';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountSelectItem from './CellAccountSelectItem';
@@ -48,6 +49,7 @@ storiesOf('Component Library / CellAccountSelectItem', module).add(
 
     return (
       <CellAccountSelectItem
+        type={CellAccountBaseItemType.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={titleText}
