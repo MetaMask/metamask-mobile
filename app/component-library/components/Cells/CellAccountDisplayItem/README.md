@@ -1,18 +1,10 @@
-# CellAccountMultiselectItem
+# CellAccountDisplayItem
 
-CellAccountMultiselectItem is a component used for accessing account selection.
+CellAccountDisplayItem is a component used for displaying cell account.
 
 ## Props
 
-This component extends React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) and [MultiselectItemProps](../../Select/Multiselect/MultiselectItem/MultiselectItem.types.ts#L7).
-
-### `onPress`
-
-Callback to trigger when pressed.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
+This component extends React Native's [ViewProps](https://reactnative.dev/docs/view) and [CellAccountDisplayContainerProps](../CellAccountDisplayContainer/../CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.types.ts).
 
 ### `avatarAccountAddress`
 
@@ -62,15 +54,6 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `isSelected`
-
-Optional boolean to show Selected state in Cell Account.
-Default: false
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | No                                                      | false                                                  |
-
 ### `children`
 
 Optional accessory that can be inserted on the right of Cell Account.
@@ -83,17 +66,15 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { CellAccountMultiselectItem } from 'app/component-library/components/CellAccountMultiselectItem/CellAccountMultiselectItem';
+import { CellAccountDisplayItem } from 'app/component-library/components/CellAccountDisplayItem/CellAccountDisplayItem';
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
 
-<CellAccountMultiselectItem
+<CellAccountDisplayItem
   avatarAccountAddress={ACCOUNT_ADDRESS}
   avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
-  isSelected={false}
-  onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

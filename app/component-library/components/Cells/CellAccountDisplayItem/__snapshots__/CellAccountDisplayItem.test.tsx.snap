@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CellAccountDisplayItem - Snapshot should render default settings correctly 1`] = `
+<CellAccountDisplayItemContainer
+  style={Object {}}
+  testID="cell-account-display"
+>
+  <CellAccountContent
+    avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    avatarAccountType="JazzIcon"
+    title="Orangefox.eth"
+  />
+</CellAccountDisplayItemContainer>
+`;

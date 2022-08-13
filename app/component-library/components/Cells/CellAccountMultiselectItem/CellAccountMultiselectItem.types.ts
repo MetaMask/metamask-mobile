@@ -3,7 +3,7 @@ import { CellAccountContentProps } from '../CellAccountContent/CellAccountConten
 import { MultiselectItemProps } from '../../Select/Multiselect/MultiselectItem/MultiselectItem.types';
 
 /**
- * Cell Account Select Item component props.
+ * Cell Account Multiselect Item component props.
  */
 export interface CellAccountMultiselectItemProps
   extends CellAccountContentProps,
