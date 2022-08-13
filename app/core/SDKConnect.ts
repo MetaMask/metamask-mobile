@@ -1,10 +1,13 @@
 //import { store } from '../store';
 import BackgroundBridge from './BackgroundBridge';
-import RemoteCommunication from './RemoteCommunication';
+import RemoteCommunication, {
+  CommunicationLayerPreference,
+} from './RemoteCommunication';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 //import { approveHost } from '../actions/privacy';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
+import BackgroundTimer from 'react-native-background-timer';
 import Engine from './Engine';
 import { WalletDevice } from '@metamask/controllers';
 
@@ -22,8 +25,6 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { AppState } from 'react-native';
 import Device from '../util/device';
 
-import BackgroundTimer from 'react-native-background-timer';
-
 export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 
 const webrtc = {
@@ -36,7 +37,7 @@ const webrtc = {
   mediaDevices,
   registerGlobals,
 };
-const METHODS_TO_REDIRECT = {
+const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   eth_requestAccounts: true,
   eth_sendTransaction: true,
   eth_signTransaction: true,
@@ -50,19 +51,33 @@ const METHODS_TO_REDIRECT = {
   wallet_switchEthereumChain: true,
 };
 
-let connections = {};
-const connected = {};
+interface ConnectionProps {
+  id: string;
+  otherPublicKey: string;
+  commLayer: CommunicationLayerPreference;
+  origin: string;
+  reconnect?: boolean;
+}
+
+let connections: { [id: string]: ConnectionProps } = {};
+const connected: { [id: string]: Connection } = {};
 
 // Temporary hosts for now, persistance will be worked on for future versions
-let approvedHosts = {};
+let approvedHosts: { [host: string]: string } = {};
 
-const approveHost = ({ host, hostname }) => {
+const approveHost = ({
+  host,
+  hostname,
+}: {
+  host: string;
+  hostname: string;
+}) => {
   approvedHosts[host] = hostname;
 
   AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify(approvedHosts));
 };
 
-const parseSource = (source) => {
+const parseSource = (source: string) => {
   if (source === 'web-desktop') return 'web-desktop';
   if (source === 'web-mobile') return 'web-mobile';
   if (source === 'nodejs') return 'nodejs';
@@ -71,14 +86,21 @@ const parseSource = (source) => {
 };
 
 class Connection {
-  channelId = null;
-  RemoteConn = null;
-  requestsToRedirect = {};
-  origin = null;
-  host = null;
-  isReady = null;
+  channelId;
+  RemoteConn;
+  requestsToRedirect: { [request: string]: boolean } = {};
+  origin;
+  host;
+  isReady = false;
+  backgroundBridge: BackgroundBridge | undefined;
 
-  constructor({ id, otherPublicKey, commLayer, origin, reconnect }) {
+  constructor({
+    id,
+    otherPublicKey,
+    commLayer,
+    origin,
+    reconnect,
+  }: ConnectionProps) {
     this.origin = origin;
     this.channelId = id;
     this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
@@ -90,7 +112,7 @@ class Connection {
       reconnect,
     });
 
-    this.requestsToRedirect = [];
+    this.requestsToRedirect = {};
 
     this.sendMessage = this.sendMessage.bind(this);
 
@@ -99,13 +121,15 @@ class Connection {
     });
 
     if (reconnect) {
-      this.RemoteConn.on('clients_waiting_to_join', (numberUsers) => {
+      this.RemoteConn.on('clients_waiting_to_join', () => {
         this.removeConnection();
       });
     }
 
-    this.RemoteConn.on('clients_ready', ({ isOriginator, originatorInfo }) => {
+    this.RemoteConn.on('clients_ready', ({ originatorInfo }) => {
       if (this.isReady) return;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       this.backgroundBridge = new BackgroundBridge({
         webview: null,
         url: originatorInfo?.url,
@@ -113,7 +137,11 @@ class Connection {
         sendMessage: this.sendMessage,
         getApprovedHosts: () => approvedHosts,
         remoteConnHost: this.host,
-        getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+        getRpcMethodMiddleware: ({
+          getProviderState,
+        }: {
+          getProviderState: any;
+        }) =>
           getRpcMethodMiddleware({
             hostname: this.host,
             getProviderState,
@@ -125,21 +153,21 @@ class Connection {
             // Website info
             url: { current: originatorInfo?.url },
             title: { current: originatorInfo?.title },
-            icon: { current: null },
+            icon: { current: undefined },
             // Bookmarks
-            isHomepage: false,
+            isHomepage: () => false,
             // Show autocomplete
-            fromHomepage: false,
-            setAutocompleteValue: () => null,
-            setShowUrlModal: () => null,
+            fromHomepage: { current: false },
             // Wizard
-            wizardScrollAdjusted: () => null,
-            tabId: false,
+            wizardScrollAdjusted: { current: false },
+            tabId: '',
             isWalletConnect: false,
             analytics: {
               isRemoteConn: true,
               platform: parseSource(originatorInfo?.platform),
             },
+            toggleUrlModal: () => null,
+            injectHomePageScripts: () => null,
           }),
         isMainFrame: true,
       });
@@ -151,6 +179,8 @@ class Connection {
 
         // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
         if (message.method === 'eth_sendTransaction') {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           const { TransactionController } = Engine.context;
           try {
             const hash = await (
@@ -183,7 +213,7 @@ class Connection {
           return;
         }
 
-        this.backgroundBridge.onMessage({
+        this.backgroundBridge?.onMessage({
           name: 'metamask-provider',
           data: message,
           origin: 'sdk',
@@ -219,7 +249,7 @@ class Connection {
     AsyncStorage.setItem('sdkConnections', JSON.stringify(connections));
   }
 
-  sendMessage(msg) {
+  sendMessage(msg: any) {
     this.RemoteConn.sendMessage(msg);
     if (!this.requestsToRedirect[msg?.data?.id]) return;
 
@@ -233,7 +263,12 @@ class Connection {
 
 const SDKConnect = {
   reconnected: false,
-  async connectToChannel({ id, commLayer, otherPublicKey, origin }) {
+  async connectToChannel({
+    id,
+    commLayer,
+    otherPublicKey,
+    origin,
+  }: ConnectionProps) {
     connected[id] = new Connection({
       id,
       commLayer,
@@ -282,13 +317,11 @@ const SDKConnect = {
       connected[id].removeConnection();
     }
   },
-  handleAppState(appState) {
+  handleAppState(appState: string) {
     if (appState === 'active') {
       if (Device.isAndroid()) {
-        BackgroundTimer.clearInterval(this.timeout);
-      } else {
-        clearTimeout(this.timeout);
-      }
+        if (this.timeout) BackgroundTimer.clearInterval(this.timeout);
+      } else if (this.timeout) clearTimeout(this.timeout);
 
       if (this.paused) {
         this.reconnected = false;
@@ -300,11 +333,15 @@ const SDKConnect = {
     } else if (appState === 'background' && !this.paused) {
       if (Device.isIos()) {
         BackgroundTimer.start();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         this.timeout = setTimeout(() => {
           this.pause();
         }, 20000);
         BackgroundTimer.stop();
       } else if (Device.isAndroid()) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         this.timeout = BackgroundTimer.setTimeout(() => {
           this.pause();
         }, 20000);

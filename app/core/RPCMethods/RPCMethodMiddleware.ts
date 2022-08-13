@@ -37,10 +37,7 @@ interface RPCMethodsMiddleParameters {
   approveHost: (fullHostname: string) => void;
   url: { current: string };
   title: { current: string };
-  icon: { current: string };
-  approvalRequest: {
-    current: { resolve: (value: boolean) => void; reject: () => void };
-  };
+  icon: { current: string | undefined };
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -56,7 +53,7 @@ interface RPCMethodsMiddleParameters {
   // For WalletConnect
   isWalletConnect: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
-  analytics: { [key: string]: string };
+  analytics: { [key: string]: string | boolean };
 }
 
 export const checkActiveAccountAndChainId = ({
