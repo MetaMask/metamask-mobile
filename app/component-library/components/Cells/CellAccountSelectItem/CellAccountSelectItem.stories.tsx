@@ -48,8 +48,8 @@ storiesOf('Component Library / CellAccountSelectItem', module).add(
 
     return (
       <CellAccountSelectItem
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={titleText}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

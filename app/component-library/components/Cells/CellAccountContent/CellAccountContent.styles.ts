@@ -28,7 +28,7 @@ const styleSheet = (params: {
     CellAccountContent: {
       flexDirection: 'row',
     },
-    accountAvatar: {
+    avatarAccount: {
       marginRight: 16,
     },
     CellAccountContentInfo: {

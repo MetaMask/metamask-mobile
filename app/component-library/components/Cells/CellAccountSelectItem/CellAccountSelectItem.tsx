@@ -15,8 +15,8 @@ import { CellAccountSelectItemProps } from './CellAccountSelectItem.types';
 
 const CellAccountSelectItem = ({
   style,
-  accountAddress,
-  accountAvatarType,
+  avatarAccountAddress,
+  avatarAccountType,
   title,
   secondaryText,
   tertiaryText,
@@ -35,8 +35,8 @@ const CellAccountSelectItem = ({
       {...props}
     >
       <CellAccountContent
-        accountAddress={accountAddress}
-        accountAvatarType={accountAvatarType}
+        avatarAccountAddress={avatarAccountAddress}
+        avatarAccountType={avatarAccountType}
         title={title}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

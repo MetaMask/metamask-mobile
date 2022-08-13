@@ -5,6 +5,8 @@ exports[`MultiselectItem should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 4,
       "flexDirection": "row",
       "padding": 16,
     }

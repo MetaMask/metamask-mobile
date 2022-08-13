@@ -11,11 +11,11 @@ export interface CellAccountContentProps extends ViewProps {
   /**
    * An Ethereum wallet address to retrieve avatar.
    */
-  accountAddress: string;
+  avatarAccountAddress: string;
   /**
    * AvatarAccount variants.
    */
-  accountAvatarType: AvatarAccountType;
+  avatarAccountType: AvatarAccountType;
   /**
    * Title of the Cell Account, 1 line truncation.
    */

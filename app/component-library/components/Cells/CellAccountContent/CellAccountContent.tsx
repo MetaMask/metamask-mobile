@@ -24,8 +24,8 @@ import { CellAccountContentProps } from './CellAccountContent.types';
 
 const CellAccountContent = ({
   style,
-  accountAddress,
-  accountAvatarType,
+  avatarAccountAddress,
+  avatarAccountType,
   title,
   secondaryText,
   tertiaryText,
@@ -38,10 +38,10 @@ const CellAccountContent = ({
     <View style={styles.CellAccountContent}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <AvatarAccount
-        type={accountAvatarType}
-        accountAddress={accountAddress}
+        type={avatarAccountType}
+        accountAddress={avatarAccountAddress}
         size={AvatarBaseSize.Md}
-        style={styles.accountAvatar}
+        style={styles.avatarAccount}
         testID={CELL_ACCOUNT_AVATAR_TEST_ID}
       />
       <View style={styles.CellAccountContentInfo}>

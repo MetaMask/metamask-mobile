@@ -8,8 +8,8 @@ exports[`CellAccountMultiselectItem - Snapshot should render default settings co
   testID="cell-account-multi-select"
 >
   <CellAccountContent
-    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    accountAvatarType="JazzIcon"
+    avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    avatarAccountType="JazzIcon"
     title="Orangefox.eth"
   />
 </MultiselectItem>
@@ -23,8 +23,8 @@ exports[`CellAccountMultiselectItem - Snapshot should render the proper selected
   testID="cell-account-multi-select"
 >
   <CellAccountContent
-    accountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    accountAvatarType="JazzIcon"
+    avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
+    avatarAccountType="JazzIcon"
     title="Orangefox.eth"
   />
 </MultiselectItem>

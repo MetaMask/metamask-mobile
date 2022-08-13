@@ -17,8 +17,8 @@ describe('CellAccountSelectItem - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellAccountSelectItem
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,
@@ -28,8 +28,8 @@ describe('CellAccountSelectItem - Snapshot', () => {
   it('should render the proper selected state', () => {
     const wrapper = shallow(
       <CellAccountSelectItem
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         isSelected
         onPress={jest.fn}
@@ -43,8 +43,8 @@ describe('CellAccountSelectItem', () => {
   it('should render singleSelect', () => {
     const wrapper = shallow(
       <CellAccountSelectItem
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         onPress={jest.fn}
       />,

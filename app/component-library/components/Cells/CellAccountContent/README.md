@@ -6,7 +6,7 @@ CellAccountContent is a component containing the content of a CellAccount.
 
 This component extends `ViewProps` from React Native's [View](https://reactnative.dev/docs/view) component.
 
-### `accountAddress`
+### `avatarAccountAddress`
 
 An Ethereum wallet address to retrieve avatar.
 
@@ -14,13 +14,13 @@ An Ethereum wallet address to retrieve avatar.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | Yes                                                     |
 
-### `accountAvatarType`
+### `avatarAccountType`
 
-[AccountAvatar](../AccountAvatar/AccountAvatar.tsx) variants.
+[AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.tsx) variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :---------------------------------------------------------- | :------------------------------------------------------ |
-| [AccountAvatar](../AccountAvatar/AccountAvatar.types.ts#L6) | Yes                                                     |
+| [AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.types.ts#L6) | Yes                                                     |
 
 ### `title`
 
@@ -67,11 +67,11 @@ Optional accessory that can be inserted on the right of Cell Account.
 ```javascript
 // Change import path to relative path.
 import CellAccountContent from 'app/component-library/components/Cells/CellAccountContent/CellAccountContent';
-import { AccountAvatarType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
+import { avatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
 
 <CellAccountContent
-  accountAddress={ACCOUNT_ADDRESS}
-  accountAvatarType={AccountAvatarType.JazzIcon}
+  avatarAccountAddress={ACCOUNT_ADDRESS}
+  avatarAccountType={avatarAccountType.JazzIcon}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}

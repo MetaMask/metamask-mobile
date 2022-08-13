@@ -46,8 +46,8 @@ storiesOf('Component Library / CellAccountContent', module).add(
 
     return (
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={titleText}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

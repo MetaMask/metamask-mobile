@@ -15,8 +15,8 @@ import { CellAccountMultiselectItemProps } from './CellAccountMultiselectItem.ty
 
 const CellAccountMultiselectItem = ({
   style,
-  accountAddress,
-  accountAvatarType,
+  avatarAccountAddress,
+  avatarAccountType,
   title,
   secondaryText,
   tertiaryText,
@@ -35,8 +35,8 @@ const CellAccountMultiselectItem = ({
       {...props}
     >
       <CellAccountContent
-        accountAddress={accountAddress}
-        accountAvatarType={accountAvatarType}
+        avatarAccountAddress={avatarAccountAddress}
+        avatarAccountType={avatarAccountType}
         title={title}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

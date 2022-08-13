@@ -24,8 +24,8 @@ describe('CellAccountContent - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
       />,
     );
@@ -34,8 +34,8 @@ describe('CellAccountContent - Snapshot', () => {
   it('should render secondaryText when given', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         secondaryText={TEST_CELL_ACCOUNT_SECONDARY_TEXT}
       />,
@@ -45,8 +45,8 @@ describe('CellAccountContent - Snapshot', () => {
   it('should render tertiaryText when given', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tertiaryText={TEST_CELL_ACCOUNT_TERTIARY_TEXT}
       />,
@@ -56,8 +56,8 @@ describe('CellAccountContent - Snapshot', () => {
   it('should render label when given', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tagLabel={TEST_TAG_LABEL_TEXT}
       />,
@@ -70,8 +70,8 @@ describe('CellAccountContent', () => {
   it('should render Avatar', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
       />,
     );
@@ -83,8 +83,8 @@ describe('CellAccountContent', () => {
   it('should render the given title', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
       />,
     );
@@ -96,8 +96,8 @@ describe('CellAccountContent', () => {
   it('should render the given secondaryText', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         secondaryText={TEST_CELL_ACCOUNT_SECONDARY_TEXT}
       />,
@@ -112,8 +112,8 @@ describe('CellAccountContent', () => {
   it('should not render secondaryText if not given', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
       />,
     );
@@ -125,8 +125,8 @@ describe('CellAccountContent', () => {
   it('should render the given tertiaryText', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tertiaryText={TEST_CELL_ACCOUNT_TERTIARY_TEXT}
       />,
@@ -141,8 +141,8 @@ describe('CellAccountContent', () => {
   it('should not render tertiaryText if not given', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
       />,
     );
@@ -154,8 +154,8 @@ describe('CellAccountContent', () => {
   it('should render tag with given label', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
         tagLabel={TEST_TAG_LABEL_TEXT}
       />,
@@ -168,8 +168,8 @@ describe('CellAccountContent', () => {
   it('should not render tag without given label', () => {
     const wrapper = shallow(
       <CellAccountContent
-        accountAddress={TEST_ACCOUNT_ADDRESS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
+        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+        avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
       />,
     );
