@@ -8,12 +8,11 @@ This component extends `TouchableOpacityProps` from React Native's [TouchableOpa
 
 ### `isSelected`
 
-Determines if checkbox is selected.
+Determines item is selected.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| boolean                                             | Yes                                                     |
-
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean    | No                                                     | false                                               |
 ### `children`
 
 Content to wrap for multiselect.

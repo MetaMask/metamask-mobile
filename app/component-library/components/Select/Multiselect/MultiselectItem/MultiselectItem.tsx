@@ -15,7 +15,7 @@ import { MULTISELECT_ITEM_UNDERLAY_ID } from './MultiselectItem.constants';
 
 const MultiselectItem: React.FC<MultiselectItemProps> = ({
   style,
-  isSelected,
+  isSelected = false,
   children,
   ...props
 }) => {
