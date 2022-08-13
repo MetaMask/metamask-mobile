@@ -14,7 +14,7 @@ import { SELECTABLE_ITEM_UNDERLAY_ID } from './SelectItem.constants';
 
 const SelectItem: React.FC<SelectItemProps> = ({
   style,
-  isSelected,
+  isSelected = false,
   children,
   ...props
 }) => {

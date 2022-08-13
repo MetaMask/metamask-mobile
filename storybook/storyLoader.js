@@ -26,6 +26,7 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
   require('../app/component-library/components/Cells/CellAccountContent/CellAccountContent.stories');
+  require('../app/component-library/components/Cells/CellAccountSelectItem/CellAccountSelectItem.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
@@ -67,6 +68,7 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
   '../app/component-library/components/Cells/CellAccountContent/CellAccountContent.stories',
+  '../app/component-library/components/Cells/CellAccountSelectItem/CellAccountSelectItem.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',

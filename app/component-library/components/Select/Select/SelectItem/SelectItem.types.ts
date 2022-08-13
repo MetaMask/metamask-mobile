@@ -8,7 +8,7 @@ export interface SelectItemProps extends TouchableOpacityProps {
   /**
    * Determines if checkbox is selected.
    */
-  isSelected: boolean;
+  isSelected?: boolean;
   /**
    * Content to wrap for selection.
    */
