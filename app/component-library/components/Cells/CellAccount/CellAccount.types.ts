@@ -1,7 +1,7 @@
 // External dependencies.
-import { CellAccountDisplayItemProps } from '../CellAccountDisplayItem/CellAccountDisplayItem.types';
-import { CellAccountMultiselectItemProps } from '../CellAccountMultiselectItem/CellAccountMultiselectItem.types';
-import { CellAccountSelectItemProps } from '../CellAccountSelectItem/CellAccountSelectItem.types';
+import { CellAccountDisplayItemProps } from './variants/CellAccountDisplayItem/CellAccountDisplayItem.types';
+import { CellAccountMultiselectItemProps } from './variants/CellAccountMultiselectItem/CellAccountMultiselectItem.types';
+import { CellAccountSelectItemProps } from './variants/CellAccountSelectItem/CellAccountSelectItem.types';
 
 /**
  * Cell Account component props.

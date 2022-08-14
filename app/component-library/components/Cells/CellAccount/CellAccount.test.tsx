@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
-import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from './src/CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccount from './CellAccount';
@@ -20,7 +20,7 @@ describe('CellAccount - Snapshot', () => {
   it('should render CellAccountDisplayItem given the type Display', () => {
     const wrapper = shallow(
       <CellAccount
-        type={CellAccountBaseItemType.Display}
+        type={CellAccountItemType.Display}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -31,7 +31,7 @@ describe('CellAccount - Snapshot', () => {
   it('should render CellAccountMultiselectItem given the type Multiselect', () => {
     const wrapper = shallow(
       <CellAccount
-        type={CellAccountBaseItemType.Multiselect}
+        type={CellAccountItemType.Multiselect}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -42,7 +42,7 @@ describe('CellAccount - Snapshot', () => {
   it('should render CellAccountSelectItem given the type Select', () => {
     const wrapper = shallow(
       <CellAccount
-        type={CellAccountBaseItemType.Select}
+        type={CellAccountItemType.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -56,7 +56,7 @@ describe('CellAccount', () => {
   it('should render CellAccountDisplayItem given the type Display', () => {
     const wrapper = shallow(
       <CellAccount
-        type={CellAccountBaseItemType.Display}
+        type={CellAccountItemType.Display}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -80,7 +80,7 @@ describe('CellAccount', () => {
   it('should render CellAccountMultiselectItem given the type Multiselect', () => {
     const wrapper = shallow(
       <CellAccount
-        type={CellAccountBaseItemType.Multiselect}
+        type={CellAccountItemType.Multiselect}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}
@@ -104,7 +104,7 @@ describe('CellAccount', () => {
   it('should render CellAccountSelectItem given the type Select', () => {
     const wrapper = shallow(
       <CellAccount
-        type={CellAccountBaseItemType.Select}
+        type={CellAccountItemType.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_ACCOUNT_TITLE}

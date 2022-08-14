@@ -1,8 +1,10 @@
-# CellAccount
+# CellAccountDisplayItem
 
-This component is a union component, which consists of [CellAccountDisplayItem](../CellAccountDisplayItem/CellAccountDisplayItem.tsx), [CellAccountSelectItem](../CellAccountSelectItem/CellAccountSelectItem.tsx), and [CellAccountMultiselectItem](../CellAccountMultiselectItem/CellAccountMultiselectItem.tsx)
+CellAccountDisplayItem is a component used for displaying cell account.
 
-## Common props
+## Props
+
+This component extends [CellAccountDisplayContainerProps](../CellAccountDisplayItemContainer/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.types.ts) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
 
 ### `type`
 
@@ -10,7 +12,7 @@ Type of CellAccount.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellAccountItemType](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
+| [CellAccountItemType.Display](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
 
 ### `avatarAccountAddress`
 
@@ -68,41 +70,21 @@ Optional accessory that can be inserted on the right of Cell Account.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | ReactNode                                           | Yes                                                     |
 
-## CellAccountMultiselectItem and CellAccountSelectItem only props
-
-### `onPress`
-
-Callback to trigger when pressed.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
-
-### `isSelected`
-
-Optional boolean to show Selected state in Cell Account.
-Default: false
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | No                                                      | false                                                  |
-
 ## Usage
 
 ```javascript
 // Change import path to relative path.
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import CellAccount, { CellAccountItemType } from 'app/component-library/components/Cells/CellAccount/CellAccount';
+import CellAccountDisplayItem from 'app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem';
+import { CellAccountItemType } from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.types';
 
-<CellAccount
-  type={CellAccountItemType.Multiselect}
+<CellAccountDisplayItem
+  type={CellAccountItemType.Display}
   avatarAccountAddress={ACCOUNT_ADDRESS}
   avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
-  isSelected={false}
-  onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

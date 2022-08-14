@@ -25,12 +25,12 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
-  require('../app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.stories');
-  require('../app/component-library/components/Cells/CellAccountContent/CellAccountContent.stories');
-  require('../app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem.stories');
-  require('../app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories');
-  require('../app/component-library/components/Cells/CellAccountMultiselectItem/CellAccountMultiselectItem.stories');
-  require('../app/component-library/components/Cells/CellAccountSelectItem/CellAccountSelectItem.stories');
+  require('../app/component-library/components/Cells/CellAccount/src/CellAccountBaseItem/CellAccountBaseItem.stories');
+  require('../app/component-library/components/Cells/CellAccount/src/CellAccountContent/CellAccountContent.stories');
+  require('../app/component-library/components/Cells/CellAccount/src/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories');
+  require('../app/component-library/components/Cells/CellAccount/variants/CellAccountDisplayItem/CellAccountDisplayItem.stories');
+  require('../app/component-library/components/Cells/CellAccount/variants/CellAccountMultiselectItem/CellAccountMultiselectItem.stories');
+  require('../app/component-library/components/Cells/CellAccount/variants/CellAccountSelectItem/CellAccountSelectItem.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
@@ -71,12 +71,12 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
-  '../app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.stories',
-  '../app/component-library/components/Cells/CellAccountContent/CellAccountContent.stories',
-  '../app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem.stories',
-  '../app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories',
-  '../app/component-library/components/Cells/CellAccountMultiselectItem/CellAccountMultiselectItem.stories',
-  '../app/component-library/components/Cells/CellAccountSelectItem/CellAccountSelectItem.stories',
+  '../app/component-library/components/Cells/CellAccount/src/CellAccountBaseItem/CellAccountBaseItem.stories',
+  '../app/component-library/components/Cells/CellAccount/src/CellAccountContent/CellAccountContent.stories',
+  '../app/component-library/components/Cells/CellAccount/src/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories',
+  '../app/component-library/components/Cells/CellAccount/variants/CellAccountDisplayItem/CellAccountDisplayItem.stories',
+  '../app/component-library/components/Cells/CellAccount/variants/CellAccountMultiselectItem/CellAccountMultiselectItem.stories',
+  '../app/component-library/components/Cells/CellAccount/variants/CellAccountSelectItem/CellAccountSelectItem.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',

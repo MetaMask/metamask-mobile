@@ -2,10 +2,10 @@
 import React from 'react';
 
 // External dependencies.
-import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
-import CellAccountDisplayItem from '../CellAccountDisplayItem';
-import CellAccountMultiselectItem from '../CellAccountMultiselectItem';
-import CellAccountSelectItem from '../CellAccountSelectItem';
+import { CellAccountItemType } from './src/CellAccountBaseItem/CellAccountBaseItem.types';
+import CellAccountDisplayItem from './variants/CellAccountDisplayItem';
+import CellAccountMultiselectItem from './variants/CellAccountMultiselectItem';
+import CellAccountSelectItem from './variants/CellAccountSelectItem';
 
 // Internal dependencies.
 import { CellAccountProps } from './CellAccount.types';
@@ -17,21 +17,21 @@ import {
 
 const CellAccount = (cellAccountProps: CellAccountProps) => {
   switch (cellAccountProps.type) {
-    case CellAccountBaseItemType.Display:
+    case CellAccountItemType.Display:
       return (
         <CellAccountDisplayItem
           testID={CELL_ACCOUNT_DISPLAY_TEST_ID}
           {...cellAccountProps}
         />
       );
-    case CellAccountBaseItemType.Multiselect:
+    case CellAccountItemType.Multiselect:
       return (
         <CellAccountMultiselectItem
           testID={CELL_ACCOUNT_MULTI_SELECT_TEST_ID}
           {...cellAccountProps}
         />
       );
-    case CellAccountBaseItemType.Select:
+    case CellAccountItemType.Select:
       return (
         <CellAccountSelectItem
           testID={CELL_ACCOUNT_SELECT_TEST_ID}

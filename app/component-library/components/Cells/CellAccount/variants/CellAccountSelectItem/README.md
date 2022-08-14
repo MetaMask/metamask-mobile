@@ -1,8 +1,10 @@
-# CellAccount
+# CellAccountSelectItem
 
-This component is a union component, which consists of [CellAccountDisplayItem](../CellAccountDisplayItem/CellAccountDisplayItem.tsx), [CellAccountSelectItem](../CellAccountSelectItem/CellAccountSelectItem.tsx), and [CellAccountMultiselectItem](../CellAccountMultiselectItem/CellAccountMultiselectItem.tsx)
+CellAccountSelectItem is a component used for accessing account selection.
 
-## Common props
+## Props
+
+This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
 
 ### `type`
 
@@ -10,7 +12,15 @@ Type of CellAccount.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellAccountItemType](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
+| [CellAccountItemType.Select](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
+
+### `onPress`
+
+Callback to trigger when pressed.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| function                                            | Yes                                                     |
 
 ### `avatarAccountAddress`
 
@@ -60,24 +70,6 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `children`
-
-Optional accessory that can be inserted on the right of Cell Account.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
-
-## CellAccountMultiselectItem and CellAccountSelectItem only props
-
-### `onPress`
-
-Callback to trigger when pressed.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
-
 ### `isSelected`
 
 Optional boolean to show Selected state in Cell Account.
@@ -87,15 +79,24 @@ Default: false
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                  |
 
+### `children`
+
+Optional accessory that can be inserted on the right of Cell Account.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| ReactNode                                           | Yes                                                     |
+
 ## Usage
 
 ```javascript
 // Change import path to relative path.
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import CellAccount, { CellAccountItemType } from 'app/component-library/components/Cells/CellAccount/CellAccount';
+import CellAccountSelectItem from 'app/component-library/components/Cells/CellAccountSelectItem/CellAccountSelectItem';
+import { CellAccountItemType } from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.types';
 
-<CellAccount
-  type={CellAccountItemType.Multiselect}
+<CellAccountSelectItem
+  type={CellAccountItemType.Select}
   avatarAccountAddress={ACCOUNT_ADDRESS}
   avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}

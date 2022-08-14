@@ -7,8 +7,8 @@ import { boolean, text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
+import { CellAccountItemType } from './src/CellAccountBaseItem/CellAccountBaseItem.types';
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
-import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccount from './CellAccount';
@@ -24,8 +24,8 @@ storiesOf('Component Library / CellAccount', module).add('Default', () => {
   const groupId = 'Props';
   const cellAccountTypeSelector = select(
     'type',
-    CellAccountBaseItemType,
-    CellAccountBaseItemType.Display,
+    CellAccountItemType,
+    CellAccountItemType.Display,
     groupId,
   );
 
@@ -47,13 +47,13 @@ storiesOf('Component Library / CellAccount', module).add('Default', () => {
     ? text('label', TEST_TAG_LABEL_TEXT, groupId)
     : '';
   const isSelected =
-    cellAccountTypeSelector === CellAccountBaseItemType.Multiselect ||
-    cellAccountTypeSelector === CellAccountBaseItemType.Select
+    cellAccountTypeSelector === CellAccountItemType.Multiselect ||
+    cellAccountTypeSelector === CellAccountItemType.Select
       ? boolean('isSelected?', false, groupId)
       : undefined;
 
   switch (cellAccountTypeSelector) {
-    case CellAccountBaseItemType.Display:
+    case CellAccountItemType.Display:
       return (
         <CellAccount
           type={cellAccountTypeSelector}
