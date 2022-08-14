@@ -5,7 +5,7 @@ exports[`CellAccountMultiselectItem - Snapshot should render default settings co
   isSelected={false}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-account-multi-select"
+  testID="cell-account-multi-select-item"
   type="Multiselect"
 >
   <CellAccountBaseItem
@@ -21,7 +21,7 @@ exports[`CellAccountMultiselectItem - Snapshot should render the proper selected
   isSelected={true}
   onPress={[Function]}
   style={Object {}}
-  testID="cell-account-multi-select"
+  testID="cell-account-multi-select-item"
   type="Multiselect"
 >
   <CellAccountBaseItem

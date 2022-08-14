@@ -66,8 +66,8 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import CellAccountContent from 'app/component-library/components/Cells/CellAccountContent/CellAccountContent';
 import { avatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
+import CellAccountContent from 'app/component-library/components/Cells/CellAccountContent/CellAccountContent';
 
 <CellAccountContent
   avatarAccountAddress={ACCOUNT_ADDRESS}

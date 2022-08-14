@@ -11,7 +11,7 @@ import {
 
 // Internal dependencies.
 import CellAccountMultiselectItem from './CellAccountMultiselectItem';
-import { CELL_ACCOUNT_MULTI_SELECT_TEST_ID } from './CellAccountMultiselectItem.constants';
+import { CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID } from './CellAccountMultiselectItem.constants';
 import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 describe('CellAccountMultiselectItem - Snapshot', () => {
@@ -54,7 +54,7 @@ describe('CellAccountMultiselectItem', () => {
       />,
     );
     const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_ACCOUNT_MULTI_SELECT_TEST_ID,
+      (node) => node.prop('testID') === CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID,
     );
     expect(singleSelectComponent.exists()).toBe(true);
   });

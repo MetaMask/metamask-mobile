@@ -8,7 +8,6 @@ export enum CellAccountBaseItemType {
   Select = 'Select',
   Multiselect = 'Multiselect',
   Display = 'Display',
-  Picker = 'Picker',
 }
 
 /**

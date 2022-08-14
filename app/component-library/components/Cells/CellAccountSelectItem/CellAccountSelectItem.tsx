@@ -9,7 +9,7 @@ import SelectItem from '../../Select/Select/SelectItem';
 import CellAccountBaseItem from '../CellAccountBaseItem';
 
 // Internal dependencies.
-import { CELL_ACCOUNT_SINGLE_SELECT_TEST_ID } from './CellAccountSelectItem.constants';
+import { CELL_ACCOUNT_SELECT_ITEM_TEST_ID } from './CellAccountSelectItem.constants';
 import styleSheet from './CellAccountSelectItem.styles';
 import { CellAccountSelectItemProps } from './CellAccountSelectItem.types';
 
@@ -31,7 +31,7 @@ const CellAccountSelectItem = ({
     <SelectItem
       isSelected={isSelected}
       style={styles.base}
-      testID={CELL_ACCOUNT_SINGLE_SELECT_TEST_ID}
+      testID={CELL_ACCOUNT_SELECT_ITEM_TEST_ID}
       {...props}
     >
       <CellAccountBaseItem

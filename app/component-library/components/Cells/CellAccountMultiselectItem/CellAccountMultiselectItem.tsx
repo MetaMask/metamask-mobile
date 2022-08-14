@@ -9,7 +9,7 @@ import MultiselectItem from '../../Select/Multiselect/MultiselectItem';
 import CellAccountBaseItem from '../CellAccountBaseItem';
 
 // Internal dependencies.
-import { CELL_ACCOUNT_MULTI_SELECT_TEST_ID } from './CellAccountMultiselectItem.constants';
+import { CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID } from './CellAccountMultiselectItem.constants';
 import styleSheet from './CellAccountMultiselectItem.styles';
 import { CellAccountMultiselectItemProps } from './CellAccountMultiselectItem.types';
 
@@ -31,7 +31,7 @@ const CellAccountMultiselectItem = ({
     <MultiselectItem
       isSelected={isSelected}
       style={styles.base}
-      testID={CELL_ACCOUNT_MULTI_SELECT_TEST_ID}
+      testID={CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID}
       {...props}
     >
       <CellAccountBaseItem

@@ -33,7 +33,7 @@ const MultiselectItem: React.FC<MultiselectItemProps> = ({
     <TouchableOpacity style={styles.base} {...props}>
       {renderUnderlay()}
       <Checkbox style={styles.checkbox} isSelected={isSelected} />
-      {children}
+      <View style={styles.childrenContainer}>{children}</View>
     </TouchableOpacity>
   );
 };

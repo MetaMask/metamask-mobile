@@ -75,8 +75,8 @@ Optional accessory that can be inserted on the right of Cell Account.
 ```javascript
 // Change import path to relative path.
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import { CellAccountDisplayItem } from 'app/component-library/components/CellAccountDisplayItem/CellAccountDisplayItem';
-import { CellAccountBaseItemType } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountDisplayItem } from 'app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem';
+import { CellAccountBaseItemType } from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.types';
 
 <CellAccountDisplayItem
   type={CellAccountBaseItemType.Display}

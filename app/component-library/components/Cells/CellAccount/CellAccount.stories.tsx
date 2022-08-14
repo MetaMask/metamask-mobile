@@ -3,11 +3,12 @@
 // Third party dependencies.
 import React from 'react';
 import { Alert } from 'react-native';
-import { boolean, text } from '@storybook/addon-knobs';
+import { boolean, text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccount from './CellAccount';
@@ -21,7 +22,13 @@ import {
 
 storiesOf('Component Library / CellAccount', module).add('Default', () => {
   const groupId = 'Props';
-  const isMultiSelect = boolean('IsMultiSelect?', false, groupId);
+  const cellAccountTypeSelector = select(
+    'type',
+    CellAccountBaseItemType,
+    CellAccountBaseItemType.Display,
+    groupId,
+  );
+
   const titleText = text('title', TEST_CELL_ACCOUNT_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
@@ -39,19 +46,38 @@ storiesOf('Component Library / CellAccount', module).add('Default', () => {
   const tagLabel = includeTagLabel
     ? text('label', TEST_TAG_LABEL_TEXT, groupId)
     : '';
-  const isSelected = boolean('isSelected?', false, groupId);
+  const isSelected =
+    cellAccountTypeSelector === CellAccountBaseItemType.Multiselect ||
+    cellAccountTypeSelector === CellAccountBaseItemType.Select
+      ? boolean('isSelected?', false, groupId)
+      : undefined;
 
-  return (
-    <CellAccount
-      accountAddress={TEST_ACCOUNT_ADDRESS}
-      accountAvatarType={AvatarAccountType.JazzIcon}
-      title={titleText}
-      secondaryText={secondaryText}
-      tertiaryText={tertiaryText}
-      tagLabel={tagLabel}
-      isSelected={isSelected}
-      isMultiSelect={isMultiSelect}
-      onPress={() => Alert.alert('Pressed account Cell!')}
-    />
-  );
+  switch (cellAccountTypeSelector) {
+    case CellAccountBaseItemType.Display:
+      return (
+        <CellAccount
+          type={cellAccountTypeSelector}
+          avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+          avatarAccountType={AvatarAccountType.JazzIcon}
+          title={titleText}
+          secondaryText={secondaryText}
+          tertiaryText={tertiaryText}
+          tagLabel={tagLabel}
+        />
+      );
+    default:
+      return (
+        <CellAccount
+          type={cellAccountTypeSelector}
+          avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
+          avatarAccountType={AvatarAccountType.JazzIcon}
+          title={titleText}
+          secondaryText={secondaryText}
+          tertiaryText={tertiaryText}
+          tagLabel={tagLabel}
+          isSelected={isSelected}
+          onPress={() => Alert.alert('Pressed account Cell!')}
+        />
+      );
+  }
 });

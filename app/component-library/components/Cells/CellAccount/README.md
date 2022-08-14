@@ -1,20 +1,18 @@
 # CellAccount
 
-CellAccount is a component used for accessing account selection.
+This component is a union component, which consists of [CellAccountDisplayItem](../CellAccountDisplayItem/CellAccountDisplayItem.tsx), [CellAccountSelectItem](../CellAccountSelectItem/CellAccountSelectItem.tsx), and [CellAccountMultiselectItem](../CellAccountMultiselectItem/CellAccountMultiselectItem.tsx)
 
-## Props
+## Common props
 
-This component extends `TouchableOpacityProps` from React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) component.
+### `type`
 
-### `onPress`
-
-Callback to trigger when pressed.
+Type of CellAccount.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
+| [CellAccountBaseItemType](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
 
-### `accountAddress`
+### `avatarAccountAddress`
 
 An Ethereum wallet address to retrieve avatar.
 
@@ -22,13 +20,13 @@ An Ethereum wallet address to retrieve avatar.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | Yes                                                     |
 
-### `accountAvatarType`
+### `avatarAccountType`
 
-[AccountAvatar](../AccountAvatar/AccountAvatar.tsx) variants.
+[AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.tsx) variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :---------------------------------------------------------- | :------------------------------------------------------ |
-| [AccountAvatar](../AccountAvatar/AccountAvatar.types.ts#L6) | Yes                                                     |
+| [AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.types.ts#L6) | Yes                                                     |
 
 ### `title`
 
@@ -62,13 +60,23 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `isMultiSelect`
+### `children`
 
-Optional boolean to show Checkbox in Cell Account, applicable for multi select view.
+Optional accessory that can be inserted on the right of Cell Account.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean                                             | No                                                      | false                                                  |
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| ReactNode                                           | Yes                                                     |
+
+## CellAccountMultiselectItem and CellAccountSelectItem only props
+
+### `onPress`
+
+Callback to trigger when pressed.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| function                                            | Yes                                                     |
 
 ### `isSelected`
 
@@ -79,30 +87,23 @@ Default: false
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                  |
 
-### `children`
-
-Optional accessory that can be inserted on the right of Cell Account.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
-
 ## Usage
 
 ```javascript
 // Change import path to relative path.
-import { CellAccount } from 'app/component-library/components/CellAccount/CellAccount';
-import { AccountAvatarType } from 'app/component-library/components/AccountAvatar/AccountAvatar';
+import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
+import { CellAccount } from 'app/component-library/components/Cells/CellAccount/CellAccount';
+import { CellAccountBaseItemType } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem.types';
 
 <CellAccount
-  accountAddress={ACCOUNT_ADDRESS}
-  accountAvatarType={AccountAvatarType.JazzIcon}
+  type={CellAccountBaseItemType.Multiselect}
+  avatarAccountAddress={ACCOUNT_ADDRESS}
+  avatarAccountType={AvatarAccountType.JazzIcon}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
   isSelected={false}
-  isMultiSelect={false}
   onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

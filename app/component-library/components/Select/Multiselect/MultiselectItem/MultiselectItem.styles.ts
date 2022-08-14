@@ -41,6 +41,9 @@ const styleSheet = (params: {
     checkbox: {
       marginRight: 8,
     },
+    childrenContainer: {
+      flex: 1,
+    },
   });
 };
 

@@ -12,7 +12,7 @@ import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseI
 
 // Internal dependencies.
 import CellAccountDisplayItem from './CellAccountDisplayItem';
-import { CELL_ACCOUNT_DISPLAY_TEST_ID } from './CellAccountDisplayItem.constants';
+import { CELL_ACCOUNT_DISPLAY_ITEM_TEST_ID } from './CellAccountDisplayItem.constants';
 
 describe('CellAccountDisplayItem - Snapshot', () => {
   it('should render default settings correctly', () => {
@@ -39,7 +39,7 @@ describe('CellAccountDisplayItem', () => {
       />,
     );
     const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === CELL_ACCOUNT_DISPLAY_TEST_ID,
+      (node) => node.prop('testID') === CELL_ACCOUNT_DISPLAY_ITEM_TEST_ID,
     );
     expect(singleSelectComponent.exists()).toBe(true);
   });

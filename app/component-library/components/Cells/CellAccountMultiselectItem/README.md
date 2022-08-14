@@ -91,9 +91,9 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { CellAccountMultiselectItem } from 'app/component-library/components/CellAccountMultiselectItem/CellAccountMultiselectItem';
 import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import { CellAccountBaseItemType } from 'app/component-library/components/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountMultiselectItem } from 'app/component-library/components/Cells/CellAccountMultiselectItem/CellAccountMultiselectItem';
+import { CellAccountBaseItemType } from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.types';
 
 <CellAccountMultiselectItem
   type={CellAccountBaseItemType.Multiselect}

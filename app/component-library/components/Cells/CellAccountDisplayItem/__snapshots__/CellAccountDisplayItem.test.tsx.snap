@@ -3,7 +3,7 @@
 exports[`CellAccountDisplayItem - Snapshot should render default settings correctly 1`] = `
 <CellAccountDisplayItemContainer
   style={Object {}}
-  testID="cell-account-display"
+  testID="cell-account-display-item"
   type="Display"
 >
   <CellAccountBaseItem

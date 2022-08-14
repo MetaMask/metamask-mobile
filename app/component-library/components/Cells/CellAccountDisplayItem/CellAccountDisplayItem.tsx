@@ -9,7 +9,7 @@ import CellAccountBaseItem from '../CellAccountBaseItem';
 import CellAccountDisplayItemContainer from '../CellAccountDisplayItemContainer';
 
 // Internal dependencies.
-import { CELL_ACCOUNT_DISPLAY_TEST_ID } from './CellAccountDisplayItem.constants';
+import { CELL_ACCOUNT_DISPLAY_ITEM_TEST_ID } from './CellAccountDisplayItem.constants';
 import styleSheet from './CellAccountDisplayItem.styles';
 import { CellAccountDisplayItemProps } from './CellAccountDisplayItem.types';
 
@@ -29,7 +29,7 @@ const CellAccountDisplayItem = ({
   return (
     <CellAccountDisplayItemContainer
       style={styles.base}
-      testID={CELL_ACCOUNT_DISPLAY_TEST_ID}
+      testID={CELL_ACCOUNT_DISPLAY_ITEM_TEST_ID}
       {...props}
     >
       <CellAccountBaseItem

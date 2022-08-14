@@ -1,60 +1,15 @@
-// Third party dependencies.
-import { StyleProp, TouchableOpacityProps, ViewStyle } from 'react-native';
-
 // External dependencies.
-import { AvatarAccountType } from '../../Avatars/AvatarAccount';
+import { CellAccountDisplayItemProps } from '../CellAccountDisplayItem/CellAccountDisplayItem.types';
+import { CellAccountMultiselectItemProps } from '../CellAccountMultiselectItem/CellAccountMultiselectItem.types';
+import { CellAccountSelectItemProps } from '../CellAccountSelectItem/CellAccountSelectItem.types';
 
 /**
  * Cell Account component props.
  */
-export interface CellAccountProps extends TouchableOpacityProps {
-  /**
-   * Callback to trigger when pressed.
-   */
-  onPress: () => void;
-  /**
-   * An Ethereum wallet address to retrieve avatar.
-   */
-  accountAddress: string;
-  /**
-   * AvatarAccount variants.
-   */
-  accountAvatarType: AvatarAccountType;
-  /**
-   * Title of the Cell Account, 1 line truncation.
-   */
-  title: string;
-  /**
-   * Optional secondary text below the title, 1 line truncation.
-   */
-  secondaryText?: string;
-  /**
-   * Optional tertiary text below the secondaryText, 1 line truncation.
-   */
-  tertiaryText?: string;
-  /**
-   * Optional label (using Tag component) below the title/secondaryText/tertiaryText.
-   */
-  tagLabel?: string;
-  /**
-   * Optional boolean to show Checkbox in Cell Account, applicable for multi select view.
-   * @default false
-   */
-  isMultiSelect?: boolean;
-  /**
-   * Optional boolean to show Selected state in Cell Account.
-   * @default false
-   */
-  isSelected?: boolean;
-  /**
-   * Optional accessory that can be inserted on the right of Cell Account.
-   */
-  children?: React.ReactNode;
-  /**
-   * Escape hatch for applying extra styles. Only use if absolutely necessary.
-   */
-  style?: StyleProp<ViewStyle>;
-}
+export type CellAccountProps =
+  | CellAccountDisplayItemProps
+  | CellAccountMultiselectItemProps
+  | CellAccountSelectItemProps;
 
 /**
  * Style sheet input parameters.

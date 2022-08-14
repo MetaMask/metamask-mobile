@@ -1,106 +1,44 @@
 /* eslint-disable react/prop-types */
-
-// Third library dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import AvatarAccount from '../../Avatars/AvatarAccount';
-import Text, { TextVariant } from '../../Text';
-import { AvatarBaseSize } from '../../Avatars/AvatarBase';
-import MultiselectItem from '../../Select/Multiselect/MultiselectItem';
-import SelectItem from '../../Select/Select/SelectItem';
-import Tag from '../../Tags/Tag';
+import { CellAccountBaseItemType } from '../CellAccountBaseItem/CellAccountBaseItem.types';
+import CellAccountDisplayItem from '../CellAccountDisplayItem';
+import CellAccountMultiselectItem from '../CellAccountMultiselectItem';
+import CellAccountSelectItem from '../CellAccountSelectItem';
 
 // Internal dependencies.
-import {
-  CELL_ACCOUNT_SINGLE_SELECT_TEST_ID,
-  CELL_ACCOUNT_MULTI_SELECT_TEST_ID,
-  CELL_ACCOUNT_AVATAR_TEST_ID,
-  CELL_ACCOUNT_TITLE_TEST_ID,
-  CELL_ACCOUNT_SECONDARY_TEXT_TEST_ID,
-  CELL_ACCOUNT_TERTIARY_TEXT_TEST_ID,
-  CELL_ACCOUNT_TAG_LABEL_TEST_ID,
-} from './CellAccount.constants';
-import styleSheet from './CellAccount.styles';
 import { CellAccountProps } from './CellAccount.types';
+import {
+  CELL_ACCOUNT_DISPLAY_TEST_ID,
+  CELL_ACCOUNT_MULTI_SELECT_TEST_ID,
+  CELL_ACCOUNT_SELECT_TEST_ID,
+} from './CellAccount.constants';
 
-const CellAccount = ({
-  style,
-  accountAddress,
-  accountAvatarType,
-  title,
-  secondaryText,
-  tertiaryText,
-  tagLabel,
-  isMultiSelect = false,
-  isSelected = false,
-  children,
-  ...props
-}: CellAccountProps) => {
-  const { styles } = useStyles(styleSheet, { style });
-  const ContainerComponent = isMultiSelect ? MultiselectItem : SelectItem;
-  const containerTestID = isMultiSelect
-    ? CELL_ACCOUNT_MULTI_SELECT_TEST_ID
-    : CELL_ACCOUNT_SINGLE_SELECT_TEST_ID;
-
-  return (
-    <ContainerComponent
-      isSelected={isSelected}
-      style={styles.base}
-      testID={containerTestID}
-      {...props}
-    >
-      <View style={styles.cellAccount}>
-        {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-        <AvatarAccount
-          type={accountAvatarType}
-          accountAddress={accountAddress}
-          size={AvatarBaseSize.Md}
-          style={styles.accountAvatar}
-          testID={CELL_ACCOUNT_AVATAR_TEST_ID}
+const CellAccount = (cellAccountProps: CellAccountProps) => {
+  switch (cellAccountProps.type) {
+    case CellAccountBaseItemType.Display:
+      return (
+        <CellAccountDisplayItem
+          testID={CELL_ACCOUNT_DISPLAY_TEST_ID}
+          {...cellAccountProps}
         />
-        <View style={styles.cellAccountInfo}>
-          <Text
-            numberOfLines={1}
-            variant={TextVariant.sHeadingSMRegular}
-            testID={CELL_ACCOUNT_TITLE_TEST_ID}
-          >
-            {title}
-          </Text>
-          {!!secondaryText && (
-            <Text
-              numberOfLines={1}
-              variant={TextVariant.sBodyMD}
-              style={styles.secondaryText}
-              testID={CELL_ACCOUNT_SECONDARY_TEXT_TEST_ID}
-            >
-              {secondaryText}
-            </Text>
-          )}
-          {!!tertiaryText && (
-            <Text
-              numberOfLines={1}
-              variant={TextVariant.sBodyMD}
-              style={styles.tertiaryText}
-              testID={CELL_ACCOUNT_TERTIARY_TEXT_TEST_ID}
-            >
-              {tertiaryText}
-            </Text>
-          )}
-          {!!tagLabel && (
-            <Tag
-              label={tagLabel}
-              style={styles.tagLabel}
-              testID={CELL_ACCOUNT_TAG_LABEL_TEST_ID}
-            />
-          )}
-        </View>
-        {children && <View style={styles.optionalAccessory}>{children}</View>}
-      </View>
-    </ContainerComponent>
-  );
+      );
+    case CellAccountBaseItemType.Multiselect:
+      return (
+        <CellAccountMultiselectItem
+          testID={CELL_ACCOUNT_MULTI_SELECT_TEST_ID}
+          {...cellAccountProps}
+        />
+      );
+    case CellAccountBaseItemType.Select:
+      return (
+        <CellAccountSelectItem
+          testID={CELL_ACCOUNT_SELECT_TEST_ID}
+          {...cellAccountProps}
+        />
+      );
+  }
 };
 
 export default CellAccount;
