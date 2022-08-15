@@ -273,7 +273,7 @@ buildAndroidQA(){
 
 	prebuild_android
 	# Generate APK
-	cd android && ./gradlew assembleQaInternalRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -288,7 +288,7 @@ buildAndroidQA(){
 	fi
 
 	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/qa/internalRelease/app-qa-internal-release.apk
+	 	adb install app/build/outputs/apk/qa/internalRelease/app-qa-release.apk
 	 fi
 }
 
