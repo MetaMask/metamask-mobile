@@ -8,14 +8,15 @@ import {
   DENIED,
   METRICS_OPT_IN,
   METAMETRICS_ID,
-  ANALYTICS_DATA_DELETION_TASK_ID,
   ANALYTICS_DATA_DELETION_DATE,
-  ANALYTICS_DATA_RECORDED,
-  SEGMENT_REGULATIONS_ENDPOINT,
 } from '../../constants/storage';
 
 import { IMetaMetrics } from './MetaMetrics.interface';
-import { METAMETRICS_ANONYMOUS_ID, States } from './MetaMetrics.constants';
+import {
+  METAMETRICS_ANONYMOUS_ID,
+  SEGMENT_REGULATIONS_ENDPOINT,
+  States,
+} from './MetaMetrics.constants';
 
 class MetaMetrics implements IMetaMetrics {
   private static _instance: MetaMetrics;
@@ -178,34 +179,35 @@ class MetaMetrics implements IMetaMetrics {
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
-  private _createSuppressWithDeleteRegulation = async (): Promise<void> => {
-    const segmentToken = process.env.MM_MIXPANEL_TOKEN;
-    const regulationType = 'Suppress_With_Delete';
-    try {
-      const response = await axios({
-        url: SEGMENT_REGULATIONS_ENDPOINT,
-        method: 'post',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${segmentToken}`,
-        },
-        data: JSON.stringify({
-          regulation_type: regulationType,
-          attributes: {
-            name: this.#metametricsId,
-            values: [],
+  private _createSegmentSuppressWithDeleteRegulation =
+    async (): Promise<void> => {
+      const segmentToken = process.env.MM_MIXPANEL_TOKEN;
+      const regulationType = 'Suppress_With_Delete';
+      try {
+        const response = await axios({
+          url: SEGMENT_REGULATIONS_ENDPOINT,
+          method: 'post',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${segmentToken}`,
           },
-        }),
-      });
+          data: JSON.stringify({
+            regulation_type: regulationType,
+            attributes: {
+              name: this.#metametricsId,
+              values: [],
+            },
+          }),
+        });
 
-      await this._storeSuppressWithDeleteRegulationCreationDate();
-      // eslint-disable-next-line no-console
-      console.log(response.data);
-    } catch (e: any) {
-      // eslint-disable-next-line no-console
-      console.log(e);
-    }
-  };
+        await this._storeSuppressWithDeleteRegulationCreationDate();
+        // eslint-disable-next-line no-console
+        console.log(response.data);
+      } catch (e: any) {
+        // eslint-disable-next-line no-console
+        console.log(e);
+      }
+    };
 
   // PUBLIC METHODS
 
@@ -252,10 +254,6 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#state === States.enabled) {
       this._trackEvent(event, anonymously, properties);
     }
-  }
-
-  public createSuppressWithDeleteRegulation(): void {
-    this._createSuppressWithDeleteRegulation();
   }
 }
 
