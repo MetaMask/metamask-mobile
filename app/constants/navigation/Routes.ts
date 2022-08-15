@@ -6,6 +6,7 @@ const Routes = {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
+    PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     AMOUNT_TO_BUY: 'AmountToBuy',
     AMOUNT_TO_BUY_HAS_STARTED: 'AmountToBuyHasStarted',
     GET_QUOTES: 'GetQuotes',
