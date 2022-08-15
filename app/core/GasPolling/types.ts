@@ -75,6 +75,7 @@ export interface GasTransactionProps {
 }
 
 export interface GasFeeOptions {
+  estimatedBaseFee: any;
   /**
    * This gasFeeEstimate object is returned from Codefi
    */

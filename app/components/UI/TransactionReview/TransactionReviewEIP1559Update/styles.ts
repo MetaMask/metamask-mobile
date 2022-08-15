@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const createStyles = (colors: any) =>
+const createStyles = (colors: any) =>
   StyleSheet.create({
     overview: (noMargin) => ({
       marginHorizontal: noMargin ? 0 : 24,
@@ -48,3 +48,5 @@ export const createStyles = (colors: any) =>
       flex: 1,
     },
   });
+
+export default createStyles;

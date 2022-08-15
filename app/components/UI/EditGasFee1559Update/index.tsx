@@ -52,6 +52,7 @@ const EditGasFee1559Update = ({
   analyticsParams,
   warning,
   existingGas,
+  onlyGas,
 }: EditGasFee1559UpdateProps) => {
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
@@ -78,7 +79,7 @@ const EditGasFee1559Update = ({
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
-    onlyGas: true,
+    onlyGas,
     gasSelected: selectedOption || null,
     legacy: false,
     gasLimit: gasValue?.suggestedGasLimit || suggestedGasLimit,
@@ -268,8 +269,7 @@ const EditGasFee1559Update = ({
   );
 
   const shouldIgnore = useCallback(
-    (option) =>
-      ignoreOptions && ignoreOptions.find((item: string) => item === option),
+    (option) => ignoreOptions?.find((item: string) => item === option),
     [ignoreOptions],
   );
 

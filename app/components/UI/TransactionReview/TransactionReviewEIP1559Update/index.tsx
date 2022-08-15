@@ -6,7 +6,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { isMainnetByChainId } from '../../../../util/networks';
 import InfoModal from '../../Swaps/components/InfoModal';
 import FadeAnimationView from '../../FadeAnimationView';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import TimeEstimateInfoModal from '../../TimeEstimateInfoModal';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
@@ -14,22 +13,9 @@ import AppConstants from '../../../../core/AppConstants';
 import Device from '../../../../util/device';
 import { useAppThemeFromContext, mockTheme } from '../../../../util/theme';
 import { useGasTransaction } from '../../../../core/GasPolling/GasPolling';
-import { createStyles } from './styles';
+import createStyles from './styles';
 import { TransactionEIP1559UpdateProps } from './types';
-
-// eslint-disable-next-line react/prop-types
-const Skeleton = ({ width, noStyle }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
-
-  return (
-    <View style={[!noStyle && styles.valuesContainer]}>
-      <SkeletonPlaceholder>
-        <SkeletonPlaceholder.Item width={width} height={10} borderRadius={4} />
-      </SkeletonPlaceholder>
-    </View>
-  );
-};
+import SkeletonComponent from './skeletonComponent';
 
 const TransactionReviewEIP1559Update = ({
   primaryCurrency,
@@ -50,7 +36,6 @@ const TransactionReviewEIP1559Update = ({
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
-    ,
     showTimeEstimateInfoModal,
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
@@ -70,8 +55,6 @@ const TransactionReviewEIP1559Update = ({
     gasLimit: null,
   });
 
-  //   console.log('gasTransaction', selectedGasValue);
-
   const {
     renderableGasFeeMinNative,
     renderableGasFeeMinConversion,
@@ -86,10 +69,7 @@ const TransactionReviewEIP1559Update = ({
   } = gasTransaction;
 
   const openLinkAboutGas = useCallback(
-    () =>
-      Linking.openURL(
-        'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
-      ),
+    () => Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME),
     [],
   );
 
@@ -199,7 +179,7 @@ const TransactionReviewEIP1559Update = ({
               </TouchableOpacity>
             </FadeAnimationView>
           ) : (
-            <Skeleton width={80} />
+            <SkeletonComponent width={80} />
           )}
         </View>
       </Summary.Row>
@@ -236,7 +216,7 @@ const TransactionReviewEIP1559Update = ({
                 </View>
               </FadeAnimationView>
             ) : (
-              <Skeleton width={120} noStyle />
+              <SkeletonComponent width={120} noStyle />
             )}
             {gasEstimationReady ? (
               <FadeAnimationView
@@ -257,7 +237,7 @@ const TransactionReviewEIP1559Update = ({
                 </Text>
               </FadeAnimationView>
             ) : (
-              <Skeleton width={120} />
+              <SkeletonComponent width={120} />
             )}
           </View>
         </Summary.Row>
@@ -314,7 +294,7 @@ const TransactionReviewEIP1559Update = ({
                   </Text>
                 </FadeAnimationView>
               ) : (
-                <Skeleton width={80} />
+                <SkeletonComponent width={80} />
               )}
             </Summary.Row>
           </View>
@@ -339,7 +319,7 @@ const TransactionReviewEIP1559Update = ({
                   </Text>
                 </FadeAnimationView>
               ) : (
-                <Skeleton width={120} />
+                <SkeletonComponent width={120} />
               )}
             </Summary.Row>
           )}
