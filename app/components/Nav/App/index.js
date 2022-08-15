@@ -54,6 +54,7 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import { useAppConfig } from '../../hooks/AppConfig';
 
 const Stack = createStackNavigator();
 /**
@@ -169,6 +170,14 @@ const App = ({ userLoggedIn }) => {
     (state) =>
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
   );
+  const appConfig = useAppConfig();
+  useEffect(() => {
+    if (appConfig.type === 'Success') {
+      console.log('app config response', appConfig.data);
+    } else {
+      console.log({ appConfig });
+    }
+  });
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
