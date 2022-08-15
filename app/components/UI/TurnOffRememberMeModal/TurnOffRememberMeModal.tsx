@@ -1,5 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import {
+  View,
+  TouchableWithoutFeedback,
+  Keyboard,
+  SafeAreaView,
+} from 'react-native';
 import Text, { TextVariant } from '../../../component-library/components/Text';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
@@ -73,42 +78,44 @@ const TurnOffRememberMeModal = () => {
   }, [turnOffRememberMeAndLockApp]);
 
   return (
-    <ReusableModal ref={modalRef}>
-      <WarningExistingUserModal
-        warningModalVisible
-        cancelText={strings('turn_off_remember_me.action')}
-        cancelButtonDisabled={disableButton}
-        onCancelPress={disableRememberMe}
-        onRequestClose={triggerClose}
-        onConfirmPress={triggerClose}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.areYouSure}>
-            <Text variant={TextVariant.sHeadingLG} style={styles.textStyle}>
-              {strings('turn_off_remember_me.title')}
-            </Text>
-            <Text variant={TextVariant.sBodyMD} style={styles.textStyle}>
-              {strings('turn_off_remember_me.description')}
-            </Text>
-            <OutlinedTextField
-              style={styles.input}
-              testID={TURN_OFF_REMEMBER_ME_MODAL}
-              autoFocus
-              secureTextEntry
-              returnKeyType={'done'}
-              onChangeText={checkPassword}
-              autoCapitalize="none"
-              value={passwordText}
-              placeholder={strings('turn_off_remember_me.placeholder')}
-              baseColor={colors.border.default}
-              tintColor={colors.primary.default}
-              placeholderTextColor={colors.text.muted}
-              keyboardAppearance={themeAppearance}
-            />
-          </View>
-        </TouchableWithoutFeedback>
-      </WarningExistingUserModal>
-    </ReusableModal>
+    <SafeAreaView style={styles.container}>
+      <ReusableModal ref={modalRef}>
+        <WarningExistingUserModal
+          warningModalVisible
+          cancelText={strings('turn_off_remember_me.action')}
+          cancelButtonDisabled={disableButton}
+          onCancelPress={disableRememberMe}
+          onRequestClose={triggerClose}
+          onConfirmPress={triggerClose}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.areYouSure}>
+              <Text variant={TextVariant.sHeadingLG} style={styles.textStyle}>
+                {strings('turn_off_remember_me.title')}
+              </Text>
+              <Text variant={TextVariant.sBodyMD} style={styles.textStyle}>
+                {strings('turn_off_remember_me.description')}
+              </Text>
+              <OutlinedTextField
+                style={styles.input}
+                testID={TURN_OFF_REMEMBER_ME_MODAL}
+                autoFocus
+                secureTextEntry
+                returnKeyType={'done'}
+                onChangeText={checkPassword}
+                autoCapitalize="none"
+                value={passwordText}
+                placeholder={strings('turn_off_remember_me.placeholder')}
+                baseColor={colors.border.default}
+                tintColor={colors.primary.default}
+                placeholderTextColor={colors.text.muted}
+                keyboardAppearance={themeAppearance}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+        </WarningExistingUserModal>
+      </ReusableModal>
+    </SafeAreaView>
   );
 };
 

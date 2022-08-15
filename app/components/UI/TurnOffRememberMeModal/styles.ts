@@ -7,6 +7,9 @@ const breakPoint = Device.getDeviceHeight() < 700;
 
 export const createStyles = (colors: any) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+    },
     areYouSure: {
       width: '100%',
       padding: breakPoint ? 16 : 24,
