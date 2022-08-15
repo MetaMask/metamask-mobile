@@ -123,7 +123,7 @@ class WalletConnect {
         await waitForInitialization();
         await this.sessionRequest(sessionData);
 
-        this.startSession(sessionData, existing);
+        await this.startSession(sessionData, existing);
 
         this.redirect();
       } catch (e) {
