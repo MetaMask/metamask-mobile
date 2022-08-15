@@ -178,8 +178,7 @@ android {
 			MM_MIXPANEL_TOKEN: "$System.env.MM_MIXPANEL_TOKEN"
 		]
 		missingDimensionStrategy 'react-native-camera', 'general'
-
-	}
+  }
 
 	packagingOptions {
 		exclude 'META-INF/DEPENDENCIES'
@@ -217,7 +216,6 @@ android {
 	buildTypes {
 		debug {
 			manifestPlaceholders = [isDebug:true]
-			signingConfig signingConfigs.debug
 			if (nativeArchitectures) {
                 ndk {
                     abiFilters nativeArchitectures.split(',')
@@ -225,40 +223,34 @@ android {
             }
 			multiDexEnabled true
 		}
-    internalRelease {
-      manifestPlaceholders = [isDebug:false]
-      minifyEnabled true
-      multiDexEnabled true
-      shrinkResources true
-      proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-      signingConfig signingConfigs.internalRelease
-    }
 		release {
 			manifestPlaceholders = [isDebug:false]
 			minifyEnabled true
 			multiDexEnabled true
 			shrinkResources true
 			proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-			signingConfig signingConfigs.release
 		}
 	}
 
 	flavorDimensions "version"
    		productFlavors {
-			dev {
-				dimension "version"
-				applicationIdSuffix ".dev"
-				applicationId "io.metamask"
-			}
-      qa {
-        dimension "version"
-        applicationIdSuffix ".qa"
-				applicationId "io.metamask"
-      }
-			prod {
-				dimension "version"
-				applicationId "io.metamask"
-			}
+        dev {
+          dimension "version"
+          applicationIdSuffix ".dev"
+          applicationId "io.metamask"
+          signingConfig signingConfigs.debug
+        }
+        qa {
+          dimension "version"
+          applicationIdSuffix ".qa"
+          applicationId "io.metamask"
+          signingConfig signingConfigs.internalRelease
+        }
+        prod {
+          dimension "version"
+          applicationId "io.metamask"
+          signingConfig signingConfigs.release
+        }
     	}
 
 	buildTypes.each {
@@ -269,7 +261,7 @@ android {
 	applicationVariants.all { variant ->
 		variant.outputs.each { output ->
             // https://developer.android.com/studio/build/configure-apk-splits.html
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
+      def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
 			def abi = output.getFilter(OutputFile.ABI)
 			if (abi != null) {  // null for the universal-debug, universal-release variants
 				output.versionCodeOverride =

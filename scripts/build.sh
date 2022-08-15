@@ -277,7 +277,7 @@ buildAndroidQA(){
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
-		./gradlew bundleQaInternalRelease
+		./gradlew bundleQaRelease
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -288,7 +288,7 @@ buildAndroidQA(){
 	fi
 
 	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/qa/internalRelease/app-qa-release.apk
+	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
 	 fi
 }
 
