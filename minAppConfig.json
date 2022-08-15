@@ -1,5 +1,0 @@
-{ 
-    "app_minimum_build": 700, 
-    "apple_minimum_os": 6, 
-    "android_minimum_api_level": 21
-}
