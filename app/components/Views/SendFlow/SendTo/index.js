@@ -55,6 +55,10 @@ import {
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../../constants/error';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -675,7 +679,7 @@ class SendFlow extends PureComponent {
   };
 
   renderAddressError = (addressError) =>
-    addressError === 'symbolError' ? (
+    addressError === SYMBOL_ERROR ? (
       <Fragment>
         <Text>{strings('transaction.tokenContractAddressWarning_1')}</Text>
         <Text bold>{strings('transaction.tokenContractAddressWarning_2')}</Text>
@@ -778,7 +782,7 @@ class SendFlow extends PureComponent {
         ) : (
           <View style={styles.nextActionWrapper}>
             <ScrollView>
-              {addressError && addressError !== 'contactAlreadySaved' && (
+              {addressError && addressError !== CONTACT_ALREADY_SAVED && (
                 <View
                   style={styles.addressErrorWrapper}
                   testID={'address-error'}

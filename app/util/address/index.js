@@ -13,6 +13,10 @@ import { KeyringTypes } from '@metamask/controllers';
 import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
 import NetworkList from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
+import {
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../app/constants/error';
 /**
  * Returns full checksummed address
  *
@@ -264,10 +268,10 @@ function checkIfAddressAlreadySaved(params) {
       networkAddressBook[checksummedResolvedAddress] ||
       identities[checksummedResolvedAddress]
     ) {
-      return 'contactAlreadySaved';
+      return CONTACT_ALREADY_SAVED;
     }
   }
-  return;
+  return false;
 }
 
 /**
@@ -314,7 +318,7 @@ export async function validateAddressOrENS(params) {
       identities,
     });
 
-    if (contactAlreadySaved?.length) {
+    if (contactAlreadySaved) {
       addressError = checkIfAddressAlreadySaved(toAccount);
     }
     const checksummedAddress = toChecksumAddress(toAccount);
@@ -340,7 +344,7 @@ export async function validateAddressOrENS(params) {
             checksummedAddress,
           );
           if (symbol) {
-            addressError = 'symbolError';
+            addressError = SYMBOL_ERROR;
             errorContinue = true;
           }
         } catch (e) {

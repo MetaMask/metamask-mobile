@@ -25,6 +25,10 @@ import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import ActionSheet from 'react-native-actionsheet';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import {
+  CONTACT_ALREADY_SAVED,
+  SYMBOL_ERROR,
+} from '../../../../../constants/error';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -294,10 +298,10 @@ class ContactForm extends PureComponent {
   renderErrorMessage = (addressError) => {
     let errorMessage = addressError;
 
-    if (addressError === 'contactAlreadySaved') {
+    if (addressError === CONTACT_ALREADY_SAVED) {
       errorMessage = strings('address_book.address_already_saved');
     }
-    if (addressError === 'symbolError') {
+    if (addressError === SYMBOL_ERROR) {
       errorMessage = `${
         strings('transaction.tokenContractAddressWarning_1') +
         strings('transaction.tokenContractAddressWarning_2') +
