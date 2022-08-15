@@ -78,8 +78,8 @@ const TurnOffRememberMeModal = () => {
   }, [turnOffRememberMeAndLockApp]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ReusableModal ref={modalRef}>
+    <ReusableModal ref={modalRef}>
+      <SafeAreaView style={styles.container}>
         <WarningExistingUserModal
           warningModalVisible
           cancelText={strings('turn_off_remember_me.action')}
@@ -114,8 +114,8 @@ const TurnOffRememberMeModal = () => {
             </View>
           </TouchableWithoutFeedback>
         </WarningExistingUserModal>
-      </ReusableModal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ReusableModal>
   );
 };
 
