@@ -164,5 +164,9 @@ jest.mock('../util/theme', () => ({
 }));
 
 jest.mock('@segment/analytics-react-native', () => ({
-  createClient: jest.fn(),
+  createClient: () => ({
+    identify: jest.fn(),
+    track: jest.fn(),
+    group: jest.fn(),
+  }),
 }));
