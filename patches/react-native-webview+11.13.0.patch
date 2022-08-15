@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..6ae5402 100644
+index f743bbc..40a73c8 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -87,14 +87,18 @@ index f743bbc..6ae5402 100644
    protected static final String HTML_MIME_TYPE = "text/html";
    protected static final String JAVASCRIPT_INTERFACE = "ReactNativeWebView";
    protected static final String HTTP_METHOD_POST = "POST";
-@@ -158,11 +189,20 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
-   protected @Nullable String mUserAgent = null;
-   protected @Nullable String mUserAgentWithApplicationName = null;
+@@ -155,14 +186,22 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
-+  protected static String userAgent;
+   protected RNCWebChromeClient mWebChromeClient = null;
+   protected boolean mAllowsFullscreenVideo = false;
+-  protected @Nullable String mUserAgent = null;
+-  protected @Nullable String mUserAgentWithApplicationName = null;
++  protected @Nullable String RNUserAgent = null;
++  protected @Nullable String RNUserAgentWithApplicationName = null;
++  protected static String deviceUserAgent;
 +
 +  protected static OkHttpClient httpClient;
-+
+ 
    public RNCWebViewManager() {
      mWebViewConfig = new WebViewConfig() {
        public void configWebView(WebView webView) {
@@ -108,15 +112,15 @@ index f743bbc..6ae5402 100644
    }
  
    public RNCWebViewManager(WebViewConfig webViewConfig) {
-@@ -182,6 +222,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -182,6 +221,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
    protected WebView createViewInstance(ThemedReactContext reactContext) {
      RNCWebView webView = createRNCWebViewInstance(reactContext);
-+    userAgent = webView.getSettings().getUserAgentString();
++    deviceUserAgent = webView.getSettings().getUserAgentString();
      setupWebChromeClient(reactContext, webView);
      reactContext.addLifecycleEventListener(webView);
      mWebViewConfig.configWebView(webView);
-@@ -247,9 +288,95 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -247,9 +287,103 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      });
  
@@ -182,10 +186,18 @@ index f743bbc..6ae5402 100644
 +      return null;//super.shouldInterceptRequest(webView, request);
 +    }
 +
++    String _userAgent;
++
++    if (RNUserAgent != null) {
++      _userAgent = RNUserAgent;
++    } else {
++      _userAgent = deviceUserAgent;
++    }
++
 +    try {
 +      Request req = new Request.Builder()
 +      .url(urlStr)
-+      .header("User-Agent", userAgent)
++      .header("User-Agent", _userAgent)
 +      .build();
 +
 +      Response response = httpClient.newCall(req).execute();
@@ -212,7 +224,45 @@ index f743bbc..6ae5402 100644
    @ReactProp(name = "javaScriptEnabled")
    public void setJavaScriptEnabled(WebView view, boolean enabled) {
      view.getSettings().setJavaScriptEnabled(enabled);
-@@ -842,13 +969,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -387,9 +521,9 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+   @ReactProp(name = "userAgent")
+   public void setUserAgent(WebView view, @Nullable String userAgent) {
+     if (userAgent != null) {
+-      mUserAgent = userAgent;
++      RNUserAgent = userAgent;
+     } else {
+-      mUserAgent = null;
++      RNUserAgent = null;
+     }
+     this.setUserAgentString(view);
+   }
+@@ -399,19 +533,19 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+     if(applicationName != null) {
+       if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+         String defaultUserAgent = WebSettings.getDefaultUserAgent(view.getContext());
+-        mUserAgentWithApplicationName = defaultUserAgent + " " + applicationName;
++        RNUserAgentWithApplicationName = defaultUserAgent + " " + applicationName;
+       }
+     } else {
+-      mUserAgentWithApplicationName = null;
++      RNUserAgentWithApplicationName = null;
+     }
+     this.setUserAgentString(view);
+   }
+ 
+   protected void setUserAgentString(WebView view) {
+-    if(mUserAgent != null) {
+-      view.getSettings().setUserAgentString(mUserAgent);
+-    } else if(mUserAgentWithApplicationName != null) {
+-      view.getSettings().setUserAgentString(mUserAgentWithApplicationName);
++    if(RNUserAgent != null) {
++      view.getSettings().setUserAgentString(RNUserAgent);
++    } else if(RNUserAgentWithApplicationName != null) {
++      view.getSettings().setUserAgentString(RNUserAgentWithApplicationName);
+     } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+       // handle unsets of `userAgent` prop as long as device is >= API 17
+       view.getSettings().setUserAgentString(WebSettings.getDefaultUserAgent(view.getContext()));
+@@ -842,13 +976,116 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      }
    }
  
@@ -231,7 +281,7 @@ index f743bbc..6ae5402 100644
 +    private int lowercaseD = 100;
 +    private int closingTag = 62;
 +    private boolean hasClosingHead = false;
-+
+ 
 +    private StringBuffer contentBuffer = new StringBuffer();
 +
 +    @SuppressLint("LongLogTag")
@@ -318,7 +368,7 @@ index f743bbc..6ae5402 100644
 +  }
 +
 +  protected class RNCWebViewClient extends WebViewClient {
- 
++
 +    protected static final String REACT_CLASS = "RNCWebViewClient";
      protected boolean mLastLoadFailed = false;
      protected @Nullable
@@ -330,7 +380,7 @@ index f743bbc..6ae5402 100644
  
      public void setIgnoreErrFailedForThisURL(@Nullable String url) {
        ignoreErrFailedForThisURL = url;
-@@ -865,16 +1095,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -865,16 +1102,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
          emitFinishEvent(webView, url);
        }
@@ -351,7 +401,7 @@ index f743bbc..6ae5402 100644
        ((RNCWebView) webView).dispatchEvent(
          webView,
          new TopLoadingStartEvent(
-@@ -882,6 +1113,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -882,6 +1120,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
            createWebViewEvent(webView, url)));
      }
  
@@ -369,7 +419,7 @@ index f743bbc..6ae5402 100644
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, String url) {
        final RNCWebView rncWebView = (RNCWebView) view;
-@@ -891,7 +1133,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -891,7 +1140,6 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          final Pair<Integer, AtomicReference<ShouldOverrideCallbackState>> lock = RNCWebViewModule.shouldOverrideUrlLoadingLock.getNewLock();
          final int lockIdentifier = lock.first;
          final AtomicReference<ShouldOverrideCallbackState> lockObject = lock.second;
@@ -377,7 +427,7 @@ index f743bbc..6ae5402 100644
          final WritableMap event = createWebViewEvent(view, url);
          event.putInt("lockIdentifier", lockIdentifier);
          rncWebView.sendDirectMessage("onShouldStartLoadWithRequest", event);
-@@ -919,6 +1160,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -919,6 +1167,17 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          RNCWebViewModule.shouldOverrideUrlLoadingLock.removeLock(lockIdentifier);
  
          return shouldOverride;
@@ -395,7 +445,7 @@ index f743bbc..6ae5402 100644
        } else {
          FLog.w(TAG, "Couldn't use blocking synchronous call for onShouldStartLoadWithRequest due to debugging or missing Catalyst instance, falling back to old event-and-load.");
          progressChangedFilter.setWaitingForCommandLoadUrl(true);
-@@ -934,10 +1186,29 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -934,10 +1193,29 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      @TargetApi(Build.VERSION_CODES.N)
      @Override
      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -425,7 +475,7 @@ index f743bbc..6ae5402 100644
      @Override
      public void onReceivedSslError(final WebView webView, final SslErrorHandler handler, final SslError error) {
          // onReceivedSslError is called for most requests, per Android docs: https://developer.android.com/reference/android/webkit/WebViewClient#onReceivedSslError(android.webkit.WebView,%2520android.webkit.SslErrorHandler,%2520android.net.http.SslError)
-@@ -1138,6 +1409,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1138,6 +1416,7 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
      protected View mVideoView;
      protected WebChromeClient.CustomViewCallback mCustomViewCallback;
@@ -433,7 +483,7 @@ index f743bbc..6ae5402 100644
  
      /*
       * - Permissions -
-@@ -1402,6 +1674,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1402,6 +1681,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -449,7 +499,7 @@ index f743bbc..6ae5402 100644
      @Override
      public void onHostPause() { }
  
-@@ -1447,6 +1728,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1735,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -463,7 +513,7 @@ index f743bbc..6ae5402 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1763,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1770,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
@@ -506,7 +556,7 @@ index f743bbc..6ae5402 100644
      @Override
      public void onHostResume() {
        // do nothing
-@@ -1533,6 +1857,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1533,6 +1864,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -516,7 +566,7 @@ index f743bbc..6ae5402 100644
      RNCWebViewClient getRNCWebViewClient() {
        return mRNCWebViewClient;
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
-index 28c078a..b1cb2f2 100644
+index 28c078a..c84100a 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
 +++ b/node_modules/react-native-webview/apple/RNCWebView.m
 @@ -105,6 +105,7 @@ @implementation RNCWebView
@@ -532,7 +582,7 @@ index 28c078a..b1cb2f2 100644
      _injectedJavaScriptBeforeContentLoaded = nil;
      _injectedJavaScriptBeforeContentLoadedForMainFrameOnly = YES;
 +    _disablePromptDuringLoading = YES;
-       
+ 
  #if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 110000 /* __IPHONE_11_0 */
      _savedContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
 @@ -417,6 +419,7 @@ -(void)keyboardDisplacementFix
