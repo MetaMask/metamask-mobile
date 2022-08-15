@@ -23,7 +23,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { EditGasFee1559UpdateProps } from './types';
+import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
 import createStyles from './styles';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
@@ -299,11 +299,13 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          label: (selected: any, disabled: any) => (
-            <Text bold primary={selected && !disabled}>
-              {label}
-            </Text>
-          ),
+          label: function LabelComponent(selected: any, disabled: any) {
+            return (
+              <Text bold primary={selected && !disabled}>
+                {label}
+              </Text>
+            );
+          },
           topLabel: recommended?.name === name && recommended.render,
           ...option,
           ...extendOptions[name],
@@ -374,7 +376,7 @@ const EditGasFee1559Update = ({
     </>
   );
 
-  const renderInputs = () => (
+  const renderInputs = (option: RenderInputProps) => (
     <View>
       <FadeAnimationView
         valueToWatch={valueToWatch}
@@ -389,7 +391,7 @@ const EditGasFee1559Update = ({
         </View>
         <View style={styles.advancedOptionsContainer}>
           <TouchableOpacity
-            disabled={updateOption?.showAdvanced}
+            disabled={option?.showAdvanced}
             onPress={toggleAdvancedOptions}
             style={styles.advancedOptionsButton}
           >
@@ -400,7 +402,7 @@ const EditGasFee1559Update = ({
               <Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
             </Text>
           </TouchableOpacity>
-          {(showAdvancedOptions || updateOption?.showAdvanced) && (
+          {(showAdvancedOptions || option?.maxFeeThreshold) && (
             <View style={styles.advancedOptionsInputsContainer}>
               <View style={styles.rangeInputContainer}>
                 <RangeInput
@@ -489,7 +491,7 @@ const EditGasFee1559Update = ({
           onPress={save}
           disabled={Boolean(error) || isAnimating}
         >
-          {updateOption
+          {option
             ? strings('edit_gas_fee_eip1559.submit')
             : strings('edit_gas_fee_eip1559.save')}
         </StyledButton>
@@ -676,7 +678,7 @@ const EditGasFee1559Update = ({
                 </StyledButton>
               </View>
             ) : (
-              renderInputs()
+              renderInputs(updateOption)
             )}
 
             <InfoModal

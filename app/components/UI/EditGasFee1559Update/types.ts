@@ -1,4 +1,15 @@
 import { GasFeeOptions } from '../../../core/GasPolling/types';
+
+export interface RenderInputProps {
+  updateOption:
+    | {
+        isCancel: boolean;
+        maxFeeThreshold: string;
+        maxPriortyFeeThreshold: string;
+        showAdvanced: boolean | undefined;
+      }
+    | undefined;
+}
 export interface EditGasFee1559UpdateProps {
   /**
    * The selected gas value (low, medium, high)
@@ -20,14 +31,7 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Option to display speed up/cancel view
    */
-  updateOption:
-    | {
-        isCancel: boolean;
-        maxFeeThreshold: string;
-        maxPriortyFeeThreshold: string;
-        showAdvanced: boolean;
-      }
-    | undefined;
+  updateOption: RenderInputProps;
   /**
    * If the values should animate upon update or not
    */
