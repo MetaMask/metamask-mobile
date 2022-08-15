@@ -1,5 +1,3 @@
-export type FetchStateType = 'Loading' | 'Success' | 'Error';
-
 export class FetchError extends Error {
   url?: string;
   constructor(message?: string, url?: string) {
