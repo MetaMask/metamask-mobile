@@ -78,11 +78,11 @@ class MetaMetrics implements IMetaMetrics {
    * @param userId - User ID generated for Segment
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
-  private _identify(userId: string, userTraits?: Record<string, string>): void {
+  private _identify(userTraits: Record<string, string>): void {
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
-    this.#segmentClient.identify(userId, userTraits);
+    this.#segmentClient.identify(this.#metametricsId, userTraits);
   }
 
   /**
@@ -110,14 +110,17 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  private _trackEvent(
+  protected _trackEvent(
     event: string,
     anonymously: boolean,
     properties?: Record<string, string>,
   ): void {
+    // If the tracking is anonymous, there should not be a MetaMetrics ID
+    // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
+    // instead.
     if (anonymously) {
       this.#segmentClient.track(
-        `Anonymous Test Event: ${event}`,
+        event,
         properties ?? {},
         undefined,
         METAMETRICS_ANONYMOUS_ID,
@@ -127,7 +130,7 @@ class MetaMetrics implements IMetaMetrics {
     // Every action triggers an event, which also has associated properties
     // that the track method records.
     this.#segmentClient.track(
-      `Test Event: ${event}`,
+      event,
       properties ?? {},
       this.#metametricsId,
       METAMETRICS_ANONYMOUS_ID,
@@ -233,8 +236,8 @@ class MetaMetrics implements IMetaMetrics {
     return this.#state;
   }
 
-  public identity(userId: string, userTraits?: Record<string, string>): void {
-    this._identify(userId, userTraits);
+  public addTraitsToUser(userTraits: Record<string, string>): void {
+    this._identify(userTraits);
   }
 
   public group(groupId: string, groupTraits?: Record<string, string>): void {
