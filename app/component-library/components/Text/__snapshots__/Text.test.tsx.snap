@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Text should render Text 1`] = `
+<Text
+  style={
+    Object {
+      "color": "#24272A",
+      "fontFamily": "Euclid Circular B",
+      "fontSize": 16,
+      "fontWeight": "400",
+      "letterSpacing": 0,
+      "lineHeight": 24,
+    }
+  }
+>
+  I'm Text!
+</Text>
+`;

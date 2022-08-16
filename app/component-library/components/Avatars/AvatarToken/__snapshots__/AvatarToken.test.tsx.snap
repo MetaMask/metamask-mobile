@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarToken should render correctly 1`] = `
+<AvatarBase
+  size="48"
+  style={Object {}}
+>
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      Object {
+        "uri": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png",
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="token-avatar-image"
+  />
+</AvatarBase>
+`;
