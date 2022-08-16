@@ -542,7 +542,15 @@ class Approve extends PureComponent {
       AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.toggleApproveModal(false);
+    try {
+      const { TransactionController } = Engine.context;
+      const transaction = this.prepareTransaction(this.props.transaction);
+      TransactionController.cancelTransaction(transaction.id);
+    } catch {
+      this.setState({ transactionHandled: false });
+    } finally {
+      this.props.toggleApproveModal(false);
+    }
   };
 
   review = () => {
