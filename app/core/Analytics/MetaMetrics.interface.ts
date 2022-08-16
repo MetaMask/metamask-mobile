@@ -23,3 +23,13 @@ export interface IMetaMetrics {
   // destinations.
   createSegmentSuppressWithDeleteRegulation(): void;
 }
+
+// Represents an MetaMetrics event
+export interface IMetaMetricsEvent {
+  // Event name to track
+  event: string;
+  // Anonymity property to indicate if the MetaMetric ID
+  // or METAMETRICS_ANONYMOUS_ID should be associated
+  // with the data.
+  anonymous: boolean;
+}
