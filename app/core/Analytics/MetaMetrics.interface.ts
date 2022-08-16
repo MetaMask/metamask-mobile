@@ -18,4 +18,8 @@ export interface IMetaMetrics {
     anonymously: boolean,
     properties?: Record<string, string>,
   ): void;
+  // Method to create a new method to suppress and
+  // delete user's data from Segment and all related
+  // destinations.
+  createSegmentSuppressWithDeleteRegulation(): void;
 }
