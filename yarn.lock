@@ -2058,6 +2058,11 @@
     "@ethersproject/logger" "^5.6.0"
     hash.js "1.1.7"
 
+"@ethersproject/shims@^5.6.0":
+  version "5.6.0"
+  resolved "https://registry.yarnpkg.com/@ethersproject/shims/-/shims-5.6.0.tgz#97bbcc058f664797fade43f513529956c6411b21"
+  integrity sha512-PcTzqc3XIWT2JHuRpG/VYDJoxLoJlOnh+EtZspdCkCDbdTXMovqu9JHmLHgrq3Yz1AmPC1KoKVYBt7vff5VTQg==
+
 "@ethersproject/signing-key@5.4.0", "@ethersproject/signing-key@^5.4.0":
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/signing-key/-/signing-key-5.4.0.tgz#2f05120984e81cf89a3d5f6dec5c68ee0894fbec"

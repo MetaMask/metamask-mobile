@@ -1,3 +1,5 @@
+import '@ethersproject/shims';
+
 import Engine from '../core/Engine';
 import ensNetworkMap from 'ethereum-ens-network-map';
 import { ethers } from 'ethers';
@@ -47,16 +49,16 @@ export async function doENSReverseLookup(address, network) {
 export async function doENSLookup(ensName, network) {
   const { provider } = Engine.context.NetworkController;
   const ensProvider = await getEnsProvider(network, provider);
-  console.log('**doENSLookup1', ensName)
+  console.log('**doENSLookup1', ensName);
   if (ensProvider) {
     try {
-      console.log('**doENSLookup2')
+      console.log('**doENSLookup2');
       const resolvedAddress = await ensProvider.resolveName(ensName);
-      console.log('**doENSLookup3', resolvedAddress)
+      console.log('**doENSLookup3', { resolvedAddress });
       return resolvedAddress;
       // eslint-disable-next-line no-empty
     } catch (e) {
-      console.log('**doENSLookup4', e.message)
+      console.log('**doENSLookup4', e);
     }
   }
 }
