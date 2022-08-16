@@ -20,6 +20,7 @@ import {
 } from '../constants/deeplinks';
 import { showAlert } from '../actions/alert';
 import Routes from '../constants/navigation/Routes';
+import Logger from '../util/Logger';
 
 class DeeplinkManager {
   constructor({ navigation, frequentRpcList, dispatch }) {
@@ -121,7 +122,7 @@ class DeeplinkManager {
         WalletDevice.MM_MOBILE,
       );
     } catch (e) {
-      // add analytics
+      Logger.log('Error while adding a transaction', e);
     }
   };
 
@@ -151,7 +152,7 @@ class DeeplinkManager {
           break;
         }
         case ETH_ACTIONS.APPROVE: {
-          this._approveTransaction(ethUrl, origin);
+          await this._approveTransaction(ethUrl, origin);
           break;
         }
         default: {
