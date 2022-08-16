@@ -701,6 +701,7 @@ class Approve extends PureComponent {
                   onCancel={this.onCancel}
                   onConfirm={this.onConfirm}
                   over={over}
+                  gasSelected={gasSelected}
                   onSetAnalyticsParams={this.setAnalyticsParams}
                   EIP1559GasData={EIP1559GasData}
                   LegacyGasData={LegacyGasData}

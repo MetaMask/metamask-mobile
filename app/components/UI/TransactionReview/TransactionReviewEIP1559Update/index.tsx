@@ -50,7 +50,7 @@ const TransactionReviewEIP1559Update = ({
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
-    onlyGas: undefined,
+    onlyGas: !!onlyGas,
     gasSelected,
     legacy: !!legacy,
     gasObject,
