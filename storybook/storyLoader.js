@@ -24,12 +24,12 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
-  require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
-  require('../app/component-library/components/Cells/CellAccount/foundation/CellAccountBaseItem/CellAccountBaseItem.stories');
-  require('../app/component-library/components/Cells/CellAccount/foundation/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories');
-  require('../app/component-library/components/Cells/CellAccount/variants/CellAccountDisplayItem/CellAccountDisplayItem.stories');
-  require('../app/component-library/components/Cells/CellAccount/variants/CellAccountMultiselectItem/CellAccountMultiselectItem.stories');
-  require('../app/component-library/components/Cells/CellAccount/variants/CellAccountSelectItem/CellAccountSelectItem.stories');
+  require('../app/component-library/components/Cells/Cell/Cell.stories');
+  require('../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories');
+  require('../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
@@ -69,12 +69,12 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
-  '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
-  '../app/component-library/components/Cells/CellAccount/foundation/CellAccountBaseItem/CellAccountBaseItem.stories',
-  '../app/component-library/components/Cells/CellAccount/foundation/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories',
-  '../app/component-library/components/Cells/CellAccount/variants/CellAccountDisplayItem/CellAccountDisplayItem.stories',
-  '../app/component-library/components/Cells/CellAccount/variants/CellAccountMultiselectItem/CellAccountMultiselectItem.stories',
-  '../app/component-library/components/Cells/CellAccount/variants/CellAccountSelectItem/CellAccountSelectItem.stories',
+  '../app/component-library/components/Cells/Cell/Cell.stories',
+  '../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories',
+  '../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
