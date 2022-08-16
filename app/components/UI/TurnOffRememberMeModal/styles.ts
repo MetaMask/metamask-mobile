@@ -12,7 +12,7 @@ export const createStyles = (colors: any) =>
     },
     areYouSure: {
       width: '100%',
-      padding: breakPoint ? 16 : 24,
+      padding: breakPoint ? 16 : 32,
       justifyContent: 'center',
       alignSelf: 'center',
     },
