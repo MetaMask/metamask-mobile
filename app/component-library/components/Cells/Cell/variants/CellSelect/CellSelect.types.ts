@@ -1,8 +1,6 @@
 // External dependencies.
-import {
-  CellBaseProps,
-  CellType,
-} from '../../foundation/CellBase/CellBase.types';
+import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
+import { CellVariants } from '../../Cell.types';
 import { SelectItemProps } from '../../../../Select/Select/SelectItem/SelectItem.types';
 
 /**
@@ -14,7 +12,7 @@ export interface CellSelectProps
   /**
    * Type of Cell
    */
-  type: CellType.Select;
+  variant: CellVariants.Select;
 }
 
 /**

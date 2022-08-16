@@ -6,7 +6,7 @@ exports[`Cell - Snapshot should render CellDisplay given the type Display 1`] = 
   avatarAccountType="JazzIcon"
   testID="cell-display"
   title="Orangefox.eth"
-  type="Display"
+  variant="Display"
 />
 `;
 
@@ -16,7 +16,7 @@ exports[`Cell - Snapshot should render CellMultiselect given the type Multiselec
   avatarAccountType="JazzIcon"
   testID="cell-multi-select"
   title="Orangefox.eth"
-  type="Multiselect"
+  variant="Multiselect"
 />
 `;
 
@@ -26,6 +26,6 @@ exports[`Cell - Snapshot should render CellSelect given the type Select 1`] = `
   avatarAccountType="JazzIcon"
   testID="cell-select"
   title="Orangefox.eth"
-  type="Select"
+  variant="Select"
 />
 `;

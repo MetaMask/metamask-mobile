@@ -1,9 +1,7 @@
 // External dependencies.
+import { CellBaseProps } from '../../foundation/CellBase/CellBase.types';
 import { CellDisplayContainerProps } from '../../foundation/CellDisplayContainer/CellDisplayContainer.types';
-import {
-  CellBaseProps,
-  CellType,
-} from '../../foundation/CellBase/CellBase.types';
+import { CellVariants } from '../../Cell.types';
 
 /**
  * Cell Account Select  component props.
@@ -14,7 +12,7 @@ export interface CellDisplayProps
   /**
    * Type of Cell
    */
-  type: CellType.Display;
+  variant: CellVariants.Display;
 }
 
 /**

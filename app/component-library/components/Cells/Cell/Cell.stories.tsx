@@ -7,7 +7,6 @@ import { boolean, text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { CellType } from './foundation/CellBase/CellBase.types';
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
 // Internal dependencies.
@@ -19,10 +18,16 @@ import {
   TEST_CELL_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from './Cell.constants';
+import { CellVariants } from './Cell.types';
 
 storiesOf('Component Library / Cell', module).add('Default', () => {
   const groupId = 'Props';
-  const cellTypeSelector = select('type', CellType, CellType.Display, groupId);
+  const cellVariantsSelector = select(
+    'Variant',
+    CellVariants,
+    CellVariants.Display,
+    groupId,
+  );
 
   const titleText = text('title', TEST_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
@@ -42,16 +47,16 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
     ? text('label', TEST_TAG_LABEL_TEXT, groupId)
     : '';
   const isSelected =
-    cellTypeSelector === CellType.Multiselect ||
-    cellTypeSelector === CellType.Select
+    cellVariantsSelector === CellVariants.Multiselect ||
+    cellVariantsSelector === CellVariants.Select
       ? boolean('isSelected?', false, groupId)
       : undefined;
 
-  switch (cellTypeSelector) {
-    case CellType.Display:
+  switch (cellVariantsSelector) {
+    case CellVariants.Display:
       return (
         <Cell
-          type={cellTypeSelector}
+          variant={cellVariantsSelector}
           avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
           avatarAccountType={AvatarAccountType.JazzIcon}
           title={titleText}
@@ -63,7 +68,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
     default:
       return (
         <Cell
-          type={cellTypeSelector}
+          variant={cellVariantsSelector}
           avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
           avatarAccountType={AvatarAccountType.JazzIcon}
           title={titleText}

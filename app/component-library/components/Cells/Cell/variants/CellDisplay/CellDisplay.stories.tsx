@@ -15,10 +15,9 @@ import {
   TEST_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
 
-import { CellType } from '../../foundation/CellBase/CellBase.types';
-
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
+import { CellVariants } from '../../Cell.types';
 
 storiesOf('Component Library / CellDisplay', module).add('Default', () => {
   const groupId = 'Props';
@@ -42,7 +41,7 @@ storiesOf('Component Library / CellDisplay', module).add('Default', () => {
 
   return (
     <CellDisplay
-      type={CellType.Display}
+      variant={CellVariants.Display}
       avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
       avatarAccountType={AvatarAccountType.JazzIcon}
       title={titleText}

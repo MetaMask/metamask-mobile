@@ -1,2 +1,2 @@
 export { default } from './Cell';
-export type { CellType } from './foundation/CellBase/CellBase.types';
+export type { CellVariants } from './Cell.types';

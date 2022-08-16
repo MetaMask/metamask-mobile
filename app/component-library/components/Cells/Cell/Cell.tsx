@@ -2,13 +2,12 @@
 import React from 'react';
 
 // External dependencies.
-import { CellType } from './foundation/CellBase/CellBase.types';
 import CellDisplay from './variants/CellDisplay';
 import CellMultiselect from './variants/CellMultiselect';
 import CellSelect from './variants/CellSelect';
 
 // Internal dependencies.
-import { CellProps } from './Cell.types';
+import { CellProps, CellVariants } from './Cell.types';
 import {
   CELL_DISPLAY_TEST_ID,
   CELL_MULTI_SELECT_TEST_ID,
@@ -16,17 +15,15 @@ import {
 } from './Cell.constants';
 
 const Cell = (cellProps: CellProps) => {
-  switch (cellProps.type) {
-    case CellType.Display:
+  switch (cellProps.variant) {
+    case CellVariants.Display:
       return <CellDisplay testID={CELL_DISPLAY_TEST_ID} {...cellProps} />;
-    case CellType.Multiselect:
+    case CellVariants.Multiselect:
       return (
         <CellMultiselect testID={CELL_MULTI_SELECT_TEST_ID} {...cellProps} />
       );
-    case CellType.Select:
+    case CellVariants.Select:
       return <CellSelect testID={CELL_SELECT_TEST_ID} {...cellProps} />;
-    default:
-      return <CellDisplay testID={CELL_DISPLAY_TEST_ID} {...cellProps} />;
   }
 };
 

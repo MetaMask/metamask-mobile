@@ -15,7 +15,7 @@ import {
   TEST_CELL_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
-import { CellType } from '../../foundation/CellBase/CellBase.types';
+import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
 import CellMultiselect from './CellMultiselect';
@@ -43,7 +43,7 @@ storiesOf('Component Library / CellMultiselect', module).add('Default', () => {
 
   return (
     <CellMultiselect
-      type={CellType.Multiselect}
+      variant={CellVariants.Multiselect}
       avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
       avatarAccountType={AvatarAccountType.JazzIcon}
       title={titleText}

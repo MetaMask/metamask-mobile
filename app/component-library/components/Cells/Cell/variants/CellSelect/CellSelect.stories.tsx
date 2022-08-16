@@ -15,7 +15,7 @@ import {
   TEST_CELL_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
-import { CellType } from '../../foundation/CellBase/CellBase.types';
+import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
 import CellSelect from './CellSelect';
@@ -43,7 +43,7 @@ storiesOf('Component Library / CellSelect', module).add('Default', () => {
 
   return (
     <CellSelect
-      type={CellType.Select}
+      variant={CellVariants.Select}
       avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
       avatarAccountType={AvatarAccountType.JazzIcon}
       title={titleText}

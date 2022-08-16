@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 // External dependencies.
 import { AvatarAccountType } from '../../../../Avatars/AvatarAccount';
 import { TEST_ACCOUNT_ADDRESS, TEST_CELL_TITLE } from '../../Cell.constants';
-import { CellType } from '../../foundation/CellBase/CellBase.types';
+import { CellVariants } from '../../Cell.types';
 
 // Internal dependencies.
 import CellSelect from './CellSelect';
@@ -15,7 +15,7 @@ describe('CellSelect - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
       <CellSelect
-        type={CellType.Select}
+        variant={CellVariants.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_TITLE}
@@ -27,7 +27,7 @@ describe('CellSelect - Snapshot', () => {
   it('should render the proper selected state', () => {
     const wrapper = shallow(
       <CellSelect
-        type={CellType.Select}
+        variant={CellVariants.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_TITLE}
@@ -43,7 +43,7 @@ describe('CellSelect', () => {
   it('should render singleSelect', () => {
     const wrapper = shallow(
       <CellSelect
-        type={CellType.Select}
+        variant={CellVariants.Select}
         avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
         avatarAccountType={AvatarAccountType.JazzIcon}
         title={TEST_CELL_TITLE}

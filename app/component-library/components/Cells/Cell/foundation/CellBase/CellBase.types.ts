@@ -4,23 +4,17 @@ import { ViewProps } from 'react-native';
 // External dependencies.
 import { AvatarAccountType } from '../../../../Avatars/AvatarAccount';
 
-/**
- * CellBase variants.
- */
-export enum CellType {
-  Select = 'Select',
-  Multiselect = 'Multiselect',
-  Display = 'Display',
-}
+// Internal dependencies
+import { CellVariants } from '../../Cell.types';
 
 /**
  * Cell Account component props.
  */
 export interface CellBaseProps extends ViewProps {
   /**
-   * Type of Cell
+   * Variant of Cell
    */
-  type?: CellType;
+  variant?: CellVariants;
   /**
    * An Ethereum wallet address to retrieve avatar.
    */
