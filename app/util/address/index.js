@@ -353,7 +353,7 @@ export async function validateAddressOrENS(params) {
       }
     }
     /**
-     * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
+     * Not using this for now; Import isSmartContractAddress from util/transactions and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
      * Check if it's smart contract address
      */
     /*

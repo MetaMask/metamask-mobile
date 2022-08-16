@@ -51,6 +51,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import addRecent from '../../../../actions/recents';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import {
+  ADDRESS_BOOK_NEXT_BUTTON,
   ADD_ADDRESS_MODAL_CONTAINER_ID,
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
@@ -857,7 +858,7 @@ class SendFlow extends PureComponent {
                 type={'confirm'}
                 containerStyle={styles.buttonNext}
                 onPress={this.onTransactionDirectionSet}
-                testID={'address-book-next-button'}
+                testID={ADDRESS_BOOK_NEXT_BUTTON}
                 disabled={!toSelectedAddressReady}
               >
                 {strings('address_book.next')}

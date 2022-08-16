@@ -138,14 +138,14 @@ class ContactForm extends PureComponent {
   };
 
   state = {
-    name: undefined,
-    address: undefined,
-    addressError: undefined,
-    toEnsName: undefined,
-    toEnsAddress: undefined,
+    name: null,
+    address: null,
+    addressError: null,
+    toEnsName: null,
+    toEnsAddress: null,
     addressReady: false,
     mode: this.props.route.params?.mode ?? ADD,
-    memo: undefined,
+    memo: null,
     editable: true,
     inputWidth: Platform.OS === 'android' ? '99%' : undefined,
   };
@@ -313,7 +313,7 @@ class ContactForm extends PureComponent {
   };
 
   onErrorContinue = () => {
-    this.setState({ addressError: undefined });
+    this.setState({ addressError: null });
   };
 
   render = () => {
