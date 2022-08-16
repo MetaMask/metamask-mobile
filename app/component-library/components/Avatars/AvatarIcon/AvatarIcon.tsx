@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import Avatar, { AvatarBaseSize } from '../AvatarBase';
+import AvatarBase, { AvatarBaseSize } from '../AvatarBase';
 import Icon from '../../Icon';
 import { useStyles } from '../../../../component-library/hooks';
 
@@ -23,9 +23,9 @@ const AvatarIcon = ({
   const iconSize = ICON_SIZE_BY_AVATAR_SIZE[size];
 
   return (
-    <Avatar size={size} style={styles.base} {...props}>
+    <AvatarBase size={size} style={styles.base} {...props}>
       <Icon name={name} size={iconSize} color={theme.colors.primary.default} />
-    </Avatar>
+    </AvatarBase>
   );
 };
 
