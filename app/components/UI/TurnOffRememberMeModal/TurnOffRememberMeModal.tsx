@@ -20,8 +20,8 @@ import { logOut } from '../../../actions/user';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { useDispatch } from 'react-redux';
 import SecureKeychain from '../../../core/SecureKeychain';
-import debounce from 'lodash/debounce';
 import { TURN_OFF_REMEMBER_ME_MODAL } from '../../../constants/test-ids';
+import { useNavigation } from '@react-navigation/native';
 
 export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
   Routes.MODAL.ROOT_MODAL_FLOW,
@@ -30,6 +30,7 @@ export const createTurnOffRememberMeModalNavDetails = createNavigationDetails(
 
 const TurnOffRememberMeModal = () => {
   const { colors, themeAppearance } = useTheme();
+  const { navigate } = useNavigation();
   const styles = createStyles(colors);
   const dispatch = useDispatch();
 
@@ -47,8 +48,7 @@ const TurnOffRememberMeModal = () => {
   );
 
   const debouncedIsValidPassword = useCallback(
-    async (text) =>
-      debounce(setDisableButton(!(await isValidPassword(text))), 200),
+    async (text) => setDisableButton(!(await isValidPassword(text))),
     [isValidPassword],
   );
 
@@ -70,8 +70,9 @@ const TurnOffRememberMeModal = () => {
     await SecureKeychain.resetGenericPassword();
     await KeyringController.setLocked();
     dispatch(setAllowLoginWithRememberMe(false));
+    navigate(Routes.ONBOARDING.LOGIN);
     dispatch(logOut());
-  }, [dispatch]);
+  }, [dispatch, navigate]);
 
   const disableRememberMe = useCallback(async () => {
     dismissModal(async () => await turnOffRememberMeAndLockApp());
