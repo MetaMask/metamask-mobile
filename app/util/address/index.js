@@ -338,7 +338,7 @@ export async function validateAddressOrENS(params) {
     if (providerType) {
       // Check if it's token contract address on mainnet
       const networkId = NetworkList[providerType].networkId;
-      if (networkId === 1) {
+      if (networkId === NetworkList.mainnet.chainId) {
         try {
           const symbol = await AssetsContractController.getERC721AssetSymbol(
             checksummedAddress,
