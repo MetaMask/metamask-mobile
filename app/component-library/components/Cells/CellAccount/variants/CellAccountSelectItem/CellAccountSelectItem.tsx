@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import SelectItem from '../../../../Select/Select/SelectItem';
-import CellAccountBaseItem from '../../src/CellAccountBaseItem';
+import CellAccountBaseItem from '../../foundation/CellAccountBaseItem';
 
 // Internal dependencies.
 import { CELL_ACCOUNT_SELECT_ITEM_TEST_ID } from './CellAccountSelectItem.constants';
@@ -23,7 +23,6 @@ const CellAccountSelectItem = ({
   tagLabel,
   isSelected = false,
   children,
-  ...props
 }: CellAccountSelectItemProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -32,7 +31,6 @@ const CellAccountSelectItem = ({
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_ACCOUNT_SELECT_ITEM_TEST_ID}
-      {...props}
     >
       <CellAccountBaseItem
         avatarAccountAddress={avatarAccountAddress}

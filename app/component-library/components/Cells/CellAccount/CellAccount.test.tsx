@@ -4,7 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
-import { CellAccountItemType } from './src/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from './foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccount from './CellAccount';

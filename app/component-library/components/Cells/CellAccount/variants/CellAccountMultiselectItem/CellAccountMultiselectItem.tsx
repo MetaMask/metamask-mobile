@@ -6,7 +6,7 @@ import React from 'react';
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import MultiselectItem from '../../../../Select/Multiselect/MultiselectItem';
-import CellAccountBaseItem from '../../src/CellAccountBaseItem';
+import CellAccountBaseItem from '../../foundation/CellAccountBaseItem';
 
 // Internal dependencies.
 import { CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID } from './CellAccountMultiselectItem.constants';
@@ -23,7 +23,6 @@ const CellAccountMultiselectItem = ({
   tagLabel,
   isSelected = false,
   children,
-  ...props
 }: CellAccountMultiselectItemProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -32,7 +31,6 @@ const CellAccountMultiselectItem = ({
       isSelected={isSelected}
       style={styles.base}
       testID={CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID}
-      {...props}
     >
       <CellAccountBaseItem
         avatarAccountAddress={avatarAccountAddress}

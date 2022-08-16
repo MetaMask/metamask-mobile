@@ -5,7 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { CellAccountBaseItemStyleSheetVars } from './CellAccountBaseItem.types';
 
 // Internal dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../../../../util/theme/models';
 
 /**
  * Style sheet function for CellAccountBaseItem component.
@@ -19,13 +19,33 @@ const styleSheet = (params: {
   theme: Theme;
   vars: CellAccountBaseItemStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { vars, theme } = params;
+  const { colors } = theme;
   const { style } = vars;
 
   return StyleSheet.create({
     base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    CellAccountBaseItem: {
+    cellAccountBaseItem: {
       flexDirection: 'row',
+    },
+    avatarAccount: {
+      marginRight: 16,
+    },
+    cellAccountBaseItemInfo: {
+      flex: 1,
+      alignItems: 'flex-start',
+    },
+    optionalAccessory: {
+      marginLeft: 16,
+    },
+    secondaryText: {
+      color: colors.text.alternative,
+    },
+    tertiaryText: {
+      color: colors.text.alternative,
+    },
+    tagLabel: {
+      marginTop: 4,
     },
   });
 };

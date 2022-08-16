@@ -15,7 +15,7 @@ import {
   TEST_CELL_ACCOUNT_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../../CellAccount.constants';
-import { CellAccountItemType } from '../../src/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from '../../foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountMultiselectItem from './CellAccountMultiselectItem';

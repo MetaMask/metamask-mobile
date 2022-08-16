@@ -8,7 +8,7 @@ import {
   TEST_ACCOUNT_ADDRESS,
   TEST_CELL_ACCOUNT_TITLE,
 } from '../../CellAccount.constants';
-import { CellAccountItemType } from '../../src/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from '../../foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountSelectItem from './CellAccountSelectItem';

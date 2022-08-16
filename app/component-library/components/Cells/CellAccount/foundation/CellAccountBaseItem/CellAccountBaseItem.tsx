@@ -18,11 +18,11 @@ import {
   CELL_ACCOUNT_SECONDARY_TEXT_TEST_ID,
   CELL_ACCOUNT_TERTIARY_TEXT_TEST_ID,
   CELL_ACCOUNT_TAG_LABEL_TEST_ID,
-} from './CellAccountContent.constants';
-import styleSheet from './CellAccountContent.styles';
-import { CellAccountContentProps } from './CellAccountContent.types';
+} from './CellAccountBaseItem.constants';
+import styleSheet from './CellAccountBaseItem.styles';
+import { CellAccountBaseItemProps } from './CellAccountBaseItem.types';
 
-const CellAccountContent = ({
+const CellAccountBaseItem = ({
   style,
   avatarAccountAddress,
   avatarAccountType,
@@ -31,11 +31,11 @@ const CellAccountContent = ({
   tertiaryText,
   tagLabel,
   children,
-}: CellAccountContentProps) => {
+}: CellAccountBaseItemProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <View style={styles.CellAccountContent}>
+    <View style={styles.cellAccountBaseItem}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <AvatarAccount
         type={avatarAccountType}
@@ -44,7 +44,7 @@ const CellAccountContent = ({
         style={styles.avatarAccount}
         testID={CELL_ACCOUNT_AVATAR_TEST_ID}
       />
-      <View style={styles.CellAccountContentInfo}>
+      <View style={styles.cellAccountBaseItemInfo}>
         <Text
           numberOfLines={1}
           variant={TextVariant.sHeadingSMRegular}
@@ -85,4 +85,4 @@ const CellAccountContent = ({
   );
 };
 
-export default CellAccountContent;
+export default CellAccountBaseItem;

@@ -25,9 +25,8 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
-  require('../app/component-library/components/Cells/CellAccount/src/CellAccountBaseItem/CellAccountBaseItem.stories');
-  require('../app/component-library/components/Cells/CellAccount/src/CellAccountContent/CellAccountContent.stories');
-  require('../app/component-library/components/Cells/CellAccount/src/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories');
+  require('../app/component-library/components/Cells/CellAccount/foundation/CellAccountBaseItem/CellAccountBaseItem.stories');
+  require('../app/component-library/components/Cells/CellAccount/foundation/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories');
   require('../app/component-library/components/Cells/CellAccount/variants/CellAccountDisplayItem/CellAccountDisplayItem.stories');
   require('../app/component-library/components/Cells/CellAccount/variants/CellAccountMultiselectItem/CellAccountMultiselectItem.stories');
   require('../app/component-library/components/Cells/CellAccount/variants/CellAccountSelectItem/CellAccountSelectItem.stories');
@@ -71,9 +70,8 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
   '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
-  '../app/component-library/components/Cells/CellAccount/src/CellAccountBaseItem/CellAccountBaseItem.stories',
-  '../app/component-library/components/Cells/CellAccount/src/CellAccountContent/CellAccountContent.stories',
-  '../app/component-library/components/Cells/CellAccount/src/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories',
+  '../app/component-library/components/Cells/CellAccount/foundation/CellAccountBaseItem/CellAccountBaseItem.stories',
+  '../app/component-library/components/Cells/CellAccount/foundation/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.stories',
   '../app/component-library/components/Cells/CellAccount/variants/CellAccountDisplayItem/CellAccountDisplayItem.stories',
   '../app/component-library/components/Cells/CellAccount/variants/CellAccountMultiselectItem/CellAccountMultiselectItem.stories',
   '../app/component-library/components/Cells/CellAccount/variants/CellAccountSelectItem/CellAccountSelectItem.stories',

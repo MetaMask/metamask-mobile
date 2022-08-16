@@ -8,11 +8,11 @@ import {
   TEST_ACCOUNT_ADDRESS,
   TEST_CELL_ACCOUNT_TITLE,
 } from '../../CellAccount.constants';
+import { CellAccountItemType } from '../../foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountMultiselectItem from './CellAccountMultiselectItem';
 import { CELL_ACCOUNT_MULTI_SELECT_ITEM_TEST_ID } from './CellAccountMultiselectItem.constants';
-import { CellAccountItemType } from '../../src/CellAccountBaseItem/CellAccountBaseItem.types';
 
 describe('CellAccountMultiselectItem - Snapshot', () => {
   it('should render default settings correctly', () => {

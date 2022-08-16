@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CellAccountContent - Snapshot should render default settings correctly 1`] = `
+exports[`CellAccountBaseItem - Snapshot should render default settings correctly 1`] = `
 <View
   style={
     Object {
@@ -38,7 +38,7 @@ exports[`CellAccountContent - Snapshot should render default settings correctly 
 </View>
 `;
 
-exports[`CellAccountContent - Snapshot should render label when given 1`] = `
+exports[`CellAccountBaseItem - Snapshot should render label when given 1`] = `
 <View
   style={
     Object {
@@ -85,7 +85,7 @@ exports[`CellAccountContent - Snapshot should render label when given 1`] = `
 </View>
 `;
 
-exports[`CellAccountContent - Snapshot should render secondaryText when given 1`] = `
+exports[`CellAccountBaseItem - Snapshot should render secondaryText when given 1`] = `
 <View
   style={
     Object {
@@ -135,7 +135,7 @@ exports[`CellAccountContent - Snapshot should render secondaryText when given 1`
 </View>
 `;
 
-exports[`CellAccountContent - Snapshot should render tertiaryText when given 1`] = `
+exports[`CellAccountBaseItem - Snapshot should render tertiaryText when given 1`] = `
 <View
   style={
     Object {

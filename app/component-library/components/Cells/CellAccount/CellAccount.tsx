@@ -2,7 +2,7 @@
 import React from 'react';
 
 // External dependencies.
-import { CellAccountItemType } from './src/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from './foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 import CellAccountDisplayItem from './variants/CellAccountDisplayItem';
 import CellAccountMultiselectItem from './variants/CellAccountMultiselectItem';
 import CellAccountSelectItem from './variants/CellAccountSelectItem';

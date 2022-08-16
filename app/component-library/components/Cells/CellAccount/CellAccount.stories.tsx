@@ -7,7 +7,7 @@ import { boolean, text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { CellAccountItemType } from './src/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from './foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
 
 // Internal dependencies.

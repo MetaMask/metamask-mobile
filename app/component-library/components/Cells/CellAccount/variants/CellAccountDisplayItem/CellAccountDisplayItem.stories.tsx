@@ -15,7 +15,7 @@ import {
   TEST_TAG_LABEL_TEXT,
 } from '../../CellAccount.constants';
 
-import { CellAccountItemType } from '../../src/CellAccountBaseItem/CellAccountBaseItem.types';
+import { CellAccountItemType } from '../../foundation/CellAccountBaseItem/CellAccountBaseItem.types';
 
 // Internal dependencies.
 import CellAccountDisplayItem from './CellAccountDisplayItem';

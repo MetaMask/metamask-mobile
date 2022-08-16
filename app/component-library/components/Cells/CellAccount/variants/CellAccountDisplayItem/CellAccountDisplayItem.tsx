@@ -5,8 +5,8 @@ import React from 'react';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import CellAccountBaseItem from '../../src/CellAccountBaseItem';
-import CellAccountDisplayItemContainer from '../../src/CellAccountDisplayItemContainer';
+import CellAccountBaseItem from '../../foundation/CellAccountBaseItem';
+import CellAccountDisplayItemContainer from '../../foundation/CellAccountDisplayItemContainer';
 
 // Internal dependencies.
 import { CELL_ACCOUNT_DISPLAY_ITEM_TEST_ID } from './CellAccountDisplayItem.constants';
@@ -22,7 +22,6 @@ const CellAccountDisplayItem = ({
   tertiaryText,
   tagLabel,
   children,
-  ...props
 }: CellAccountDisplayItemProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
@@ -30,7 +29,6 @@ const CellAccountDisplayItem = ({
     <CellAccountDisplayItemContainer
       style={styles.base}
       testID={CELL_ACCOUNT_DISPLAY_ITEM_TEST_ID}
-      {...props}
     >
       <CellAccountBaseItem
         avatarAccountAddress={avatarAccountAddress}

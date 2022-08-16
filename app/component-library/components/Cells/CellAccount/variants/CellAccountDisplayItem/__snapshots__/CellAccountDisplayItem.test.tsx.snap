@@ -4,7 +4,6 @@ exports[`CellAccountDisplayItem - Snapshot should render default settings correc
 <CellAccountDisplayItemContainer
   style={Object {}}
   testID="cell-account-display-item"
-  type="Display"
 >
   <CellAccountBaseItem
     avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"

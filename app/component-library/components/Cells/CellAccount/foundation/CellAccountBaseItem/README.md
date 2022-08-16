@@ -4,7 +4,15 @@ CellAccountBaseItem is a base component used for cell accounts.
 
 ## Props
 
-This component extends React Native's [ViewProps](https://reactnative.dev/docs/view) and [CellAccountContentProps](../CellAccountContent/CellAccountContent.types.ts#L10).
+This component extends React Native's [ViewProps](https://reactnative.dev/docs/view).
+
+### `type`
+
+Type of CellAccount.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [CellAccountItemType](./CellAccountBaseItem.types.ts#L7)                                              | No                                                     |
 
 ### `avatarAccountAddress`
 
