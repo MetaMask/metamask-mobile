@@ -181,7 +181,9 @@ class MetaMetrics implements IMetaMetrics {
    */
   private _createSegmentSuppressWithDeleteRegulation =
     async (): Promise<void> => {
-      const segmentToken = process.env.MM_MIXPANEL_TOKEN;
+      const segmentToken = __DEV__
+        ? process.env.SEGMENT_DEV_KEY
+        : process.env.SEGMENT_PROD_KEY;
       const regulationType = 'Suppress_With_Delete';
       try {
         const response = await axios({
@@ -254,6 +256,10 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#state === States.enabled) {
       this._trackEvent(event, anonymously, properties);
     }
+  }
+
+  public createSegmentSuppressWithDeleteRegulation(): void {
+    this._createSegmentSuppressWithDeleteRegulation();
   }
 }
 
