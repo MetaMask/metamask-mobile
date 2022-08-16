@@ -80,7 +80,6 @@ export interface AnalyticsEvents {
     chain_id_destination: string;
     has_zero_native_balance?: boolean;
     is_apple_pay: boolean;
-    currency_destination: string;
   };
   ONRAMP_PURCHASE_COMPLETED: {
     crypto_out: number;
@@ -138,5 +137,13 @@ export interface AnalyticsEvents {
     payment_method_id: string;
     error_message?: string;
     amount: number;
+  };
+  ONRAMP_ERROR: {
+    location: ScreenLocation;
+    message: string;
+    payment_method_id?: string;
+    region?: string;
+    currency_source?: string;
+    currency_destination?: string;
   };
 }

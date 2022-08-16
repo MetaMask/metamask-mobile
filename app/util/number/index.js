@@ -507,11 +507,12 @@ export function fiatNumberToWei(fiat, conversionRate) {
  * @returns {Object} - The converted value as BN instance
  */
 export function safeNumberToBN(value) {
-  if (!value || value === 'NaN') {
+  try {
+    const safeValue = fastSplit(value?.toString()) || '0';
+    return numberToBN(safeValue);
+  } catch {
     return numberToBN('0');
   }
-  const safeValue = fastSplit(value?.toString().replace(',', '.'));
-  return numberToBN(safeValue);
 }
 
 /**
@@ -732,5 +733,5 @@ export const toHexadecimal = (decimal) => {
     decimal = String(decimal);
   }
   if (decimal.startsWith('0x')) return decimal;
-  return parseInt(decimal, 10).toString(16);
+  return toBigNumber.dec(decimal).toString(16);
 };

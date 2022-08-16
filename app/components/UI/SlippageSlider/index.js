@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Svg, { Path } from 'react-native-svg';
 
 /* eslint-disable import/no-commonjs */
@@ -115,7 +115,7 @@ const SlippageSlider = ({
   disabled,
   changeOnRelease,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   /* Reusable/truncated references to the range prop values */
   const [r0, r1] = useMemo(() => range, [range]);

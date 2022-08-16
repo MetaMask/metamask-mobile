@@ -56,11 +56,7 @@ import AnalyticsV2, {
   trackErrorAsAnalytics,
 } from '../../../../util/analyticsV2';
 import SeedPhraseVideo from '../../../UI/SeedPhraseVideo';
-import {
-  useAppThemeFromContext,
-  mockTheme,
-  ThemeContext,
-} from '../../../../util/theme';
+import { useTheme, ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
@@ -188,7 +184,7 @@ const createStyles = (colors) =>
   });
 
 const Heading = ({ children, first }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
@@ -199,7 +195,7 @@ const Heading = ({ children, first }) => {
 };
 
 const WarningIcon = () => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
 
   return (
     <Icon size={16} color={colors.error.default} name="exclamation-triangle" />
@@ -375,6 +371,7 @@ class Settings extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
     const analyticsEnabled = Analytics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
@@ -594,6 +591,7 @@ class Settings extends PureComponent {
 
   goToRevealPrivateCredential = () => {
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_INITIATED);
+    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CTA);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'seed_phrase',
     });
