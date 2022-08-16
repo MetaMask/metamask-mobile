@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import AppConfig from './AppConfig';
 import { FetchState } from '../../../util/fetch/FetchState';
+import { MM_APP_CONFIG_URL } from '../../../constants/urls';
 
 type State = FetchState<AppConfig>;
 const initialState: Readonly<State> = {
@@ -8,12 +9,10 @@ const initialState: Readonly<State> = {
 };
 
 const useAppConfig = (): State => {
-  const appConfigURL =
-    'https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json';
   const [state, setState] = useState<State>(initialState);
 
   const fetchAppConfig = useCallback(() => {
-    fetch(appConfigURL)
+    fetch(MM_APP_CONFIG_URL)
       .then((response) => response.json())
       .then((data) => {
         try {
