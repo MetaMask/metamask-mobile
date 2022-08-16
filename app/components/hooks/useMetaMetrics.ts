@@ -1,24 +1,25 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import MetaMetrics from '../../core/Analytics/MetaMetrics';
+import MetaMetricsEvents from '../../core/Analytics/MetaMetrics.events';
+import { IMetaMetricsEvent } from '../../core/Analytics/MetaMetrics.interface';
 
 const useMetaMetrics = () => {
   const trackEventHook = useCallback(
     ({
       event,
       params = {},
-      anonymous = false,
     }: {
-      event: string;
+      event: IMetaMetricsEvent;
       params?: Record<string, string>;
-      anonymous?: boolean;
     }) => {
       InteractionManager.runAfterInteractions(() => {
+        const { name, anonymous } = event;
         if (anonymous) {
-          MetaMetrics.trackEvent(event, false, {});
-          MetaMetrics.trackEvent(event, true, params);
+          MetaMetrics.trackEvent(name, anonymous, {});
+          MetaMetrics.trackEvent(name, anonymous, params);
         } else {
-          MetaMetrics.trackEvent(event, false, params);
+          MetaMetrics.trackEvent(name, false, params);
         }
       });
     },
