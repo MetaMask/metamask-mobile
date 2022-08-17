@@ -3,7 +3,7 @@
 // In case that the MetaMetrics option is DISABLED, then none
 // of these events should be tracked in any kind of service.
 
-import { IMetaMetricsEvent } from './MetaMetrics.interface';
+import { IMetaMetricsEvent } from './MetaMetrics.types';
 
 const generateOpt = (name: string, anonymous?: boolean): IMetaMetricsEvent => ({
   event: name,

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import MetaMetrics from '../../core/Analytics/MetaMetrics';
 import MetaMetricsEvents from '../../core/Analytics/MetaMetrics.events';
-import { IMetaMetricsEvent } from '../../core/Analytics/MetaMetrics.interface';
+import { IMetaMetricsEvent } from '../../core/Analytics/MetaMetrics.types';
 
 const useMetaMetrics = () => {
   const trackEventHook = useCallback(

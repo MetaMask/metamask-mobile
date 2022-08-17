@@ -11,7 +11,7 @@ import {
   ANALYTICS_DATA_DELETION_DATE,
 } from '../../constants/storage';
 
-import { IMetaMetrics } from './MetaMetrics.interface';
+import { IMetaMetrics } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
