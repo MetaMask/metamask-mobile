@@ -369,9 +369,14 @@ class Transactions extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const { chainId } = this.props;
+    const {
+      chainId,
+      network: {
+        provider: { type },
+      },
+    } = this.props;
     const blockExplorerText = () => {
-      if (isMainnetByChainId(chainId)) {
+      if (isMainnetByChainId(chainId) || type !== RPC) {
         return strings('transactions.view_full_history_on_etherscan');
       }
 
