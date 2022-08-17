@@ -19,7 +19,7 @@ import {
 } from './MetaMetrics.constants';
 
 class MetaMetrics implements IMetaMetrics {
-  private static _instance: MetaMetrics;
+  static #instance: MetaMetrics;
 
   // PRIVATE CLASS VARIABLES
 
@@ -34,7 +34,7 @@ class MetaMetrics implements IMetaMetrics {
   private constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    this._init();
+    this.#init();
   }
 
   // PRIVATE METHODS
@@ -42,8 +42,8 @@ class MetaMetrics implements IMetaMetrics {
   /**
    * Method to initialize private variables async.
    */
-  private async _init() {
-    this.#metametricsId = await this._generateMetaMetricsId();
+  async #init() {
+    this.#metametricsId = await this.#generateMetaMetricsId();
     // eslint-disable-next-line no-console
     console.log(this.#metametricsId);
   }
@@ -53,7 +53,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns Promise containing the user ID.
    */
-  private async _generateMetaMetricsId(): Promise<string> {
+  async #generateMetaMetricsId(): Promise<string> {
     let metametricsId: string;
     metametricsId = await DefaultPreference.get(METAMETRICS_ID);
     if (!metametricsId) {
@@ -79,7 +79,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param userId - User ID generated for Segment
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
-  private _identify(userTraits: Record<string, string>): void {
+  #identify(userTraits: Record<string, string>): void {
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
@@ -94,7 +94,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupId - Group ID to associate user
    * @param groupTraits - Object containing group relevant traits or properties (optional).
    */
-  private _group(groupId: string, groupTraits?: Record<string, string>): void {
+  #group(groupId: string, groupTraits?: Record<string, string>): void {
     //The Group method lets you associate an individual user with a group—
     // whether it’s a company, organization, account, project, or team.
     // This includes a unique group identifier and any additional
@@ -111,7 +111,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  protected _trackEvent(
+  #trackEvent(
     event: string,
     anonymously: boolean,
     properties?: Record<string, string>,
@@ -142,7 +142,7 @@ class MetaMetrics implements IMetaMetrics {
    * Method to update the user analytics preference and
    * store it in DefaultPreference.
    */
-  private _storeMetricsOptInPreference = async () => {
+  #storeMetricsOptInPreference = async () => {
     try {
       await DefaultPreference.set(
         METRICS_OPT_IN,
@@ -159,8 +159,7 @@ class MetaMetrics implements IMetaMetrics {
    * a request to create a suppress with delete regulation
    * was created in DefaultPreference.
    */
-  private _storeSuppressWithDeleteRegulationCreationDate =
-    async (): Promise<void> => {
+  #storeSuppressWithDeleteRegulationCreationDate = async (): Promise<void> => {
       const currentDate = new Date();
       const month = currentDate.getUTCMonth() + 1;
       const day = currentDate.getUTCDate();
@@ -179,8 +178,7 @@ class MetaMetrics implements IMetaMetrics {
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
-  private _createSegmentSuppressWithDeleteRegulation =
-    async (): Promise<void> => {
+  #createSegmentSuppressWithDeleteRegulation = async (): Promise<void> => {
       const segmentToken = __DEV__
         ? process.env.SEGMENT_DEV_KEY
         : process.env.SEGMENT_PROD_KEY;
@@ -201,8 +199,7 @@ class MetaMetrics implements IMetaMetrics {
             },
           }),
         });
-
-        await this._storeSuppressWithDeleteRegulationCreationDate();
+      await this.#storeSuppressWithDeleteRegulationCreationDate();
         // eslint-disable-next-line no-console
         console.log(response.data);
       } catch (e: any) {
@@ -214,26 +211,26 @@ class MetaMetrics implements IMetaMetrics {
   // PUBLIC METHODS
 
   public static getInstance(): IMetaMetrics {
-    if (!MetaMetrics._instance) {
+    if (!MetaMetrics.#instance) {
       const segmentClient = createClient({
         writeKey: (__DEV__
           ? process.env.SEGMENT_DEV_KEY
           : process.env.SEGMENT_PROD_KEY) as string,
         debug: __DEV__,
       });
-      MetaMetrics._instance = new MetaMetrics(segmentClient);
+      MetaMetrics.#instance = new MetaMetrics(segmentClient);
     }
-    return MetaMetrics._instance;
+    return MetaMetrics.#instance;
   }
 
   public enable(): void {
     this.#state = States.enabled;
-    this._storeMetricsOptInPreference();
+    this.#storeMetricsOptInPreference();
   }
 
   public disable(): void {
     this.#state = States.disabled;
-    this._storeMetricsOptInPreference();
+    this.#storeMetricsOptInPreference();
   }
 
   public state(): States {
@@ -241,11 +238,11 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   public addTraitsToUser(userTraits: Record<string, string>): void {
-    this._identify(userTraits);
+    this.#identify(userTraits);
   }
 
   public group(groupId: string, groupTraits?: Record<string, string>): void {
-    this._group(groupId, groupTraits);
+    this.#group(groupId, groupTraits);
   }
 
   public trackEvent(
@@ -254,12 +251,12 @@ class MetaMetrics implements IMetaMetrics {
     properties?: Record<string, string>,
   ): void {
     if (this.#state === States.enabled) {
-      this._trackEvent(event, anonymously, properties);
+      this.#trackEvent(event, anonymously, properties);
     }
   }
 
   public createSegmentSuppressWithDeleteRegulation(): void {
-    this._createSegmentSuppressWithDeleteRegulation();
+    this.#createSegmentSuppressWithDeleteRegulation();
   }
 }
 
