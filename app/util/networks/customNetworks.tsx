@@ -86,6 +86,36 @@ const PopularList = [
       imageUrl: 'PALM',
     },
   },
+  {
+    chainId: '3',
+    nickname: 'Ropsten Test Network',
+    rpcUrl: 'https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    ticker: 'ETH',
+    color: '#ff4a8d',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://ropsten.etherscan.io',
+    },
+  },
+  {
+    chainId: '42',
+    nickname: 'Kovan Test Network',
+    rpcUrl: 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    ticker: 'ETH',
+    color: '#7057ff',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://kovan.etherscan.io',
+    },
+  },
+  {
+    chainId: '4',
+    nickname: 'Rinkeby Test Network',
+    rpcUrl: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    ticker: 'ETH',
+    color: '#f6c343',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://rinkeby.etherscan.io',
+    },
+  },
 ];
 
 export default PopularList;

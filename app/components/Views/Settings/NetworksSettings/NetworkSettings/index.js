@@ -172,6 +172,12 @@ const createStyles = (colors) =>
       color: colors.primary.default,
       marginTop: 1,
     },
+    iconText: {
+      textAlign: 'center',
+      color: colors.text.default,
+      fontSize: 10,
+      marginTop: 4,
+    },
   });
 
 const allNetworks = getAllNetworks();
@@ -927,10 +933,21 @@ class NetworkSettings extends PureComponent {
         onPress={() => this.togglePopularNetwork(item)}
       >
         <View style={styles.popularWrapper}>
-          <ImageIcons
-            image={item.rpcPrefs.imageUrl}
-            style={styles.popularNetworkImage}
-          />
+          {item.color ? (
+            <View
+              style={[
+                styles.popularNetworkImage,
+                { backgroundColor: item.color },
+              ]}
+            >
+              <Text style={styles.iconText}>{item.nickname[0]}</Text>
+            </View>
+          ) : (
+            <ImageIcons
+              image={item.rpcPrefs.imageUrl}
+              style={styles.popularNetworkImage}
+            />
+          )}
           <CustomText bold>{item.nickname}</CustomText>
         </View>
         <View style={styles.popularWrapper}>

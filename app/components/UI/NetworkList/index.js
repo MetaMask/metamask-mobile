@@ -24,7 +24,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAINNET, RPC, PRIVATENETWORK } from '../../../constants/network';
 import { ETH } from '../../../util/custom-gas';
 import sanitizeUrl from '../../../util/sanitizeUrl';
-import getImage from '../../../util/getImage';
+import getImage, { getColor } from '../../../util/getImage';
 import {
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
@@ -258,6 +258,7 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
+    color,
   ) => {
     const styles = this.getStyles();
 
@@ -271,6 +272,10 @@ export class NetworkList extends PureComponent {
         {isCustomRpc &&
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
+          ) : color ? (
+            <View style={[styles.networkIcon, { backgroundColor: color }]}>
+              <Text style={styles.text}>{name[0]}</Text>
+            </View>
           ) : (
             <View style={styles.networkIcon} />
           ))}
@@ -317,6 +322,7 @@ export class NetworkList extends PureComponent {
     return frequentRpcList.map(({ nickname, rpcUrl, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl, chainId, color: null };
       const image = getImage(chainId);
+      const color = getColor(chainId);
       const isCustomRpc = true;
       const selected =
         provider.rpcTarget === rpcUrl && provider.type === RPC ? (
@@ -330,6 +336,7 @@ export class NetworkList extends PureComponent {
         i,
         rpcUrl,
         isCustomRpc,
+        color,
       );
     });
   };

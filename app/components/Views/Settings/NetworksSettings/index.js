@@ -18,7 +18,7 @@ import { strings } from '../../../../../locales/i18n';
 import Networks, { getAllNetworks } from '../../../../util/networks';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import getImage from '../../../../util/getImage';
+import getImage, { getColor } from '../../../../util/getImage';
 import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -188,7 +188,7 @@ class NetworksSettings extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
-  networkElement(name, image, i, network, isCustomRPC) {
+  networkElement(name, image, i, network, isCustomRPC, color) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
@@ -206,6 +206,12 @@ class NetworksSettings extends PureComponent {
               {isCustomRPC &&
                 (image ? (
                   <ImageIcons image={image} style={styles.networkIcon} />
+                ) : color ? (
+                  <View
+                    style={[styles.networkIcon, { backgroundColor: color }]}
+                  >
+                    <Text style={styles.text}>{name[0]}</Text>
+                  </View>
                 ) : (
                   <View style={styles.networkIcon} />
                 ))}
@@ -242,7 +248,9 @@ class NetworksSettings extends PureComponent {
     return frequentRpcList.map(({ rpcUrl, nickname, chainId }, i) => {
       const { name } = { name: nickname || rpcUrl };
       const image = getImage(chainId);
-      return this.networkElement(name, image, i, rpcUrl, true);
+      const color = getColor(chainId);
+
+      return this.networkElement(name, image, i, rpcUrl, true, color);
     });
   };
 
