@@ -4,15 +4,15 @@ BadgeWrapper is a wrapper component that attaches a [Badge](./Badge/Badge.tsx) o
 
 ## Props
 
-This component extends `ViewProps` from React Native's [View](https://reactnative.dev/docs/view) component. Props are also based on the union `type` of [BadgeProps](../Badge/Badge.types.ts#L1).
+This component extends `ViewProps` from React Native's [View](https://reactnative.dev/docs/view) component.
 
-### `type`
+### `badgeProps`
 
-Type of the badge.
+Props for the badge itself.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| `network`                                           | Yes                                                     |
+| [BadgeProps](../Badge/Badge.types.ts)                                           | Yes                                                     |
 
 ### `children`
 
@@ -22,14 +22,6 @@ Element to wrap and to apply a badge component.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | React.ReactNode                                     | Yes                                                     |
 
-### `...props`
-
-Badge props is based on the union `type` of `BadgeProps`.
-
-| <span style="color:gray;font-size:14px">TYPE</span>     | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :------------------------------------------------------ | :------------------------------------------------------ |
-| [BadgeProps](../BadgeNetwork/BadgeNetwork.types.ts#L15) | Yes                                                     |
-
 ## Usage
 
 ```javascript
@@ -37,12 +29,7 @@ Badge props is based on the union `type` of `BadgeProps`.
 import BadgeWrapper from 'app/component-library/components/Badges/BadgeWrapper';
 import AvatarAccount from 'app/component-library/components/Avatars/AvatarAccount';
 
-<BadgeWrapper
-  type={'network'}
-  name={NETWORK_NAME}
-  imageSource={NETWORK_IMAGE_SOURCE}
-  position={BadgeNetworkPosition.TopRight}
->
+<BadgeWrapper badgeProps={BADGE_PROPS}>
   <AvatarAccount accountAddress={ACCOUNT_ADDRESS} />
 </BadgeWrapper>;
 ```

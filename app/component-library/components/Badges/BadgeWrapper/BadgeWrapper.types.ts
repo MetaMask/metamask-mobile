@@ -1,16 +1,23 @@
-// 3rd party dependencies.
+// Third party dependencies.
 import React from 'react';
-import { BadgeProps } from '../Badge/Badge.types.ts';
+import { ViewProps } from 'react-native';
+
+// External dependencies.
+import { BadgeProps } from '../Badge/Badge.types';
 
 /**
- * BadgeWrapper component props.
+ * Badge component props.
  */
-export type BadgeWrapperProps = BadgeProps & {
+export interface BadgeWrapperProps extends ViewProps {
   /**
-   * Element to wrap and to apply a badge component.
+   * Props for the badge itself.
+   */
+  badgeProps: BadgeProps;
+  /**
+   * The children element that the badge will attach itself to.
    */
   children: React.ReactNode;
-};
+}
 
 /**
  * Style sheet input parameters.

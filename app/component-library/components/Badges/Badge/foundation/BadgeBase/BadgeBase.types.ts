@@ -9,7 +9,7 @@ export interface BadgeBaseProps extends ViewProps {
   /**
    * The content of the badge itself. This can take in any component.
    */
-  children: React.ReactNode | JSX.Element;
+  children: React.ReactNode;
 }
 
 /**
