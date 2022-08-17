@@ -6,8 +6,13 @@ exports[`CellDisplay - Snapshot should render default settings correctly 1`] = `
   testID="cell-display"
 >
   <CellBase
-    avatarAccountAddress="0x2990079bcdEe240329a520d2444386FC119da21a"
-    avatarAccountType="JazzIcon"
+    avatarProps={
+      Object {
+        "accountAddress": "0x2990079bcdEe240329a520d2444386FC119da21a",
+        "type": "JazzIcon",
+        "variant": "Account",
+      }
+    }
     title="Orangefox.eth"
   />
 </CellDisplayContainer>

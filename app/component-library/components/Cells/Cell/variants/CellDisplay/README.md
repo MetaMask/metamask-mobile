@@ -1,38 +1,30 @@
-# CellAccountDisplayItem
+# CellDisplay
 
-CellAccountDisplayItem is a component used for displaying cell account.
+CellDisplay is a component used for displaying cell displays.
 
 ## Props
 
-This component extends [CellAccountDisplayContainerProps](../CellAccountDisplayItemContainer/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer.types.ts) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
+This component extends [CellDisplayContainerProps](../CellDisplayContainer/CellDisplayContainer/CellDisplayContainer.types.ts) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
 ### `type`
 
-Type of CellAccount.
+Type of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellAccountItemType.Display](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
+| [CellType.Display](../CellBase/CellBase.types.ts#L7)                                              | Yes                                                     |
 
-### `avatarAccountAddress`
+### `avatarProps`
 
-An Ethereum wallet address to retrieve avatar.
+Props of the [Avatar](../../../../Avatars/Avatar.tsx) Component to retrieve avatar.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
-
-### `avatarAccountType`
-
-[AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.tsx) variants.
-
-| <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :---------------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.types.ts#L6) | Yes                                                     |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
 
 ### `title`
 
-Title of the Cell Account, 1 line truncation.
+Title of the Cell, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -64,7 +56,7 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 
 ### `children`
 
-Optional accessory that can be inserted on the right of Cell Account.
+Optional accessory that can be inserted on the right of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -74,14 +66,12 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import CellAccountDisplayItem from 'app/component-library/components/Cells/CellAccountDisplayItem/CellAccountDisplayItem';
-import { CellAccountItemType } from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.types';
+import CellDisplay from 'app/component-library/components/Cells/CellDisplay/CellDisplay';
+import { CellType } from 'app/component-library/components/Cells/CellBase/CellBase.types';
 
-<CellAccountDisplayItem
-  type={CellAccountItemType.Display}
-  avatarAccountAddress={ACCOUNT_ADDRESS}
-  avatarAccountType={AvatarAccountType.JazzIcon}
+<CellDisplay
+  type={CellType.Display}
+  avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}

@@ -1,18 +1,18 @@
-# CellAccountSelectItem
+# CellSelect
 
-CellAccountSelectItem is a component used for accessing account selection.
+CellSelect is a component used for accessing account selection.
 
 ## Props
 
-This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellAccountBaseItem](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L17).
+This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
 ### `type`
 
-Type of CellAccount.
+Type of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellAccountItemType.Select](../CellAccountBaseItem/CellAccountBaseItem.types.ts#L7)                                              | Yes                                                     |
+| [CellType.Select](../CellBase/CellBase.types.ts#L7)                                              | Yes                                                     |
 
 ### `onPress`
 
@@ -22,25 +22,17 @@ Callback to trigger when pressed.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | function                                            | Yes                                                     |
 
-### `avatarAccountAddress`
+### `avatarProps`
 
-An Ethereum wallet address to retrieve avatar.
+Props of the [Avatar](../../../../Avatars/Avatar.tsx) Component to retrieve avatar.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
-
-### `avatarAccountType`
-
-[AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.tsx) variants.
-
-| <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :---------------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.types.ts#L6) | Yes                                                     |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
 
 ### `title`
 
-Title of the Cell Account, 1 line truncation.
+Title of the Cell, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -72,7 +64,7 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 
 ### `isSelected`
 
-Optional boolean to show Selected state in Cell Account.
+Optional boolean to show Selected state in Cell.
 Default: false
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
@@ -81,7 +73,7 @@ Default: false
 
 ### `children`
 
-Optional accessory that can be inserted on the right of Cell Account.
+Optional accessory that can be inserted on the right of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -91,14 +83,12 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import CellAccountSelectItem from 'app/component-library/components/Cells/CellAccountSelectItem/CellAccountSelectItem';
-import { CellAccountItemType } from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem.types';
+import CellSelect from 'app/component-library/components/Cells/CellSelect/CellSelect';
+import { CellType } from 'app/component-library/components/Cells/CellBase/CellBase.types';
 
-<CellAccountSelectItem
-  type={CellAccountItemType.Select}
-  avatarAccountAddress={ACCOUNT_ADDRESS}
-  avatarAccountType={AvatarAccountType.JazzIcon}
+<CellSelect
+  type={CellType.Select}
+  avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}

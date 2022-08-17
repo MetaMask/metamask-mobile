@@ -1,6 +1,6 @@
-# CellAccountBaseItem
+# CellBase
 
-CellAccountBaseItem is a base component used for cell accounts.
+CellBase is a base component used for all cells.
 
 ## Props
 
@@ -8,31 +8,23 @@ This component extends React Native's [ViewProps](https://reactnative.dev/docs/v
 
 ### `type`
 
-Type of CellAccount.
+Type of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellAccountItemType](./CellAccountBaseItem.types.ts#L7)                                              | No                                                     |
+| [CellType](./CellBase.types.ts#L7)                                              | No                                                     |
 
-### `avatarAccountAddress`
+### `avatarProps`
 
-An Ethereum wallet address to retrieve avatar.
+Props of the [Avatar](../../../../Avatars/Avatar.tsx) Component to retrieve avatar.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| string                                              | Yes                                                     |
-
-### `avatarAccountType`
-
-[AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.tsx) variants.
-
-| <span style="color:gray;font-size:14px">TYPE</span>         | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :---------------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarAccount](../../Avatars/AvatarAccount/AvatarAccount.types.ts#L6) | Yes                                                     |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
 
 ### `title`
 
-Title of the Cell Account, 1 line truncation.
+Title of the Cell, 1 line truncation.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -64,7 +56,7 @@ Optional label (using Tag component) below the title/secondaryText/tertiaryText.
 
 ### `children`
 
-Optional accessory that can be inserted on the right of Cell Account.
+Optional accessory that can be inserted on the right of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -74,12 +66,10 @@ Optional accessory that can be inserted on the right of Cell Account.
 
 ```javascript
 // Change import path to relative path.
-import { AvatarAccountType } from 'app/component-library/components/Avatars/AvatarAccount/AvatarAccount';
-import CellAccountBaseItem from 'app/component-library/components/Cells/CellAccountBaseItem/CellAccountBaseItem';
+import CellBase from 'app/component-library/components/Cells/CellBase/CellBase';
 
-<CellAccountBaseItem
-  avatarAccountAddress={ACCOUNT_ADDRESS}
-  avatarAccountType={AvatarAccountType.JazzIcon}
+<CellBase
+  avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
