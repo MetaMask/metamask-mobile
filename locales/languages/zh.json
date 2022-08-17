@@ -1996,5 +1996,15 @@
     "token_detection_mainnet_title": "已启用代币检测，因此将会有许多代币自动显示在您的钱包中。",
     "token_detection_mainnet_link": "您也可以手动添加代币。",
     "or": "或"
+  },
+  "remember_me": {
+    "enable_remember_me": "打开“记住我”",
+    "enable_remember_me_description": "在“记住我”功能打开时，任何有访问您手机权限的人都可以访问您的MetaMask账户。"
+  },
+  "turn_off_remember_me": {
+    "title": "输入密码以关闭“记住我”",
+    "placeholder": "密码",
+    "description": "如果关闭此选项，从现在起，您需要使用密码来解锁MetaMask。",
+    "action": "关闭“记住我”"
   }
 }
