@@ -5,6 +5,7 @@ import ensNetworkMap from 'ethereum-ens-network-map';
 import { ethers } from 'ethers';
 import { toLowerCaseEquals } from '../util/general';
 import { getEthersNetworkTypeById } from './networks';
+import Logger from './Logger';
 
 /**
  * Utility class with the single responsibility
@@ -49,16 +50,12 @@ export async function doENSReverseLookup(address, network) {
 export async function doENSLookup(ensName, network) {
   const { provider } = Engine.context.NetworkController;
   const ensProvider = await getEnsProvider(network, provider);
-  console.log('**doENSLookup1', ensName);
   if (ensProvider) {
     try {
-      console.log('**doENSLookup2');
       const resolvedAddress = await ensProvider.resolveName(ensName);
-      console.log('**doENSLookup3', { resolvedAddress });
       return resolvedAddress;
-      // eslint-disable-next-line no-empty
     } catch (e) {
-      console.log('**doENSLookup4', e);
+      Logger.error(e);
     }
   }
 }
