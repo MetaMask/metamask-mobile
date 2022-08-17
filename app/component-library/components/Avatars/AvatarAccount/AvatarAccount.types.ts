@@ -17,7 +17,7 @@ export interface AvatarAccountProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant: AvatarVariants.Account;
+  variant?: AvatarVariants.Account;
   /**
    * Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
    * @default JazzIcon

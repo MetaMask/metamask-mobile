@@ -37,10 +37,10 @@ const CellBase = ({
     <View style={styles.cellBase}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
       <Avatar
-        size={AvatarBaseSize.Md}
         style={styles.avatar}
         testID={CELL_AVATAR_TEST_ID}
         {...avatarProps}
+        size={AvatarBaseSize.Md}
       />
       <View style={styles.cellBaseInfo}>
         <Text

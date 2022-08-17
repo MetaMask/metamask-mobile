@@ -12,7 +12,7 @@ export interface AvatarTokenProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant: AvatarVariants.Token;
+  variant?: AvatarVariants.Token;
   /**
    * Optional token name.
    */

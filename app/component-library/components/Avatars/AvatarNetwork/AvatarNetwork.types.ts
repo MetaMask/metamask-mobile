@@ -12,7 +12,7 @@ export interface AvatarNetworkProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant: AvatarVariants.Network;
+  variant?: AvatarVariants.Network;
   /**
    * Optional network name.
    */
