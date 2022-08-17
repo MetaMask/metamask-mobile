@@ -11,7 +11,7 @@ import {
   ANALYTICS_DATA_DELETION_DATE,
 } from '../../constants/storage';
 
-import { IMetaMetrics } from './MetaMetrics.types';
+import { IMetaMetrics, ISegmentClient } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
@@ -24,7 +24,7 @@ class MetaMetrics implements IMetaMetrics {
   // PRIVATE CLASS VARIABLES
 
   #metametricsId = '';
-  #segmentClient: any;
+  #segmentClient: ISegmentClient;
   #state: States = States.disabled;
   #suppressWithDeleteRegulationDate = '';
   #isDataRecorded = false;
@@ -160,17 +160,17 @@ class MetaMetrics implements IMetaMetrics {
    * was created in DefaultPreference.
    */
   #storeSuppressWithDeleteRegulationCreationDate = async (): Promise<void> => {
-      const currentDate = new Date();
-      const month = currentDate.getUTCMonth() + 1;
-      const day = currentDate.getUTCDate();
-      const year = currentDate.getUTCFullYear();
+    const currentDate = new Date();
+    const month = currentDate.getUTCMonth() + 1;
+    const day = currentDate.getUTCDate();
+    const year = currentDate.getUTCFullYear();
 
-      this.#suppressWithDeleteRegulationDate = `${day}/${month}/${year}`;
-      await DefaultPreference.set(
-        ANALYTICS_DATA_DELETION_DATE,
-        this.#suppressWithDeleteRegulationDate,
-      );
-    };
+    this.#suppressWithDeleteRegulationDate = `${day}/${month}/${year}`;
+    await DefaultPreference.set(
+      ANALYTICS_DATA_DELETION_DATE,
+      this.#suppressWithDeleteRegulationDate,
+    );
+  };
 
   /**
    * Method to generate a new suppress and delete regulation for an user.
@@ -179,34 +179,34 @@ class MetaMetrics implements IMetaMetrics {
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
   #createSegmentSuppressWithDeleteRegulation = async (): Promise<void> => {
-      const segmentToken = __DEV__
-        ? process.env.SEGMENT_DEV_KEY
-        : process.env.SEGMENT_PROD_KEY;
-      const regulationType = 'Suppress_With_Delete';
-      try {
-        const response = await axios({
-          url: SEGMENT_REGULATIONS_ENDPOINT,
-          method: 'post',
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${segmentToken}`,
+    const segmentToken = __DEV__
+      ? process.env.SEGMENT_DEV_KEY
+      : process.env.SEGMENT_PROD_KEY;
+    const regulationType = 'Suppress_With_Delete';
+    try {
+      const response = await axios({
+        url: SEGMENT_REGULATIONS_ENDPOINT,
+        method: 'post',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${segmentToken}`,
+        },
+        data: JSON.stringify({
+          regulation_type: regulationType,
+          attributes: {
+            name: this.#metametricsId,
+            values: [],
           },
-          data: JSON.stringify({
-            regulation_type: regulationType,
-            attributes: {
-              name: this.#metametricsId,
-              values: [],
-            },
-          }),
-        });
+        }),
+      });
       await this.#storeSuppressWithDeleteRegulationCreationDate();
-        // eslint-disable-next-line no-console
-        console.log(response.data);
-      } catch (e: any) {
-        // eslint-disable-next-line no-console
-        console.log(e);
-      }
-    };
+      // eslint-disable-next-line no-console
+      console.log(response.data);
+    } catch (e: any) {
+      // eslint-disable-next-line no-console
+      console.log(e);
+    }
+  };
 
   // PUBLIC METHODS
 

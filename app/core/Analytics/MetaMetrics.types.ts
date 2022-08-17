@@ -1,4 +1,21 @@
+import type {
+  JsonMap,
+  UserTraits,
+  GroupTraits,
+} from '@segment/analytics-react-native';
 import { States } from './MetaMetrics.constants';
+
+// Represents a custom implementation of the ClientMethods type
+export interface ISegmentClient {
+  track: (
+    event: string,
+    properties?: JsonMap,
+    userId?: string,
+    anonymousId?: string,
+  ) => void;
+  identify: (userId?: string, userTraits?: UserTraits) => void;
+  group: (groupId: string, groupTraits?: GroupTraits) => void;
+}
 
 // Represents the interface for the core class MetaMetrics
 export interface IMetaMetrics {
