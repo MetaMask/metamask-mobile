@@ -2,34 +2,33 @@
 
 // Third library dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
-import AvatarNetwork from '../../Avatars/AvatarNetwork';
-import { AvatarBaseSize } from '../../Avatars/AvatarBase';
-import { useStyles } from '../../../hooks';
+import AvatarNetwork from '../../../../Avatars/AvatarNetwork';
+import { AvatarBaseSize } from '../../../../Avatars/AvatarBase';
+import { useStyles } from '../../../../../hooks';
+import BadgeBase from '../../foundation/BadgeBase';
+import { BADGE_NETWORK_TEST_ID } from '../../Badge.constants';
 
 // Internal dependencies
 import { BadgeNetworkPosition, BadgeNetworkProps } from './BadgeNetwork.types';
 import styleSheet from './BadgeNetwork.styles';
-import { BADGE_NETWORK_TEST_ID } from './BadgeNetwork.constants';
 
 const BadgeNetwork = ({
   position = BadgeNetworkPosition.TopRight,
   name,
   imageSource,
-  ...props
 }: BadgeNetworkProps) => {
   const { styles } = useStyles(styleSheet, { position });
 
   return (
-    <View key={BADGE_NETWORK_TEST_ID} style={styles.badgeContainer} {...props}>
+    <BadgeBase style={styles.base} testID={BADGE_NETWORK_TEST_ID}>
       <AvatarNetwork
         name={name}
         imageSource={imageSource}
         size={AvatarBaseSize.Xs}
       />
-    </View>
+    </BadgeBase>
   );
 };
 

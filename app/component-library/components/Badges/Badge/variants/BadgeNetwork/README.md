@@ -6,13 +6,13 @@ BadgeNetwork is a component that shows the network image as a badge. **This comp
 
 This component extends `ViewProps` from React Native's [View](https://reactnative.dev/docs/view) component.
 
-### `type`
+### `variant`
 
-Type of badge.
+Variant of badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| `network`                                           | Yes                                                     |
+| [BadgeVariant.Network](../../Badge.types.ts#L7)                                           | Yes                                                     |
 
 ### `name`
 
@@ -36,16 +36,17 @@ Optional enum that represents the position of the network badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [BadgeNetworkPosition](./BadgeNetwork.types.ts#L7)  | No                                                      | TopRight                                               |
+| [BadgeNetworkPosition](./BadgeNetwork.types.ts#L11)  | No                                                      | TopRight                                               |
 
 ## Usage
 
 ```javascript
 // Change import path to relative path.
-import BadgeNetwork from 'app/component-library/components/Badges/BadgeNetwork';
+import BadgeNetwork from 'app/component-library/components/Badges/variant/BadgeNetwork';
+import {BadgeVariants} from 'app/component-library/components/Badges/Badge.types';
 
 <BadgeNetwork
-  type={'network'}
+  variant={BadgeVariants.Network}
   name={NETWORK_NAME}
   imageSource={NETWORK_IMAGE_SOURCE}
   position={BadgeNetworkPosition.TopRight}

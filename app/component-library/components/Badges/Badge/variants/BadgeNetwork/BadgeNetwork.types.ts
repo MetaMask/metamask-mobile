@@ -1,5 +1,9 @@
-// 3rd party dependencies.
-import { ImageSourcePropType, ViewProps } from 'react-native';
+// Third party dependencies.
+import { ImageSourcePropType } from 'react-native';
+
+// External dependencies.
+import { BadgeVariants } from '../../Badge.types';
+import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
 
 /**
  * Enum that represents the position of the network badge.
@@ -12,11 +16,11 @@ export enum BadgeNetworkPosition {
 /**
  * BadgeNetwork component props.
  */
-export interface BadgeNetworkProps extends ViewProps {
+export interface BadgeNetworkProps extends Omit<BadgeBaseProps, 'children'> {
   /**
-   * Type of badge.
+   * Variant of badge.
    */
-  type: 'network';
+  variant: BadgeVariants.Network;
   /**
    * Name of the network.
    */
