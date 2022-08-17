@@ -12,9 +12,10 @@ import {
 // Internal dependencies.
 import BadgeNetwork from './BadgeNetwork';
 import { BADGE_NETWORK_TEST_ID } from '../../Badge.constants';
+import { BadgeNetworkPosition } from './BadgeNetwork.types';
 
 describe('BadgeNetwork - snapshots', () => {
-  it('should render badge with default position correctly', () => {
+  it('should render badge network with default position correctly', () => {
     const wrapper = shallow(
       <BadgeNetwork
         variant={BadgeVariants.Network}
@@ -24,10 +25,21 @@ describe('BadgeNetwork - snapshots', () => {
     );
     expect(wrapper).toMatchSnapshot();
   });
+  it('should render badge network with bottom right position correctly', () => {
+    const wrapper = shallow(
+      <BadgeNetwork
+        variant={BadgeVariants.Network}
+        name={TEST_NETWORK_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+        position={BadgeNetworkPosition.BottomRight}
+      />,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });
 
 describe('BadgeNetwork', () => {
-  it('should render badge with the given content', () => {
+  it('should render badge network with the given content', () => {
     const wrapper = shallow(
       <BadgeNetwork
         variant={BadgeVariants.Network}
