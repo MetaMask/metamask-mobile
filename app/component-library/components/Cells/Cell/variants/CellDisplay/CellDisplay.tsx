@@ -15,8 +15,7 @@ import { CellDisplayProps } from './CellDisplay.types';
 
 const CellDisplay = ({
   style,
-  avatarAccountAddress,
-  avatarAccountType,
+  avatarProps,
   title,
   secondaryText,
   tertiaryText,
@@ -28,8 +27,7 @@ const CellDisplay = ({
   return (
     <CellDisplayContainer style={styles.base} testID={CELL_DISPLAY_TEST_ID}>
       <CellBase
-        avatarAccountAddress={avatarAccountAddress}
-        avatarAccountType={avatarAccountType}
+        avatarProps={avatarProps}
         title={title}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

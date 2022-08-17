@@ -15,8 +15,7 @@ import { CellSelectProps } from './CellSelect.types';
 
 const CellSelect = ({
   style,
-  avatarAccountAddress,
-  avatarAccountType,
+  avatarProps,
   title,
   secondaryText,
   tertiaryText,
@@ -33,8 +32,7 @@ const CellSelect = ({
       testID={CELL_SELECT_TEST_ID}
     >
       <CellBase
-        avatarAccountAddress={avatarAccountAddress}
-        avatarAccountType={avatarAccountType}
+        avatarProps={avatarProps}
         title={title}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

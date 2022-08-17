@@ -2,7 +2,7 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies.
-import { AvatarAccountType } from '../../../../Avatars/AvatarAccount';
+import { AvatarProps } from '../../../../Avatars/Avatar.types';
 
 // Internal dependencies
 import { CellVariants } from '../../Cell.types';
@@ -16,13 +16,9 @@ export interface CellBaseProps extends ViewProps {
    */
   variant?: CellVariants;
   /**
-   * An Ethereum wallet address to retrieve avatar.
+   * Props for avatar component (with the exception of size).
    */
-  avatarAccountAddress: string;
-  /**
-   * AvatarAccount variants.
-   */
-  avatarAccountType: AvatarAccountType;
+  avatarProps: AvatarProps;
   /**
    * Title of the Cell Account, 1 line truncation.
    */

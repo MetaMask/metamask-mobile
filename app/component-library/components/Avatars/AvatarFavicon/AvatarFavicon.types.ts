@@ -13,7 +13,7 @@ export interface AvatarFaviconProps extends AvatarBaseProps {
   /**
    * Variant of Avatar
    */
-  variant?: AvatarVariants.Favicon;
+  variant: AvatarVariants.Favicon;
   /**
    * A favicon image from either a local or remote source.
    */

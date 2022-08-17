@@ -8,6 +8,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
+import { AvatarProps, AvatarVariants } from '../../Avatars/Avatar.types';
 
 // Internal dependencies.
 import Cell from './Cell';
@@ -28,7 +29,11 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
     CellVariants.Display,
     groupId,
   );
-
+  const accountAvatarProps: AvatarProps = {
+    variant: AvatarVariants.Account,
+    accountAddress: TEST_ACCOUNT_ADDRESS,
+    type: AvatarAccountType.JazzIcon,
+  };
   const titleText = text('title', TEST_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
@@ -57,8 +62,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
       return (
         <Cell
           variant={cellVariantsSelector}
-          avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-          avatarAccountType={AvatarAccountType.JazzIcon}
+          avatarProps={accountAvatarProps}
           title={titleText}
           secondaryText={secondaryText}
           tertiaryText={tertiaryText}
@@ -69,8 +73,7 @@ storiesOf('Component Library / Cell', module).add('Default', () => {
       return (
         <Cell
           variant={cellVariantsSelector}
-          avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-          avatarAccountType={AvatarAccountType.JazzIcon}
+          avatarProps={accountAvatarProps}
           title={titleText}
           secondaryText={secondaryText}
           tertiaryText={tertiaryText}

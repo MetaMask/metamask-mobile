@@ -15,8 +15,7 @@ import { CellMultiselectProps } from './CellMultiselect.types';
 
 const CellMultiselect = ({
   style,
-  avatarAccountAddress,
-  avatarAccountType,
+  avatarProps,
   title,
   secondaryText,
   tertiaryText,
@@ -33,8 +32,7 @@ const CellMultiselect = ({
       testID={CELL_MULTI_SELECT_TEST_ID}
     >
       <CellBase
-        avatarAccountAddress={avatarAccountAddress}
-        avatarAccountType={avatarAccountType}
+        avatarProps={avatarProps}
         title={title}
         secondaryText={secondaryText}
         tertiaryText={tertiaryText}

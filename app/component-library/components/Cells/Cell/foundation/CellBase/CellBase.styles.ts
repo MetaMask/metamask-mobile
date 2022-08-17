@@ -25,7 +25,7 @@ const styleSheet = (params: { theme: Theme; vars: CellBaseStyleSheetVars }) => {
     cellBase: {
       flexDirection: 'row',
     },
-    avatarAccount: {
+    avatar: {
       marginRight: 16,
     },
     cellBaseInfo: {

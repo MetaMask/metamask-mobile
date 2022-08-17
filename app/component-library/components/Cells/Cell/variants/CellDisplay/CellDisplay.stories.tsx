@@ -14,6 +14,7 @@ import {
   TEST_CELL_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
+import { AvatarProps, AvatarVariants } from '../../../../Avatars/Avatar.types';
 
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
@@ -21,6 +22,11 @@ import { CellVariants } from '../../Cell.types';
 
 storiesOf('Component Library / CellDisplay', module).add('Default', () => {
   const groupId = 'Props';
+  const accountAvatarProps: AvatarProps = {
+    variant: AvatarVariants.Account,
+    accountAddress: TEST_ACCOUNT_ADDRESS,
+    type: AvatarAccountType.JazzIcon,
+  };
   const titleText = text('title', TEST_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
@@ -42,8 +48,7 @@ storiesOf('Component Library / CellDisplay', module).add('Default', () => {
   return (
     <CellDisplay
       variant={CellVariants.Display}
-      avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-      avatarAccountType={AvatarAccountType.JazzIcon}
+      avatarProps={accountAvatarProps}
       title={titleText}
       secondaryText={secondaryText}
       tertiaryText={tertiaryText}

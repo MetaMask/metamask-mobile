@@ -16,12 +16,18 @@ import {
   TEST_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
 import { CellVariants } from '../../Cell.types';
+import { AvatarProps, AvatarVariants } from '../../../../Avatars/Avatar.types';
 
 // Internal dependencies.
 import CellMultiselect from './CellMultiselect';
 
 storiesOf('Component Library / CellMultiselect', module).add('Default', () => {
   const groupId = 'Props';
+  const accountAvatarProps: AvatarProps = {
+    variant: AvatarVariants.Account,
+    accountAddress: TEST_ACCOUNT_ADDRESS,
+    type: AvatarAccountType.JazzIcon,
+  };
   const titleText = text('title', TEST_CELL_TITLE, groupId);
   const includeSecondaryText = boolean(
     'Includes secondaryText?',
@@ -44,8 +50,7 @@ storiesOf('Component Library / CellMultiselect', module).add('Default', () => {
   return (
     <CellMultiselect
       variant={CellVariants.Multiselect}
-      avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-      avatarAccountType={AvatarAccountType.JazzIcon}
+      avatarProps={accountAvatarProps}
       title={titleText}
       secondaryText={secondaryText}
       tertiaryText={tertiaryText}

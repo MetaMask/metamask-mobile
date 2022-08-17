@@ -4,6 +4,7 @@ import { shallow } from 'enzyme';
 
 // External dependencies.
 import { AvatarAccountType } from '../../Avatars/AvatarAccount';
+import { AvatarProps, AvatarVariants } from '../../Avatars/Avatar.types';
 
 // Internal dependencies.
 import Cell from './Cell';
@@ -16,13 +17,18 @@ import {
 } from './Cell.constants';
 import { CellVariants } from './Cell.types';
 
+const accountAvatarProps: AvatarProps = {
+  variant: AvatarVariants.Account,
+  accountAddress: TEST_ACCOUNT_ADDRESS,
+  type: AvatarAccountType.JazzIcon,
+};
+
 describe('Cell - Snapshot', () => {
   it('should render CellDisplay given the type Display', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Display}
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
       />,
     );
@@ -32,8 +38,7 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Multiselect}
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
       />,
     );
@@ -43,8 +48,7 @@ describe('Cell - Snapshot', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Select}
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
       />,
     );
@@ -57,8 +61,7 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Display}
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
       />,
     );
@@ -81,8 +84,7 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Multiselect}
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
       />,
     );
@@ -105,8 +107,7 @@ describe('Cell', () => {
     const wrapper = shallow(
       <Cell
         variant={CellVariants.Select}
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
       />,
     );

@@ -6,10 +6,10 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import AvatarAccount from '../../../../Avatars/AvatarAccount';
 import Text, { TextVariant } from '../../../../Text';
 import { AvatarBaseSize } from '../../../../Avatars/AvatarBase';
 import Tag from '../../../../Tags/Tag';
+import Avatar from '../../../../Avatars/Avatar';
 
 // Internal dependencies.
 import {
@@ -24,8 +24,7 @@ import { CellBaseProps } from './CellBase.types';
 
 const CellBase = ({
   style,
-  avatarAccountAddress,
-  avatarAccountType,
+  avatarProps,
   title,
   secondaryText,
   tertiaryText,
@@ -37,12 +36,11 @@ const CellBase = ({
   return (
     <View style={styles.cellBase}>
       {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-      <AvatarAccount
-        type={avatarAccountType}
-        accountAddress={avatarAccountAddress}
+      <Avatar
         size={AvatarBaseSize.Md}
-        style={styles.avatarAccount}
+        style={styles.avatar}
         testID={CELL_AVATAR_TEST_ID}
+        {...avatarProps}
       />
       <View style={styles.cellBaseInfo}>
         <Text

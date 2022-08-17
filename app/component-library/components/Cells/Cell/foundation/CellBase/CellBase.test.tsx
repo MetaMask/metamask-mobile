@@ -11,6 +11,7 @@ import {
   TEST_CELL_TERTIARY_TEXT,
   TEST_TAG_LABEL_TEXT,
 } from '../../Cell.constants';
+import { AvatarProps, AvatarVariants } from '../../../../Avatars/Avatar.types';
 
 // Internal dependencies.
 import CellBase from './CellBase';
@@ -22,22 +23,23 @@ import {
   CELL_TAG_LABEL_TEST_ID,
 } from './CellBase.constants';
 
+const accountAvatarProps: AvatarProps = {
+  variant: AvatarVariants.Account,
+  accountAddress: TEST_ACCOUNT_ADDRESS,
+  type: AvatarAccountType.JazzIcon,
+};
+
 describe('CellBase - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
-      <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
-        title={TEST_CELL_TITLE}
-      />,
+      <CellBase avatarProps={accountAvatarProps} title={TEST_CELL_TITLE} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
   it('should render secondaryText when given', () => {
     const wrapper = shallow(
       <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
         secondaryText={TEST_CELL_SECONDARY_TEXT}
       />,
@@ -47,8 +49,7 @@ describe('CellBase - Snapshot', () => {
   it('should render tertiaryText when given', () => {
     const wrapper = shallow(
       <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
         tertiaryText={TEST_CELL_TERTIARY_TEXT}
       />,
@@ -58,8 +59,7 @@ describe('CellBase - Snapshot', () => {
   it('should render label when given', () => {
     const wrapper = shallow(
       <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
         tagLabel={TEST_TAG_LABEL_TEXT}
       />,
@@ -71,11 +71,7 @@ describe('CellBase - Snapshot', () => {
 describe('CellBase', () => {
   it('should render Avatar', () => {
     const wrapper = shallow(
-      <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
-        title={TEST_CELL_TITLE}
-      />,
+      <CellBase avatarProps={accountAvatarProps} title={TEST_CELL_TITLE} />,
     );
     const avatarComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_AVATAR_TEST_ID,
@@ -84,11 +80,7 @@ describe('CellBase', () => {
   });
   it('should render the given title', () => {
     const wrapper = shallow(
-      <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
-        title={TEST_CELL_TITLE}
-      />,
+      <CellBase avatarProps={accountAvatarProps} title={TEST_CELL_TITLE} />,
     );
     const titleElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_TITLE_TEST_ID,
@@ -98,8 +90,7 @@ describe('CellBase', () => {
   it('should render the given secondaryText', () => {
     const wrapper = shallow(
       <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
         secondaryText={TEST_CELL_SECONDARY_TEXT}
       />,
@@ -113,11 +104,7 @@ describe('CellBase', () => {
   });
   it('should not render secondaryText if not given', () => {
     const wrapper = shallow(
-      <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
-        title={TEST_CELL_TITLE}
-      />,
+      <CellBase avatarProps={accountAvatarProps} title={TEST_CELL_TITLE} />,
     );
     const secondaryTextElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_SECONDARY_TEXT_TEST_ID,
@@ -127,8 +114,7 @@ describe('CellBase', () => {
   it('should render the given tertiaryText', () => {
     const wrapper = shallow(
       <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
         tertiaryText={TEST_CELL_TERTIARY_TEXT}
       />,
@@ -140,11 +126,7 @@ describe('CellBase', () => {
   });
   it('should not render tertiaryText if not given', () => {
     const wrapper = shallow(
-      <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
-        title={TEST_CELL_TITLE}
-      />,
+      <CellBase avatarProps={accountAvatarProps} title={TEST_CELL_TITLE} />,
     );
     const tertiaryTextElement = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_TERTIARY_TEXT_TEST_ID,
@@ -154,8 +136,7 @@ describe('CellBase', () => {
   it('should render tag with given label', () => {
     const wrapper = shallow(
       <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
+        avatarProps={accountAvatarProps}
         title={TEST_CELL_TITLE}
         tagLabel={TEST_TAG_LABEL_TEXT}
       />,
@@ -167,11 +148,7 @@ describe('CellBase', () => {
   });
   it('should not render tag without given label', () => {
     const wrapper = shallow(
-      <CellBase
-        avatarAccountAddress={TEST_ACCOUNT_ADDRESS}
-        avatarAccountType={AvatarAccountType.JazzIcon}
-        title={TEST_CELL_TITLE}
-      />,
+      <CellBase avatarProps={accountAvatarProps} title={TEST_CELL_TITLE} />,
     );
     const tagComponent = wrapper.findWhere(
       (node) => node.prop('testID') === CELL_TAG_LABEL_TEST_ID,
