@@ -1329,10 +1329,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@consensys/on-ramp-sdk@^1.0.9":
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.0.9.tgz#8d8e1db8db72e09f004d19405b7dc25e51b3616a"
-  integrity sha512-5jgAfELmzxB7cnDoh76RGjxZhCLBTLSVlz1C7MIWHrqRyc9RV6ywzFpzEfwwJbYOhso2JJfZ9PLb4n+766Z+8A==
+"@consensys/on-ramp-sdk@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.1.2.tgz#ffccb0d3f673d286e7f93d253c2f2ce39f8597d5"
+  integrity sha512-7q4zlqfXu/2T2/BHiSG5a38N7xhzm3YwF+g02kPchhWoS9PSVFf2N/adRQ8nYWPjrggsTYubiCl8gpR2KN/MmQ==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"

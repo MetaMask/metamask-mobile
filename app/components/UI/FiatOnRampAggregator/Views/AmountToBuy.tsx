@@ -664,7 +664,10 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Amount to Buy Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -674,7 +677,11 @@ const AmountToBuy = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorView description={error} ctaOnPress={retryMethod} />
+          <ErrorView
+            description={error}
+            ctaOnPress={retryMethod}
+            location={'Amount to Buy Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );
@@ -733,6 +740,7 @@ const AmountToBuy = () => {
             )}
             ctaLabel={strings('fiat_on_ramp_aggregator.change_payment_method')}
             ctaOnPress={showPaymentMethodsModal as () => void}
+            location={'Amount to Buy Screen'}
           />
         </ScreenLayout.Body>
         <PaymentMethodModal

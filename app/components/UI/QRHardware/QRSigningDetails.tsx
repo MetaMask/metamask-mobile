@@ -30,7 +30,7 @@ import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useNavigation } from '@react-navigation/native';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 
 interface IQRSigningDetails {
@@ -123,7 +123,7 @@ const QRSigningDetails = ({
   shouldStartAnimated = true,
   bypassAndroidCameraAccessCheck = true,
 }: IQRSigningDetails) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
