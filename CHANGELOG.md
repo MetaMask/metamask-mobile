@@ -2,6 +2,9 @@
 
 ## Current Main Branch
 
+## 5.5.1 - Aug 16, 2022
+- [UPDATE](https://github.com/MetaMask/dapps/pull/137): [UPDATE] Disable iOS explore links
+
 ## 5.5.0 - Jul 27, 2022
 - [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [IMPROVEMENT] Swaps support for hardware wallet
 - [#4627](https://github.com/MetaMask/metamask-mobile/pull/4627): [IMPROVEMENT] Add typing support for payment methods to be used instead of payment IDs
