@@ -2,7 +2,7 @@
 import BackgroundBridge from './BackgroundBridge';
 import RemoteCommunication, {
   CommunicationLayerPreference,
-} from './RemoteCommunication';
+} from '@metamask/sdk-communication-layer';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
 //import { approveHost } from '../actions/privacy';
 import AppConstants from './AppConstants';
