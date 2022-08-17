@@ -1,9 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
-import Device from '../../../util/device';
-
-const breakPoint = Device.getDeviceHeight() < 700;
 
 export const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -12,16 +9,13 @@ export const createStyles = (colors: any) =>
     },
     areYouSure: {
       width: '100%',
-      padding: breakPoint ? 16 : 32,
       justifyContent: 'center',
       alignSelf: 'center',
+      padding: 16,
     },
     textStyle: {
-      paddingVertical: 12,
+      paddingVertical: 8,
       textAlign: 'center',
-    },
-    bold: {
-      ...fontStyles.bold,
     },
     input: {
       ...fontStyles.normal,

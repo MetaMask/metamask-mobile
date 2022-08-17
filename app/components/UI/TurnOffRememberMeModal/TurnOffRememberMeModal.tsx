@@ -100,7 +100,6 @@ const TurnOffRememberMeModal = () => {
               <OutlinedTextField
                 style={styles.input}
                 testID={TURN_OFF_REMEMBER_ME_MODAL}
-                autoFocus
                 secureTextEntry
                 returnKeyType={'done'}
                 onChangeText={checkPassword}
