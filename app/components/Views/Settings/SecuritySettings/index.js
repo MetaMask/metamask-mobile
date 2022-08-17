@@ -65,6 +65,7 @@ import {
 import { LEARN_MORE_URL } from '../../../../constants/urls';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
+import RememberMeOptionSection from './Sections/RememberMeOptionSection';
 
 const isIos = Device.isIos();
 
@@ -1192,6 +1193,7 @@ class Settings extends PureComponent {
           {this.renderPasswordSection()}
           {this.renderAutoLockSection()}
           {biometryType && this.renderBiometricOptionsSection()}
+          <RememberMeOptionSection />
           {biometryType &&
             !biometryChoice &&
             this.renderDevicePasscodeSection()}
