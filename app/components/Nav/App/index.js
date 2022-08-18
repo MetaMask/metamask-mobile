@@ -242,10 +242,13 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     const initAnalytics = async () => {
       await Analytics.init();
-      SDKConnect.init();
     };
 
     initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    SDKConnect.init();
   }, []);
 
   useEffect(() => {
