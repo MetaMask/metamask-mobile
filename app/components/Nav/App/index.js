@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import { Animated, Linking, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -55,6 +55,28 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import Alert, { AlertType } from '../../Base/Alert';
+import Text from '../..//Base/Text';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
+import { strings } from '../../../../locales/i18n';
+
+const createStyles = (colors) =>
+  StyleSheet.create({
+    alertContainer: {
+      paddingHorizontal: 20,
+      marginVertical: 20,
+      width: '100%',
+    },
+    alertText: {
+      lineHeight: 18,
+      color: colors.text.default,
+      paddingLeft: 4,
+    },
+    alertIcon: {
+      paddingRight: 4,
+    },
+  });
 
 const Stack = createStackNavigator();
 /**
@@ -151,7 +173,7 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({ userLoggedIn, network }) => {
   const animation = useRef(null);
   const animationName = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -159,7 +181,9 @@ const App = ({ userLoggedIn }) => {
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const [animationPlayed, setAnimationPlayed] = useState();
+  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
+  const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
@@ -359,6 +383,50 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
+  const openDeprecatedNetworksArticle = () => {
+    Linking.openURL(
+      'https://metamask.zendesk.com/hc/en-us/articles/360057142392',
+    );
+  };
+
+  const renderDeprecatedNetworkAlert = (network) => {
+    const { type } = network.provider;
+    if (type === ROPSTEN || type === RINKEBY || type === KOVAN) {
+      return (
+        <View style={styles.alertContainer}>
+          <Alert
+            small
+            type={AlertType.Warning}
+            onDismiss={() => {
+              setShowDeprecatedAlert(false);
+            }}
+            renderIcon={() => (
+              <MaterialCommunityIcon
+                name="information"
+                size={20}
+                color={colors.warning.default}
+                style={styles.alertIcon}
+              />
+            )}
+          >
+            <Text primary noMargin style={styles.alertText}>
+              {strings('networks.deprecated_network_msg')}
+              <Text
+                primary
+                noMargin
+                link
+                onPress={openDeprecatedNetworksArticle}
+              >
+                {' '}
+                {strings('networks.learn_more')}
+              </Text>
+            </Text>
+          </Alert>
+        </View>
+      );
+    }
+  };
+
   return (
     // do not render unless a route is defined
     (route && (
@@ -405,6 +473,7 @@ const App = ({ userLoggedIn }) => {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        {showDeprecatedAlert && renderDeprecatedNetworkAlert(network)}
         {renderSplash()}
         <Toast ref={toastRef} />
       </>
@@ -415,6 +484,7 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  network: state.engine.backgroundState.NetworkController,
 });
 
 export default connect(mapStateToProps)(App);
