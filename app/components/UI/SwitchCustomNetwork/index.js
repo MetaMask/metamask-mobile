@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
-import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
+import { CANCEL_BUTTON_ID } from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({

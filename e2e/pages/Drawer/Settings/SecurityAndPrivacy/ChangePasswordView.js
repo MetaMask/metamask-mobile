@@ -6,7 +6,7 @@ import {
   SUBMIT_BUTTON_ID,
   IOS_I_UNDERSTAND_BUTTON_ID,
   ANDROID_I_UNDERSTAND_BUTTON_ID,
-} from '../../../../../app/constants/test-ids';
+} from '../../../../../wdio/test-ids';
 
 import { strings } from '../../../../../locales/i18n';
 

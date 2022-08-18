@@ -29,7 +29,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-
+import {
+  idChange,
+  PROTECT_YOUR_ACCOUNT_SCREEN_CONTAINER_ID,
+  REMIND_ME_LATER_BUTTON_ID,
+} from '../../../../wdio/test-ids';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -215,9 +219,9 @@ const AccountBackupStep1 = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={'account-backup-step-1-screen'}
+        {...idChange(PROTECT_YOUR_ACCOUNT_SCREEN_CONTAINER_ID)}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View style={styles.wrapper}>
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.title}>
@@ -244,7 +248,7 @@ const AccountBackupStep1 = (props) => {
                   style={styles.remindLaterButton}
                   onPress={showRemindLater}
                   hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                  testID={'remind-me-later-button'}
+                  {...idChange(REMIND_ME_LATER_BUTTON_ID)}
                 >
                   <Text style={styles.remindLaterText}>
                     {strings('account_backup_step_1.remind_me_later')}

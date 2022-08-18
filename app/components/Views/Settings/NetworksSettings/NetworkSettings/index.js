@@ -49,7 +49,7 @@ import {
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
   INPUT_NETWORK_NAME,
-} from '../../../../../constants/test-ids';
+} from '../../../../../../wdio/test-ids';
 import EmptyPopularList from './emptyList';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';

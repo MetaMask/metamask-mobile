@@ -23,7 +23,11 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
+import {
+  idChange,
+  ONBOARDING_CAROUSEL_CONTAINER_ID,
+  GET_STARTED_BUTTON_ID,
+} from '../../../../wdio/test-ids';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -190,7 +194,7 @@ class OnboardingCarousel extends PureComponent {
     return (
       <View
         style={baseStyles.flexGrow}
-        accessibilityLabel={'onboarding-carousel-screen'}
+        {...idChange(ONBOARDING_CAROUSEL_CONTAINER_ID)}
       >
         <OnboardingScreenWithBg screen={'carousel'}>
           <ScrollView
@@ -211,7 +215,7 @@ class OnboardingCarousel extends PureComponent {
                       <View style={styles.tab}>
                         <Text
                           style={styles.title}
-                          accessibilityLabel={`carousel-screen-${value}`}
+                          {...idChange(`carousel-screen-${value}`)}
                         >
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
@@ -224,7 +228,7 @@ class OnboardingCarousel extends PureComponent {
                           source={carousel_images[index]}
                           style={[styles.carouselImage, styles[imgStyleKey]]}
                           resizeMethod={'auto'}
-                          accessibilityLabel={`carousel-${value}-image`}
+                          {...idChange(`carousel-${value}-image`)}
                         />
                       </View>
                     </View>
@@ -248,7 +252,7 @@ class OnboardingCarousel extends PureComponent {
           <View style={styles.ctas}>
             <View
               style={styles.ctaWrapper}
-              accessibilityLabel={'onboarding-get-started-button'}
+              {...idChange(GET_STARTED_BUTTON_ID)}
             >
               <StyledButton type={'normal'} onPress={this.onPressGetStarted}>
                 {strings('onboarding_carousel.get_started')}

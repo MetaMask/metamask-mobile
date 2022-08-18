@@ -32,7 +32,7 @@ import {
   WRONG_PASSWORD_ERROR,
 } from '../../../constants/onboarding';
 
-import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
+import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../../wdio/test-ids';
 
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';

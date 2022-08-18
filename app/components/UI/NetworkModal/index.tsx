@@ -27,7 +27,7 @@ import {
   APPROVE_NETWORK_MODAL_ID,
   APPROVE_NETWORK_CANCEL_BUTTON_ID,
   APPROVE_NETWORK_APPROVE_BUTTON_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({

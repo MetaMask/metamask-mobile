@@ -1,12 +1,16 @@
 //import TestHelpers from '../../helpers';
 import Gestures from '../Gestures';
-const ONBOARDING_SCREEN_ID = 'onboarding-screen';
-const CREATE_WALLET_BUTTON_ID = 'create-wallet-button';
-const IMPORT_WALLET_BUTTON_ID = 'import-wallet-import-from-seed-button';
+
+import {
+  ONBOARDING_SCREEN_CONTAINER_ID,
+  CREATE_WALLET_BUTTON_ID,
+  IMPORT_WALLET_BUTTON_ID,
+} from '../../../test-ids';
+
 //const importUsingSecretRecoveryPhrase = 'import-wallet-import-from-seed-button';
 class OnboardingView {
   get onboardingViewContainer() {
-    return $(`~${ONBOARDING_SCREEN_ID}`);
+    return $(`~${ONBOARDING_SCREEN_CONTAINER_ID}`);
   }
 
   async tapCreateWallet() {

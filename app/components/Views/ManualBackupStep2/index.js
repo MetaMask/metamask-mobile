@@ -20,6 +20,11 @@ import Device from '../../../util/device';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import {
+  idChange,
+  PROTECT_YOUR_WALLET_CONTAINER_ID,
+  GET_STARTED_BUTTON_ID,
+} from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -415,7 +420,10 @@ class ManualBackupStep2 extends PureComponent {
           showCancelButton={false}
           confirmButtonMode={'confirm'}
         >
-          <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+          <View
+            style={styles.wrapper}
+            {...idChange(PROTECT_YOUR_WALLET_CONTAINER_ID)}
+          >
             <Text style={styles.action}>
               {strings('manual_backup_step_2.action')}
             </Text>

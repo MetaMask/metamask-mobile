@@ -19,7 +19,7 @@ import { strings } from '../../../../locales/i18n';
 import {
   DELETE_WALLET_CONTAINER_ID,
   DELETE_WALLET_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 import { tlc } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';

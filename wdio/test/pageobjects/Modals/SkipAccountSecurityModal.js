@@ -1,6 +1,15 @@
 import { getDefaultProvider } from 'ethers';
 import Gestures from '../Gestures';
 
+import {
+  ANDROID_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID,
+  iOS_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID,
+  CONFIRM_PASSWORD_INPUT_BOX_ID,
+  IOS_I_UNDERSTAND_BUTTON_ID,
+  ANDROID_SKIP_ACCOUNT_SECURITY_BUTTON_ID,
+  CREATE_PASSWORD_BUTTON_ID,
+} from '../../../test-ids';
+
 const SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID = 'skip-backup-modal';
 const iOS_I_UNDERSTAND_BUTTON_ID = 'skip-backup-check';
 const ANDROID_I_UNDERSTAND_BUTTON_ID = 'skip-backup-text';
@@ -11,11 +20,9 @@ class SkipAccountSecurityModal {
   }
 
   async tapIUnderstandCheckBox() {
-    if (driver.capabilities.platformName === 'Android') {
-      await Gestures.tap(ANDROID_I_UNDERSTAND_BUTTON_ID);
-    } else {
-      await Gestures.tap(iOS_I_UNDERSTAND_BUTTON_ID);
-    }
+    return driver.capabilities.platformName === 'Android'
+      ? await Gestures.tap(ANDROID_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID)
+      : await Gestures.tap(iOS_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID);
   }
 
   // static async tapIUnderstandCheckBox() {

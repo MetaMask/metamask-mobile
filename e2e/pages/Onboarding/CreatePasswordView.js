@@ -6,7 +6,8 @@ import {
   CONFIRM_PASSWORD_INPUT_BOX_ID,
   IOS_I_UNDERSTAND_BUTTON_ID,
   ANDROID_I_UNDERSTAND_BUTTON_ID,
-} from '../../../app/constants/test-ids';
+  CREATE_PASSWORD_BUTTON_ID,
+} from '../../../wdio/test-ids';
 
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';
 const REMEMBER_ME_ID = 'remember-me-toggle';

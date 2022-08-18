@@ -61,7 +61,10 @@ import {
   CONFIRM_PASSWORD_INPUT_BOX_ID,
   IOS_I_UNDERSTAND_BUTTON_ID,
   ANDROID_I_UNDERSTAND_BUTTON_ID,
-} from '../../../constants/test-ids';
+  CREATE_PASSWORD_BUTTON_ID,
+  REMEMBER_ME_ID,
+  idChange,
+} from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -606,7 +609,7 @@ class ChoosePassword extends PureComponent {
               }}
               thumbColor={importedColors.white}
               ios_backgroundColor={colors.border.muted}
-              accessibilityLabel={'remember-me-toggle'}
+              {...idChange(REMEMBER_ME_ID)}
             />
           </>
         )}
@@ -690,7 +693,7 @@ class ChoosePassword extends PureComponent {
               contentContainerStyle={styles.keyboardScrollableWrapper}
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
-              <View accessibilityLabel={CREATE_PASSWORD_CONTAINER_ID}>
+              <View {...idChange(CREATE_PASSWORD_CONTAINER_ID)}>
                 <View style={styles.content}>
                   <Text style={styles.title}>
                     {strings('choose_password.title')}
@@ -720,7 +723,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    accessibilityLabel={CREATE_PASSWORD_INPUT_BOX_ID}
+                    {...idChange(CREATE_PASSWORD_INPUT_BOX_ID)}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
@@ -750,7 +753,7 @@ class ChoosePassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    accessibilityLabel={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    {...idChange(CONFIRM_PASSWORD_INPUT_BOX_ID)}
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
                     autoCapitalize="none"
@@ -782,12 +785,12 @@ class ChoosePassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    accessibilityLabel={IOS_I_UNDERSTAND_BUTTON_ID}
+                    {...idChange(IOS_I_UNDERSTAND_BUTTON_ID)}
                   />
                   <Text
                     style={styles.label}
                     onPress={this.setSelection}
-                    accessibilityLabel={ANDROID_I_UNDERSTAND_BUTTON_ID}
+                    {...idChange(ANDROID_I_UNDERSTAND_BUTTON_ID)}
                   >
                     {strings('choose_password.i_understand')}{' '}
                     <Text onPress={this.learnMore} style={styles.learnMore}>
@@ -798,16 +801,19 @@ class ChoosePassword extends PureComponent {
 
                 {!!error && <Text style={styles.errorMsg}>{error}</Text>}
               </View>
-
-              <View style={styles.ctaWrapper}>
-                <StyledButton
-                  type={'blue'}
-                  onPress={this.onPressCreate}
-                  accessibilityLabel={'submit-button'}
-                  disabled={!canSubmit}
+              <View style={styles.ctas}>
+                <View
+                  style={styles.ctaWrapper}
+                  {...idChange(CREATE_PASSWORD_BUTTON_ID)}
                 >
-                  {strings('choose_password.create_button')}
-                </StyledButton>
+                  <StyledButton
+                    type={'blue'}
+                    onPress={this.onPressCreate}
+                    disabled={!canSubmit}
+                  >
+                    {strings('choose_password.create_button')}
+                  </StyledButton>
+                </View>
               </View>
             </KeyboardAwareScrollView>
           </View>

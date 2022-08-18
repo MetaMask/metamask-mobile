@@ -2,7 +2,7 @@ import TestHelpers from '../../helpers';
 import {
   ENTER_ALIAS_INPUT_BOX_ID,
   ADD_ADDRESS_MODAL_CONTAINER_ID,
-} from '../../../app/constants/test-ids';
+} from '../../../wdio/test-ids';
 
 export default class AddAddressModal {
   static async typeInAlias(name) {

@@ -31,6 +31,13 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
+import {
+  METAMETRICS_OPT_IN_CONTAINER_ID,
+  AGREE_BUTTON_ID,
+  NO_THANKS_BUTTON_ID,
+  idChange,
+} from '../../../../wdio/test-ids';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     root: {
@@ -300,7 +307,7 @@ class OptinMetrics extends PureComponent {
     return (
       <SafeAreaView
         style={styles.root}
-        accessibilityLabel={'metaMetrics-OptIn'}
+        {...idChange(METAMETRICS_OPT_IN_CONTAINER_ID)}
       >
         <ScrollView style={styles.root}>
           <View style={styles.wrapper}>
@@ -319,7 +326,7 @@ class OptinMetrics extends PureComponent {
 
           <View style={styles.actionContainer}>
             <StyledButton
-              accessibilityLabel={'cancel-button'}
+              {...idChange(NO_THANKS_BUTTON_ID)}
               containerStyle={[styles.button, styles.cancel]}
               type={'cancel'}
               onPress={this.onCancel}
@@ -327,7 +334,7 @@ class OptinMetrics extends PureComponent {
               {strings('privacy_policy.decline')}
             </StyledButton>
             <StyledButton
-              accessibilityLabel={'agree-button'}
+              {...idChange(AGREE_BUTTON_ID)}
               containerStyle={[styles.button, styles.confirm]}
               type={'confirm'}
               onPress={this.onConfirm}

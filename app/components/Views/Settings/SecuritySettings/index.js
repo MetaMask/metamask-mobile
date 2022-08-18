@@ -61,7 +61,7 @@ import {
   CHANGE_PASSWORD_TITLE_ID,
   CHANGE_PASSWORD_BUTTON_ID,
   REVEAL_SECRET_RECOVERY_PHRASE_BUTTON_ID,
-} from '../../../../constants/test-ids';
+} from '../../../../../wdio/test-ids';
 import { LEARN_MORE_URL } from '../../../../constants/urls';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';

@@ -8,7 +8,7 @@ import {
   ANDROID_I_UNDERSTAND_BUTTON_ID,
   IMPORT_PASSWORD_CONTAINER_ID,
   SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
-} from '../../../app/constants/test-ids';
+} from '../../../wdio/test-ids';
 
 const REMEMBER_ME_ID = 'remember-me-toggle';
 const CREATE_PASSWORD_BUTTON_ID = 'submit-button';

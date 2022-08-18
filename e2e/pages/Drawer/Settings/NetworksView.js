@@ -3,7 +3,7 @@ import {
   RPC_VIEW_CONTAINER_ID,
   ADD_CUSTOM_RPC_NETWORK_BUTTON_ID,
   ADD_NETWORKS_ID,
-} from '../../../../app/constants/test-ids';
+} from '../../../../wdio/test-ids';
 
 const NETWORK_VIEW_CONTAINER_ID = 'networks-screen';
 const RPC_NETWORK_NAME_ID = 'rpc-networks';

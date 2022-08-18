@@ -9,6 +9,13 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import {
+  idChange,
+  ANDROID_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID,
+  iOS_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID,
+  SKIP_ACCOUNT_SECURITY_BUTTON_ID,
+  SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID,
+} from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -104,7 +111,7 @@ const SkipAccountSecurityModal = ({
         </Text>
         <View
           style={styles.skipModalActionButtons}
-          accessibilityLabel={'skip-backup-modal'}
+          {...idChange(SKIP_ACCOUNT_SECURITY_MODAL_CONTAINER_ID)}
         >
           <CheckBox
             style={styles.skipModalCheckbox}
@@ -115,12 +122,12 @@ const SkipAccountSecurityModal = ({
               true: colors.primary.default,
               false: colors.border.default,
             }}
-            accessibilityLabel={'skip-backup-check'}
+            {...idChange(iOS_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID)}
           />
           <Text
             onPress={toggleSkipCheckbox}
             style={styles.skipModalText}
-            accessibilityLabel={'skip-backup-text'}
+            {...idChange(ANDROID_SKIP_ACCOUNT_SECURITY_I_UNDERSTAND_BUTTON_ID)}
           >
             {strings('account_backup_step_1.skip_check')}
           </Text>

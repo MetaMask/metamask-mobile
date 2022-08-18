@@ -2,7 +2,7 @@ import TestHelpers from '../../helpers';
 import {
   NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
   NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
-} from '../../../app/constants/test-ids';
+} from '../../../wdio/test-ids';
 import { strings } from '../../../locales/i18n';
 
 const switchToNetworkText = strings('networks.new_network');

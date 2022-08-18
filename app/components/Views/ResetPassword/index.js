@@ -61,7 +61,7 @@ import {
   IOS_I_UNDERSTAND_BUTTON_ID,
   ANDROID_I_UNDERSTAND_BUTTON_ID,
   CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({

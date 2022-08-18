@@ -12,7 +12,7 @@ import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
-import { BROWSER_URL_MODAL_ID } from '../../../constants/test-ids';
+import { BROWSER_URL_MODAL_ID } from '../../../../wdio/test-ids';
 import {
   createNavigationDetails,
   useParams,

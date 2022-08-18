@@ -28,7 +28,7 @@ import getImage from '../../../util/getImage';
 import {
   NETWORK_LIST_MODAL_CONTAINER_ID,
   NETWORK_SCROLL_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 import ImageIcon from '../ImageIcon';
 
 const createStyles = (colors) =>

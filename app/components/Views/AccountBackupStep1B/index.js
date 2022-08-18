@@ -24,7 +24,10 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
-
+import {
+  CAROUSEL_SCREEN_ONE_IMAGE_ID,
+  PROTECT_YOUR_ACCOUNT_SCREEN_CONTAINER_ID,
+} from '../../../../wdio/test-ids';
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
 const IMAGE_1_RATIO = 162.8 / 138;
@@ -242,7 +245,10 @@ const AccountBackupStep1B = (props) => {
         style={styles.mainWrapper}
         testID={'account-backup-step-1-screen'}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View
+          style={styles.wrapper}
+          {...idChange(PROTECT_YOUR_ACCOUNT_SCREEN_CONTAINER_ID)}
+        >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.titleIcon}>🔒</Text>
@@ -352,7 +358,7 @@ const AccountBackupStep1B = (props) => {
               source={explain_backup_seedphrase}
               style={styles.image}
               resizeMethod={'auto'}
-              testID={'carousel-one-image'}
+              {...idChange(CAROUSEL_SCREEN_ONE_IMAGE_ID)}
             />
             <Text style={styles.whySecureText}>
               {strings('account_backup_step_1B.why_secure_1')}

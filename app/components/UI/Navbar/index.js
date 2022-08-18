@@ -29,7 +29,7 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
-import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
+import { BACK_ARROW_BUTTON_ID } from '../../../../wdio/test-ids';
 
 const { HOMEPAGE_URL } = AppConstants;
 

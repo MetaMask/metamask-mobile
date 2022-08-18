@@ -7,7 +7,7 @@ import { useTheme } from '../../../../util/theme';
 import {
   NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
   NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
-} from '../../../../constants/test-ids';
+} from '../../../../../wdio/test-ids';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({

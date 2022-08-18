@@ -16,7 +16,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   CANCEL_BUTTON_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({

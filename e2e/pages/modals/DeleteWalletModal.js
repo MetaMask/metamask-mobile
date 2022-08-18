@@ -2,7 +2,7 @@ import TestHelpers from '../../helpers';
 import {
   DELETE_WALLET_CONTAINER_ID,
   DELETE_WALLET_INPUT_BOX_ID,
-} from '../../../app/constants/test-ids';
+} from '../../../wdio/test-ids';
 
 export default class DeleteWalletModal {
   static async tapIUnderstandButton() {

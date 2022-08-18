@@ -46,6 +46,14 @@ import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  idChange,
+  ONBOARDING_SCREEN_CONTAINER_ID,
+  CREATE_WALLET_BUTTON_ID,
+  IMPORT_WALLET_BUTTON_ID,
+  IMPORT_WALLET_FROM_EXTENSION_BUTTON_ID,
+  WALLET_SETUP_SCREEN_CONTAINER_ID,
+} from '../../../../wdio/test-ids';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -410,7 +418,7 @@ class Onboarding extends PureComponent {
       <View style={styles.ctas}>
         <Text
           style={styles.title}
-          accessibilityLabel={'onboarding-screen-title'}
+          {...idChange(WALLET_SETUP_SCREEN_CONTAINER_ID)}
         >
           {strings('onboarding.title')}
         </Text>
@@ -424,7 +432,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'normal'}
               onPress={this.onPressImport}
-              testID={'import-wallet-import-from-seed-button'}
+              {...idChange(IMPORT_WALLET_BUTTON_ID)}
             >
               {strings('import_wallet.import_from_seed_button')}
             </StyledButton>
@@ -436,7 +444,7 @@ class Onboarding extends PureComponent {
                 style={styles.button}
                 type={'normal'}
                 onPress={this.onPressSync}
-                testID={'onboarding-import-button'}
+                {...idChange(IMPORT_WALLET_FROM_EXTENSION_BUTTON_ID)}
               >
                 {strings('import_wallet.sync_from_browser_extension_button')}
               </StyledButton>
@@ -444,7 +452,7 @@ class Onboarding extends PureComponent {
           )}
           <View
             style={styles.buttonWrapper}
-            accessibilityLabel={'create-wallet-button'}
+            {...idChange(CREATE_WALLET_BUTTON_ID)}
           >
             <StyledButton type={'blue'} onPress={this.onPressCreate}>
               {strings('onboarding.start_exploring_now')}
@@ -490,7 +498,7 @@ class Onboarding extends PureComponent {
     return (
       <View
         style={baseStyles.flexGrow}
-        accessibilityLabel={'onboarding-screen'}
+        {...idChange(ONBOARDING_SCREEN_CONTAINER_ID)}
       >
         <OnboardingScreenWithBg screen={'c'}>
           <ScrollView

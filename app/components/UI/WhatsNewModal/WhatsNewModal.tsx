@@ -26,7 +26,7 @@ import { Colors } from '../../../util/theme/models';
 import {
   WHATS_NEW_MODAL_CONTAINER_ID,
   WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 import { ScrollView } from 'react-native-gesture-handler';
 const modalMargin = 24;
 const modalPadding = 24;

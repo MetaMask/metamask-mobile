@@ -17,7 +17,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
-import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
+import { CANCEL_BUTTON_ID } from '../../../../wdio/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({

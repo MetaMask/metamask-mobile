@@ -1,6 +1,6 @@
 import TestHelpers from '../../../../helpers';
 
-import { BACK_ARROW_BUTTON_ID } from '../../../../../app/constants/test-ids';
+import { BACK_ARROW_BUTTON_ID } from '../../../../../wdio/test-ids';
 
 const ADD_CONTACT_BUTTON_ID = 'contact-add-contact-button';
 const ADD_CONTACT_CONTAINER_ID = 'add-contact-screen';

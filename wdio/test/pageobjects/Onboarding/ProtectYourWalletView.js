@@ -1,7 +1,8 @@
 import Gestures from '../Gestures';
-
-const PROTECT_YOUR_WALLET_CONTAINER_ID = 'protect-your-account-screen';
-const REMIND_ME_LATER_BUTTON_ID = 'remind-me-later-button';
+import {
+  PROTECT_YOUR_WALLET_CONTAINER_ID,
+  REMIND_ME_LATER_BUTTON_ID,
+} from '../../../test-ids';
 class ProtectYourWalletView {
   get protectYourWalletContainer() {
     return $(`~${PROTECT_YOUR_WALLET_CONTAINER_ID}`);

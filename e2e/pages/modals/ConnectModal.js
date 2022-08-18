@@ -3,7 +3,7 @@ import {
   ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
   CANCEL_BUTTON_ID,
   CONNECT_BUTTON_ID,
-} from '../../../app/constants/test-ids';
+} from '../../../wdio/test-ids';
 
 export default class ConnectModal {
   static async tapCancelButton() {

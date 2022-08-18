@@ -48,7 +48,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import {
   LOGIN_PASSWORD_ERROR,
   RESET_WALLET_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;

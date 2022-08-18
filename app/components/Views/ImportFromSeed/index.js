@@ -61,7 +61,7 @@ import {
   CONFIRM_PASSWORD_INPUT_BOX_ID,
   IMPORT_PASSWORD_CONTAINER_ID,
   SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
+} from '../../../../wdio/test-ids';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 

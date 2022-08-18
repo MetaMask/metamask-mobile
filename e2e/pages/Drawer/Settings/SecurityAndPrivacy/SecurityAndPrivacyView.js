@@ -4,7 +4,7 @@ import {
   CHANGE_PASSWORD_BUTTON_ID,
   CHANGE_PASSWORD_TITLE_ID,
   BACK_ARROW_BUTTON_ID,
-} from '../../../../../app/constants/test-ids';
+} from '../../../../../wdio/test-ids';
 
 const SECURITY_SETTINGS_SCROLL_ID = 'security-settings-scrollview';
 //const PRIVACY_MODE_SECTION_ID = 'privacy-mode-section';

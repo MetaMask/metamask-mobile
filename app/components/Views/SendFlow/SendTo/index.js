@@ -50,7 +50,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import {
   ADD_ADDRESS_MODAL_CONTAINER_ID,
   ENTER_ALIAS_INPUT_BOX_ID,
-} from '../../../../constants/test-ids';
+} from '../../../../../wdio/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
 
 const { hexToBN } = util;

@@ -1,17 +1,19 @@
 import Gestures from '../Gestures';
 
-const ONBOARDING_CAROUSEL_ID = 'onboarding-carousel-screen';
-const GET_STARTED_BUTTON_ID = 'onboarding-get-started-button';
-const CAROUSEL_SCREEN_TWO_ID = 'carousel-screen-two';
-const CAROUSEL_SCREEN_THREE_ID = 'carousel-screen-three';
+const CAROUSEL_SCREEN_TWO_ID = 'test:id/carousel-screen-two';
+const CAROUSEL_SCREEN_THREE_ID = 'test:id/carousel-screen-three';
 
-const CAROUSEL_SCREEN_ONE_IMAGE_ID = 'carousel-one-image';
-const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'carousel-two-image';
-const CAROUSEL_SCREEN_THREE_IMAGE_ID = 'carousel-three-image';
+const CAROUSEL_SCREEN_ONE_IMAGE_ID = 'test:id/carousel-one-image';
+const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'test:id/carousel-two-image';
+const CAROUSEL_SCREEN_THREE_IMAGE_ID = 'test:id/carousel-three-image';
 
+import {
+  ONBOARDING_CAROUSEL_CONTAINER_ID,
+  GET_STARTED_BUTTON_ID,
+} from '../../../test-ids';
 class OnboardingCarouselView {
   get onboardingCarouselContainer() {
-    return $(`~${ONBOARDING_CAROUSEL_ID}`);
+    return $(`~${ONBOARDING_CAROUSEL_CONTAINER_ID}`);
   }
 
   async swipeCarousel() {
