@@ -5,34 +5,26 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
+import { BadgeWrapperStyleSheetVars } from './BadgeWrapper.types';
 
 /**
- * Style sheet function for AvatarBase component.
+ * Style sheet function for Badge component.
  *
  * @param params Style sheet params.
+ * @param params.theme App theme from ThemeContext.
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: AvatarBaseStyleSheetVars;
+  vars: BadgeWrapperStyleSheetVars;
 }) => {
-  const {
-    theme,
-    vars: { style, size },
-  } = params;
-  const sizeAsNum = Number(size);
+  const { vars } = params;
+  const { style } = vars;
 
   return StyleSheet.create({
-    container: Object.assign(
-      {
-        height: sizeAsNum,
-        width: sizeAsNum,
-        borderRadius: sizeAsNum / 2,
-        overflow: 'hidden',
-        backgroundColor: theme.colors.background.default,
-      } as ViewStyle,
+    base: Object.assign(
+      { alignSelf: 'flex-start' } as ViewStyle,
       style,
     ) as ViewStyle,
   });
