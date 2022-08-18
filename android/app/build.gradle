@@ -160,8 +160,13 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
+<<<<<<< HEAD
 		versionCode 972
 		versionName "5.7.0"
+=======
+		versionCode 951
+		versionName "5.5.99"
+>>>>>>> 70e584d99 (bumps version and build number for test release)
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
