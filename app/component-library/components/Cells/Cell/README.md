@@ -4,17 +4,17 @@ This component is a union component, which consists of [CellDisplay](../CellDisp
 
 ## Common props
 
-### `type`
+### `variant`
 
-Type of Cell.
+Variant of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellType](../CellBase/CellBase.types.ts#L7)                                              | Yes                                                     |
+| [CellVariants](./Cell.types.ts#L9)                                              | No                                                     |
 
 ### `avatarProps`
 
-Props of the [Avatar](../../Avatars/Avatar.tsx) Component to retrieve avatar.
+Props for the [Avatar](../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -44,9 +44,9 @@ Optional tertiary text below the secondaryText, 1 line truncation.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `label`
+### `tagLabel`
 
-Optional label (using Tag component) below the title/secondaryText/tertiaryText.
+Optional label (using [Tag](../../Tags/Tag/Tag.tsx) component) below the title/secondaryText/tertiaryText.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -83,10 +83,11 @@ Default: false
 
 ```javascript
 // Change import path to relative path.
-import Cell, { CellType } from 'app/component-library/components/Cells/Cell/Cell';
+import Cell from 'app/component-library/components/Cells/Cell';
+import { CellVariants} from 'app/component-library/components/Cells/Cell.types';
 
 <Cell
-  type={CellType.Multiselect}
+  variant={CellVariants.Multiselect}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}

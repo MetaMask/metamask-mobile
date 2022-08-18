@@ -6,7 +6,6 @@ import AvatarAccount from './AvatarAccount';
 import AvatarFavicon from './AvatarFavicon';
 import AvatarNetwork from './AvatarNetwork';
 import AvatarToken from './AvatarToken';
-import AvatarBase from './AvatarBase';
 
 // Internal dependencies.
 import { AvatarProps, AvatarVariants } from './Avatar.types';
@@ -22,7 +21,7 @@ const Avatar = (avatarProps: AvatarProps) => {
     case AvatarVariants.Token:
       return <AvatarToken {...avatarProps} />;
     default:
-      return <AvatarBase />;
+      throw new Error('Invalid Avatar Variant');
   }
 };
 

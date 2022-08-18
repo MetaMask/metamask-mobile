@@ -17,6 +17,7 @@ export interface CellBaseProps extends ViewProps {
   variant?: CellVariants;
   /**
    * Props for avatar component (with the exception of size).
+   * Avatar size is restricted to size Md (32x32) for Cells
    */
   avatarProps: AvatarProps;
   /**

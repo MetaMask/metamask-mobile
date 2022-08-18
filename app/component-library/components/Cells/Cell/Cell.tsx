@@ -24,6 +24,8 @@ const Cell = (cellProps: CellProps) => {
       );
     case CellVariants.Select:
       return <CellSelect testID={CELL_SELECT_TEST_ID} {...cellProps} />;
+    default:
+      throw new Error('Invalid Cell Variant');
   }
 };
 

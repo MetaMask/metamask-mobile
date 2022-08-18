@@ -6,25 +6,17 @@ CellSelect is a component used for accessing account selection.
 
 This component extends [SelectItemProps](../../Select/Select/SelectItem/SelectItem.types.ts#L7) and [CellBase](../CellBase/CellBase.types.ts#L17).
 
-### `type`
+### `variant`
 
-Type of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellType.Select](../CellBase/CellBase.types.ts#L7)                                              | Yes                                                     |
-
-### `onPress`
-
-Callback to trigger when pressed.
+Variant of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| function                                            | Yes                                                     |
+| [CellVariants](../../Cell.types.ts#L9)                                              | No                                                     |
 
 ### `avatarProps`
 
-Props of the [Avatar](../../../../Avatars/Avatar.tsx) Component to retrieve avatar.
+Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -54,13 +46,29 @@ Optional tertiary text below the secondaryText, 1 line truncation.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `label`
+### `tagLabel`
 
-Optional label (using Tag component) below the title/secondaryText/tertiaryText.
+Optional label (using [Tag](../../../../Tags/Tag/Tag.tsx) component) below the title/secondaryText/tertiaryText.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
+
+### `children`
+
+Optional accessory that can be inserted on the right of Cell.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| ReactNode                                           | Yes                                                     |
+
+### `onPress`
+
+Callback to trigger when pressed.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| function                                            | Yes                                                     |
 
 ### `isSelected`
 
@@ -71,23 +79,15 @@ Default: false
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                  |
 
-### `children`
-
-Optional accessory that can be inserted on the right of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
-
 ## Usage
 
 ```javascript
 // Change import path to relative path.
-import CellSelect from 'app/component-library/components/Cells/CellSelect/CellSelect';
-import { CellType } from 'app/component-library/components/Cells/CellBase/CellBase.types';
+import CellSelect from 'app/component-library/components/Cells/variants/CellSelect/CellSelect';
+import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
 
 <CellSelect
-  type={CellType.Select}
+  variant={CellVariants.Select}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}

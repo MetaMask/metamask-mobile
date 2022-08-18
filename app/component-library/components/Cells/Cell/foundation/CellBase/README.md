@@ -6,17 +6,17 @@ CellBase is a base component used for all cells.
 
 This component extends React Native's [ViewProps](https://reactnative.dev/docs/view).
 
-### `type`
+### `variant`
 
-Type of Cell.
+Variant of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellType](./CellBase.types.ts#L7)                                              | No                                                     |
+| [CellVariants](../../Cell.types.ts#L9)                                              | No                                                     |
 
 ### `avatarProps`
 
-Props of the [Avatar](../../../../Avatars/Avatar.tsx) Component to retrieve avatar.
+Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -46,9 +46,9 @@ Optional tertiary text below the secondaryText, 1 line truncation.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `label`
+### `tagLabel`
 
-Optional label (using Tag component) below the title/secondaryText/tertiaryText.
+Optional label (using [Tag](../../../../Tags/Tag/Tag.tsx) component) below the title/secondaryText/tertiaryText.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -66,7 +66,7 @@ Optional accessory that can be inserted on the right of Cell.
 
 ```javascript
 // Change import path to relative path.
-import CellBase from 'app/component-library/components/Cells/CellBase/CellBase';
+import CellBase from 'app/component-library/components/Cells/foundation/CellBase/CellBase';
 
 <CellBase
   avatarProps={AVATAR_PROPS}

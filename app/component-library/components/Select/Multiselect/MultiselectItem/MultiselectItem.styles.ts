@@ -26,7 +26,7 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         padding: 16,
         borderRadius: 4,
         backgroundColor: colors.background.default,

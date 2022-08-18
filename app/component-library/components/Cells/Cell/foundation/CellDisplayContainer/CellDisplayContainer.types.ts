@@ -6,7 +6,7 @@ import { ViewProps } from 'react-native';
  */
 export interface CellDisplayContainerProps extends ViewProps {
   /**
-   * Content to wrap for selection.
+   * Content to wrap to display.
    */
   children: React.ReactNode;
 }

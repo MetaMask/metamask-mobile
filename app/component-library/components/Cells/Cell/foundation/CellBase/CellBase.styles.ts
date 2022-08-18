@@ -30,7 +30,7 @@ const styleSheet = (params: { theme: Theme; vars: CellBaseStyleSheetVars }) => {
     },
     cellBaseInfo: {
       flex: 1,
-      aligns: 'flex-start',
+      alignItems: 'flex-start',
     },
     optionalAccessory: {
       marginLeft: 16,

@@ -8,7 +8,7 @@ This component extends React Native's [View](https://reactnative.dev/docs/view) 
 
 ### `children`
 
-Content to wrap for selection.
+Content to wrap to display.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
