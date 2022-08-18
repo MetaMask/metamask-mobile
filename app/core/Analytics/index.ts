@@ -1,5 +1,18 @@
-import MetaMetrics from './MetaMetrics';
 import Analytics from './Analytics';
-import { DeletionTaskStatus, ResponseStatus } from './MetaMetrics.constants';
+import MetaMetrics from './MetaMetrics';
+import MetaMetricsEvents from './MetaMetrics.events';
+import {
+  MixPanelDeletionTaskStatus,
+  MixPanelResponseStatus,
+  IMetaMetricsEvent,
+} from './MetaMetrics.types';
 
-export { MetaMetrics, Analytics, DeletionTaskStatus, ResponseStatus };
+export {
+  Analytics,
+  MetaMetrics,
+  MetaMetricsEvents,
+  MixPanelDeletionTaskStatus,
+  MixPanelResponseStatus,
+};
+
+export type { IMetaMetricsEvent };
