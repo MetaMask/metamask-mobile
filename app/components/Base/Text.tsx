@@ -1,10 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Text as RNText, StyleSheet } from 'react-native';
 import { fontStyles } from '../../styles/common';
 import { useTheme } from '../../util/theme';
+import { TextProps } from './types';
+import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     text: {
       ...fontStyles.normal,
@@ -108,7 +109,7 @@ const Text = ({
   style: externalStyle,
   noMargin,
   ...props
-}) => {
+}: TextProps) => {
   const { colors } = useTheme();
   const style = createStyles(colors);
 
@@ -144,131 +145,6 @@ const Text = ({
       {...props}
     />
   );
-};
-
-Text.defaultProps = {
-  reset: false,
-  centered: false,
-  right: false,
-  bold: false,
-  green: false,
-  black: false,
-  blue: false,
-  red: false,
-  primary: false,
-  muted: false,
-  disclaimer: false,
-  modal: false,
-  small: false,
-  big: undefined,
-  bigger: false,
-  upper: false,
-  link: false,
-  strikethrough: false,
-  underline: false,
-  style: undefined,
-};
-
-Text.propTypes = {
-  /**
-   * Removes teh default style
-   */
-  reset: PropTypes.bool,
-  /**
-   * Align text to center
-   */
-  centered: PropTypes.bool,
-  /**
-   * Align text to right
-   */
-  right: PropTypes.bool,
-  /**
-   * Makes text bold
-   */
-  bold: PropTypes.bool,
-  /**
-   * Makes text green
-   */
-  green: PropTypes.bool,
-  /**
-   * Makes text black
-   */
-  black: PropTypes.bool,
-  /**
-   * Makes text blue
-   */
-  blue: PropTypes.bool,
-  /**
-   * Makes text grey
-   */
-  grey: PropTypes.bool,
-  /**
-   * Makes text red
-   */
-  red: PropTypes.bool,
-  /**
-   * Makes text orange
-   */
-  orange: PropTypes.bool,
-  /**
-   * Makes text fontPrimary color
-   */
-  primary: PropTypes.bool,
-  /**
-   * Makes text muted color
-   */
-  muted: PropTypes.bool,
-  /**
-   * Makes text italic and tight
-   * used in disclaimers
-   */
-  disclaimer: PropTypes.bool,
-  /**
-   * Makes text black and bigger
-   * Used in modals
-   */
-  modal: PropTypes.bool,
-  /**
-   * Makes text with bigger line height
-   * Used in modals with information text
-   */
-  infoModal: PropTypes.bool,
-  /**
-   * Makes text small
-   */
-  small: PropTypes.bool,
-  /**
-   * Makes text big
-   */
-  big: PropTypes.bool,
-  /**
-   * Makes text even bigger
-   */
-  bigger: PropTypes.bool,
-  /**
-   * Makes text uppercase
-   */
-  upper: PropTypes.bool,
-  /**
-   * Applies a link style
-   */
-  link: PropTypes.bool,
-  /**
-   * Applies a strikethrough decoration
-   */
-  strikethrough: PropTypes.bool,
-  /**
-   * Applies a underline decoration
-   */
-  underline: PropTypes.bool,
-  /**
-   * Removes the vertical margin
-   */
-  noMargin: PropTypes.bool,
-  /**
-   * Any other external style defined in props will be applied
-   */
-  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 };
 
 export default Text;
