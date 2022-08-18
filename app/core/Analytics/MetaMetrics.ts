@@ -115,27 +115,29 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  #trackEvent(event: string, anonymously: boolean, properties?: JsonMap): void {
-    // If the tracking is anonymous, there should not be a MetaMetrics ID
-    // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
-    // instead.
+  #trackEvent(event: string, anonymously: boolean, properties: JsonMap): void {
     if (anonymously) {
+      // If the tracking is anonymous, there should not be a MetaMetrics ID
+      // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
+      // instead.
       this.#segmentClient.track(
         event,
-        properties ?? {},
+        properties,
         undefined,
         METAMETRICS_ANONYMOUS_ID,
       );
+    } else {
+      // The Track method lets you record the actions your users perform.
+      // Every action triggers an event, which also has associated properties
+      // that the track method records.
+      this.#segmentClient.track(
+        event,
+        properties,
+        this.#metametricsId,
+        METAMETRICS_ANONYMOUS_ID,
+      );
     }
-    // The Track method lets you record the actions your users perform.
-    // Every action triggers an event, which also has associated properties
-    // that the track method records.
-    this.#segmentClient.track(
-      event,
-      properties ?? {},
-      this.#metametricsId,
-      METAMETRICS_ANONYMOUS_ID,
-    );
+    this.#isDataRecorded = true;
   }
 
   /**
@@ -250,8 +252,15 @@ class MetaMetrics implements IMetaMetrics {
     anonymously = false,
     properties?: JsonMap,
   ): void {
-    if (this.#state === States.enabled) {
-      this.#trackEvent(event, anonymously, properties);
+    if (this.#state === States.disabled) {
+      return;
+    }
+
+    if (anonymously) {
+      this.#trackEvent(event, true, properties);
+      this.#trackEvent(event, false, {});
+    } else {
+      this.#trackEvent(event, false, properties);
     }
   }
 
