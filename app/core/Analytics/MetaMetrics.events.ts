@@ -6,7 +6,7 @@
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
 const generateOpt = (name: string, anonymous?: boolean): IMetaMetricsEvent => ({
-  event: name,
+  name,
   anonymous: anonymous || false,
 });
 

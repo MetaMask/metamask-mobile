@@ -15,8 +15,7 @@ const useMetaMetrics = () => {
       InteractionManager.runAfterInteractions(() => {
         const { name, anonymous } = event;
         if (anonymous) {
-          MetaMetrics.trackEvent(name, anonymous, {});
-          MetaMetrics.trackEvent(name, anonymous, params);
+          MetaMetrics.trackEvent(name, true, params);
         } else {
           MetaMetrics.trackEvent(name, false, params);
         }
