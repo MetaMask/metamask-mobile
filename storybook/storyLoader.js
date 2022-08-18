@@ -24,9 +24,12 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
-  require('../app/component-library/components/Cells/CellAccount/CellAccount.stories');
-  require('../app/component-library/components/Cells/CellContainerMultiselectItem/CellContainerMultiselectItem.stories');
-  require('../app/component-library/components/Cells/CellContainerSelectItem/CellContainerSelectItem.stories');
+  require('../app/component-library/components/Cells/Cell/Cell.stories');
+  require('../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories');
+  require('../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
+  require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
   require('../app/component-library/components/Checkbox/Checkbox.stories');
   require('../app/component-library/components/Icon/Icon.stories');
   require('../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories');
@@ -35,6 +38,8 @@ function loadStories() {
   require('../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories');
   require('../app/component-library/components/Pickers/PickerBase/PickerBase.stories');
   require('../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories');
+  require('../app/component-library/components/Select/Multiselect/MultiselectItem/MultiselectItem.stories');
+  require('../app/component-library/components/Select/Select/SelectItem/SelectItem.stories');
   require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
   require('../app/component-library/components/Tags/Tag/Tag.stories');
@@ -64,9 +69,12 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
-  '../app/component-library/components/Cells/CellAccount/CellAccount.stories',
-  '../app/component-library/components/Cells/CellContainerMultiselectItem/CellContainerMultiselectItem.stories',
-  '../app/component-library/components/Cells/CellContainerSelectItem/CellContainerSelectItem.stories',
+  '../app/component-library/components/Cells/Cell/Cell.stories',
+  '../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories',
+  '../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
+  '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
@@ -75,6 +83,8 @@ const stories = [
   '../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories',
   '../app/component-library/components/Pickers/PickerBase/PickerBase.stories',
   '../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories',
+  '../app/component-library/components/Select/Multiselect/MultiselectItem/MultiselectItem.stories',
+  '../app/component-library/components/Select/Select/SelectItem/SelectItem.stories',
   '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
   '../app/component-library/components/Tags/Tag/Tag.stories',
