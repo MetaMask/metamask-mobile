@@ -8,7 +8,7 @@ This component extends `ViewProps` from React Native's [View](https://reactnativ
 
 ### `badgeProps`
 
-Props for the badge itself.
+Props for the [Badge](../Badge/Badge.tsx) component.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -16,7 +16,7 @@ Props for the badge itself.
 
 ### `children`
 
-Element to wrap and to apply a badge component.
+The children element that the badge will attach itself to.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |

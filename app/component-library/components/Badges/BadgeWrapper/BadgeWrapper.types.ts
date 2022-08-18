@@ -10,7 +10,7 @@ import { BadgeProps } from '../Badge/Badge.types';
  */
 export interface BadgeWrapperProps extends ViewProps {
   /**
-   * Props for the badge itself.
+   * Props for the Badge component.
    */
   badgeProps: BadgeProps;
   /**

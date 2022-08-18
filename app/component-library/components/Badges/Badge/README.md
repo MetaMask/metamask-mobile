@@ -10,7 +10,7 @@ Variant of badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariant](../../Badge.types.ts#L7)                                           | Yes                                                     |
+| [BadgeVariants](../../Badge.types.ts#L7)                                           | Yes                                                     |
 
 ## BadgeNetwork Props
 

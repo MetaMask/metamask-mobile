@@ -18,7 +18,7 @@ Any given component to be placed within the badge.
 
 ```javascript
 // Change import path to relative path.
-import Badge from 'app/component-library/components/Badges/foundation/BadgeBase';
+import BadgeBase from 'app/component-library/components/Badges/foundation/BadgeBase';
 import Tag from 'app/component-library/components/Tags/Tag';
 
 <BadgeBase>

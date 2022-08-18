@@ -12,7 +12,7 @@ Variant of badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariant.Network](../../Badge.types.ts#L7)                                           | Yes                                                     |
+| [BadgeVariants.Network](../../Badge.types.ts#L7)                                           | Yes                                                     |
 
 ### `name`
 

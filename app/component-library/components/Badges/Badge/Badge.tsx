@@ -12,6 +12,8 @@ const Badge = (badgeProps: BadgeProps) => {
   switch (badgeProps.variant) {
     case BadgeVariants.Network:
       return <BadgeNetwork testID={BADGE_NETWORK_TEST_ID} {...badgeProps} />;
+    default:
+      throw new Error('Invalid Badge Variant');
   }
 };
 

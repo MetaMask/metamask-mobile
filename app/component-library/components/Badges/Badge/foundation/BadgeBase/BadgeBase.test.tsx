@@ -10,7 +10,7 @@ import BadgeBase from './BadgeBase';
 import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';
 
 describe('BadgeBase - snapshots', () => {
-  it('should render badge with default position correctly', () => {
+  it('should render badge correctly', () => {
     const wrapper = shallow(
       <BadgeBase>
         <Tag label={'Children'} />

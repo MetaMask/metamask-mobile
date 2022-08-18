@@ -5,11 +5,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import {
-  // AvatarBaseSize,
-  AvatarBaseStyleSheetVars,
-  // AvatarBadgePositionVariant,
-} from './AvatarBase.types';
+import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
 
 /**
  * Style sheet function for AvatarBase component.
