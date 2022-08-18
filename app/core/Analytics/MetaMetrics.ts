@@ -1,4 +1,9 @@
-import { createClient } from '@segment/analytics-react-native';
+import {
+  createClient,
+  JsonMap,
+  UserTraits,
+  GroupTraits,
+} from '@segment/analytics-react-native';
 import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import { bufferToHex, keccak } from 'ethereumjs-util';
@@ -11,11 +16,10 @@ import {
   ANALYTICS_DATA_DELETION_DATE,
 } from '../../constants/storage';
 
-import { IMetaMetrics, ISegmentClient } from './MetaMetrics.types';
+import { IMetaMetrics, ISegmentClient, States } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
-  States,
 } from './MetaMetrics.constants';
 
 class MetaMetrics implements IMetaMetrics {
@@ -79,7 +83,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param userId - User ID generated for Segment
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
-  #identify(userTraits: Record<string, string>): void {
+  #identify(userTraits: UserTraits): void {
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
@@ -94,7 +98,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupId - Group ID to associate user
    * @param groupTraits - Object containing group relevant traits or properties (optional).
    */
-  #group(groupId: string, groupTraits?: Record<string, string>): void {
+  #group(groupId: string, groupTraits?: GroupTraits): void {
     //The Group method lets you associate an individual user with a group—
     // whether it’s a company, organization, account, project, or team.
     // This includes a unique group identifier and any additional
@@ -111,11 +115,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param anonymously - Boolean indicating if the event should be anonymous.
    * @param properties - Object containing any event relevant traits or properties (optional).
    */
-  #trackEvent(
-    event: string,
-    anonymously: boolean,
-    properties?: Record<string, string>,
-  ): void {
+  #trackEvent(event: string, anonymously: boolean, properties?: JsonMap): void {
     // If the tracking is anonymous, there should not be a MetaMetrics ID
     // included, MetaMetrics core should use the METAMETRICS_ANONYMOUS_ID
     // instead.
@@ -237,18 +237,18 @@ class MetaMetrics implements IMetaMetrics {
     return this.#state;
   }
 
-  public addTraitsToUser(userTraits: Record<string, string>): void {
+  public addTraitsToUser(userTraits: UserTraits): void {
     this.#identify(userTraits);
   }
 
-  public group(groupId: string, groupTraits?: Record<string, string>): void {
+  public group(groupId: string, groupTraits?: GroupTraits): void {
     this.#group(groupId, groupTraits);
   }
 
   public trackEvent(
     event: string,
     anonymously = false,
-    properties?: Record<string, string>,
+    properties?: JsonMap,
   ): void {
     if (this.#state === States.enabled) {
       this.#trackEvent(event, anonymously, properties);
