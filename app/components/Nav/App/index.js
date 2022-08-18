@@ -385,7 +385,7 @@ const App = ({ userLoggedIn, network }) => {
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(
-      'https://metamask.zendesk.com/hc/en-us/articles/360057142392',
+      'https://blog.ethereum.org/2022/06/21/testnet-deprecation/',
     );
   };
 
