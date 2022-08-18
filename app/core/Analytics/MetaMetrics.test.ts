@@ -1,5 +1,5 @@
 import MetaMetrics from './MetaMetrics';
-import { States } from './MetaMetrics.constants';
+import { States } from './MetaMetrics.types';
 
 describe('MetaMetrics', () => {
   beforeAll(() => {
