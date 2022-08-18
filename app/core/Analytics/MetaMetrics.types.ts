@@ -3,17 +3,43 @@ import type {
   UserTraits,
   GroupTraits,
 } from '@segment/analytics-react-native';
-import { States } from './MetaMetrics.constants';
 
-// Represents a custom implementation of the ClientMethods type
+// MixPanel expected deletion task status
+export enum MixPanelDeletionTaskStatus {
+  pending = 'PENDING',
+  staging = 'STAGING',
+  started = 'STARTED',
+  success = 'SUCCESS',
+  failure = 'FAILURE',
+  revoked = 'REVOKED',
+  notFound = 'NOT_FOUND',
+  unknown = 'UNKNOWN',
+}
+
+// MixPanel expected response status
+export enum MixPanelResponseStatus {
+  ok = 'ok',
+  error = 'error',
+}
+
+// State of MetaMetrics
+export enum States {
+  enabled = 'ENABLED',
+  disabled = 'DISABLED',
+}
+
+// Represents a custom implementation of the Segment ClientMethods type
 export interface ISegmentClient {
+  // Method track an event
   track: (
     event: string,
     properties?: JsonMap,
     userId?: string,
     anonymousId?: string,
   ) => void;
+  // Method to identify an user with ID and traits
   identify: (userId?: string, userTraits?: UserTraits) => void;
+  // Method to add an user to a specific group
   group: (groupId: string, groupTraits?: GroupTraits) => void;
 }
 
@@ -25,16 +51,12 @@ export interface IMetaMetrics {
   enable(): void;
   // Method to disable data tracking
   disable(): void;
-  // Method to identify an user with ID and traits
+  // Method to add traits to an user
   addTraitsToUser(userTraits: Record<string, string>): void;
   // Method to add an user to a specific group
-  group(groupId: string, groupTraits?: Record<string, string>): void;
+  group(groupId: string, groupTraits?: GroupTraits): void;
   // Method track an event
-  trackEvent(
-    event: string,
-    anonymously: boolean,
-    properties?: Record<string, string>,
-  ): void;
+  trackEvent(event: string, anonymously: boolean, properties?: JsonMap): void;
   // Method to create a new method to suppress and
   // delete user's data from Segment and all related
   // destinations.

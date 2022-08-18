@@ -16,7 +16,10 @@ import {
   ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
 } from '../../constants/storage';
-import { ResponseStatus, DeletionTaskStatus } from './MetaMetrics.constants';
+import {
+  MixPanelResponseStatus,
+  MixPanelDeletionTaskStatus,
+} from './MetaMetrics.types';
 
 const RCTAnalytics = NativeModules.Analytics;
 
@@ -178,8 +181,8 @@ class Analytics {
         `Analytics Deletion Task Created for following ${compliance} compliance`,
       );
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.pending,
+        status: MixPanelResponseStatus.ok,
+        deletionTaskStatus: MixPanelDeletionTaskStatus.pending,
       };
     }
     const distinctId = await this.getDistinctId();
@@ -203,7 +206,7 @@ class Analytics {
 
       const result = response.data;
 
-      if (result.status === ResponseStatus.ok) {
+      if (result.status === MixPanelResponseStatus.ok) {
         this.dataDeletionTaskId = result.results.task_id;
 
         await DefaultPreference.set(
@@ -230,14 +233,14 @@ class Analytics {
 
         return {
           status: result.status,
-          deletionTaskStatus: ResponseStatus.pending,
+          deletionTaskStatus: MixPanelResponseStatus.pending,
         };
       }
       Logger.log(`Analytics Deletion Task Error - ${result.error}`);
       return { status: response.status, error: result.error };
     } catch (error) {
       Logger.log(`Analytics Deletion Task Error - ${error}`);
-      return { status: ResponseStatus.error, error };
+      return { status: MixPanelResponseStatus.error, error };
     }
   }
 
@@ -256,15 +259,15 @@ class Analytics {
     if (__DEV__) {
       // Mock response for DEV env
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.pending,
+        status: MixPanelResponseStatus.ok,
+        deletionTaskStatus: MixPanelDeletionTaskStatus.pending,
       };
     }
 
     if (!this.dataDeletionTaskId) {
       return {
-        status: ResponseStatus.error,
-        deletionTaskStatus: DeletionTaskStatus.unknown,
+        status: MixPanelResponseStatus.error,
+        deletionTaskStatus: MixPanelDeletionTaskStatus.unknown,
       };
     }
 
@@ -283,17 +286,17 @@ class Analytics {
 
     const { status, results } = response.data;
 
-    if (results.status === ResponseStatus.success) {
+    if (results.status === MixPanelResponseStatus.success) {
       this.dataDeletionTaskId = undefined;
       return {
-        status: ResponseStatus.ok,
-        deletionTaskStatus: DeletionTaskStatus.success,
+        status: MixPanelResponseStatus.ok,
+        deletionTaskStatus: MixPanelDeletionTaskStatus.success,
       };
     }
 
     return {
       status,
-      deletionTaskStatus: results.status || DeletionTaskStatus.unknown,
+      deletionTaskStatus: results.status || MixPanelDeletionTaskStatus.unknown,
     };
   }
 
