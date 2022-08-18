@@ -4,7 +4,7 @@ exports[`MultiselectItem should render correctly 1`] = `
 <TouchableOpacity
   style={
     Object {
-      "alignItems": "center",
+      "alignItems": "flex-start",
       "backgroundColor": "#FFFFFF",
       "borderRadius": 4,
       "flexDirection": "row",

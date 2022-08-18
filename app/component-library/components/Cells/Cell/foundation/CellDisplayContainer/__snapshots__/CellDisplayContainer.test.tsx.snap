@@ -9,7 +9,6 @@ exports[`CellDisplayContainer - Snapshot should render correctly 1`] = `
       "borderRadius": 4,
       "borderWidth": 1,
       "padding": 16,
-      "position": "relative",
     }
   }
 >
