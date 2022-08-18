@@ -360,9 +360,21 @@ class RevealPrivateCredential extends PureComponent {
   }
 
   tryUnlock = () => {
-    if (!this.isPrivateKey())
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA);
-    this.setState({ isModalVisible: true });
+    const { KeyringController } = Engine.context;
+    const { password } = this.state;
+    if (KeyringController.validatePassword(password)) {
+      if (!this.isPrivateKey())
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
+        );
+      this.setState({
+        isModalVisible: true,
+        warningIncorrectPassword: '',
+      });
+    } else {
+      const msg = strings('reveal_credential.warning_incorrect_password');
+      this.setState({ warningIncorrectPassword: msg });
+    }
   };
 
   onPasswordChange = (password) => {
@@ -680,8 +692,14 @@ class RevealPrivateCredential extends PureComponent {
     );
   }
 
+  enableNextButton = () => {
+    const { KeyringController } = Engine.context;
+    const { password } = this.state;
+    return KeyringController.validatePassword(password);
+  };
+
   render = () => {
-    const { unlocked, password } = this.state;
+    const { unlocked } = this.state;
     const { styles } = this.getStyles();
     const privateCredentialName =
       this.props.privateCredentialName ||
@@ -704,7 +722,7 @@ class RevealPrivateCredential extends PureComponent {
           testID={`next-button`}
           onConfirmPress={() => this.tryUnlock()}
           showConfirmButton={!unlocked}
-          confirmDisabled={!password.length}
+          confirmDisabled={!this.enableNextButton()}
         >
           <>
             <View style={[styles.rowWrapper, styles.normalText]}>
