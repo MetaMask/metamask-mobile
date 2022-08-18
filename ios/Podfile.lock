@@ -420,7 +420,7 @@ PODS:
     - React-Core
   - RNDefaultPreference (1.4.3):
     - React
-  - RNDeviceInfo (8.1.3):
+  - RNDeviceInfo (9.0.2):
     - React-Core
   - RNFS (2.18.0):
     - React
@@ -821,7 +821,7 @@ SPEC CHECKSUMS:
   RNCMaskedView: c298b644a10c0c142055b3ae24d83879ecb13ccd
   RNCPicker: cb57c823d5ce8d2d0b5dfb45ad97b737260dc59e
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
-  RNDeviceInfo: 8d3a29207835f972bce883723882980143270d55
+  RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
@@ -841,4 +841,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 5759da19ce141e5f8aca3a4f56ac232baa34e957
 
-COCOAPODS: 1.11.2
+COCOAPODS: 1.11.3
