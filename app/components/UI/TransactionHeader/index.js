@@ -93,7 +93,7 @@ const TransactionHeader = (props) => {
   );
 
   const originIsMMSDKRemoteConn =
-    props.currentPageInformation.origin?.includes(MM_SDK_REMOTE_ORIGIN);
+    props.currentPageInformation.origin?.startsWith(MM_SDK_REMOTE_ORIGIN);
 
   /**
    * Returns a small circular indicator, red if the current selected network is offline, green if it's online.
