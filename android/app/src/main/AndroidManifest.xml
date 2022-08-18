@@ -121,8 +121,6 @@
 		<activity android:name="com.mixpanel.android.takeoverinapp.TakeoverInAppActivity"
 		android:theme="@style/com_mixpanel_android_TakeoverInAppActivityTheme"/>
 
-		<service android:name="com.asterinet.react.bgactions.RNBackgroundActionsTask" />
-
 		<provider
 			android:name="androidx.core.content.FileProvider"
 			android:authorities="io.metamask.provider"
