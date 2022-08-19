@@ -25,7 +25,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: 450,
+      height: 400,
     },
     contentWrapper: {
       flex: 1,
@@ -160,7 +160,7 @@ const LedgerConfirmationModal = ({
         case BluetoothPermissionErrors.BluetoothAccessBlocked:
           setErrorDetails({
             title: strings('ledger.bluetooth_access_blocked'),
-            subtitle: strings('ledger.bluetooth_access_blocked_error'),
+            subtitle: strings('ledger.bluetooth_access_blocked_message'),
           });
           break;
       }

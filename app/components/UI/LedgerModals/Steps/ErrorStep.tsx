@@ -22,6 +22,10 @@ const createStyles = () =>
     buttonStyle: {
       marginTop: 10,
     },
+    ledgerImageStyle: {
+      height: 54,
+      overflow: 'visible',
+    },
     textContainer: {
       alignItems: 'center',
       marginTop: 20,
@@ -31,6 +35,7 @@ const createStyles = () =>
     },
     subtitleText: {
       marginTop: 20,
+      marginHorizontal: 20,
     },
   });
 
@@ -63,7 +68,11 @@ const ErrorStep = ({
 
   return (
     <>
-      <Image source={ledgerErrorImage} resizeMode="contain" />
+      <Image
+        source={ledgerErrorImage}
+        style={styles.ledgerImageStyle}
+        resizeMode="contain"
+      />
       <View style={styles.textContainer}>
         <Text big bold style={styles.titleText}>
           {title}
