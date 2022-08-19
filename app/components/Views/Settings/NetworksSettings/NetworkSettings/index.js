@@ -201,6 +201,10 @@ class NetworkSettings extends PureComponent {
      * Indicates whether third party API mode is enabled
      */
     thirdPartyApiMode: PropTypes.bool,
+    /**
+     * Chain id
+     */
+    currentChainId: PropTypes.string,
   };
 
   state = {
@@ -941,10 +945,12 @@ class NetworkSettings extends PureComponent {
                 style={styles.networksWrapper}
               >
                 <ExtendedNetworkList
+                  switchable
+                  currentChainId={this.props.currentChainId}
                   frequentRpcList={this.props.frequentRpcList}
                   showPopularNetworkModal={this.state.showPopularNetworkModal}
                   onCancel={this.onCancel}
-                  popularNetwork={this.state.popularNetwork}
+                  popularNetwork={PopularList}
                   toggleWarningModal={this.toggleWarningModal}
                   togglePopularNetwork={this.togglePopularNetwork}
                   tabView={this.tabView}
@@ -1005,6 +1011,8 @@ const mapStateToProps = (state) => ({
   frequentRpcList:
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+  currentChainId:
+    state.engine.backgroundState.NetworkController.provider.chainId,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
 });
 

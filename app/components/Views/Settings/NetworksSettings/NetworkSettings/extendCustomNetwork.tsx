@@ -8,10 +8,11 @@ import EmptyPopularList from './emptyList';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import PopularList from '../../../../../util/networks/customNetworks';
 import createStyles from './styles';
 
 const ExtendedNetworkList = ({
+  switchable,
+  currentChainId,
   frequentRpcList,
   showPopularNetworkModal,
   onCancel,
@@ -26,7 +27,12 @@ const ExtendedNetworkList = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const filteredPopularList = PopularList.filter(
+
+  const filteredFrequentRpcList = frequentRpcList.filter(
+    (key: { chainId: string }) => currentChainId !== key.chainId,
+  );
+
+  const filteredPopularList = popularNetwork.filter(
     (val) =>
       !frequentRpcList.some(
         (key: { chainId: string }) => val.chainId === key.chainId,
@@ -48,6 +54,36 @@ const ExtendedNetworkList = ({
           navigation={navigation}
         />
       )}
+      {switchable &&
+        filteredFrequentRpcList.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.popularNetwork}
+            // eslint-disable-next-line @typescript-eslint/no-empty-function
+            onPress={() => {}} //implement the logic for switching networks
+          >
+            <View style={styles.popularWrapper}>
+              <ImageIcons
+                image={item.rpcPrefs.imageUrl}
+                style={styles.popularNetworkImage}
+              />
+              <CustomText bold>{item.nickname}</CustomText>
+            </View>
+            <View style={styles.popularWrapper}>
+              {item.warning ? (
+                <WarningIcon
+                  name="warning"
+                  size={14}
+                  color={colors.icon.alternative}
+                  style={styles.icon}
+                  onPress={toggleWarningModal}
+                />
+              ) : null}
+              <CustomText link>Switch</CustomText>
+            </View>
+          </TouchableOpacity>
+        ))}
+
       {filteredPopularList.map((item, index) => (
         <TouchableOpacity
           key={index}
