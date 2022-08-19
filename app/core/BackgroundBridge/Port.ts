@@ -4,10 +4,10 @@ import {
 } from '../../util/browserScripts';
 // eslint-disable-next-line import/no-nodejs-modules, import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const EventEmitter = require('events').EventEmitter;
+
 /**
  * Module that listens for and responds to messages from an InpageBridge using postMessage for in-app browser
  */
-
 class Port extends EventEmitter {
   constructor(browserWindow: any, isMainFrame: boolean) {
     super();
