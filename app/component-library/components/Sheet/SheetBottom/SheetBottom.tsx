@@ -41,6 +41,7 @@ import {
   TAP_TRIGGERED_ANIMATION_DURATION,
   SWIPE_TRIGGERED_ANIMATION_DURATION,
   INITIAL_RENDER_ANIMATION_DURATION,
+  DEFAULT_MIN_OVERLAY_HEIGHT,
 } from './SheetBottom.constants';
 import styleSheet from './SheetBottom.styles';
 import {
@@ -50,16 +51,28 @@ import {
 } from './SheetBottom.types';
 
 const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
-  ({ children, onDismissed, isInteractable = true, ...props }, ref) => {
+  (
+    {
+      children,
+      onDismissed,
+      isInteractable = true,
+      reservedMinOverlayHeight = DEFAULT_MIN_OVERLAY_HEIGHT,
+      ...props
+    },
+    ref,
+  ) => {
     const postCallback = useRef<SheetBottomPostCallback>();
-    const { top: screenTopPadding } = useSafeAreaInsets();
+    const { top: screenTopPadding, bottom: screenBottomPadding } =
+      useSafeAreaInsets();
     const { height: screenHeight } = useWindowDimensions();
     const { styles } = useStyles(styleSheet, {
-      maxSheetHeight: screenHeight - screenTopPadding,
+      maxSheetHeight:
+        screenHeight - screenTopPadding - reservedMinOverlayHeight,
+      screenBottomPadding,
     });
     const currentYOffset = useSharedValue(screenHeight);
     const visibleYOffset = useSharedValue(0);
-    const sheetHeight = useSharedValue(0);
+    const sheetHeight = useSharedValue(screenHeight);
     const overlayOpacity = useDerivedValue(() =>
       interpolate(
         currentYOffset.value,
