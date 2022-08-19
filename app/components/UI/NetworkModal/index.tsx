@@ -106,6 +106,7 @@ interface NetworkProps {
   onClose: () => void;
   network: any;
   navigation: any;
+  listOfAddedNetworks: any;
 }
 
 const NetworkModals = (props: NetworkProps) => {
@@ -121,6 +122,7 @@ const NetworkModals = (props: NetworkProps) => {
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
+    listOfAddedNetworks,
   } = props;
 
   const [showDetails, setShowDetails] = React.useState(false);
@@ -139,6 +141,10 @@ const NetworkModals = (props: NetworkProps) => {
     return true;
   };
 
+  /** TODO: the listOfAddedNetworks returns a list of all already networks.
+   * Maybe we can use this list and check against props.network to check if network is added.
+   * If added, we can show the switch network button, else the approve button.
+   */
   const addNetwork = async () => {
     const { PreferencesController } = Engine.context;
     let formChainId = chainId.trim().toLowerCase();

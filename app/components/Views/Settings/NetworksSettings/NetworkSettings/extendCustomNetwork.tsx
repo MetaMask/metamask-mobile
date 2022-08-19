@@ -46,6 +46,7 @@ const ExtendedNetworkList = ({
           onClose={onCancel}
           network={popularNetwork}
           navigation={navigation}
+          listOfAddedNetworks={filteredPopularList}
         />
       )}
       {filteredPopularList.map((item, index) => (
