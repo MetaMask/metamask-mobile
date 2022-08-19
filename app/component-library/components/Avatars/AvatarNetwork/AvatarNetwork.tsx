@@ -5,7 +5,7 @@ import React, { useCallback, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarBaseSize } from '../AvatarBase';
+import AvatarBase, { AvatarBaseSize } from '../AvatarBase';
 import Text, { TextVariant } from '../../Text';
 import { useStyles } from '../../../hooks';
 
@@ -31,7 +31,7 @@ const AvatarNetwork = ({
   const onError = useCallback(() => setShowFallback(true), [setShowFallback]);
 
   return (
-    <Avatar size={size} style={styles.base}>
+    <AvatarBase size={size} style={styles.base}>
       {showFallback ? (
         <Text style={styles.label} variant={textVariant}>
           {chainNameFirstLetter}
@@ -42,9 +42,10 @@ const AvatarNetwork = ({
           style={styles.image}
           onError={onError}
           testID={NETWORK_AVATAR_IMAGE_ID}
+          resizeMode={'contain'}
         />
       )}
-    </Avatar>
+    </AvatarBase>
   );
 };
 

@@ -7,6 +7,7 @@ exports[`AvatarNetwork should render correctly 1`] = `
 >
   <Image
     onError={[Function]}
+    resizeMode="contain"
     source={
       Object {
         "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
@@ -15,6 +16,8 @@ exports[`AvatarNetwork should render correctly 1`] = `
     style={
       Object {
         "flex": 1,
+        "height": undefined,
+        "width": undefined,
       }
     }
     testID="network-avatar-image"
