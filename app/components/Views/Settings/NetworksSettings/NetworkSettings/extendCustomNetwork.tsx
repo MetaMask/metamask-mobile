@@ -28,11 +28,20 @@ const ExtendedNetworkList = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  // category zero: current active network (optional)
   const filteredFrequentRpcList = frequentRpcList.filter(
     (key: { chainId: string }) => currentChainId !== key.chainId,
   );
 
-  const filteredPopularList = popularNetwork.filter(
+  // category one: switchable networks (optional)
+  const switchableNetworks = filteredFrequentRpcList.filter((network: any) =>
+    popularNetwork.some(
+      ({ chainId }: { chainId: string }) => network.chainId === chainId,
+    ),
+  );
+
+  // category two: addable networks (required)
+  const addableNetworks = popularNetwork.filter(
     (val) =>
       !frequentRpcList.some(
         (key: { chainId: string }) => val.chainId === key.chainId,
@@ -40,7 +49,7 @@ const ExtendedNetworkList = ({
   );
 
   // this condition won't matter for the on ramp.
-  if (filteredPopularList.length === 0) {
+  if (addableNetworks.length === 0) {
     return <EmptyPopularList goToCustomNetwork={() => tabView.goToPage(1)} />;
   }
 
@@ -55,7 +64,7 @@ const ExtendedNetworkList = ({
         />
       )}
       {switchable &&
-        filteredFrequentRpcList.map((item, index) => (
+        switchableNetworks.map((item, index) => (
           <TouchableOpacity
             key={index}
             style={styles.popularNetwork}
@@ -84,7 +93,7 @@ const ExtendedNetworkList = ({
           </TouchableOpacity>
         ))}
 
-      {filteredPopularList.map((item, index) => (
+      {addableNetworks.map((item, index) => (
         <TouchableOpacity
           key={index}
           style={styles.popularNetwork}
