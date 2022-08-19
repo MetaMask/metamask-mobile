@@ -17,28 +17,30 @@ import collectiblesReducer from './collectibles';
 import recentsReducer from './recents';
 import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
+import securityReducer from './security';
 import { combineReducers } from 'redux';
 
 const rootReducer = combineReducers({
-	collectibles: collectiblesReducer,
-	engine: engineReducer,
-	privacy: privacyReducer,
-	bookmarks: bookmarksReducer,
-	recents: recentsReducer,
-	browser: browserReducer,
-	modals: modalsReducer,
-	settings: settingsReducer,
-	alert: alertReducer,
-	transaction: transactionReducer,
-	user: userReducer,
-	wizard: wizardReducer,
-	onboarding: onboardingReducer,
-	notification: notificationReducer,
-	swaps: swapsReducer,
-	fiatOrders,
-	infuraAvailability: infuraAvailabilityReducer,
-	navigation: navigationReducer,
-	networkOnboarded: networkOnboardReducer,
+  collectibles: collectiblesReducer,
+  engine: engineReducer,
+  privacy: privacyReducer,
+  bookmarks: bookmarksReducer,
+  recents: recentsReducer,
+  browser: browserReducer,
+  modals: modalsReducer,
+  settings: settingsReducer,
+  alert: alertReducer,
+  transaction: transactionReducer,
+  user: userReducer,
+  wizard: wizardReducer,
+  onboarding: onboardingReducer,
+  notification: notificationReducer,
+  swaps: swapsReducer,
+  fiatOrders,
+  infuraAvailability: infuraAvailabilityReducer,
+  navigation: navigationReducer,
+  networkOnboarded: networkOnboardReducer,
+  security: securityReducer,
 });
 
 export default rootReducer;

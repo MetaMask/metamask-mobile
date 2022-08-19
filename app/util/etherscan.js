@@ -8,7 +8,7 @@ import { MAINNET } from '../constants/network';
  * @returns - string
  */
 export function getEtherscanAddressUrl(network, address) {
-	return `${getEtherscanBaseUrl(network)}/address/${address}`;
+  return `${getEtherscanBaseUrl(network)}/address/${address}`;
 }
 
 /**
@@ -19,7 +19,7 @@ export function getEtherscanAddressUrl(network, address) {
  * @returns - string
  */
 export function getEtherscanTransactionUrl(network, tx_hash) {
-	return `${getEtherscanBaseUrl(network)}/tx/${tx_hash}`;
+  return `${getEtherscanBaseUrl(network)}/tx/${tx_hash}`;
 }
 
 /**
@@ -29,6 +29,7 @@ export function getEtherscanTransactionUrl(network, tx_hash) {
  * @returns - string
  */
 export function getEtherscanBaseUrl(network) {
-	const subdomain = network.toLowerCase() === MAINNET ? '' : `${network.toLowerCase()}.`;
-	return `https://${subdomain}etherscan.io`;
+  const subdomain =
+    network.toLowerCase() === MAINNET ? '' : `${network.toLowerCase()}.`;
+  return `https://${subdomain}etherscan.io`;
 }

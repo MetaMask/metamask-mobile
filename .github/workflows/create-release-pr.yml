@@ -4,14 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       base-branch:
-        description: 'The base branch for git operations and the pull request.'
-        default: 'main'
+        description: 'The base branch, tag, or SHA for git operations and the pull request.'
         required: true
       semver-version:
-        description: 'A SemVer version.'
+        description: 'A semantic version. eg: x.x.x'
         required: true
       version-number:
-        description: 'A specific version.'
+        description: 'A natural version number. eg: 862'
         required: true
 
 jobs:
@@ -22,6 +21,13 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v2
+        with:
+          # This is to guarantee that the most recent tag is fetched.
+          # This can be configured to a more reasonable value by consumers.
+          fetch-depth: 0
+          # We check out the specified branch, which will be used as the base
+          # branch for all git operations and the release PR.
+          ref: ${{ github.event.inputs.base-branch }}
       - name: Get Node.js version
         id: nvm
         run: echo ::set-output name=NODE_VERSION::$(cat .nvmrc)
