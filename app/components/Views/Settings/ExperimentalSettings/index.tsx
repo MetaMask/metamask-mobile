@@ -127,12 +127,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     >
       <View style={styles.modalView}>
         <Text style={styles.modalTitle}>
-          {'Clear all MetaMask SDK Connections'}
+          {strings('app_settings.clear_sdk_connections_title')}
         </Text>
         <Text style={styles.modalText}>
-          {
-            'All connections will be cleared and dapps will need to request connection again'
-          }
+          {strings('app_settings.clear_sdk_connections_text')}
         </Text>
       </View>
     </ActionModal>

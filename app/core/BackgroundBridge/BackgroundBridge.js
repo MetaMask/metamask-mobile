@@ -2,25 +2,24 @@
 import URL from 'url-parse';
 import { NetworksChainId } from '@metamask/controllers';
 import { JsonRpcEngine } from 'json-rpc-engine';
-import {
-  JS_POST_MESSAGE_TO_PROVIDER,
-  JS_IFRAME_POST_MESSAGE_TO_PROVIDER,
-} from '../util/browserScripts';
-import MobilePortStream from './MobilePortStream';
-import { setupMultiplex } from '../util/streams';
+import MobilePortStream from '../MobilePortStream';
+import { setupMultiplex } from '../../util/streams';
 import {
   createOriginMiddleware,
   createLoggerMiddleware,
-} from '../util/middlewares';
-import Engine from './Engine';
-import { getAllNetworks } from '../util/networks';
-import Logger from '../util/Logger';
-import AppConstants from './AppConstants';
+} from '../../util/middlewares';
+import Engine from '../Engine';
+import { getAllNetworks } from '../../util/networks';
+import Logger from '../../util/Logger';
+import AppConstants from '../AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import {
   createSwappableProxy,
   createEventEmitterProxy,
 } from 'swappable-obj-proxy';
+import RemotePort from './RemotePort';
+import WalletConnectPort from './WalletConnectPort';
+import Port from './Port';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -29,77 +28,6 @@ const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
-
-/**
- * Module that listens for and responds to messages from an InpageBridge using postMessage
- */
-
-class Port extends EventEmitter {
-  constructor(window, isMainFrame) {
-    super();
-    this._window = window;
-    this._isMainFrame = isMainFrame;
-  }
-
-  postMessage = (msg, origin = '*') => {
-    const js = this._isMainFrame
-      ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
-      : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
-    if (this._window.webViewRef && this._window.webViewRef.current) {
-      this._window && this._window.injectJavaScript(js);
-    }
-  };
-}
-
-class RemotePort extends EventEmitter {
-  constructor(sendMessage) {
-    super();
-    this.sendMessage = sendMessage;
-  }
-
-  postMessage = (msg) => {
-    this.sendMessage(msg);
-  };
-}
-
-class WalletConnectPort extends EventEmitter {
-  constructor(wcRequestActions) {
-    super();
-    this._wcRequestActions = wcRequestActions;
-  }
-
-  postMessage = (msg) => {
-    try {
-      if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        const { selectedAddress } = Engine.datamodel.flatState;
-        this._wcRequestActions?.updateSession?.({
-          chainId: parseInt(msg.data.params.chainId, 16),
-          accounts: [selectedAddress],
-        });
-      } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
-        const chainId = Engine.context.NetworkController.state.provider.chainId;
-        this._wcRequestActions?.updateSession?.({
-          chainId: parseInt(chainId, 10),
-          accounts: msg.data.params,
-        });
-      } else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
-        // WC DOESN'T NEED THIS EVENT
-      } else if (msg?.data?.error) {
-        this._wcRequestActions?.rejectRequest?.({
-          id: msg.data.id,
-          error: msg.data.error,
-        });
-      } else {
-        this._wcRequestActions?.approveRequest?.({
-          id: msg.data.id,
-          result: msg.data.result,
-        });
-      }
-    } catch (e) {
-      console.warn(e);
-    }
-  };
-}
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
