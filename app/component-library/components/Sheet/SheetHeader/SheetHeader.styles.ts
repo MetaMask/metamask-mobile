@@ -21,6 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
+      marginVertical: 16,
       backgroundColor: colors.background.default,
       height: 32,
     },
