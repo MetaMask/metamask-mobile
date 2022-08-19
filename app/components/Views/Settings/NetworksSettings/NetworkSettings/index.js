@@ -48,7 +48,7 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
-import ExtendedNetworkList from './extractedPopularList';
+import ExtendedNetworkList from './extendCustomNetwork';
 
 const createStyles = (colors) =>
   StyleSheet.create({
