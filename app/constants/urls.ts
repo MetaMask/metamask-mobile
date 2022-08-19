@@ -29,3 +29,7 @@ export const MM_BLOCKLIST_ISSUE_URL =
   'https://github.com/metamask/eth-phishing-detect/issues/new';
 export const PHISHFORT_BLOCKLIST_ISSUE_URL =
   'https://github.com/phishfort/phishfort-lists/issues/new';
+
+// https://github.com/MetaMask/metamask-mobile/tree/gh-pages
+export const MM_APP_CONFIG_URL =
+  'https://metamask.github.io/metamask-mobile/AppConfig/v1/AppConfig.json';

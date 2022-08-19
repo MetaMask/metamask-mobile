@@ -235,6 +235,9 @@ class AccountOverview extends PureComponent {
     }
   };
 
+  isAccountLabelDefined = (accountLabel) =>
+    !!accountLabel && !!accountLabel.trim().length;
+
   input = React.createRef();
 
   componentDidMount = () => {
@@ -245,6 +248,11 @@ class AccountOverview extends PureComponent {
     InteractionManager.runAfterInteractions(() => {
       this.doENSLookup();
     });
+
+    const { PreferencesController } = Engine.context;
+    if (!this.isAccountLabelDefined(accountLabel)) {
+      PreferencesController.setAccountLabel(selectedAddress, 'Account');
+    }
   };
 
   componentDidUpdate(prevProps) {
@@ -262,7 +270,16 @@ class AccountOverview extends PureComponent {
     const { PreferencesController } = Engine.context;
     const { selectedAddress } = this.props;
     const { accountLabel } = this.state;
-    PreferencesController.setAccountLabel(selectedAddress, accountLabel);
+
+    const lastAccountLabel =
+      PreferencesController.state.identities[selectedAddress].name;
+
+    PreferencesController.setAccountLabel(
+      selectedAddress,
+      this.isAccountLabelDefined(accountLabel)
+        ? accountLabel
+        : lastAccountLabel,
+    );
     this.setState({ accountLabelEditable: false });
   };
 

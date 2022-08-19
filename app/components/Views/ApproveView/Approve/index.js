@@ -324,9 +324,12 @@ class Approve extends PureComponent {
   };
 
   parseTransactionDataEIP1559 = (gasFee, options) => {
+    const { ticker } = this.props;
+
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
         ...this.props,
+        nativeCurrency: ticker,
         selectedGasFee: {
           ...gasFee,
           estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee,
@@ -338,13 +341,17 @@ class Approve extends PureComponent {
     parsedTransactionEIP1559.error = this.validateGas(
       parsedTransactionEIP1559.totalMaxHex,
     );
+
     return parsedTransactionEIP1559;
   };
 
   parseTransactionDataLegacy = (gasFee, options) => {
+    const { ticker } = this.props;
+
     const parsedTransactionLegacy = parseTransactionLegacy(
       {
         ...this.props,
+        nativeCurrency: ticker,
         selectedGasFee: gasFee,
       },
       { onlyGas: true },
@@ -352,6 +359,7 @@ class Approve extends PureComponent {
     parsedTransactionLegacy.error = this.validateGas(
       parsedTransactionLegacy.totalHex,
     );
+
     return parsedTransactionLegacy;
   };
 
