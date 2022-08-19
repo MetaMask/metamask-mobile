@@ -54,6 +54,7 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AccountSelector from '../../../components/Views/AccountSelector';
 
 const Stack = createStackNavigator();
 /**
@@ -351,6 +352,10 @@ const App = ({ userLoggedIn }) => {
         component={ModalConfirmation}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_SELECTOR}
+        component={AccountSelector}
+      />
     </Stack.Navigator>
   );
 

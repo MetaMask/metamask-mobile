@@ -27,6 +27,9 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
   },
+  SHEET: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
+  },
 };
 
 export default Routes;
