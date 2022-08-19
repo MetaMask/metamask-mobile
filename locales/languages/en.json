@@ -637,7 +637,9 @@
     "delete_data_status_description": "The current status is",
     "delete_metrics_error_title": "We are unable to delete this data right now.",
     "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue, please try again later.",
-    "ok": "OK"
+    "ok": "OK",
+    "clear_sdk_connections_title": "Clear all MetaMask SDK Connections",
+    "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again"
   },
   "app_information": {
     "title": "Information",

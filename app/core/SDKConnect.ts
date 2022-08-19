@@ -1,15 +1,14 @@
-//import { store } from '../store';
-import BackgroundBridge from './BackgroundBridge';
+import BackgroundBridge from './BackgroundBridge/BackgroundBridge';
 import RemoteCommunication, {
   CommunicationLayerPreference,
 } from '@metamask/sdk-communication-layer';
 import getRpcMethodMiddleware from './RPCMethods/RPCMethodMiddleware';
-//import { approveHost } from '../actions/privacy';
 import AppConstants from './AppConstants';
 import Minimizer from 'react-native-minimizer';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from './Engine';
 import { WalletDevice } from '@metamask/controllers';
+import DefaultPreference from 'react-native-default-preference';
 
 import {
   RTCPeerConnection,
@@ -21,7 +20,6 @@ import {
   mediaDevices,
   registerGlobals,
 } from 'react-native-webrtc';
-import AsyncStorage from '@react-native-community/async-storage';
 import { AppState } from 'react-native';
 import Device from '../util/device';
 
@@ -74,7 +72,7 @@ const approveHost = ({
 }) => {
   approvedHosts[host] = hostname;
 
-  AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify(approvedHosts));
+  DefaultPreference.set('sdkApprovedHosts', JSON.stringify(approvedHosts));
 };
 
 const parseSource = (source: string) => {
@@ -245,8 +243,8 @@ class Connection {
     this.backgroundBridge?.onDisconnect?.();
     delete connections[this.channelId];
     delete approvedHosts[this.host];
-    AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify(approvedHosts));
-    AsyncStorage.setItem('sdkConnections', JSON.stringify(connections));
+    DefaultPreference.set('sdkApprovedHosts', JSON.stringify(approvedHosts));
+    DefaultPreference.set('sdkConnections', JSON.stringify(connections));
   }
 
   sendMessage(msg: any) {
@@ -276,14 +274,14 @@ const SDKConnect = {
       origin,
     });
     connections[id] = { id, commLayer, otherPublicKey, origin };
-    AsyncStorage.setItem('sdkConnections', JSON.stringify(connections));
+    DefaultPreference.set('sdkConnections', JSON.stringify(connections));
   },
   async reconnect() {
     if (this.reconnected) return;
 
     const [connectionsStorage, approvedHostsStorage] = await Promise.all([
-      AsyncStorage.getItem('sdkConnections'),
-      AsyncStorage.getItem('sdkApprovedHosts'),
+      DefaultPreference.get('sdkConnections'),
+      DefaultPreference.get('sdkApprovedHosts'),
     ]);
 
     if (connectionsStorage) {
@@ -349,9 +347,6 @@ const SDKConnect = {
     }
   },
   async init() {
-    /*AsyncStorage.setItem('sdkConnections', JSON.stringify({}));
-    AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify({}));*/
-
     this.handleAppState = this.handleAppState.bind(this);
     AppState.removeEventListener('change', this.handleAppState);
     AppState.addEventListener('change', this.handleAppState);
