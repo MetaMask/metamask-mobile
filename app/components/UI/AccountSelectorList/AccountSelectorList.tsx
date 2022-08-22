@@ -13,6 +13,8 @@ import AvatarGroup from '../../../component-library/components/Avatars/AvatarGro
 import UntypedEngine from '../../../core/Engine';
 import { formatAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
+import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies.
 import {
@@ -21,27 +23,25 @@ import {
   Assets,
 } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
+import { useAccounts } from './hooks';
 
 const AccountSelectorList = ({
-  accounts,
   onSelectAccount,
+  checkBalanceError,
 }: AccountSelectorListProps) => {
   const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
   const { styles } = useStyles(styleSheet, {});
-  const selectedAddress = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.selectedAddress,
-  );
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+  const { accounts, ensByAccountAddress } = useAccounts({ checkBalanceError });
 
   useEffect(() => {
     if (!accounts.length) return;
-    const account = accounts.find(({ address }) => address === selectedAddress);
+    const account = accounts.find(({ isSelected }) => isSelected);
     if (account) {
       // Wrap in timeout to provide more time for the list to render.
       setTimeout(() => {
@@ -52,17 +52,16 @@ const AccountSelectorList = ({
       }, 0);
     }
     // eslint-disable-next-line
-  }, [selectedAddress, accounts.length]);
+  }, [accounts.length]);
 
   const onPress = useCallback(
     (address: string) => {
       const { PreferencesController } = Engine.context;
-      address !== selectedAddress &&
-        PreferencesController.setSelectedAddress(address);
+      PreferencesController.setSelectedAddress(address);
       onSelectAccount?.(address);
     },
     /* eslint-disable-next-line */
-    [selectedAddress, onSelectAccount],
+    [onSelectAccount],
   );
 
   const getKeyExtractor = ({ address }: Account) => address;
@@ -71,10 +70,10 @@ const AccountSelectorList = ({
     let label = '';
     switch (type) {
       case KeyringTypes.qr:
-        label = 'Hardware';
+        label = strings('transaction.hardware');
         break;
       case KeyringTypes.simple:
-        label = 'Imported';
+        label = strings('accounts.imported');
         break;
     }
     return label;
@@ -83,18 +82,21 @@ const AccountSelectorList = ({
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets) => (
       <View style={styles.balancesContainer}>
-        <Text>{fiatBalance}</Text>
-        <AvatarGroup tokenList={tokens} />
+        <Text style={styles.balanceLabel}>{fiatBalance}</Text>
+        {tokens && <AvatarGroup tokenList={tokens} />}
       </View>
     ),
-    [styles.balancesContainer],
+    [styles.balancesContainer, styles.balanceLabel],
   );
 
   const renderAccountItem: ListRenderItem<Account> = useCallback(
-    ({ item: { name, address, assets, type } }) => {
-      const isSelected = selectedAddress === address;
+    ({ item: { name, address, assets, type, isSelected, balanceError } }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getTagLabel(type);
+      const ensName = ensByAccountAddress[address];
+      const accountName =
+        isDefaultAccountName(name) && ensName ? ensName : name;
+      const isDisabled = !!balanceError;
 
       return (
         <CellAccount
@@ -102,15 +104,18 @@ const AccountSelectorList = ({
           secondaryText={shortAddress}
           onPress={() => onPress(address)}
           accountAddress={address}
-          title={name}
+          title={accountName}
           accountAvatarType={accountAvatarType}
           tagLabel={tagLabel}
+          disabled={isDisabled}
+          /* eslint-disable-next-line */
+          style={{ opacity: isDisabled ? 0.5 : 1 }}
         >
           {assets && renderAccountBalances(assets)}
         </CellAccount>
       );
     },
-    [selectedAddress, accountAvatarType, onPress, renderAccountBalances],
+    [accountAvatarType, onPress, renderAccountBalances, ensByAccountAddress],
   );
 
   return (

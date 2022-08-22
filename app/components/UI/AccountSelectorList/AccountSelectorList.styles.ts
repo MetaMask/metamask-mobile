@@ -14,6 +14,7 @@ const styleSheet = () =>
     balancesContainer: {
       alignItems: 'flex-end',
     },
+    balanceLabel: { textAlign: 'right' },
   });
 
 export default styleSheet;

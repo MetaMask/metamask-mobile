@@ -15,7 +15,7 @@ export interface Assets {
   /**
    * Tokens owned by this account.
    */
-  tokens: AvatarGroupToken[];
+  tokens?: AvatarGroupToken[];
 }
 
 /**
@@ -42,6 +42,14 @@ export interface Account {
    * Y offset of the item. Used for scrolling purposes.
    */
   yOffset: number;
+  /**
+   * Boolean that indicates if the account is selected.
+   */
+  isSelected: boolean;
+  /**
+   * Optional error that indicates if the account has enough funds. Non-empty string will render the account item non-selectable.
+   */
+  balanceError?: string;
 }
 
 /**
@@ -49,11 +57,12 @@ export interface Account {
  */
 export interface AccountSelectorListProps {
   /**
-   * List of accounts.
-   */
-  accounts: Account[];
-  /**
    * Optional callback to trigger when account is selected.
    */
   onSelectAccount?: (address: string) => void;
+  /**
+   * Optional callback that is used to check for a balance requirement. Non-empty string will render the account item non-selectable.
+   * @param balance - The ticker balance of an account in wei and hex string format.
+   */
+  checkBalanceError?: (balance: string) => string;
 }

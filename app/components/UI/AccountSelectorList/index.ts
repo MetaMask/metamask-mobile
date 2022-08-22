@@ -1,3 +1,6 @@
 export { default } from './AccountSelectorList';
-export type { Account } from './AccountSelectorList.types';
+export type {
+  Account,
+  AccountSelectorListProps,
+} from './AccountSelectorList.types';
 export * from './hooks';

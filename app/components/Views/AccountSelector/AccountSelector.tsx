@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import AccountSelectorList, { useAccounts } from '../../UI/AccountSelectorList';
+import AccountSelectorList from '../../UI/AccountSelectorList';
 import SheetActions from '../../../component-library/components-temp/SheetActions';
 import SheetBottom, {
   SheetBottomRef,
@@ -24,12 +24,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     onOpenImportAccount,
     onOpenConnectHardwareWallet,
     onSelectAccount,
+    checkBalanceError,
     isSelectOnly,
   } = route.params || {};
   const Engine = UntypedEngine as any;
   const [isLoading, setIsLoading] = useState(false);
   const sheetRef = useRef<SheetBottomRef>(null);
-  const { accounts } = useAccounts();
   const navigation = useNavigation();
 
   const _onSelectAccount = (address: string) => {
@@ -77,8 +77,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     <SheetBottom ref={sheetRef}>
       <SheetHeader title={'Accounts'} />
       <AccountSelectorList
-        accounts={accounts}
         onSelectAccount={_onSelectAccount}
+        checkBalanceError={checkBalanceError}
       />
       {!isSelectOnly && (
         <SheetActions
