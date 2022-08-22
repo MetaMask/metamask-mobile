@@ -37,6 +37,7 @@ const styleSheet = (params: {
     ) as ViewStyle,
     label: {
       marginHorizontal: 8,
+      flexShrink: 1,
     },
   });
 };
