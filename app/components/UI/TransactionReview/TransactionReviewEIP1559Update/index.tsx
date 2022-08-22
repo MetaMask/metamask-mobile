@@ -52,7 +52,6 @@ const TransactionReviewEIP1559Update = ({
     onlyGas: undefined,
     gasSelected,
     legacy: !!legacy,
-    gasLimit: null,
     gasPriceObject,
   });
 

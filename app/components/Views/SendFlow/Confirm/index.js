@@ -259,8 +259,7 @@ class Confirm extends PureComponent {
     gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     suggestedGasLimit: undefined,
     gasTransaction: {},
-    gasData: undefined,
-    existingGas: {},
+    gasPriceObject: {},
   };
 
   setNetworkNonce = async () => {
@@ -871,37 +870,30 @@ class Confirm extends PureComponent {
     this.review();
   };
 
-  saveGasEdition = (gasTransaction, gasData) => {
+  saveGasEdition = (gasTransaction, gasPriceObject) => {
     const { transaction } = this.props;
     gasTransaction.error = this.validateAmount({
       transaction,
       total: gasTransaction.totalMaxHex,
     });
 
-    const existingGas = {
-      maxFeePerGas: gasData?.suggestedMaxFeePerGas,
-      maxPriorityFeePerGas: gasData?.suggestedMaxPriorityFeePerGas,
-    };
-
-    this.setState({ gasTransaction, gasData, existingGas });
+    this.setState({ gasTransaction, gasPriceObject });
 
     this.review();
   };
 
   renderCustomGasModalEIP1559 = () => {
     const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-    const { gasSelected, isAnimating, animateOnChange, existingGas } =
+    const { gasSelected, isAnimating, animateOnChange, gasPriceObject } =
       this.state;
 
-    const newexistingGas = {
-      maxFeePerGas:
-        gasSelected === null
-          ? existingGas.maxFeePerGas
-          : gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
-      maxPriorityFeePerGas:
-        gasSelected === null
-          ? existingGas.maxFeePerGas
-          : gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+    const currentGasPriceObject = {
+      suggestedMaxFeePerGas:
+        gasPriceObject.suggestedMaxFeePerGas ||
+        gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas:
+        gasPriceObject.suggestedMaxPriorityFeePerGas ||
+        gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
     };
 
     const colors = this.context.colors || mockTheme.colors;
@@ -939,7 +931,7 @@ class Confirm extends PureComponent {
             isAnimating={isAnimating}
             analyticsParams={this.getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
-            existingGas={newexistingGas}
+            currentGasPriceObject={currentGasPriceObject}
           />
         </KeyboardAwareScrollView>
       </Modal>
@@ -1126,9 +1118,8 @@ class Confirm extends PureComponent {
     });
   };
 
-  updateGasSelected = (gas, selected) => {
+  updateGasSelected = (selected) => {
     this.setState({
-      newGasValue: gas,
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
       gasSelected: selected,
@@ -1324,8 +1315,7 @@ class Confirm extends PureComponent {
               isAnimating={isAnimating}
               gasEstimationReady={gasEstimationReady}
               chainId={chainId}
-              gasPriceObject={this.state.gasData}
-              newGasValue={this.state.newGasValue}
+              gasPriceObject={this.state.gasPriceObject}
             />
           )}
 

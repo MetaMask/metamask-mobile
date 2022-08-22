@@ -130,6 +130,7 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    * gas object for calculating the gas transaction cost
    */
   gasPriceObject: {
+    gasLimit?: string;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
