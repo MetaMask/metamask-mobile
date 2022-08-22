@@ -2,6 +2,9 @@ import Engine from '../core/Engine';
 import networkMap from 'ethjs-ens/lib/network-map.json';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
+const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
+// One hour cache threshold.
+const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
 
 /**
  * Utility class with the single responsibility
@@ -12,9 +15,11 @@ class ENSCache {
 }
 
 export async function doENSReverseLookup(address, network) {
-  const cache = ENSCache.cache[network + address];
-  if (cache) {
-    return Promise.resolve(cache);
+  const { name: cachedName, timestamp } =
+    ENSCache.cache[network + address] || {};
+  const nowTimestamp = Date.now();
+  if (timestamp && nowTimestamp - timestamp < CACHE_REFRESH_THRESHOLD) {
+    return Promise.resolve(cachedName);
   }
 
   const { provider } = Engine.context.NetworkController;
@@ -27,11 +32,15 @@ export async function doENSReverseLookup(address, network) {
       const name = await this.ens.reverse(address);
       const resolvedAddress = await this.ens.lookup(name);
       if (toLowerCaseEquals(address, resolvedAddress)) {
-        ENSCache.cache[network + address] = name;
+        ENSCache.cache[network + address] = { name, timestamp: Date.now() };
         return name;
       }
       // eslint-disable-next-line no-empty
-    } catch (e) {}
+    } catch (e) {
+      if (e.message.includes(ENS_NAME_NOT_DEFINED_ERROR)) {
+        ENSCache.cache[network + address] = { timestamp: Date.now() };
+      }
+    }
   }
 }
 
