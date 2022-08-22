@@ -639,7 +639,8 @@
     "delete_metrics_error_description": "This request can't be completed right now due to an analytics system server issue, please try again later.",
     "ok": "OK",
     "clear_sdk_connections_title": "Clear all MetaMask SDK Connections",
-    "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again"
+    "clear_sdk_connections_text": "All connections will be cleared and dapps will need to request connection again",
+    "sdk_connections": "MetaMask SDK Connections"
   },
   "app_information": {
     "title": "Information",
