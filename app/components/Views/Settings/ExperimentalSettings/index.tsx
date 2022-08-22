@@ -94,6 +94,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           navigation,
           isFullScreenModal,
           colors,
+          null,
         ),
       );
     },
@@ -140,16 +141,18 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     <ScrollView style={styles.wrapper}>
       <View style={styles.setting}>
         <View>
-          <Text style={styles.title}>{'MetaMask SDK Connections'}</Text>
+          <Text style={styles.title}>
+            {strings('app_settings.sdk_connections')}
+          </Text>
           <Text style={styles.desc}>
-            {'Clear all MetaMask SDK connections'}
+            {strings('app_settings.clear_sdk_connections_title')}
           </Text>
           <StyledButton
             type="signingCancel"
             onPress={toggleClearMMSDKConnectionModal}
             containerStyle={styles.clearHistoryConfirm}
           >
-            {'Clear MetaMask SDK connections'}
+            {strings('app_settings.clear_sdk_connections_title')}
           </StyledButton>
         </View>
       </View>

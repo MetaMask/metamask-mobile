@@ -75,11 +75,15 @@ const approveHost = ({
   DefaultPreference.set('sdkApprovedHosts', JSON.stringify(approvedHosts));
 };
 
+enum Sources {
+  'web-desktop' = 'web-desktop',
+  'web-mobile' = 'web-mobile',
+  'nodejs' = 'nodejs',
+  'unity' = 'unity',
+}
+
 const parseSource = (source: string) => {
-  if (source === 'web-desktop') return 'web-desktop';
-  if (source === 'web-mobile') return 'web-mobile';
-  if (source === 'nodejs') return 'nodejs';
-  if (source === 'unity') return 'unity';
+  if ((Object as any).values(Sources).includes(source)) return source;
   return 'undefined';
 };
 
@@ -104,6 +108,7 @@ class Connection {
     this.host = `${MM_SDK_REMOTE_ORIGIN}${this.channelId}`;
 
     this.RemoteConn = new RemoteCommunication({
+      platform: 'metamask-mobile',
       commLayer,
       otherPublicKey,
       webRTCLib: webrtc,
