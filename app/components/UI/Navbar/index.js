@@ -30,6 +30,7 @@ import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
 import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
+import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -900,7 +901,9 @@ export function getOfflineModalNavbar() {
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerTitle and headerTitle
  */
 export function getWalletNavbarOptions(
-  title,
+  networkName,
+  networkImageSource,
+  onPressTitle,
   navigation,
   drawerRef,
   themeColors,
@@ -913,6 +916,10 @@ export function getWalletNavbarOptions(
     },
     headerIcon: {
       color: themeColors.primary.default,
+    },
+    headerTitle: {
+      justifyContent: 'center',
+      flex: 1,
     },
   });
 
@@ -973,7 +980,15 @@ export function getWalletNavbarOptions(
   }
 
   return {
-    headerTitle: () => <NavbarTitle title={title} />,
+    headerTitle: () => (
+      <View style={innerStyles.headerTitle}>
+        <PickerNetwork
+          label={networkName}
+          imageSource={networkImageSource}
+          onPress={onPressTitle}
+        />
+      </View>
+    ),
     headerLeft: () => (
       <TouchableOpacity
         onPress={openDrawer}
