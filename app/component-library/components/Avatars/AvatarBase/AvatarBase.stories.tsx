@@ -14,17 +14,15 @@ import { DUMMY_IMAGE_DATA } from './AvatarBase.constants';
 
 const styles = StyleSheet.create({ imageStyle: { flex: 1 } });
 
-storiesOf('Component Library / AvatarBase', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const sizeSelector = select('Size', AvatarBaseSize, AvatarBaseSize.Md);
+storiesOf('Component Library / AvatarBase', module).add('Default', () => {
+  const sizeSelector = select('Size', AvatarBaseSize, AvatarBaseSize.Md);
 
-    return (
-      <AvatarBase size={sizeSelector}>
-        <Image
-          source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
-          style={styles.imageStyle}
-        />
-      </AvatarBase>
-    );
-  });
+  return (
+    <AvatarBase size={sizeSelector}>
+      <Image
+        source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
+        style={styles.imageStyle}
+      />
+    </AvatarBase>
+  );
+});

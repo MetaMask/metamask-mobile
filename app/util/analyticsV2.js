@@ -110,11 +110,27 @@ export const ANALYTICS_EVENTS_V2 = {
   BROWSER_SHARE_SITE: generateOpt('Shared A Site'),
   BROWSER_RELOAD: generateOpt('Reload Browser'),
   BROWSER_ADD_FAVORITES: generateOpt('Added Site To Favorites'),
-  // Settings
-  // Reveal Credentials
+  // Security & Privacy Settings
+  VIEW_SECURITY_SETTINGS: generateOpt('Views Security & Privacy'),
+  // Reveal SRP
+  REVEAL_SRP_CTA: generateOpt('Clicks Reveal Secret Recovery Phrase'),
+  REVEAL_SRP_SCREEN: generateOpt('Views Reveal Secret Recovery Phrase'),
+  GO_BACK_SRP_SCREEN: generateOpt('Clicked Back on Reveal SRP Password Page'),
+  CANCEL_REVEAL_SRP_CTA: generateOpt(
+    'Clicks Cancel on Reveal Secret Recovery Phrase Page',
+  ),
+  NEXT_REVEAL_SRP_CTA: generateOpt(
+    'Clicks Next on Reveal Secret Recovery Phrase',
+  ),
+  VIEW_SRP: generateOpt('Views SRP'),
+  SRP_DISMISS_HOLD_TO_REVEAL_DIALOG: generateOpt('Closes Hold To Reveal SRP'),
+  VIEW_SRP_QR: generateOpt('Views SRP QR code'),
+  COPY_SRP: generateOpt('Copies SRP to clipboard'),
+  SRP_DONE_CTA: generateOpt('Clicks Done with SRP'),
   REVEAL_SRP_INITIATED: generateOpt('Reveal SRP Initiated'),
   REVEAL_SRP_CANCELLED: generateOpt('Reveal SRP Cancelled'),
   REVEAL_SRP_COMPLETED: generateOpt('Reveal SRP Completed'),
+  // Reveal Private Key
   REVEAL_PRIVATE_KEY_INITIATED: generateOpt('Reveal Private Key Initiated'),
   REVEAL_PRIVATE_KEY_CANCELLED: generateOpt('Reveal Private Key Cancelled'),
   REVEAL_PRIVATE_KEY_COMPLETED: generateOpt('Reveal Private Key Completed'),

@@ -55,6 +55,7 @@ const RevealPrivateCredential = ({
   navigation,
   showAlert,
   selectedAddress,
+  passwordSet,
   credentialName,
   cancel,
   route,
@@ -122,8 +123,14 @@ const RevealPrivateCredential = ({
         navigation,
         false,
         colors,
+        AnalyticsV2.ANALYTICS_EVENTS.GO_BACK_SRP_SCREEN,
       ),
     );
+  };
+
+  const isPrivateKey = () => {
+    const credential = credentialName || route.params.privateCredentialName;
+    return credential === PRIVATE_KEY;
   };
 
   const tryUnlockWithPassword = async (password, privateCredentialName) => {
@@ -168,17 +175,21 @@ const RevealPrivateCredential = ({
 
   useEffect(() => {
     updateNavBar();
+    // Track SRP Reveal screen rendered
+    if (!isPrivateKey()) {
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_SCREEN);
+    }
 
     const unlockWithBiometrics = async () => {
       const biometryType = await SecureKeychain.getSupportedBiometryType();
-      if (!this.props.passwordSet) {
-        this.tryUnlockWithPassword('');
+      if (!passwordSet) {
+        tryUnlockWithPassword('');
       } else if (biometryType) {
         const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
         if (biometryChoice !== '' && biometryChoice === biometryType) {
           const credentials = await SecureKeychain.getGenericPassword();
           if (credentials) {
-            this.tryUnlockWithPassword(credentials.password);
+            tryUnlockWithPassword(credentials.password);
           }
         }
       }
@@ -197,11 +208,6 @@ const RevealPrivateCredential = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isPrivateKey = () => {
-    const credential = credentialName || route.params.privateCredentialName;
-    return credential === PRIVATE_KEY;
-  };
-
   const navigateBack = () => {
     navigation.pop();
   };
@@ -215,16 +221,37 @@ const RevealPrivateCredential = ({
         { view: 'Enter password' },
       );
 
+    if (!isPrivateKey())
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.CANCEL_REVEAL_SRP_CTA,
+      );
     if (cancel) return cancel();
     navigateBack();
   };
 
   const tryUnlock = () => {
-    setIsModalVisible(true);
+    const { KeyringController } = Engine.context;
+    if (KeyringController.validatePassword(password)) {
+      if (!isPrivateKey())
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
+        );
+      setIsModalVisible(true);
+      setWarningIncorrectPassword('');
+    } else {
+      const msg = strings('reveal_credential.warning_incorrect_password');
+      setWarningIncorrectPassword(msg);
+    }
   };
 
   const onPasswordChange = (password) => {
     setPassword(password);
+  };
+
+  const done = () => {
+    if (!isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SRP_DONE_CTA);
+    navigateBack();
   };
 
   const copyPrivateCredentialToClipboard = async (privateCredentialName) => {
@@ -234,6 +261,9 @@ const RevealPrivateCredential = ({
         : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
       { action: 'copied to clipboard' },
     );
+
+    if (!isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.COPY_SRP);
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -282,6 +312,9 @@ const RevealPrivateCredential = ({
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
+
+      if (!isPrivateKey())
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP);
     } else if (event.i === 1) {
       AnalyticsV2.trackEvent(
         isPrivateKey()
@@ -289,6 +322,9 @@ const RevealPrivateCredential = ({
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
       );
+
+      if (!isPrivateKey())
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP_QR);
     }
   };
 
@@ -385,7 +421,16 @@ const RevealPrivateCredential = ({
       { view: 'Hold to reveal' },
     );
 
+    AnalyticsV2.trackEvent(
+      AnalyticsV2.ANALYTICS_EVENTS.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG,
+    );
+
     setIsModalVisible(false);
+  };
+
+  const enableNextButton = () => {
+    const { KeyringController } = Engine.context;
+    return KeyringController.validatePassword(password);
   };
 
   const renderModal = (isPrivateKeyReveal, privateCredentialName) => (
@@ -496,11 +541,11 @@ const RevealPrivateCredential = ({
             : strings('reveal_credential.cancel')
         }
         confirmText={strings('reveal_credential.confirm')}
-        onCancelPress={unlocked ? navigateBack : cancelReveal}
+        onCancelPress={unlocked ? done : cancelReveal}
         testID={`next-button`}
         onConfirmPress={() => tryUnlock()}
         showConfirmButton={!unlocked}
-        confirmDisabled={!password.length}
+        confirmDisabled={!enableNextButton()}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
@@ -540,6 +585,10 @@ RevealPrivateCredential.propTypes = {
    */
   selectedAddress: PropTypes.string,
   /**
+   * Boolean that determines if the user has set a password before
+   */
+  passwordSet: PropTypes.bool,
+  /**
    * String that determines whether to show the seedphrase or private key export screen
    */
   credentialName: PropTypes.string,
@@ -560,6 +609,7 @@ RevealPrivateCredential.propTypes = {
 const mapStateToProps = (state) => ({
   selectedAddress:
     state.engine.backgroundState.PreferencesController.selectedAddress,
+  passwordSet: state.user.passwordSet,
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -11,6 +11,7 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import Summary from '../../Base/Summary';
 import Text from '../../Base/Text';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isTestNet } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -29,6 +30,7 @@ export default class TransactionSummary extends PureComponent {
     gasEstimationReady: PropTypes.bool,
     onEditPress: PropTypes.func,
     transactionType: PropTypes.string,
+    chainId: PropTypes.string,
   };
 
   renderIfGastEstimationReady = (children) => {
@@ -64,7 +66,11 @@ export default class TransactionSummary extends PureComponent {
       secondaryTotalAmount,
       gasEstimationReady,
       onEditPress,
+      chainId,
     } = this.props;
+
+    const isTestNetResult = isTestNet(chainId);
+
     if (
       this.props.transactionType === TRANSACTION_TYPES.RECEIVED_TOKEN ||
       this.props.transactionType === TRANSACTION_TYPES.RECEIVED
@@ -75,13 +81,13 @@ export default class TransactionSummary extends PureComponent {
             <Text small bold primary>
               {strings('transaction.amount')}
             </Text>
-            <Text small bold primary upper>
+            <Text small bold primary upper={!isTestNetResult}>
               {amount}
             </Text>
           </Summary.Row>
           {secondaryTotalAmount && (
             <Summary.Row end last>
-              <Text small right upper>
+              <Text small right upper={!isTestNetResult}>
                 {secondaryTotalAmount}
               </Text>
             </Summary.Row>
@@ -95,7 +101,7 @@ export default class TransactionSummary extends PureComponent {
           <Text small primary>
             {this.renderAmountTitle()}
           </Text>
-          <Text small primary upper>
+          <Text small primary upper={!isTestNetResult}>
             {amount}
           </Text>
         </Summary.Row>
@@ -121,7 +127,7 @@ export default class TransactionSummary extends PureComponent {
           </Summary.Col>
           {!!fee &&
             this.renderIfGastEstimationReady(
-              <Text small primary upper>
+              <Text small primary upper={!isTestNetResult}>
                 {fee}
               </Text>,
             )}
@@ -132,14 +138,14 @@ export default class TransactionSummary extends PureComponent {
             {strings('transaction.total_amount')}
           </Text>
           {this.renderIfGastEstimationReady(
-            <Text small bold primary upper>
+            <Text small bold primary upper={!isTestNetResult}>
               {totalAmount}
             </Text>,
           )}
         </Summary.Row>
         <Summary.Row end last>
           {this.renderIfGastEstimationReady(
-            <Text small right upper>
+            <Text small right upper={!isTestNetResult}>
               {secondaryTotalAmount}
             </Text>,
           )}
