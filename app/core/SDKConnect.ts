@@ -72,7 +72,10 @@ const approveHost = ({
 }) => {
   approvedHosts[host] = hostname;
 
-  DefaultPreference.set('sdkApprovedHosts', JSON.stringify(approvedHosts));
+  DefaultPreference.set(
+    AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+    JSON.stringify(approvedHosts),
+  );
 };
 
 enum Sources {
@@ -248,8 +251,14 @@ class Connection {
     this.backgroundBridge?.onDisconnect?.();
     delete connections[this.channelId];
     delete approvedHosts[this.host];
-    DefaultPreference.set('sdkApprovedHosts', JSON.stringify(approvedHosts));
-    DefaultPreference.set('sdkConnections', JSON.stringify(connections));
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+      JSON.stringify(approvedHosts),
+    );
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_CONNECTIONS,
+      JSON.stringify(connections),
+    );
   }
 
   sendMessage(msg: any) {
@@ -279,14 +288,17 @@ const SDKConnect = {
       origin,
     });
     connections[id] = { id, commLayer, otherPublicKey, origin };
-    DefaultPreference.set('sdkConnections', JSON.stringify(connections));
+    DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_CONNECTIONS,
+      JSON.stringify(connections),
+    );
   },
   async reconnect() {
     if (this.reconnected) return;
 
     const [connectionsStorage, approvedHostsStorage] = await Promise.all([
-      DefaultPreference.get('sdkConnections'),
-      DefaultPreference.get('sdkApprovedHosts'),
+      DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
+      DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
     ]);
 
     if (connectionsStorage) {
