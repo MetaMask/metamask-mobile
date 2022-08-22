@@ -25,6 +25,8 @@ import Device from '../util/device';
 
 export const MM_SDK_REMOTE_ORIGIN = 'MMSDKREMOTE::';
 
+const TIMEOUT_PAUSE_CONNECTIONS = 20000;
+
 const webrtc = {
   RTCPeerConnection,
   RTCIceCandidate,
@@ -346,20 +348,24 @@ const SDKConnect = {
         }
       }
     } else if (appState === 'background' && !this.paused) {
+      /**
+       * Pause connections after 20 seconds of the app being in background to respect device resources.
+       * Also, OS closes the app if after 30 seconds, the connections are still open.
+       */
       if (Device.isIos()) {
         BackgroundTimer.start();
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.timeout = setTimeout(() => {
           this.pause();
-        }, 20000);
+        }, TIMEOUT_PAUSE_CONNECTIONS);
         BackgroundTimer.stop();
       } else if (Device.isAndroid()) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.timeout = BackgroundTimer.setTimeout(() => {
           this.pause();
-        }, 20000);
+        }, TIMEOUT_PAUSE_CONNECTIONS);
       }
     }
   },
