@@ -1102,7 +1102,6 @@ class Confirm extends PureComponent {
 
   updateGasSelected = (selected) => {
     this.setState({
-      newGasValue: gas,
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
       gasSelected: selected,
