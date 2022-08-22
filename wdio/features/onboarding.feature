@@ -10,3 +10,13 @@ Feature: New app install setup on a mobile device
         When I tap to open MetaMask mobile app
         Then MetaMask animated loading logo is displayed
         And "Welcome to MetaMask" screen is displayed after logo
+
+
+@install @e2e
+Feature: Custom RPC Tests
+
+    Scenario: should create new wallet
+        Given I create a wallet
+
+    Scenario: should create new wallet
+        Given I create a wallet
