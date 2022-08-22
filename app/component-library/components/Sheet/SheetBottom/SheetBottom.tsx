@@ -4,6 +4,7 @@
 import { useNavigation } from '@react-navigation/native';
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -30,6 +31,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import debounce from 'lodash.debounce';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -88,12 +90,12 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     }, [children]);
 
-    const onHidden = () => {
+    const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
       onDismissed?.();
       postCallback.current?.();
-    };
+    }, [navigation, onDismissed]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -153,13 +155,21 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       });
     };
 
-    const hide = () => {
+    const hide = useCallback(() => {
       currentYOffset.value = withTiming(
         sheetHeight.value,
         { duration: TAP_TRIGGERED_ANIMATION_DURATION },
         () => runOnJS(onHidden)(),
       );
-    };
+      // Ref values do not affect deps.
+      /* eslint-disable-next-line */
+    }, [onHidden]);
+
+    const debouncedHide = useMemo(
+      // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
+      () => debounce(hide, 2000, { leading: true }),
+      [hide],
+    );
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
@@ -173,7 +183,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     useImperativeHandle(ref, () => ({
       hide: (callback) => {
         postCallback.current = callback;
-        hide();
+        debouncedHide();
       },
     }));
 
@@ -212,7 +222,7 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
           <TouchableOpacity
             disabled={!isInteractable}
             style={styles.fill}
-            onPress={hide}
+            onPress={debouncedHide}
           />
         </Animated.View>
         <PanGestureHandler
