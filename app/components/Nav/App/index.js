@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, Linking, StyleSheet, View } from 'react-native';
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-community/async-storage';
 import Login from '../../Views/Login';
@@ -55,28 +55,10 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
-import Alert, { AlertType } from '../../Base/Alert';
-import Text from '../..//Base/Text';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { strings } from '../../../../locales/i18n';
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    alertContainer: {
-      paddingHorizontal: 20,
-      marginVertical: 20,
-      width: '100%',
-    },
-    alertText: {
-      lineHeight: 18,
-      color: colors.text.default,
-      paddingLeft: 4,
-    },
-    alertIcon: {
-      paddingRight: 4,
-    },
-  });
+import WarningAlert from '../../../components/UI/WarningAlert';
+import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
 
 const Stack = createStackNavigator();
 /**
@@ -183,7 +165,6 @@ const App = ({ userLoggedIn, network }) => {
   const [animationPlayed, setAnimationPlayed] = useState();
   const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
-  const styles = createStyles(colors);
   const { toastRef } = useContext(ToastContext);
 
   const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
@@ -384,45 +365,18 @@ const App = ({ userLoggedIn, network }) => {
   );
 
   const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(
-      'https://blog.ethereum.org/2022/06/21/testnet-deprecation/',
-    );
+    Linking.openURL(MM_DEPRECATED_NETWORKS);
   };
 
   const renderDeprecatedNetworkAlert = (network) => {
     const { type } = network.provider;
     if (type === ROPSTEN || type === RINKEBY || type === KOVAN) {
       return (
-        <View style={styles.alertContainer}>
-          <Alert
-            small
-            type={AlertType.Warning}
-            onDismiss={() => {
-              setShowDeprecatedAlert(false);
-            }}
-            renderIcon={() => (
-              <MaterialCommunityIcon
-                name="information"
-                size={20}
-                color={colors.warning.default}
-                style={styles.alertIcon}
-              />
-            )}
-          >
-            <Text primary noMargin style={styles.alertText}>
-              {strings('networks.deprecated_network_msg')}
-              <Text
-                primary
-                noMargin
-                link
-                onPress={openDeprecatedNetworksArticle}
-              >
-                {' '}
-                {strings('networks.learn_more')}
-              </Text>
-            </Text>
-          </Alert>
-        </View>
+        <WarningAlert
+          text={strings('networks.deprecated_network_msg')}
+          dismissAlert={() => setShowDeprecatedAlert(false)}
+          onPressLearnMore={openDeprecatedNetworksArticle}
+        />
       );
     }
   };

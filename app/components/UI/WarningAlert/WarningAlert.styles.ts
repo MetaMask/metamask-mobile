@@ -1,0 +1,34 @@
+// Third party dependencies.
+import { StyleSheet } from 'react-native';
+import { Theme } from '../../../util/theme/models';
+
+/**
+ * Style sheet function for ModalConfirmation component.
+ *
+ * @param params Style sheet params.
+ * @param params.theme App theme from ThemeContext.
+ * @param params.vars Inputs that the style sheet depends on.
+ * @returns StyleSheet object.
+ */
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
+    alertContainer: {
+      paddingHorizontal: 20,
+      marginVertical: 20,
+      width: '100%',
+    },
+    alertText: {
+      lineHeight: 18,
+      color: colors.text.default,
+      paddingLeft: 4,
+    },
+    alertIcon: {
+      paddingRight: 4,
+    },
+  });
+};
+
+export default styleSheet;
