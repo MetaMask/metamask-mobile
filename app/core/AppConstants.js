@@ -130,4 +130,8 @@ export default {
     WC: 'WalletConnect',
     IN_APP_BROWSER: 'In-App-Browser',
   },
+  MM_SDK: {
+    SDK_CONNECTIONS: 'sdkConnections',
+    SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
+  },
 };

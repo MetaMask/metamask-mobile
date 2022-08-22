@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Text, ScrollView, View } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../../UI/StyledButton';
 import { fontStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -8,6 +7,8 @@ import { strings } from '../../../../../locales/i18n';
 import ActionModal from '../../../../components/UI/ActionModal';
 import SDKConnect from '../../../../core/SDKConnect';
 import { useTheme } from '../../../../util/theme';
+import DefaultPreference from 'react-native-default-preference';
+import AppConstants from '../../../../core/AppConstants';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -112,8 +113,14 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const clearMMSDKConnections = async () => {
     SDKConnect.disconnectAll();
-    await AsyncStorage.setItem('sdkConnections', JSON.stringify({}));
-    await AsyncStorage.setItem('sdkApprovedHosts', JSON.stringify({}));
+    await DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_CONNECTIONS,
+      JSON.stringify({}),
+    );
+    await DefaultPreference.set(
+      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
+      JSON.stringify({}),
+    );
     toggleClearMMSDKConnectionModal();
   };
 
