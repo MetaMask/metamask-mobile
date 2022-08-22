@@ -449,10 +449,10 @@ class ApproveTransactionReview extends PureComponent {
         unlimited_permission_requested: unlimited,
         referral_type: isDapp ? 'dapp' : transaction?.origin,
         request_source: this.originIsMMSDKRemoteConn
-          ? 'MetaMask-SDK-Remote-Conn'
+          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
           : this.originIsWalletConnect
-          ? 'WalletConnect'
-          : 'In-App-Browser',
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
       // Send analytics params to parent component so it's available when cancelling and confirming
       onSetAnalyticsParams && onSetAnalyticsParams(params);
