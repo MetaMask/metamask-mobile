@@ -55,6 +55,13 @@ export interface TransactionEIP1559UpdateProps {
    * The selected gas option
    */
   gasSelected: string;
+  /**
+   * gas object for calculating the gas transaction cost
+   */
+  gasPriceObject: {
+    suggestedMaxFeePerGas: string;
+    suggestedMaxPriorityFeePerGas: string;
+  };
 }
 
 export interface SkeletonProps {

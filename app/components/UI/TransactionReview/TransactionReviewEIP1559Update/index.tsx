@@ -32,6 +32,7 @@ const TransactionReviewEIP1559Update = ({
   gasEstimationReady,
   legacy,
   gasSelected,
+  gasPriceObject,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -41,7 +42,6 @@ const TransactionReviewEIP1559Update = ({
   ] = useModalHandler(false);
   const [isVisibleLegacyLearnMore, , showLegacyLearnMore, hideLegacyLearnMore] =
     useModalHandler(false);
-
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal(!showLearnMoreModal);
   }, [showLearnMoreModal]);
@@ -53,6 +53,7 @@ const TransactionReviewEIP1559Update = ({
     gasSelected,
     legacy: !!legacy,
     gasLimit: null,
+    gasPriceObject,
   });
 
   const {

@@ -259,6 +259,8 @@ class Confirm extends PureComponent {
     gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     suggestedGasLimit: undefined,
     gasTransaction: {},
+    gasData: undefined,
+    existingGas: {},
   };
 
   setNetworkNonce = async () => {
@@ -869,26 +871,37 @@ class Confirm extends PureComponent {
     this.review();
   };
 
-  saveGasEdition = (gasTransaction) => {
+  saveGasEdition = (gasTransaction, gasData) => {
     const { transaction } = this.props;
     gasTransaction.error = this.validateAmount({
       transaction,
       total: gasTransaction.totalMaxHex,
     });
 
-    this.setState({ gasTransaction });
+    const existingGas = {
+      maxFeePerGas: gasData?.suggestedMaxFeePerGas,
+      maxPriorityFeePerGas: gasData?.suggestedMaxPriorityFeePerGas,
+    };
+
+    this.setState({ gasTransaction, gasData, existingGas });
 
     this.review();
   };
 
   renderCustomGasModalEIP1559 = () => {
     const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-    const { gasSelected, isAnimating, animateOnChange } = this.state;
+    const { gasSelected, isAnimating, animateOnChange, existingGas } =
+      this.state;
 
-    const existingGas = {
-      maxFeePerGas: gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
+    const newexistingGas = {
+      maxFeePerGas:
+        gasSelected === null
+          ? existingGas.maxFeePerGas
+          : gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
       maxPriorityFeePerGas:
-        gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+        gasSelected === null
+          ? existingGas.maxFeePerGas
+          : gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
     };
 
     const colors = this.context.colors || mockTheme.colors;
@@ -926,7 +939,7 @@ class Confirm extends PureComponent {
             isAnimating={isAnimating}
             analyticsParams={this.getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
-            existingGas={existingGas}
+            existingGas={newexistingGas}
           />
         </KeyboardAwareScrollView>
       </Modal>
@@ -1311,6 +1324,7 @@ class Confirm extends PureComponent {
               isAnimating={isAnimating}
               gasEstimationReady={gasEstimationReady}
               chainId={chainId}
+              gasPriceObject={this.state.gasData}
               newGasValue={this.state.newGasValue}
             />
           )}

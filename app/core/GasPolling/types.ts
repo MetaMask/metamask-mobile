@@ -126,6 +126,13 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    * the gas transaction props
    */
   gasData: GasTransactionProps;
+  /**
+   * gas object for calculating the gas transaction cost
+   */
+  gasPriceObject: {
+    suggestedMaxFeePerGas: string;
+    suggestedMaxPriorityFeePerGas: string;
+  };
 }
 
 export interface TransactionSharedProps {

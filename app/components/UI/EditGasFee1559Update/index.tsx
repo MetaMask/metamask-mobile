@@ -144,8 +144,13 @@ const EditGasFee1559Update = ({
       getAnalyticsParams(),
     );
 
-    onSave(gasTransaction);
-  }, [getAnalyticsParams, onSave, gasTransaction]);
+    const newGasData = {
+      suggestedMaxFeePerGas: gasData?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasData?.suggestedMaxPriorityFeePerGas,
+      suggestedGasLimit: gasData?.suggestedGasLimit,
+    };
+    onSave(gasTransaction, newGasData);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasData]);
 
   const changeGas = useCallback((gas) => {
     setGasValue(gas);

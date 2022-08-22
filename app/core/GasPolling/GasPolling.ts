@@ -174,6 +174,7 @@ export const useGasTransaction = ({
   legacy,
   gasLimit,
   gasData,
+  gasPriceObject,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -222,8 +223,11 @@ export const useGasTransaction = ({
       ...(gasSelected
         ? gasFeeEstimates[gasSelected]
         : {
-            suggestedMaxFeePerGas: gasData?.suggestedMaxFeePerGas,
+            suggestedMaxFeePerGas:
+              gasPriceObject?.suggestedMaxFeePerGas ||
+              gasData?.suggestedMaxFeePerGas,
             suggestedMaxPriorityFeePerGas:
+              gasPriceObject?.suggestedMaxPriorityFeePerGas ||
               gasData?.suggestedMaxPriorityFeePerGas,
           }),
       suggestedGasLimit,
