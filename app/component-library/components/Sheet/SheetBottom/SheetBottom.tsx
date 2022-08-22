@@ -85,11 +85,6 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
     const navigation = useNavigation();
     const isMounted = useRef(false);
 
-    useEffect(() => {
-      // Automatically handles animation when content changes
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    }, [children]);
-
     const onHidden = useCallback(() => {
       // Sheet is automatically unmounted from the navigation stack.
       navigation.goBack();
@@ -170,6 +165,12 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       () => debounce(hide, 2000, { leading: true }),
       [hide],
     );
+
+    useEffect(() => {
+      // Automatically handles animation when content changes
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      return () => debouncedHide.cancel();
+    }, [children, debouncedHide]);
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;

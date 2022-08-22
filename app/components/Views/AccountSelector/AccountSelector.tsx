@@ -14,6 +14,7 @@ import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import Loader from '../../../component-library/components-temp/Loader';
+import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies.
 import { AccountSelectorProps } from './AccountSelector.types';
@@ -75,7 +76,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   return (
     <SheetBottom ref={sheetRef}>
-      <SheetHeader title={'Accounts'} />
+      <SheetHeader title={strings('accounts.account_selector.title')} />
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
         checkBalanceError={checkBalanceError}
@@ -83,10 +84,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       {!isSelectOnly && (
         <SheetActions
           actions={[
-            { label: 'Create a new account', onPress: createNewAccount },
-            { label: 'Import an account', onPress: openImportAccount },
             {
-              label: 'Connect hardware wallet',
+              label: strings('accounts.create_new_account'),
+              onPress: createNewAccount,
+            },
+            {
+              label: strings('accounts.import_account'),
+              onPress: openImportAccount,
+            },
+            {
+              label: strings('accounts.connect_hardware'),
               onPress: openConnectHardwareWallet,
             },
           ]}
