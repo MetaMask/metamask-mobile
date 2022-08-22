@@ -17,6 +17,7 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
+import AppConstants from '../AppConstants.js';
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
@@ -166,9 +167,10 @@ export const getRpcMethodMiddleware = ({
     };
 
     const getSource = () => {
-      if (analytics?.isRemoteConn) return 'MetaMask-SDK-Remote-Conn';
-      if (isWalletConnect) return 'WalletConnect';
-      return 'In-App-Browser';
+      if (analytics?.isRemoteConn)
+        return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+      if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
+      return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
     };
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
