@@ -28,6 +28,7 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -104,7 +105,7 @@ const CollectibleContracts = ({
 
   const onItemPress = useCallback(
     (collectible, contractName) => {
-      navigation.navigate('CollectiblesDetails', {
+      navigation.navigate(Routes.COLLECTIBLES_DETAILS, {
         collectible,
         contractName,
         selectedAddress,

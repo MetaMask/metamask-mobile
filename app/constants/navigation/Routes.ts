@@ -28,6 +28,9 @@ const Routes = {
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
   },
+  COLLECTIBLES_DETAILS: 'CollectiblesDetails',
+  TRANSACTIONS_HOME: 'TransactionsHome',
+  SEND_FLOW_VIEW: 'SendFlowView',
 };
 
 export default Routes;

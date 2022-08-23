@@ -10,6 +10,7 @@ import { baseStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import ReusableModal from '../ReusableModal';
 import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
 
 const styles = StyleSheet.create({
   bottomModal: {
@@ -51,11 +52,11 @@ const CollectibleModal = (props) => {
 
   const onSend = useCallback(async () => {
     newAssetTransaction({ contractName, ...collectible });
-    navigation.replace('SendFlowView');
+    navigation.replace(Routes.SEND_FLOW_VIEW);
   }, [contractName, collectible, newAssetTransaction, navigation]);
 
   const onViewTransactionDetails = useCallback(() => {
-    navigation.navigate('TransactionsHome');
+    navigation.navigate(Routes.TRANSACTIONS_HOME);
   }, [navigation]);
 
   const isTradable = useCallback(() => {
@@ -99,6 +100,9 @@ const CollectibleModal = (props) => {
 
   const modalRef = useRef(null);
 
+  const isCollectibleTransacting = (collectible) =>
+    !!collectible?.transactionId;
+
   return (
     <ReusableModal ref={modalRef} style={styles.bottomModal}>
       <>
@@ -130,7 +134,7 @@ const CollectibleModal = (props) => {
             onViewTransactionDetails={onViewTransactionDetails}
             openLink={openLink}
             onTranslation={onCollectibleOverviewTranslation}
-            isTransacting={!!collectibleUpdated?.transactionId}
+            isTransacting={isCollectibleTransacting(collectibleUpdated)}
           />
         </View>
       </>
