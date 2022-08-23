@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import Analytics from '../core/Analytics/Analytics';
+import { MetaMetrics } from '../core/Analytics';
 import Logger from './Logger';
 
 const generateOpt = (name) => ({ category: name });
@@ -191,7 +191,8 @@ export const trackEventV2 = (eventName, params) => {
     let anonymousEvent = false;
     try {
       if (!params) {
-        Analytics.trackEvent(eventName);
+        // Analytics.trackEvent(eventName);
+        MetaMetrics.trackEvent(eventName.category, false);
       }
 
       const userParams = {};
@@ -219,12 +220,14 @@ export const trackEventV2 = (eventName, params) => {
 
       // Log all non-anonymous properties
       if (Object.keys(userParams).length) {
-        Analytics.trackEventWithParameters(eventName, userParams);
+        // Analytics.trackEventWithParameters(eventName, userParams);
+        MetaMetrics.trackEvent(eventName.category, false, userParams);
       }
 
       // Log all anonymous properties
       if (anonymousEvent && Object.keys(anonymousParams).length) {
-        Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        // Analytics.trackEventWithParameters(eventName, anonymousParams, true);
+        MetaMetrics.trackEvent(eventName.category, true, anonymousParams);
       }
     } catch (error) {
       Logger.error(error, 'Error logging analytics');
@@ -243,12 +246,17 @@ export const trackEventV2 = (eventName, params) => {
  */
 export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
   try {
-    Analytics.trackEventWithParameters(generateOpt('Error occurred'), {
+    const params = {
       error: true,
       type,
       errorMessage,
       otherInfo,
-    });
+    };
+    // Analytics.trackEventWithParameters(
+    //   generateOpt('Error occurred'),
+    //   properties,
+    // );
+    MetaMetrics.trackEvent('Error occurred', false, params);
   } catch (error) {
     Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
   }
