@@ -468,7 +468,7 @@ class Transactions extends PureComponent {
 
     if (!resetResult) {
       Logger.error({
-        message: `resetCollectibleTransactionStatusByTransactionId failed `,
+        message: 'resetCollectibleTransactionStatusByTransactionId failed',
         cancelTxId,
       });
     }
