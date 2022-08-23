@@ -173,9 +173,12 @@ const CollectibleContracts = ({
 
   const renderCollectibleContract = useCallback(
     (item, index) => {
-      const contractCollectibles = collectibles?.filter((collectible) =>
-        toLowerCaseEquals(collectible.address, item.address),
-      );
+      const contractCollectibles = collectibles
+        ?.filter((collectible) =>
+          toLowerCaseEquals(collectible.address, item.address),
+        )
+        .sort((a, b) => a.name >= b.name);
+
       return (
         <CollectibleContractElement
           onPress={onItemPress}
