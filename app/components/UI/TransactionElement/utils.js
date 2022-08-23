@@ -24,6 +24,10 @@ import {
   getActionKey,
   TRANSACTION_TYPES,
   calculateEIP1559GasFeeHexes,
+  actionKeys,
+  SEND_TOKEN_ACTION_KEY,
+  TRANSFER_FROM_ACTION_KEY,
+  DEPLOY_CONTRACT_ACTION_KEY,
 } from '../../../util/transactions';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -890,19 +894,19 @@ export default async function decodeTransaction(args) {
     });
   } else {
     switch (actionKey.actionKey) {
-      case 'transactions.sent_tokens':
+      case actionKeys[SEND_TOKEN_ACTION_KEY]:
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,
         });
         break;
-      case 'transactions.sent_collectible':
+      case actionKeys[TRANSFER_FROM_ACTION_KEY]:
         [transactionElement, transactionDetails] = decodeTransferFromTx({
           ...args,
           actionKey,
         });
         break;
-      case 'transactions.contract_deploy':
+      case actionKeys[DEPLOY_CONTRACT_ACTION_KEY]:
         [transactionElement, transactionDetails] = decodeDeploymentTx({
           ...args,
           actionKey,

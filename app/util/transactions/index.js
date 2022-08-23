@@ -106,7 +106,7 @@ const reviewActionKeys = {
 /**
  * Object containing all known action keys, to be used in transactions list
  */
-const actionKeys = {
+export const actionKeys = {
   [SEND_TOKEN_ACTION_KEY]: 'transactions.sent_tokens',
   [TRANSFER_FROM_ACTION_KEY]: 'transactions.sent_collectible',
   [DEPLOY_CONTRACT_ACTION_KEY]: 'transactions.contract_deploy',
