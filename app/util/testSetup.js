@@ -88,9 +88,24 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
-jest.mock('react-native-keychain', () => ({
-  getSupportedBiometryType: () => Promise.resolve('FaceId'),
-}));
+const keychainMock = {
+  SECURITY_LEVEL_ANY: 'MOCK_SECURITY_LEVEL_ANY',
+  SECURITY_LEVEL_SECURE_SOFTWARE: 'MOCK_SECURITY_LEVEL_SECURE_SOFTWARE',
+  SECURITY_LEVEL_SECURE_HARDWARE: 'MOCK_SECURITY_LEVEL_SECURE_HARDWARE',
+  setGenericPassword: jest.fn(),
+  getGenericPassword: jest.fn(),
+  resetGenericPassword: jest.fn(),
+  BIOMETRY_TYPE: {
+    TOUCH_ID: 'TouchID',
+    FACE_ID: 'FaceID',
+    FINGERPRINT: 'Fingerprint',
+    FACE: 'Face',
+    IRIS: 'Iris',
+  },
+  getSupportedBiometryType: jest.fn().mockReturnValue('FaceID'),
+};
+
+jest.mock('react-native-keychain', () => keychainMock);
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
   BranchSubscriber: () => {
@@ -104,7 +119,7 @@ jest.mock('react-native-reanimated', () =>
 );
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
-jest.mock('@react-native-community/cookies', () => 'RNCookies');
+jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),
