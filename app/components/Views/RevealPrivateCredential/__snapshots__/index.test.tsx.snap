@@ -2,6 +2,7 @@
 
 exports[`RevealPrivateCredential should render correctly 1`] = `
 <RevealPrivateCredential
+  passwordSet={false}
   route={
     Object {
       "params": Object {
