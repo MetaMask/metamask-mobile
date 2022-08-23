@@ -19,6 +19,11 @@ export interface UseAccountsParams {
    * @param balance - The ticker balance of an account in wei and hex string format.
    */
   checkBalanceError?: AccountSelectorListProps['checkBalanceError'];
+  /**
+   * Optional boolean that indicates if accounts are being processed in the background. Setting this to true will prevent any unnecessary updates while loading.
+   * @default false
+   */
+  isLoading?: boolean;
 }
 
 /**

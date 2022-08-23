@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -13,8 +13,12 @@ import UntypedEngine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import Loader from '../../../component-library/components-temp/Loader';
 import { strings } from '../../../../locales/i18n';
+import {
+  ACCOUNT_LIST_ID,
+  CREATE_ACCOUNT_BUTTON_ID,
+  IMPORT_ACCOUNT_BUTTON_ID,
+} from './AccountSelector.constants';
 
 // Internal dependencies.
 import { AccountSelectorProps } from './AccountSelector.types';
@@ -38,7 +42,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     onSelectAccount?.(address);
   };
 
-  const createNewAccount = async () => {
+  const createNewAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
     try {
       setIsLoading(true);
@@ -50,9 +54,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       setIsLoading(false);
     }
     onCreateNewAccount?.();
-  };
+    /* eslint-disable-next-line */
+  }, [onCreateNewAccount, setIsLoading]);
 
-  const openImportAccount = () => {
+  const openImportAccount = useCallback(() => {
     sheetRef.current?.hide(() => {
       navigation.navigate('ImportPrivateKeyView');
       // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
@@ -61,9 +66,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       );
     });
     onOpenImportAccount?.();
-  };
+  }, [onOpenImportAccount, navigation]);
 
-  const openConnectHardwareWallet = () => {
+  const openConnectHardwareWallet = useCallback(() => {
     sheetRef.current?.hide(() => {
       navigation.navigate('ConnectQRHardwareFlow');
       // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
@@ -72,7 +77,41 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       );
     });
     onOpenConnectHardwareWallet?.();
-  };
+  }, [onOpenConnectHardwareWallet, navigation]);
+
+  const renderSheetActions = useCallback(
+    () =>
+      !isSelectOnly && (
+        <SheetActions
+          actions={[
+            {
+              label: strings('accounts.create_new_account'),
+              onPress: createNewAccount,
+              testID: CREATE_ACCOUNT_BUTTON_ID,
+              isLoading,
+            },
+            {
+              label: strings('accounts.import_account'),
+              onPress: openImportAccount,
+              testID: IMPORT_ACCOUNT_BUTTON_ID,
+              disabled: isLoading,
+            },
+            {
+              label: strings('accounts.connect_hardware'),
+              onPress: openConnectHardwareWallet,
+              disabled: isLoading,
+            },
+          ]}
+        />
+      ),
+    [
+      isSelectOnly,
+      isLoading,
+      createNewAccount,
+      openImportAccount,
+      openConnectHardwareWallet,
+    ],
+  );
 
   return (
     <SheetBottom ref={sheetRef}>
@@ -80,26 +119,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
         checkBalanceError={checkBalanceError}
+        key={ACCOUNT_LIST_ID}
+        isLoading={isLoading}
       />
-      {!isSelectOnly && (
-        <SheetActions
-          actions={[
-            {
-              label: strings('accounts.create_new_account'),
-              onPress: createNewAccount,
-            },
-            {
-              label: strings('accounts.import_account'),
-              onPress: openImportAccount,
-            },
-            {
-              label: strings('accounts.connect_hardware'),
-              onPress: openConnectHardwareWallet,
-            },
-          ]}
-        />
-      )}
-      {isLoading && <Loader />}
+      {renderSheetActions()}
     </SheetBottom>
   );
 };

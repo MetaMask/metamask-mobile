@@ -6,7 +6,7 @@ import { ActivityIndicatorProps } from 'react-native';
  */
 export interface LoaderProps {
   /**
-   * si
+   * Activity indicator size.
    */
   size?: ActivityIndicatorProps['size'];
 }

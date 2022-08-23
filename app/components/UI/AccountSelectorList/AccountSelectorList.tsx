@@ -28,6 +28,8 @@ import { useAccounts } from './hooks';
 const AccountSelectorList = ({
   onSelectAccount,
   checkBalanceError,
+  isLoading = false,
+  ...props
 }: AccountSelectorListProps) => {
   const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
@@ -37,7 +39,10 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const { accounts, ensByAccountAddress } = useAccounts({ checkBalanceError });
+  const { accounts, ensByAccountAddress } = useAccounts({
+    checkBalanceError,
+    isLoading,
+  });
 
   useEffect(() => {
     if (!accounts.length) return;
@@ -96,15 +101,16 @@ const AccountSelectorList = ({
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
-      const isDisabled = !!balanceError;
+      const isDisabled = !!balanceError || isLoading;
 
       return (
         <CellAccount
           isSelected={isSelected}
+          title={accountName}
           secondaryText={shortAddress}
+          tertiaryText={balanceError}
           onPress={() => onPress(address)}
           accountAddress={address}
-          title={accountName}
           accountAvatarType={accountAvatarType}
           tagLabel={tagLabel}
           disabled={isDisabled}
@@ -115,7 +121,13 @@ const AccountSelectorList = ({
         </CellAccount>
       );
     },
-    [accountAvatarType, onPress, renderAccountBalances, ensByAccountAddress],
+    [
+      accountAvatarType,
+      onPress,
+      renderAccountBalances,
+      ensByAccountAddress,
+      isLoading,
+    ],
   );
 
   return (
@@ -126,6 +138,7 @@ const AccountSelectorList = ({
       renderItem={renderAccountItem}
       // Increasing number of items at initial render fixes scroll issue.
       initialNumToRender={999}
+      {...props}
     />
   );
 };

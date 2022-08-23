@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { KeyringTypes } from '@metamask/controllers';
+import { FlatListProps } from 'react-native';
 
 // External dependencies.
 import { AvatarGroupToken } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.types';
@@ -55,7 +56,8 @@ export interface Account {
 /**
  * AccountSelectorList props.
  */
-export interface AccountSelectorListProps {
+export interface AccountSelectorListProps
+  extends Partial<FlatListProps<Account>> {
   /**
    * Optional callback to trigger when account is selected.
    */
@@ -65,4 +67,9 @@ export interface AccountSelectorListProps {
    * @param balance - The ticker balance of an account in wei and hex string format.
    */
   checkBalanceError?: (balance: string) => string;
+  /**
+   * Optional boolean that indicates if accounts are being processed in the background. The accounts will be unselectable as long as this is true.
+   * @default false
+   */
+  isLoading?: boolean;
 }

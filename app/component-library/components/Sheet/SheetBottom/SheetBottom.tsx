@@ -31,7 +31,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import debounce from 'lodash.debounce';
+import { debounce } from 'lodash';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';

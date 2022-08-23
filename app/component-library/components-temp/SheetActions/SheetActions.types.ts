@@ -4,6 +4,9 @@
 export interface Action {
   label: string;
   onPress: () => void;
+  testID?: string;
+  disabled?: boolean;
+  isLoading?: boolean;
 }
 
 /**

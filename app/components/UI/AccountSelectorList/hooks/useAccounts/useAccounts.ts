@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { KeyringTypes } from '@metamask/controllers';
+import { isEqual } from 'lodash';
 
 // External Dependencies.
 import UntypedEngine from '../../../../../core/Engine';
@@ -27,6 +28,7 @@ import {
  */
 export const useAccounts = ({
   checkBalanceError,
+  isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
   const Engine = UntypedEngine as any;
   const isMountedRef = useRef(false);
@@ -47,6 +49,7 @@ export const useAccounts = ({
   const accountInfoByAddress = useSelector(
     (state: any) =>
       state.engine.backgroundState.AccountTrackerController.accounts,
+    (left, right) => isEqual(left, right),
   );
   const conversionRate = useSelector(
     (state: any) =>
@@ -151,7 +154,7 @@ export const useAccounts = ({
           currentCurrency,
         );
         const balanceTicker = getTicker(ticker);
-        const balanceLabel = `${balanceETH} ${balanceTicker}\n${balanceFiat}`;
+        const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
         const balanceError = checkBalanceError?.(balanceWeiHex);
         const mappedAccount: Account = {
           name,
@@ -165,13 +168,13 @@ export const useAccounts = ({
           balanceError,
         };
         result.push(mappedAccount);
-        switch (type) {
-          case KeyringTypes.qr:
-          case KeyringTypes.simple:
-            yOffset += 102;
-            break;
-          default:
-            yOffset += 78;
+        // Calculate height of the account item.
+        yOffset += 78;
+        if (balanceError) {
+          yOffset += 22;
+        }
+        if (type !== KeyringTypes.hd) {
+          yOffset += 24;
         }
       }
       return result;
@@ -191,10 +194,11 @@ export const useAccounts = ({
   ]);
 
   useEffect(() => {
+    if (isLoading) return;
     // setTimeout is needed for now to ensure next frame contains updated keyrings.
     setTimeout(getAccounts, 0);
     // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
-  }, [identities, getAccounts]);
+  }, [getAccounts, isLoading]);
 
   return { accounts, ensByAccountAddress };
 };
