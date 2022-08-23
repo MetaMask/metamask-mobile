@@ -419,7 +419,6 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  network: state.engine.backgroundState.NetworkController,
 });
 
 export default connect(mapStateToProps)(App);
