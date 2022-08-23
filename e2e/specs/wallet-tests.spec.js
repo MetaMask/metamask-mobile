@@ -32,7 +32,7 @@ const ETHEREUM = 'Ethereum Main Network';
 const COLLECTIBLE_CONTRACT_ADDRESS =
   '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
 const COLLECTIBLE_IDENTIFIER = '404';
-const TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
+const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
@@ -232,8 +232,6 @@ describe('Wallet Tests', () => {
 
     await WalletView.isTokenVisibleInWallet('0 DAI');
     await WalletView.removeTokenFromWallet('0 DAI');
-
-    await WalletView.tapOKAlertButton();
     await TestHelpers.delay(1500);
     await WalletView.tokenIsNotVisibleInWallet('0 DAI');
   });
@@ -270,7 +268,7 @@ describe('Wallet Tests', () => {
     await AddCustomTokenView.isVisible();
     // Type correct token address
 
-    await AddCustomTokenView.typeTokenAddress(TOKEN_ADDRESS);
+    await AddCustomTokenView.typeTokenAddress(BLT_TOKEN_ADDRESS);
     await AddCustomTokenView.tapTokenSymbolInputBox();
     await AddCustomTokenView.tapTokenSymbolText();
     await AddCustomTokenView.tapCustomTokenImportButton();

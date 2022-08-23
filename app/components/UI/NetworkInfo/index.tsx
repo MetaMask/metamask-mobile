@@ -7,7 +7,7 @@ import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { MAINNET, RPC } from '../../../constants/network';
 import { connect } from 'react-redux';
 import Description from './InfoDescription';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import {
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
@@ -129,7 +129,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
       chainId,
     },
   } = props;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
     controllerUtils.isTokenDetectionSupportedForNetwork(chainId);
@@ -246,7 +246,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
 
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled:
-    !state.engine.backgroundState.PreferencesController.useTokenDetection,
+    state.engine.backgroundState.PreferencesController.useTokenDetection,
   networkProvider: state.engine.backgroundState.NetworkController.provider,
 });
 

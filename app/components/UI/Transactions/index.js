@@ -17,6 +17,7 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   getBlockExplorerName,
+  isMainnetByChainId,
 } from '../../../util/networks';
 import {
   getEtherscanAddressUrl,
@@ -371,6 +372,26 @@ class Transactions extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
+    const {
+      chainId,
+      network: {
+        provider: { type },
+      },
+    } = this.props;
+    const blockExplorerText = () => {
+      if (isMainnetByChainId(chainId) || type !== RPC) {
+        return strings('transactions.view_full_history_on_etherscan');
+      }
+
+      if (NO_RPC_BLOCK_EXPLORER !== this.state.rpcBlockExplorer) {
+        return `${strings(
+          'transactions.view_full_history_on',
+        )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`;
+      }
+
+      return null;
+    };
+
     return (
       <View style={styles.viewMoreBody}>
         <TouchableOpacity
@@ -378,11 +399,7 @@ class Transactions extends PureComponent {
           style={styles.touchableViewOnEtherscan}
         >
           <Text reset style={styles.viewOnEtherscan}>
-            {(this.state.rpcBlockExplorer &&
-              `${strings(
-                'transactions.view_full_history_on',
-              )} ${getBlockExplorerName(this.state.rpcBlockExplorer)}`) ||
-              strings('transactions.view_full_history_on_etherscan')}
+            {blockExplorerText()}
           </Text>
         </TouchableOpacity>
       </View>
@@ -641,7 +658,6 @@ class Transactions extends PureComponent {
     const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-
     const transactions =
       submittedTransactions && submittedTransactions.length
         ? submittedTransactions.concat(confirmedTransactions)
@@ -741,9 +757,10 @@ class Transactions extends PureComponent {
       >
         {!this.state.ready || this.props.loading
           ? this.renderLoader()
-          : !this.props.transactions.length
-          ? this.renderEmpty()
-          : this.renderList()}
+          : this.props.transactions.length ||
+            this.props.submittedTransactions.length
+          ? this.renderList()
+          : this.renderEmpty()}
         {(this.state.speedUp1559IsOpen || this.state.cancel1559IsOpen) &&
           this.renderUpdateTxEIP1559Gas(this.state.cancel1559IsOpen)}
       </SafeAreaView>

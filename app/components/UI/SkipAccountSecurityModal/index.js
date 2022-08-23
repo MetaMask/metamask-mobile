@@ -8,7 +8,7 @@ import CheckBox from '@react-native-community/checkbox';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -67,7 +67,7 @@ const SkipAccountSecurityModal = ({
   toggleSkipCheckbox,
   skipCheckbox,
 }) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (

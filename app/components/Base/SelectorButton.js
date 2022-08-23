@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -24,7 +24,7 @@ const createStyles = (colors) =>
   });
 
 function SelectorButton({ onPress, disabled, children, ...props }) {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
