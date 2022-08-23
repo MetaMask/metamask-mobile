@@ -381,7 +381,6 @@ const mapStateToProps = (state) => ({
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   providerType: state.engine.backgroundState.NetworkController.provider.type,
   network: state.engine.backgroundState.NetworkController,
-  seedphraseBackedUp: state.user.seedphraseBackedUp,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 
