@@ -111,7 +111,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.3.0",
-    "@metamask/controllers": "git+https://github.com/tommasini/controllers.git#b713904cdef1e4f0474166faa212e4aabe9b6774",
+    "@metamask/controllers": "30.3.0",
     "@metamask/contract-metadata": "^1.35.0",
     "@metamask/design-tokens": "^1.7.0",
     "@metamask/etherscan-link": "^2.0.0",
