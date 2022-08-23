@@ -15,6 +15,7 @@ export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTa
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
+export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
 export const LAST_INCOMING_TX_BLOCK_INFO = `${prefix}lastIncomingTxBlockInfo`;

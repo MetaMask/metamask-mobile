@@ -5,13 +5,7 @@ import { MetaMetrics, IMetaMetricsEvent } from '../../core/Analytics';
 
 const useMetaMetrics = () => {
   const trackEventHook = useCallback(
-    ({
-      event,
-      params = {},
-    }: {
-      event: IMetaMetricsEvent;
-      params?: JsonMap;
-    }) => {
+    (event: IMetaMetricsEvent, params: JsonMap = {}) => {
       InteractionManager.runAfterInteractions(() => {
         const { name, anonymous } = event;
         if (anonymous) {

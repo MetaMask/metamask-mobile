@@ -14,6 +14,7 @@ import {
   METRICS_OPT_IN,
   METAMETRICS_ID,
   ANALYTICS_DATA_DELETION_DATE,
+  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 
 import { IMetaMetrics, ISegmentClient, States } from './MetaMetrics.types';
@@ -47,9 +48,7 @@ class MetaMetrics implements IMetaMetrics {
    * Method to initialize private variables async.
    */
   async #init() {
-    this.#metametricsId = await this.#generateMetaMetricsId();
-    // eslint-disable-next-line no-console
-    console.log(this.#metametricsId);
+    this.#metametricsId = await this.#getMetaMetricsId();
   }
 
   /**
@@ -57,8 +56,15 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns Promise containing the user ID.
    */
-  async #generateMetaMetricsId(): Promise<string> {
-    let metametricsId: string;
+  async #getMetaMetricsId(): Promise<string> {
+    let metametricsId: string | undefined;
+
+    // Legacy ID from MixPanel integration
+    metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    if (metametricsId) {
+      return metametricsId;
+    }
+
     metametricsId = await DefaultPreference.get(METAMETRICS_ID);
     if (!metametricsId) {
       metametricsId = bufferToHex(
@@ -250,7 +256,7 @@ class MetaMetrics implements IMetaMetrics {
   public trackEvent(
     event: string,
     anonymously = false,
-    properties?: JsonMap,
+    properties: JsonMap = {},
   ): void {
     if (this.#state === States.disabled) {
       return;

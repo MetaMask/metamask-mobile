@@ -15,6 +15,7 @@ import {
   ANALYTICS_DATA_DELETION_TASK_ID,
   ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
+  MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import {
   MixPanelResponseStatus,
@@ -534,6 +535,7 @@ export default {
     const dataDeletionDate = await DefaultPreference.get(
       ANALYTICS_DATA_DELETION_DATE,
     );
+    const metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
     const isDataRecorded =
       (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
     instance = new Analytics(
@@ -542,6 +544,12 @@ export default {
       dataDeletionDate,
       isDataRecorded,
     );
+    // MixPanel Distinct stored for consistency purposes between
+    // Segment and MixPanel
+    if (!metametricsId) {
+      const distinctId = await instance.getDistinctId();
+      DefaultPreference.set(MIXPANEL_METAMETRICS_ID, distinctId);
+    }
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
       instance.remoteVariables = JSON.parse(vars);
