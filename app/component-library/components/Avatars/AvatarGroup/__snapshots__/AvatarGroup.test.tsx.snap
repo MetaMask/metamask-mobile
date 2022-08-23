@@ -4,15 +4,17 @@ exports[`AvatarGroup should render correctly 1`] = `
 <View
   style={
     Object {
+      "alignItems": "center",
       "flexDirection": "row",
+      "height": 18,
     }
   }
 >
   <View
     style={
       Object {
-        "alignItems": "center",
         "flexDirection": "row",
+        "height": 18,
         "width": 42,
       }
     }
@@ -132,6 +134,7 @@ exports[`AvatarGroup should render correctly 1`] = `
     <Text
       style={
         Object {
+          "bottom": 2,
           "color": "#535A61",
           "marginLeft": 2,
         }
