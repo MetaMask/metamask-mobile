@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
 import {
-  DeletionTaskStatus,
-  ResponseStatus,
-} from '../../../../../core/Analytics/MetaMetrics.constants';
+  MixPanelDeletionTaskStatus,
+  MixPanelResponseStatus,
+} from '../../../../../core/Analytics/MetaMetrics.types';
 import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
@@ -42,16 +42,16 @@ const DeleteMetaMetricsData = () => {
     Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
   );
   const [deletionTaskStatus, setDeletionTaskStatus] =
-    useState<DeletionTaskStatus>(DeletionTaskStatus.unknown);
+    useState<MixPanelDeletionTaskStatus>(MixPanelDeletionTaskStatus.unknown);
   const [deletionTaskDate, setDeletionTaskDate] = useState<
     string | undefined
   >();
 
   const enableDeleteData = useCallback(() => {
     switch (deletionTaskStatus) {
-      case DeletionTaskStatus.pending:
-      case DeletionTaskStatus.staging:
-      case DeletionTaskStatus.started:
+      case MixPanelDeletionTaskStatus.pending:
+      case MixPanelDeletionTaskStatus.staging:
+      case MixPanelDeletionTaskStatus.started:
         return false;
       default:
         return true;
@@ -88,8 +88,8 @@ const DeleteMetaMetricsData = () => {
   const deleteMetaMetrics = async () => {
     try {
       const response = await Analytics.createDataDeletionTask();
-      if (response.status === ResponseStatus.ok) {
-        setDeletionTaskStatus(DeletionTaskStatus.pending);
+      if (response.status === MixPanelResponseStatus.ok) {
+        setDeletionTaskStatus(MixPanelDeletionTaskStatus.pending);
         setHasCollectedData(false);
         setDeletionTaskDate(Analytics.getDeletionTaskDate());
         await trackDataDeletionRequest();
