@@ -751,9 +751,12 @@ class Confirm extends PureComponent {
   };
 
   parseTransactionDataEIP1559 = (gasFee, options) => {
+    const { ticker } = this.props;
+
     const parsedTransactionEIP1559 = parseTransactionEIP1559(
       {
         ...this.props,
+        nativeCurrency: ticker,
         selectedGasFee: {
           ...gasFee,
           estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee,
@@ -771,9 +774,11 @@ class Confirm extends PureComponent {
   };
 
   parseTransactionDataLegacy = (gasFee, options) => {
+    const { ticker } = this.props;
     const parsedTransactionLegacy = parseTransactionLegacy(
       {
         ...this.props,
+        nativeCurrency: ticker,
         selectedGasFee: gasFee,
       },
       options,
