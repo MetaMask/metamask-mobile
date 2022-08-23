@@ -6,7 +6,9 @@ import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/controllers';
 
 // External dependencies.
-import CellAccount from '../../../component-library/components/Cells/CellAccount';
+import Cell, {
+  CellVariants,
+} from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
@@ -15,6 +17,7 @@ import { formatAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
+import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar.types';
 
 // Internal dependencies.
 import {
@@ -104,21 +107,25 @@ const AccountSelectorList = ({
       const isDisabled = !!balanceError || isLoading;
 
       return (
-        <CellAccount
+        <Cell
+          variant={CellVariants.Select}
           isSelected={isSelected}
           title={accountName}
           secondaryText={shortAddress}
           tertiaryText={balanceError}
           onPress={() => onPress(address)}
-          accountAddress={address}
-          accountAvatarType={accountAvatarType}
+          avatarProps={{
+            variant: AvatarVariants.Account,
+            type: accountAvatarType,
+            accountAddress: address,
+          }}
           tagLabel={tagLabel}
           disabled={isDisabled}
           /* eslint-disable-next-line */
           style={{ opacity: isDisabled ? 0.5 : 1 }}
         >
           {assets && renderAccountBalances(assets)}
-        </CellAccount>
+        </Cell>
       );
     },
     [

@@ -8,6 +8,7 @@ import { toLowerCaseEquals } from '../util/general';
 import { getEthersNetworkTypeById } from './networks';
 import Logger from './Logger';
 const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
+const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
 const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
 
@@ -39,20 +40,23 @@ export async function doENSReverseLookup(address, network) {
   if (timestamp && nowTimestamp - timestamp < CACHE_REFRESH_THRESHOLD) {
     return Promise.resolve(cachedName);
   }
-  const ensProvider = await getEnsProvider(network, provider);
-  if (ensProvider) {
-    try {
+
+  try {
+    const ensProvider = await getEnsProvider(network, provider);
+    if (ensProvider) {
       const name = await ensProvider.lookupAddress(address);
       const resolvedAddress = await ensProvider.resolveName(name);
       if (toLowerCaseEquals(address, resolvedAddress)) {
         ENSCache.cache[network + address] = { name, timestamp: Date.now() };
         return name;
       }
-      // eslint-disable-next-line no-empty
-    } catch (e) {
-      if (e.message.includes(ENS_NAME_NOT_DEFINED_ERROR)) {
-        ENSCache.cache[network + address] = { timestamp: Date.now() };
-      }
+    }
+  } catch (e) {
+    if (
+      e.message.includes(ENS_NAME_NOT_DEFINED_ERROR) ||
+      e.message.includes(INVALID_ENS_NAME_ERROR)
+    ) {
+      ENSCache.cache[network + address] = { timestamp: Date.now() };
     }
   }
 }
