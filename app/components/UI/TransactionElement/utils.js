@@ -28,6 +28,9 @@ import {
   SEND_TOKEN_ACTION_KEY,
   TRANSFER_FROM_ACTION_KEY,
   DEPLOY_CONTRACT_ACTION_KEY,
+  APPROVE_ACTION_KEY,
+  SWAPS_TRANSACTION_ACTION_KEY,
+  SMART_CONTRACT_INTERACTION_ACTION_KEY,
 } from '../../../util/transactions';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -35,6 +38,11 @@ import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import { util } from '@metamask/controllers';
+
+const TRANSACTION_SENT = 'transactions.sent';
+const TRANSACTION_SWAP_LABEL = 'swaps.transaction_label.swap';
+const TRANSACTION_SWAP_APPROVE_LABEL = 'swaps.transaction_label.approve';
+
 const { isEIP1559Transaction } = util;
 
 const { getSwapsContractAddress } = swapsUtils;
@@ -118,7 +126,7 @@ function getTokenTransfer(args) {
   const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
   const renderActionKey = token
     ? {
-        actionKey: 'transactions.sent',
+        actionKey: TRANSACTION_SENT,
         args: { tokenOrCollectible: token.symbol },
       }
     : actionKey;
@@ -218,7 +226,7 @@ function getCollectibleTransfer(args) {
   );
   if (collectible) {
     actionKey = {
-      actionKey: 'transactions.sent',
+      actionKey: TRANSACTION_SENT,
       args: { tokenOrCollectible: collectible.name },
     };
   } else {
@@ -442,7 +450,7 @@ function decodeTransferFromTx(args) {
   let actionKey = args.actionKey;
   if (collectible) {
     actionKey = {
-      actionKey: 'transactions.sent',
+      actionKey: TRANSACTION_SENT,
       args: { tokenOrCollectible: collectible.name },
     };
   }
@@ -616,12 +624,12 @@ function decodeConfirmTx(args) {
   }
   let transactionType;
 
-  if (actionKey.actionKey === 'transactions.approve')
+  if (actionKey.actionKey === actionKeys[APPROVE_ACTION_KEY])
     transactionType = TRANSACTION_TYPES.APPROVE;
-  else if (actionKey.actionKey === 'transactions.swaps_transaction')
+  else if (actionKey.actionKey === actionKeys[SWAPS_TRANSACTION_ACTION_KEY])
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (
-    actionKey.actionKey === 'transactions.smart_contract_interaction' ||
+    actionKey.actionKey === actionKeys[SMART_CONTRACT_INTERACTION_ACTION_KEY] ||
     (!actionKey.actionKey.includes('sent') &&
       !actionKey.actionKey.includes('received'))
   )
@@ -742,7 +750,7 @@ function decodeSwapsTx(args) {
   let notificationKey, actionKey, value, fiatValue;
   if (isSwap) {
     actionKey = {
-      actionKey: 'swaps.transaction_label.swap',
+      actionKey: TRANSACTION_SWAP_LABEL,
       args: {
         sourceToken: sourceToken.symbol,
         destinationToken: destinationToken.symbol,
@@ -759,7 +767,7 @@ function decodeSwapsTx(args) {
     );
   } else {
     actionKey = {
-      actionKey: 'swaps.transaction_label.approve',
+      actionKey: TRANSACTION_SWAP_APPROVE_LABEL,
       args: {
         sourceToken: sourceToken.symbol,
         upTo: renderFromTokenMinimalUnit(
