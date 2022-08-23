@@ -18,16 +18,23 @@ const WarningAlert = ({
   text,
   dismissAlert,
   onPressLearnMore,
+  precedentAlert,
 }: WarningAlertProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.alertContainer}>
+    <View
+      style={[
+        styles.alertContainer,
+        precedentAlert && styles.upperAlertContainer,
+      ]}
+    >
       <Alert
         small
         type={AlertType.Warning}
         onDismiss={dismissAlert}
+        style={styles.alertWrapper}
         renderIcon={() => (
           <MaterialCommunityIcon
             name="information"

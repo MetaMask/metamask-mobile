@@ -15,10 +15,19 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     alertContainer: {
-      paddingHorizontal: 20,
-      marginVertical: 20,
-      width: '100%',
+      position: 'absolute',
+      left: 16,
+      right: 16,
+      bottom: 20,
+      backgroundColor: colors.background.default,
+      borderColor: colors.warning.default,
     },
+    upperAlertContainer: { bottom: 120 },
+    alertWrapper: {
+      flex: 1,
+      padding: 14,
+    },
+
     alertText: {
       lineHeight: 18,
       color: colors.text.default,

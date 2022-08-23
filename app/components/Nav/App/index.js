@@ -55,10 +55,6 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
-import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
-import { strings } from '../../../../locales/i18n';
-import WarningAlert from '../../../components/UI/WarningAlert';
-import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
 
 const Stack = createStackNavigator();
 /**
@@ -155,7 +151,7 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn, network }) => {
+const App = ({ userLoggedIn }) => {
   const animation = useRef(null);
   const animationName = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -163,7 +159,6 @@ const App = ({ userLoggedIn, network }) => {
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
   const [animationPlayed, setAnimationPlayed] = useState();
-  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
@@ -364,30 +359,17 @@ const App = ({ userLoggedIn, network }) => {
     </Stack.Navigator>
   );
 
-  const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(MM_DEPRECATED_NETWORKS);
-  };
-
-  const renderDeprecatedNetworkAlert = (network) => {
-    const { type } = network.provider;
-    if (type === ROPSTEN || type === RINKEBY || type === KOVAN) {
-      return (
-        <WarningAlert
-          text={strings('networks.deprecated_network_msg')}
-          dismissAlert={() => setShowDeprecatedAlert(false)}
-          onPressLearnMore={openDeprecatedNetworksArticle}
-        />
-      );
-    }
-  };
-
   return (
     // do not render unless a route is defined
     (route && (
       <>
         <NavigationContainer
           // Prevents artifacts when navigating between screens
-          theme={{ colors: { background: colors.background.default } }}
+          theme={{
+            colors: {
+              background: colors.background.default,
+            },
+          }}
           ref={setNavigatorRef}
           onStateChange={(state) => {
             // Updates redux with latest route. Used by DrawerView component.
@@ -427,7 +409,6 @@ const App = ({ userLoggedIn, network }) => {
             />
           </Stack.Navigator>
         </NavigationContainer>
-        {showDeprecatedAlert && renderDeprecatedNetworkAlert(network)}
         {renderSplash()}
         <Toast ref={toastRef} />
       </>

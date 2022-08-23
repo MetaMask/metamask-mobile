@@ -11,4 +11,8 @@ export interface WarningAlertProps {
    * On press learn more action, usually to redirect to an article
    */
   onPressLearnMore?: () => void;
+  /**
+   * if there is a precedent alert the warning will be positioned on top
+   */
+  precedentAlert?: boolean;
 }
