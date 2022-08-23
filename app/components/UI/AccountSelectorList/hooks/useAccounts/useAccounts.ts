@@ -73,24 +73,25 @@ export const useAccounts = ({
 
   const fetchENSNames = useCallback(
     async ({
-      latestAccounts,
+      flattenedAccounts,
       startingIndex,
     }: {
-      latestAccounts: Account[];
+      flattenedAccounts: Account[];
       startingIndex: number;
     }) => {
       // Ensure index exists in account list.
       let safeStartingIndex = startingIndex;
-      if (startingIndex < 0) {
-        safeStartingIndex = 0;
-      } else if (startingIndex > latestAccounts.length) {
-        safeStartingIndex = latestAccounts.length - 1;
-      }
       let mirrorIndex = safeStartingIndex - 1;
       let latestENSbyAccountAddress: EnsByAccountAddress = {};
 
+      if (startingIndex < 0) {
+        safeStartingIndex = 0;
+      } else if (startingIndex > flattenedAccounts.length) {
+        safeStartingIndex = flattenedAccounts.length - 1;
+      }
+
       const fetchENSName = async (accountIndex: number) => {
-        const { address } = latestAccounts[accountIndex];
+        const { address } = flattenedAccounts[accountIndex];
         try {
           const ens: string | undefined = await doENSReverseLookup(
             address,
@@ -107,9 +108,10 @@ export const useAccounts = ({
         }
       };
 
-      while (mirrorIndex >= 0 || safeStartingIndex < latestAccounts.length) {
+      // Iterate outwards in both directions starting at the starting index.
+      while (mirrorIndex >= 0 || safeStartingIndex < flattenedAccounts.length) {
         if (!isMountedRef.current) return;
-        if (safeStartingIndex < latestAccounts.length) {
+        if (safeStartingIndex < flattenedAccounts.length) {
           await fetchENSName(safeStartingIndex);
         }
         if (mirrorIndex >= 0) {
@@ -129,7 +131,7 @@ export const useAccounts = ({
     let selectedIndex = 0;
     // Reading keyrings directly from Redux doesn't work at the momemt.
     const keyrings: any[] = Engine.context.KeyringController.state.keyrings;
-    const latestAccounts: Account[] = keyrings.reduce((result, keyring) => {
+    const flattenedAccounts: Account[] = keyrings.reduce((result, keyring) => {
       const {
         accounts: accountAddresses,
         type,
@@ -179,8 +181,8 @@ export const useAccounts = ({
       }
       return result;
     }, []);
-    setAccounts(latestAccounts);
-    fetchENSNames({ latestAccounts, startingIndex: selectedIndex });
+    setAccounts(flattenedAccounts);
+    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
     /* eslint-disable-next-line */
   }, [
     selectedAddress,
