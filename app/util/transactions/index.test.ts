@@ -17,7 +17,6 @@ import {
   TOKEN_METHOD_TRANSFER_FROM,
 } from '.';
 import Engine from '../../core/Engine';
-import { strings } from '../../../locales/i18n';
 
 jest.mock('../../core/Engine');
 const ENGINE_MOCK = Engine as jest.MockedClass<any>;
