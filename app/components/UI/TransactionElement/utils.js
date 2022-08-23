@@ -113,7 +113,10 @@ function getTokenTransfer(args) {
   const userHasToken = safeToChecksumAddress(to) in tokens;
   const token = userHasToken ? tokens[safeToChecksumAddress(to)] : null;
   const renderActionKey = token
-    ? `${strings('transactions.sent')} ${token.symbol}`
+    ? {
+        actionKey: 'transactions.sent',
+        args: { tokenOrCollectible: token.symbol },
+      }
     : actionKey;
   const renderTokenAmount = token
     ? `${renderFromTokenMinimalUnit(amount, token.decimals)} ${token.symbol}`
@@ -210,9 +213,14 @@ function getCollectibleTransfer(args) {
     toLowerCaseEquals(collectible.address, to),
   );
   if (collectible) {
-    actionKey = `${strings('transactions.sent')} ${collectible.name}`;
+    actionKey = {
+      actionKey: 'transactions.sent',
+      args: { tokenOrCollectible: collectible.name },
+    };
   } else {
-    actionKey = strings('transactions.sent_collectible');
+    actionKey = {
+      actionKey: 'transactions.sent_collectible',
+    };
   }
 
   const renderCollectible = collectible
@@ -429,7 +437,10 @@ function decodeTransferFromTx(args) {
   );
   let actionKey = args.actionKey;
   if (collectible) {
-    actionKey = `${strings('transactions.sent')} ${collectible.name}`;
+    actionKey = {
+      actionKey: 'transactions.sent',
+      args: { tokenOrCollectible: collectible.name },
+    };
   }
 
   const totalGas = calculateTotalGas(transaction);
@@ -601,32 +612,27 @@ function decodeConfirmTx(args) {
   }
   let transactionType;
 
-  const actionKeyLowerCase = actionKey.toLowerCase();
-
-  if (actionKeyLowerCase === strings('transactions.approve').toLowerCase())
+  if (actionKey.actionKey === 'transactions.approve')
     transactionType = TRANSACTION_TYPES.APPROVE;
-  else if (
-    actionKeyLowerCase ===
-    strings('transactions.swaps_transaction').toLowerCase()
-  )
+  else if (actionKey.actionKey === 'transactions.swaps_transaction')
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (
-    actionKeyLowerCase ===
-      strings('transactions.smart_contract_interaction').toLowerCase() ||
-    (!actionKeyLowerCase.includes(strings('transactions.sent').toLowerCase()) &&
-      !actionKeyLowerCase.includes(
-        strings('transactions.received').toLowerCase(),
-      ))
+    actionKey.actionKey === 'transactions.smart_contract_interaction' ||
+    (!actionKey.actionKey.includes('sent') &&
+      !actionKey.actionKey.includes('received'))
   )
     transactionType = TRANSACTION_TYPES.SITE_INTERACTION;
   else if (renderFrom === selectedAddress)
     transactionType = TRANSACTION_TYPES.SENT;
   else if (renderTo === selectedAddress)
     transactionType = TRANSACTION_TYPES.RECEIVED;
+
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey: symbol
+      ? { actionKey: actionKey.actionKey, args: { tokenOrCollectible: symbol } }
+      : actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,
@@ -731,10 +737,13 @@ function decodeSwapsTx(args) {
   const isSwap = swapTransaction.action === 'swap';
   let notificationKey, actionKey, value, fiatValue;
   if (isSwap) {
-    actionKey = strings('swaps.transaction_label.swap', {
-      sourceToken: sourceToken.symbol,
-      destinationToken: destinationToken.symbol,
-    });
+    actionKey = {
+      actionKey: 'swaps.transaction_label.swap',
+      args: {
+        sourceToken: sourceToken.symbol,
+        destinationToken: destinationToken.symbol,
+      },
+    };
     notificationKey = strings(
       `swaps.notification_label.${
         tx.status === 'submitted' ? 'swap_pending' : 'swap_confirmed'
@@ -745,13 +754,16 @@ function decodeSwapsTx(args) {
       },
     );
   } else {
-    actionKey = strings('swaps.transaction_label.approve', {
-      sourceToken: sourceToken.symbol,
-      upTo: renderFromTokenMinimalUnit(
-        swapTransaction.upTo,
-        sourceToken.decimals,
-      ),
-    });
+    actionKey = {
+      actionKey: 'swaps.transaction_label.approve',
+      args: {
+        sourceToken: sourceToken.symbol,
+        upTo: renderFromTokenMinimalUnit(
+          swapTransaction.upTo,
+          sourceToken.decimals,
+        ),
+      },
+    };
     notificationKey = strings(
       `swaps.notification_label.${
         tx.status === 'submitted' ? 'approve_pending' : 'approve_confirmed'
@@ -860,7 +872,6 @@ export default async function decodeTransaction(args) {
 
   const actionKey = await getActionKey(tx, selectedAddress, ticker, chainId);
   let transactionElement, transactionDetails;
-
   if (
     tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) ||
     swapsTransactions[tx.id]
@@ -878,20 +889,20 @@ export default async function decodeTransaction(args) {
       actionKey,
     });
   } else {
-    switch (actionKey) {
-      case strings('transactions.sent_tokens'):
+    switch (actionKey.actionKey) {
+      case 'transactions.sent_tokens':
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,
         });
         break;
-      case strings('transactions.sent_collectible'):
+      case 'transactions.sent_collectible':
         [transactionElement, transactionDetails] = decodeTransferFromTx({
           ...args,
           actionKey,
         });
         break;
-      case strings('transactions.contract_deploy'):
+      case 'transactions.contract_deploy':
         [transactionElement, transactionDetails] = decodeDeploymentTx({
           ...args,
           actionKey,

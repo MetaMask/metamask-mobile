@@ -107,14 +107,13 @@ const reviewActionKeys = {
  * Object containing all known action keys, to be used in transactions list
  */
 const actionKeys = {
-  [SEND_TOKEN_ACTION_KEY]: strings('transactions.sent_tokens'),
-  [TRANSFER_FROM_ACTION_KEY]: strings('transactions.sent_collectible'),
-  [DEPLOY_CONTRACT_ACTION_KEY]: strings('transactions.contract_deploy'),
-  [SMART_CONTRACT_INTERACTION_ACTION_KEY]: strings(
+  [SEND_TOKEN_ACTION_KEY]: 'transactions.sent_tokens',
+  [TRANSFER_FROM_ACTION_KEY]: 'transactions.sent_collectible',
+  [DEPLOY_CONTRACT_ACTION_KEY]: 'transactions.contract_deploy',
+  [SMART_CONTRACT_INTERACTION_ACTION_KEY]:
     'transactions.smart_contract_interaction',
-  ),
-  [SWAPS_TRANSACTION_ACTION_KEY]: strings('transactions.swaps_transaction'),
-  [APPROVE_ACTION_KEY]: strings('transactions.approve'),
+  [SWAPS_TRANSACTION_ACTION_KEY]: 'transactions.swaps_transaction',
+  [APPROVE_ACTION_KEY]: 'transactions.approve',
 };
 
 /**
@@ -386,22 +385,27 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
     return incoming
       ? selfSent
         ? currencySymbol
-          ? strings('transactions.self_sent_unit', { unit: currencySymbol })
-          : strings('transactions.self_sent_ether')
+          ? {
+              actionKey: 'transactions.self_sent_unit',
+              args: { unit: currencySymbol },
+            }
+          : { actionKey: 'transactions.self_sent_ether' }
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+        ? {
+            actionKey: 'transactions.received_unit',
+            args: { unit: currencySymbol },
+          }
+        : { actionKey: 'transactions.received_ether' }
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+      ? { actionKey: 'transactions.sent_unit', args: { unit: currencySymbol } }
+      : { actionKey: 'transactions.sent_ether' };
   }
   const transactionActionKey = actionKeys[actionKey];
-
   if (transactionActionKey) {
-    return transactionActionKey;
+    return { actionKey: transactionActionKey };
   }
 
-  return actionKey;
+  return { actionKey };
 }
 
 /**

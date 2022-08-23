@@ -229,6 +229,13 @@ class TransactionElement extends PureComponent {
     return null;
   };
 
+  renderActionKey = (actionKey) =>
+    actionKey.args
+      ? actionKey.args.tokenOrCollectible
+        ? `${strings(actionKey.actionKey)} ${actionKey.args.tokenOrCollectible}`
+        : strings(actionKey.actionKey, actionKey.args)
+      : strings(actionKey.actionKey);
+
   renderTxElementIcon = (transactionElement, status) => {
     const { transactionType } = transactionElement;
     const colors = this.context.colors || mockTheme.colors;
@@ -294,7 +301,9 @@ class TransactionElement extends PureComponent {
               {this.renderTxElementIcon(transactionElement, status)}
             </ListItem.Icon>
             <ListItem.Body>
-              <ListItem.Title numberOfLines={1}>{actionKey}</ListItem.Title>
+              <ListItem.Title numberOfLines={1}>
+                {this.renderActionKey(actionKey)}
+              </ListItem.Title>
               <StatusText status={status} />
             </ListItem.Body>
             {Boolean(value) && (
@@ -460,6 +469,7 @@ class TransactionElement extends PureComponent {
     const styles = createStyles(colors);
 
     if (!transactionElement || !transactionDetails) return null;
+    const { actionKey } = transactionElement;
     return (
       <>
         <TouchableHighlight
@@ -483,7 +493,7 @@ class TransactionElement extends PureComponent {
             <DetailsModal>
               <DetailsModal.Header>
                 <DetailsModal.Title onPress={this.onCloseDetailsModal}>
-                  {transactionElement?.actionKey}
+                  {this.renderActionKey(actionKey)}
                 </DetailsModal.Title>
                 <DetailsModal.CloseIcon onPress={this.onCloseDetailsModal} />
               </DetailsModal.Header>
