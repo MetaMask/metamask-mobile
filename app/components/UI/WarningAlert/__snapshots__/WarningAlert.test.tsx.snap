@@ -3,17 +3,29 @@
 exports[`ButtonBase should render correctly 1`] = `
 <View
   style={
-    Object {
-      "marginVertical": 20,
-      "paddingHorizontal": 20,
-      "width": "100%",
-    }
+    Array [
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#F66A0A",
+        "bottom": 20,
+        "left": 16,
+        "position": "absolute",
+        "right": 16,
+      },
+      undefined,
+    ]
   }
 >
   <Alert
     onDismiss={[MockFunction]}
     renderIcon={[Function]}
     small={true}
+    style={
+      Object {
+        "flex": 1,
+        "padding": 14,
+      }
+    }
     type="Warning"
   >
     <Text
