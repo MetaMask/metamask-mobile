@@ -7,7 +7,12 @@ import {
   Linking,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
+import {
+  Order,
+  OrderStatusEnum,
+  Payment,
+  PaymentType,
+} from '@consensys/on-ramp-sdk';
 import Box from './Box';
 import CustomText from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
@@ -67,7 +72,7 @@ const createStyles = (colors: any) =>
 
 interface PropsStage {
   stage: string;
-  paymentType?: string;
+  paymentMethod?: Payment;
   cryptocurrency?: string;
   providerName?: string;
 }
@@ -85,7 +90,7 @@ const Group: React.FC = (props) => {
 
 const Stage: React.FC<PropsStage> = ({
   stage,
-  paymentType,
+  paymentMethod,
   cryptocurrency,
   providerName,
 }: PropsStage) => {
@@ -155,7 +160,7 @@ const Stage: React.FC<PropsStage> = ({
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
-            {!paymentType?.includes('Credit') ? (
+            {paymentMethod?.paymentType === PaymentType.BankTransfer ? (
               <Text small centered grey>
                 {strings(
                   'fiat_on_ramp_aggregator.order_details.processing_bank_description',
@@ -252,7 +257,7 @@ const OrderDetails: React.FC<Props> = ({
       <Group>
         <Stage
           stage={state}
-          paymentType={orderData?.paymentMethod?.name}
+          paymentMethod={orderData?.paymentMethod}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
         />

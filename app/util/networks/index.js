@@ -1,6 +1,7 @@
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
 import {
+  HOMESTEAD,
   MAINNET,
   ROPSTEN,
   KOVAN,
@@ -126,6 +127,11 @@ export function getNetworkTypeById(id) {
   throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
 }
 
+export function getEthersNetworkTypeById(id) {
+  const networkType = getNetworkTypeById(id);
+  return networkType === MAINNET ? HOMESTEAD : networkType;
+}
+
 export function getDefaultNetworkByChainId(chainId) {
   if (!chainId) {
     throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
@@ -165,17 +171,33 @@ export function isprivateConnection(hostname) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTarget
+ * @param {string} rpcTargetUrl
  * @param {array<object>} frequentRpcList
  */
-export function findBlockExplorerForRpc(rpcTarget, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(
-    ({ rpcUrl }) => rpcTarget === rpcUrl,
+export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
+  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
+    compareRpcUrls(rpcUrl, rpcTargetUrl),
   );
   if (frequentRpc) {
     return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
   }
   return undefined;
+}
+
+/**
+ * Returns a boolean indicating if both URLs have the same host
+ *
+ * @param {string} rpcOne
+ * @param {string} rpcTwo
+ */
+export function compareRpcUrls(rpcOne, rpcTwo) {
+  // First check that both objects are of the type string
+  if (typeof rpcOne === 'string' && typeof rpcTwo === 'string') {
+    const rpcUrlOne = new URL(rpcOne);
+    const rpcUrlTwo = new URL(rpcTwo);
+    return rpcUrlOne.host === rpcUrlTwo.host;
+  }
+  return false;
 }
 
 /**

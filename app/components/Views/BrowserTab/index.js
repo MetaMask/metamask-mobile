@@ -56,7 +56,7 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 import {
@@ -243,7 +243,7 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   /**
@@ -815,7 +815,6 @@ export const BrowserTab = (props) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
       changeUrl(nativeEvent);
-      changeAddressBar(nativeEvent);
     }
   };
 
@@ -979,7 +978,7 @@ export const BrowserTab = (props) => {
   const onLoadStart = async ({ nativeEvent }) => {
     const { hostname } = new URL(nativeEvent.url);
 
-    if (nativeEvent.url !== url.current) {
+    if (nativeEvent.url !== url.current && nativeEvent.loading) {
       changeAddressBar({ ...nativeEvent });
     }
 
@@ -989,12 +988,7 @@ export const BrowserTab = (props) => {
     webviewUrlPostMessagePromiseResolve.current = null;
     setError(false);
 
-    changeUrl(nativeEvent, 'start');
-
-    //For Android url on the navigation bar should only update upon load.
-    if (Device.isAndroid()) {
-      changeAddressBar(nativeEvent);
-    }
+    changeUrl(nativeEvent);
 
     icon.current = null;
     if (isHomepage(nativeEvent.url)) {
@@ -1358,6 +1352,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
+              originWhitelist={['*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (

@@ -581,7 +581,6 @@ export const calculateEthEIP1559 = ({
     totalMaxConversion,
     currentCurrency,
   );
-
   return [
     renderableTotalMinNative,
     renderableTotalMinConversion,
@@ -1407,3 +1406,17 @@ export const minimumTokenAllowance = (tokenDecimals) => {
     .toFixed(tokenDecimals)
     .toString(10);
 };
+
+/**
+ *
+ */
+export const isSwapTransaction = (data, origin, to, chainId) =>
+  // if approval data includes metaswap contract
+  // if destination address is metaswap contract
+  origin === process.env.MM_FOX_CODE &&
+  to &&
+  (swapsUtils.isValidContractAddress(chainId, to) ||
+    (data &&
+      data.substr(0, 10) === APPROVE_FUNCTION_SIGNATURE &&
+      decodeApproveData(data).spenderAddress?.toLowerCase() ===
+        swapsUtils.getSwapsContractAddress(chainId)));
