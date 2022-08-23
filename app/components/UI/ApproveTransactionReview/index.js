@@ -49,7 +49,7 @@ import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
-import TransactionReviewEIP1559 from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
+import TransactionReviewEIP1559Update from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -194,6 +194,14 @@ class ApproveTransactionReview extends PureComponent {
     nicknameExists: PropTypes.bool,
     isSigningQRObject: PropTypes.bool,
     QRState: PropTypes.object,
+    /**
+     * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
+     */
+    gasSelected: PropTypes.string,
+    /**
+     * gas object for calculating the gas transaction cost
+     */
+    gasPriceObject: PropTypes.object,
   };
 
   state = {
@@ -549,6 +557,7 @@ class ApproveTransactionReview extends PureComponent {
       gasEstimationReady,
       transactionConfirmed,
       gasSelected,
+      gasPriceObject,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -654,8 +663,7 @@ class ApproveTransactionReview extends PureComponent {
               <View style={styles.paddingHorizontal}>
                 <AccountInfoCard />
                 <View style={styles.section}>
-                  <TransactionReviewEIP1559
-                    // gasSelected
+                  <TransactionReviewEIP1559Update
                     gasSelected={gasSelected}
                     primaryCurrency={primaryCurrency}
                     hideTotal
@@ -667,6 +675,7 @@ class ApproveTransactionReview extends PureComponent {
                     isAnimating={isAnimating}
                     gasEstimationReady={gasEstimationReady}
                     legacy={!showFeeMarket}
+                    gasPriceObject={gasPriceObject}
                     onlyGas
                   />
 
