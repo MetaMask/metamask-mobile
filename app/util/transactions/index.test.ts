@@ -132,7 +132,8 @@ describe('Transactions utils :: getActionKey', () => {
       undefined,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(strings('transactions.self_sent_ether'));
+
+    expect(result).toStrictEqual({ actionKey: 'transactions.self_sent_ether' });
   });
 
   it('should be labeled as "Sent Yourself UNI"', async () => {
@@ -149,9 +150,11 @@ describe('Transactions utils :: getActionKey', () => {
       UNI_TICKER,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(
-      strings('transactions.self_sent_unit', { unit: UNI_TICKER }),
-    );
+
+    expect(result).toStrictEqual({
+      actionKey: 'transactions.self_sent_unit',
+      args: { unit: UNI_TICKER },
+    });
   });
 
   it('should be labeled as "Sent Ether"', async () => {
@@ -168,7 +171,8 @@ describe('Transactions utils :: getActionKey', () => {
       undefined,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(strings('transactions.sent_ether'));
+
+    expect(result).toStrictEqual({ actionKey: 'transactions.sent_ether' });
   });
 
   it('should be labeled as "Sent UNI"', async () => {
@@ -186,9 +190,11 @@ describe('Transactions utils :: getActionKey', () => {
       UNI_TICKER,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(
-      strings('transactions.sent_unit', { unit: UNI_TICKER }),
-    );
+
+    expect(result).toStrictEqual({
+      actionKey: 'transactions.sent_unit',
+      args: { unit: UNI_TICKER },
+    });
   });
 
   it('should be labeled as "Received Ether"', async () => {
@@ -206,7 +212,8 @@ describe('Transactions utils :: getActionKey', () => {
       undefined,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(strings('transactions.received_ether'));
+
+    expect(result).toStrictEqual({ actionKey: 'transactions.received_ether' });
   });
 
   it('should be labeled as "Received UNI"', async () => {
@@ -223,9 +230,11 @@ describe('Transactions utils :: getActionKey', () => {
       UNI_TICKER,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(
-      strings('transactions.received_unit', { unit: UNI_TICKER }),
-    );
+
+    expect(result).toStrictEqual({
+      actionKey: 'transactions.received_unit',
+      args: { unit: UNI_TICKER },
+    });
   });
 
   it('should be labeled as "Smart Contract Interaction" if the receiver is a smart contract', async () => {
@@ -241,7 +250,10 @@ describe('Transactions utils :: getActionKey', () => {
       undefined,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(strings('transactions.smart_contract_interaction'));
+
+    expect(result).toStrictEqual({
+      actionKey: 'transactions.smart_contract_interaction',
+    });
   });
 
   it('should be labeled as "Smart Contract Interaction" if the tx is to a smart contract', async () => {
@@ -258,7 +270,10 @@ describe('Transactions utils :: getActionKey', () => {
       undefined,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(strings('transactions.smart_contract_interaction'));
+
+    expect(result).toStrictEqual({
+      actionKey: 'transactions.smart_contract_interaction',
+    });
   });
 
   it('should be labeled as "Contract Deployment" if the tx has no receiver', async () => {
@@ -273,7 +288,8 @@ describe('Transactions utils :: getActionKey', () => {
       undefined,
       MOCK_CHAIN_ID,
     );
-    expect(result).toBe(strings('transactions.contract_deploy'));
+
+    expect(result).toStrictEqual({ actionKey: 'transactions.contract_deploy' });
   });
 });
 
