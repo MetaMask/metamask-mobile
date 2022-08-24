@@ -3,11 +3,16 @@ import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { AvatarBaseProps } from '../AvatarBase/AvatarBase.types';
+import { AvatarVariants } from '../Avatar.types';
 
 /**
  * AvatarToken component props.
  */
 export interface AvatarTokenProps extends AvatarBaseProps {
+  /**
+   * Variant of Avatar
+   */
+  variant?: AvatarVariants.Token;
   /**
    * Optional token name.
    */

@@ -1,6 +1,9 @@
 // Third party dependencies.
 import { ViewProps } from 'react-native';
 
+// External dependencies
+import { AvatarVariants } from '../Avatar.types';
+
 /**
  * AvatarBase sizes.
  */
@@ -16,6 +19,10 @@ export enum AvatarBaseSize {
  * AvatarBase component props.
  */
 export interface AvatarBaseProps extends ViewProps {
+  /**
+   * Variant of Avatar
+   */
+  variant?: AvatarVariants;
   /**
    * Optional enum to select between AvatarBase sizes.
    * @default Md
