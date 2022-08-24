@@ -11,6 +11,7 @@ function loadStories() {
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
+  require('../app/components/UI/WarningAlert/WarningAlert.stories');
   require('../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories');
   require('../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories');
   require('../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories');
