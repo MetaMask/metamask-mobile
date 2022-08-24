@@ -8,7 +8,7 @@ describe('createKeypadRule', () => {
 
   it.each`
     decimalSeparator | decimals     | currentAmount | inputKey        | result
-    ${undefined}     | ${undefined} | ${undefined}  | ${KEYS.DIGIT_0} | ${'0'}
+    ${undefined}     | ${undefined} | ${undefined}  | ${KEYS.DIGIT_0} | ${'FAIL'}
     ${undefined}     | ${undefined} | ${undefined}  | ${KEYS.DIGIT_1} | ${'1'}
     ${undefined}     | ${undefined} | ${undefined}  | ${KEYS.DIGIT_2} | ${'2'}
     ${undefined}     | ${undefined} | ${undefined}  | ${KEYS.DIGIT_3} | ${'3'}
