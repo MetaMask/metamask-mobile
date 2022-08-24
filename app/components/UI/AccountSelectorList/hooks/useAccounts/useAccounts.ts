@@ -64,13 +64,6 @@ export const useAccounts = ({
       state.engine.backgroundState.NetworkController.provider.ticker,
   );
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
   const fetchENSNames = useCallback(
     async ({
       flattenedAccounts,
@@ -196,10 +189,16 @@ export const useAccounts = ({
   ]);
 
   useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+    }
     if (isLoading) return;
     // setTimeout is needed for now to ensure next frame contains updated keyrings.
     setTimeout(getAccounts, 0);
     // Once we can pull keyrings from Redux, we will replace the deps with keyrings.
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [getAccounts, isLoading]);
 
   return { accounts, ensByAccountAddress };
