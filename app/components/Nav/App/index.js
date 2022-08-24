@@ -365,7 +365,11 @@ const App = ({ userLoggedIn }) => {
       <>
         <NavigationContainer
           // Prevents artifacts when navigating between screens
-          theme={{ colors: { background: colors.background.default } }}
+          theme={{
+            colors: {
+              background: colors.background.default,
+            },
+          }}
           ref={setNavigatorRef}
           onStateChange={(state) => {
             // Updates redux with latest route. Used by DrawerView component.
