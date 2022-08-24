@@ -1,22 +1,16 @@
-import type {
-  JsonMap,
-  UserTraits,
-  GroupTraits,
-} from '@segment/analytics-react-native';
-
 // Represents a custom implementation of the Segment ClientMethods type
 export interface ISegmentClient {
   // Method track an event
   track: (
     event: string,
-    properties?: JsonMap,
+    properties?: any,
     userId?: string,
     anonymousId?: string,
   ) => void;
   // Method to identify an user with ID and traits
-  identify: (userId?: string, userTraits?: UserTraits) => void;
+  identify: (userId?: string, userTraits?: any) => void;
   // Method to add an user to a specific group
-  group: (groupId: string, groupTraits?: GroupTraits) => void;
+  group: (groupId: string, groupTraits?: any) => void;
 }
 
 // Represents the interface for the core class MetaMetrics
@@ -30,9 +24,9 @@ export interface IMetaMetrics {
   // Method to add traits to an user
   addTraitsToUser(userTraits: Record<string, string>): void;
   // Method to add an user to a specific group
-  group(groupId: string, groupTraits?: GroupTraits): void;
+  group(groupId: string, groupTraits?: any): void;
   // Method track an event
-  trackEvent(event: string, anonymously: boolean, properties?: JsonMap): void;
+  trackEvent(event: string, anonymously: boolean, properties?: any): void;
   // Method to create a new method to suppress and
   // delete user's data from Segment and all related
   // destinations.
