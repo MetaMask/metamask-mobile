@@ -200,7 +200,11 @@ export const trackEventV2 = (eventName, params) => {
       for (const key in params) {
         const property = params[key];
 
-        if (property && typeof property === 'object') {
+        if (
+          property &&
+          typeof property === 'object' &&
+          !Array.isArray(property)
+        ) {
           if (property.anonymous) {
             anonymousEvent = true;
             // Anonymous property - add only to anonymous params
