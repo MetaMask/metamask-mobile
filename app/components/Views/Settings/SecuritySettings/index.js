@@ -66,6 +66,7 @@ import { LEARN_MORE_URL } from '../../../../constants/urls';
 import DeleteMetaMetricsData from './Sections/DeleteMetaMetricsData';
 import DeleteWalletData from './Sections/DeleteWalletData';
 import RememberMeOptionSection from './Sections/RememberMeOptionSection';
+import AutomaticSecurityChecks from './Sections/AutomaticSecurityChecks';
 
 const isIos = Device.isIos();
 
@@ -1151,6 +1152,7 @@ class Settings extends PureComponent {
           {this.renderApprovalModal()}
           {this.renderHistoryModal()}
           {this.isMainnet() && this.renderOpenSeaSettings()}
+          {__DEV__ ? <AutomaticSecurityChecks /> : null}
           {this.renderHint()}
         </View>
       </ScrollView>
