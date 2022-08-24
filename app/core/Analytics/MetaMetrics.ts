@@ -219,9 +219,7 @@ class MetaMetrics implements IMetaMetrics {
   public static getInstance(): IMetaMetrics {
     if (!MetaMetrics.#instance) {
       const segmentClient = createClient({
-        writeKey: (__DEV__
-          ? process.env.SEGMENT_DEV_KEY
-          : process.env.SEGMENT_PROD_KEY) as string,
+        writeKey: process.env.SEGMENT_DEV_KEY as string,
         debug: __DEV__,
       });
       MetaMetrics.#instance = new MetaMetrics(segmentClient);
