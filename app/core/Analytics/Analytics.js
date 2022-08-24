@@ -5,7 +5,6 @@ import axios from 'axios';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DefaultPreference from 'react-native-default-preference';
 import Logger from '../../util/Logger';
-import { ANALYTICS_EVENTS_V2 } from '../../util/analyticsV2';
 import { store } from '../../store';
 import { MIXPANEL_ENDPOINT_BASE_URL } from '../../constants/urls';
 import {
