@@ -22,7 +22,8 @@ import AvatarBase, {
   AvatarBaseSize,
 } from 'app/component-library/components/Avatars/AvatarBase';
 
-<AvatarBase size={AvatarBaseSize.Md}>
-  <SampleImageComponent />
+<AvatarBase 
+  size={AvatarBaseSize.Md}>
+    <SampleImageComponent />
 </AvatarBase>;
 ```

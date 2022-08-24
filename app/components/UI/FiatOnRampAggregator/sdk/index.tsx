@@ -90,7 +90,7 @@ export const callbackBaseUrl = isDevelopment
 const appConfig = {
   POLLING_INTERVAL: 20000,
   POLLING_INTERVAL_HIGHLIGHT: 10000,
-  POLLING_CYCLES: 3,
+  POLLING_CYCLES: 6,
 };
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);
