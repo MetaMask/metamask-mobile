@@ -7,6 +7,7 @@ exports[`ButtonBase should render correctly 1`] = `
       Object {
         "backgroundColor": "#FFFFFF",
         "borderColor": "#F66A0A",
+        "borderRadius": 8,
         "bottom": 20,
         "left": 16,
         "position": "absolute",
