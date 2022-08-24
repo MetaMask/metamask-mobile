@@ -187,9 +187,7 @@ class MetaMetrics implements IMetaMetrics {
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
   #createSegmentSuppressWithDeleteRegulation = async (): Promise<void> => {
-    const segmentToken = __DEV__
-      ? process.env.SEGMENT_DEV_KEY
-      : process.env.SEGMENT_PROD_KEY;
+    const segmentToken = process.env.SEGMENT_DEV_KEY;
     const regulationType = 'Suppress_With_Delete';
     try {
       const response = await axios({
