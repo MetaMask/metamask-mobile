@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
+import type { JsonMap } from '@segment/analytics-react-native';
 import { MetaMetrics, IMetaMetricsEvent } from '../../core/Analytics';
 
 const useMetaMetrics = () => {
   const trackEventHook = useCallback(
-    (event: IMetaMetricsEvent, params: any = {}) => {
+    (event: IMetaMetricsEvent, params: JsonMap = {}) => {
       InteractionManager.runAfterInteractions(() => {
         const { name, anonymous } = event;
         if (anonymous) {
