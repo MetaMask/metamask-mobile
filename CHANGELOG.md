@@ -1,7 +1,8 @@
 # Changelog
 
 ## Current Main Branch
-- 5.7.0
+
+## 5.7.0 - Aug 25, 2022
 - [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
 - [#4897](https://github.com/MetaMask/metamask-mobile/pull/4897): [IMPROVEMENT] Automatic security checks settings
 - [#4902](https://github.com/MetaMask/metamask-mobile/pull/4902): [IMPROVEMENT] Deprecated networks Alert border fixed
@@ -33,7 +34,7 @@
 - [#4824](https://github.com/MetaMask/metamask-mobile/pull/4824): [Fix] Fix password not being set as authentication type for login metrics
 - [#4809](https://github.com/MetaMask/metamask-mobile/pull/4809): [IMPROVEMENT] Component/4779 Audit
 
-## 5.6.0 - Aug 25, 2022
+## 5.6.0 - Aug 18, 2022
 - [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): [FIX] Staging env redirection url for onramp
 - [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): [ADD] On-Ramp generic error view event
 - [#4743](https://github.com/MetaMask/metamask-mobile/pull/4743): [ADD] Payment Method logos
