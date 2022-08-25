@@ -166,6 +166,7 @@ const OnboardingWizard = (props) => {
       transparent
       onBackButtonPress={getBackButtonBehavior}
       style={[styles.root, Device.isAndroid() ? { minHeight: MIN_HEIGHT } : {}]}
+      coverScreen={false}
     >
       <View style={styles.main}>{onboardingWizardNavigator(step)}</View>
       {step !== 1 && (

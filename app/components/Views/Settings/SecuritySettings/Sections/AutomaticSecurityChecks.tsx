@@ -7,7 +7,7 @@ import { setAutomaticSecurityChecks } from '../../../../../actions/security';
 const AutomaticSecurityChecks = () => {
   const dispatch = useDispatch();
   const automaticSecurityChecksState = useSelector(
-    (state: any) => state.security.automaticSecurityChecks,
+    (state: any) => state.security.automaticSecurityChecksEnabled,
   );
 
   const toggleAutomaticSecurityChecks = useCallback(
