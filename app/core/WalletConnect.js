@@ -15,6 +15,10 @@ import getRpcMethodMiddleware, {
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
+import { getDiffBetweenTodayDate } from '../util/date';
+
+const SESSION_LIFETIME = 1;
+
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
@@ -48,6 +52,7 @@ const persistSessions = async () => {
       autosign: connector.autosign,
       redirectUrl: connector.redirectUrl,
       requestOriginatedFrom: connector.requestOriginatedFrom,
+      createdUpdatedAt: new Date(),
     }));
 
   await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
@@ -361,8 +366,21 @@ const instance = {
     const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
+
       sessions.forEach((session) => {
-        connectors.push(new WalletConnect({ session }, true));
+        if (session.createdUpdatedAt) {
+          const sessionDateToNumber = Number(
+            session.createdUpdatedAt.replace(/[-"]/g, ''),
+          );
+
+          if (
+            getDiffBetweenTodayDate(sessionDateToNumber) <= SESSION_LIFETIME
+          ) {
+            connectors.push(new WalletConnect({ session }, true));
+          } else {
+            this.killSession(session.peerId);
+          }
+        }
       });
     }
     initialized = true;

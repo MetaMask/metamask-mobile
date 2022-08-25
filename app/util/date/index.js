@@ -29,3 +29,14 @@ export function toLocaleDate(timestamp) {
 export function toLocaleTime(timestamp) {
   return new Date(timestamp).toLocaleTimeString();
 }
+
+/**
+ * This function will return the diference in days betwen two dates
+ * @param {number} sessionTime - a number that represents a date, it need to be without separators, example: 19960212
+ */
+export function getDiffBetweenTodayDate(sessionTime) {
+  const today = JSON.stringify(new Date()).split('T')[0];
+  const todayToNumber = Number(today.replace(/[-"]/g, ''));
+
+  return todayToNumber - sessionTime;
+}
