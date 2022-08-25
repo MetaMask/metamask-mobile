@@ -35,7 +35,7 @@ const SheetHeader = ({
             testID={SHEET_HEADER_BACK_BUTTON_ID}
             variant={ButtonIconVariant.Secondary}
             onPress={onBack}
-            icon={IconName.ArrowLeftOutline}
+            iconName={IconName.ArrowLeftOutline}
           />
         )}
       </View>

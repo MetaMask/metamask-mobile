@@ -35,6 +35,9 @@ const Routes = {
   SETTINGS: {
     CONTACT_FORM: 'ContactForm',
   },
+  SHEET: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
+  },
 };
 
 export default Routes;

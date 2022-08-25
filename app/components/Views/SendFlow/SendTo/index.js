@@ -11,7 +11,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { util } from '@metamask/controllers';
-import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Engine from '../../../../core/Engine';
@@ -22,7 +21,6 @@ import Text from '../../../Base/Text';
 import { AddressFrom, AddressTo } from './../AddressInputs';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../UI/Navbar';
-import AccountList from '../../../UI/AccountList';
 import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { allowedToBuy } from '../../../UI/FiatOrders';
@@ -99,10 +97,6 @@ class SendFlow extends PureComponent {
      */
     identities: PropTypes.object,
     /**
-     * List of keyrings
-     */
-    keyrings: PropTypes.array,
-    /**
      * Current provider ticker
      */
     ticker: PropTypes.string,
@@ -145,7 +139,6 @@ class SendFlow extends PureComponent {
   state = {
     addressError: undefined,
     balanceIsZero: false,
-    fromAccountModalVisible: false,
     addToAddressBookModalVisible: false,
     fromSelectedAddress: this.props.selectedAddress,
     fromAccountName: this.props.identities[this.props.selectedAddress].name,
@@ -219,11 +212,6 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
   };
 
-  toggleFromAccountModal = () => {
-    const { fromAccountModalVisible } = this.state;
-    this.setState({ fromAccountModalVisible: !fromAccountModalVisible });
-  };
-
   toggleAddToAddressBookModal = () => {
     const { addToAddressBookModalVisible } = this.state;
     this.setState({
@@ -231,16 +219,14 @@ class SendFlow extends PureComponent {
     });
   };
 
-  onAccountChange = async (accountAddress) => {
-    const { identities, ticker, accounts } = this.props;
+  onSelectAccount = async (accountAddress) => {
+    const { ticker, accounts, identities } = this.props;
     const { name } = identities[accountAddress];
-    const { PreferencesController } = Engine.context;
     const fromAccountBalance = `${renderFromWei(
       accounts[accountAddress].balance,
     )} ${getTicker(ticker)}`;
     const ens = await doENSReverseLookup(accountAddress);
     const fromAccountName = ens || name;
-    PreferencesController.setSelectedAddress(accountAddress);
     // If new account doesn't have the asset
     this.props.setSelectedAsset(getEther(ticker));
     this.setState({
@@ -249,8 +235,19 @@ class SendFlow extends PureComponent {
       fromSelectedAddress: accountAddress,
       balanceIsZero: hexToBN(accounts[accountAddress].balance).isZero(),
     });
-    this.toggleFromAccountModal();
   };
+
+  openAccountSelector = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+      params: {
+        isSelectOnly: true,
+        onSelectAccount: this.onSelectAccount,
+      },
+    });
+  };
+
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
    * @param {String} toAccount - Address input
@@ -599,36 +596,6 @@ class SendFlow extends PureComponent {
     );
   };
 
-  renderFromAccountModal = () => {
-    const { identities, keyrings, ticker } = this.props;
-    const { fromAccountModalVisible, fromSelectedAddress } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <Modal
-        isVisible={fromAccountModalVisible}
-        style={styles.bottomModal}
-        onBackdropPress={this.toggleFromAccountModal}
-        onBackButtonPress={this.toggleFromAccountModal}
-        onSwipeComplete={this.toggleFromAccountModal}
-        swipeDirection={'down'}
-        propagateSwipe
-        backdropColor={colors.overlay.default}
-        backdropOpacity={1}
-      >
-        <AccountList
-          enableAccountsAddition={false}
-          identities={identities}
-          selectedAddress={fromSelectedAddress}
-          keyrings={keyrings}
-          onAccountChange={this.onAccountChange}
-          ticker={ticker}
-        />
-      </Modal>
-    );
-  };
-
   onToInputFocus = () => {
     const { toInputHighlighted } = this.state;
     this.setState({ toInputHighlighted: !toInputHighlighted });
@@ -710,7 +677,7 @@ class SendFlow extends PureComponent {
       >
         <View style={styles.imputWrapper}>
           <AddressFrom
-            onPressIcon={this.toggleFromAccountModal}
+            onPressIcon={this.openAccountSelector}
             fromAccountAddress={fromSelectedAddress}
             fromAccountName={fromAccountName}
             fromAccountBalance={fromAccountBalance}
@@ -845,8 +812,6 @@ class SendFlow extends PureComponent {
             )}
           </View>
         )}
-
-        {this.renderFromAccountModal()}
         {this.renderAddToAddressBookModal()}
       </SafeAreaView>
     );
@@ -863,7 +828,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.selectedAddress,
   selectedAsset: state.transaction.selectedAsset,
   identities: state.engine.backgroundState.PreferencesController.identities,
-  keyrings: state.engine.backgroundState.KeyringController.keyrings,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   network: state.engine.backgroundState.NetworkController.network,
   providerType: state.engine.backgroundState.NetworkController.provider.type,
