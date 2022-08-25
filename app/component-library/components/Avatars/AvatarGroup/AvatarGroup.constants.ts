@@ -9,98 +9,84 @@ export const AVAILABLE_TOKEN_LIST: AvatarGroupTokenList = [
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '0',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '1',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '2',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '3',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '4',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '5',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '6',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '7',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '8',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '9',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '10',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '11',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '12',
   },
   {
     name: 'Ethereum',
     imageSource: {
       uri: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
     },
-    id: '13',
   },
 ];
 
