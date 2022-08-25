@@ -1,13 +1,13 @@
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
-index ab1a744..8a0a921 100644
+index fb75134..c612cfd 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
 +++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
-@@ -492,10 +492,12 @@ export class SegmentClient {
+@@ -481,10 +481,12 @@ export class SegmentClient {
      this.logger.info('SCREEN event saved', event);
    }
  
--  track(eventName: string, options?: JsonMap) {
-+  track(eventName: string, options?: JsonMap, userId?: string, anonymousId?: string) {
+-  async track(eventName: string, options?: JsonMap) {
++  async track(eventName: string, options?: JsonMap, userId?: string, anonymousId?: string) {
      const event = createTrackEvent({
        event: eventName,
        properties: options,
@@ -15,8 +15,8 @@ index ab1a744..8a0a921 100644
 +      anonymousId: anonymousId,
      });
  
-     this.process(event);
-@@ -669,12 +671,8 @@ export class SegmentClient {
+     await this.process(event);
+@@ -647,11 +649,8 @@ export class SegmentClient {
      this.appState = nextAppState;
    }
  
@@ -25,22 +25,21 @@ index ab1a744..8a0a921 100644
 -      resetAnonymousId === true
 -        ? getUUID()
 -        : this.store.userInfo.get().anonymousId;
--
 +  reset() {
-+    const anonymousId = '0x0000000000000000'
++    const anonymousId = '0x0000000000000000';
+ 
      this.store.userInfo.set({
        anonymousId,
-       userId: undefined,
 diff --git a/node_modules/@segment/analytics-react-native/src/client.tsx b/node_modules/@segment/analytics-react-native/src/client.tsx
-index f9ed76b..7326a16 100644
+index 3309986..da1109e 100644
 --- a/node_modules/@segment/analytics-react-native/src/client.tsx
 +++ b/node_modules/@segment/analytics-react-native/src/client.tsx
 @@ -67,6 +67,6 @@ export const useAnalytics = (): ClientMethods => {
-     flush: () => client.flush(),
-     group: (...args) => client.group(...args),
-     alias: (...args) => client.alias(...args),
--    reset: (...args) => client.reset(...args),
-+    reset: () => client.reset(),
+     flush: async () => client.flush(),
+     group: async (...args) => client.group(...args),
+     alias: async (...args) => client.alias(...args),
+-    reset: async (...args) => client.reset(...args),
++    reset: async () => client.reset(),
    };
  };
 diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
