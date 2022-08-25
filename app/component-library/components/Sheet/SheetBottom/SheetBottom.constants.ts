@@ -17,4 +17,8 @@ export const SWIPE_TRIGGERED_ANIMATION_DURATION = 200;
 /**
  * The animation duration used for initial render.
  */
-export const INITIAL_RENDER_ANIMATION_DURATION = 500;
+export const INITIAL_RENDER_ANIMATION_DURATION = 350;
+/**
+ * Minimum spacing reserved for the overlay tappable area.
+ */
+export const DEFAULT_MIN_OVERLAY_HEIGHT = 250;

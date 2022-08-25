@@ -186,7 +186,7 @@ export const ANALYTICS_EVENTS_V2 = {
  * @param {Object} eventName
  * @param {Object} params
  */
-export const trackEventV2 = (eventName, params) => {
+export const trackEventV2 = (eventName, params = undefined) => {
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {

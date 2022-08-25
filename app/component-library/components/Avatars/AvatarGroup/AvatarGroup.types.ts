@@ -6,10 +6,6 @@ import { ImageSourcePropType, ViewProps } from 'react-native';
  */
 export interface AvatarGroupToken {
   /**
-   * Token id.
-   */
-  id: string;
-  /**
    * Token Name.
    */
   name: string;
@@ -29,4 +25,12 @@ export interface AvatarGroupProps extends ViewProps {
    * A list of Avatars to be horizontally stacked.
    */
   tokenList: AvatarGroupTokenList;
+}
+
+/**
+ * Style sheet input parameters.
+ */
+export interface AvatarGroupStyleSheetVars {
+  stackWidth: number;
+  stackHeight: number;
 }

@@ -20,10 +20,7 @@ import { strings } from '../../../../locales/i18n';
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
-import {
-  toggleAccountsModal,
-  toggleReceiveModal,
-} from '../../../actions/modals';
+import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 
 import Device from '../../../util/device';
@@ -165,10 +162,6 @@ class AccountOverview extends PureComponent {
     */
     showAlert: PropTypes.func,
     /**
-     * Action that toggles the accounts modal
-     */
-    toggleAccountsModal: PropTypes.func,
-    /**
      * whether component is being rendered from onboarding wizard
      */
     onboardingWizard: PropTypes.bool,
@@ -222,17 +215,12 @@ class AccountOverview extends PureComponent {
   scrollViewContainer = React.createRef();
   mainView = React.createRef();
 
-  animatingAccountsModal = false;
-
-  toggleAccountsModal = () => {
-    const { onboardingWizard } = this.props;
-    if (!onboardingWizard && !this.animatingAccountsModal) {
-      this.animatingAccountsModal = true;
-      this.props.toggleAccountsModal();
-      setTimeout(() => {
-        this.animatingAccountsModal = false;
-      }, 500);
-    }
+  openAccountSelector = () => {
+    const { onboardingWizard, navigation } = this.props;
+    !onboardingWizard &&
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ACCOUNT_SELECTOR,
+      });
   };
 
   isAccountLabelDefined = (accountLabel) =>
@@ -395,7 +383,7 @@ class AccountOverview extends PureComponent {
             <TouchableOpacity
               style={styles.identiconBorder}
               disabled={onboardingWizard}
-              onPress={this.toggleAccountsModal}
+              onPress={this.openAccountSelector}
               testID={'wallet-account-identicon'}
             >
               <Identicon
@@ -524,7 +512,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
-  toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
