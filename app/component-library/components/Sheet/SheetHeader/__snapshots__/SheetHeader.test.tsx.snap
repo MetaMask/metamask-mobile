@@ -9,7 +9,7 @@ exports[`SheetHeader should render correctly 1`] = `
       "flexDirection": "row",
       "height": 32,
       "justifyContent": "space-between",
-      "paddingHorizontal": 16,
+      "margin": 16,
     }
   }
 >

@@ -2,10 +2,10 @@
 import { StyleSheet } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../util/theme/models';
+import { Theme } from '../../../util/theme/models';
 
 /**
- * Style sheet function for SheetHeader component.
+ * Style sheet function for SheetActions component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
@@ -15,21 +15,13 @@ import { Theme } from '../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
+
   return StyleSheet.create({
     base: {
-      flexDirection: 'row',
+      ...StyleSheet.absoluteFillObject,
+      justifyContent: 'center',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      margin: 16,
       backgroundColor: colors.background.default,
-      height: 32,
-    },
-    leftAccessory: {
-      flex: 1,
-    },
-    rightAccessory: {
-      flex: 1,
-      alignItems: 'flex-end',
     },
   });
 };

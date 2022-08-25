@@ -437,14 +437,17 @@
     "receive": "RECEIVE"
   },
   "accounts": {
-    "create_new_account": "Create New Account",
-    "import_account": "Import an Account",
-    "connect_hardware": "Connect Hardware Wallet",
-    "imported": "IMPORTED",
+    "create_new_account": "Create a new account",
+    "import_account": "Import an account",
+    "connect_hardware": "Connect hardware wallet",
+    "imported": "Imported",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
-    "yes_remove_it": "Yes, remove it"
+    "yes_remove_it": "Yes, remove it",
+    "account_selector": {
+      "title": "Accounts"
+    }
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",

@@ -22,7 +22,6 @@ import {
 } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
-import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
@@ -30,7 +29,6 @@ import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import {
   toggleNetworkModal,
-  toggleAccountsModal,
   toggleReceiveModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
@@ -352,10 +350,6 @@ class DrawerView extends PureComponent {
      */
     toggleNetworkModal: PropTypes.func,
     /**
-     * Action that toggles the accounts modal
-     */
-    toggleAccountsModal: PropTypes.func,
-    /**
      * Action that toggles the receive modal
      */
     toggleReceiveModal: PropTypes.func,
@@ -375,10 +369,6 @@ class DrawerView extends PureComponent {
      * Start transaction with asset
      */
     newAssetTransaction: PropTypes.func.isRequired,
-    /**
-     * Boolean that determines the status of the networks modal
-     */
-    accountsModalVisible: PropTypes.bool.isRequired,
     /**
      * Boolean that determines if the user has set a password before
      */
@@ -468,7 +458,6 @@ class DrawerView extends PureComponent {
   previousBalance = null;
   processedNewBalance = false;
   animatingNetworksModal = false;
-  animatingAccountsModal = false;
 
   isCurrentAccountImported() {
     let ret = false;
@@ -612,16 +601,17 @@ class DrawerView extends PureComponent {
     }
   };
 
-  toggleAccountsModal = async () => {
-    if (!this.animatingAccountsModal) {
-      this.animatingAccountsModal = true;
-      this.props.toggleAccountsModal();
-      setTimeout(() => {
-        this.animatingAccountsModal = false;
-      }, 500);
-    }
-    !this.props.accountsModalVisible &&
-      this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
+  openAccountSelector = () => {
+    const { navigation } = this.props;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+      params: {
+        onOpenImportAccount: this.hideDrawer,
+        onOpenConnectHardwareWallet: this.hideDrawer,
+        onSelectAccount: this.hideDrawer,
+      },
+    });
+    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
   };
 
   toggleReceiveModal = () => {
@@ -831,27 +821,8 @@ class DrawerView extends PureComponent {
     this.hideDrawer();
   }
 
-  hideDrawer() {
+  hideDrawer = () => {
     this.props.onCloseDrawer();
-  }
-
-  onAccountChange = () => {
-    setTimeout(() => {
-      this.toggleAccountsModal();
-      this.hideDrawer();
-    }, 300);
-  };
-
-  onImportAccount = () => {
-    this.toggleAccountsModal();
-    this.props.navigation.navigate('ImportPrivateKeyView');
-    this.hideDrawer();
-  };
-
-  onConnectHardware = () => {
-    this.toggleAccountsModal();
-    this.props.navigation.navigate('ConnectQRHardwareFlow');
-    this.hideDrawer();
   };
 
   hasBlockExplorer = (providerType) => {
@@ -1160,7 +1131,6 @@ class DrawerView extends PureComponent {
       accounts,
       identities,
       selectedAddress,
-      keyrings,
       currentCurrency,
       ticker,
       seedphraseBackedUp,
@@ -1234,7 +1204,7 @@ class DrawerView extends PureComponent {
             <View style={styles.accountBgOverlay}>
               <TouchableOpacity
                 style={styles.identiconWrapper}
-                onPress={this.toggleAccountsModal}
+                onPress={this.openAccountSelector}
                 testID={'navbar-account-identicon'}
               >
                 <View style={styles.identiconBorder}>
@@ -1243,7 +1213,7 @@ class DrawerView extends PureComponent {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.accountInfo}
-                onPress={this.toggleAccountsModal}
+                onPress={this.openAccountSelector}
                 testID={'navbar-account-button'}
               >
                 <View style={styles.accountNameWrapper}>
@@ -1416,28 +1386,6 @@ class DrawerView extends PureComponent {
             onClose={this.closeInvalidCustomNetworkAlert}
           />
         </Modal>
-        <Modal
-          isVisible={this.props.accountsModalVisible}
-          style={styles.bottomModal}
-          onBackdropPress={this.toggleAccountsModal}
-          onBackButtonPress={this.toggleAccountsModal}
-          onSwipeComplete={this.toggleAccountsModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <AccountList
-            enableAccountsAddition
-            identities={identities}
-            selectedAddress={selectedAddress}
-            keyrings={keyrings}
-            onAccountChange={this.onAccountChange}
-            onImportAccount={this.onImportAccount}
-            onConnectHardware={this.onConnectHardware}
-            ticker={ticker}
-          />
-        </Modal>
         {this.renderOnboardingWizard()}
         <Modal
           isVisible={this.props.receiveModalVisible}
@@ -1474,7 +1422,6 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.CurrencyRateController.currentCurrency,
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
-  accountsModalVisible: state.modals.accountsModalVisible,
   receiveModalVisible: state.modals.receiveModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
@@ -1493,7 +1440,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-  toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
