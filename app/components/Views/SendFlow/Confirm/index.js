@@ -734,9 +734,11 @@ class Confirm extends PureComponent {
         'fullwide',
         { useGrouping: false },
       );
+      const decimalsToShow = 18;
       const transferValue = renderFromTokenMinimalUnit(
         rawAmountString,
         decimals,
+        decimalsToShow,
       );
       transactionValue = `${transferValue} ${symbol}`;
       const exchangeRate = contractExchangeRates[address];
