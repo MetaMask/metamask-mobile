@@ -119,7 +119,7 @@ jest.mock('react-native-reanimated', () =>
 );
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
 jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
-jest.mock('@react-native-community/cookies', () => 'RNCookies');
+jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),
