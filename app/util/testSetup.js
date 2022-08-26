@@ -179,6 +179,7 @@ jest.mock('../util/theme', () => ({
 }));
 
 jest.mock('@segment/analytics-react-native', () => ({
+  ...jest.requireActual('@segment/analytics-react-native'),
   createClient: () => ({
     identify: jest.fn(),
     track: jest.fn(),
