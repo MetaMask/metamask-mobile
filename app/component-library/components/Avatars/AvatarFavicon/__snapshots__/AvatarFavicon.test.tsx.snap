@@ -20,6 +20,8 @@ exports[`AvatarFavicon should match the snapshot 1`] = `
     style={
       Object {
         "flex": 1,
+        "height": undefined,
+        "width": undefined,
       }
     }
     testID="favicon-avatar-image"

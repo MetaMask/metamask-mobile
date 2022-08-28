@@ -238,12 +238,17 @@ class RevealPrivateCredential extends PureComponent {
         navigation,
         false,
         colors,
+        AnalyticsV2.ANALYTICS_EVENTS.GO_BACK_SRP_SCREEN,
       ),
     );
   };
 
   async componentDidMount() {
     this.updateNavBar();
+    // Track SRP Reveal screen rendered
+    if (!this.isPrivateKey()) {
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_SCREEN);
+    }
     // Try to use biometrics to unloc
     // (if available)
     const biometryType = await SecureKeychain.getSupportedBiometryType();
@@ -289,6 +294,10 @@ class RevealPrivateCredential extends PureComponent {
         { view: 'Enter password' },
       );
 
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.CANCEL_REVEAL_SRP_CTA,
+      );
     if (this.props.cancel) return this.props.cancel();
     this.navigateBack();
   };
@@ -296,6 +305,12 @@ class RevealPrivateCredential extends PureComponent {
   navigateBack = () => {
     const { navigation } = this.props;
     navigation.pop();
+  };
+
+  done = () => {
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.SRP_DONE_CTA);
+    this.navigateBack();
   };
 
   async tryUnlockWithPassword(password, privateCredentialName) {
@@ -345,7 +360,21 @@ class RevealPrivateCredential extends PureComponent {
   }
 
   tryUnlock = () => {
-    this.setState({ isModalVisible: true });
+    const { KeyringController } = Engine.context;
+    const { password } = this.state;
+    if (KeyringController.validatePassword(password)) {
+      if (!this.isPrivateKey())
+        AnalyticsV2.trackEvent(
+          AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
+        );
+      this.setState({
+        isModalVisible: true,
+        warningIncorrectPassword: '',
+      });
+    } else {
+      const msg = strings('reveal_credential.warning_incorrect_password');
+      this.setState({ warningIncorrectPassword: msg });
+    }
   };
 
   onPasswordChange = (password) => {
@@ -359,6 +388,9 @@ class RevealPrivateCredential extends PureComponent {
         : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
       { action: 'copied to clipboard' },
     );
+
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.COPY_SRP);
 
     const { clipboardPrivateCredential } = this.state;
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
@@ -423,6 +455,9 @@ class RevealPrivateCredential extends PureComponent {
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed SRP' },
       );
+
+      if (!this.isPrivateKey())
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP);
     } else if (event.i === 1) {
       AnalyticsV2.trackEvent(
         this.isPrivateKey()
@@ -430,6 +465,9 @@ class RevealPrivateCredential extends PureComponent {
           : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_COMPLETED,
         { action: 'viewed QR code' },
       );
+
+      if (!this.isPrivateKey())
+        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.VIEW_SRP_QR);
     }
   };
 
@@ -534,6 +572,11 @@ class RevealPrivateCredential extends PureComponent {
         : AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_CANCELLED,
       { view: 'Hold to reveal' },
     );
+
+    if (!this.isPrivateKey())
+      AnalyticsV2.trackEvent(
+        AnalyticsV2.ANALYTICS_EVENTS.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG,
+      );
 
     this.setState({
       isModalVisible: false,
@@ -649,8 +692,14 @@ class RevealPrivateCredential extends PureComponent {
     );
   }
 
+  enableNextButton = () => {
+    const { KeyringController } = Engine.context;
+    const { password } = this.state;
+    return KeyringController.validatePassword(password);
+  };
+
   render = () => {
-    const { unlocked, password } = this.state;
+    const { unlocked } = this.state;
     const { styles } = this.getStyles();
     const privateCredentialName =
       this.props.privateCredentialName ||
@@ -669,11 +718,11 @@ class RevealPrivateCredential extends PureComponent {
               : strings('reveal_credential.cancel')
           }
           confirmText={strings('reveal_credential.confirm')}
-          onCancelPress={unlocked ? this.navigateBack : this.cancel}
+          onCancelPress={unlocked ? this.done : this.cancel}
           testID={`next-button`}
           onConfirmPress={() => this.tryUnlock()}
           showConfirmButton={!unlocked}
-          confirmDisabled={!password.length}
+          confirmDisabled={!this.enableNextButton()}
         >
           <>
             <View style={[styles.rowWrapper, styles.normalText]}>

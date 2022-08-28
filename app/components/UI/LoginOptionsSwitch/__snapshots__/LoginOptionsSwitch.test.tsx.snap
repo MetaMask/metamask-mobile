@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LoginWithBiometricsSwitch should render correctly 1`] = `
+<Component
+  biometryChoiceState={true}
+  onUpdateBiometryChoice={[Function]}
+  onUpdateRememberMe={[Function]}
+  shouldRenderBiometricOption="Face"
+/>
+`;
