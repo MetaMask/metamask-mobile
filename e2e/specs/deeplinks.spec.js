@@ -17,8 +17,11 @@ import { Browser } from '../pages/Drawer/Browser';
 import DrawerView from '../pages/Drawer/DrawerView';
 import NetworkView from '../pages/Drawer/Settings/NetworksView';
 import SettingsView from '../pages/Drawer/Settings/SettingsView';
-
+import LoginView from '../pages/LoginView';
 import TransactionConfirmationView from '../pages/TransactionConfirmView';
+
+import SecurityAndPrivacy from '../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+
 import WalletView from '../pages/WalletView';
 
 const SECRET_RECOVERY_PHRASE =
@@ -35,10 +38,14 @@ const POLYGON_DEEPLINK_URL =
 
 const ETHEREUM_DEEPLINK_URL =
   'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@1?value=1e13';
-const RINKEBY_DEEPLINK_URL =
-  'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@4?value=1e13';
+const GOERLI_DEEPLINK_URL =
+  'https://metamask.app.link/send/0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6@5?value=1e13';
 
 const DAPP_DEEPLINK_URL = 'https://metamask.app.link/dapp/app.sushi.com';
+
+const networkNotFoundText = 'Network not found';
+const networkErrorBodyMessage =
+  'Network with chain id 56 not found in your wallet. Please add the network first.';
 
 describe('Deep linking Tests', () => {
   beforeEach(() => {
@@ -59,7 +66,7 @@ describe('Deep linking Tests', () => {
   });
 
   it('should attempt to import wallet with invalid secret recovery phrase', async () => {
-    await ImportWalletView.toggleRememberMe();
+    //await ImportWalletView.toggleRememberMe();
     await ImportWalletView.enterSecretRecoveryPhrase(SECRET_RECOVERY_PHRASE);
     await ImportWalletView.enterPassword(PASSWORD);
     await ImportWalletView.reEnterPassword(PASSWORD);
@@ -88,11 +95,38 @@ describe('Deep linking Tests', () => {
       //
     }
   });
-  it('should deep link to the send flow with a custom network not added to wallet', async () => {
-    const networkNotFoundText = 'Network not found';
-    const networkErrorBodyMessage =
-      'Network with chain id 56 not found in your wallet. Please add the network first.';
 
+  it('should go to the Privacy and settings view', async () => {
+    await WalletView.tapDrawerButton(); // tapping burger menu
+
+    await DrawerView.isVisible();
+    await DrawerView.tapSettings();
+
+    await SettingsView.tapSecurityAndPrivacy();
+
+    await SecurityAndPrivacy.scrollToTurnOnRememberMe();
+    TestHelpers.delay(3000);
+  });
+
+  it('should enable remember me', async () => {
+    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
+    await SecurityAndPrivacy.isRememberMeToggleOn();
+
+    TestHelpers.delay(1500);
+  });
+
+  it('should relaunch the app then enable remember me', async () => {
+    // Relaunch app
+    await TestHelpers.relaunchApp();
+    await LoginView.isVisible();
+    await LoginView.toggleRememberMe();
+
+    await LoginView.enterPassword(PASSWORD);
+    await WalletView.isVisible();
+  });
+
+  it('should deep link to Binance Smart Chain & show a network not found error message', async () => {
     await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
     await TestHelpers.delay(3000);
     await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
@@ -168,14 +202,16 @@ describe('Deep linking Tests', () => {
     await TransactionConfirmationView.isNetworkNameVisible('BNB Smart Chain');
   });
 
-  it('should deep link to the send flow on Rinkeby and submit the transaction', async () => {
-    await TestHelpers.openDeepLink(RINKEBY_DEEPLINK_URL);
+  it('should deep link to the send flow on Goerli and submit the transaction', async () => {
+    await TestHelpers.openDeepLink(GOERLI_DEEPLINK_URL);
     await TestHelpers.delay(4500);
     await TransactionConfirmationView.isVisible();
     await TransactionConfirmationView.isNetworkNameVisible(
-      'Rinkeby Test Network',
+      'Goerli Test Network',
     );
-    await TransactionConfirmationView.isTransactionTotalCorrect('0.00001 ETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.00001 GoerliETH',
+    );
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen
