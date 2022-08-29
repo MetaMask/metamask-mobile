@@ -174,6 +174,9 @@ describe('Browser Tests', () => {
     // Wait for connect prompt to display
     await TestHelpers.delay(5000);
     await ConnectModal.tapConnectButton();
+
+    await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 20, y: 130 }); // tapping to dismiss keyboard
+
     await Browser.isVisible();
   });
 
