@@ -17,6 +17,7 @@ import PropTypes from 'prop-types';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
+  renderFromToken,
   weiToFiat,
   balanceToFiat,
   isDecimal,
@@ -730,16 +731,22 @@ class Confirm extends PureComponent {
         decimals,
       )} ${symbol}`;
       [transactionTo, , rawAmount] = decodeTransferData('transfer', data);
+      console.group('BEGIN')
+      console.log('data', data);
+      console.log('rawAmount', rawAmount);
       const rawAmountString = parseInt(rawAmount, 16).toLocaleString(
         'fullwide',
         { useGrouping: false },
       );
+      console.log('rawAmountString', rawAmountString);
       const decimalsToShow = 18;
-      const transferValue = renderFromTokenMinimalUnit(
+      const transferValue = renderFromToken(
         rawAmountString,
         decimals,
         decimalsToShow,
       );
+    console.log('!!@!#%^%^#$%^ ', transferValue);
+
       transactionValue = `${transferValue} ${symbol}`;
       const exchangeRate = contractExchangeRates[address];
       transactionValueFiat =
@@ -750,6 +757,7 @@ class Confirm extends PureComponent {
           currentCurrency,
         ) || `0 ${currentCurrency}`;
     }
+    console.groupEnd();
     this.setState({
       fromAccountBalance,
       transactionValue,
