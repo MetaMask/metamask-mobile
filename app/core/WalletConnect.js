@@ -17,8 +17,6 @@ import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
 import { getDiffBetweenTodayDate } from '../util/date';
 
-const SESSION_LIFETIME = 1;
-
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
@@ -374,7 +372,8 @@ const instance = {
           );
 
           if (
-            getDiffBetweenTodayDate(sessionDateToNumber) <= SESSION_LIFETIME
+            getDiffBetweenTodayDate(sessionDateToNumber) <=
+            AppConstants.WALLET_CONNECT.SESSION_LIFETIME
           ) {
             connectors.push(new WalletConnect({ session }, true));
           } else {

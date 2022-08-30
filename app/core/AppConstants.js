@@ -65,6 +65,9 @@ export default {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
   },
+  WALLET_CONNECT: {
+    SESSION_LIFETIME: 1,
+  },
   SWAPS: {
     ACTIVE: true,
     ONLY_MAINNET: true,
