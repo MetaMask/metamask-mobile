@@ -509,6 +509,11 @@ const FiatOnRampAggregator = () => (
         component={PaymentMethod}
       />
       <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED}
+        component={PaymentMethod}
+        options={{ animationEnabled: false }}
+      />
+      <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
         component={AmountToBuy}
       />
@@ -527,11 +532,6 @@ const FiatOnRampAggregator = () => (
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
-        component={AmountToBuy}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>

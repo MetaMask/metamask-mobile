@@ -28,6 +28,7 @@ const SECRET_RECOVERY_PHRASE =
 const PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
 const RINKEBY = 'Rinkeby Test Network';
+const GOERLI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 const COLLECTIBLE_CONTRACT_ADDRESS =
   '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
@@ -280,11 +281,17 @@ describe('Wallet Tests', () => {
     await WalletView.isTokenVisibleInWallet('0 BLT');
   });
 
-  it('should switch back to Rinkeby network', async () => {
+  it('should switch to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(RINKEBY);
-    await WalletView.isNetworkNameVisible(RINKEBY);
+    await NetworkListModal.changeNetwork(GOERLI);
+    await WalletView.isNetworkNameVisible(GOERLI);
+  });
+
+  it('should dismiss network education modal', async () => {
+    await NetworkEducationModal.isVisible();
+    await NetworkEducationModal.tapGotItButton();
+    await NetworkEducationModal.isNotVisible();
   });
 
   it('should input a valid address', async () => {
@@ -320,7 +327,9 @@ describe('Wallet Tests', () => {
 
   it('should send ETH to Account 2', async () => {
     // Check that the amount is correct
-    await TransactionConfirmationView.isTransactionTotalCorrect('0.00004 ETH');
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.00004 GoerliETH',
+    );
     // Tap on the Send CTA
     await TransactionConfirmationView.tapConfirmButton();
     // Check that we are on the wallet screen
