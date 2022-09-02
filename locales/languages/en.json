@@ -1510,7 +1510,8 @@
     "end": "End",
     "cancel": "Cancel",
     "session_ended_title": "Session Ended",
-    "session_ended_desc": "The selected session has been terminated"
+    "session_ended_desc": "The selected session has been terminated",
+    "session_already_exist": "This session is already connected."
   },
   "paymentRequest": {
     "title": "PAYMENT REQUEST",
