@@ -39,7 +39,7 @@ class MetaMetrics implements IMetaMetrics {
   private constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    this.#init();
+    // this.#init();
   }
 
   // PRIVATE METHODS
