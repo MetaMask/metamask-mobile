@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import SecureKeychain from '../../core/SecureKeychain';
 import Engine from '../../core/Engine';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   BIOMETRY_CHOICE,
   PASSCODE_CHOICE,
