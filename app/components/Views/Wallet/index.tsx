@@ -35,7 +35,6 @@ import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
-import useMetaMetrics from '../../hooks/useMetaMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -129,12 +128,6 @@ const Wallet = ({ navigation }: any) => {
   const wizardStep = useSelector((state: any) => state.wizard.step);
 
   const { colors: themeColors } = useTheme();
-  const trackEventHook = useMetaMetrics();
-
-  useEffect(() => {
-    MetaMetrics.trackEvent('test event', true);
-    trackEventHook({ event: 'test event with hook', anonymous: true });
-  }, [trackEventHook]);
 
   /**
    * Check to see if we need to show What's New modal
