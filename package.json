@@ -361,7 +361,7 @@
         }
       },
       "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/qa/debug/app-qa-debug.apk",
+        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-qa-debug.apk",
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
@@ -369,7 +369,7 @@
         }
       },
       "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/qa/release/app-prod-release.apk",
+        "binaryPath": "android/app/build/outputs/apk/prod/release/app-prod-release.apk",
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
         "type": "android.emulator",
         "device": {

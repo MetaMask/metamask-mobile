@@ -191,7 +191,7 @@ android {
 			keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
 			keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
 		}
-    internalRelease {
+    qa {
       storeFile file('../keystores/internalRelease.keystore')
       storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
       keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
@@ -244,7 +244,7 @@ android {
           dimension "version"
           applicationIdSuffix ".qa"
           applicationId "io.metamask"
-          signingConfig signingConfigs.internalRelease
+          signingConfig signingConfigs.qa
         }
         prod {
           dimension "version"

@@ -160,15 +160,15 @@ workflows:
           is_always_run: false
 
   # Parallel Build & Deploy Steps
-  start_bitrise_release_builds:
+  create_release_builds:
     before_run:
       - code_setup_cache
     steps:
       - build-router-start@0:
           inputs:
             - workflows: |-
-                android_test_release_step
-                ios_test_release_step
+                build_android_release
+                build_ios_release
             - wait_for_builds: 'true'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
@@ -178,15 +178,15 @@ workflows:
             - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
 
-  start_store_release_builds:
+  release_to_stores:
     before_run:
       - code_setup_cache
     steps:
       - build-router-start@0:
           inputs:
             - workflows: |-
-                android_store_release_step
-                ios_store_release_step
+                deploy_android_to_store
+                deploy_ios_to_store
             - wait_for_builds: 'true'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
@@ -205,7 +205,25 @@ workflows:
           title: Accouncing pre-release
           is_always_run: false
 
-  android_test_release_step:
+  create_qa_builds:
+    before_run:
+      - code_setup_cache
+    steps:
+      - build-router-start@0:
+          inputs:
+            - workflows: |-
+                build_android_qa
+                build_ios_qa
+            - wait_for_builds: 'true'
+            - abort_on_fail: 'yes'
+            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+      - build-router-wait@0:
+          inputs:
+            - abort_on_fail: 'yes'
+            - build_artifacts_save_path: $BITRISE_DEPLOY_DIR
+            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+
+  build_android_release:
     before_run:
       - code_setup
     steps:
@@ -251,7 +269,7 @@ workflows:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
 
-  android_internal_release_step:
+  build_android_qa:
     before_run:
       - code_setup
     steps:
@@ -297,9 +315,9 @@ workflows:
             - deploy_path: sourcemaps/android/index.js.map
           title: Bitrise Deploy Sourcemaps
 
-  android_store_release_step:
+  deploy_android_to_store:
     before_run:
-      - android_test_release_step
+      - build_android_release
     steps:
       - google-play-deploy:
           inputs:
@@ -312,15 +330,15 @@ workflows:
           is_expand: false
         MM_ANDROID_PACKAGE_NAME: io.metamask
 
-  ios_store_release_step:
+  deploy_ios_to_store:
         before_run:
-            - ios_test_release_step
+            - build_ios_release
         steps:
             - deploy-to-itunesconnect-application-loader@1:
                   inputs:
                       - ipa_path: ios/build/output/MetaMask.ipa
 
-  ios_test_release_step:
+  build_ios_release:
     before_run:
       - code_setup_cache
     steps:
@@ -352,7 +370,7 @@ workflows:
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
 
-  ios_internal_release_step:
+  build_ios_qa:
     before_run:
         - code_setup_cache
     steps:
