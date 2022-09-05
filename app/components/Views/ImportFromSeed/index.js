@@ -148,12 +148,12 @@ const createStyles = (colors) =>
     termsAndConditions: {
       paddingVertical: 10,
     },
-    passwordStrengthLabel: {
+    passwordStrengthLabel: (label) => ({
       height: 20,
-      fontSize: 15,
+      fontSize: label.length > 35 ? 12 : 15,
       color: colors.text.default,
       ...fontStyles.normal,
-    },
+    }),
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
       color: colors.error.default,
@@ -517,6 +517,9 @@ class ImportFromSeed extends PureComponent {
     const styles = createStyles(colors);
 
     const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
+    const passwordStrengthTranslation = strings(
+      'choose_password.password_strength',
+    );
 
     return (
       <SafeAreaView style={styles.mainWrapper}>
@@ -645,8 +648,12 @@ class ImportFromSeed extends PureComponent {
               />
 
               {(password !== '' && (
-                <Text style={styles.passwordStrengthLabel}>
-                  {strings('choose_password.password_strength')}
+                <Text
+                  style={styles.passwordStrengthLabel(
+                    passwordStrengthTranslation,
+                  )}
+                >
+                  {passwordStrengthTranslation}
                   <Text style={styles[`strength_${passwordStrengthWord}`]}>
                     {' '}
                     {strings(
