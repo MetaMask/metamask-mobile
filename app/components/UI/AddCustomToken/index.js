@@ -173,7 +173,8 @@ export default class AddCustomToken extends PureComponent {
     const { chainId } = NetworkController?.state?.provider || {};
     const toSmartContract =
       isValidTokenAddress && (await isSmartContractAddress(address, chainId));
-    if (address.length === 0) {
+    const addressWithoutSpaces = address.replace(/\s/g, '');
+    if (addressWithoutSpaces.length === 0) {
       this.setState({ warningAddress: strings('token.address_cant_be_empty') });
       validated = false;
     } else if (!isValidTokenAddress) {
@@ -193,7 +194,8 @@ export default class AddCustomToken extends PureComponent {
   validateCustomTokenSymbol = () => {
     let validated = true;
     const symbol = this.state.symbol;
-    if (symbol.length === 0) {
+    const symbolWithoutSpaces = symbol.replace(/\s/g, '');
+    if (symbolWithoutSpaces.length === 0) {
       this.setState({ warningSymbol: strings('token.symbol_cant_be_empty') });
       validated = false;
     } else {
@@ -205,7 +207,8 @@ export default class AddCustomToken extends PureComponent {
   validateCustomTokenDecimals = () => {
     let validated = true;
     const decimals = this.state.decimals;
-    if (decimals.length === 0) {
+    const decimalsWithoutSpaces = decimals.replace(/\s/g, '');
+    if (decimalsWithoutSpaces.length === 0) {
       this.setState({
         warningDecimals: strings('token.decimals_cant_be_empty'),
       });
