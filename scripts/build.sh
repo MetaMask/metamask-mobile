@@ -185,9 +185,9 @@ generateArchivePackages() {
   scheme="$1"
 
   if [ "$scheme" = "MetaMask-QA" ] ; then
-    exportOptionsPlist="MetaMask/IosExportOptionsInternalRelease.plist"
+    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQARelease.plist"
   else
-    exportOptionsPlist="MetaMask/IosExportOptionsStoreRelease.plist"
+    exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
   fi
 
   echo "exportOptionsPlist: $exportOptionsPlist"
