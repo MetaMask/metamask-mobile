@@ -1521,8 +1521,8 @@
     "total": "TOTAL:"
   },
   "webview_error": {
-    "title": "Ooops! something went wrong...",
-    "message": "We weren't able to load that page.",
+    "title": "Something went wrong",
+    "message": "A server with that hostname couldn't be found.",
     "reason": "Reason",
     "return_home": "Return to home page"
   },
