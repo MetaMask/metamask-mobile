@@ -66,6 +66,9 @@ public class MainApplication extends MultiDexApplication implements ShareApplica
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		// Branch logging for debugging
+		RNBranchModule.enableLogging();
+			
 		RNBranchModule.getAutoInstance(this);
 
 		try {

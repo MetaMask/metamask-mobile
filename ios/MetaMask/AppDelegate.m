@@ -33,6 +33,7 @@
     foxCode = @"debug";
   }
   
+  // Initializes Branch Session at the top of existing application:didFinishLaunchingWithOptions:
   // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
@@ -81,13 +82,15 @@
   #endif
 }
 
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
-  return [RNBranch application:app openURL:url options:options];
+// Required by Branch.io for deep linking
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
+    [RNBranch application:app openURL:url options:options];
+    return YES;
 }
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler {
-  return [RNBranch continueUserActivity:userActivity];
+   [RNBranch continueUserActivity:userActivity];
+   return YES;
 }
 
 // Required to register for notifications
