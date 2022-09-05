@@ -345,15 +345,15 @@ buildAndroid() {
 }
 
 buildIos() {
-  echo "Build iOS $MODE started..."
+	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] ; then
 		buildIosRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
 		buildIosSimulatorE2E
-  elif [ "$MODE" == "QA" ] ; then
-    buildIosQA
+	elif [ "$MODE" == "QA" ] ; then
+		buildIosQA
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
