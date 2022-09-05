@@ -92,6 +92,17 @@ const parseSource = (source: string) => {
   return 'undefined';
 };
 
+const waitForKeychainUnlocked = async () => {
+  let i = 0;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const { KeyringController } = Engine.context;
+  while (!KeyringController.isUnlocked()) {
+    await new Promise<void>((res) => setTimeout(() => res(), 1000));
+    if (i++ > 60) break;
+  }
+};
+
 class Connection {
   channelId;
   RemoteConn;
@@ -181,6 +192,8 @@ class Connection {
       });
 
       this.RemoteConn.on('message', async ({ message }) => {
+        await waitForKeychainUnlocked();
+
         if (METHODS_TO_REDIRECT[message?.method]) {
           this.requestsToRedirect[message?.id] = true;
         }
