@@ -36,7 +36,7 @@ import {
   getGasAnalyticsParams,
   handleGasFeeSelection,
   handleGetGasLimit,
-} from '../../../util';
+} from '../../../util/dappTransactions';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

@@ -1,11 +1,11 @@
-import { isBN, hexToBN } from './number';
-import { safeToChecksumAddress } from './address';
-import Engine from '../core/Engine';
-import TransactionTypes from '../core/TransactionTypes';
-import { toLowerCaseEquals } from './general';
-import { strings } from '../../locales/i18n';
+import { isBN, hexToBN } from '../number';
+import { safeToChecksumAddress } from '../address';
+import Engine from '../../core/Engine';
+import TransactionTypes from '../../core/TransactionTypes';
+import { toLowerCaseEquals } from '../general';
+import { strings } from '../../../locales/i18n';
 import { BN } from 'ethereumjs-util';
-import { lt } from './lodash';
+import { lt } from '../lodash';
 
 interface opts {
   amount?: string;
@@ -22,15 +22,15 @@ interface SelectedAsset {
 interface Transaction {
   assetType: string;
   data: string;
-  ensRecipient: undefined;
+  ensRecipient: string | undefined;
   from: string;
   gas: BN;
   gasPrice: BN;
   id: string;
   nonce: string | undefined;
   origin: string;
-  paymentRequest: undefined;
-  proposedNonce: undefined;
+  paymentRequest: boolean | undefined;
+  proposedNonce: number | undefined;
   readableValue: string;
   selectedAsset: SelectedAsset;
   symbol: string;
@@ -48,7 +48,12 @@ interface Transaction {
   transactionValue: string | undefined;
   type: string;
   value: string;
-  warningGasPriceHigh: undefined;
+  warningGasPriceHigh: string | undefined;
+}
+
+interface EstimatedGas {
+  gas: string;
+  gasPrice: string | undefined;
 }
 
 /**
@@ -57,7 +62,10 @@ interface Transaction {
  * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, data and to)
  * @returns {object} - Object containing gas estimation
  */
-export const estimateGas = async (opts: opts, transaction: Transaction) => {
+export const estimateGas = async (
+  opts: opts,
+  transaction: Transaction,
+): Promise<EstimatedGas> => {
   const { TransactionController }: any = Engine.context;
   const { from, selectedAsset } = transaction;
   const {
@@ -89,8 +97,7 @@ export const validateEtherAmount = (
   value: BN,
   from: string,
   allowEmpty = true,
-) => {
-  let error;
+): string | undefined => {
   if (!allowEmpty) {
     if (!value || !from) {
       return strings('transaction.invalid_amount');
@@ -99,7 +106,6 @@ export const validateEtherAmount = (
       return strings('transaction.invalid_amount');
     }
   }
-  return error;
 };
 
 interface ContractBalances {
@@ -119,8 +125,7 @@ export const validateTokenAmount = async (
   selectedAsset: SelectedAsset,
   contractBalances: ContractBalances,
   allowEmpty = true,
-) => {
-  let error;
+): Promise<string | undefined> => {
   if (!allowEmpty) {
     const checksummedFrom = safeToChecksumAddress(from) || '';
 
@@ -160,14 +165,13 @@ export const validateTokenAmount = async (
       lt(contractBalanceForAddress, value as unknown as number);
     if (validateAssetAmount) return strings('transaction.insufficient');
   }
-  return error;
 };
 
 export const validateCollectibleOwnership = async (
   address: string,
   tokenId: string,
   selectedAddress: string,
-) => {
+): Promise<string | undefined | boolean> => {
   const { AssetsContractController }: any = Engine.context;
 
   try {
@@ -186,9 +190,9 @@ export const validateCollectibleOwnership = async (
 };
 
 interface Validations {
-  ETH: any;
-  ERC20: any;
-  ERC721: any;
+  ETH: () => string | undefined;
+  ERC20: () => Promise<string | undefined>;
+  ERC721: () => Promise<string | undefined | boolean>;
 }
 
 type AssetType = keyof Validations;
@@ -222,12 +226,20 @@ export const validateAmount = async (
   return !validations[assetType] ? false : await validations[assetType]();
 };
 
+interface GasAnalyticsParams {
+  dapp_host_name: string;
+  dapp_url: string;
+  active_currency: { value: string; anonymous: boolean };
+  gas_estimate_type: string;
+  network_name: string;
+}
+
 export const getGasAnalyticsParams = (
   transaction: Transaction,
   activeTabUrl: string,
   gasEstimateType: string,
   networkType: string,
-) => {
+): GasAnalyticsParams | Record<string, never> => {
   try {
     const { selectedAsset, origin } = transaction;
     return {
@@ -262,7 +274,7 @@ export const handleGasFeeSelection = (
   gasLimit: BN,
   gasPrice: BN,
   setTransactionObject: setTransactionObjectType,
-) => {
+): void => {
   const transactionObject = {
     gas: gasLimit,
     gasPrice,
@@ -271,13 +283,13 @@ export const handleGasFeeSelection = (
 };
 
 /**
- * Updates gas limit
+ * Updates gas limit of the current transaction object
  *
  */
 export const handleGetGasLimit = async (
   transaction: Transaction,
   setTransactionObject: setTransactionObjectType,
-) => {
+): Promise<void> => {
   if (!Object.keys(transaction.selectedAsset).length) return;
   const { gas } = await estimateGas({}, transaction);
   setTransactionObject({ gas: hexToBN(gas) as BN });
