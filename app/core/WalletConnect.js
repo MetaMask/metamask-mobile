@@ -12,10 +12,11 @@ import BackgroundBridge from './BackgroundBridge';
 import getRpcMethodMiddleware, {
   checkActiveAccountAndChainId,
 } from './RPCMethods/RPCMethodMiddleware';
-import { Alert, Linking } from 'react-native';
+import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
 import { strings } from '../../locales/i18n';
+import NotificationManager from './NotificationManager';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -375,7 +376,12 @@ const instance = {
   newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
     const alreadyConnected = this.isSessionConnected(uri);
     if (alreadyConnected) {
-      Alert.alert(strings('walletconnect_sessions.session_already_exist'));
+      NotificationManager.showSimpleNotification({
+        duration: 5000,
+        title: strings('walletconnect_sessions.session_already_exist'),
+        description: strings('walletconnect_sessions.close_current_session'),
+        status: 'error',
+      });
       return;
     }
     const data = { uri, session: {} };
