@@ -1,6 +1,3 @@
-// eslint-disable-next-line import/no-unresolved
-import '@ethersproject/shims';
-
 import Engine from '../core/Engine';
 import ensNetworkMap from 'ethereum-ens-network-map';
 import { ethers } from 'ethers';
