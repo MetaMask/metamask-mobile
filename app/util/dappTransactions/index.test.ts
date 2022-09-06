@@ -95,6 +95,6 @@ describe('Dapp Transactions utils :: validateCollectibleOwnership', () => {
         tokenId,
         selectedAddress,
       ),
-    ).toBeFalsy();
+    ).toEqual(strings('transaction.invalid_collectible_ownership'));
   });
 });

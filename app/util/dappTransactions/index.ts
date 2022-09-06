@@ -171,7 +171,7 @@ export const validateCollectibleOwnership = async (
   address: string,
   tokenId: string,
   selectedAddress: string,
-): Promise<string | undefined | boolean> => {
+): Promise<string | undefined> => {
   const { AssetsContractController }: any = Engine.context;
 
   try {
@@ -185,7 +185,7 @@ export const validateCollectibleOwnership = async (
       ? strings('transaction.invalid_collectible_ownership')
       : undefined;
   } catch (e) {
-    return false;
+    return strings('transaction.invalid_collectible_ownership');
   }
 };
 
