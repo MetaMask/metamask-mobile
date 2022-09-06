@@ -1329,10 +1329,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@consensys/on-ramp-sdk@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.1.1.tgz#8ca7e0401023aa63c1bf12e41d97534ace646f8e"
-  integrity sha512-fp53o2Xuoiz9V6nSi1jFxXrkYZLEsxqQrInnBwoiCsTAtExHHqS52c18w53O31W16YfLjCWQ3wKTfj3xDQ+3XA==
+"@consensys/on-ramp-sdk@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.2.0.tgz#c4f4ace2358d5b4342f945a992d5c230870f09f0"
+  integrity sha512-TiI+xDcpiLa8xBtj/Ue2m0yugHLFu4ZynuPQ25EHCMc1q7hnwMvaCTaBpJ5sio4ek5SOfP8J1WkqHete9BNBZQ==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -3102,13 +3102,6 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@react-native-community/cookies@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cookies/-/cookies-5.0.1.tgz#1ffeefc31d51b7296ae0b5bfb249deb43fcbbcea"
-  integrity sha512-Is/kWBmYBFtX4DOImfglK5Bz2w3PdpgMGTqdVQSbZlFdSDw32lwFMk1mLSAzL5EcUEDwJJbcEATbU3JGSZSVXw==
-  dependencies:
-    invariant "^2.2.4"
-
 "@react-native-community/eslint-config@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/eslint-config/-/eslint-config-2.0.0.tgz#35dcc529a274803fc4e0a6b3d6c274551fb91774"
@@ -3147,6 +3140,13 @@
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@react-native-community/viewpager/-/viewpager-2.0.2.tgz#622b190294b1310c4825c98daeaee1c8443f7124"
   integrity sha512-CKVhIZdX/Cmb80muog8sKpi5vM8npwFp4tx4Dj1IvTBidZweuO22+VH2rDOj7E0LzdV9IYRJ4FGBwcPBD2qUrQ==
+
+"@react-native-cookies/cookies@^6.2.1":
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/@react-native-cookies/cookies/-/cookies-6.2.1.tgz#54d50b9496400bbdc19e43c155f70f8f918999e3"
+  integrity sha512-D17wCA0DXJkGJIxkL74Qs9sZ3sA+c+kCoGmXVknW7bVw/W+Vv1m/7mWTNi9DLBZSRddhzYw8SU0aJapIaM/g5w==
+  dependencies:
+    invariant "^2.2.4"
 
 "@react-native-masked-view/masked-view@^0.2.6":
   version "0.2.6"
@@ -7023,10 +7023,10 @@ detect-node-es@^1.1.0:
   resolved "https://registry.yarnpkg.com/detect-node-es/-/detect-node-es-1.1.0.tgz#163acdf643330caa0b4cd7c21e7ee7755d6fa493"
   integrity sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==
 
-detox@19.6.5:
-  version "19.6.5"
-  resolved "https://registry.yarnpkg.com/detox/-/detox-19.6.5.tgz#a4b0a5f574589762dc58eb75a8dd0df1005171bd"
-  integrity sha512-4r0fU65cvUzLcvrfZUbVNO8UrG0iqRI3m+v/QN8nLOw/jRVViI222az+LcWhDRE2bUwsyQ690k+W4F3wc21wjA==
+detox@19.7.1:
+  version "19.7.1"
+  resolved "https://registry.yarnpkg.com/detox/-/detox-19.7.1.tgz#1c4dfebbb024426118dfae97a0189a25021479fa"
+  integrity sha512-V0XwiaFX1LvIjLl+G4tzMZ0M4YqenQXAdTsw9kO2dVo6NC9RuYqOIsmT9M3CRN9PF22TKJ8pFdA6onYhH/zkiQ==
   dependencies:
     ajv "^8.6.3"
     bunyan "^1.8.12"
@@ -7052,6 +7052,7 @@ detox@19.6.5:
     which "^1.3.1"
     ws "^7.0.0"
     yargs "^16.0.3"
+    yargs-parser "^20.2.2"
     yargs-unparser "^2.0.0"
 
 dezalgo@^1.0.0:
