@@ -222,6 +222,7 @@ android {
                 }
             }
 			multiDexEnabled true
+			signingConfig signingConfigs.debug
 		}
 		release {
 			manifestPlaceholders = [isDebug:false]
@@ -234,12 +235,6 @@ android {
 
 	flavorDimensions "version"
    		productFlavors {
-        dev {
-          dimension "version"
-          applicationIdSuffix ".dev"
-          applicationId "io.metamask"
-          signingConfig signingConfigs.debug
-        }
         qa {
           dimension "version"
           applicationIdSuffix ".qa"
