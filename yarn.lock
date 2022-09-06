@@ -2840,10 +2840,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
   integrity sha512-/kSXhY692qiV1MXu6EeOZvg5nECLclxNXcKCxJ3cXQgYuRymRHpdx/t7JXfsK+JLjwA1e1c1/SBrlQYpusC29Q==
 
-"@metamask/sdk-communication-layer@^0.0.1-beta.2":
-  version "0.0.1-beta.2"
-  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.0.1-beta.2.tgz#badf5b8fb15f378f45d8311b7dee3014d70eddc7"
-  integrity sha512-C/gjAbvJ0cvOU6M4NX5dcpiuj0Z4qhUHvMkE3rgW2sMho0JjuMrhXD/11UHtCUrmo6i+NGE3zYe6yCPgrGGgpA==
+"@metamask/sdk-communication-layer@^0.0.1-beta.3":
+  version "0.0.1-beta.3"
+  resolved "https://registry.yarnpkg.com/@metamask/sdk-communication-layer/-/sdk-communication-layer-0.0.1-beta.3.tgz#65afc1a80eb4e59c55be1a008265a8329c934725"
+  integrity sha512-9niXUF1BO1iu0TEZAj6GcfoThgKx7Cuugn42sNHINZMLKIhF57fah3cyLDxZFFnn3/zhlg3l2ZLyGmPkhX1VvQ==
   dependencies:
     eciesjs "^0.3.15"
     eventemitter2 "^6.4.5"
