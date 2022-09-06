@@ -129,6 +129,22 @@ export class BackgroundBridge extends EventEmitter {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
 
+    if (this.isRemoteConn) {
+      // Use new structure
+
+      const memState = this.getState();
+      const selectedAddress = memState.selectedAddress;
+
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.unlockStateChanged,
+        params: {
+          isUnlocked: true,
+          accounts: [selectedAddress],
+        },
+      });
+      return;
+    }
+
     this.sendNotification({
       method: NOTIFICATION_NAMES.unlockStateChanged,
       params: true,
@@ -138,6 +154,17 @@ export class BackgroundBridge extends EventEmitter {
   onLock() {
     // TODO UNSUBSCRIBE EVENT INSTEAD
     if (this.disconnected) return;
+
+    if (this.isRemoteConn) {
+      // Use  new structure
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.unlockStateChanged,
+        params: {
+          isUnlocked: false,
+        },
+      });
+      return;
+    }
 
     this.sendNotification({
       method: NOTIFICATION_NAMES.unlockStateChanged,
