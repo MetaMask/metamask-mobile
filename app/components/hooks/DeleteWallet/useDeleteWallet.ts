@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import Engine from '../../core/Engine';
-import Logger from '../../util/Logger';
-import { EXISTING_USER } from '../../constants/storage';
+import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
+import { EXISTING_USER } from '../../../constants/storage';
 
 const useDeleteWallet = () => {
   const { KeyringController } = Engine.context as any;
