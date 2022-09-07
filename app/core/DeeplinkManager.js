@@ -201,6 +201,20 @@ class DeeplinkManager {
     });
   }
 
+  _handleWalletConnect(wcUri, redirectUrl, autosign, origin) {
+    if (!WalletConnect.isValidUri(wcUri)) return;
+    try {
+      WalletConnect.newSession(
+                  wcUri,
+                  redirectUrl,
+                  autosign,
+                  origin,
+                );
+    } catch (e) {
+        if (e) Alert.alert('Error connecting your wallet', e.toString());
+    }
+  }
+
   parse(url, { browserCallBack, origin, onHandled }) {
     const urlObj = new URL(
       url
@@ -242,12 +256,11 @@ class DeeplinkManager {
           if (action === ACTIONS.CONNECT) {
             Alert.alert(strings('dapp_connect.warning'));
           } else if (action === ACTIONS.WC && params?.uri) {
-            WalletConnect.newSession(
-              params.uri,
+            this._handleWalletConnect(
+              params?.uri,
               params.redirectUrl,
               false,
-              origin,
-            );
+              origin)
           } else if (action === ACTIONS.WC) {
             // This is called from WC just to open the app and it's not supposed to do anything
             return;
@@ -296,14 +309,11 @@ class DeeplinkManager {
         handled();
 
         wcCleanUrl = url.replace('wc://wc?uri=', '');
-        if (!WalletConnect.isValidUri(wcCleanUrl)) return;
-
-        WalletConnect.newSession(
-          wcCleanUrl,
-          params?.redirect,
-          params?.autosign,
-          origin,
-        );
+        this._handleWalletConnect(
+            wcCleanUrl,
+            params?.redirect,
+            params?.autosign,
+            origin)
         break;
 
       case PROTOCOLS.ETHEREUM:
@@ -328,16 +338,11 @@ class DeeplinkManager {
           Alert.alert(strings('dapp_connect.warning'));
         } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`)) {
           const cleanUrlObj = new URL(urlObj.query.replace('?uri=', ''));
-          const href = cleanUrlObj.href;
-
-          if (!WalletConnect.isValidUri(href)) return;
-
-          WalletConnect.newSession(
-            href,
+          this._handleWalletConnect(
+            cleanUrlObj.href,
             params?.redirect,
             params?.autosign,
-            origin,
-          );
+            origin)
         }
 
         break;
