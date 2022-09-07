@@ -152,7 +152,7 @@ prebuild_android(){
 
 buildAndroidRun(){
 	prebuild_android
-	react-native run-android --variant=qaDebug
+	react-native run-android --variant=prodDebug
 }
 
 buildAndroidRunE2E(){
