@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
 import ScreenLayout from '../components/ScreenLayout';
@@ -54,6 +54,7 @@ const PaymentMethod = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
+  const { params } = useRoute();
 
   const {
     selectedRegion,
@@ -130,12 +131,15 @@ const PaymentMethod = () => {
           title: strings(
             'fiat_on_ramp_aggregator.payment_method.payment_method',
           ),
+          // @ts-expect-error navigation params error
+          showBack: params?.showBack,
         },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+    // @ts-expect-error navigation params error
+  }, [navigation, colors, handleCancelPress, params?.showBack]);
 
   if (sdkError) {
     return (

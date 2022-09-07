@@ -384,6 +384,7 @@ class TransactionReview extends PureComponent {
       navigation,
       dappSuggestedGasWarning,
       gasSelected,
+      chainId,
     } = this.props;
     const {
       actionKey,
@@ -412,6 +413,7 @@ class TransactionReview extends PureComponent {
             fiatValue={fiatValue}
             approveTransaction={approveTransaction}
             primaryCurrency={primaryCurrency}
+            chainId={chainId}
           />
           <View style={styles.actionViewWrapper}>
             <ActionView

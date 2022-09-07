@@ -331,12 +331,12 @@ workflows:
         MM_ANDROID_PACKAGE_NAME: io.metamask
 
   deploy_ios_to_store:
-        before_run:
-            - build_ios_release
-        steps:
-            - deploy-to-itunesconnect-application-loader@1:
-                  inputs:
-                      - ipa_path: ios/build/output/MetaMask.ipa
+    before_run:
+      - build_ios_release
+    steps:
+      - deploy-to-itunesconnect-application-loader@1:
+          inputs:
+            - ipa_path: ios/build/output/MetaMask.ipa
 
   build_ios_release:
     before_run:
@@ -372,80 +372,80 @@ workflows:
 
   build_ios_qa:
     before_run:
-        - code_setup_cache
+      - code_setup_cache
     steps:
-        - certificate-and-profile-installer@1: {}
-        - set-xcode-build-number@1:
-              inputs:
-                  - build_short_version_string: $VERSION_NAME
-                  - build_version: $VERSION_NUMBER
-                  - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-        - cocoapods-install@2: {}
-        - script@1:
-              inputs:
-                  - content: |-
-                        #!/usr/bin/env bash
-                        node -v
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
-              title: iOS Sourcemaps & Build
-              is_always_run: false
-        - deploy-to-bitrise-io@1:
-              inputs:
-                  - deploy_path: ios/build/output/MetaMask-QA.ipa
-              title: Deploy iOS IPA
-        - deploy-to-bitrise-io@1:
-              inputs:
-                  - deploy_path: ios/build/MetaMask-QA.xcarchive
-              title: Deploy Symbols File
-        - deploy-to-bitrise-io@1:
-              inputs:
-                  - deploy_path: sourcemaps/ios/index.js.map
-              title: Deploy Source Map
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - build_version: $VERSION_NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - cocoapods-install@2: {}
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
+          title: iOS Sourcemaps & Build
+          is_always_run: false
+      - deploy-to-bitrise-io@1:
+          inputs:
+            - deploy_path: ios/build/output/MetaMask-QA.ipa
+          title: Deploy iOS IPA
+      - deploy-to-bitrise-io@1:
+          inputs:
+            - deploy_path: ios/build/MetaMask-QA.xcarchive
+          title: Deploy Symbols File
+      - deploy-to-bitrise-io@1:
+          inputs:
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Source Map
 
 app:
-    envs:
-        - opts:
-              is_expand: false
-          PROJECT_LOCATION: android
-        - opts:
-              is_expand: false
-          NDK_VERSION: 21e
-        - opts:
-              is_expand: false
-          MODULE: app
-        - opts:
-              is_expand: false
-          VARIANT: ''
-        - opts:
-              is_expand: false
-          BITRISE_PROJECT_PATH: ios/MetaMask.xcworkspace
-        - opts:
-              is_expand: false
-          BITRISE_SCHEME: MetaMask
-        - opts:
-              is_expand: false
-          BITRISE_EXPORT_METHOD: enterprise
-        - opts:
-              is_expand: false
-          PROJECT_LOCATION_ANDROID: android
-        - opts:
-              is_expand: false
-          PROJECT_LOCATION_IOS: ios
-        - opts:
-              is_expand: false
-          VERSION_NAME: 5.5.0
-        - opts:
-              is_expand: false
-          VERSION_NUMBER: 939
-        - opts:
-              is_expand: false
-          ANDROID_APK_LINK: ''
-        - opts:
-              is_expand: false
-          ANDROID_AAP_LINK: ''
-        - opts:
-              is_expand: false
-          IOS_APP_LINK: ''
+  envs:
+    - opts:
+        is_expand: false
+      PROJECT_LOCATION: android
+    - opts:
+        is_expand: false
+      NDK_VERSION: 21e
+    - opts:
+        is_expand: false
+      MODULE: app
+    - opts:
+        is_expand: false
+      VARIANT: ''
+    - opts:
+        is_expand: false
+      BITRISE_PROJECT_PATH: ios/MetaMask.xcworkspace
+    - opts:
+        is_expand: false
+      BITRISE_SCHEME: MetaMask
+    - opts:
+        is_expand: false
+      BITRISE_EXPORT_METHOD: enterprise
+    - opts:
+        is_expand: false
+      PROJECT_LOCATION_ANDROID: android
+    - opts:
+        is_expand: false
+      PROJECT_LOCATION_IOS: ios
+    - opts:
+        is_expand: false
+      VERSION_NAME: 5.6.0
+    - opts:
+        is_expand: false
+      VERSION_NUMBER: 950
+    - opts:
+        is_expand: false
+      ANDROID_APK_LINK: ''
+    - opts:
+        is_expand: false
+      ANDROID_AAP_LINK: ''
+    - opts:
+        is_expand: false
+      IOS_APP_LINK: ''
 meta:
   bitrise.io:
     stack: osx-xcode-13.3.x
