@@ -30,11 +30,11 @@ const createStyles = (colors) =>
       marginRight: 5,
       marginTop: Device.isIos() ? 4 : 5,
     },
-    title: {
-      fontSize: 18,
+    title: (text) => ({
+      fontSize: text.length > 20 ? 15 : 18,
       ...fontStyles.normal,
       color: colors.text.default,
-    },
+    }),
     otherNetworkIcon: {
       backgroundColor: importedColors.transparent,
       borderColor: colors.border.default,
@@ -117,7 +117,7 @@ class NavbarTitle extends PureComponent {
         testID={'open-networks-button'}
       >
         {title ? (
-          <Text numberOfLines={1} style={styles.title}>
+          <Text numberOfLines={1} style={styles.title(realTitle)}>
             {realTitle}
           </Text>
         ) : null}

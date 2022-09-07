@@ -1449,18 +1449,18 @@ export function getFiatOnRampAggNavbar(
   onCancel,
 ) {
   const innerStyles = StyleSheet.create({
-    headerButtonText: {
+    headerButtonText: (text) => ({
       color: themeColors.primary.default,
-      fontSize: 14,
+      fontSize: text.length > 'cancel'.length ? 12 : 16,
       ...fontStyles.normal,
-    },
+    }),
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
     headerTitleStyle: {
-      fontSize: 20,
+      fontSize: 18,
       ...fontStyles.normal,
       color: themeColors.text.default,
       ...(!showBack && { textAlign: 'center' }),
@@ -1471,6 +1471,8 @@ export function getFiatOnRampAggNavbar(
   const leftActionText = strings('navigation.back');
 
   const leftAction = () => navigation.pop();
+
+  const navigationCancelText = strings('navigation.cancel');
 
   return {
     headerTitle: () => (
@@ -1501,8 +1503,8 @@ export function getFiatOnRampAggNavbar(
         }}
         style={styles.closeButton}
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
+        <Text style={innerStyles.headerButtonText(navigationCancelText)}>
+          {navigationCancelText}
         </Text>
       </TouchableOpacity>
     ),
