@@ -67,6 +67,7 @@ export default {
   },
   WALLET_CONNECT: {
     SESSION_LIFETIME: 1,
+    LIMIT_SESSIONS: 20,
   },
   SWAPS: {
     ACTIVE: true,

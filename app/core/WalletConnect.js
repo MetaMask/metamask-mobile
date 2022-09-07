@@ -367,8 +367,10 @@ const instance = {
 
       sessions.forEach((session) => {
         if (session.createdUpdatedAt) {
+          const sessionDate = session.createdUpdatedAt.split('T');
+
           const sessionDateToNumber = Number(
-            session.createdUpdatedAt.replace(/[-"]/g, ''),
+            sessionDate[0].replace(/[-"]/g, ''),
           );
 
           if (
@@ -387,13 +389,29 @@ const instance = {
   connectors() {
     return connectors;
   },
-  newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
+  async newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
     const alreadyConnected = this.isSessionConnected(uri);
     if (alreadyConnected) {
       const errorMsg =
         'This session is already connected. Close the current session before starting a new one.';
       throw new Error(errorMsg);
     }
+
+    const sessions = connectors
+      .filter(
+        (connector) =>
+          connector &&
+          connector.walletConnector &&
+          connector &&
+          connector.walletConnector.connected,
+      )
+      .map((connector) => ({
+        ...connector.walletConnector.session,
+      }));
+    if (sessions.length >= AppConstants.WALLET_CONNECT.LIMIT_SESSIONS) {
+      await this.killSession(sessions[0].peerId);
+    }
+
     const data = { uri, session: {} };
     if (redirectUrl) {
       data.session.redirectUrl = redirectUrl;
