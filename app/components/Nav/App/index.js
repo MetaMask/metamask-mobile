@@ -56,8 +56,14 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import FirstDappConnect, {
+  SecondDappConnect,
+} from '../../../components/Views/FirstDappConnect';
+import { createModalNavigator } from '../App/ModalNavigator';
+import { ImportPrivateKeyView } from '../Main/MainNavigator';
 
 const Stack = createStackNavigator();
+const Modal = createModalNavigator();
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet, Import from Seed and Sync
@@ -335,6 +341,24 @@ const App = ({ userLoggedIn }) => {
     return null;
   };
 
+  const MultiConnectStack = () => (
+    <Modal.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: importedColors.transparent },
+        animationEnabled: true,
+      }}
+    >
+      <Modal.Screen
+        name={Routes.SHEET.DAPP_CONNECT.FIRST_DAPP_CONNECT}
+        component={FirstDappConnect}
+      />
+      <Modal.Screen
+        name={Routes.SHEET.DAPP_CONNECT.CONNECTED}
+        component={SecondDappConnect}
+      />
+    </Modal.Navigator>
+  );
+
   const RootModalFlow = () => (
     <Stack.Navigator
       mode={'modal'}
@@ -411,6 +435,14 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
+            />
+            <Stack.Screen
+              name={Routes.SHEET.DAPP_CONNECT.STACK}
+              component={MultiConnectStack}
+            />
+            <Stack.Screen
+              name="ImportPrivateKeyView"
+              component={ImportPrivateKeyView}
             />
           </Stack.Navigator>
         </NavigationContainer>

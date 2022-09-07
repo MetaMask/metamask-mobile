@@ -378,7 +378,7 @@ const SettingsModalStack = () => (
   </Stack.Navigator>
 );
 
-const ImportPrivateKeyView = () => (
+export const ImportPrivateKeyView = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,

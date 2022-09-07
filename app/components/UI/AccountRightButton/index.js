@@ -41,8 +41,8 @@ class AccountRightButton extends PureComponent {
 
   openAccountSelector = () => {
     const { accounts, navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
+    navigation.navigate(Routes.SHEET.DAPP_CONNECT.STACK, {
+      screen: Routes.SHEET.DAPP_CONNECT.FIRST_DAPP_CONNECT,
     });
     // Track Event: "Opened Acount Switcher"
     AnalyticsV2.trackEvent(

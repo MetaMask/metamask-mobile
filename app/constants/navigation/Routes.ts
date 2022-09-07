@@ -30,6 +30,11 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    DAPP_CONNECT: {
+      STACK: 'DappConnectStack',
+      CONNECTED: 'DappConnected',
+      FIRST_DAPP_CONNECT: 'FirstDappConnect',
+    },
   },
 };
 
