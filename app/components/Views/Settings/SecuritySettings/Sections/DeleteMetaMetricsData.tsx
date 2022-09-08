@@ -4,7 +4,7 @@ import Analytics from '../../../../../core/Analytics/Analytics';
 import {
   MixPanelDeletionTaskStatus,
   MixPanelResponseStatus,
-} from '../../../../../core/Analytics/MetaMetrics.types';
+} from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
