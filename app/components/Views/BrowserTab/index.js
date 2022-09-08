@@ -1349,7 +1349,6 @@ export const BrowserTab = (props) => {
   /**
    * Main render
    */
-  console.log({ initialUrl });
   return (
     <ErrorBoundary view="BrowserTab">
       <View
