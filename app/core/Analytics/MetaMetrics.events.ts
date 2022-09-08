@@ -5,17 +5,12 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const generateOpt = (name: string, anonymous?: boolean): IMetaMetricsEvent => ({
   name,
   anonymous: anonymous || false,
 });
 
-const MetaMetricsEvents = {
-  WALLET: {
-    OPEN: generateOpt('Wallet Opened'),
-    TOKEN_ADDED: generateOpt('Token Added'),
-    COLLECTIBLE_ADDED: generateOpt('Collectible Added'),
-  },
-};
+const MetaMetricsEvents = {};
 
 export default MetaMetricsEvents;
