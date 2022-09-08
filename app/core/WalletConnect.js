@@ -15,7 +15,7 @@ import getRpcMethodMiddleware, {
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
-import { getDiffBetweenTodayDate } from '../util/date';
+import { msBetweenDates, msToHours } from '../util/date';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -38,13 +38,7 @@ const METHODS_TO_REDIRECT = {
 
 const persistSessions = async () => {
   const sessions = connectors
-    .filter(
-      (connector) =>
-        connector &&
-        connector.walletConnector &&
-        connector &&
-        connector.walletConnector.connected,
-    )
+    .filter((connector) => connector?.walletConnector?.connected)
     .map((connector) => ({
       ...connector.walletConnector.session,
       autosign: connector.autosign,
@@ -367,16 +361,14 @@ const instance = {
 
       sessions.forEach((session) => {
         if (session.createdUpdatedAt) {
-          const sessionDate = session.createdUpdatedAt.split('T');
-
-          const sessionDateToNumber = Number(
-            sessionDate[0].replace(/[-"]/g, ''),
+          const sessionDate = new Date(session.createdUpdatedAt);
+          const diffBetweenDatesInMs = msBetweenDates(sessionDate);
+          const diffInHours = msToHours(diffBetweenDatesInMs);
+          const sessionLifeTimeInHours = msToHours(
+            AppConstants.WALLET_CONNECT.SESSION_LIFETIME,
           );
 
-          if (
-            getDiffBetweenTodayDate(sessionDateToNumber) <=
-            AppConstants.WALLET_CONNECT.SESSION_LIFETIME
-          ) {
+          if (diffInHours <= sessionLifeTimeInHours) {
             connectors.push(new WalletConnect({ session }, true));
           } else {
             this.killSession(session.peerId);
@@ -398,13 +390,7 @@ const instance = {
     }
 
     const sessions = connectors
-      .filter(
-        (connector) =>
-          connector &&
-          connector.walletConnector &&
-          connector &&
-          connector.walletConnector.connected,
-      )
+      .filter((connector) => connector?.walletConnector?.connected)
       .map((connector) => ({
         ...connector.walletConnector.session,
       }));

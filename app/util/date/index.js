@@ -31,12 +31,20 @@ export function toLocaleTime(timestamp) {
 }
 
 /**
- * This function will return the diference in days betwen two dates
- * @param {number} sessionTime - a number that represents a date, it need to be without separators, example: 19960212
+ * This function will return the difference between two dates in milliseconds
+ * @param {Date} sessionTime - Date object
+ * @returns the difference between two dates in milliseconds
  */
-export function getDiffBetweenTodayDate(sessionTime) {
-  const today = JSON.stringify(new Date()).split('T')[0];
-  const todayToNumber = Number(today.replace(/[-"]/g, ''));
+export function msBetweenDates(date) {
+  const today = new Date();
+  return Math.abs(date.getTime() - today.getTime());
+}
 
-  return todayToNumber - sessionTime;
+/**
+ * This function will return how many hours in on a determinated amount of milliseconds
+ * @param {number} milliseconds - Milliseconds number
+ * @returns how many hours in on a determinated amount of milliseconds
+ */
+export function msToHours(milliseconds) {
+  return milliseconds / (60 * 60 * 1000);
 }
