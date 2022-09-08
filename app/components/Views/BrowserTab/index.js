@@ -1349,6 +1349,7 @@ export const BrowserTab = (props) => {
   /**
    * Main render
    */
+  console.log({ initialUrl });
   return (
     <ErrorBoundary view="BrowserTab">
       <View
@@ -1358,7 +1359,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
-              originWhitelist={['*']}
+              originWhitelist={['https://*', 'http://*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (
