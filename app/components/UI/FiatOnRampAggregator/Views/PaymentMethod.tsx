@@ -183,7 +183,7 @@ const PaymentMethod = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout scrollable>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
           {filteredPaymentMethods?.map(
