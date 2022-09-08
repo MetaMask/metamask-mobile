@@ -105,7 +105,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param groupTraits - Object containing group relevant traits or properties (optional).
    */
   #group(groupId: string, groupTraits?: GroupTraits): void {
-    //The Group method lets you associate an individual user with a group—
+    // The Group method lets you associate an individual user with a group—
     // whether it’s a company, organization, account, project, or team.
     // This includes a unique group identifier and any additional
     // group traits you may know

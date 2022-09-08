@@ -544,7 +544,7 @@ export default {
       dataDeletionDate,
       isDataRecorded,
     );
-    // MixPanel Distinct stored for consistency purposes between
+    // MixPanel distinctId stored for consistency purposes between
     // Segment and MixPanel
     if (!metametricsId) {
       const distinctId = await instance.getDistinctId();
