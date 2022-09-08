@@ -4,6 +4,7 @@ import {
   CHANGE_PASSWORD_BUTTON_ID,
   CHANGE_PASSWORD_TITLE_ID,
   BACK_ARROW_BUTTON_ID,
+  REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY,
 } from '../../../../../app/constants/test-ids';
 
 const SECURITY_SETTINGS_SCROLL_ID = 'security-settings-scrollview';
@@ -38,7 +39,18 @@ export default class SecurityAndPrivacy {
       await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'fast');
       await TestHelpers.delay(1000);
     } else {
-      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'fast', 0.8);
+      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'fast', 0.9);
+    }
+    //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
+  }
+
+  static async scrollToTurnOnRememberMe() {
+    // Scroll to the bottom
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.swipe(SECURITY_SETTINGS_SCROLL_ID, 'up', 'slow');
+      await TestHelpers.delay(1000);
+    } else {
+      await TestHelpers.swipe(CHANGE_PASSWORD_TITLE_ID, 'up', 'slow', 0.6);
     }
     //await TestHelpers.swipe(PRIVACY_MODE_SECTION_ID, 'up', 'fast');
   }
@@ -51,6 +63,10 @@ export default class SecurityAndPrivacy {
     await TestHelpers.tap(METAMETRICS_SWITCH_ID);
   }
 
+  static async tapTurnOnRememberMeToggle() {
+    await TestHelpers.tap(REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY);
+  }
+
   static async isMetaMetricsToggleOn() {
     await TestHelpers.checkIfToggleIsOn(METAMETRICS_SWITCH_ID);
   }
@@ -59,6 +75,17 @@ export default class SecurityAndPrivacy {
     await TestHelpers.checkIfToggleIsOff(METAMETRICS_SWITCH_ID);
   }
 
+  static async isRememberMeToggleOn() {
+    await TestHelpers.checkIfToggleIsOn(
+      REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY,
+    );
+  }
+
+  static async isRememberMeToggleOff() {
+    await TestHelpers.checkIfToggleIsOff(
+      REMEMBER_ME_TOGGLE_ON_SETTINGS_AND_PRIVACY,
+    );
+  }
   static async isChangePasswordSectionVisible() {
     await TestHelpers.checkIfVisible(CHANGE_PASSWORD_TITLE_ID);
   }

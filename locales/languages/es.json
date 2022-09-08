@@ -1996,5 +1996,15 @@
     "token_detection_mainnet_title": "La detección de tokens está habilitada, por lo que muchos aparecerán automáticamente en su billetera.",
     "token_detection_mainnet_link": "También puede agregar los tokens manualmente.",
     "or": "o"
+  },
+  "remember_me": {
+    "enable_remember_me": "Activar Recordarme",
+    "enable_remember_me_description": "Cuando Recordarme está activado, cualquier persona con acceso a su teléfono puede acceder a su cuenta de MetaMask."
+  },
+  "turn_off_remember_me": {
+    "title": "Ingrese su contraseña para desactivar Recordarme",
+    "placeholder": "Contraseña",
+    "description": "Si desactiva esta opción, necesitará su contraseña para desbloquear MetaMask de ahora en adelante.",
+    "action": "Desactivar Recordarme"
   }
 }
