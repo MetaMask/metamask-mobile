@@ -31,12 +31,12 @@ class MetaMetrics implements IMetaMetrics {
   #metametricsId = '';
   #segmentClient: ISegmentClient;
   #state: States = States.disabled;
-  #suppressWithDeleteRegulationDate = '';
+  #deleteRegulationDate = '';
   #isDataRecorded = false;
 
   // CONSTRUCTOR
 
-  private constructor(segmentClient: any) {
+  constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
     // this.#init();
@@ -164,29 +164,29 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * Method to store the date (format: DAY/MONTH/YEAR)
-   * a request to create a suppress with delete regulation
+   * a request to create a delete regulation
    * was created in DefaultPreference.
    */
-  #storeSuppressWithDeleteRegulationCreationDate = async (): Promise<void> => {
+  #storeDeleteRegulationCreationDate = async (): Promise<void> => {
     const currentDate = new Date();
     const month = currentDate.getUTCMonth() + 1;
     const day = currentDate.getUTCDate();
     const year = currentDate.getUTCFullYear();
 
-    this.#suppressWithDeleteRegulationDate = `${day}/${month}/${year}`;
+    this.#deleteRegulationDate = `${day}/${month}/${year}`;
     await DefaultPreference.set(
       ANALYTICS_DATA_DELETION_DATE,
-      this.#suppressWithDeleteRegulationDate,
+      this.#deleteRegulationDate,
     );
   };
 
   /**
-   * Method to generate a new suppress and delete regulation for an user.
+   * Method to generate a new delete regulation for an user.
    * This is necessary to respect the GDPR and CCPA regulations.
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
-  #createSegmentSuppressWithDeleteRegulation = async (): Promise<void> => {
+  #createSegmentDeleteRegulation = async (): Promise<void> => {
     const segmentToken = __DEV__
       ? process.env.SEGMENT_DEV_KEY
       : process.env.SEGMENT_PROD_KEY;
@@ -207,7 +207,7 @@ class MetaMetrics implements IMetaMetrics {
           },
         }),
       });
-      await this.#storeSuppressWithDeleteRegulationCreationDate();
+      await this.#storeDeleteRegulationCreationDate();
       // eslint-disable-next-line no-console
       console.log(response.data);
     } catch (e: any) {
@@ -270,8 +270,8 @@ class MetaMetrics implements IMetaMetrics {
     }
   }
 
-  public createSegmentSuppressWithDeleteRegulation(): void {
-    this.#createSegmentSuppressWithDeleteRegulation();
+  public createSegmentDeleteRegulation(): void {
+    this.#createSegmentDeleteRegulation();
   }
 }
 
