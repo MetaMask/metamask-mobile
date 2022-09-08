@@ -363,7 +363,7 @@
         }
       },
       "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-qa-debug.apk",
+        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk",
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
