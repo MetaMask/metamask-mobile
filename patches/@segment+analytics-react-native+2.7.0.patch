@@ -1,5 +1,5 @@
 diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
-index fb75134..c612cfd 100644
+index fb75134..dcd6cf0 100644
 --- a/node_modules/@segment/analytics-react-native/src/analytics.ts
 +++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
 @@ -481,10 +481,12 @@ export class SegmentClient {
@@ -16,7 +16,7 @@ index fb75134..c612cfd 100644
      });
  
      await this.process(event);
-@@ -647,11 +649,8 @@ export class SegmentClient {
+@@ -647,12 +649,7 @@ export class SegmentClient {
      this.appState = nextAppState;
    }
  
@@ -25,23 +25,11 @@ index fb75134..c612cfd 100644
 -      resetAnonymousId === true
 -        ? getUUID()
 -        : this.store.userInfo.get().anonymousId;
-+  reset() {
-+    const anonymousId = '0x0000000000000000';
- 
+-
++  reset(anonymousId: string): void {
      this.store.userInfo.set({
        anonymousId,
-diff --git a/node_modules/@segment/analytics-react-native/src/client.tsx b/node_modules/@segment/analytics-react-native/src/client.tsx
-index 3309986..da1109e 100644
---- a/node_modules/@segment/analytics-react-native/src/client.tsx
-+++ b/node_modules/@segment/analytics-react-native/src/client.tsx
-@@ -67,6 +67,6 @@ export const useAnalytics = (): ClientMethods => {
-     flush: async () => client.flush(),
-     group: async (...args) => client.group(...args),
-     alias: async (...args) => client.alias(...args),
--    reset: async (...args) => client.reset(...args),
-+    reset: async () => client.reset(),
-   };
- };
+       userId: undefined,
 diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
 index d940f68..cbfd29e 100644
 --- a/node_modules/@segment/analytics-react-native/src/events.ts

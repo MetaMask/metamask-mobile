@@ -147,6 +147,14 @@ class MetaMetrics implements IMetaMetrics {
   }
 
   /**
+   * Method to clear the internal state of the library for the current user and group.
+   * https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#reset
+   */
+  #reset(): void {
+    this.#segmentClient.reset(METAMETRICS_ANONYMOUS_ID);
+  }
+
+  /**
    * Method to update the user analytics preference and
    * store it in DefaultPreference.
    */
@@ -268,6 +276,10 @@ class MetaMetrics implements IMetaMetrics {
     } else {
       this.#trackEvent(event, false, properties);
     }
+  }
+
+  public reset(): void {
+    this.#reset();
   }
 
   public createSegmentDeleteRegulation(): void {
