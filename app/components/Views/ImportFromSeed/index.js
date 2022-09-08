@@ -28,6 +28,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { scale } from 'react-native-size-matters';
 import Device from '../../../util/device';
 import {
   failedSeedPhraseRequirements,
@@ -148,12 +149,12 @@ const createStyles = (colors) =>
     termsAndConditions: {
       paddingVertical: 10,
     },
-    passwordStrengthLabel: (label) => ({
+    passwordStrengthLabel: {
       height: 20,
-      fontSize: label.length > 35 ? 12 : 15,
+      fontSize: scale(11),
       color: colors.text.default,
       ...fontStyles.normal,
-    }),
+    },
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
       color: colors.error.default,
@@ -648,11 +649,7 @@ class ImportFromSeed extends PureComponent {
               />
 
               {(password !== '' && (
-                <Text
-                  style={styles.passwordStrengthLabel(
-                    passwordStrengthTranslation,
-                  )}
-                >
+                <Text style={styles.passwordStrengthLabel}>
                   {passwordStrengthTranslation}
                   <Text style={styles[`strength_${passwordStrengthWord}`]}>
                     {' '}
