@@ -190,7 +190,7 @@ class MetaMetrics implements IMetaMetrics {
     const segmentToken = __DEV__
       ? process.env.SEGMENT_DEV_KEY
       : process.env.SEGMENT_PROD_KEY;
-    const regulationType = 'Suppress_With_Delete';
+    const regulationType = 'Delete';
     try {
       const response = await axios({
         url: SEGMENT_REGULATIONS_ENDPOINT,
