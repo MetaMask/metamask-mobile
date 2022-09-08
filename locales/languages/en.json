@@ -1521,9 +1521,8 @@
     "total": "TOTAL:"
   },
   "webview_error": {
-    "title": "Ooops! something went wrong...",
-    "message": "We weren't able to load that page.",
-    "reason": "Reason",
+    "title": "Something went wrong",
+    "message": "We couldn't load that page",
     "return_home": "Return to home page"
   },
   "offline_mode": {
