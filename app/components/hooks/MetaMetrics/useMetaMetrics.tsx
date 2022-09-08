@@ -6,11 +6,7 @@ const useMetaMetrics = () => {
   const trackEventHook = useCallback(
     (event: IMetaMetricsEvent, params: JsonMap = {}) => {
       const { name, anonymous } = event;
-      if (anonymous) {
-        MetaMetrics.trackEvent(name, true, params);
-      } else {
-        MetaMetrics.trackEvent(name, false, params);
-      }
+      MetaMetrics.trackEvent(name, anonymous, params);
     },
     [],
   );
