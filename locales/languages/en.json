@@ -1522,7 +1522,7 @@
   },
   "webview_error": {
     "title": "Something went wrong",
-    "message": "We couldn't load that page.",
+    "message": "We couldn't load that page",
     "return_home": "Return to home page"
   },
   "offline_mode": {
