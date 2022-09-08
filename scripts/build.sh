@@ -155,6 +155,11 @@ buildAndroidRun(){
 	react-native run-android --variant=prodDebug
 }
 
+buildAndroidRunQA(){
+	prebuild_android
+	react-native run-android --variant=qaDebug
+}
+
 buildAndroidRunE2E(){
 	prebuild_android
 	if [ -e $ANDROID_ENV_FILE ]
@@ -171,6 +176,12 @@ buildIosSimulator(){
 	react-native run-ios --simulator $SIM
 }
 
+buildIosSimulatorQA(){
+	prebuild_ios
+	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
+	react-native run-ios --simulator $SIM --scheme "MetaMask-QA"
+}
+
 buildIosSimulatorE2E(){
 	prebuild_ios
 	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
@@ -179,6 +190,11 @@ buildIosSimulatorE2E(){
 buildIosDevice(){
 	prebuild_ios
 	react-native run-ios --device
+}
+
+buildIosDeviceQA(){
+	prebuild_ios
+	react-native run-ios --device --scheme "MetaMask-QA"
 }
 
 generateArchivePackages() {
@@ -339,6 +355,8 @@ buildAndroid() {
 		buildAndroidQAE2E
 	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
+	elif [ "$MODE" == "qaDebug" ] ; then
+		buildAndroidRunQA
 	else
 		buildAndroidRun
 	fi
@@ -354,6 +372,12 @@ buildIos() {
 		buildIosSimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
+	elif [ "$MODE" == "qaDebug" ] ; then
+		if [ "$RUN_DEVICE" = true ] ; then
+			buildIosDeviceQA
+		else
+			buildIosSimulatorQA
+		fi
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
