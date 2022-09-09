@@ -1,6 +1,8 @@
 # Changelog
 
 ## Current Main Branch
+
+## 5.6.1 - Sept 9, 2022
 - [#4966](https://github.com/MetaMask/metamask-mobile/pull/4966): [FIX] Add http and https protocol to webview origin whitelist
 - [#4967](https://github.com/MetaMask/metamask-mobile/pull/4967): [FIX] Correct url parse
 
