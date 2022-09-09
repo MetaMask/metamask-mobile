@@ -1,5 +1,11 @@
 # Changelog
 
+## Current Main Branch
+
+## 5.6.1 - Sept 9, 2022
+- [#4966](https://github.com/MetaMask/metamask-mobile/pull/4966): [FIX] Add http and https protocol to webview origin whitelist
+- [#4967](https://github.com/MetaMask/metamask-mobile/pull/4967): [FIX] Correct url parse
+
 ## 5.6.0 - Aug 15, 2022
 - [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): [FIX] Staging env redirection url for onramp
 - [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): [ADD] On-Ramp generic error view event
