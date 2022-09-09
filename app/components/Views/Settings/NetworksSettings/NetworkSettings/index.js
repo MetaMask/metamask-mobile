@@ -53,6 +53,7 @@ import {
 import EmptyPopularList from './emptyList';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
+import { scale, moderateScale } from 'react-native-size-matters';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -143,6 +144,9 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
       fontSize: 14,
     },
+    tabLabelStyle: {
+      fontSize: scale(11),
+    },
     popularNetworkImage: {
       width: 20,
       height: 20,
@@ -154,7 +158,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     icon: {
-      marginRight: 16,
+      marginRight: moderateScale(12, 1.5),
       marginTop: 4,
     },
     button: {
@@ -937,7 +941,7 @@ class NetworkSettings extends PureComponent {
           {item.warning ? (
             <WarningIcon
               name="warning"
-              size={14}
+              size={scale(14)}
               color={colors.icon.alternative}
               style={styles.icon}
               onPress={this.toggleWarningModal}
@@ -977,6 +981,7 @@ class NetworkSettings extends PureComponent {
             this.customNetwork(network)
           ) : (
             <ScrollableTabView
+              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;

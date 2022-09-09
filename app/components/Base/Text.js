@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Text as RNText, StyleSheet } from 'react-native';
 import { fontStyles } from '../../styles/common';
 import { useTheme } from '../../util/theme';
+import { scale } from 'react-native-size-matters';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -10,7 +11,7 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
       color: colors.text.default,
       marginVertical: 2,
-      fontSize: 14,
+      fontSize: scale(14),
     },
     centered: {
       textAlign: 'center',
