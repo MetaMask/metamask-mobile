@@ -183,7 +183,7 @@ const createStyles = (colors) =>
       marginLeft: 5,
     },
     buttonText: {
-      paddingLeft: scale(4, 1),
+      paddingLeft: scale(4),
       fontSize: scale(13),
       color: colors.primary.default,
       ...fontStyles.normal,
