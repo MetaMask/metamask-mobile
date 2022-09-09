@@ -364,11 +364,8 @@ const instance = {
           const sessionDate = new Date(session.createdUpdatedAt);
           const diffBetweenDatesInMs = msBetweenDates(sessionDate);
           const diffInHours = msToHours(diffBetweenDatesInMs);
-          const sessionLifeTimeInHours = msToHours(
-            AppConstants.WALLET_CONNECT.SESSION_LIFETIME,
-          );
 
-          if (diffInHours <= sessionLifeTimeInHours) {
+          if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
             connectors.push(new WalletConnect({ session }, true));
           } else {
             this.killSession(session.peerId);

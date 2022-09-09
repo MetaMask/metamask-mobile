@@ -66,8 +66,8 @@ export default {
     ORIGIN_QR_CODE: 'qr-code',
   },
   WALLET_CONNECT: {
-    //One day in milliseconds
-    SESSION_LIFETIME: 1000 * 60 * 60 * 24,
+    //One day in hours
+    SESSION_LIFETIME: 24,
     LIMIT_SESSIONS: 20,
   },
   SWAPS: {
