@@ -27,6 +27,7 @@ import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
+import { scale } from 'react-native-size-matters';
 
 const MIN_HEIGHT = Dimensions.get('window').height;
 const createStyles = (colors) =>
@@ -75,7 +76,7 @@ const createStyles = (colors) =>
     },
     skipText: {
       ...fontStyles.normal,
-      fontSize: 12,
+      fontSize: scale(10),
       color: colors.primary.default,
     },
   });
