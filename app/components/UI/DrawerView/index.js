@@ -75,6 +75,7 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import Routes from '../../../constants/navigation/Routes';
+import { scale } from 'react-native-size-matters';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -182,8 +183,8 @@ const createStyles = (colors) =>
       marginLeft: 5,
     },
     buttonText: {
-      paddingLeft: 8,
-      fontSize: 15,
+      paddingLeft: scale(4, 1),
+      fontSize: scale(13),
       color: colors.primary.default,
       ...fontStyles.normal,
     },
