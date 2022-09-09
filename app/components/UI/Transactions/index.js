@@ -211,20 +211,6 @@ class Transactions extends PureComponent {
       this.init();
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
-
-    const {
-      network: {
-        provider: { rpcTarget, type },
-      },
-      frequentRpcList,
-    } = this.props;
-    let blockExplorer;
-    if (type === RPC) {
-      blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
-        NO_RPC_BLOCK_EXPLORER;
-    }
-    this.setState({ rpcBlockExplorer: blockExplorer });
     this.setState({
       isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
     });
@@ -232,6 +218,23 @@ class Transactions extends PureComponent {
 
   componentWillUnmount() {
     this.mounted = false;
+  }
+
+  componentDidUpdate() {
+    const {
+      network: {
+        provider: { type, rpcTarget },
+      },
+      frequentRpcList
+    } = this.props;
+    let blockExplorer;
+    if (type === RPC) {
+      blockExplorer =
+        findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+        NO_RPC_BLOCK_EXPLORER;
+    }
+
+    this.setState({ rpcBlockExplorer: blockExplorer });
   }
 
   init() {
