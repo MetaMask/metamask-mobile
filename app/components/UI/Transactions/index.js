@@ -225,7 +225,7 @@ class Transactions extends PureComponent {
       network: {
         provider: { type, rpcTarget },
       },
-      frequentRpcList
+      frequentRpcList,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
