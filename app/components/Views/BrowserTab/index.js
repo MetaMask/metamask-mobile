@@ -1352,7 +1352,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
-              originWhitelist={['*']}
+              originWhitelist={['https://*', 'http://*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (
