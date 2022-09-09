@@ -31,7 +31,7 @@ export function toLocaleTime(timestamp) {
 }
 
 /**
- * This function will return the difference between two dates in milliseconds
+ * This function will return the difference between today and a provided date in milliseconds
  * @param {Date} sessionTime - Date object
  * @returns the difference between two dates in milliseconds
  */

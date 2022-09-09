@@ -44,7 +44,7 @@ const persistSessions = async () => {
       autosign: connector.autosign,
       redirectUrl: connector.redirectUrl,
       requestOriginatedFrom: connector.requestOriginatedFrom,
-      createdUpdatedAt: new Date(),
+      lastTimeConnected: new Date(),
     }));
 
   await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
@@ -360,8 +360,8 @@ const instance = {
       const sessions = JSON.parse(sessionData);
 
       sessions.forEach((session) => {
-        if (session.createdUpdatedAt) {
-          const sessionDate = new Date(session.createdUpdatedAt);
+        if (session.lastTimeConnected) {
+          const sessionDate = new Date(session.lastTimeConnected);
           const diffBetweenDatesInMs = msBetweenDates(sessionDate);
           const diffInHours = msToHours(diffBetweenDatesInMs);
 
@@ -370,6 +370,8 @@ const instance = {
           } else {
             this.killSession(session.peerId);
           }
+        } else {
+          connectors.push(new WalletConnect({ session }, true));
         }
       });
     }
