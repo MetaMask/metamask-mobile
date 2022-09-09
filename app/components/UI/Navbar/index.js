@@ -20,6 +20,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import URL from 'url-parse';
+import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -1449,11 +1450,11 @@ export function getFiatOnRampAggNavbar(
   onCancel,
 ) {
   const innerStyles = StyleSheet.create({
-    headerButtonText: (text) => ({
+    headerButtonText: {
       color: themeColors.primary.default,
-      fontSize: text.length > 'cancel'.length ? 12 : 16,
+      fontSize: scale(12),
       ...fontStyles.normal,
-    }),
+    },
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
@@ -1503,9 +1504,7 @@ export function getFiatOnRampAggNavbar(
         }}
         style={styles.closeButton}
       >
-        <Text style={innerStyles.headerButtonText(navigationCancelText)}>
-          {navigationCancelText}
-        </Text>
+        <Text style={innerStyles.headerButtonText}>{navigationCancelText}</Text>
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,

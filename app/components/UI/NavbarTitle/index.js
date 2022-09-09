@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { scale } from 'react-native-size-matters';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
@@ -30,11 +31,11 @@ const createStyles = (colors) =>
       marginRight: 5,
       marginTop: Device.isIos() ? 4 : 5,
     },
-    title: (text) => ({
-      fontSize: text.length > 20 ? 15 : 18,
+    title: {
+      fontSize: scale(14),
       ...fontStyles.normal,
       color: colors.text.default,
-    }),
+    },
     otherNetworkIcon: {
       backgroundColor: importedColors.transparent,
       borderColor: colors.border.default,
@@ -117,7 +118,7 @@ class NavbarTitle extends PureComponent {
         testID={'open-networks-button'}
       >
         {title ? (
-          <Text numberOfLines={1} style={styles.title(realTitle)}>
+          <Text numberOfLines={1} style={styles.realTitle}>
             {realTitle}
           </Text>
         ) : null}

@@ -129,7 +129,7 @@ const GetStarted: React.FC = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout scrollable>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
           <View style={styles.getStartedImageWrapper}>
