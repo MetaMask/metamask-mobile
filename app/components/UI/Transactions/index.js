@@ -220,7 +220,7 @@ class Transactions extends PureComponent {
     this.mounted = false;
   }
 
-  componentDidUpdate() {
+  updateBlockExplorer = () => {
     const {
       network: {
         provider: { type, rpcTarget },
@@ -235,6 +235,10 @@ class Transactions extends PureComponent {
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
+  };
+
+  componentDidUpdate() {
+    this.updateBlockExplorer();
   }
 
   init() {
