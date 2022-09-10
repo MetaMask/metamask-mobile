@@ -29,7 +29,7 @@ import Ratio from './Ratio';
 import { useTheme } from '../../../../util/theme';
 import { colors as importedColors } from '../../../../styles/common';
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
@@ -37,13 +37,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       marginVertical: 50,
       borderRadius: 10,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 5,
-      },
-      shadowOpacity: 0.36,
-      shadowRadius: 6.68,
+      ...shadows.size.sm,
       elevation: 11,
     },
     modal: {
@@ -158,8 +152,8 @@ function QuotesModal({
   const [displayDetails, setDisplayDetails] = useState(false);
   const [selectedDetailsQuoteIndex, setSelectedDetailsQuoteIndex] =
     useState(null);
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   // When index/quotes change we get a new selected quote in case it exists
   // (quotes.length can be shorter than selected index)

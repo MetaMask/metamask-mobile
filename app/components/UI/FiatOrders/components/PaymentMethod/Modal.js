@@ -16,7 +16,7 @@ import StyledButton from '../../../StyledButton';
 import Device from '../../../../../util/device';
 import { useTheme } from '../../../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     modalView: {
       backgroundColor: colors.background.default,
@@ -24,13 +24,7 @@ const createStyles = (colors) =>
       alignItems: 'center',
       marginVertical: 50,
       borderRadius: 10,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 5,
-      },
-      shadowOpacity: 0.36,
-      shadowRadius: 6.68,
+      ...shadows.size.sm,
       elevation: 11,
     },
     modal: {
@@ -79,8 +73,8 @@ const CloseIcon = (props) => {
 };
 
 const PaymentMethodModal = ({ isVisible, title, dismiss, children }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   return (
     <Modal
