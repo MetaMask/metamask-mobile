@@ -54,6 +54,7 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 
 const Stack = createStackNavigator();
 /**
@@ -355,6 +356,10 @@ const App = ({ userLoggedIn }) => {
         component={ModalConfirmation}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
+      <Stack.Screen
+        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+        component={TurnOffRememberMeModal}
+      />
     </Stack.Navigator>
   );
 
@@ -364,7 +369,11 @@ const App = ({ userLoggedIn }) => {
       <>
         <NavigationContainer
           // Prevents artifacts when navigating between screens
-          theme={{ colors: { background: colors.background.default } }}
+          theme={{
+            colors: {
+              background: colors.background.default,
+            },
+          }}
           ref={setNavigatorRef}
           onStateChange={(state) => {
             // Updates redux with latest route. Used by DrawerView component.

@@ -1329,10 +1329,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@consensys/on-ramp-sdk@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.1.1.tgz#8ca7e0401023aa63c1bf12e41d97534ace646f8e"
-  integrity sha512-fp53o2Xuoiz9V6nSi1jFxXrkYZLEsxqQrInnBwoiCsTAtExHHqS52c18w53O31W16YfLjCWQ3wKTfj3xDQ+3XA==
+"@consensys/on-ramp-sdk@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.2.0.tgz#c4f4ace2358d5b4342f945a992d5c230870f09f0"
+  integrity sha512-TiI+xDcpiLa8xBtj/Ue2m0yugHLFu4ZynuPQ25EHCMc1q7hnwMvaCTaBpJ5sio4ek5SOfP8J1WkqHete9BNBZQ==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
@@ -1857,6 +1857,11 @@
     "@ethersproject/bytes" "^5.4.0"
     "@ethersproject/logger" "^5.4.0"
     hash.js "1.1.7"
+
+"@ethersproject/shims@^5.6.0":
+  version "5.7.0"
+  resolved "https://registry.yarnpkg.com/@ethersproject/shims/-/shims-5.7.0.tgz#ee32e543418595774029c5ea6123ea8995e7e154"
+  integrity sha512-WeDptc6oAprov5CCN2LJ/6/+dC9gTonnkdAtLepm/7P5Z+3PRxS5NpfVWmOMs1yE4Vitl2cU8bOPWC0GvGSbVg==
 
 "@ethersproject/signing-key@5.4.0", "@ethersproject/signing-key@^5.4.0":
   version "5.4.0"
@@ -2393,14 +2398,15 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-1.35.0.tgz#2bf2b8f2b6fdbd5132f0bcfa594b6c02dc71c42e"
   integrity sha512-zfZKwLFOVrQS8vTFoeoNCG9JhqmK4oyembGiGVVpUAYD9BHVZnd9WpicGoUC07ROXLEyQuAK9AJZNBtqwwzfEQ==
 
-"@metamask/controllers@^26.0.0":
-  version "26.0.0"
-  resolved "git+https://github.com/MetaMask/controllers.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
+"@metamask/controllers@30.3.0":
+  version "30.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-30.3.0.tgz#64ad8be538b75226a14f667db05c4ca02c75533f"
+  integrity sha512-6KtRIEBAcXeF/ozsP2I7T7hFv1X0mf30ygWcgApKdQEYXAERAaBz0S9ENC8OsFULUj5MFPBfUKIDaeGNOq6MvQ==
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@keystonehq/metamask-airgapped-keyring" "^0.2.2"
-    "@metamask/contract-metadata" "^1.31.0"
+    "@keystonehq/metamask-airgapped-keyring" "^0.3.0"
+    "@metamask/contract-metadata" "^1.35.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
     "@types/uuid" "^8.3.0"
@@ -2410,9 +2416,9 @@
     deep-freeze-strict "^1.1.1"
     eth-ens-namehash "^2.0.8"
     eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^6.2.1"
+    eth-keyring-controller "^7.0.2"
     eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.1.14"
+    eth-phishing-detect "^1.2.0"
     eth-query "^2.1.2"
     eth-rpc-errors "^4.0.0"
     eth-sig-util "^3.0.0"
@@ -2433,15 +2439,14 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/controllers@^30.0.2":
-  version "30.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/controllers/-/controllers-30.0.2.tgz#0a5512598d2997e34d3542889cae7088fe1fa4b8"
-  integrity sha512-nIUQaaGPzy9whcAvzwHCRsMtw3YWdBv6mUiN9EA2CKdYUesnVj4bpXSSMEso1oEhsNRa2/XTZSb6i+Odo/raJw==
+"@metamask/controllers@^26.0.0":
+  version "26.0.0"
+  resolved "git+https://github.com/MetaMask/controllers.git#d4e9507d9612f2d36c3f848333b33330a19b811b"
   dependencies:
     "@ethereumjs/common" "^2.3.1"
     "@ethereumjs/tx" "^3.2.1"
-    "@keystonehq/metamask-airgapped-keyring" "^0.3.0"
-    "@metamask/contract-metadata" "^1.35.0"
+    "@keystonehq/metamask-airgapped-keyring" "^0.2.2"
+    "@metamask/contract-metadata" "^1.31.0"
     "@metamask/metamask-eth-abis" "3.0.0"
     "@metamask/types" "^1.1.0"
     "@types/uuid" "^8.3.0"
@@ -2451,9 +2456,9 @@
     deep-freeze-strict "^1.1.1"
     eth-ens-namehash "^2.0.8"
     eth-json-rpc-infura "^5.1.0"
-    eth-keyring-controller "^7.0.2"
+    eth-keyring-controller "^6.2.1"
     eth-method-registry "1.1.0"
-    eth-phishing-detect "^1.2.0"
+    eth-phishing-detect "^1.1.14"
     eth-query "^2.1.2"
     eth-rpc-errors "^4.0.0"
     eth-sig-util "^3.0.0"
@@ -2787,13 +2792,6 @@
     sudo-prompt "^9.0.0"
     wcwidth "^1.0.1"
 
-"@react-native-community/cookies@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@react-native-community/cookies/-/cookies-5.0.1.tgz#1ffeefc31d51b7296ae0b5bfb249deb43fcbbcea"
-  integrity sha512-Is/kWBmYBFtX4DOImfglK5Bz2w3PdpgMGTqdVQSbZlFdSDw32lwFMk1mLSAzL5EcUEDwJJbcEATbU3JGSZSVXw==
-  dependencies:
-    invariant "^2.2.4"
-
 "@react-native-community/eslint-config@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/eslint-config/-/eslint-config-2.0.0.tgz#35dcc529a274803fc4e0a6b3d6c274551fb91774"
@@ -2832,6 +2830,13 @@
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@react-native-community/viewpager/-/viewpager-2.0.2.tgz#622b190294b1310c4825c98daeaee1c8443f7124"
   integrity sha512-CKVhIZdX/Cmb80muog8sKpi5vM8npwFp4tx4Dj1IvTBidZweuO22+VH2rDOj7E0LzdV9IYRJ4FGBwcPBD2qUrQ==
+
+"@react-native-cookies/cookies@^6.2.1":
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/@react-native-cookies/cookies/-/cookies-6.2.1.tgz#54d50b9496400bbdc19e43c155f70f8f918999e3"
+  integrity sha512-D17wCA0DXJkGJIxkL74Qs9sZ3sA+c+kCoGmXVknW7bVw/W+Vv1m/7mWTNi9DLBZSRddhzYw8SU0aJapIaM/g5w==
+  dependencies:
+    invariant "^2.2.4"
 
 "@react-native-masked-view/masked-view@^0.2.6":
   version "0.2.6"
@@ -3468,6 +3473,14 @@
   dependencies:
     defer-to-connect "^2.0.0"
 
+"@testing-library/react-hooks@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@testing-library/react-hooks/-/react-hooks-8.0.1.tgz#0924bbd5b55e0c0c0502d1754657ada66947ca12"
+  integrity sha512-Aqhl2IVmLt8IovEVarNDFuJDVWVvhnr9/GCU6UUnrYXwgDFF9h2L2o2P9KBni1AST5sT6riAyoukFLyjQUgD/g==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
+    react-error-boundary "^3.1.0"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -3705,6 +3718,14 @@
   dependencies:
     "@types/react" "*"
     "@types/reactcss" "*"
+
+"@types/react-native-material-textfield@^0.16.5":
+  version "0.16.5"
+  resolved "https://registry.yarnpkg.com/@types/react-native-material-textfield/-/react-native-material-textfield-0.16.5.tgz#fe91ef6339c282668f6eae24ca09a69f0a974974"
+  integrity sha512-QS3QzYiIE8DcaMp0ZALI3CQYsSn2mC8jjJAcbDleDfMeQ3+CD49kRpvKRKrgBkq7n4eRTZ2/KvaEKvb12sJ7Iw==
+  dependencies:
+    "@types/react" "*"
+    "@types/react-native" "*"
 
 "@types/react-native-vector-icons@^6.4.8":
   version "6.4.8"
@@ -6670,10 +6691,10 @@ detect-node-es@^1.1.0:
   resolved "https://registry.yarnpkg.com/detect-node-es/-/detect-node-es-1.1.0.tgz#163acdf643330caa0b4cd7c21e7ee7755d6fa493"
   integrity sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==
 
-detox@19.6.5:
-  version "19.6.5"
-  resolved "https://registry.yarnpkg.com/detox/-/detox-19.6.5.tgz#a4b0a5f574589762dc58eb75a8dd0df1005171bd"
-  integrity sha512-4r0fU65cvUzLcvrfZUbVNO8UrG0iqRI3m+v/QN8nLOw/jRVViI222az+LcWhDRE2bUwsyQ690k+W4F3wc21wjA==
+detox@19.7.1:
+  version "19.7.1"
+  resolved "https://registry.yarnpkg.com/detox/-/detox-19.7.1.tgz#1c4dfebbb024426118dfae97a0189a25021479fa"
+  integrity sha512-V0XwiaFX1LvIjLl+G4tzMZ0M4YqenQXAdTsw9kO2dVo6NC9RuYqOIsmT9M3CRN9PF22TKJ8pFdA6onYhH/zkiQ==
   dependencies:
     ajv "^8.6.3"
     bunyan "^1.8.12"
@@ -6699,6 +6720,7 @@ detox@19.6.5:
     which "^1.3.1"
     ws "^7.0.0"
     yargs "^16.0.3"
+    yargs-parser "^20.2.2"
     yargs-unparser "^2.0.0"
 
 dezalgo@^1.0.0:
@@ -14126,6 +14148,13 @@ react-dom@^16.8.3:
     prop-types "^15.6.2"
     scheduler "^0.19.1"
 
+react-error-boundary@^3.1.0:
+  version "3.1.4"
+  resolved "https://registry.yarnpkg.com/react-error-boundary/-/react-error-boundary-3.1.4.tgz#255db92b23197108757a888b01e5b729919abde0"
+  integrity sha512-uM9uPzZJTF6wRQORmSrvOIgt4lJ9MC1sNgEOj2XGsDTRE4kmpWxg7ENK9EWNKJRMAOY9z0MuF4yIfl6gp4sotA==
+  dependencies:
+    "@babel/runtime" "^7.12.5"
+
 react-fast-compare@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/react-fast-compare/-/react-fast-compare-3.2.0.tgz#641a9da81b6a6320f270e89724fb45a0b39e43bb"
@@ -14296,10 +14325,10 @@ react-native-default-preference@^1.4.3:
   resolved "https://registry.yarnpkg.com/react-native-default-preference/-/react-native-default-preference-1.4.3.tgz#3c6411d32ea4ebc5286fbf5915546fc57a6014f6"
   integrity sha512-sQDYwGEdxwKwXKP/8Intc81FyH33Rv8ZvOxdmPX4NM75RAIVeBc13pdabEqycAimNZoY5IDvGp4o1cTTa5gNrA==
 
-react-native-device-info@^8.1.3:
-  version "8.1.3"
-  resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-8.1.3.tgz#022fc01372632bf80c0a6d201aab53344efc715f"
-  integrity sha512-73e3wiGFL8DvIXEd8x4Aq+mO8mZvHARwfYorIEu+X0trLHY92bP5Ict8DJHDjCQ0+HtAvpA4Wda2VoUVN1zh6Q==
+react-native-device-info@^9.0.2:
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-9.0.2.tgz#00c7ab139a620ac9650852cd0ef0fb69d9a4418d"
+  integrity sha512-+IfYZ/OuKjnFf7SFfgIzEqynSeFngrIHc5KgHUIfXusLDXIFJ+LhRBCD7skqnraHrfmESUOMjLbNcvy4SVdwSA==
 
 react-native-elevated-view@0.0.6:
   version "0.0.6"
