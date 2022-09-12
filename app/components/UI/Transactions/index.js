@@ -482,7 +482,7 @@ class Transactions extends PureComponent {
 
   speedUpTransaction = async (EIP1559TransactionData) => {
     try {
-      if (EIP1559TransactionData) {
+      if (EIP1559TransactionData?.suggestedMaxFeePerGasHex) {
         await Engine.context.TransactionController.speedUpTransaction(
           this.speedUpTxId,
           {
@@ -513,7 +513,7 @@ class Transactions extends PureComponent {
 
   cancelTransaction = async (EIP1559TransactionData) => {
     try {
-      if (EIP1559TransactionData) {
+      if (EIP1559TransactionData?.suggestedMaxFeePerGasHex) {
         await Engine.context.TransactionController.stopTransaction(
           this.cancelTxId,
           {
