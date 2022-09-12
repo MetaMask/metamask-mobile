@@ -104,4 +104,5 @@ export interface EditGasFee1559UpdateProps {
     suggestedGasLimit: string;
   };
   onlyGas?: boolean;
+  swapsParams?: any;
 }
