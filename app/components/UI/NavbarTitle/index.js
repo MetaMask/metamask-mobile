@@ -118,7 +118,7 @@ class NavbarTitle extends PureComponent {
         testID={'open-networks-button'}
       >
         {title ? (
-          <Text numberOfLines={1} style={styles.realTitle}>
+          <Text numberOfLines={1} style={styles.title}>
             {realTitle}
           </Text>
         ) : null}
