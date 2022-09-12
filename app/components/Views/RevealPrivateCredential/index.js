@@ -12,7 +12,7 @@ import {
   Linking,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
