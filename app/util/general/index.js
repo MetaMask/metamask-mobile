@@ -1,3 +1,5 @@
+import URL from 'url-parse';
+
 export const tlc = (str) => str?.toLowerCase?.();
 
 /**
@@ -81,11 +83,23 @@ export const renderShortText = (text, chars = 4) => {
   }
 };
 
-export const isValidUrl = (url) => {
+export const isHttpProtocol = (url) => {
+  const httpProtocol = 'http';
+  const httpsProtocol = 'https';
   try {
-    new URL(url);
+    const { protocol } = new URL(url);
+    return httpProtocol === protocol || httpsProtocol === protocol;
   } catch {
     return false;
   }
-  return true;
+};
+
+export const isEthereumProtocol = (url) => {
+  const ethereumProtocol = 'ethereum:';
+  try {
+    const { protocol } = new URL(url);
+    return ethereumProtocol === protocol;
+  } catch {
+    return false;
+  }
 };

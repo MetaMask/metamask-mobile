@@ -27,7 +27,7 @@ import {
   isValidMnemonic,
 } from '../../../util/validators';
 import { isValidHexAddress } from '../../../util/address';
-import { isValidUrl } from '../../../util/general';
+import { isEthereumProtocol } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import styles from './styles';
@@ -135,7 +135,7 @@ const QRScanner = () => {
         return;
       }
 
-      if (isValidUrl(content)) {
+      if (!isEthereumProtocol(content)) {
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
