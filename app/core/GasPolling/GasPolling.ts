@@ -94,6 +94,7 @@ export const getEIP1559TransactionData = ({
   currentCurrency,
   nativeCurrency,
   onlyGas,
+  swapsParams,
 }: GetEIP1559TransactionDataProps) => {
   try {
     if (
@@ -116,7 +117,7 @@ export const getEIP1559TransactionData = ({
         nativeCurrency,
         transactionState,
         gasFeeEstimates,
-        swapsParams: undefined,
+        swapsParams,
         selectedGasFee: {
           ...gas,
           estimatedBaseFee: gasFeeEstimates.estimatedBaseFee,
@@ -239,5 +240,6 @@ export const useGasTransaction = ({
     nativeCurrency,
     suggestedGasLimit,
     onlyGas,
+    swapsParams,
   });
 };
