@@ -60,8 +60,8 @@ describe('fiatOrderReducer', () => {
       dummyCustomOrderIdData1,
     ]);
     expect(stateWithCustomOrderId1and2.customOrderIds).toEqual([
-      dummyCustomOrderIdData2,
       dummyCustomOrderIdData1,
+      dummyCustomOrderIdData2,
     ]);
   });
 
@@ -99,14 +99,14 @@ describe('fiatOrderReducer', () => {
     );
 
     expect(stateWithCustomOrderId2updated.customOrderIds).toEqual([
-      dummyCustomOrderIdData3,
-      updatedCustomOrderIdData,
       dummyCustomOrderIdData1,
+      updatedCustomOrderIdData,
+      dummyCustomOrderIdData3,
     ]);
     expect(stateWithUnexistingUpdate.customOrderIds).toEqual([
-      dummyCustomOrderIdData3,
-      updatedCustomOrderIdData,
       dummyCustomOrderIdData1,
+      updatedCustomOrderIdData,
+      dummyCustomOrderIdData3,
     ]);
   });
 
@@ -136,13 +136,13 @@ describe('fiatOrderReducer', () => {
     );
 
     expect(stateWithCustomOrderId2removed.customOrderIds).toEqual([
-      dummyCustomOrderIdData3,
       dummyCustomOrderIdData1,
+      dummyCustomOrderIdData3,
     ]);
 
     expect(stateWithCustomOrderId2removedAgain.customOrderIds).toEqual([
-      dummyCustomOrderIdData3,
       dummyCustomOrderIdData1,
+      dummyCustomOrderIdData3,
     ]);
   });
 });

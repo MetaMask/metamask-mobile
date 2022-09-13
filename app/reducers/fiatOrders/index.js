@@ -259,7 +259,7 @@ const fiatOrderReducer = (state = initialState, action) => {
       }
       return {
         ...state,
-        customOrderIds: [action.payload, ...state.customOrderIds],
+        customOrderIds: [...state.customOrderIds, action.payload],
       };
     }
     case ACTIONS.FIAT_UPDATE_CUSTOM_ID_DATA: {
