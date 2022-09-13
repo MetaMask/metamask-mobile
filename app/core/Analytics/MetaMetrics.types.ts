@@ -33,8 +33,10 @@ export interface IMetaMetrics {
   addTraitsToUser(userTraits: Record<string, string>): void;
   // Method to add an user to a specific group
   group(groupId: string, groupTraits?: GroupTraits): void;
+  // Method track an anonymous event
+  trackAnonymousEvent(event: string, properties?: JsonMap): void;
   // Method track an event
-  trackEvent(event: string, anonymously: boolean, properties?: JsonMap): void;
+  trackEvent(event: string, properties?: JsonMap): void;
   // Method to clear the internal state of the library for the current user and group.
   reset(): void;
   // Method to create a new method to suppress and

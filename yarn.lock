@@ -2629,7 +2629,7 @@
     prop-types "^15.6.1"
     react-lifecycles-compat "^3.0.4"
 
-"@react-native-async-storage/async-storage@1.17.10":
+"@react-native-async-storage/async-storage@1.17.10", "@react-native-async-storage/async-storage@^1.15.15", "@react-native-async-storage/async-storage@^1.15.17":
   version "1.17.10"
   resolved "https://registry.yarnpkg.com/@react-native-async-storage/async-storage/-/async-storage-1.17.10.tgz#8d6a4771912be8454a9e215eebd469b1b8e2e638"
   integrity sha512-KrR021BmBLsA0TT1AAsfH16bHYy0MSbhdAeBAqpriak3GS1T2alFcdTUvn13p0ZW6FKRD6Bd3ryU2zhU/IYYJQ==
@@ -2928,7 +2928,17 @@
     nanoid "^3.1.25"
     promise.allsettled "^1.0.5"
 
-"@segment/sovran-react-native@0.4.4", "@segment/sovran-react-native@^0.4.3":
+"@segment/sovran-react-native@0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@segment/sovran-react-native/-/sovran-react-native-0.4.3.tgz#cccfa95ea86ceeccd27bc152081a0f451d196417"
+  integrity sha512-5AVPXmeVoaAlHo0pF/8CPHHfCQuQlAEMkdyjlN+xwO7NPG3e4i1gsJ5CB4QNP0U8adKjmNvvWEKc5WggpZUQgQ==
+  dependencies:
+    "@react-native-async-storage/async-storage" "^1.15.15"
+    ansi-regex "5.0.1"
+    deepmerge "^4.2.2"
+    shell-quote "1.7.3"
+
+"@segment/sovran-react-native@^0.4.3":
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/@segment/sovran-react-native/-/sovran-react-native-0.4.4.tgz#2f1e1c0280d2cc3f242970b7c76f8e1dd3ddd18e"
   integrity sha512-YnXhHfFIdqjMb+6ejMA+1oO0KeJPK3Hv0dHYgcWmq5oxVAWrJNTK8rGiRVuVaVQHfSkGg0zQ/nGB09oMUVteDg==

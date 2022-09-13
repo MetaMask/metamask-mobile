@@ -5,6 +5,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 jest.mock('../../../core/Analytics', () => ({
   MetaMetrics: {
     trackEvent: () => jest.fn(),
+    trackAnonymousEvent: () => jest.fn(),
   },
 }));
 
@@ -16,7 +17,7 @@ describe('useMetaMetrics', () => {
 
   test('it should call MetaMetrics.trackEvent for anonymous event', () => {
     const { result } = renderHook(() => useMetaMetrics());
-    const trackEventSpy = jest.spyOn(MetaMetrics, 'trackEvent');
+    const trackEventSpy = jest.spyOn(MetaMetrics, 'trackAnonymousEvent');
     act(() => {
       result.current({ name: 'Mock Anonymous Event', anonymous: true }, {});
     });

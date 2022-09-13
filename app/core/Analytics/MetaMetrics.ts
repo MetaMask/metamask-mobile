@@ -261,21 +261,19 @@ class MetaMetrics implements IMetaMetrics {
     this.#group(groupId, groupTraits);
   }
 
-  public trackEvent(
-    event: string,
-    anonymously = false,
-    properties: JsonMap = {},
-  ): void {
+  public trackAnonymousEvent(event: string, properties: JsonMap = {}): void {
     if (this.#state === States.disabled) {
       return;
     }
+    this.#trackEvent(event, true, properties);
+    this.#trackEvent(event, false, {});
+  }
 
-    if (anonymously) {
-      this.#trackEvent(event, true, properties);
-      this.#trackEvent(event, false, {});
-    } else {
-      this.#trackEvent(event, false, properties);
+  public trackEvent(event: string, properties: JsonMap = {}): void {
+    if (this.#state === States.disabled) {
+      return;
     }
+    this.#trackEvent(event, false, properties);
   }
 
   public reset(): void {
