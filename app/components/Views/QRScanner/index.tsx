@@ -26,10 +26,11 @@ import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
 } from '../../../util/validators';
-import { isValidHexAddress } from '../../../util/address';
-import { isEthereumProtocol } from '../../../util/general';
+import { isValidHexAddress, isValidAddressInputViaQRCode } from '../../../util/address';
+import { getURLProtocol } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 import styles from './styles';
 import {
   createNavigationDetails,
@@ -109,14 +110,6 @@ const QRScanner = () => {
       );
     });
 
-  const isContentRelevantForAddressScreen = useCallback(
-    (content: string): boolean =>
-      (origin === Routes.SEND_FLOW.SEND_TO ||
-        origin === Routes.SETTINGS.CONTACT_FORM) &&
-      !isValidHexAddress(content),
-    [origin],
-  );
-
   const onBarCodeRead = useCallback(
     async (response) => {
       const content = response.data;
@@ -129,13 +122,22 @@ const QRScanner = () => {
         return;
       }
 
-      if (isContentRelevantForAddressScreen(content)) {
-        showAlertForInvalidAddress();
-        end();
-        return;
+      if (
+        origin === Routes.SEND_FLOW.SEND_TO ||
+        origin === Routes.SETTINGS.CONTACT_FORM
+      ) {
+        if (!isValidAddressInputViaQRCode(content)) {
+          showAlertForInvalidAddress();
+          end();
+          return;
+        }
       }
 
-      if (!isEthereumProtocol(content)) {
+      const contentProtocol = getURLProtocol(content);
+      if (
+        contentProtocol === PROTOCOLS.HTTP ||
+        contentProtocol === PROTOCOLS.HTTPS
+      ) {
         const redirect = await showAlertForURLRedirection(content);
 
         if (!redirect) {
@@ -186,12 +188,12 @@ const QRScanner = () => {
         }
         // Let ethereum:address and address go forward
         if (
-          (content.split('ethereum:').length > 1 &&
+          (content.split(`${PROTOCOLS.ETHEREUM}:`).length > 1 &&
             !parse(content).function_name) ||
           (content.startsWith('0x') && isValidAddress(content))
         ) {
           const handledContent = content.startsWith('0x')
-            ? `ethereum:${content}@${currentChainId}`
+            ? `${PROTOCOLS.ETHEREUM}:${content}@${currentChainId}`
             : content;
           shouldReadBarCodeRef.current = false;
           data = parse(handledContent);
@@ -238,14 +240,7 @@ const QRScanner = () => {
 
       end();
     },
-    [
-      isContentRelevantForAddressScreen,
-      end,
-      navigation,
-      onStartScan,
-      onScanSuccess,
-      currentChainId,
-    ],
+    [origin, end, navigation, onStartScan, onScanSuccess, currentChainId],
   );
 
   const showCameraNotAuthorizedAlert = () =>

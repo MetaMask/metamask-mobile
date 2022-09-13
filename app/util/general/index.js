@@ -83,23 +83,11 @@ export const renderShortText = (text, chars = 4) => {
   }
 };
 
-export const isHttpProtocol = (url) => {
-  const httpProtocol = 'http';
-  const httpsProtocol = 'https';
+export const getURLProtocol = (url) => {
   try {
     const { protocol } = new URL(url);
-    return httpProtocol === protocol || httpsProtocol === protocol;
+    return protocol.replace(':', '');
   } catch {
-    return false;
-  }
-};
-
-export const isEthereumProtocol = (url) => {
-  const ethereumProtocol = 'ethereum:';
-  try {
-    const { protocol } = new URL(url);
-    return ethereumProtocol === protocol;
-  } catch {
-    return false;
+    return;
   }
 };
