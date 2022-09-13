@@ -46,6 +46,8 @@ const DeleteMetaMetricsData = () => {
   const [deletionTaskDate, setDeletionTaskDate] = useState<
     string | undefined
   >();
+  const [deletionTaskResponse, setDeletionTaskResponse] =
+    useState<any>(undefined);
 
   const enableDeleteData = useCallback(() => {
     switch (deletionTaskStatus) {
@@ -89,6 +91,7 @@ const DeleteMetaMetricsData = () => {
     try {
       const response = await Analytics.createDataDeletionTask();
       if (response.status === ResponseStatus.ok) {
+        setDeletionTaskResponse(response);
         setDeletionTaskStatus(DeletionTaskStatus.pending);
         setHasCollectedData(false);
         setDeletionTaskDate(Analytics.getDeletionTaskDate());
@@ -128,54 +131,73 @@ const DeleteMetaMetricsData = () => {
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
   return (
-    <SettingsButtonSection
-      needsModal
-      sectionTitle={strings('app_settings.delete_metrics_title')}
-      sectionButtonText={strings('app_settings.delete_metrics_button')}
-      descriptionText={
-        hasCollectedData ? (
-          <>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_one')}
-            </Text>{' '}
-            <Text style={[styles.boldText]}>
-              {strings('app_settings.delete_metrics_description_part_two')}
-            </Text>{' '}
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_three')}
-            </Text>{' '}
-            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
-              {strings('app_settings.consensys_privacy_policy')}
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_four')}
-            </Text>{' '}
-            <Text>{deletionTaskDate}</Text>
-            <Text>
-              {strings('app_settings.delete_metrics_description_part_five')}
-            </Text>{' '}
-            <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
-              {strings('app_settings.consensys_privacy_policy')}
-            </Text>
-          </>
-        )
-      }
-      buttonDisabled={!hasCollectedData}
-      modalTitleText={strings(
-        'app_settings.delete_metrics_confirm_modal_title',
-      )}
-      modalDescriptionText={strings(
-        'app_settings.delete_metrics_confirm_modal_description',
-      )}
-      modalConfirmButtonText={strings('app_settings.clear')}
-      modalCancelButtonText={strings(
-        'app_settings.reset_account_cancel_button',
-      )}
-      modalOnConfirm={deleteMetaMetrics}
-    />
+    <>
+      <SettingsButtonSection
+        needsModal
+        sectionTitle={strings('app_settings.delete_metrics_title')}
+        sectionButtonText={strings('app_settings.delete_metrics_button')}
+        descriptionText={
+          hasCollectedData ? (
+            <>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_one')}
+              </Text>{' '}
+              <Text style={[styles.boldText]}>
+                {strings('app_settings.delete_metrics_description_part_two')}
+              </Text>{' '}
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_three')}
+              </Text>{' '}
+              <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+                {strings('app_settings.consensys_privacy_policy')}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_four')}
+              </Text>{' '}
+              <Text>{deletionTaskDate}</Text>
+              <Text>
+                {strings('app_settings.delete_metrics_description_part_five')}
+              </Text>{' '}
+              <Text style={[styles.blueText]} onPress={openPrivacyPolicy}>
+                {strings('app_settings.consensys_privacy_policy')}
+              </Text>
+            </>
+          )
+        }
+        buttonDisabled={!hasCollectedData}
+        modalTitleText={strings(
+          'app_settings.delete_metrics_confirm_modal_title',
+        )}
+        modalDescriptionText={strings(
+          'app_settings.delete_metrics_confirm_modal_description',
+        )}
+        modalConfirmButtonText={strings('app_settings.clear')}
+        modalCancelButtonText={strings(
+          'app_settings.reset_account_cancel_button',
+        )}
+        modalOnConfirm={deleteMetaMetrics}
+      />
+      <Text style={{ color: colors.text.alternative }}>
+        status: {deletionTaskResponse?.status && deletionTaskResponse.status}
+      </Text>
+      <Text style={{ color: colors.text.alternative }}>
+        deletionTaskStatus:{' '}
+        {deletionTaskResponse?.deletionTaskStatus &&
+          deletionTaskResponse.deletionTaskStatus}
+      </Text>
+      <Text style={{ color: colors.text.alternative }}>
+        distinctId:{' '}
+        {deletionTaskResponse?.distinctId && deletionTaskResponse.distinctId}
+      </Text>
+      <Text style={{ color: colors.text.alternative }}>
+        dataDeletionTaskId:{' '}
+        {deletionTaskResponse?.dataDeletionTaskId &&
+          deletionTaskResponse.dataDeletionTaskId}
+      </Text>
+    </>
   );
 };
 

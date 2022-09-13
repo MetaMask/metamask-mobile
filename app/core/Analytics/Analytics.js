@@ -232,6 +232,8 @@ class Analytics {
         return {
           status: result.status,
           deletionTaskStatus: ResponseStatus.pending,
+          distinctId,
+          dataDeletionTaskId: this.dataDeletionTaskId,
         };
       }
       Logger.log(`Analytics Deletion Task Error - ${result.error}`);
