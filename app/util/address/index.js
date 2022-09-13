@@ -244,6 +244,12 @@ export function isValidHexAddress(
   return isValidAddress(addressToCheck);
 }
 
+/** Method to evaluate if an input is a valid ethereum address
+ * via QR code scanning.
+ *
+ * @param {string} input - a random string.
+ * @returns {boolean} indicates if the string is a valid input.
+ */
 export function isValidAddressInputViaQRCode(input) {
   if (input.includes(PROTOCOLS.ETHEREUM)) {
     const { pathname } = new URL(input);

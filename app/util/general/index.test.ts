@@ -3,7 +3,7 @@ import {
   tlc,
   toLowerCaseEquals,
   renderShortText,
-  isValidUrl,
+  getURLProtocol,
 } from '.';
 
 describe('capitalize', () => {
@@ -58,22 +58,19 @@ describe('renderShortText', () => {
 });
 
 describe('isValidUrl', () => {
-  it('should be valid for https urls', () => {
-    expect(isValidUrl('https://metamask.io/')).toBe(true);
+  it('should return https for https urls', () => {
+    expect(getURLProtocol('https://metamask.io/')).toBe('https');
   });
-  it('should be valid for http urls', () => {
-    expect(isValidUrl('http://metamask.io/')).toBe(true);
+  it('should return http for http urls', () => {
+    expect(getURLProtocol('http://metamask.io/')).toBe('http');
   });
-  it('should be valid for ftp urls', () => {
-    expect(isValidUrl('ftp://metamask.io/')).toBe(true);
+  it('should return ftp for ftp urls', () => {
+    expect(getURLProtocol('ftp://metamask.io/')).toBe('ftp');
   });
-  it('should not be  valid for random string', () => {
-    expect(isValidUrl('wjidnciewncie')).toBe(false);
+  it('should return an empty string for a random string', () => {
+    expect(getURLProtocol('wjidnciewncie')).toBe('');
   });
-  it('should not be  valid for empty string', () => {
-    expect(isValidUrl('')).toBe(false);
-  });
-  it('should not be valid for undefined', () => {
-    expect(isValidUrl(undefined)).toBe(false);
+  it('should return an empty string for an empty string', () => {
+    expect(getURLProtocol('')).toBe('');
   });
 });

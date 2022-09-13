@@ -83,6 +83,11 @@ export const renderShortText = (text, chars = 4) => {
   }
 };
 
+/**
+ * Method to retrieve the communication protocol from an URL.
+ * @param {string} url - URL input.
+ * @returns {string | undefined} string representing the protocol or 'undefined' if no protocol is extracted.
+ */
 export const getURLProtocol = (url) => {
   try {
     const { protocol } = new URL(url);
