@@ -1,7 +1,6 @@
 import URL from 'url-parse';
 import AppConstants from '../../core/AppConstants';
 import {
-  HOMESTEAD,
   MAINNET,
   ROPSTEN,
   KOVAN,
@@ -125,11 +124,6 @@ export function getNetworkTypeById(id) {
   }
 
   throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
-}
-
-export function getEthersNetworkTypeById(id) {
-  const networkType = getNetworkTypeById(id);
-  return networkType === MAINNET ? HOMESTEAD : networkType;
 }
 
 export function getDefaultNetworkByChainId(chainId) {

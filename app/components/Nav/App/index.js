@@ -8,7 +8,7 @@ import React, {
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
