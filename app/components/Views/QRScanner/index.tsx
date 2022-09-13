@@ -26,7 +26,7 @@ import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
 } from '../../../util/validators';
-import { isValidHexAddress, isValidAddressInputViaQRCode } from '../../../util/address';
+import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
