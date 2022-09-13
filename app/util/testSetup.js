@@ -118,6 +118,10 @@ jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
+jest.mock(
+  '@react-native-async-storage/async-storage',
+  () => mockRNAsyncStorage,
+);
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 NativeModules.RNGestureHandlerModule = {
