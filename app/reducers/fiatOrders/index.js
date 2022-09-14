@@ -155,6 +155,20 @@ export const getPendingOrders = createSelector(
     ),
 );
 
+const customOrdersSelector = (state) => state.fiatOrders.customOrderIds || [];
+
+export const getCustomOrderIds = createSelector(
+  customOrdersSelector,
+  selectedAddressSelector,
+  chainIdSelector,
+  (customOrderIds, selectedAddress, chainId) =>
+    customOrderIds.filter(
+      (customOrderId) =>
+        customOrderId.account === selectedAddress &&
+        Number(customOrderId.network) === Number(chainId),
+    ),
+);
+
 export const makeOrderIdSelector = (orderId) =>
   createSelector(ordersSelector, (orders) =>
     orders.find((order) => order.id === orderId),

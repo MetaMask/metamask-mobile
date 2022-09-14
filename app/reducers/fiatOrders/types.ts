@@ -5,4 +5,5 @@ export interface CustomIdData {
   createdAt: number;
   lastTimeFetched: number;
   errorCount: number;
+  expired?: boolean;
 }
