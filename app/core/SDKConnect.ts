@@ -194,13 +194,7 @@ class Connection {
       this.RemoteConn.on('message', async ({ message }) => {
         await waitForKeychainUnlocked();
 
-        if (
-          METHODS_TO_REDIRECT[message?.method] &&
-          !(
-            message?.method === 'eth_requestAccounts' &&
-            approvedHosts[this.host]
-          )
-        ) {
+        if (METHODS_TO_REDIRECT[message?.method]) {
           this.requestsToRedirect[message?.id] = true;
         }
 
@@ -285,12 +279,13 @@ class Connection {
   sendMessage(msg: any) {
     this.RemoteConn.sendMessage(msg);
     if (!this.requestsToRedirect[msg?.data?.id]) return;
+    delete this.requestsToRedirect[msg?.data?.id];
 
     if (this.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
 
     setTimeout(() => {
-      Minimizer.goBack();
-    }, 300);
+      if (!Object.keys(this.requestsToRedirect).length) Minimizer.goBack();
+    }, 500);
   }
 }
 
