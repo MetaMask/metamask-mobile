@@ -338,4 +338,4 @@ app:
           IOS_APP_LINK: ''
 meta:
     bitrise.io:
-        stack: osx-xcode-13.3.x
+        stack: osx-xcode-14.0.x
