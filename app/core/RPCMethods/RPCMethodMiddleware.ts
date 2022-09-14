@@ -183,7 +183,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics.platform,
+              request_platform: analytics?.platform,
             },
           },
         },
@@ -308,7 +308,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics.platform,
+              request_platform: analytics?.platform,
             },
           },
         };
@@ -356,7 +356,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics.platform,
+              request_platform: analytics?.platform,
             },
           },
         };
@@ -385,7 +385,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics.platform,
+              request_platform: analytics?.platform,
             },
           },
         };
@@ -422,7 +422,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics.platform,
+              request_platform: analytics?.platform,
             },
           },
         };
@@ -460,7 +460,7 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics.platform,
+              request_platform: analytics?.platform,
             },
           },
         };
@@ -658,7 +658,7 @@ export const getRpcMethodMiddleware = ({
           requestUserApproval,
           analytics: {
             request_source: getSource(),
-            request_platform: analytics.platform,
+            request_platform: analytics?.platform,
           },
         });
       },
@@ -671,7 +671,7 @@ export const getRpcMethodMiddleware = ({
           requestUserApproval,
           analytics: {
             request_source: getSource(),
-            request_platform: analytics.platform,
+            request_platform: analytics?.platform,
           },
         });
       },
