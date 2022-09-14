@@ -685,9 +685,11 @@ class Engine {
     // Recreate imported accounts
     if (importedAccounts) {
       for (let i = 0; i < importedAccounts.length; i++) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
-        ]);
+        await KeyringController.importAccountWithStrategy(
+          'privateKey',
+          [importedAccounts[i]],
+          false,
+        );
       }
     }
 

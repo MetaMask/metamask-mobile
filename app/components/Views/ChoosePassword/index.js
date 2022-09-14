@@ -511,9 +511,11 @@ class ChoosePassword extends PureComponent {
     try {
       // Import imported accounts again
       for (let i = 0; i < importedAccounts.length; i++) {
-        await KeyringController.importAccountWithStrategy('privateKey', [
-          importedAccounts[i],
-        ]);
+        await KeyringController.importAccountWithStrategy(
+          'privateKey',
+          [importedAccounts[i]],
+          false,
+        );
       }
     } catch (e) {
       Logger.error(

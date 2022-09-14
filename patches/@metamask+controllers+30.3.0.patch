@@ -1,0 +1,22 @@
+diff --git a/node_modules/@metamask/controllers/dist/keyring/KeyringController.js b/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
+index 8b9d1ba..c67dcf6 100644
+--- a/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
++++ b/node_modules/@metamask/controllers/dist/keyring/KeyringController.js
+@@ -264,7 +264,7 @@ class KeyringController extends BaseController_1.BaseController {
+      * @throws Will throw when passed an unrecognized strategy.
+      * @returns Promise resolving to current state when the import is complete.
+      */
+-    importAccountWithStrategy(strategy, args) {
++    importAccountWithStrategy(strategy, args, shouldAutoSwitchAccounts = true) {
+         return __awaiter(this, void 0, void 0, function* () {
+             let privateKey;
+             switch (strategy) {
+@@ -307,7 +307,7 @@ class KeyringController extends BaseController_1.BaseController {
+             const accounts = yield newKeyring.getAccounts();
+             const allAccounts = yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getAccounts();
+             this.updateIdentities(allAccounts);
+-            this.setSelectedAddress(accounts[0]);
++            shouldAutoSwitchAccounts && this.setSelectedAddress(accounts[0]);
+             return this.fullUpdate();
+         });
+     }
