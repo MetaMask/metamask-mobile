@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import BaseText from '../../../Base/Text';
@@ -185,28 +185,30 @@ const PaymentMethod = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScreenLayout.Content>
-          {filteredPaymentMethods?.map(
-            ({ id, name, delay, amountTier, paymentType, logo }) => (
-              <View key={id} style={styles.row}>
-                <PaymentOption
-                  highlighted={id === selectedPaymentMethodId}
-                  title={name}
-                  time={delay}
-                  id={id}
-                  onPress={
-                    id === selectedPaymentMethodId
-                      ? undefined
-                      : () => handlePaymentMethodPress(id)
-                  }
-                  amountTier={amountTier}
-                  paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                  logo={logo}
-                />
-              </View>
-            ),
-          )}
-        </ScreenLayout.Content>
+        <ScrollView>
+          <ScreenLayout.Content>
+            {filteredPaymentMethods?.map(
+              ({ id, name, delay, amountTier, paymentType, logo }) => (
+                <View key={id} style={styles.row}>
+                  <PaymentOption
+                    highlighted={id === selectedPaymentMethodId}
+                    title={name}
+                    time={delay}
+                    id={id}
+                    onPress={
+                      id === selectedPaymentMethodId
+                        ? undefined
+                        : () => handlePaymentMethodPress(id)
+                    }
+                    amountTier={amountTier}
+                    paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                    logo={logo}
+                  />
+                </View>
+              ),
+            )}
+          </ScreenLayout.Content>
+        </ScrollView>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
