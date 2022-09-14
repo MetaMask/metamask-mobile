@@ -22,6 +22,7 @@ import {
 import useInterval from '../../hooks/useInterval';
 import processOrder from '../FiatOnRampAggregator/orderProcessor';
 import processCustomOrderIdData from '../FiatOnRampAggregator/orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from '../FiatOnRampAggregator/orderProcessor/aggregator';
 import { trackEvent } from '../FiatOnRampAggregator/hooks/useAnalytics';
 
 /**
@@ -215,9 +216,10 @@ async function processCustomOrderId(
   customOrderIdData,
   { updateFiatCustomIdData, removeFiatCustomIdData, addFiatOrder },
 ) {
-  const [customOrderId, fiatOrder] =
+  const [customOrderId, fiatOrderResponse] =
     processCustomOrderIdData(customOrderIdData);
-  if (fiatOrder) {
+  if (fiatOrderResponse) {
+    const fiatOrder = aggregatorOrderToFiatOrder(fiatOrderResponse);
     addFiatOrder(fiatOrder);
     InteractionManager.runAfterInteractions(() => {
       NotificationManager.showSimpleNotification(
