@@ -24,6 +24,7 @@ interface Props {
   logo: Payment['logo'];
   onPress?: () => any;
   highlighted?: boolean;
+  compact?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -35,6 +36,11 @@ const createStyles = (colors: Colors) =>
       borderRadius: 6,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    compactIconWrapper: {
+      width: 32,
+      height: 32,
+      borderRadius: 4.8,
     },
     icon: {
       color: colors.icon.default,
@@ -51,6 +57,10 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.border.muted,
       height: 1,
       marginVertical: 12,
+    },
+    compactLine: {
+      height: 0,
+      marginVertical: 6,
     },
   });
 
@@ -112,6 +122,7 @@ const PaymentOption: React.FC<Props> = ({
   logo,
   onPress,
   highlighted,
+  compact,
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -120,10 +131,12 @@ const PaymentOption: React.FC<Props> = ({
     <Box onPress={onPress} highlighted={highlighted}>
       <ListItem.Content>
         <ListItem.Icon>
-          <View style={styles.iconWrapper}>
+          <View
+            style={[styles.iconWrapper, compact && styles.compactIconWrapper]}
+          >
             <PaymentIcon
               iconType={paymentTypeIcon}
-              size={16}
+              size={compact ? 13 : 16}
               style={styles.icon}
             />
           </View>
@@ -144,7 +157,7 @@ const PaymentOption: React.FC<Props> = ({
         </ListItem.Amounts>
       </ListItem.Content>
 
-      <View style={styles.line} />
+      <View style={[styles.line, compact && styles.compactLine]} />
 
       <Text primary small>
         <Feather name="clock" /> {renderTime(time)} •{' '}
