@@ -194,7 +194,13 @@ class Connection {
       this.RemoteConn.on('message', async ({ message }) => {
         await waitForKeychainUnlocked();
 
-        if (METHODS_TO_REDIRECT[message?.method]) {
+        if (
+          METHODS_TO_REDIRECT[message?.method] &&
+          !(
+            message?.method === 'eth_requestAccounts' &&
+            approvedHosts[this.host]
+          )
+        ) {
           this.requestsToRedirect[message?.id] = true;
         }
 
