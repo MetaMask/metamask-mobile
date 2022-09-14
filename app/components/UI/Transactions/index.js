@@ -480,13 +480,13 @@ class Transactions extends PureComponent {
     });
   };
 
-  speedUpTransaction = async (EIP1559TransactionData) => {
+  speedUpTransaction = async (transactionObject) => {
     try {
       await Engine.context.TransactionController.speedUpTransaction(
         this.speedUpTxId,
-        EIP1559TransactionData?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
+        transactionObject?.suggestedMaxFeePerGasHex && {
+          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
         },
       );
       this.onSpeedUpCompleted();
@@ -505,13 +505,13 @@ class Transactions extends PureComponent {
     await Engine.context.TransactionController.cancelTransaction(tx.id);
   };
 
-  cancelTransaction = async (EIP1559TransactionData) => {
+  cancelTransaction = async (transactionObject) => {
     try {
       await Engine.context.TransactionController.stopTransaction(
         this.cancelTxId,
-        EIP1559TransactionData?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
+        transactionObject?.suggestedMaxFeePerGasHex && {
+          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
         },
       );
       this.onCancelCompleted();
