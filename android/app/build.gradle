@@ -159,8 +159,8 @@ android {
 		applicationId "io.metamask"
 		minSdkVersion rootProject.ext.minSdkVersion
 		targetSdkVersion rootProject.ext.targetSdkVersion
-		versionCode 939
-		versionName "5.5.0"
+		versionCode 950
+		versionName "5.6.0"
 		multiDexEnabled true
 		testBuildType System.getProperty('testBuildType', 'debug')
 		missingDimensionStrategy "minReactNative", "minReactNative46"
@@ -222,6 +222,7 @@ android {
                 }
             }
 			multiDexEnabled true
+			signingConfig signingConfigs.debug
 		}
 		release {
 			manifestPlaceholders = [isDebug:false]
@@ -234,12 +235,6 @@ android {
 
 	flavorDimensions "version"
    		productFlavors {
-        dev {
-          dimension "version"
-          applicationIdSuffix ".dev"
-          applicationId "io.metamask"
-          signingConfig signingConfigs.debug
-        }
         qa {
           dimension "version"
           applicationIdSuffix ".qa"
