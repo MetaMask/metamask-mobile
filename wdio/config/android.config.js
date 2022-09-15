@@ -1,5 +1,4 @@
-/* eslint-disable import/no-commonjs */
-const { config } = require('../wdio.conf');
+import { config } from '../wdio.conf';
 
 // Appium capabilities
 config.capabilities = [
@@ -19,4 +18,5 @@ config.capabilities = [
 
 config.cucumberOpts.tagExpression = '@androidApp'; // pass tag to run tests specific to android
 
-exports.config = config;
+const _config = config;
+export { _config as config };
