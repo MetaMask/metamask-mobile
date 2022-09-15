@@ -73,11 +73,9 @@ export const recreateVaultWithSamePassword = async (
   try {
     // Import imported accounts again
     for (let i = 0; i < importedAccounts.length; i++) {
-      await KeyringController.importAccountWithStrategy(
-        'privateKey',
-        [importedAccounts[i]],
-        false,
-      );
+      await KeyringController.importAccountWithStrategy('privateKey', [
+        importedAccounts[i],
+      ]);
     }
   } catch (e) {
     Logger.error(e, 'error while trying to import accounts on recreate vault');
