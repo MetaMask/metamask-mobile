@@ -5,11 +5,13 @@ import {
   addHexPrefix,
   isValidChecksumAddress,
 } from 'ethereumjs-util';
+import URL from 'url-parse';
+import punycode from 'punycode/punycode';
+import { KeyringTypes } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-import punycode from 'punycode/punycode';
-import { KeyringTypes } from '@metamask/controllers';
+import { PROTOCOLS } from '../../constants/deeplinks';
 
 /**
  * Returns full checksummed address
@@ -240,4 +242,20 @@ export function isValidHexAddress(
     }
   }
   return isValidAddress(addressToCheck);
+}
+
+/** Method to evaluate if an input is a valid ethereum address
+ * via QR code scanning.
+ *
+ * @param {string} input - a random string.
+ * @returns {boolean} indicates if the string is a valid input.
+ */
+export function isValidAddressInputViaQRCode(input) {
+  if (input.includes(PROTOCOLS.ETHEREUM)) {
+    const { pathname } = new URL(input);
+    // eslint-disable-next-line no-unused-vars
+    const [address, _] = pathname.split('@');
+    return isValidHexAddress(address);
+  }
+  return isValidHexAddress(input);
 }
