@@ -1,3 +1,4 @@
+/* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
 import {
   SafeAreaView,
@@ -20,6 +21,8 @@ import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+
+const IS_QA = process.env['METAMASK_ENVIRONMENT'] === 'qa';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -66,6 +69,13 @@ const createStyles = (colors) =>
     },
     versionInfo: {
       marginTop: 20,
+      fontSize: 18,
+      textAlign: 'left',
+      marginBottom: 20,
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+    },
+    branchInfo: {
       fontSize: 18,
       textAlign: 'left',
       marginBottom: 20,
@@ -173,6 +183,11 @@ export default class AppInformation extends PureComponent {
               resizeMethod={'auto'}
             />
             <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
+            {IS_QA ? (
+              <Text style={styles.branchInfo}>
+                {`Branch: ${process.env['GIT_BRANCH']}`}
+              </Text>
+            ) : null}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
