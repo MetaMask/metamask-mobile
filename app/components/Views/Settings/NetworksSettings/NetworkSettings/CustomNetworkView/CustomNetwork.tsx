@@ -26,7 +26,7 @@ const CustomNetwork = ({
       state.engine.backgroundState.PreferencesController.frequentRpcList,
   );
 
-  const popularNetworkList = PopularList.map((network: Network) => {
+  const supportedNetworkList = PopularList.map((network: Network) => {
     const isAdded = savedNetworkList.some(
       (savedNetwork: any) => savedNetwork.chainId === network.chainId,
     );
@@ -39,7 +39,7 @@ const CustomNetwork = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const filteredPopularList = popularNetworkList.filter(
+  const filteredPopularList = supportedNetworkList.filter(
     (val) =>
       !savedNetworkList.some(
         (key: { chainId: string }) => val.chainId === key.chainId,
