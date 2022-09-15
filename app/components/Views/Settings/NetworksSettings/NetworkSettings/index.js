@@ -48,7 +48,7 @@ import {
 } from '../../../../../constants/test-ids';
 import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
-import ExtendedNetworkList from './extendCustomNetwork';
+import CustomNetwork from './CustomNetworkView/CustomNetwork';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -884,7 +884,7 @@ class NetworkSettings extends PureComponent {
     );
   };
 
-  togglePopularNetwork = (network) =>
+  toggleNetworkModal = (network) =>
     this.setState({
       showPopularNetworkModal: true,
       popularNetwork: {
@@ -940,14 +940,13 @@ class NetworkSettings extends PureComponent {
                 key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
                 style={styles.networksWrapper}
               >
-                <ExtendedNetworkList
-                  frequentRpcList={this.props.frequentRpcList}
-                  showPopularNetworkModal={this.state.showPopularNetworkModal}
-                  onCancel={this.onCancel}
-                  popularNetwork={this.state.popularNetwork}
+                <CustomNetwork
+                  isNetworkModalVisible={this.state.showPopularNetworkModal}
+                  closeNetworkModal={this.onCancel}
+                  selectedNetwork={this.state.popularNetwork}
                   toggleWarningModal={this.toggleWarningModal}
-                  togglePopularNetwork={this.togglePopularNetwork}
-                  tabView={this.tabView}
+                  toggleNetworkModal={this.toggleNetworkModal}
+                  switchTab={this.tabView}
                 />
               </View>
               <View
