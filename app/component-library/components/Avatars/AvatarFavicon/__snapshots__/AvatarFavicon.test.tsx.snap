@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarFavicon should match the snapshot 1`] = `
+<AvatarBase
+  size="48"
+  style={
+    Object {
+      "borderRadius": 0,
+    }
+  }
+>
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      Object {
+        "uri": "https://uniswap.org/favicon.ico",
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="favicon-avatar-image"
+  />
+</AvatarBase>
+`;

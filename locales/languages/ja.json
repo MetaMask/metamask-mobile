@@ -1996,5 +1996,15 @@
     "token_detection_mainnet_title": "トークン検出が有効になっているため、多くのトークンが自動的にウォレットに表示されます。",
     "token_detection_mainnet_link": "手動でトークンを追加することもできます。",
     "or": "または"
+  },
+  "remember_me": {
+    "enable_remember_me": "認証情報の保存を有効にする",
+    "enable_remember_me_description": "認証情報の保存を有効にすると、携帯にアクセスできる人は誰でも MetaMask アカウントにアクセスできるようになります。"
+  },
+  "turn_off_remember_me": {
+    "title": "認証情報の保存を無効にするには、パスワードを入力してください",
+    "placeholder": "パスワード",
+    "description": "このオプションを無効にすると、今後 MetaMask のロックを解除するのにパスワードが必要になります。",
+    "action": "認証情報の保存を無効にする"
   }
 }

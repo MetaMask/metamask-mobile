@@ -46,6 +46,7 @@ export const IMPORT_PASSWORD_CONTAINER_ID = 'import-from-seed-screen';
 export const SECRET_RECOVERY_PHRASE_INPUT_BOX_ID = 'input-seed-phrase';
 
 export const BROWSER_URL_MODAL_ID = 'browser-url-modal';
+export const CLEAR_COOKIES_SECTION = 'clear-cookies-section';
 export const APPROVE_NETWORK_MODAL_ID = 'approve-network-modal';
 export const APPROVE_NETWORK_APPROVE_BUTTON_ID =
   'approve-network-approve-button';
@@ -80,3 +81,8 @@ export const CONFIRMATION_MODAL_DANGER_BUTTON_ID =
 export const TOKEN_AVATAR_IMAGE_ID = 'token-avatar-image';
 export const STACKED_AVATARS_OVERFLOW_COUNTER =
   'stacked-avatar-overflow-counter';
+
+// LoginOptionsSwitch
+export const LOGIN_WITH_BIOMETRICS_SWITCH = 'login-with-biometrics-switch';
+export const LOGIN_WITH_REMEMBER_ME_SWITCH = 'login-with-remember-me-switch';
+export const TURN_OFF_REMEMBER_ME_MODAL = 'TurnOffRememberMeConfirm';

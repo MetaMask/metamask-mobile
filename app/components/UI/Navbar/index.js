@@ -171,6 +171,7 @@ export function getNavigationOptionsTitle(
   navigation,
   isFullScreenModal,
   themeColors,
+  navigationPopEvent,
 ) {
   const innerStyles = StyleSheet.create({
     headerTitleStyle: {
@@ -188,6 +189,7 @@ export function getNavigationOptionsTitle(
     },
   });
   function navigationPop() {
+    if (navigationPopEvent) trackEvent(navigationPopEvent);
     navigation.pop();
   }
   return {

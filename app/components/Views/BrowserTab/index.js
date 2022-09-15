@@ -65,6 +65,7 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
+import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -515,6 +516,7 @@ export const BrowserTab = (props) => {
       const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
       const { hostname, query, pathname } = new URL(sanitizedURL);
       let urlToGo = sanitizedURL;
+      urlToGo = sanitizeUrlInput(urlToGo);
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
       if (isEnsUrl) {
@@ -978,7 +980,11 @@ export const BrowserTab = (props) => {
   const onLoadStart = async ({ nativeEvent }) => {
     const { hostname } = new URL(nativeEvent.url);
 
-    if (nativeEvent.url !== url.current && nativeEvent.loading) {
+    if (
+      nativeEvent.url !== url.current &&
+      nativeEvent.loading &&
+      nativeEvent.navigationType === 'backforward'
+    ) {
       changeAddressBar({ ...nativeEvent });
     }
 
