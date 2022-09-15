@@ -1,4 +1,4 @@
-import wdio from 'webdriverio';
+// import wdio from 'webdriverio';
 import Page from './page';
 import { strictEqual } from 'assert';
 

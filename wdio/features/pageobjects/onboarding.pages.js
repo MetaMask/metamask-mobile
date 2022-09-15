@@ -1,4 +1,4 @@
-import wdio from 'webdriverio';
+// import wdio from 'webdriverio';
 import assert from 'assert';
 
 // const GET_STARTED_BUTTON = $('#onboarding-get-started-button');

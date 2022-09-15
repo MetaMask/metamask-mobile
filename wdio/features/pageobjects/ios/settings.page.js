@@ -1,10 +1,10 @@
-const assert = require('assert');
+import { strictEqual } from 'assert';
 
 class SettingsPage {
 
     getObjectLocator() {
-        const platform = browser.capabilities.platformName.toLowerCase();
-        return require(`./../screens/native/${platform}/settings.screen.js`);
+        // const platform = browser.capabilities.platformName.toLowerCase();
+        // return require(`./../screens/native/${platform}/settings.screen.js`);
     }
 
     getSettingsMenuItem() {
@@ -17,8 +17,8 @@ class SettingsPage {
 
     async verifyGeneralLabel() {
         const label = await $(this.getSettingsMenuItem()).getText();
-        assert.equal(label, 'General');
+      strictEqual(label, 'General');
     }
 }
 
-module.exports = new SettingsPage();
+export default new SettingsPage();
