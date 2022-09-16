@@ -211,10 +211,19 @@ class Transactions extends PureComponent {
       this.init();
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
+    this.setState({
+      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
+    });
+  };
 
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  updateBlockExplorer = () => {
     const {
       network: {
-        provider: { rpcTarget, type },
+        provider: { type, rpcTarget },
       },
       frequentRpcList,
     } = this.props;
@@ -224,14 +233,12 @@ class Transactions extends PureComponent {
         findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
         NO_RPC_BLOCK_EXPLORER;
     }
+
     this.setState({ rpcBlockExplorer: blockExplorer });
-    this.setState({
-      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
-    });
   };
 
-  componentWillUnmount() {
-    this.mounted = false;
+  componentDidUpdate() {
+    this.updateBlockExplorer();
   }
 
   init() {
