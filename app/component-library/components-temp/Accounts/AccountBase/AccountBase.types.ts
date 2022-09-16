@@ -1,4 +1,5 @@
 import { AvatarAccountProps } from '../../../components/Avatars/AvatarAccount/AvatarAccount.types';
+import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
   /**
@@ -27,4 +28,5 @@ export interface AccountBaseProps {
    * Avatar size is restricted to size Md (32x32) for Cells
    */
   avatarProps: AvatarAccountProps;
+  badgeProps: BadgeProps;
 }

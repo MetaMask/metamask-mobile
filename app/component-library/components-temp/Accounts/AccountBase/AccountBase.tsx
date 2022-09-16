@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
 import Text, {
@@ -7,6 +7,7 @@ import Text, {
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import AvatarAccount from '../../../../component-library/components/Avatars/AvatarAccount';
 import { ACCOUNT_BALANCE_AVATAR_TEST_ID } from './AccountBase.constants';
+import styles from './AccountBase.styles';
 
 const AccountBase = ({
   accountBalance,
@@ -17,12 +18,9 @@ const AccountBase = ({
   avatarProps,
   badgeProps,
 }: AccountBaseProps): JSX.Element => (
-  <>
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <BadgeWrapper
-        badgeProps={badgeProps}
-        style={{ marginRight: 8, alignSelf: 'center' }}
-      >
+  <Fragment>
+    <View style={styles.container}>
+      <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
         <AvatarAccount
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
           accountAddress={avatarProps?.accountAddress}
@@ -35,13 +33,13 @@ const AccountBase = ({
       </View>
     </View>
     <View>
-      <Text variant={TextVariant.sBodySM} style={{ marginLeft: 'auto' }}>
+      <Text variant={TextVariant.sBodySM} style={styles.label}>
         {accountBalanceLabel}
       </Text>
       <Text variant={TextVariant.lBodySMBold}>
         {accountBalance} {accountNativeCurrency}
       </Text>
     </View>
-  </>
+  </Fragment>
 );
 export default AccountBase;

@@ -1,0 +1,23 @@
+// Third party dependencies.
+import { StyleSheet } from 'react-native';
+
+/**
+ * Style sheet for Toast component.
+ *
+ * @returns StyleSheet object.
+ */
+const styleSheet = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badgeWrapper: {
+    marginRight: 8,
+    alignSelf: 'center',
+  },
+  label: {
+    marginLeft: 'auto',
+  },
+});
+
+export default styleSheet;

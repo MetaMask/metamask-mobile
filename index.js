@@ -10,7 +10,7 @@ import { setupSentry } from './app/util/sentryUtils';
 setupSentry();
 
 import { AppRegistry, LogBox } from 'react-native';
-import Root from './app/components/Views/Root';
+// import Root from './app/components/Views/Root';
 import { name } from './app.json';
 
 // List of warnings that we're ignoring
