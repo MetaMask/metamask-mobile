@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Switch,
   ActivityIndicator,
   Alert,
   TouchableOpacity,
@@ -13,14 +12,14 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
@@ -61,6 +60,7 @@ import {
   IMPORT_PASSWORD_CONTAINER_ID,
   SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
 } from '../../../constants/test-ids';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -389,10 +389,6 @@ class ImportFromSeed extends PureComponent {
     }
   };
 
-  onBiometryChoiceChange = (value) => {
-    this.setState({ biometryChoice: value });
-  };
-
   clearSecretRecoveryPhrase = async (seed) => {
     // get clipboard contents
     const clipboardContents = await Clipboard.getString();
@@ -450,50 +446,16 @@ class ImportFromSeed extends PureComponent {
   };
 
   renderSwitch = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    if (this.state.biometryType) {
-      return (
-        <View style={styles.biometrics}>
-          <Text style={styles.biometryLabel}>
-            {strings(
-              `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-            )}
-          </Text>
-          <Switch
-            onValueChange={this.updateBiometryChoice}
-            value={this.state.biometryChoice}
-            style={styles.biometrySwitch}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      );
-    }
-
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
     return (
-      <View style={styles.biometrics}>
-        <Text style={styles.biometryLabel}>
-          {strings(`choose_password.remember_me`)}
-        </Text>
-        <Switch
-          onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-          value={this.state.rememberMe}
-          style={styles.biometrySwitch}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          ios_backgroundColor={colors.border.muted}
-          testID={'remember-me-toggle'}
-        />
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={this.state.biometryType}
+        biometryChoiceState={this.state.biometryChoice}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 

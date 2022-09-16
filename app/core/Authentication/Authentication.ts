@@ -1,7 +1,7 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
 import { recreateVaultWithSamePassword } from '../Vault';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ENCRYPTION_LIB,
   ORIGINAL,

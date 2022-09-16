@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import CustomText from './Text';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useTheme } from '../../util/theme';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 
@@ -102,7 +102,7 @@ const Alert = ({
 }: Props) => {
   const Wrapper: React.ComponentClass<TouchableOpacityProps | ViewProps> =
     onPress ? TouchableOpacity : View;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const [wrapperStyle, textStyle] = getAlertStyles(type, styles);

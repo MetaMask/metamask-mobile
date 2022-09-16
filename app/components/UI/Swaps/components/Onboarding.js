@@ -14,11 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import Text from '../../../Base/Text';
 import StyledButton from '../../StyledButton';
-import {
-  useAppThemeFromContext,
-  mockTheme,
-  useAssetFromTheme,
-} from '../../../../util/theme';
+import { useTheme, useAssetFromTheme } from '../../../../util/theme';
 
 /* eslint-disable import/no-commonjs */
 const onboardingDeviceImage = require('../../../../images/swaps_onboard_device.png');
@@ -76,7 +72,7 @@ if (
 
 function Onboarding({ setHasOnboarded }) {
   const navigation = useNavigation();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const swapsAggregators = useAssetFromTheme(
     swapsAggregatorsLight,

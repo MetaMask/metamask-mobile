@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Switch,
   Alert,
   ActivityIndicator,
   Text,
@@ -12,14 +11,15 @@ import {
   InteractionManager,
   BackHandler,
 } from 'react-native';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Button from 'react-native-button';
 import StyledButton from '../../UI/StyledButton';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import setOnboardingWizardStep from '../../../actions/wizard';
+import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { passcodeType } from '../../../util/auth';
@@ -30,7 +30,6 @@ import {
   BIOMETRY_CHOICE_DISABLED,
   ONBOARDING_WIZARD,
   TRUE,
-  EXISTING_USER,
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
@@ -47,6 +46,7 @@ import {
   LOGIN_PASSWORD_ERROR,
   RESET_WALLET_ID,
 } from '../../../constants/test-ids';
+import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -215,6 +215,11 @@ class Login extends PureComponent {
      * Users current address
      */
     selectedAddress: PropTypes.string,
+
+    /**
+     * Action to set if the user is using remember me
+     */
+    setAllowLoginWithRememberMe: PropTypes.func,
   };
 
   state = {
@@ -262,11 +267,13 @@ class Login extends PureComponent {
         biometryPreviouslyDisabled: !!passcodePreviouslyDisabled,
         hasBiometricCredentials: !this.props.route?.params?.params?.logout,
       });
-    else if (type === AUTHENTICATION_TYPE.REMEMBER_ME)
+    else if (type === AUTHENTICATION_TYPE.REMEMBER_ME) {
       this.setState({
         hasBiometricCredentials: false,
         rememberMe: true,
       });
+      this.props.setAllowLoginWithRememberMe(true);
+    }
   }
 
   componentWillUnmount() {
@@ -386,51 +393,20 @@ class Login extends PureComponent {
   };
 
   renderSwitch = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    if (this.state.biometryType && !this.state.biometryPreviouslyDisabled) {
-      return (
-        <View style={styles.biometrics}>
-          <Text style={styles.biometryLabel}>
-            {strings(
-              `biometrics.enable_${this.state.biometryType.toLowerCase()}`,
-            )}
-          </Text>
-          <Switch
-            onValueChange={(biometryChoice) =>
-              this.updateBiometryChoice(biometryChoice)
-            } // eslint-disable-line react/jsx-no-bind
-            value={this.state.biometryChoice}
-            style={styles.biometrySwitch}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={importedColors.white}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      );
-    }
-
+    const handleUpdateRememberMe = (rememberMe) => {
+      this.setState({ rememberMe });
+    };
+    const shouldRenderBiometricLogin =
+      this.state.biometryType && !this.state.biometryPreviouslyDisabled
+        ? this.state.biometryType
+        : null;
     return (
-      <View style={styles.biometrics}>
-        <Text style={styles.biometryLabel}>
-          {strings(`choose_password.remember_me`)}
-        </Text>
-        <Switch
-          onValueChange={(rememberMe) => this.setState({ rememberMe })} // eslint-disable-line react/jsx-no-bind
-          value={this.state.rememberMe}
-          style={styles.biometrySwitch}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </View>
+      <LoginOptionsSwitch
+        shouldRenderBiometricOption={shouldRenderBiometricLogin}
+        biometryChoiceState={this.state.biometryChoice}
+        onUpdateBiometryChoice={this.updateBiometryChoice}
+        onUpdateRememberMe={handleUpdateRememberMe}
+      />
     );
   };
 
@@ -548,6 +524,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+  setAllowLoginWithRememberMe: (enabled) =>
+    dispatch(setAllowLoginWithRememberMe(enabled)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

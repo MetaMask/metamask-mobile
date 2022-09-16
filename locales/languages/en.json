@@ -1152,7 +1152,8 @@
     "empty_popular_networks": "You’ve added all the popular networks. You can discover more networks",
     "add_other_network_here": "here.",
     "you_can": "Or you can",
-    "add_network": "add more networks manually."
+    "add_network": "add more networks manually.",
+    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon."
   },
   "select": {
     "cancel": "Cancel",
@@ -1520,9 +1521,8 @@
     "total": "TOTAL:"
   },
   "webview_error": {
-    "title": "Ooops! something went wrong...",
-    "message": "We weren't able to load that page.",
-    "reason": "Reason",
+    "title": "Something went wrong",
+    "message": "We couldn't load that page",
     "return_home": "Return to home page"
   },
   "offline_mode": {
@@ -1863,7 +1863,8 @@
       "best_price": "best price",
       "from_the": "from the",
       "top_liquidity": "top liquidity sources every time.",
-      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better."
+      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better.",
+      "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
     "enable": {
       "this_will": "This will",
@@ -2143,5 +2144,26 @@
   "download_files": {
     "error": "Failed to download attachment.",
     "unknownError": "Unknown error occurred"
+  },
+  "remember_me": {
+    "enable_remember_me": "Turn on Remember me",
+    "enable_remember_me_description": "When Remember me is on, anyone with access to your phone can access your MetaMask account."
+  },
+  "turn_off_remember_me": {
+    "title": "Enter your password to turn off Remember me",
+    "placeholder": "Password",
+    "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
+    "action": "Turn off Remember me"
+  },
+  "dapp_connect": {
+    "warning": "In order to use this feature, please update the app to the newest version"
+  },
+  "confirmation_modal": {
+    "cancel_cta": "Cancel",
+    "confirm_cta": "Confirm"
+  },
+  "automatic_security_checks": {
+    "title": "Automatic security checks",
+    "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   }
 }

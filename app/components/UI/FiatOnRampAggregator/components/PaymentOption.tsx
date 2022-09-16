@@ -10,6 +10,7 @@ import { TimeDescriptions, timeToDescription } from '../utils';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import PaymentTypeIcon from './PaymentTypeIcon';
+import { Payment } from '@consensys/on-ramp-sdk';
 // TODO: Convert into typescript and correctly type optionals
 const Text = CustomText as any;
 const ListItem = BaseListItem as any;
@@ -20,8 +21,10 @@ interface Props {
   time: number[];
   amountTier: number[];
   paymentTypeIcon: Icon;
+  logo: Payment['logo'];
   onPress?: () => any;
   highlighted?: boolean;
+  compact?: boolean;
 }
 
 const createStyles = (colors: Colors) =>
@@ -34,6 +37,11 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    compactIconWrapper: {
+      width: 32,
+      height: 32,
+      borderRadius: 4.8,
+    },
     icon: {
       color: colors.icon.default,
     },
@@ -42,12 +50,17 @@ const createStyles = (colors: Colors) =>
     },
     cardIcon: {
       marginLeft: 6,
-      marginBottom: 14,
+      width: 30,
+      height: 20,
     },
     line: {
       backgroundColor: colors.border.muted,
       height: 1,
       marginVertical: 12,
+    },
+    compactLine: {
+      height: 0,
+      marginVertical: 6,
     },
   });
 
@@ -104,11 +117,12 @@ const renderTiers = (tiers: number[]) => {
 const PaymentOption: React.FC<Props> = ({
   title,
   time,
-  id,
   amountTier,
   paymentTypeIcon,
+  logo,
   onPress,
   highlighted,
+  compact,
 }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -117,10 +131,12 @@ const PaymentOption: React.FC<Props> = ({
     <Box onPress={onPress} highlighted={highlighted}>
       <ListItem.Content>
         <ListItem.Icon>
-          <View style={styles.iconWrapper}>
+          <View
+            style={[styles.iconWrapper, compact && styles.compactIconWrapper]}
+          >
             <PaymentIcon
               iconType={paymentTypeIcon}
-              size={16}
+              size={compact ? 13 : 16}
               style={styles.icon}
             />
           </View>
@@ -135,13 +151,13 @@ const PaymentOption: React.FC<Props> = ({
         <ListItem.Amounts>
           <ListItem.Amount>
             <View style={styles.cardIcons}>
-              <PaymentTypeIcon id={id} style={styles.cardIcon} />
+              <PaymentTypeIcon style={styles.cardIcon} logosByTheme={logo} />
             </View>
           </ListItem.Amount>
         </ListItem.Amounts>
       </ListItem.Content>
 
-      <View style={styles.line} />
+      <View style={[styles.line, compact && styles.compactLine]} />
 
       <Text primary small>
         <Feather name="clock" /> {renderTime(time)} •{' '}

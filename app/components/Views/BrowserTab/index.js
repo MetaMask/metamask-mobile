@@ -56,7 +56,7 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 import {
@@ -65,6 +65,7 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
+import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -243,7 +244,7 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   /**
@@ -515,6 +516,7 @@ export const BrowserTab = (props) => {
       const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
       const { hostname, query, pathname } = new URL(sanitizedURL);
       let urlToGo = sanitizedURL;
+      urlToGo = sanitizeUrlInput(urlToGo);
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
       if (isEnsUrl) {
@@ -978,7 +980,11 @@ export const BrowserTab = (props) => {
   const onLoadStart = async ({ nativeEvent }) => {
     const { hostname } = new URL(nativeEvent.url);
 
-    if (nativeEvent.url !== url.current && nativeEvent.loading) {
+    if (
+      nativeEvent.url !== url.current &&
+      nativeEvent.loading &&
+      nativeEvent.navigationType === 'backforward'
+    ) {
       changeAddressBar({ ...nativeEvent });
     }
 
@@ -1352,7 +1358,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
-              originWhitelist={['*']}
+              originWhitelist={['https://*', 'http://*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (

@@ -28,7 +28,7 @@ import {
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import AnalyticsV2 from '../../../util/analyticsV2';
 
 const createStyles = (colors: any) =>
@@ -90,7 +90,7 @@ interface Props {
 
 const AssetDetails = (props: Props) => {
   const { address } = props.route.params;
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
