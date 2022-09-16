@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReview should render correctly 1`] = `
-<TransactionReview
+<withNavigation(QRHardwareAwareness)
   accounts={Array []}
   browser={
     Object {

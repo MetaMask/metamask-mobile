@@ -3,9 +3,10 @@
 exports[`AssetIcon should render correctly 1`] = `
 <RemoteImage
   fadeIn={true}
+  key="https://s3.amazonaws.com/airswap-token-images/WBTC.png"
   placeholderStyle={
     Object {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#F2F4F6",
     }
   }
   source={

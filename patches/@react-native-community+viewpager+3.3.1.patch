@@ -1,0 +1,12 @@
+diff --git a/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h b/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h
+index a131c73..f1df35d 100644
+--- a/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h
++++ b/node_modules/@react-native-community/viewpager/ios/ReactNativePageView.h
+@@ -2,6 +2,7 @@
+ #import <React/RCTShadowView.h>
+ #import <React/UIView+React.h>
+ #import <UIKit/UIKit.h>
++#import <React/RCTEventDispatcher.h>
+ 
+ NS_ASSUME_NONNULL_BEGIN
+ 

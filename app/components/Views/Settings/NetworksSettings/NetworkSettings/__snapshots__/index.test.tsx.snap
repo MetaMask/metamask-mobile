@@ -2,7 +2,16 @@
 
 exports[`NetworkSettings should render correctly 1`] = `
 <NetworkSettings
-  dispatch={[Function]}
   frequentRpcList={Array []}
+  networkOnboardedState={
+    Array [
+      Object {
+        "network": "mainnet",
+        "onboarded": true,
+      },
+    ]
+  }
+  showNetworkOnboardingAction={[Function]}
+  thirdPartyApiMode={true}
 />
 `;

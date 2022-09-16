@@ -17,14 +17,14 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       style={
         Object {
           "borderBottomWidth": 0.5,
-          "borderColor": "#d6d9dc",
+          "borderColor": "#D6D9DC",
         }
       }
     >
       <Text
         style={
           Object {
-            "color": "#000000",
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 17,
             "fontWeight": "600",
@@ -50,6 +50,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       <Text
         style={
           Object {
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 15,
             "fontWeight": "400",
@@ -66,6 +67,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
       <Text
         style={
           Object {
+            "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 15,
             "fontWeight": "400",
@@ -79,7 +81,7 @@ exports[`InvalidCustomNetworkAlert should render correctly 1`] = `
           onPress={[Function]}
           style={
             Object {
-              "color": "#037dd6",
+              "color": "#037DD6",
             }
           }
         >

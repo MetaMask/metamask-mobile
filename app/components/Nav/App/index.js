@@ -1,9 +1,14 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -17,72 +22,99 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSeed from '../../Views/ImportFromSeed';
 import SyncWithExtensionSuccess from '../../Views/SyncWithExtensionSuccess';
+import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
+import WhatsNewModal from '../../UI/WhatsNewModal/WhatsNewModal';
 import Main from '../Main';
-import DrawerView from '../../UI/DrawerView';
 import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager';
 import Engine from '../../../core/Engine';
-import { BranchSubscriber } from 'react-native-branch';
+import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { routingInstrumentation } from '../../../util/setupSentry';
-import Analytics from '../../../core/Analytics';
+import { routingInstrumentation } from '../../../util/sentryUtils';
+import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useSelector, useDispatch } from 'react-redux';
-import { EXISTING_USER, CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../../constants/storage';
+import {
+  EXISTING_USER,
+  CURRENT_APP_VERSION,
+  LAST_APP_VERSION,
+} from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
 import { checkedAuth } from '../../../actions/user';
-
-const styles = StyleSheet.create({
-	fill: { flex: 1 },
-});
+import { setCurrentRoute } from '../../../actions/navigation';
+import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { useTheme } from '../../../util/theme';
+import Device from '../../../util/device';
+import { colors as importedColors } from '../../../styles/common';
+import Routes from '../../../constants/navigation/Routes';
+import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
+import Toast, {
+  ToastContext,
+} from '../../../component-library/components/Toast';
+import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 
 const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet, Import from Seed and Sync
  */
 const OnboardingNav = () => (
-	<Stack.Navigator initialRouteName="OnboardingCarousel">
-		<Stack.Screen name="Onboarding" component={Onboarding} options={Onboarding.navigationOptions} />
-		<Stack.Screen
-			name="OnboardingCarousel"
-			component={OnboardingCarousel}
-			options={OnboardingCarousel.navigationOptions}
-		/>
-		<Stack.Screen name="ChoosePassword" component={ChoosePassword} options={ChoosePassword.navigationOptions} />
-		<Stack.Screen name="ExtensionSync" component={ExtensionSync} />
-		<Stack.Screen
-			name="AccountBackupStep1"
-			component={AccountBackupStep1}
-			options={AccountBackupStep1.navigationOptions}
-		/>
-		<Stack.Screen
-			name="AccountBackupStep1B"
-			component={AccountBackupStep1B}
-			options={AccountBackupStep1B.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ManualBackupStep1"
-			component={ManualBackupStep1}
-			options={ManualBackupStep1.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ManualBackupStep2"
-			component={ManualBackupStep2}
-			options={ManualBackupStep2.navigationOptions}
-		/>
-		<Stack.Screen
-			name="ManualBackupStep3"
-			component={ManualBackupStep3}
-			options={ManualBackupStep3.navigationOptions}
-		/>
-		<Stack.Screen name="ImportFromSeed" component={ImportFromSeed} options={ImportFromSeed.navigationOptions} />
-		<Stack.Screen name="OptinMetrics" component={OptinMetrics} options={OptinMetrics.navigationOptions} />
-	</Stack.Navigator>
+  <Stack.Navigator initialRouteName="OnboardingCarousel">
+    <Stack.Screen
+      name="Onboarding"
+      component={Onboarding}
+      options={Onboarding.navigationOptions}
+    />
+    <Stack.Screen
+      name="OnboardingCarousel"
+      component={OnboardingCarousel}
+      options={OnboardingCarousel.navigationOptions}
+    />
+    <Stack.Screen
+      name="ChoosePassword"
+      component={ChoosePassword}
+      options={ChoosePassword.navigationOptions}
+    />
+    <Stack.Screen name="ExtensionSync" component={ExtensionSync} />
+    <Stack.Screen
+      name="AccountBackupStep1"
+      component={AccountBackupStep1}
+      options={AccountBackupStep1.navigationOptions}
+    />
+    <Stack.Screen
+      name="AccountBackupStep1B"
+      component={AccountBackupStep1B}
+      options={AccountBackupStep1B.navigationOptions}
+    />
+    <Stack.Screen
+      name="ManualBackupStep1"
+      component={ManualBackupStep1}
+      options={ManualBackupStep1.navigationOptions}
+    />
+    <Stack.Screen
+      name="ManualBackupStep2"
+      component={ManualBackupStep2}
+      options={ManualBackupStep2.navigationOptions}
+    />
+    <Stack.Screen
+      name="ManualBackupStep3"
+      component={ManualBackupStep3}
+      options={ManualBackupStep3.navigationOptions}
+    />
+    <Stack.Screen
+      name="ImportFromSeed"
+      component={ImportFromSeed}
+      options={ImportFromSeed.navigationOptions}
+    />
+    <Stack.Screen
+      name="OptinMetrics"
+      component={OptinMetrics}
+      options={OptinMetrics.navigationOptions}
+    />
+  </Stack.Navigator>
 );
 
 /**
@@ -90,225 +122,307 @@ const OnboardingNav = () => (
  * child OnboardingNav navigator to push modals on top of it
  */
 const SimpleWebviewScreen = () => (
-	<Stack.Navigator mode={'modal'}>
-		<Stack.Screen name="SimpleWebview" component={SimpleWebview} options={SimpleWebview.navigationOptions} />
-	</Stack.Navigator>
+  <Stack.Navigator mode={'modal'}>
+    <Stack.Screen
+      name="SimpleWebview"
+      component={SimpleWebview}
+      options={SimpleWebview.navigationOptions}
+    />
+  </Stack.Navigator>
 );
 
 const OnboardingRootNav = () => (
-	<Stack.Navigator initialRouteName={'OnboardingNav'} mode="modal" screenOptions={{ headerShown: false }}>
-		<Stack.Screen name="OnboardingNav" component={OnboardingNav} />
-		<Stack.Screen name="SyncWithExtensionSuccess" component={SyncWithExtensionSuccess} />
-		<Stack.Screen name="QRScanner" component={QRScanner} header={null} />
-		<Stack.Screen name="Webview" header={null} component={SimpleWebviewScreen} />
-	</Stack.Navigator>
+  <Stack.Navigator
+    initialRouteName={Routes.ONBOARDING.NAV}
+    mode="modal"
+    screenOptions={{ headerShown: false }}
+  >
+    <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
+    <Stack.Screen
+      name="SyncWithExtensionSuccess"
+      component={SyncWithExtensionSuccess}
+    />
+    <Stack.Screen
+      name={Routes.QR_SCANNER}
+      component={QRScanner}
+      header={null}
+    />
+    <Stack.Screen
+      name="Webview"
+      header={null}
+      component={SimpleWebviewScreen}
+    />
+  </Stack.Navigator>
 );
-
-/**
- * Main app navigator which handles all the screens
- * after the user is already onboarded
- */
-
-const HomeNav = () => (
-	<Drawer.Navigator
-		drawerContent={(props) => <DrawerView {...props} />}
-		// eslint-disable-next-line
-		drawerStyle={{
-			backgroundColor: 'rgba(0, 0, 0, 0.5)',
-			width: 315,
-		}}
-	>
-		<Drawer.Screen name="Main" component={Main} />
-	</Drawer.Navigator>
-);
-
-// Is this necessary?
-/**
- * Drawer status tracking
-const defaultGetStateForAction = HomeNav.router.getStateForAction;
-DrawerStatusTracker.init();
-HomeNav.router.getStateForAction = (action, state) => {
-	if (action) {
-		if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && action.willShow) {
-			DrawerStatusTracker.setStatus('open');
-		} else if (action.type === 'Navigation/MARK_DRAWER_SETTLING' && !action.willShow) {
-			DrawerStatusTracker.setStatus('closed');
-		}
-	}
-
-	return defaultGetStateForAction(action, state);
-};
-*/
 
 const App = ({ userLoggedIn }) => {
-	const unsubscribeFromBranch = useRef();
+  const animation = useRef(null);
+  const animationName = useRef(null);
+  const opacity = useRef(new Animated.Value(1)).current;
+  const [navigator, setNavigator] = useState(undefined);
+  const prevNavigator = useRef(navigator);
+  const [route, setRoute] = useState();
+  const [animationPlayed, setAnimationPlayed] = useState();
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
-	const animation = useRef(null);
-	const animationName = useRef(null);
-	const opacity = useRef(new Animated.Value(1)).current;
-	const navigator = useRef();
+  const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
+  const dispatch = useDispatch();
+  const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
+  const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
+  const frequentRpcList = useSelector(
+    (state) =>
+      state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
+  );
 
-	const [route, setRoute] = useState();
-	const [animationPlayed, setAnimationPlayed] = useState();
+  const handleDeeplink = useCallback(({ error, params, uri }) => {
+    if (error) {
+      trackErrorAsAnalytics(error, 'Branch:');
+    }
+    const deeplink = params?.['+non_branch_link'] || uri || null;
+    try {
+      if (deeplink) {
+        const { KeyringController } = Engine.context;
+        const isUnlocked = KeyringController.isUnlocked();
+        isUnlocked
+          ? SharedDeeplinkManager.parse(deeplink, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            })
+          : SharedDeeplinkManager.setDeeplink(deeplink);
+      }
+    } catch (e) {
+      Logger.error(e, `Deeplink: Error parsing deeplink`);
+    }
+  }, []);
 
-	const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
-	const dispatch = useDispatch();
-	const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
+  // on Android devices, this creates a listener
+  // to deeplinks used to open the app
+  // when it is in background (so not closed)
+  // Documentation: https://reactnative.dev/docs/linking#handling-deep-links
+  useEffect(() => {
+    if (Device.isAndroid())
+      Linking.addEventListener('url', (params) => {
+        const { url } = params;
+        if (url) {
+          handleDeeplink({ uri: url });
+        }
+      });
+  }, [handleDeeplink]);
 
-	const handleDeeplink = useCallback(({ error, params, uri }) => {
-		if (error) {
-			trackErrorAsAnalytics(error, 'Branch:');
-		}
-		const deeplink = params?.['+non_branch_link'] || uri || null;
-		try {
-			if (deeplink) {
-				const { KeyringController } = Engine.context;
-				const isUnlocked = KeyringController.isUnlocked();
-				isUnlocked
-					? SharedDeeplinkManager.parse(deeplink, { origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK })
-					: SharedDeeplinkManager.setDeeplink(deeplink);
-			}
-		} catch (e) {
-			Logger.error(e, `Deeplink: Error parsing deeplink`);
-		}
-	}, []);
+  useEffect(() => {
+    if (navigator) {
+      // Initialize deep link manager
+      SharedDeeplinkManager.init({
+        navigation: {
+          navigate: (routeName, opts) => {
+            const params = { name: routeName, params: opts };
+            navigator.dispatch?.(CommonActions.navigate(params));
+          },
+        },
+        frequentRpcList,
+        dispatch,
+      });
+      if (!prevNavigator.current) {
+        // Setup navigator with Sentry instrumentation
+        routingInstrumentation.registerNavigationContainer(navigator);
+        // Subscribe to incoming deeplinks
+        // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+        branch.subscribe((opts) => {
+          const { error } = opts;
 
-	const branchSubscriber = new BranchSubscriber({
-		onOpenStart: (opts) => handleDeeplink(opts),
-		onOpenComplete: (opts) => handleDeeplink(opts),
-	});
+          if (error) {
+            Logger.error('Error from Branch: ' + error);
+            return;
+          }
 
-	useEffect(() => {
-		SharedDeeplinkManager.init({
-			navigate: (routeName, opts) => {
-				const params = { name: routeName, params: opts };
-				navigator.current?.dispatch?.(CommonActions.navigate(params));
-			},
-		});
+          handleDeeplink(opts);
+        });
+      }
+      prevNavigator.current = navigator;
+    }
+  }, [dispatch, handleDeeplink, frequentRpcList, navigator]);
 
-		unsubscribeFromBranch.current = branchSubscriber.subscribe();
+  useEffect(() => {
+    const initAnalytics = async () => {
+      await Analytics.init();
+    };
 
-		return () => unsubscribeFromBranch.current?.();
-	}, [branchSubscriber]);
+    initAnalytics();
+  }, []);
 
-	useEffect(() => {
-		const initAnalytics = async () => {
-			await Analytics.init();
-		};
+  useEffect(() => {
+    async function checkExsiting() {
+      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const route = !existingUser
+        ? Routes.ONBOARDING.ROOT_NAV
+        : Routes.ONBOARDING.LOGIN;
+      setRoute(route);
+      if (!existingUser) {
+        triggerCheckedAuth();
+      }
+    }
 
-		initAnalytics();
-	}, []);
+    checkExsiting();
+  });
 
-	useEffect(() => {
-		async function checkExsiting() {
-			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-			const route = !existingUser ? 'OnboardingRootNav' : 'Login';
-			setRoute(route);
-			if (!existingUser) {
-				triggerCheckedAuth();
-			}
-		}
+  useEffect(() => {
+    async function startApp() {
+      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      try {
+        const currentVersion = await getVersion();
+        const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
+        if (currentVersion !== savedVersion) {
+          if (savedVersion)
+            await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
+          await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
+        }
 
-		checkExsiting();
-	});
+        const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
+        if (!lastVersion) {
+          if (existingUser) {
+            // Setting last version to first version if user exists and lastVersion does not, to simulate update
+            await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
+          } else {
+            // Setting last version to current version so that it's not treated as an update
+            await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
+          }
+        }
+      } catch (error) {
+        Logger.error(error);
+      }
+    }
 
-	useEffect(() => {
-		async function startApp() {
-			const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-			try {
-				const currentVersion = await getVersion();
-				const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
-				if (currentVersion !== savedVersion) {
-					if (savedVersion) await AsyncStorage.setItem(LAST_APP_VERSION, savedVersion);
-					await AsyncStorage.setItem(CURRENT_APP_VERSION, currentVersion);
-				}
+    startApp();
+  }, []);
 
-				const lastVersion = await AsyncStorage.getItem(LAST_APP_VERSION);
-				if (!lastVersion) {
-					if (existingUser) {
-						// Setting last version to first version if user exists and lastVersion does not, to simulate update
-						await AsyncStorage.setItem(LAST_APP_VERSION, '0.0.1');
-					} else {
-						// Setting last version to current version so that it's not treated as an update
-						await AsyncStorage.setItem(LAST_APP_VERSION, currentVersion);
-					}
-				}
-			} catch (error) {
-				Logger.error(error);
-			}
-		}
+  useEffect(() => {
+    if (!isAuthChecked) {
+      return;
+    }
+    const startAnimation = async () => {
+      await new Promise((res) => setTimeout(res, 50));
+      animation?.current?.play();
+      animationName?.current?.play();
+    };
+    startAnimation();
+  }, [isAuthChecked]);
 
-		startApp();
-	}, []);
+  const setNavigatorRef = (ref) => {
+    if (!prevNavigator.current) {
+      setNavigator(ref);
+    }
+  };
 
-	useEffect(() => {
-		if (!isAuthChecked) {
-			return;
-		}
-		const startAnimation = async () => {
-			await new Promise((res) => setTimeout(res, 50));
-			animation?.current?.play();
-			animationName?.current?.play();
-		};
-		startAnimation();
-	}, [isAuthChecked]);
+  const onAnimationFinished = useCallback(() => {
+    Animated.timing(opacity, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+      isInteraction: false,
+    }).start(() => {
+      setAnimationPlayed(true);
+    });
+  }, [opacity]);
 
-	const onAnimationFinished = useCallback(() => {
-		Animated.timing(opacity, {
-			toValue: 0,
-			duration: 300,
-			useNativeDriver: true,
-			isInteraction: false,
-		}).start(() => {
-			setAnimationPlayed(true);
-		});
-	}, [opacity]);
+  const renderSplash = () => {
+    if (!animationPlayed) {
+      return (
+        <MetaMaskAnimation
+          animation={animation}
+          animationName={animationName}
+          opacity={opacity}
+          onAnimationFinish={onAnimationFinished}
+        />
+      );
+    }
+    return null;
+  };
 
-	const renderSplash = () => {
-		if (!animationPlayed) {
-			return (
-				<MetaMaskAnimation
-					animation={animation}
-					animationName={animationName}
-					opacity={opacity}
-					onAnimationFinish={onAnimationFinished}
-				/>
-			);
-		}
-		return null;
-	};
+  const RootModalFlow = () => (
+    <Stack.Navigator
+      mode={'modal'}
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: importedColors.transparent },
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MODAL.DELETE_WALLET}
+        component={DeleteWalletModal}
+      />
+      <Stack.Screen
+        name={Routes.MODAL.MODAL_CONFIRMATION}
+        component={ModalConfirmation}
+      />
+      <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
+      <Stack.Screen
+        name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+        component={TurnOffRememberMeModal}
+      />
+    </Stack.Navigator>
+  );
 
-	return (
-		// do not render unless a route is defined
-		(route && (
-			<View style={styles.fill}>
-				<NavigationContainer
-					ref={navigator}
-					onReady={() => {
-						routingInstrumentation.registerNavigationContainer(navigator);
-					}}
-				>
-					<Stack.Navigator route={route} initialRouteName={route}>
-						<Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-						<Stack.Screen
-							name="OnboardingRootNav"
-							component={OnboardingRootNav}
-							options={{ headerShown: false }}
-						/>
-						{userLoggedIn && (
-							<Stack.Screen name="HomeNav" component={HomeNav} options={{ headerShown: false }} />
-						)}
-					</Stack.Navigator>
-				</NavigationContainer>
-				{renderSplash()}
-			</View>
-		)) ||
-		null
-	);
+  return (
+    // do not render unless a route is defined
+    (route && (
+      <>
+        <NavigationContainer
+          // Prevents artifacts when navigating between screens
+          theme={{
+            colors: {
+              background: colors.background.default,
+            },
+          }}
+          ref={setNavigatorRef}
+          onStateChange={(state) => {
+            // Updates redux with latest route. Used by DrawerView component.
+            const currentRoute = findRouteNameFromNavigatorState(state.routes);
+            triggerSetCurrentRoute(currentRoute);
+          }}
+        >
+          <Stack.Navigator
+            initialRouteName={route}
+            mode={'modal'}
+            screenOptions={{
+              headerShown: false,
+              cardStyle: { backgroundColor: importedColors.transparent },
+              animationEnabled: false,
+            }}
+          >
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="OnboardingRootNav"
+              component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
+            {userLoggedIn && (
+              <Stack.Screen
+                name="HomeNav"
+                component={Main}
+                options={{ headerShown: false }}
+              />
+            )}
+            <Stack.Screen
+              name={Routes.MODAL.ROOT_MODAL_FLOW}
+              component={RootModalFlow}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+        {renderSplash()}
+        <Toast ref={toastRef} />
+      </>
+    )) ||
+    null
+  );
 };
 
 const mapStateToProps = (state) => ({
-	userLoggedIn: state.user.userLoggedIn,
+  userLoggedIn: state.user.userLoggedIn,
 });
 
 export default connect(mapStateToProps)(App);

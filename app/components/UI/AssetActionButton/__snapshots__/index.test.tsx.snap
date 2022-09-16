@@ -19,7 +19,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     style={
       Object {
         "alignContent": "center",
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -30,6 +30,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     }
   />
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -38,6 +39,7 @@ exports[`AssetActionButtons should render correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     numberOfLines={1}
     primary={false}
     red={false}
@@ -47,14 +49,17 @@ exports[`AssetActionButtons should render correctly 1`] = `
     strikethrough={false}
     style={
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
         "fontSize": 14,
+        "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
     underline={false}
     upper={false}
-  />
+  >
+    mock text
+  </Text>
 </TouchableOpacity>
 `;
 
@@ -77,7 +82,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     style={
       Object {
         "alignContent": "center",
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -94,7 +99,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "color": "#FFFFFF",
+          "color": "#FCFCFC",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -102,6 +107,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -110,6 +116,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     numberOfLines={1}
     primary={false}
     red={false}
@@ -119,14 +126,17 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
     strikethrough={false}
     style={
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
         "fontSize": 14,
+        "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
     underline={false}
     upper={false}
-  />
+  >
+    mock text
+  </Text>
 </TouchableOpacity>
 `;
 
@@ -149,7 +159,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     style={
       Object {
         "alignContent": "center",
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -166,7 +176,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "color": "#FFFFFF",
+          "color": "#FCFCFC",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -174,6 +184,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -182,6 +193,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     numberOfLines={1}
     primary={false}
     red={false}
@@ -191,14 +203,17 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
     strikethrough={false}
     style={
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
         "fontSize": 14,
+        "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
     underline={false}
     upper={false}
-  />
+  >
+    mock text
+  </Text>
 </TouchableOpacity>
 `;
 
@@ -221,7 +236,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     style={
       Object {
         "alignContent": "center",
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -233,14 +248,14 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#FFFFFF"
+      color="#FCFCFC"
       name="keyboard-tab"
       size={20}
       style={
         Array [
           Object {
             "alignContent": "center",
-            "color": "#FFFFFF",
+            "color": "#FCFCFC",
             "justifyContent": "center",
             "textAlign": "center",
           },
@@ -258,6 +273,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -266,6 +282,7 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     numberOfLines={1}
     primary={false}
     red={false}
@@ -275,14 +292,17 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
     strikethrough={false}
     style={
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
         "fontSize": 14,
+        "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
     underline={false}
     upper={false}
-  />
+  >
+    receive...
+  </Text>
 </TouchableOpacity>
 `;
 
@@ -305,7 +325,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     style={
       Object {
         "alignContent": "center",
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -322,7 +342,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "color": "#FFFFFF",
+          "color": "#FCFCFC",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -330,6 +350,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -338,6 +359,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     numberOfLines={1}
     primary={false}
     red={false}
@@ -347,14 +369,17 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
     strikethrough={false}
     style={
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
         "fontSize": 14,
+        "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
     underline={false}
     upper={false}
-  />
+  >
+    mock text
+  </Text>
 </TouchableOpacity>
 `;
 
@@ -377,7 +402,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     style={
       Object {
         "alignContent": "center",
-        "backgroundColor": "#037dd6",
+        "backgroundColor": "#037DD6",
         "borderRadius": 18,
         "height": 36,
         "justifyContent": "center",
@@ -395,7 +420,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
         Array [
           Object {
             "alignContent": "center",
-            "color": "#FFFFFF",
+            "color": "#FCFCFC",
             "justifyContent": "center",
             "textAlign": "center",
           },
@@ -408,6 +433,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     />
   </View>
   <Text
+    bigger={false}
     black={false}
     blue={false}
     bold={false}
@@ -416,6 +442,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     green={false}
     link={false}
     modal={false}
+    muted={false}
     numberOfLines={1}
     primary={false}
     red={false}
@@ -425,13 +452,16 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
     strikethrough={false}
     style={
       Object {
-        "color": "#037dd6",
+        "color": "#037DD6",
         "fontSize": 14,
+        "marginHorizontal": 3,
         "marginTop": 8,
       }
     }
     underline={false}
     upper={false}
-  />
+  >
+    mock text
+  </Text>
 </TouchableOpacity>
 `;

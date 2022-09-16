@@ -6,7 +6,7 @@ exports[`SlippageSlider should render correctly 1`] = `
   style={
     Array [
       Object {
-        "height": 69,
+        "height": 76,
         "justifyContent": "center",
         "position": "relative",
       },
@@ -33,8 +33,8 @@ exports[`SlippageSlider should render correctly 1`] = `
       style={
         Object {
           "alignItems": "center",
-          "backgroundColor": "#eaf6ff",
-          "borderColor": "#eaf6ff",
+          "backgroundColor": "#037DD619",
+          "borderColor": "#037DD619",
           "borderRadius": 9,
           "borderWidth": 2,
           "flexDirection": "row",
@@ -137,56 +137,47 @@ exports[`SlippageSlider should render correctly 1`] = `
     />
   </ForwardRef(AnimatedComponentWrapper)>
   <ForwardRef(AnimatedComponentWrapper)
-    onLayout={[Function]}
     style={
       Array [
         Object {
           "alignItems": "center",
-          "backgroundColor": "#3C3F42",
-          "borderRadius": 8,
           "justifyContent": "center",
-          "minHeight": 29,
+          "minHeight": 36,
           "minWidth": 40,
-          "padding": 5,
           "position": "absolute",
-          "top": 0,
+          "top": 4,
         },
         Object {
-          "left": 15,
+          "left": -5,
         },
       ]
     }
   >
-    <View
-      style={
-        Array [
-          Object {
-            "backgroundColor": "#3C3F42",
-            "bottom": -5,
-            "height": 10,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "transform": Array [
-              Object {
-                "rotate": "45deg",
-              },
-            ],
-            "width": 10,
-          },
-          Object {
-            "left": -5,
-          },
-        ]
-      }
-    />
+    <Svg
+      height={36}
+      preserveAspectRatio="xMidYMid meet"
+      viewBox="0 0 40 36"
+      width={40}
+    >
+      <Path
+        d="M0 8C0 3.58172 3.58172 0 8 0H32C36.4183 0 40 3.58172 40 8V20.6866C40 25.1049 36.4183 28.6866 32 28.6866H27.7778L20 36L12.2222 28.6866H8C3.58172 28.6866 0 25.1049 0 20.6866V8Z"
+        fill="#000000CC"
+      />
+    </Svg>
     <Text
       style={
         Object {
-          "color": "#FFFFFF",
+          "bottom": 0,
+          "color": "#FCFCFC",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 12,
           "fontWeight": "400",
+          "left": 0,
+          "paddingTop": 6,
+          "position": "absolute",
+          "right": 0,
+          "textAlign": "center",
+          "top": 0,
         }
       }
     >

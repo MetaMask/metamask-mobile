@@ -8,12 +8,12 @@ const mockStore = configureMockStore();
 const store = mockStore({});
 
 describe('Asset', () => {
-	it('should render correctly', () => {
-		const wrapper = shallow(
-			<Provider store={store}>
-				<Asset transactions={[]} />
-			</Provider>
-		);
-		expect(wrapper).toMatchSnapshot();
-	});
+  it('should render correctly', () => {
+    const wrapper = shallow(
+      <Provider store={store}>
+        <Asset transactions={[]} />
+      </Provider>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
 });

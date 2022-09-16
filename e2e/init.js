@@ -7,16 +7,16 @@ jest.setTimeout(2250000);
 jasmine.getEnv().addReporter(adapter);
 
 beforeAll(async () => {
-	await detox.init(config);
-	await device.launchApp();
+  await detox.init(config);
+  await device.launchApp();
 });
 
 beforeEach(async () => {
-	await adapter.beforeEach();
+  await adapter.beforeEach();
 });
 
 afterAll(async () => {
-	await adapter.afterAll();
-	await detox.cleanup();
-	jest.setTimeout(3000);
+  await adapter.afterAll();
+  await detox.cleanup();
+  jest.setTimeout(3000);
 });

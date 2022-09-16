@@ -2,9 +2,9 @@
 
 # MetaMask
 
-[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=develop)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
+[![CI](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/ci.yml) [![CLA](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml/badge.svg?branch=main)](https://github.com/MetaMask/metamask-mobile/actions/workflows/cla.yml)
 
-MetaMask is a mobile web browser that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
+MetaMask is a mobile wallet that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
 For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or [Medium](https://medium.com/metamask) pages.
 
@@ -12,7 +12,8 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 ## MetaMask Mobile
 
-### Building Locally
+
+### Environment Setup
 
 The code is built using React-Native and running code locally requires a Mac or Linux OS.
 
@@ -22,6 +23,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
+-   Install yarn
 -   Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
 
 -   Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
@@ -30,44 +32,15 @@ The code is built using React-Native and running code locally requires a Mac or 
 sudo gem install cocoapods
 ```
 
--   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
 
--   Clone this repo and install our dependencies:
-
-```bash
-git clone ...
-cd metamask-mobile
-yarn setup # not the usual install command, this will run a lengthy postinstall flow
-cd ios && pod install && cd .. # install pods for iOS
-```
-
--   _Non-MetaMask Only:_ In the project root folder run
-
-```
-  cp .ios.env.example .ios.env && \
-  cp .android.env.example .android.env && \
-  cp .js.env.example .js.env
-```
-
--   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
-
--   Then, in one terminal, run:
-
-```bash
-yarn watch
-```
+### Device Environment Setup
 
 #### Android
 
 -   Install the Android SDK, via [Android Studio](https://developer.android.com/studio).
     -   _MetaMask Only:_ To create production builds, you need to install Google Play Licensing Library via the SDK Manager in Android Studio.
 -   Install the Android NDK, via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-    -   In the SDK Manager, select the `SDK Tools` tab and install NDK version `17.2.4988734`. You'll need to click "Show Package Details" in order to select the appropriate version.
-        -   In the `android` directory, update the `local.properties` file by adding line:
-        ```
-        ndk.dir=/Users/YOUR_HOME_DIRECTORY/Library/Android/sdk/ndk/17.2.4988734
-        ```
-        _(You may have to create local.properties if it doesn't exist.)_
+    -   In the SDK Manager, select the `SDK Tools` tab and install NDK version `21.4.7075529`. You'll need to click "Show Package Details" in order to select the appropriate version.
 -   Linux only:
     -   Ensure that you have the `secret-tool` binary on your machine.
         -   Part of the [libsecret-tools](https://launchpad.net/ubuntu/bionic/+package/libsecret-tools) package on Debian/Ubuntu based distributions.
@@ -80,9 +53,6 @@ yarn watch
         -   **Device:** Google Pixel 3
 -   Finally, start the emulator from Android Studio, and run:
 
-```bash
-yarn start:android
-```
 
 #### iOS
 
@@ -93,9 +63,46 @@ yarn start:android
     -   **iOS OS Version:** Latest, unless told otherwise
     -   **Device:** iPhone 11 Pro
 
+
+
+### Building Locally
+
+-   Clone this repo:
+```bash
+git clone ...
+cd metamask-mobile
+```
+
+-   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
+-   _Non-MetaMask Only:_ In the project root folder run
+```
+  cp .ios.env.example .ios.env && \
+  cp .android.env.example .android.env && \
+  cp .js.env.example .js.env
+```
+-   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
+
+-   Install the app:
+```
+yarn setup # not the usual install command, this will run a lengthy postinstall flow
+cd ios && pod install && cd .. # install pods for iOS
+```
+
+-   Then, in one terminal, run:
+```bash
+yarn watch
+```
+
+#### Android
+```bash
+yarn start:android
+```
+
+#### iOS
 ```bash
 yarn start:ios
 ```
+
 
 #### Build Troubleshooting
 
@@ -130,43 +137,47 @@ First, make sure you have the following running:
 -   Your Android emulator or iOS simulator
 -   `yarn start:android` or `yarn start:ios`
 
-Next, check that the React Native Debugger is working:
+Next, install the [Flipper](https://fbflipper.com/) desktop app (verified working with v0.127.0)
 
--   Open your emulator or simulator, and select `Debug JS Remotely` (or something similar) from its developer menu
--   To open the developer menu:
-    -   iOS Simulator: `Cmd + D`
-    -   Android Emulator
-        -   macOS: `Cmd + M` - Windows, Linux: `Ctrl + M`
--   If it doesn't open automatically, try navigating to this URL in Chrome: http://localhost:8081/debugger-ui/
--   If these steps do not take you to the React Native Debugger, something is wrong
+-   Once Flipper is installed, configure your system as follows:
+    -   Install react-devtools: `npm i -g react-devtools@4.22.1`
+    -   Update Android SDK location settings by accessing Flipper's settings via the `Gear Icon` -> `Settings`
+        -   Example SDK path: `/Users/<USER_NAME>/Library/Android/sdk`
 
-#### Debugging iOS (macOS Only)
+Finally, check that the debugger is working:
 
-For more details, see [this page](https://medium.com/@mattcroak718/debugging-your-iphone-mobile-web-app-using-safari-development-tools-71240657c487).
+-   Open your emulator or simulator alongside the Flipper app
+-   Flipper should auto-detect the device and the application to debug
+-   You should now be able to access features such as `Logs`
 
--   You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
--   To debug a website (dapp) in the browser:
-    -   Navigate to the website in the app's browser
-    -   Open Safari
-        -   Go to: _Preferences -> Advanced_ and select `Show Develop menu in menu bar`
-    -   Select `Develop` in the menu bar
-        -   Find your simulator in the second section from the top
-        -   Select the relevant WebView from the list
-            -   The simulator will highlight the WebView when you hover over it in Safari
+#### Debugging Physical iOS devices
 
-#### Debugging Android
+-   Debugging physical iOS devices requires `idb` to be installed, which consists of 2 parts
+-   Install the two idb parts:
+    1. `brew tap facebook/fb` & `brew install idb-companion`
+    2. `pip3.9 install fb-idb` (This step may require that you install python3 via `python -m pip3 install --upgrade pip`)
 
-For more details, see [this page](https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews).
+#### Debug a website inside the WebView (in-app browser)
 
--   You should be able to inspect the mobile app using the console in the React Native Debugger in Chrome
--   To debug a website (dapp) in the browser:
-    -   Navigate to the website in the app's browser
-    -   Go to chrome://inspect
-    -   Select the relevant WebView under **Remote Target**
+Android
+
+-   Run the app in debug mode (for example, in a simulator)
+-   Open Chrome on your desktop
+-   Go to `chrome://inspect/#devices`
+-   Look for the device and click inspect
+
+iOS
+
+-   Run the app in debug mode (for example, in a simulator)
+-   Open Safari on your desktop
+-   Go to the menu Develop -> [Your device] -> [Website]
+
+You should see the console for the website that is running inside the WebView
 
 #### Miscellaneous
 
 -   [Troubleshooting for React Native](https://facebook.github.io/react-native/docs/troubleshooting#content)
+-   [Flipper Documentation](https://fbflipper.com/docs/features/react-native/)
 
 ### Running Tests
 
@@ -194,12 +205,16 @@ yarn test:e2e:android
 
 Whenever you change dependencies (adding, removing, or updating, either in `package.json` or `yarn.lock`), there are various files that must be kept up-to-date.
 
-* `yarn.lock`:
-  * Run `yarn setup` again after your changes to ensure `yarn.lock` has been properly updated.
-* The `allow-scripts` configuration in `package.json`
-  * Run `yarn allow-scripts auto` to update the `allow-scripts` configuration automatically. This config determines whether the package's install/postinstall scripts are allowed to run. Review each new package to determine whether the install script needs to run or not, testing if necessary.
-  * Unfortunately, `yarn allow-scripts auto` will behave inconsistently on different platforms. macOS and Windows users may see extraneous changes relating to optional dependencies.
+-   `yarn.lock`:
+    -   Run `yarn setup` again after your changes to ensure `yarn.lock` has been properly updated.
+-   The `allow-scripts` configuration in `package.json`
+    -   Run `yarn allow-scripts auto` to update the `allow-scripts` configuration automatically. This config determines whether the package's install/postinstall scripts are allowed to run. Review each new package to determine whether the install script needs to run or not, testing if necessary.
+    -   Unfortunately, `yarn allow-scripts auto` will behave inconsistently on different platforms. macOS and Windows users may see extraneous changes relating to optional dependencies.
 
 ### Architecture
 
-To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/develop/architecture.svg).
+To get a better understanding of the internal architecture of this app take a look at [this diagram](https://github.com/MetaMask/metamask-mobile/blob/main/architecture.svg).
+
+### Storybook
+
+We have begun documenting our components using storybook please read the [Documentation Guidelines](./storybook/DOCUMENTATION_GUIDELINES.md) to get up and running.

@@ -1,14 +1,14 @@
 package io.metamask;
 
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.ReactFragmentActivity;
+import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactRootView;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import io.branch.rnbranch.*;
-
 import android.content.Intent;
+
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 
 import org.devio.rn.splashscreen.SplashScreen;
 
-public class MainActivity extends ReactFragmentActivity {
+public class MainActivity extends ReactActivity {
 
 	/**
 	* Returns the name of the main component registered from JavaScript. This is used to schedule
@@ -34,6 +34,7 @@ public class MainActivity extends ReactFragmentActivity {
 	protected void onStart() {
 		super.onStart();
 		RNBranchModule.initSession(getIntent().getData(), this);
+
 		try{
 			ApplicationInfo ai = this.getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
 			String mixpanelToken = (String)ai.metaData.get("com.mixpanel.android.mpmetrics.MixpanelAPI.token");
@@ -41,18 +42,22 @@ public class MainActivity extends ReactFragmentActivity {
 		}catch (PackageManager.NameNotFoundException e){
 			Log.d("RCTAnalytics","init:token missing");
 		}
-
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		SplashScreen.show(this); 
+		SplashScreen.show(this);
 		super.onCreate(null);
 	}
+
 	@Override
 	public void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
-		setIntent(intent);
+		if (intent != null &&
+			intent.hasExtra("branch_force_new_session") && 
+			intent.getBooleanExtra("branch_force_new_session",false)) {
+				RNBranchModule.onNewIntent(intent);
+		}
 	}
 
 	@Override

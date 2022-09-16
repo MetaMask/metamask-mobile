@@ -1,0 +1,96 @@
+diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
+index edadad2..2cadd4f 100644
+--- a/node_modules/react-native/ReactAndroid/build.gradle
++++ b/node_modules/react-native/ReactAndroid/build.gradle
+@@ -440,15 +440,11 @@ task installArchives {
+ }
+ 
+ android {
+-    compileSdkVersion 30
+-    ndkVersion ANDROID_NDK_VERSION
+-    if (ANDROID_NDK_PATH != null) {
+-        ndkPath ANDROID_NDK_PATH
+-    }
++    compileSdkVersion rootProject.ext.compileSdkVersion
+ 
+     defaultConfig {
+-        minSdkVersion(21)
+-        targetSdkVersion(28)
++        minSdkVersion rootProject.ext.minSdkVersion
++		targetSdkVersion rootProject.ext.targetSdkVersion
+         versionCode(1)
+         versionName("1.0")
+ 
+diff --git a/node_modules/react-native/ReactAndroid/gradle.properties b/node_modules/react-native/ReactAndroid/gradle.properties
+index 857a818..c465984 100644
+--- a/node_modules/react-native/ReactAndroid/gradle.properties
++++ b/node_modules/react-native/ReactAndroid/gradle.properties
+@@ -13,7 +13,7 @@ JUNIT_VERSION=4.12
+ ANDROIDX_TEST_VERSION=1.1.0
+ FRESCO_VERSION=2.5.0
+ OKHTTP_VERSION=4.9.1
+-SO_LOADER_VERSION=0.10.1
++SO_LOADER_VERSION=0.10.4
+ 
+ BOOST_VERSION=1_63_0
+ DOUBLE_CONVERSION_VERSION=1.1.6
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+index 84d5942..a850092 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+@@ -31,6 +31,7 @@ import android.view.KeyEvent;
+ import android.view.MotionEvent;
+ import android.view.View;
+ import android.view.accessibility.AccessibilityNodeInfo;
++import android.view.inputmethod.BaseInputConnection;
+ import android.view.inputmethod.EditorInfo;
+ import android.view.inputmethod.InputConnection;
+ import android.view.inputmethod.InputMethodManager;
+@@ -89,6 +90,16 @@ public class ReactEditText extends AppCompatEditText
+   /** A count of events sent to JS or C++. */
+   protected int mNativeEventCount;
+ 
++  /**
++   * Taken from EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING We can't use that
++   * value directly as it was only added on Oreo, but we can apply the value
++   * anyway.
++   */
++  private static final int IME_FLAG_NO_PERSONALIZED_LEARNING = 0x1000000;
++  /** Samsung Manufacturer Name */
++  private static final String SAMSUNG_MANUFACTURER_NAME = "samsung";
++  /** Samsung Device Check */
++  private static final Boolean IS_SAMSUNG_DEVICE = Build.MANUFACTURER.equals(SAMSUNG_MANUFACTURER_NAME);
+   private static final int UNSET = -1;
+ 
+   private @Nullable ArrayList<TextWatcher> mListeners;
+@@ -246,11 +257,25 @@ public class ReactEditText extends AppCompatEditText
+   @Override
+   public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+     ReactContext reactContext = getReactContext(this);
+-    InputConnection inputConnection = super.onCreateInputConnection(outAttrs);
+-    if (inputConnection != null && mOnKeyPress) {
+-      inputConnection =
+-          new ReactEditTextInputConnectionWrapper(
+-              inputConnection, reactContext, this, mEventDispatcher);
++    
++    InputConnection inputConnection;
++    // Don't apply learning flag on Samsung devices. Samsung Keyboards do not
++    // support incognito mode.
++    if (IS_SAMSUNG_DEVICE) {
++      // Default React-Native implementation
++      inputConnection = super.onCreateInputConnection(outAttrs);
++      if (isMultiline() && getBlurOnSubmit()) {
++        // Remove IME_FLAG_NO_ENTER_ACTION to keep the original IME_OPTION
++        outAttrs.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
++      }
++    } else {
++      inputConnection = new BaseInputConnection(this, false);
++      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
++        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
++      } else {
++        // Cover OS versions below Oreo
++        outAttrs.imeOptions = IME_FLAG_NO_PERSONALIZED_LEARNING;
++      }
+     }
+ 
+     if (isMultiline() && getBlurOnSubmit()) {

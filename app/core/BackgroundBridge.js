@@ -2,15 +2,25 @@
 import URL from 'url-parse';
 import { NetworksChainId } from '@metamask/controllers';
 import { JsonRpcEngine } from 'json-rpc-engine';
-import { JS_POST_MESSAGE_TO_PROVIDER, JS_IFRAME_POST_MESSAGE_TO_PROVIDER } from '../util/browserScripts';
+import {
+  JS_POST_MESSAGE_TO_PROVIDER,
+  JS_IFRAME_POST_MESSAGE_TO_PROVIDER,
+} from '../util/browserScripts';
 import MobilePortStream from './MobilePortStream';
 import { setupMultiplex } from '../util/streams';
-import { createOriginMiddleware, createLoggerMiddleware } from '../util/middlewares';
+import {
+  createOriginMiddleware,
+  createLoggerMiddleware,
+} from '../util/middlewares';
 import Engine from './Engine';
 import { getAllNetworks } from '../util/networks';
 import Logger from '../util/Logger';
 import AppConstants from './AppConstants';
 import { createEngineStream } from 'json-rpc-middleware-stream';
+import {
+  createSwappableProxy,
+  createEventEmitterProxy,
+} from 'swappable-obj-proxy';
 
 const createFilterMiddleware = require('eth-json-rpc-filters');
 const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
@@ -25,217 +35,331 @@ const { NOTIFICATION_NAMES } = AppConstants;
  */
 
 class Port extends EventEmitter {
-	constructor(window, isMainFrame) {
-		super();
-		this._window = window;
-		this._isMainFrame = isMainFrame;
-	}
+  constructor(window, isMainFrame) {
+    super();
+    this._window = window;
+    this._isMainFrame = isMainFrame;
+  }
 
-	postMessage = (msg, origin = '*') => {
-		const js = this._isMainFrame
-			? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
-			: JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
-		if (this._window.webViewRef && this._window.webViewRef.current) {
-			this._window && this._window.injectJavaScript(js);
-		}
-	};
+  postMessage = (msg, origin = '*') => {
+    const js = this._isMainFrame
+      ? JS_POST_MESSAGE_TO_PROVIDER(msg, origin)
+      : JS_IFRAME_POST_MESSAGE_TO_PROVIDER(msg, origin);
+    if (this._window.webViewRef && this._window.webViewRef.current) {
+      this._window && this._window.injectJavaScript(js);
+    }
+  };
+}
+
+class WalletConnectPort extends EventEmitter {
+  constructor(wcRequestActions) {
+    super();
+    this._wcRequestActions = wcRequestActions;
+  }
+
+  postMessage = (msg) => {
+    try {
+      if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
+        const { selectedAddress } = Engine.datamodel.flatState;
+        this._wcRequestActions?.updateSession?.({
+          chainId: parseInt(msg.data.params.chainId, 16),
+          accounts: [selectedAddress],
+        });
+      } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
+        const chainId = Engine.context.NetworkController.state.provider.chainId;
+        this._wcRequestActions?.updateSession?.({
+          chainId: parseInt(chainId, 10),
+          accounts: msg.data.params,
+        });
+      } else if (msg?.data?.method === NOTIFICATION_NAMES.unlockStateChanged) {
+        // WC DOESN'T NEED THIS EVENT
+      } else if (msg?.data?.error) {
+        this._wcRequestActions?.rejectRequest?.({
+          id: msg.data.id,
+          error: msg.data.error,
+        });
+      } else {
+        this._wcRequestActions?.approveRequest?.({
+          id: msg.data.id,
+          result: msg.data.result,
+        });
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  };
 }
 
 export class BackgroundBridge extends EventEmitter {
-	constructor({ webview, url, getRpcMethodMiddleware, isMainFrame }) {
-		super();
-		this.url = url;
-		this.hostname = new URL(url).hostname;
-		this.isMainFrame = isMainFrame;
-		this._webviewRef = webview && webview.current;
+  constructor({
+    webview,
+    url,
+    getRpcMethodMiddleware,
+    isMainFrame,
+    isWalletConnect,
+    wcRequestActions,
+  }) {
+    super();
+    this.url = url;
+    this.hostname = new URL(url).hostname;
+    this.isMainFrame = isMainFrame;
+    this.isWalletConnect = isWalletConnect;
+    this._webviewRef = webview && webview.current;
+    this.disconnected = false;
 
-		this.createMiddleware = getRpcMethodMiddleware;
-		this.provider = Engine.context.NetworkController.provider;
-		this.blockTracker = this.provider._blockTracker;
-		this.port = new Port(this._webviewRef, isMainFrame);
+    this.createMiddleware = getRpcMethodMiddleware;
 
-		this.engine = null;
+    const provider = Engine.context.NetworkController.provider;
+    const blockTracker = provider._blockTracker;
 
-		this.chainIdSent = Engine.context.NetworkController.state.provider.chainId;
-		this.networkVersionSent = Engine.context.NetworkController.state.network;
+    // provider and block tracker proxies - because the network changes
+    this._providerProxy = null;
+    this._blockTrackerProxy = null;
 
-		const portStream = new MobilePortStream(this.port, url);
-		// setup multiplexing
-		const mux = setupMultiplex(portStream);
-		// connect features
-		this.setupProviderConnection(mux.createStream('metamask-provider'));
+    this.setProviderAndBlockTracker({ provider, blockTracker });
 
-		Engine.context.NetworkController.subscribe(this.sendStateUpdate);
-		Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
+    this.port = this.isWalletConnect
+      ? new WalletConnectPort(wcRequestActions)
+      : new Port(this._webviewRef, isMainFrame);
 
-		Engine.context.KeyringController.onLock(this.onLock.bind(this));
-		Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
+    this.engine = null;
 
-		this.on('update', this.onStateUpdate);
-	}
+    this.chainIdSent = Engine.context.NetworkController.state.provider.chainId;
+    this.networkVersionSent = Engine.context.NetworkController.state.network;
 
-	onUnlock() {
-		this.sendNotification({
-			method: NOTIFICATION_NAMES.unlockStateChanged,
-			params: true,
-		});
-	}
+    // This will only be used for WalletConnect for now
+    this.addressSent =
+      Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
 
-	onLock() {
-		this.sendNotification({
-			method: NOTIFICATION_NAMES.unlockStateChanged,
-			params: false,
-		});
-	}
+    const portStream = new MobilePortStream(this.port, url);
+    // setup multiplexing
+    const mux = setupMultiplex(portStream);
+    // connect features
+    this.setupProviderConnection(
+      mux.createStream(
+        isWalletConnect ? 'walletconnect-provider' : 'metamask-provider',
+      ),
+    );
 
-	getProviderNetworkState({ network }) {
-		const networkType = Engine.context.NetworkController.state.provider.type;
-		const networkProvider = Engine.context.NetworkController.state.provider;
+    Engine.context.NetworkController.subscribe(this.sendStateUpdate);
+    Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 
-		const isInitialNetwork = networkType && getAllNetworks().includes(networkType);
-		let chainId;
+    Engine.context.KeyringController.onLock(this.onLock.bind(this));
+    Engine.context.KeyringController.onUnlock(this.onUnlock.bind(this));
 
-		if (isInitialNetwork) {
-			chainId = NetworksChainId[networkType];
-		} else if (networkType === 'rpc') {
-			chainId = networkProvider.chainId;
-		}
-		if (chainId && !chainId.startsWith('0x')) {
-			// Convert to hex
-			chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-		}
+    this.on('update', this.onStateUpdate);
+  }
 
-		const result = {
-			networkVersion: network,
-			chainId,
-		};
-		return result;
-	}
+  setProviderAndBlockTracker({ provider, blockTracker }) {
+    // update or intialize proxies
+    if (this._providerProxy) {
+      this._providerProxy.setTarget(provider);
+    } else {
+      this._providerProxy = createSwappableProxy(provider);
+    }
+    if (this._blockTrackerProxy) {
+      this._blockTrackerProxy.setTarget(blockTracker);
+    } else {
+      this._blockTrackerProxy = createEventEmitterProxy(blockTracker, {
+        eventFilter: 'skipInternal',
+      });
+    }
+    // set new provider and blockTracker
+    this.provider = provider;
+    this.blockTracker = blockTracker;
+  }
 
-	onStateUpdate(memState) {
-		if (!memState) {
-			memState = this.getState();
-		}
-		const publicState = this.getProviderNetworkState(memState);
+  onUnlock() {
+    // TODO UNSUBSCRIBE EVENT INSTEAD
+    if (this.disconnected) return;
 
-		// Check if update already sent
-		if (
-			this.chainIdSent !== publicState.chainId &&
-			this.networkVersionSent !== publicState.networkVersion &&
-			publicState.networkVersion !== 'loading'
-		) {
-			this.chainIdSent = publicState.chainId;
-			this.networkVersionSent = publicState.networkVersion;
-			this.sendNotification({
-				method: NOTIFICATION_NAMES.chainChanged,
-				params: publicState,
-			});
-		}
-	}
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.unlockStateChanged,
+      params: true,
+    });
+  }
 
-	isUnlocked() {
-		return Engine.context.KeyringController.isUnlocked();
-	}
+  onLock() {
+    // TODO UNSUBSCRIBE EVENT INSTEAD
+    if (this.disconnected) return;
 
-	getProviderState() {
-		const memState = this.getState();
-		return {
-			isUnlocked: this.isUnlocked(),
-			...this.getProviderNetworkState(memState),
-		};
-	}
+    this.sendNotification({
+      method: NOTIFICATION_NAMES.unlockStateChanged,
+      params: false,
+    });
+  }
 
-	sendStateUpdate = () => {
-		this.emit('update');
-	};
+  getProviderNetworkState({ network }) {
+    const networkType = Engine.context.NetworkController.state.provider.type;
+    const networkProvider = Engine.context.NetworkController.state.provider;
 
-	onMessage = (msg) => {
-		this.port.emit('message', { name: msg.name, data: msg.data });
-	};
+    const isInitialNetwork =
+      networkType && getAllNetworks().includes(networkType);
+    let chainId;
 
-	onDisconnect = () => {
-		this.port.emit('disconnect', { name: this.port.name, data: null });
-	};
+    if (isInitialNetwork) {
+      chainId = NetworksChainId[networkType];
+    } else if (networkType === 'rpc') {
+      chainId = networkProvider.chainId;
+    }
+    if (chainId && !chainId.startsWith('0x')) {
+      // Convert to hex
+      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    }
 
-	/**
-	 * A method for serving our ethereum provider over a given stream.
-	 * @param {*} outStream - The stream to provide over.
-	 */
-	setupProviderConnection(outStream) {
-		this.engine = this.setupProviderEngine();
+    const result = {
+      networkVersion: network,
+      chainId,
+    };
+    return result;
+  }
 
-		// setup connection
-		const providerStream = createEngineStream({ engine: this.engine });
+  onStateUpdate(memState) {
+    const provider = Engine.context.NetworkController.provider;
+    const blockTracker = provider._blockTracker;
+    this.setProviderAndBlockTracker({ provider, blockTracker });
+    if (!memState) {
+      memState = this.getState();
+    }
+    const publicState = this.getProviderNetworkState(memState);
 
-		pump(outStream, providerStream, outStream, (err) => {
-			// handle any middleware cleanup
-			this.engine._middleware.forEach((mid) => {
-				if (mid.destroy && typeof mid.destroy === 'function') {
-					mid.destroy();
-				}
-			});
-			if (err) Logger.log('Error with provider stream conn', err);
-		});
-	}
+    // Check if update already sent
+    if (
+      this.chainIdSent !== publicState.chainId &&
+      this.networkVersionSent !== publicState.networkVersion &&
+      publicState.networkVersion !== 'loading'
+    ) {
+      this.chainIdSent = publicState.chainId;
+      this.networkVersionSent = publicState.networkVersion;
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.chainChanged,
+        params: publicState,
+      });
+    }
 
-	/**
-	 * A method for creating a provider that is safely restricted for the requesting domain.
-	 **/
-	setupProviderEngine() {
-		const origin = this.hostname;
-		// setup json rpc engine stack
-		const engine = new JsonRpcEngine();
-		const provider = this.provider;
+    // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
+    if (this.isWalletConnect) {
+      if (this.addressSent !== memState.selectedAddress) {
+        this.addressSent = memState.selectedAddress;
+        this.sendNotification({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: [memState.selectedAddress],
+        });
+      }
+    }
+  }
 
-		const blockTracker = this.blockTracker;
+  isUnlocked() {
+    return Engine.context.KeyringController.isUnlocked();
+  }
 
-		// create filter polyfill middleware
-		const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
+  getProviderState() {
+    const memState = this.getState();
+    return {
+      isUnlocked: this.isUnlocked(),
+      ...this.getProviderNetworkState(memState),
+    };
+  }
 
-		// create subscription polyfill middleware
-		const subscriptionManager = createSubscriptionManager({ provider, blockTracker });
-		subscriptionManager.events.on('notification', (message) => engine.emit('notification', message));
+  sendStateUpdate = () => {
+    this.emit('update');
+  };
 
-		// metadata
-		engine.push(createOriginMiddleware({ origin }));
-		engine.push(createLoggerMiddleware({ origin }));
-		// filter and subscription polyfills
-		engine.push(filterMiddleware);
-		engine.push(subscriptionManager.middleware);
-		// watch asset
+  onMessage = (msg) => {
+    this.port.emit('message', { name: msg.name, data: msg.data });
+  };
 
-		// user-facing RPC methods
-		engine.push(
-			this.createMiddleware({
-				hostname: this.hostname,
-				getProviderState: this.getProviderState.bind(this),
-			})
-		);
+  onDisconnect = () => {
+    this.disconnected = true;
+    Engine.context.NetworkController.unsubscribe(this.sendStateUpdate);
+    Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
+    this.port.emit('disconnect', { name: this.port.name, data: null });
+  };
 
-		// forward to metamask primary provider
-		engine.push(providerAsMiddleware(provider));
-		return engine;
-	}
+  /**
+   * A method for serving our ethereum provider over a given stream.
+   * @param {*} outStream - The stream to provide over.
+   */
+  setupProviderConnection(outStream) {
+    this.engine = this.setupProviderEngine();
 
-	sendNotification(payload) {
-		this.engine && this.engine.emit('notification', payload);
-	}
+    // setup connection
+    const providerStream = createEngineStream({ engine: this.engine });
 
-	/**
-	 * The metamask-state of the various controllers, made available to the UI
-	 *
-	 * @returns {Object} status
-	 */
-	getState() {
-		const vault = Engine.context.KeyringController.state.vault;
-		const { network, selectedAddress } = Engine.datamodel.flatState;
-		return {
-			isInitialized: !!vault,
-			isUnlocked: true,
-			network,
-			selectedAddress,
-		};
-	}
+    pump(outStream, providerStream, outStream, (err) => {
+      // handle any middleware cleanup
+      this.engine._middleware.forEach((mid) => {
+        if (mid.destroy && typeof mid.destroy === 'function') {
+          mid.destroy();
+        }
+      });
+      if (err) Logger.log('Error with provider stream conn', err);
+    });
+  }
+
+  /**
+   * A method for creating a provider that is safely restricted for the requesting domain.
+   **/
+  setupProviderEngine() {
+    const origin = this.hostname;
+    // setup json rpc engine stack
+    const engine = new JsonRpcEngine();
+    const provider = this._providerProxy;
+
+    const blockTracker = this._blockTrackerProxy;
+
+    // create filter polyfill middleware
+    const filterMiddleware = createFilterMiddleware({ provider, blockTracker });
+
+    // create subscription polyfill middleware
+    const subscriptionManager = createSubscriptionManager({
+      provider,
+      blockTracker,
+    });
+    subscriptionManager.events.on('notification', (message) =>
+      engine.emit('notification', message),
+    );
+
+    // metadata
+    engine.push(createOriginMiddleware({ origin }));
+    engine.push(createLoggerMiddleware({ origin }));
+    // filter and subscription polyfills
+    engine.push(filterMiddleware);
+    engine.push(subscriptionManager.middleware);
+    // watch asset
+
+    // user-facing RPC methods
+    engine.push(
+      this.createMiddleware({
+        hostname: this.hostname,
+        getProviderState: this.getProviderState.bind(this),
+      }),
+    );
+
+    // forward to metamask primary provider
+    engine.push(providerAsMiddleware(provider));
+    return engine;
+  }
+
+  sendNotification(payload) {
+    this.engine && this.engine.emit('notification', payload);
+  }
+
+  /**
+   * The metamask-state of the various controllers, made available to the UI
+   *
+   * @returns {Object} status
+   */
+  getState() {
+    const vault = Engine.context.KeyringController.state.vault;
+    const { network, selectedAddress } = Engine.datamodel.flatState;
+    return {
+      isInitialized: !!vault,
+      isUnlocked: true,
+      network,
+      selectedAddress,
+    };
+  }
 }
 
 export default BackgroundBridge;

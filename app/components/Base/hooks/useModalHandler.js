@@ -14,12 +14,12 @@ import { useCallback, useState } from 'react';
  * @return {Handlers} Handlers `[isVisible, toggleModal, showModal, hideModal]`
  */
 function useModalHandler(initialState = false) {
-	const [isVisible, setVisible] = useState(initialState);
+  const [isVisible, setVisible] = useState(initialState);
 
-	const showModal = useCallback(() => setVisible(true), []);
-	const hideModal = useCallback(() => setVisible(false), []);
-	const toggleModal = useCallback(() => setVisible((visible) => !visible), []);
+  const showModal = useCallback(() => setVisible(true), []);
+  const hideModal = useCallback(() => setVisible(false), []);
+  const toggleModal = useCallback(() => setVisible((visible) => !visible), []);
 
-	return [isVisible, toggleModal, showModal, hideModal];
+  return [isVisible, toggleModal, showModal, hideModal];
 }
 export default useModalHandler;

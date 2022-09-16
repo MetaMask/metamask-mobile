@@ -49,11 +49,11 @@ do
 	if [[ "$OSTYPE" == "linux-gnu" ]]
 	then
 		# shellcheck disable=SC1004
-		sed -i'' '/## Current Develop Branch/a\
+		sed -i'' '/## Current Main Branch/a\
 - '"$prefix$description"''$'\n' CHANGELOG.md
 	else
 		# shellcheck disable=SC1004
-		sed -i '' '/## Current Develop Branch/a\
+		sed -i '' '/## Current Main Branch/a\
 - '"$prefix$description"''$'\n' CHANGELOG.md
 	fi
 done
