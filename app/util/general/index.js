@@ -1,3 +1,5 @@
+import URL from 'url-parse';
+
 export const tlc = (str) => str?.toLowerCase?.();
 
 /**
@@ -78,5 +80,19 @@ export const renderShortText = (text, chars = 4) => {
     return `${text.substr(0, chars + 2)}...${text.substr(-chars)}`;
   } catch {
     return text;
+  }
+};
+
+/**
+ * Method to retrieve the communication protocol from an URL.
+ * @param {string} url - URL input.
+ * @returns {string | undefined} string representing the protocol or 'undefined' if no protocol is extracted.
+ */
+export const getURLProtocol = (url) => {
+  try {
+    const { protocol } = new URL(url);
+    return protocol.replace(':', '');
+  } catch {
+    return;
   }
 };

@@ -3,7 +3,7 @@ import Enzyme from 'enzyme';
 import Engine from '../core/Engine';
 import NotificationManager from '../core/NotificationManager';
 import { NativeModules } from 'react-native';
-import mockAsyncStorage from '../../node_modules/@react-native-community/async-storage/jest/async-storage-mock';
+import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
 import * as themeUtils from './theme';
@@ -117,7 +117,10 @@ jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 );
 jest.mock('react-native-background-timer', () => 'RNBackgroundTimer');
-jest.mock('@react-native-community/async-storage', () => mockAsyncStorage);
+jest.mock(
+  '@react-native-async-storage/async-storage',
+  () => mockRNAsyncStorage,
+);
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 jest.mock('react-native-detector', () => ({
   addScreenshotListener: jest.fn(),

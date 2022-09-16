@@ -28,7 +28,7 @@ import {
   NEXT_MAKER_REMINDER,
   TRUE,
 } from '../../../constants/storage';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';

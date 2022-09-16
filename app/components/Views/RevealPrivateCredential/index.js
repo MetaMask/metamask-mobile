@@ -12,6 +12,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PropTypes from 'prop-types';
 import QRCode from 'react-native-qrcode-svg';
 import ScrollableTabView, {
@@ -19,7 +20,6 @@ import ScrollableTabView, {
 } from 'react-native-scrollable-tab-view';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import { connect } from 'react-redux';
-import AsyncStorage from '@react-native-community/async-storage';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
