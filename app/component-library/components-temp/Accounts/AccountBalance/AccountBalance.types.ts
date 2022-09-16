@@ -1,3 +1,7 @@
 import { AccountBaseProps } from '../AccountBase/AccountBase.types';
+// External dependencies.
+import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
-export type AccountBalanceProps = AccountBaseProps;
+export interface AccountBalanceProps extends AccountBaseProps {
+  badgeProps?: BadgeProps;
+}

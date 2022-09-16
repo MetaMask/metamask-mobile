@@ -2,6 +2,7 @@ import React from 'react';
 import { AccountBalanceProps } from './AccountBalance.types';
 import CellDisplayContainer from '../../../components/Cells/Cell/foundation/CellDisplayContainer';
 import AccountBase from '../AccountBase/AccountBase';
+import { ACCOUNT_BALANCE_TEST_ID } from './AccountBalance.constants';
 
 const AvatarBalance = ({
   accountBalance,
@@ -10,6 +11,7 @@ const AvatarBalance = ({
   accountType,
   accountBalanceLabel,
   avatarProps,
+  badgeProps,
 }: AccountBalanceProps) => (
   <CellDisplayContainer
     style={{
@@ -17,6 +19,7 @@ const AvatarBalance = ({
       justifyContent: 'space-between',
       marginHorizontal: 10,
     }}
+    testID={ACCOUNT_BALANCE_TEST_ID}
   >
     <AccountBase
       accountBalance={accountBalance}
@@ -25,6 +28,7 @@ const AvatarBalance = ({
       accountType={accountType}
       accountBalanceLabel={accountBalanceLabel}
       avatarProps={avatarProps}
+      badgeProps={badgeProps}
     />
   </CellDisplayContainer>
 );

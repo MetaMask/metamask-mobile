@@ -1,12 +1,12 @@
 import React from 'react';
 import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
-import Avatar from '../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Text';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import AvatarAccount from '../../../../component-library/components/Avatars/AvatarAccount';
 import { ACCOUNT_BALANCE_AVATAR_TEST_ID } from './AccountBase.constants';
-import { AvatarBaseSize } from '../../../../component-library/components/Avatars/AvatarBase';
 
 const AccountBase = ({
   accountBalance,
@@ -15,15 +15,20 @@ const AccountBase = ({
   accountType,
   accountBalanceLabel,
   avatarProps,
-}: AccountBaseProps) => (
+  badgeProps,
+}: AccountBaseProps): JSX.Element => (
   <>
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-      <Avatar
-        style={{ marginRight: 8 }}
-        testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
-        {...avatarProps}
-        size={AvatarBaseSize.Md}
-      />
+      <BadgeWrapper
+        badgeProps={badgeProps}
+        style={{ marginRight: 8, alignSelf: 'center' }}
+      >
+        <AvatarAccount
+          testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
+          accountAddress={avatarProps?.accountAddress}
+        />
+      </BadgeWrapper>
+
       <View>
         <Text variant={TextVariant.sBodySM}>{accountNetwork}</Text>
         <Text variant={TextVariant.lBodySMBold}>{accountType}</Text>
@@ -39,5 +44,4 @@ const AccountBase = ({
     </View>
   </>
 );
-
 export default AccountBase;

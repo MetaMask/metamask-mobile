@@ -9,19 +9,24 @@ import {
   ACCOUNT_NETWORK,
   ACCOUNT_TYPE,
   TEST_ACCOUNT_ADDRESS,
+  TEST_NETWORK_NAME,
+  TEST_REMOTE_IMAGE_SOURCE,
 } from './AccountBalance.constants';
 import {
   AvatarProps,
   AvatarVariants,
 } from '../../../components/Avatars/Avatar.types';
+import {
+  BadgeProps,
+  BadgeVariants,
+} from '../../../components/Badges/Badge/Badge.types';
 import { AvatarAccountType } from '../../../components/Avatars/AvatarAccount';
 
 // Internal dependencies.
 import AccountBalance from './AccountBalance';
 
 storiesOf('Component Library / Account', module).add('With balance', () => {
-  let avatarProps: AvatarProps;
-  avatarProps = {
+  const avatarProps: AvatarProps = {
     variant: AvatarVariants.Account,
     accountAddress: TEST_ACCOUNT_ADDRESS,
     type: AvatarAccountType.JazzIcon,
@@ -38,6 +43,12 @@ storiesOf('Component Library / Account', module).add('With balance', () => {
     ACCOUNT_BALANCE_LABEL,
   );
 
+  const badgeProps: BadgeProps = {
+    variant: BadgeVariants.Network,
+    name: TEST_NETWORK_NAME,
+    imageSource: TEST_REMOTE_IMAGE_SOURCE,
+  };
+
   return (
     <AccountBalance
       accountNetwork={accountNetwork}
@@ -46,6 +57,7 @@ storiesOf('Component Library / Account', module).add('With balance', () => {
       accountNativeCurrency={accountNativeCurrency}
       accountBalanceLabel={accountBalanceLabel}
       avatarProps={avatarProps}
+      badgeProps={badgeProps}
     />
   );
 });
