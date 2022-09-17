@@ -13416,10 +13416,10 @@ octal@^1.0.0:
   resolved "https://registry.yarnpkg.com/octal/-/octal-1.0.0.tgz#63e7162a68efbeb9e213588d58e989d1e5c4530b"
   integrity sha1-Y+cWKmjvvrniE1iNWOmJ0eXEUws=
 
-octonode@0.9.5:
-  version "0.9.5"
-  resolved "https://registry.yarnpkg.com/octonode/-/octonode-0.9.5.tgz#0237ea289a2d6642068f6383a420bf97cfca993e"
-  integrity sha512-l+aX9jNVkaagh7u/q2QpNKdL8XUagdztl+ebXxBRU6FJ1tpRxAH/ygIuWh0h7eS491BsyH6bb0QZIQEC2+u5oA==
+octonode@0.10.2:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/octonode/-/octonode-0.10.2.tgz#2b773866f44f03a2c544741d9b0df2d2c1b4f0cf"
+  integrity sha512-lxKJxAvrw3BuM0Wu3A/TRyFkYxMFWbMm8p7fDO3EoG9KDgOy53d91bjlGR1mmNk1EoF5LjGBx7BmIB+PfmMKLQ==
   dependencies:
     bluebird "^3.5.0"
     deep-extend "^0.6.0"
