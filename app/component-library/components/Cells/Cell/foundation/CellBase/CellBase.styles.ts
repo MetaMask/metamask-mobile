@@ -21,10 +21,12 @@ const styleSheet = (params: { theme: Theme; vars: CellBaseStyleSheetVars }) => {
   const { style } = vars;
 
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
-    cellBase: {
-      flexDirection: 'row',
-    },
+    cellBase: Object.assign(
+      {
+        flexDirection: 'row',
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
     avatar: {
       marginRight: 16,
     },
