@@ -270,7 +270,7 @@ class AdvancedSettings extends PureComponent {
     try {
       const data = generateStateLogs(fullState);
 
-      let url = `data:text/plain;base64,${Buffer.from(data, 'base64')}`;
+      let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
       // // Android accepts attachements as BASE64
       if (Device.isIos()) {
         await RNFS.writeFile(path, data, 'utf8');
