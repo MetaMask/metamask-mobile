@@ -1,6 +1,7 @@
 import { config } from '../wdio.conf';
 
 // Appium capabilities
+// https://appium.io/docs/en/writing-running-appium/caps/
 config.capabilities = [
   {
     platformName: 'Android',
@@ -12,7 +13,7 @@ config.capabilities = [
     app: '../android/app/build/outputs/apk/debug/app-debug.apk',
     // appPackage: 'io.metamask',
     // appActivity: '.MainActivity',
-    automationName: 'uiautomator2',
+    automationName: 'uiautomator2'
   },
 ];
 

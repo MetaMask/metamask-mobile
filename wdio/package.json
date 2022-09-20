@@ -22,8 +22,9 @@
         "wdio-vscode-service": "^0.1.5"
     },
     "scripts": {
-        "wdio": "wdio run wdio.conf.js",
-        "android": "wdio ./config/android.config.js",
-        "ios": "wdio ./config/ios.config.js"
+        "android:dev": "wdio ./config/android.config.dev.js",
+        "ios:dev": "wdio ./config/ios.config.dev.js",
+        "android:browsertack": "wdio ./config/android.config.browserstack.js",
+        "ios:browsertack": "wdio ./config/ios.config.browserstack.js"
     }
 }

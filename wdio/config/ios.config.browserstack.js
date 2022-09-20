@@ -1,6 +1,7 @@
 import { config } from '../wdio.conf';
 
 // Appium capabilities
+// https://appium.io/docs/en/writing-running-appium/caps/
 config.capabilities = [
   {
     platformName: 'iOS',
@@ -10,7 +11,7 @@ config.capabilities = [
     automationName: 'XCUITest',
     deviceName: 'iPhone 11 Pro',
     platformVersion: '15.5',
-    app: 'io.metamask.MetaMask', //use - path.resolve(`./apps/${IosInfo.appName()}`) if passing a custom app
+    app: '../ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
   },
 ];
 
