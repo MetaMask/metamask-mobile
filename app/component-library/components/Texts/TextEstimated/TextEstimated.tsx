@@ -22,7 +22,7 @@ const TextEstimated: React.FC<TextEstimatedProps> = ({
     size: TILDE_ICON_SIZE_BY_TEXT_VARIANT[variant],
   };
   return (
-    <TextWithPrefixIcon iconProps={iconProps} {...props}>
+    <TextWithPrefixIcon iconProps={iconProps} variant={variant} {...props}>
       {children}
     </TextWithPrefixIcon>
   );
