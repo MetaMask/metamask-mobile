@@ -122,9 +122,6 @@ jest.mock(
   () => mockRNAsyncStorage,
 );
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
-jest.mock('react-native-detector', () => ({
-  addScreenshotListener: jest.fn(),
-}));
 
 NativeModules.RNGestureHandlerModule = {
   attachGestureHandler: jest.fn(),

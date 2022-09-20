@@ -14675,11 +14675,6 @@ react-native-default-preference@^1.4.3:
   resolved "https://registry.yarnpkg.com/react-native-default-preference/-/react-native-default-preference-1.4.3.tgz#3c6411d32ea4ebc5286fbf5915546fc57a6014f6"
   integrity sha512-sQDYwGEdxwKwXKP/8Intc81FyH33Rv8ZvOxdmPX4NM75RAIVeBc13pdabEqycAimNZoY5IDvGp4o1cTTa5gNrA==
 
-react-native-detector@0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/react-native-detector/-/react-native-detector-0.2.1.tgz#54641052842f98ea8e6e6bb55df2084876b3cd79"
-  integrity sha512-feJwQPXyAAr0ELOLCRsOH9JqgxL+tZnTrr1Y1zOKjFi82M/4Bl2O9VuBcrRVurAIRqM8s4Yjp5seczVaOsu/mQ==
-
 react-native-device-info@^9.0.2:
   version "9.0.2"
   resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-9.0.2.tgz#00c7ab139a620ac9650852cd0ef0fb69d9a4418d"
