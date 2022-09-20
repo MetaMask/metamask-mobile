@@ -188,7 +188,7 @@ buildIosSimulatorE2E(){
 }
 
 runIosE2E(){
-  cd wdio && yarn ios:debug
+  cd e2e && yarn ios:debug
 }
 
 buildIosDevice(){
