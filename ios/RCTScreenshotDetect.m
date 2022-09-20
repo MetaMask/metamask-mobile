@@ -7,9 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RCTScreenshotDetectModule.h"
+#import "RCTScreenshotDetect.h"
 
-@implementation ScreenshotDetect
+@implementation RCTScreenshotDetect
 RCT_EXPORT_MODULE();
 
 - (NSArray<NSString *> *)supportedEvents {

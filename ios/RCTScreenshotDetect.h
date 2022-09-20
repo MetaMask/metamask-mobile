@@ -12,7 +12,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
 
-@interface ScreenshotDetect : RCTEventEmitter <RCTBridgeModule>
+@interface RCTScreenshotDetect : RCTEventEmitter <RCTBridgeModule>
 
 @end
 
