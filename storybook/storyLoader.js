@@ -12,6 +12,8 @@ function loadStories() {
   require('../app/components/UI/Fox/Fox.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
+  require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
+  require('../app/component-library/components/Accordions/Accordion/AccordionHeader/AccordionHeader.stories');
   require('../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories');
   require('../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories');
   require('../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories');
@@ -61,6 +63,9 @@ const stories = [
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
+  '../app/components/UI/WarningAlert/WarningAlert.stories',
+  '../app/component-library/components/Accordions/Accordion/Accordion.stories',
+  '../app/component-library/components/Accordions/Accordion/AccordionHeader/AccordionHeader.stories',
   '../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories',
   '../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories',
   '../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories',
