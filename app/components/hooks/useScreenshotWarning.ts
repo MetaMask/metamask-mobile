@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { NativeModules, NativeEventEmitter } from 'react-native';
+import Device from '../../util/device';
+
+// iOS specific hook
 
 const useScreenshotWarning = (warning: () => void) => {
   const [enabled, setEnabled] = useState<boolean>(false);
@@ -35,6 +38,10 @@ const useScreenshotWarning = (warning: () => void) => {
   );
 
   useEffect(() => {
+    if (Device.isAndroid()) {
+      return;
+    }
+
     const userDidScreenshot = () => {
       if (enabled) {
         warning();
