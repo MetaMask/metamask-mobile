@@ -7,6 +7,7 @@ import {
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/AvatarAccount';
 
 export const ACCOUNT_NETWORK = 'Ethereum Network';
+export const UNKNOWN_ACCOUNT_NETWORK = 'Unknown Network';
 export const ACCOUNT_TYPE = 'Account 1';
 export const ACCOUNT_BALANCE_LABEL = 'Balance';
 export const ACCOUNT_NATIVE_CURRENCY = 'DAI';
