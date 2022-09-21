@@ -1,4 +1,4 @@
-@iosApp
+@iosApp @androidApp
 Feature: New app install setup on a mobile device
     Users can install MetaMask mobile app from the device app store.
 

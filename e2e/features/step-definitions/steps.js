@@ -14,10 +14,11 @@ When(/^I tap to open MetaMask mobile app/, async () => {
 
 Then(/^MetaMask animated loading logo is displayed/, async () => {
   // check for animated loading logo
-  await OnboardingPages.verifyWelcomeScreen();
+  // await OnboardingPages.verifyWelcomeScreen();
 });
 
 Then(/^(.*) screen is displayed after logo/, async (title) => {
+  console.log("🚀 ~ file: steps.js ~ line 21 ~ Then ~ title", title)
   // check for Welcome to MetaMask screen
   await OnboardingPages.verifyWelcomeScreen();
 });

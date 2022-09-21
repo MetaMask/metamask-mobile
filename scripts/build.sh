@@ -161,13 +161,8 @@ buildAndroidRunQA(){
 }
 
 buildAndroidRunE2E(){
-	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
-	react-native run-android
+  prebuild_android
+	cd android && ./gradlew assembleQaDebug --no-daemon --max-workers 2
 }
 
 buildIosSimulator(){
@@ -357,7 +352,7 @@ buildAndroid() {
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
-	elif [ "$MODE" == "debugE2E" ] ; then
+	elif [ "$MODE" == "devE2E" ] ; then
 		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA

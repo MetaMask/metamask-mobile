@@ -10,7 +10,7 @@ config.capabilities = [
     maxInstances: 1,
     deviceName: 'Android 11 - Pixel 4a API 30',
     platformVersion: '11',
-    app: '../android/app/build/outputs/apk/debug/app-debug.apk',
+    app: '../android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
     // appPackage: 'io.metamask',
     // appActivity: '.MainActivity',
     automationName: 'uiautomator2'

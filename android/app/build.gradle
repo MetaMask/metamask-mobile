@@ -105,7 +105,9 @@ import com.android.build.OutputFile
 
 project.ext.react = [
 	entryFile: "index.js",
-	enableHermes: false //System.getenv('METAMASK_ENVIRONMENT') == 'production'
+	enableHermes: false, //System.getenv('METAMASK_ENVIRONMENT') == 'production'
+  bundleInQaDebug: true,
+  devDisabledInQaDebug: true
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"

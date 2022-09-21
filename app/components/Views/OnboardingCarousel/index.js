@@ -23,6 +23,7 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { GET_STARTED_BUTTON_ID } from '../../../../e2e/features/test-ids';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -247,7 +248,7 @@ class OnboardingCarousel extends PureComponent {
               <StyledButton
                 type={'normal'}
                 onPress={this.onPressGetStarted}
-                testID={'onboarding-get-started-button'}
+                testID={GET_STARTED_BUTTON_ID}
               >
                 {strings('onboarding_carousel.get_started')}
               </StyledButton>

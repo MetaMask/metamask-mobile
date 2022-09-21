@@ -19,6 +19,7 @@ module.exports = {
   },
   globals: {
     driver: 'readonly',
-    $: 'readonly'
+    $: 'readonly',
+    expect: 'readonly',
   },
 };
