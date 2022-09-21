@@ -5,6 +5,7 @@ import {
   formatAddress,
   isHardwareAccount,
   isValidHexAddress,
+  isValidAddressInputViaQRCode,
 } from '.';
 
 jest.mock('../../core/Engine');
@@ -129,5 +130,37 @@ describe('isValidHexAddress', () => {
 
   it('should return false if the address is an  empty string', () => {
     expect(isValidHexAddress('', { mixedCaseUseChecksum: true })).toBe(false);
+  });
+});
+
+describe('isValidAddressInputViaQRCode', () => {
+  it('should be valid to use the ethereum keyword followed by an address and chain id', () => {
+    const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a@1';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+  });
+
+  it('should be valid to use the ethereum keyword followed by an address', () => {
+    const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119da21a';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+  });
+
+  it('should be invalid to use the ethereum keyword followed by an wrong address', () => {
+    const mockInput = 'ethereum:0x2990079bcdEe240329a520d2444386FC119d';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+
+  it('should be invalid to only have the ethereum keyword', () => {
+    const mockInput = 'ethereum:';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+  });
+
+  it('should be valid to only have the address', () => {
+    const mockInput = '0x2990079bcdEe240329a520d2444386FC119da21a';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+  });
+
+  it('should be invalid to have an URL', () => {
+    const mockInput = 'https://www.metamask.io';
+    expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
   });
 });

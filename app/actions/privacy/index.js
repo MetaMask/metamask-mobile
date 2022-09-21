@@ -29,3 +29,10 @@ export function setThirdPartyApiMode(enabled) {
     enabled,
   };
 }
+
+export function recordSRPRevealTimestamp(timestamp) {
+  return {
+    type: 'RECORD_SRP_REVEAL_TIMESTAMP',
+    timestamp,
+  };
+}

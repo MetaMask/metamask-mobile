@@ -193,11 +193,13 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   );
 
   const onScanError = useCallback(
-    (error: string) => {
+    async (error: string) => {
       hideScanner();
       setErrorMsg(error);
+      const qrKeyring = await KeyringController.getOrAddQRKeyring();
+      qrKeyring.cancelSync();
     },
-    [hideScanner],
+    [hideScanner, KeyringController],
   );
 
   const nextPage = useCallback(async () => {

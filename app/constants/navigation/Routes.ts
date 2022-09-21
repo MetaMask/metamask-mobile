@@ -20,6 +20,7 @@ const Routes = {
   },
   LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
+  QR_SCANNER: 'QRScanner',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -33,6 +34,12 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+  },
+  SEND_FLOW: {
+    SEND_TO: 'SendTo',
+  },
+  SETTINGS: {
+    CONTACT_FORM: 'ContactForm',
   },
 };
 
