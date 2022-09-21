@@ -3,10 +3,8 @@
 exports[`SecuritySettings should render correctly 1`] = `
 <Settings
   accounts={Object {}}
-  approvedHosts={Object {}}
   browserHistory={Array []}
   clearBrowserHistory={[Function]}
-  clearHosts={[Function]}
   identities={
     Object {
       "0x": Object {
@@ -27,10 +25,8 @@ exports[`SecuritySettings should render correctly 1`] = `
   lockTime={1000}
   passwordHasBeenSet={true}
   passwordSet={[Function]}
-  privacyMode={true}
   selectedAddress="0x"
   setLockTime={[Function]}
-  setPrivacyMode={[Function]}
   setThirdPartyApiMode={[Function]}
   type="mainnet"
 />

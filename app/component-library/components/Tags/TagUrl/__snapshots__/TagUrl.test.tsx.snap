@@ -5,6 +5,7 @@ exports[`TagUrl should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "alignSelf": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderRadius": 99,

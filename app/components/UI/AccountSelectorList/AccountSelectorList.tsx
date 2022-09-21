@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
@@ -12,7 +12,6 @@ import Cell, {
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import UntypedEngine from '../../../core/Engine';
 import { formatAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -26,15 +25,18 @@ import {
   Assets,
 } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
-import { useAccounts } from './hooks';
 
 const AccountSelectorList = ({
   onSelectAccount,
-  checkBalanceError,
+  accounts,
+  ensByAccountAddress,
   isLoading = false,
+  selectedAddresses,
+  isMultiSelect = false,
+  renderRightAccessory,
+  isSelectionDisabled,
   ...props
 }: AccountSelectorListProps) => {
-  const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
@@ -42,14 +44,15 @@ const AccountSelectorList = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const { accounts, ensByAccountAddress } = useAccounts({
-    checkBalanceError,
-    isLoading,
-  });
 
   useEffect(() => {
-    if (!accounts.length) return;
-    const account = accounts.find(({ isSelected }) => isSelected);
+    if (!accounts.length || isMultiSelect) return;
+    const selectedAddressOverride = selectedAddresses?.[0];
+    const account = accounts.find(({ isSelected, address }) =>
+      selectedAddressOverride
+        ? selectedAddressOverride === address
+        : isSelected,
+    );
     if (account) {
       // Wrap in timeout to provide more time for the list to render.
       setTimeout(() => {
@@ -60,17 +63,7 @@ const AccountSelectorList = ({
       }, 0);
     }
     // eslint-disable-next-line
-  }, [accounts.length]);
-
-  const onPress = useCallback(
-    (address: string) => {
-      const { PreferencesController } = Engine.context;
-      PreferencesController.setSelectedAddress(address);
-      onSelectAccount?.(address);
-    },
-    /* eslint-disable-next-line */
-    [onSelectAccount],
-  );
+  }, [accounts.length, selectedAddresses, isMultiSelect]);
 
   const getKeyExtractor = ({ address }: Account) => address;
 
@@ -104,16 +97,23 @@ const AccountSelectorList = ({
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
-      const isDisabled = !!balanceError || isLoading;
+      const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
+      const cellVariant = isMultiSelect
+        ? CellVariants.Multiselect
+        : CellVariants.Select;
+      let isSelectedAccount = isSelected;
+      if (selectedAddresses) {
+        isSelectedAccount = selectedAddresses.includes(address);
+      }
 
       return (
         <Cell
-          variant={CellVariants.Select}
-          isSelected={isSelected}
+          variant={cellVariant}
+          isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
           tertiaryText={balanceError}
-          onPress={() => onPress(address)}
+          onPress={() => onSelectAccount?.(address, isSelectedAccount)}
           avatarProps={{
             variant: AvatarVariants.Account,
             type: accountAvatarType,
@@ -122,18 +122,23 @@ const AccountSelectorList = ({
           tagLabel={tagLabel}
           disabled={isDisabled}
           /* eslint-disable-next-line */
-          style={{ opacity: isDisabled ? 0.5 : 1 }}
+          style={{ opacity: isLoading ? 0.5 : 1 }}
         >
-          {assets && renderAccountBalances(assets)}
+          {renderRightAccessory?.(address, accountName) ||
+            (assets && renderAccountBalances(assets))}
         </Cell>
       );
     },
     [
       accountAvatarType,
-      onPress,
+      onSelectAccount,
       renderAccountBalances,
       ensByAccountAddress,
       isLoading,
+      selectedAddresses,
+      isMultiSelect,
+      renderRightAccessory,
+      isSelectionDisabled,
     ],
   );
 

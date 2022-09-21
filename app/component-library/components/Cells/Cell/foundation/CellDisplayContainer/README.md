@@ -1,10 +1,10 @@
 # CellAccountDisplayItemContainer
 
-CellAccountDisplayItemContainer is a wrapper component typically used for displaying CellAccount Content.
+CellAccountDisplayContainer is a wrapper component typically used for displaying CellAccount Content.
 
 ## Props
 
-This component extends React Native's [View](https://reactnative.dev/docs/view) component.
+This component extends React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) component.
 
 ### `children`
 
@@ -18,9 +18,9 @@ Content to wrap to display.
 
 ```javascript
 // Replace import with relative path.
-import CellAccountDisplayItemContainer from 'app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer';
+import CellAccountDisplayContainer from 'app/component-library/components/Cells/CellAccountDisplayContainer/CellAccountDisplayContainer';
 
-<CellAccountDisplayItemContainer>
+<CellAccountDisplayContainer>
   <SampleContent />
-</CellAccountDisplayItemContainer>;
+</CellAccountDisplayContainer>;
 ```

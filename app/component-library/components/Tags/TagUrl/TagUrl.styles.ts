@@ -31,6 +31,7 @@ const styleSheet = (params: { theme: Theme; vars: TagUrlStyleSheetVars }) => {
         paddingRight: 16,
         flexDirection: 'row',
         alignItems: 'center',
+        alignSelf: 'center',
       } as ViewStyle,
       style,
     ) as ViewStyle,

@@ -136,6 +136,15 @@ const createStyles = (colors) =>
     inverseText: {
       color: colors.primary.default,
     },
+    alternativeConfirmText: {
+      color: colors.blue,
+      ...fontStyles.normal,
+    },
+    alternativeConfirm: {
+      backgroundColor: colors.white,
+      borderWidth: 2,
+      borderColor: colors.grey000,
+    },
   });
 
 function getStyles(type, colors) {
@@ -215,6 +224,10 @@ function getStyles(type, colors) {
     case 'onOverlay':
       fontStyle = styles.onOverlayText;
       containerStyle = styles.onOverlayBackground;
+      break;
+    case 'confirm-alternative':
+      fontStyle = styles.alternativeConfirmText;
+      containerStyle = styles.alternativeConfirm;
       break;
     default:
       throw new Error('Unknown button type');

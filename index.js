@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import './shim.js';
 
 import 'react-native-gesture-handler';

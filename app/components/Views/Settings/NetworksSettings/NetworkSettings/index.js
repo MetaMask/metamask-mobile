@@ -420,7 +420,9 @@ class NetworkSettings extends PureComponent {
       enableAction,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState } = this.props;
+    const { navigation, route, networkOnboardedState } = this.props;
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
       !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
@@ -497,7 +499,9 @@ class NetworkSettings extends PureComponent {
         nativeToken,
         showNetworkOnboarding,
       });
-      navigation.navigate('WalletView');
+      shouldNetworkSwitchPopToWallet
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
     }
   };
 
@@ -967,6 +971,8 @@ class NetworkSettings extends PureComponent {
   render() {
     const { navigation, route } = this.props;
     const network = route.params?.network;
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -994,6 +1000,9 @@ class NetworkSettings extends PureComponent {
                     onClose={this.onCancel}
                     network={this.state.popularNetwork}
                     navigation={navigation}
+                    shouldNetworkSwitchPopToWallet={
+                      shouldNetworkSwitchPopToWallet
+                    }
                   />
                 )}
               </View>

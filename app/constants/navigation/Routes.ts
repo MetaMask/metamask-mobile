@@ -30,6 +30,8 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    ACCOUNT_CONNECT: 'AccountConnect',
+    ACCOUNT_PERMISSIONS: 'AccountPermissions',
   },
 };
 

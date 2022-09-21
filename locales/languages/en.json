@@ -445,9 +445,20 @@
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
     "yes_remove_it": "Yes, remove it",
-    "account_selector": {
-      "title": "Accounts"
-    }
+    "accounts_title": "Accounts",
+    "connect_account_title": "Connect Account",
+    "connect_accounts_title": "Connect Accounts",
+    "connected_accounts_title": "Connected Accounts",
+    "connect_description": "Share your account address, balance, activity, and allow site to initiate transactions.",
+    "connect_multiple_accounts": "Connect multiple accounts",
+    "connect_more_accounts": "Connect more accounts",
+    "cancel": "Cancel",
+    "connect": "Connect",
+    "connect_with_count": "Connect{{countLabel}}",
+    "select_all": "Select all",
+    "permissions": "Permissions",
+    "disconnect": "Disconnect",
+    "disconnect_all_accounts": "Disconnect all accounts"
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
@@ -2111,6 +2122,20 @@
     "help_description_1": "We're here to help! Check out the FAQs below or ",
     "help_description_2": "contact support",
     "help_description_3": " for help!"
+  },
+  "account_approval_permissions": {
+    "view_permissions_title": "View permissions",
+    "connect_title": "Connect to website",
+    "connected_accounts_tilte": "Connected accounts",
+    "permission_description": "Allow site to see your address, account balance, activity, and suggest transactions.",
+    "not_connected_description": "MetaMask is not connected to this site. To connect to a web3 site, find the connect button on their site.",
+    "connect": "Connect",
+    "cancel": "Cancel",
+    "account_not_connected": "Not connected",
+    "switch_to_accounts": "Switch to account",
+    "active": "Active",
+    "revoke": "Revoke",
+    "revoke_button": "Revoke all accounts permissions for this site"
   },
   "nickname": {
     "add_nickname": "Add nickname",

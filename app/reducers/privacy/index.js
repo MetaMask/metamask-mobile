@@ -1,6 +1,5 @@
 const initialState = {
   approvedHosts: {},
-  privacyMode: true,
   thirdPartyApiMode: true,
 };
 
@@ -25,11 +24,6 @@ const privacyReducer = (state = initialState, action) => {
       return {
         ...state,
         approvedHosts: {},
-      };
-    case 'SET_PRIVACY_MODE':
-      return {
-        ...state,
-        privacyMode: action.enabled,
       };
     case 'SET_THIRD_PARTY_API_MODE':
       return {

@@ -18,6 +18,7 @@ import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+import PopularList from './customNetworks';
 /* eslint-disable-next-line */
 const ethLogo = require('../../images/eth-logo.png');
 /**
@@ -283,3 +284,39 @@ export function blockTagParamIndex(payload) {
       return undefined;
   }
 }
+
+/**
+ * Gets the current network name given the network provider.
+ *
+ * @param {Object} provider - Network provider state from the NetworkController.
+ * @returns {string} Name of the network.
+ */
+export const getNetworkNameFromProvider = (provider) => {
+  let name = '';
+  if (provider.nickname) {
+    name = provider.nickname;
+  } else {
+    const networkType = provider.type;
+    name = NetworkList?.[networkType]?.name || Networks.rpc.name;
+  }
+  return name;
+};
+
+/**
+ * Gets the image source given the chain ID.
+ *
+ * @param {string} chainId - ChainID of the network.
+ * @returns {Object} - Image source of the network.
+ */
+export const getNetworkImageSource = (chainId) => {
+  const defaultNetwork = getDefaultNetworkByChainId(chainId);
+  if (defaultNetwork) {
+    return defaultNetwork.imageSource;
+  }
+  const popularNetwork = PopularList.find(
+    (network) => network.chainId === chainId,
+  );
+  if (popularNetwork) {
+    return popularNetwork.rpcPrefs.imageSource;
+  }
+};

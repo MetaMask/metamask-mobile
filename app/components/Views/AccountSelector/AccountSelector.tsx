@@ -3,7 +3,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import AccountSelectorList from '../../UI/AccountSelectorList';
+import AccountSelectorList, { useAccounts } from '../../UI/AccountSelectorList';
 import SheetActions from '../../../component-library/components-temp/SheetActions';
 import SheetBottom, {
   SheetBottomRef,
@@ -36,8 +36,14 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const sheetRef = useRef<SheetBottomRef>(null);
   const navigation = useNavigation();
+  const { accounts, ensByAccountAddress } = useAccounts({
+    checkBalanceError,
+    isLoading,
+  });
 
   const _onSelectAccount = (address: string) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSelectedAddress(address);
     sheetRef.current?.hide();
     onSelectAccount?.(address);
   };
@@ -115,10 +121,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   return (
     <SheetBottom ref={sheetRef}>
-      <SheetHeader title={strings('accounts.account_selector.title')} />
+      <SheetHeader title={strings('accounts.accounts_title')} />
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
-        checkBalanceError={checkBalanceError}
+        accounts={accounts}
+        ensByAccountAddress={ensByAccountAddress}
         key={ACCOUNT_LIST_ID}
         isLoading={isLoading}
       />

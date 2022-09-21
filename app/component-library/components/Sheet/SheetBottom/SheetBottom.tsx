@@ -168,7 +168,8 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
 
     useEffect(() => {
       // Automatically handles animation when content changes
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      // Disable for now since network switches causes the screen to hang with this on.
+      // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       return () => debouncedHide.cancel();
     }, [children, debouncedHide]);
 

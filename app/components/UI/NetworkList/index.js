@@ -367,12 +367,13 @@ export class NetworkList extends PureComponent {
   }
 
   goToNetworkSettings = () => {
+    const { shouldNetworkSwitchPopToWallet } = this.props;
     this.props.onClose(false);
     this.props.navigation.navigate('SettingsView', {
       screen: 'SettingsFlow',
       params: {
         screen: 'NetworkSettings',
-        params: { isFullScreenModal: true },
+        params: { isFullScreenModal: true, shouldNetworkSwitchPopToWallet },
       },
     });
   };
@@ -425,6 +426,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+  shouldNetworkSwitchPopToWallet: state.modals.shouldNetworkSwitchPopToWallet,
 });
 
 NetworkList.contextType = ThemeContext;

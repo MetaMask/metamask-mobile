@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useContext,
+  useMemo,
 } from 'react';
 import {
   RefreshControl,
@@ -12,7 +13,6 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
-  ImageSourcePropType,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -35,9 +35,11 @@ import { useTheme } from '../../../util/theme';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
-import Networks, { getDefaultNetworkByChainId } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
-import PopularList from '../../../util/networks/customNetworks';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -136,6 +138,16 @@ const Wallet = ({ navigation }: any) => {
     (state: any) => state.engine.backgroundState.NetworkController.provider,
   );
   const dispatch = useDispatch();
+  const networkName = useMemo(
+    () => getNetworkNameFromProvider(networkProvider),
+    [networkProvider],
+  );
+
+  const networkImageSource = useMemo(
+    () => getNetworkImageSource(networkProvider.chainId),
+    [networkProvider.chainId],
+  );
+
   /**
    * Callback to trigger when pressing the navigation title.
    */
@@ -183,48 +195,11 @@ const Wallet = ({ navigation }: any) => {
     [navigation],
   );
 
-  /**
-   * Get the current network name.
-   *
-   * @returns Current network name.
-   */
-  const getNetworkName = useCallback(() => {
-    let name = '';
-    if (networkProvider.nickname) {
-      name = networkProvider.nickname;
-    } else {
-      const networkType: keyof typeof Networks = networkProvider.type;
-      name = Networks?.[networkType]?.name || Networks.rpc.name;
-    }
-    return name;
-  }, [networkProvider.nickname, networkProvider.type]);
-
-  /**
-   * Get image source for either default MetaMask networks or popular networks, which include networks such as Polygon, Binance, Avalanche, etc.
-   * @returns A network image from a local resource or undefined
-   */
-  const getNetworkImageSource = useCallback(():
-    | ImageSourcePropType
-    | undefined => {
-    const defaultNetwork: any = getDefaultNetworkByChainId(
-      networkProvider.chainId,
-    );
-    if (defaultNetwork) {
-      return defaultNetwork.imageSource;
-    }
-    const popularNetwork = PopularList.find(
-      (network) => network.chainId === networkProvider.chainId,
-    );
-    if (popularNetwork) {
-      return popularNetwork.rpcPrefs.imageSource;
-    }
-  }, [networkProvider.chainId]);
-
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
-        getNetworkName(),
-        getNetworkImageSource(),
+        networkName,
+        networkImageSource,
         onTitlePress,
         navigation,
         drawerRef,
@@ -232,13 +207,7 @@ const Wallet = ({ navigation }: any) => {
       ),
     );
     /* eslint-disable-next-line */
-  }, [
-    navigation,
-    themeColors,
-    getNetworkName,
-    getNetworkImageSource,
-    onTitlePress,
-  ]);
+  }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
 
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
