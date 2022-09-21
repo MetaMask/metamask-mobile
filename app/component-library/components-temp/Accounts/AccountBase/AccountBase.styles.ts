@@ -7,6 +7,11 @@ import { StyleSheet } from 'react-native';
  * @returns StyleSheet object.
  */
 const styleSheet = StyleSheet.create({
+  body: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flex: 1,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
