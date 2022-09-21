@@ -17,7 +17,6 @@
 - [#4530](https://github.com/MetaMask/metamask-mobile/pull/4530): [IMPROVEMENT] Apply Test network prefix to token values to help educate users
 - [#4841](https://github.com/MetaMask/metamask-mobile/pull/4841): [IMPROVEMENT] Component/4080 Badge
 - [#4856](https://github.com/MetaMask/metamask-mobile/pull/4856): [IMPROVEMENT] Update Cell Account component
-- [#4879](https://github.com/MetaMask/metamask-mobile/pull/4879): [FEAT] CCIP Wildcard Support
 - [#4799](https://github.com/MetaMask/metamask-mobile/pull/4799): [FIX] Reveal SRP or Private Key wrong password error
 - [#4305](https://github.com/MetaMask/metamask-mobile/pull/4305): [FEAT] Hide remember me
 - [#4878](https://github.com/MetaMask/metamask-mobile/pull/4878): [FIX] Add testnets condition to blockchain explorer
