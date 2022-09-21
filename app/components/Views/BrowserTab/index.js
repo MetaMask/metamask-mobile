@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useContext,
+} from 'react';
 import {
   Text,
   StyleSheet,
@@ -71,6 +77,12 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { isEqual } from 'lodash';
+import {
+  ToastContext,
+  ToastVariant,
+} from '../../../component-library/components/Toast';
+import { useAccounts } from '../../../components/UI/AccountSelectorList';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -242,10 +254,11 @@ export const BrowserTab = (props) => {
   const backgroundBridges = useRef([]);
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
+  const { toastRef } = useContext(ToastContext);
+  const { accounts, ensByAccountAddress } = useAccounts();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
   /**
    * Is the current tab the active tab
    */
@@ -645,7 +658,32 @@ export const BrowserTab = (props) => {
   /**
    * Handles state changes for when the url changes
    */
-  const changeUrl = (siteInfo) => {
+  const changeUrl = async (siteInfo) => {
+    if (siteInfo.url !== url.current) {
+      const hostname = new URL(siteInfo.url).hostname;
+      const activeAccount = await getPermittedAccounts(hostname);
+      const activeAccountAddress = activeAccount?.[0];
+      if (activeAccountAddress) {
+        const newActiveAccountName = accounts.find(
+          ({ address }) => address === activeAccountAddress,
+        ).name;
+        const ensName = ensByAccountAddress[activeAccountAddress];
+        const accountName =
+          isDefaultAccountName(newActiveAccountName) && ensName
+            ? ensName
+            : newActiveAccountName;
+        // Show active account toast
+        toastRef?.current?.showToast({
+          variant: ToastVariant.Account,
+          labelOptions: [
+            { label: `You're on ` },
+            { label: accountName, isBold: true },
+            { label: '.' },
+          ],
+          accountAddress: activeAccountAddress,
+        });
+      }
+    }
     url.current = siteInfo.url;
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;

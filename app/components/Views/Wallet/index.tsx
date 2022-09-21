@@ -40,6 +40,11 @@ import {
   getNetworkNameFromProvider,
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
+import { useFocusEffect } from '@react-navigation/native';
+import {
+  ToastContext,
+  ToastVariant,
+} from '../../../component-library/components/Toast';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -154,6 +159,31 @@ const Wallet = ({ navigation }: any) => {
   const onTitlePress = () => dispatch(toggleNetworkModal());
 
   const { colors: themeColors } = useTheme();
+
+  const prevNetworkProvider = useRef<any>(undefined);
+  const { toastRef } = useContext(ToastContext);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        prevNetworkProvider.current &&
+        networkProvider.chainId !== prevNetworkProvider.current.chainId
+      ) {
+        const networkImage = getNetworkImageSource(networkProvider.chainId);
+        const networkName = getNetworkNameFromProvider(networkProvider);
+        toastRef?.current?.showToast({
+          variant: ToastVariant.Network,
+          labelOptions: [
+            { label: `Connected to ` },
+            { label: networkName, isBold: true },
+            { label: '.' },
+          ],
+          networkImageSource: networkImage,
+        });
+      }
+      prevNetworkProvider.current = networkProvider;
+    }, [networkProvider]),
+  );
 
   /**
    * Check to see if we need to show What's New modal
