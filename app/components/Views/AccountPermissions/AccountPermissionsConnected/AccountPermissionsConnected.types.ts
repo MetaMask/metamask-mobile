@@ -1,7 +1,6 @@
 // External dependencies.
-import { UseAccounts } from '../../../../components/UI/AccountSelectorList/hooks/useAccounts/useAccounts.types';
+import { UseAccounts } from '../../../../util/accounts/hooks/useAccounts';
 import { AccountPermissionsProps } from '../';
-import { Account } from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 
 /**

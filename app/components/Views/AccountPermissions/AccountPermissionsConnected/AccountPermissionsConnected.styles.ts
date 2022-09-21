@@ -14,7 +14,7 @@ const styleSheet = () => {
       marginVertical: 16,
     },
     sheetActionContainer: {
-      marginTop: 16,
+      marginVertical: 16,
     },
     ctaButtonsContainer: {
       marginTop: 24,

@@ -1,5 +1,5 @@
 // External dependencies.
-import { UseAccounts } from '../../../UI/AccountSelectorList/hooks/useAccounts/useAccounts.types';
+import { UseAccounts } from '../../../../util/accounts/hooks/useAccounts';
 import { AccountConnectProps } from '..';
 
 /**

@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 // Third party dependencies.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -8,14 +6,14 @@ import { KeyringTypes } from '@metamask/controllers';
 import { isEqual } from 'lodash';
 
 // External Dependencies.
-import UntypedEngine from '../../../../../core/Engine';
-import { Account } from '../..';
-import { doENSReverseLookup } from '../../../../../util/ENSUtils';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../../../util/number';
-import { getTicker } from '../../../../..//util/transactions';
+import UntypedEngine from '../../../../core/Engine';
+import { doENSReverseLookup } from '../../../ENSUtils';
+import { hexToBN, renderFromWei, weiToFiat } from '../../../number';
+import { getTicker } from '../../../transactions';
 
 // Internal dependencies
 import {
+  Account,
   EnsByAccountAddress,
   UseAccounts,
   UseAccountsParams,

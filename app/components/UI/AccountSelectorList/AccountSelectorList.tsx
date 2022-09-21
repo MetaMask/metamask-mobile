@@ -17,13 +17,10 @@ import { AvatarAccountType } from '../../../component-library/components/Avatars
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar.types';
+import { Account, Assets } from '../../../util/accounts/hooks/useAccounts';
 
 // Internal dependencies.
-import {
-  Account,
-  AccountSelectorListProps,
-  Assets,
-} from './AccountSelectorList.types';
+import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 
 const AccountSelectorList = ({

@@ -1,9 +1,10 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useState } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import AccountSelectorList, { useAccounts } from '../../UI/AccountSelectorList';
+import AccountSelectorList from '../../UI/AccountSelectorList';
 import SheetActions from '../../../component-library/components-temp/SheetActions';
 import SheetBottom, {
   SheetBottomRef,
@@ -14,14 +15,16 @@ import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { strings } from '../../../../locales/i18n';
+import { useAccounts } from '../../../util/accounts/hooks/useAccounts';
+
+// Internal dependencies.
 import {
   ACCOUNT_LIST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from './AccountSelector.constants';
-
-// Internal dependencies.
 import { AccountSelectorProps } from './AccountSelector.types';
+import styles from './AccountSelector.styles';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const {
@@ -129,7 +132,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         key={ACCOUNT_LIST_ID}
         isLoading={isLoading}
       />
-      {renderSheetActions()}
+      <View style={styles.sheet}>{renderSheetActions()}</View>
     </SheetBottom>
   );
 };

@@ -1,6 +1,8 @@
 // Third party dependencies.
-import { Theme } from '../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
+
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
 
 /**
  * Style sheet function for AccountConnectMultiSelector screen.
@@ -21,6 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
     ctaButtonsContainer: {
       marginTop: 24,
       flexDirection: 'row',
+      marginBottom: 16,
     },
     button: { flex: 1 },
     buttonSeparator: {

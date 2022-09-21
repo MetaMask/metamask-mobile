@@ -1,5 +1,7 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -8,11 +10,11 @@ import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { strings } from '../../../../../locales/i18n';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+import { AccountConnectScreens } from '../AccountConnect.types';
 
 // Internal dependencies.
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
-import { useNavigation } from '@react-navigation/native';
-import { AccountConnectScreens } from '../AccountConnect.types';
+import styles from './AccountConnectSingleSelector.styles';
 
 const AccountConnectSingleSelector = ({
   accounts,
@@ -61,25 +63,27 @@ const AccountConnectSingleSelector = ({
 
   const renderSheetActions = useCallback(
     () => (
-      <SheetActions
-        actions={[
-          {
-            label: strings('accounts.create_new_account'),
-            onPress: onCreateAccount,
-            isLoading,
-          },
-          {
-            label: strings('accounts.import_account'),
-            onPress: onOpenImportAccount,
-            disabled: isLoading,
-          },
-          {
-            label: strings('accounts.connect_hardware'),
-            onPress: onOpenConnectHardwareWallet,
-            disabled: isLoading,
-          },
-        ]}
-      />
+      <View style={styles.sheetActionContainer}>
+        <SheetActions
+          actions={[
+            {
+              label: strings('accounts.create_new_account'),
+              onPress: onCreateAccount,
+              isLoading,
+            },
+            {
+              label: strings('accounts.import_account'),
+              onPress: onOpenImportAccount,
+              disabled: isLoading,
+            },
+            {
+              label: strings('accounts.connect_hardware'),
+              onPress: onOpenConnectHardwareWallet,
+              disabled: isLoading,
+            },
+          ]}
+        />
+      </View>
     ),
     [
       isLoading,

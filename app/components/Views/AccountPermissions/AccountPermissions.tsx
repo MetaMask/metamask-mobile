@@ -15,18 +15,6 @@ import SheetBottom, {
 } from '../../../component-library/components/Sheet/SheetBottom';
 import UntypedEngine from '../../../core/Engine';
 import {
-  AccountPermissionsProps,
-  AccountPermissionsScreens,
-} from './AccountPermissions.types';
-import AccountPermissionsConnected from './AccountPermissionsConnected';
-import AccountPermissionsRevoke from './AccountPermissionsRevoke';
-
-// Internal dependencies.
-import {
-  Account,
-  useAccounts,
-} from '../../../components/UI/AccountSelectorList';
-import {
   addPermittedAccounts,
   getPermittedAccountsByOrigin,
 } from '../../../core/Permissions';
@@ -38,6 +26,16 @@ import {
 } from '../../../component-library/components/Toast';
 import analyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { useAccounts, Account } from '../../../util/accounts/hooks/useAccounts';
+import getAccountNameWithENS from '../../../util/accounts/utils';
+
+// Internal dependencies.
+import {
+  AccountPermissionsProps,
+  AccountPermissionsScreens,
+} from './AccountPermissions.types';
+import AccountPermissionsConnected from './AccountPermissionsConnected';
+import AccountPermissionsRevoke from './AccountPermissionsRevoke';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const Engine = UntypedEngine as any;
@@ -119,9 +117,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         origin,
         selectedAddresses,
       );
-      const newActiveAccount = accounts.find(
-        ({ address }) => address === newActiveAddress,
-      );
+      const activeAccountName = getAccountNameWithENS({
+        accountAddress: newActiveAddress,
+        accounts,
+        ensByAccountAddress,
+      });
       const connectedAccountLength = selectedAddresses.length;
       toastRef?.current?.showToast({
         variant: ToastVariant.Account,
@@ -134,7 +134,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           { label: ` ${origin}`, isBold: true },
           { label: `.` },
           { label: `\nSwitched to account` },
-          { label: ` ${newActiveAccount?.name}`, isBold: true },
+          { label: ` ${activeAccountName}`, isBold: true },
           { label: '.' },
         ],
         accountAddress: newActiveAddress,
@@ -151,6 +151,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     setIsLoading,
     dismissSheetWithCallback,
     origin,
+    ensByAccountAddress,
   ]);
 
   const renderConnectedScreen = useCallback(() => {

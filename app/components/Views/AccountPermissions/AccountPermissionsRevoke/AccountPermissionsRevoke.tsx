@@ -14,10 +14,6 @@ import ButtonSecondary, {
   ButtonSecondaryVariant,
 } from '../../../../component-library/components/Buttons/ButtonSecondary';
 import { ButtonBaseSize } from '../../../../component-library/components/Buttons/ButtonBase';
-
-// Internal dependencies.
-import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
-import styleSheet from './AccountPermissionsRevoke.styles';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { ButtonTertiaryVariant } from '../../../../component-library/components/Buttons/ButtonTertiary';
 import { removePermittedAccount } from '../../../../core/Permissions';
@@ -29,6 +25,10 @@ import {
 } from '../../../../component-library/components/Toast';
 import { ToastOptions } from '../../../../component-library/components/Toast';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
+
+// Internal dependencies.
+import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
+import styleSheet from './AccountPermissionsRevoke.styles';
 
 const AccountPermissionsRevoke = ({
   route,

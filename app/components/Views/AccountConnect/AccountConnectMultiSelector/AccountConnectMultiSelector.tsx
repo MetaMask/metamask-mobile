@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -25,7 +26,6 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 // Internal dependencies.
 import styleSheet from './AccountConnectMultiSelector.styles';
 import { AccountConnectMultiSelectorProps } from './AccountConnectMultiSelector.types';
-import { useNavigation } from '@react-navigation/native';
 
 const AccountConnectMultiSelector = ({
   route,

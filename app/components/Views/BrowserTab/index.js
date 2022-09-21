@@ -81,8 +81,8 @@ import {
   ToastContext,
   ToastVariant,
 } from '../../../component-library/components/Toast';
-import { useAccounts } from '../../../components/UI/AccountSelectorList';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
+import { useAccounts } from '../../../util/accounts/hooks/useAccounts';
+import getAccountNameWithENS from '../../../util/accounts/utils';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -661,17 +661,14 @@ export const BrowserTab = (props) => {
   const changeUrl = async (siteInfo) => {
     if (siteInfo.url !== url.current) {
       const hostname = new URL(siteInfo.url).hostname;
-      const activeAccount = await getPermittedAccounts(hostname);
-      const activeAccountAddress = activeAccount?.[0];
+      const permittedAccounts = await getPermittedAccounts(hostname);
+      const activeAccountAddress = permittedAccounts?.[0];
       if (activeAccountAddress) {
-        const newActiveAccountName = accounts.find(
-          ({ address }) => address === activeAccountAddress,
-        ).name;
-        const ensName = ensByAccountAddress[activeAccountAddress];
-        const accountName =
-          isDefaultAccountName(newActiveAccountName) && ensName
-            ? ensName
-            : newActiveAccountName;
+        const accountName = getAccountNameWithENS({
+          accountAddress: activeAccountAddress,
+          accounts,
+          ensByAccountAddress,
+        });
         // Show active account toast
         toastRef?.current?.showToast({
           variant: ToastVariant.Account,

@@ -1,7 +1,7 @@
 // External dependencies.
 import { AccountConnectProps } from '..';
-import { Account } from '../../../UI/AccountSelectorList';
 import { AccountConnectScreens } from '../AccountConnect.types';
+import { Account } from '../../../../util/accounts/hooks/useAccounts';
 
 /**
  * AccountConnectSingle props.

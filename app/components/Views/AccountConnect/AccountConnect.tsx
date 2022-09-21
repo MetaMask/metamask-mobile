@@ -13,6 +13,19 @@ import SheetBottom, {
   SheetBottomRef,
 } from '../../../component-library/components/Sheet/SheetBottom';
 import UntypedEngine from '../../../core/Engine';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
+import Logger from '../../../util/Logger';
+import AnalyticsV2 from '../../../util/analyticsV2';
+import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
+import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
+import {
+  ToastContext,
+  ToastVariant,
+} from '../../../component-library/components/Toast';
+import { useAccounts, Account } from '../../../util/accounts/hooks/useAccounts';
+import getAccountNameWithENS from '../../../util/accounts/utils';
+
+// Internal dependencies.
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -20,21 +33,6 @@ import {
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
-
-// Internal dependencies.
-import {
-  Account,
-  useAccounts,
-} from '../../../components/UI/AccountSelectorList';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { SelectedAccount } from 'app/components/UI/AccountSelectorList/AccountSelectorList.types';
-import {
-  ToastContext,
-  ToastVariant,
-} from '../../../component-library/components/Toast';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
@@ -75,9 +73,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     };
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
-    const activeAccount = accounts.find(
-      ({ address }) => address === activeAddress,
-    );
+    const activeAccountName = getAccountNameWithENS({
+      accountAddress: activeAddress,
+      accounts,
+      ensByAccountAddress,
+    });
 
     try {
       setIsLoading(true);
@@ -94,7 +94,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           },
           { label: ` ${origin}`, isBold: true },
           { label: `.` },
-          { label: `\n${activeAccount?.name}`, isBold: true },
+          { label: `\n${activeAccountName}`, isBold: true },
           { label: ` is now active.` },
         ],
         accountAddress: activeAddress,
@@ -105,7 +105,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       setIsLoading(false);
       dismissSheet();
     }
-  }, [selectedAddresses, hostInfo, accounts]);
+  }, [selectedAddresses, hostInfo, accounts, ensByAccountAddress]);
 
   const onCreateAccount = useCallback(async (isMultiSelect?: boolean) => {
     const { KeyringController } = Engine.context;

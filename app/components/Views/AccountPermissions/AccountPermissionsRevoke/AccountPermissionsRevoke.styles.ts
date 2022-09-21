@@ -1,9 +1,11 @@
 // Third party dependencies.
-import { Theme } from '../../../../util/theme/models';
 import { StyleSheet } from 'react-native';
 
+// External dependencies.
+import { Theme } from '../../../../util/theme/models';
+
 /**
- * Style sheet function for AccountConnect screen.
+ * Style sheet function for AccountPermissionsRevoke screen.
  * @returns StyleSheet object.
  */
 const styleSheet = (params: { theme: Theme }) => {
@@ -19,7 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.alternative,
     },
     sheetActionContainer: {
-      marginTop: 16,
+      marginVertical: 16,
     },
     ctaButtonsContainer: {
       marginTop: 24,

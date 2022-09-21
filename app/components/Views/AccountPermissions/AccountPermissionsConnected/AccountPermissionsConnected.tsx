@@ -10,10 +10,6 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import { getHost } from '../../../../util/browser';
 import { useStyles } from '../../../../component-library/hooks';
-
-// Internal dependencies.
-import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
-import styleSheet from './AccountPermissionsConnected.styles';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
   getNetworkNameFromProvider,
@@ -27,6 +23,11 @@ import {
   ToastContext,
   ToastVariant,
 } from '../../../../component-library/components/Toast';
+import getAccountNameWithENS from '../../../../util/accounts/utils';
+
+// Internal dependencies.
+import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
+import styleSheet from './AccountPermissionsConnected.styles';
 
 const AccountPermissionsConnected = ({
   route,
@@ -81,20 +82,22 @@ const AccountPermissionsConnected = ({
         switchActiveAccounts(origin, address);
       }
       onDismissSheet();
-      const newActiveAccount = accounts.find(
-        ({ address: accAddress }) => address === accAddress,
-      );
+      const activeAccountName = getAccountNameWithENS({
+        accountAddress: address,
+        accounts,
+        ensByAccountAddress,
+      });
       toastRef?.current?.showToast({
         variant: ToastVariant.Account,
         labelOptions: [
           { label: `Switched to account` },
-          { label: ` ${newActiveAccount?.name}`, isBold: true },
+          { label: ` ${activeAccountName}`, isBold: true },
           { label: '.' },
         ],
         accountAddress: address,
       });
     },
-    [activeAddress, onDismissSheet, accounts],
+    [activeAddress, onDismissSheet, accounts, ensByAccountAddress],
   );
 
   const renderSheetAction = useCallback(

@@ -1,11 +1,9 @@
 // Third party dependencies.
-import { KeyringTypes } from '@metamask/controllers';
 import React from 'react';
 import { FlatListProps } from 'react-native';
 
 // External dependencies.
-import { AvatarGroupToken } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.types';
-import { UseAccounts } from './hooks/useAccounts/useAccounts.types';
+import { Account, UseAccounts } from '../../../util/accounts/hooks/useAccounts';
 
 export interface SelectedAccount {
   address: string;
@@ -13,54 +11,6 @@ export interface SelectedAccount {
 }
 
 export type SelectedAccountByAddress = Record<string, SelectedAccount>;
-
-/**
- * Asset information associated with the account, which includes both the fiat balance and owned tokens.
- */
-export interface Assets {
-  /**
-   * Fiat balance in string format.
-   */
-  fiatBalance: string;
-  /**
-   * Tokens owned by this account.
-   */
-  tokens?: AvatarGroupToken[];
-}
-
-/**
- * Account information.
- */
-export interface Account {
-  /**
-   * Account name.
-   */
-  name: string;
-  /**
-   * Account address.
-   */
-  address: string;
-  /**
-   * Asset information associated with the account, which includes both the fiat balance and owned tokens.
-   */
-  assets?: Assets;
-  /**
-   * Account type.
-   */
-  type: KeyringTypes;
-  /**
-   * Y offset of the item. Used for scrolling purposes.
-   */
-  yOffset: number;
-  /**
-   * Boolean that indicates if the account is selected.
-   */
-  isSelected: boolean;
-  /**
-   * Optional error that indicates if the account has enough funds. Non-empty string will render the account item non-selectable.
-   */
-  balanceError?: string;
-}
 
 /**
  * AccountSelectorList props.
