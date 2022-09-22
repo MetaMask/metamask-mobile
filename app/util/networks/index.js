@@ -20,7 +20,7 @@ import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
 import PopularList from './customNetworks';
 /* eslint-disable-next-line */
-const ethLogo = require('../../images/eth-logo.png');
+const ethLogo = require('../../images/eth-logo-new.png');
 const ropstenLogo = require('../../images/ropsten-logo-dark.png');
 const kovanLogo = require('../../images/kovan-logo-dark.png');
 const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');

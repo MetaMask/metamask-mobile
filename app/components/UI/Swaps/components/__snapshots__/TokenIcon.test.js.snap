@@ -8,7 +8,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
   onError={[Function]}
   source={
     Object {
-      "testUri": "../../../app/images/eth-logo.png",
+      "testUri": "../../../app/images/eth-logo-new.png",
     }
   }
   style={
@@ -104,7 +104,7 @@ exports[`TokenIcon component should Render correctly 6`] = `
   onError={[Function]}
   source={
     Object {
-      "testUri": "../../../app/images/eth-logo.png",
+      "testUri": "../../../app/images/eth-logo-new.png",
     }
   }
   style={

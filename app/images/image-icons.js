@@ -4,7 +4,7 @@ import AETH from './arbitrum.png';
 import OPTIMISM from './optimism.png';
 import ONE from './harmony.png';
 import FTM from './fantom.png';
-import ETHEREUM from './eth-logo.png';
+import ETHEREUM from './eth-logo-new.png';
 import BNB from './binance.png';
 import AVAX from './avalanche.png';
 import ROPSTEN from './ropsten-logo-dark.png';

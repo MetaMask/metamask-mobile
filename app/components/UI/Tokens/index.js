@@ -279,7 +279,7 @@ class Tokens extends PureComponent {
           <NetworkMainAssetLogo
             big
             style={styles.ethLogo}
-            testID={'eth-logo'}
+            testID={'eth-logo-new'}
           />
         ) : (
           <TokenImage asset={asset} containerStyle={styles.ethLogo} />
