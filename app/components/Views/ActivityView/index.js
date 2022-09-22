@@ -67,8 +67,6 @@ const ActivityView = () => {
           false,
           drawerRef,
           colors,
-          selectedAddress,
-          openAccountSelector,
           navigation,
           true,
         ),
