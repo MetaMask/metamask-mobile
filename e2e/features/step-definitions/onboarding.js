@@ -16,6 +16,6 @@ Then(/^MetaMask animated loading logo is displayed/, async () => {
 
 Then(/^(.*) screen is displayed after logo/, async (title) => {
   await WelcomePage.verifyCarouselOneTitle(title);
-  await WelcomePage.swipeCarouselLeft();
+  await WelcomePage.swipeNextSlide();
   await WelcomePage.verifyCarouselTwoTitle();
 });

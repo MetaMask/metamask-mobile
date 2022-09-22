@@ -27,7 +27,7 @@ class WelcomeScreen  {
     await expect(await $(`~${CAROUSEL_TITLE_ID('three')}`)).toBeDisplayed();
   }
 
-  async swipeCarouselLeft() {
+  async swipeNextSlide() {
     const carouselRectangles = await this.getCarouselRect()
     const y = Math.round(carouselRectangles.y + (carouselRectangles.height / 2));
     await Gestures.swipe(
@@ -36,7 +36,7 @@ class WelcomeScreen  {
     );
   }
 
-  async getCarouselRect() {
+   async getCarouselRect() {
     // Get the rectangles of the carousel and store it in a global that will be used for a next call.
     // We dont want ask for the rectangles of the carousel if we already know them.
     // This will save unneeded webdriver calls.
