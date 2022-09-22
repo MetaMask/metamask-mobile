@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 
 /**
- * Style sheet for Toast component.
+ * Style sheet for Account Balance component.
  *
  * @returns StyleSheet object.
  */

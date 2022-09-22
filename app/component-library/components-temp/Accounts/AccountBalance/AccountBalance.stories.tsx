@@ -14,23 +14,13 @@ import {
   UNKNOWN_ACCOUNT_NETWORK,
 } from './AccountBalance.constants';
 import {
-  AvatarProps,
-  AvatarVariants,
-} from '../../../components/Avatars/Avatar.types';
-import {
   BadgeProps,
   BadgeVariants,
 } from '../../../components/Badges/Badge/Badge.types';
-import { AvatarAccountType } from '../../../components/Avatars/AvatarAccount';
 
 // Internal dependencies.
 import AccountBalance from './AccountBalance';
 
-const avatarProps: AvatarProps = {
-  variant: AvatarVariants.Account,
-  accountAddress: TEST_ACCOUNT_ADDRESS,
-  type: AvatarAccountType.JazzIcon,
-};
 const accountNetwork = text('accountNetwork', ACCOUNT_NETWORK);
 const unknownAccountNetwork = text(
   'unknownAccountNetwork',
@@ -62,7 +52,7 @@ storiesOf('Component Library / AccountBalance', module)
       accountBalance={accountBalance}
       accountNativeCurrency={accountNativeCurrency}
       accountBalanceLabel={accountBalanceLabel}
-      avatarProps={avatarProps}
+      accountAddress={TEST_ACCOUNT_ADDRESS}
       badgeProps={badgeProps}
     />
   ))
@@ -73,7 +63,7 @@ storiesOf('Component Library / AccountBalance', module)
       accountBalance={accountBalance}
       accountNativeCurrency={accountNativeCurrency}
       accountBalanceLabel={accountBalanceLabel}
-      avatarProps={avatarProps}
+      accountAddress={TEST_ACCOUNT_ADDRESS}
       badgeProps={unknownBadgeProps}
     />
   ));

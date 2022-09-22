@@ -18,7 +18,7 @@ const AccountBase = ({
   accountNetwork,
   accountType,
   accountBalanceLabel,
-  avatarProps,
+  accountAddress,
   badgeProps,
 }: AccountBaseProps): JSX.Element => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
@@ -26,10 +26,9 @@ const AccountBase = ({
       <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
         <AvatarAccount
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
-          accountAddress={avatarProps?.accountAddress}
+          accountAddress={accountAddress}
         />
       </BadgeWrapper>
-
       <View>
         <Text variant={TextVariant.sBodySM}>{accountNetwork}</Text>
         <Text variant={TextVariant.lBodySMBold}>{accountType}</Text>

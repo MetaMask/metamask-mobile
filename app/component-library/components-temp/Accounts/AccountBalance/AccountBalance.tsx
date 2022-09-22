@@ -5,13 +5,13 @@ import AccountBase from '../AccountBase/AccountBase';
 import { ACCOUNT_BALANCE_TEST_ID } from './AccountBalance.constants';
 import styles from './AccountBalance.styles';
 
-const AvatarBalance = ({
+const AccountBalance = ({
   accountBalance,
   accountNativeCurrency,
   accountNetwork,
   accountType,
   accountBalanceLabel,
-  avatarProps,
+  accountAddress,
   badgeProps,
 }: AccountBalanceProps) => (
   <CellDisplayContainer
@@ -24,10 +24,10 @@ const AvatarBalance = ({
       accountNetwork={accountNetwork}
       accountType={accountType}
       accountBalanceLabel={accountBalanceLabel}
-      avatarProps={avatarProps}
+      accountAddress={accountAddress}
       badgeProps={badgeProps}
     />
   </CellDisplayContainer>
 );
 
-export default AvatarBalance;
+export default AccountBalance;

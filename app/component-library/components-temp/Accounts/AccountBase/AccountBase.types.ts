@@ -1,4 +1,3 @@
-import { AvatarAccountProps } from '../../../components/Avatars/AvatarAccount/AvatarAccount.types';
 import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
@@ -24,9 +23,11 @@ export interface AccountBaseProps {
    */
   accountBalanceLabel: string;
   /**
-   * Props for avatar component (with the exception of size).
-   * Avatar size is restricted to size Md (32x32) for Cells
+   * Account address
    */
-  avatarProps: AvatarAccountProps;
+  accountAddress: string;
+  /**
+   * Avatar wrapper props
+   */
   badgeProps: BadgeProps;
 }

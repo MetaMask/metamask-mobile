@@ -2,6 +2,10 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { AccountBalanceProps } from './AccountBalance.types';
 import AccountBalance from './AccountBalance';
+import {
+  ACCOUNT_BALANCE_TEST_ID,
+  BADGE_PROPS,
+} from './AccountBalance.constants';
 
 describe('AccountBalance', () => {
   it('should render AccountBalance', () => {
@@ -12,7 +16,8 @@ describe('AccountBalance', () => {
         accountNetwork={''}
         accountType={''}
         accountBalanceLabel={''}
-        avatarProps={undefined}
+        accountAddress={ACCOUNT_BALANCE_TEST_ID}
+        badgeProps={BADGE_PROPS}
       />,
     );
     const singleSelectComponent = wrapper.findWhere(
