@@ -26,8 +26,8 @@ class WelcomePage extends Page {
   }
 
   static async swipeCarouselLeft() {
+    // TODO: Implement this method
     // const rect = await this.getCarouselRect()
-    // console.log("🚀 ~ file: WelcomePage.js ~ line 30 ~ WelcomePage ~ swipeCarouselLeft ~ rect", rect)
     // await this.improvedSwipe()
   }
 }

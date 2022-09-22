@@ -156,13 +156,9 @@ class Page  {
     const anchorPercentage = 50;
 
     const { width, height } = await driver.getWindowSize();
-    console.log("🚀 ~ file: Page.js ~ line 158 ~ Page ~ improvedSwipe ~ width, height", width, height)
     const anchor = height * anchorPercentage / 100;
-    console.log("🚀 ~ file: Page.js ~ line 159 ~ Page ~ improvedSwipe ~ anchor", anchor)
     const startPoint = width * startPercentage / 100;
-    console.log("🚀 ~ file: Page.js ~ line 160 ~ Page ~ improvedSwipe ~ startPoint", startPoint)
     const endPoint = width * endPercentage / 100;
-    console.log("🚀 ~ file: Page.js ~ line 163 ~ Page ~ improvedSwipe ~ endPoint", endPoint)
     await driver.touchPerform([
       {
         action: 'press',

@@ -310,8 +310,7 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  after: function (result, capabilities, specs) {
-    console.log("🚀 ~ file: wdio.conf.js ~ line 322 ~ capabilities", capabilities)
+  after: function (result, capabilities) {
     if (capabilities.bundleId) {
       driver.terminateApp(capabilities.bundleId)
     }
