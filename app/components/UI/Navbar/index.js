@@ -3,7 +3,6 @@ import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
-import NavbarBrowserTitle from '../NavbarBrowserTitle';
 import {
   Alert,
   Text,
@@ -19,7 +18,6 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import URL from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
@@ -27,12 +25,9 @@ import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
-import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
-import { getHost } from '../../../util/browser';
 import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
-
-const { HOMEPAGE_URL } = AppConstants;
+import BrowserUrlBar from '../BrowserUrlBar';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -85,7 +80,12 @@ const styles = StyleSheet.create({
   },
   browserRightButton: {
     flex: 1,
-    marginRight: Device.isAndroid() ? 10 : 0,
+    marginRight: Device.isAndroid() ? 17 : 18,
+    marginLeft: Device.isAndroid() ? 7 : 0,
+    marginTop: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   disabled: {
     opacity: 0.3,
@@ -122,8 +122,6 @@ export default function getNavbarOptions(
   disableNetwork = false,
   drawerRef,
   themeColors,
-  selectedAddress,
-  onRightButtonPress,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -155,12 +153,7 @@ export default function getNavbarOptions(
         />
       </TouchableOpacity>
     ),
-    headerRight: () => (
-      <AccountRightButton
-        selectedAddress={selectedAddress}
-        onPress={onRightButtonPress}
-      />
-    ),
+    headerRight: () => <AccountRightButton />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
@@ -569,12 +562,7 @@ export function getSendFlowTitle(title, navigation, route, themeColors) {
  * @param {Object} navigation - Navigation object required to push new views
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
  */
-export function getBrowserViewNavbarOptions(
-  navigation,
-  route,
-  drawerRef,
-  themeColors,
-) {
+export function getBrowserViewNavbarOptions(route, themeColors) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -587,76 +575,16 @@ export function getBrowserViewNavbarOptions(
   });
 
   const url = route.params?.url ?? '';
-  let host = null;
-  let isHttps = false;
 
-  const isHomepage = (url) => getHost(url) === getHost(HOMEPAGE_URL);
-  const error = route.params?.error ?? '';
-  const icon = route.params?.icon;
-
-  const setAccountsPermissionsVisible =
-    route.params?.setAccountsPermissionsVisible;
-  const connectedAccounts = route.params?.connectedAccounts;
-
-  if (url && !isHomepage(url)) {
-    isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
-    const urlObj = new URL(url);
-    //Using host so the port number will be displayed on the address bar
-    host = urlObj.host.toLowerCase().replace(/^www\./, '');
-    if (
-      isGatewayUrl(urlObj) &&
-      url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1
-    ) {
-      const ensUrl = route.params?.currentEnsName ?? '';
-      if (ensUrl) {
-        host = ensUrl.toLowerCase().replace(/^www\./, '');
-      }
-    }
-  } else {
-    host = strings('browser.title');
-  }
-
-  function onPress() {
-    Keyboard.dismiss();
-    drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
-  }
+  const handleUrlPress = () => route.params?.showUrlModal?.();
 
   return {
     gestureEnabled: false,
     headerLeft: () => (
-      <TouchableOpacity
-        onPress={onPress}
-        style={styles.hamburgerButton}
-        testID={'hamburger-menu-button-browser'}
-      >
-        <IonicIcon
-          name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
-          size={Device.isAndroid() ? 24 : 28}
-          style={innerStyles.headerIcon}
-        />
-      </TouchableOpacity>
+      <BrowserUrlBar url={url} route={route} onPress={handleUrlPress} />
     ),
-    headerTitle: () => (
-      <NavbarBrowserTitle
-        error={!!error}
-        icon={url && !isHomepage(url) ? icon : null}
-        navigation={navigation}
-        route={route}
-        url={url}
-        hostname={host}
-        https={isHttps}
-      />
-    ),
-    headerRight: () => (
-      <View style={styles.browserRightButton}>
-        <AccountRightButton
-          selectedAddress={connectedAccounts?.[0]}
-          isNetworkVisible
-          onPress={setAccountsPermissionsVisible}
-        />
-      </View>
-    ),
+    headerTitle: null,
+    headerRight: () => <AccountRightButton />,
     headerStyle: innerStyles.headerStyle,
   };
 }
