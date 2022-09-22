@@ -1,17 +1,16 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { connect, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
-import getNavbarOptions, { getNetworkNavbarOptions } from '../../UI/Navbar';
+import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
 import FiatOrdersView from '../FiatOrdersView';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -23,7 +22,6 @@ const styles = StyleSheet.create({
 });
 
 function ActivityView({ hasOrders, accounts }) {
-  const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
   const navigation = useNavigation();
   const selectedAddress = useSelector(
@@ -31,7 +29,7 @@ function ActivityView({ hasOrders, accounts }) {
       state.engine.backgroundState.PreferencesController.selectedAddress,
   );
 
-  const openAccountSelector = () => {
+  const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ACCOUNT_SELECTOR,
     });
@@ -42,14 +40,20 @@ function ActivityView({ hasOrders, accounts }) {
         number_of_accounts: Object.keys(accounts ?? {}).length,
       },
     );
-  };
+  }, [navigation, accounts]);
 
   useEffect(
     () => {
       const title =
         hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
       navigation.setOptions(
-        getNavbarOptions(title, false, drawerRef, colors, navigation, true),
+        getTransactionsNavbarOptions(
+          title,
+          colors,
+          navigation,
+          selectedAddress,
+          openAccountSelector,
+        ),
       );
     },
     /* eslint-disable-next-line */

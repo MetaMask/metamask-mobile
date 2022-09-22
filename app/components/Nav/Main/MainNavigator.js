@@ -202,7 +202,6 @@ const WalletTabModalFlow = () => (
       name={'AssetHideConfirmation'}
       component={AssetHideConfirmation}
     />
-    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
   </Stack.Navigator>
 );
 
@@ -627,6 +626,7 @@ const MainNavigator = () => (
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
+    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
     <Stack.Screen
       name="ImportPrivateKeyView"
       component={ImportPrivateKeyView}
