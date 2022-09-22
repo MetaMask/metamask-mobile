@@ -64,8 +64,6 @@ function ActivityView({ hasOrders, accounts }) {
           false,
           drawerRef,
           colors,
-          selectedAddress,
-          openAccountSelector,
           navigation,
           true,
         ),
