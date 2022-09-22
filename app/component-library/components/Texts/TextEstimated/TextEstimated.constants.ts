@@ -7,8 +7,8 @@ import { IconSize } from '../../Icon';
 import { TextVariant } from '../Text/Text.types';
 
 export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
-  [TextVariant.sDisplayMD]: IconSize.Xl,
-  [TextVariant.sHeadingLG]: IconSize.Lg,
+  [TextVariant.sDisplayMD]: IconSize.Lg,
+  [TextVariant.sHeadingLG]: IconSize.Md,
   [TextVariant.sHeadingMD]: IconSize.Sm,
   [TextVariant.sHeadingSMRegular]: IconSize.Xs,
   [TextVariant.sHeadingSM]: IconSize.Sm,
@@ -17,7 +17,7 @@ export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
   [TextVariant.sBodySM]: IconSize.Xss,
   [TextVariant.sBodySMBold]: IconSize.Xss,
   [TextVariant.sBodyXS]: IconSize.Xss,
-  [TextVariant.lDisplayMD]: IconSize.Lg,
+  [TextVariant.lDisplayMD]: IconSize.Xl,
   [TextVariant.lHeadingLG]: IconSize.Lg,
   [TextVariant.lHeadingMD]: IconSize.Sm,
   [TextVariant.lHeadingSMRegular]: IconSize.Xs,
