@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 5.7.0 - Sept 22, 2022
+## 5.8.0 - Sept 22, 2022
 - [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
 - [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): [FIX] Unable to Speedup/Cancel legacy transactions
 - [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): [ENHANCEMENT] Implement new QA builds for both Android and iOS
