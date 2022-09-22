@@ -124,6 +124,8 @@ export default function getNavbarOptions(
   themeColors,
   selectedAddress,
   onRightButtonPress,
+  navigation = undefined,
+  useBackButton = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -137,10 +139,22 @@ export default function getNavbarOptions(
   });
 
   function onPress() {
+    if (useBackButton) return navigation?.pop();
+
     Keyboard.dismiss();
     drawerRef.current?.showDrawer?.();
     trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
   }
+
+  function getLeftIcon() {
+    if (useBackButton) {
+      return Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back';
+    }
+
+    return Device.isAndroid() ? 'md-menu' : 'ios-menu';
+  }
+
+  const leftIconName = getLeftIcon();
 
   return {
     headerTitle: () => (
@@ -149,7 +163,7 @@ export default function getNavbarOptions(
     headerLeft: () => (
       <TouchableOpacity onPress={onPress} style={styles.backButton}>
         <IonicIcon
-          name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
+          name={leftIconName}
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}
         />

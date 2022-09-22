@@ -5,7 +5,7 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { connect, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
-import getNavbarOptions from '../../UI/Navbar';
+import getNavbarOptions, { getNetworkNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
@@ -48,6 +48,16 @@ function ActivityView({ hasOrders, accounts }) {
     () => {
       const title =
         hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
+      // navigation.setOptions(
+      //   getNetworkNavbarOptions(
+      //     title,
+      //     true,
+      //     navigation,
+      //     colors,
+      //     openAccountSelector,
+      //     true,
+      //   ),
+      // );
       navigation.setOptions(
         getNavbarOptions(
           title,
@@ -56,6 +66,8 @@ function ActivityView({ hasOrders, accounts }) {
           colors,
           selectedAddress,
           openAccountSelector,
+          navigation,
+          true,
         ),
       );
     },

@@ -681,6 +681,7 @@ class DrawerView extends PureComponent {
     });
   };
 
+  // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
     AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
@@ -704,13 +705,16 @@ class DrawerView extends PureComponent {
   goToBrowser = () => {
     this.props.navigation.navigate(Routes.BROWSER_TAB_HOME);
     this.hideDrawer();
+    // Q: duplicated analytic event?
     this.trackOpenBrowserEvent();
+    // NOTE: do we need this event?
     this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
   };
 
   showWallet = () => {
     this.props.navigation.navigate('WalletTabHome');
     this.hideDrawer();
+    // NOTE: do we need this event?
     this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
   };
 
@@ -940,26 +944,6 @@ class DrawerView extends PureComponent {
     }
     return [
       [
-        {
-          name: strings('drawer.browser'),
-          icon: this.getIcon('globe'),
-          selectedIcon: this.getSelectedIcon('globe'),
-          action: this.goToBrowser,
-          routeNames: ['BrowserView', 'AddBookmark'],
-        },
-        {
-          name: strings('drawer.wallet'),
-          icon: this.getImageIcon('wallet'),
-          selectedIcon: this.getSelectedImageIcon('wallet'),
-          action: this.showWallet,
-          routeNames: [
-            'Wallet',
-            'WalletView',
-            'Asset',
-            'AddAsset',
-            'Collectible',
-          ],
-        },
         {
           name: strings('drawer.transaction_activity'),
           icon: this.getFeatherIcon('list'),
