@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+} from 'react';
 
 import {
   ActivityIndicator,
@@ -10,7 +16,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import GlobalAlert from '../../UI/GlobalAlert';
 import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
@@ -51,6 +57,14 @@ import { colors as importedColors } from '../../../styles/common';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import {
+  getNetworkImageSource,
+  getNetworkNameFromProvider,
+} from '../../../util/networks';
+import Toast, {
+  ToastContext,
+  ToastVariant,
+} from '../../../component-library/components/Toast';
 
 const Stack = createStackNavigator();
 
@@ -194,6 +208,36 @@ const Main = (props) => {
   const skipAccountModalSkip = () => {
     if (skipCheckbox) toggleRemindLater();
   };
+
+  /**
+   * Current network
+   */
+  const networkProvider = useSelector(
+    (state) => state.engine.backgroundState.NetworkController.provider,
+  );
+  const prevNetworkProvider = useRef(undefined);
+  const { toastRef } = useContext(ToastContext);
+
+  // Show network switch confirmation.
+  useEffect(() => {
+    if (
+      prevNetworkProvider.current &&
+      networkProvider.chainId !== prevNetworkProvider.current.chainId
+    ) {
+      const networkImage = getNetworkImageSource(networkProvider.chainId);
+      const networkName = getNetworkNameFromProvider(networkProvider);
+      toastRef?.current?.showToast({
+        variant: ToastVariant.Network,
+        labelOptions: [
+          { label: `Connected to ` },
+          { label: networkName, isBold: true },
+          { label: '.' },
+        ],
+        networkImageSource: networkImage,
+      });
+    }
+    prevNetworkProvider.current = networkProvider;
+  }, [networkProvider]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {

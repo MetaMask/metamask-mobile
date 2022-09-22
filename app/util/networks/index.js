@@ -21,6 +21,11 @@ import { fastSplit } from '../../util/number';
 import PopularList from './customNetworks';
 /* eslint-disable-next-line */
 const ethLogo = require('../../images/eth-logo.png');
+const ropstenLogo = require('../../images/ropsten-logo-dark.png');
+const kovanLogo = require('../../images/kovan-logo-dark.png');
+const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
+const goerliLogo = require('../../images/goerli-logo-dark.png');
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -47,7 +52,7 @@ const NetworkList = {
     hexChainId: '0x3',
     color: '#ff4a8d',
     networkType: 'ropsten',
-    imageSource: ethLogo,
+    imageSource: ropstenLogo,
   },
   [KOVAN]: {
     name: 'Kovan Test Network',
@@ -57,7 +62,7 @@ const NetworkList = {
     hexChainId: '0x2a',
     color: '#7057ff',
     networkType: 'kovan',
-    imageSource: ethLogo,
+    imageSource: kovanLogo,
   },
   [RINKEBY]: {
     name: 'Rinkeby Test Network',
@@ -67,7 +72,7 @@ const NetworkList = {
     hexChainId: '0x4',
     color: '#f6c343',
     networkType: 'rinkeby',
-    imageSource: ethLogo,
+    imageSource: rinkebyLogo,
   },
   [GOERLI]: {
     name: 'Goerli Test Network',
@@ -77,7 +82,7 @@ const NetworkList = {
     hexChainId: '0x5',
     color: '#3099f2',
     networkType: 'goerli',
-    imageSource: ethLogo,
+    imageSource: goerliLogo,
   },
   [RPC]: {
     name: 'Private Network',

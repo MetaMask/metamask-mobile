@@ -42,7 +42,7 @@ import {
 import styles from './Toast.styles';
 import { useSelector } from 'react-redux';
 
-const visibilityDuration = 2500;
+const visibilityDuration = 2750;
 const animationDuration = 250;
 const bottomPadding = 16;
 const screenHeight = Dimensions.get('window').height;

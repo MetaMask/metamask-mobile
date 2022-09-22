@@ -43,7 +43,7 @@ export interface Account {
    */
   yOffset: number;
   /**
-   * Boolean that indicates if the account is selected.
+   * Boolean that indicates if the account matches the active account on the wallet.
    */
   isSelected: boolean;
   /**
