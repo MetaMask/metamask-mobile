@@ -48,25 +48,8 @@ function ActivityView({ hasOrders, accounts }) {
     () => {
       const title =
         hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
-      // navigation.setOptions(
-      //   getNetworkNavbarOptions(
-      //     title,
-      //     true,
-      //     navigation,
-      //     colors,
-      //     openAccountSelector,
-      //     true,
-      //   ),
-      // );
       navigation.setOptions(
-        getNavbarOptions(
-          title,
-          false,
-          drawerRef,
-          colors,
-          navigation,
-          true,
-        ),
+        getNavbarOptions(title, false, drawerRef, colors, navigation, true),
       );
     },
     /* eslint-disable-next-line */
