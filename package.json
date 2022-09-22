@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.6.0",
+  "version": "5.7.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -115,8 +115,7 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "^1.2.0",
-    "@ethersproject/shims": "^5.6.0",
+    "@consensys/on-ramp-sdk": "^1.2.1",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
@@ -162,11 +161,11 @@
     "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.4",
-    "ethereum-ens-network-map": "^1.0.2",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
-    "ethers": "^5.6.5",
+    "ethers": "^5.0.14",
     "ethjs-contract": "0.2.3",
+    "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
@@ -303,7 +302,7 @@
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.3",
     "concat-cli": "4.0.0",
-    "detox": "19.7.1",
+    "detox": "^19.11.0",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
