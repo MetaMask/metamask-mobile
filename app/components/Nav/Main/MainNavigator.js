@@ -185,6 +185,16 @@ const WalletTabStackFlow = () => (
   </Stack.Navigator>
 );
 
+const TransactionsHome = () => (
+  <Stack.Navigator>
+    <Stack.Screen name="TransactionsView" component={ActivityView} />
+    <Stack.Screen
+      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
+      component={OrderDetails}
+    />
+  </Stack.Navigator>
+);
+
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
@@ -192,6 +202,7 @@ const WalletTabModalFlow = () => (
       name={'AssetHideConfirmation'}
       component={AssetHideConfirmation}
     />
+    <Stack.Screen name="TransactionsHome" component={TransactionsHome} />
   </Stack.Navigator>
 );
 
@@ -208,16 +219,6 @@ const BrowserFlow = () => (
       name={Routes.BROWSER_URL_MODAL}
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
-const TransactionsHome = () => (
-  <Stack.Navigator mode="modal">
-    <Stack.Screen name="TransactionsView" component={ActivityView} />
-    <Stack.Screen
-      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
-      component={OrderDetails}
     />
   </Stack.Navigator>
 );
@@ -258,10 +259,6 @@ const HomeTabs = () => {
             name={Routes.BROWSER_TAB_HOME}
             options={options.browser}
             component={BrowserFlow}
-          />
-          <Tab.Screen
-            name="TransactionsHome"
-            component={TransactionsHome}
           />
         </Tab.Navigator>
       </Drawer>
