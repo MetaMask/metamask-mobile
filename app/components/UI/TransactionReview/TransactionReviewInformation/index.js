@@ -389,7 +389,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency: this.isTestNetwork ? ticker : nativeCurrency,
+          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -475,7 +475,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency: this.isTestNetwork ? ticker : nativeCurrency,
+          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -622,8 +622,8 @@ class TransactionReviewInformation extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const errorPress = this.isTestNetwork ? this.goToFaucet : this.buyEth;
-    const errorLinkText = this.isTestNetwork
+    const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
+    const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 
@@ -661,7 +661,7 @@ class TransactionReviewInformation extends PureComponent {
         )}
         {!!error && (
           <View style={styles.errorWrapper}>
-            {this.isTestNetwork || allowedToBuy(network) ? (
+            {this.isTestNetwork() || allowedToBuy(network) ? (
               <TouchableOpacity onPress={errorPress}>
                 <Text style={styles.error}>{error}</Text>
                 {over && (
