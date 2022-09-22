@@ -29,8 +29,8 @@ import {
   CAROUSEL_TITLE_ID,
   GET_STARTED_BUTTON_ID,
   ONBOARDING_CAROUSEL_CONTAINER_ID,
-} from '../../../../e2e/features/page-objects/WelcomePage';
-import generateTestId from '../../../../e2e/helpers/generateTestId';
+} from '../../../../e2e/features/screen-objects/WelcomeScreen';
+import generateTestId from '../../../../e2e/utils/generateTestId';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;

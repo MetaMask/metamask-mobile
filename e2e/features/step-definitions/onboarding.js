@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
-import WelcomePage from '../page-objects/WelcomePage.js';
+import WelcomePage from '../screen-objects/WelcomeScreen.js';
 
 
 Given(/^I have installed MetaMask mobile app on my device/, async () => {
@@ -16,4 +16,6 @@ Then(/^MetaMask animated loading logo is displayed/, async () => {
 
 Then(/^(.*) screen is displayed after logo/, async (title) => {
   await WelcomePage.verifyCarouselOneTitle(title);
+  await WelcomePage.swipeCarouselLeft();
+  await WelcomePage.verifyCarouselTwoTitle();
 });

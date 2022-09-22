@@ -4,8 +4,8 @@ import { Animated, Dimensions, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
-import generateTestId from '../../../../e2e/helpers/generateTestId';
-import { METAMASK_ANIMATION_ID } from '../../../../e2e/features/page-objects/WelcomePage';
+import generateTestId from '../../../../e2e/utils/generateTestId';
+import { METAMASK_ANIMATION_ID } from '../../../../e2e/features/screen-objects/WelcomeScreen';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;

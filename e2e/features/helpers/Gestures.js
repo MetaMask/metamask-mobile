@@ -53,7 +53,7 @@ const SWIPE_DIRECTION = {
   },
 };
 
-class Page  {
+class Gestures  {
   static async waitAndTap(elementId) {
     $(`~${elementId}`).waitForDisplayed();
     return $(`~${elementId}`).click();
@@ -237,4 +237,4 @@ class Page  {
   }
 }
 
-export default Page
+export default Gestures
