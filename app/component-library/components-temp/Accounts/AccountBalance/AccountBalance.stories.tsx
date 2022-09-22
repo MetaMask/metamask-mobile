@@ -7,7 +7,7 @@ import {
   ACCOUNT_BALANCE_LABEL,
   ACCOUNT_NATIVE_CURRENCY,
   ACCOUNT_NETWORK,
-  ACCOUNT_TYPE,
+  ACCOUNT_NAME,
   TEST_ACCOUNT_ADDRESS,
   TEST_NETWORK_NAME,
   TEST_REMOTE_IMAGE_SOURCE,
@@ -26,7 +26,7 @@ const unknownAccountNetwork = text(
   'unknownAccountNetwork',
   UNKNOWN_ACCOUNT_NETWORK,
 );
-const accountType = text('accountType', ACCOUNT_TYPE);
+const accountName = text('accountName', ACCOUNT_NAME);
 const accountBalance = number('accountBalance', ACCOUNT_BALANCE);
 const accountNativeCurrency = text(
   'accountNativeCurrency',
@@ -48,7 +48,7 @@ storiesOf('Component Library / AccountBalance', module)
   .add('Default', () => (
     <AccountBalance
       accountNetwork={accountNetwork}
-      accountType={accountType}
+      accountName={accountName}
       accountBalance={accountBalance}
       accountNativeCurrency={accountNativeCurrency}
       accountBalanceLabel={accountBalanceLabel}
@@ -59,7 +59,7 @@ storiesOf('Component Library / AccountBalance', module)
   .add('Unknown Network', () => (
     <AccountBalance
       accountNetwork={unknownAccountNetwork}
-      accountType={accountType}
+      accountName={accountName}
       accountBalance={accountBalance}
       accountNativeCurrency={accountNativeCurrency}
       accountBalanceLabel={accountBalanceLabel}

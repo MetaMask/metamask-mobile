@@ -16,11 +16,11 @@ const AccountBase = ({
   accountBalance,
   accountNativeCurrency,
   accountNetwork,
-  accountType,
+  accountName,
   accountBalanceLabel,
   accountAddress,
   badgeProps,
-}: AccountBaseProps): JSX.Element => (
+}: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
       <BadgeWrapper badgeProps={badgeProps} style={styles.badgeWrapper}>
@@ -31,7 +31,7 @@ const AccountBase = ({
       </BadgeWrapper>
       <View>
         <Text variant={TextVariant.sBodySM}>{accountNetwork}</Text>
-        <Text variant={TextVariant.lBodySMBold}>{accountType}</Text>
+        <Text variant={TextVariant.lBodySMBold}>{accountName}</Text>
       </View>
     </View>
     <View>

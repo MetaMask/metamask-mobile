@@ -14,10 +14,10 @@ export interface AccountBaseProps {
    */
   accountNetwork: string;
   /**
-   * Type of the account.
+   * Name of the account.
    * @default 'Account 1'
    */
-  accountType: string;
+  accountName: string;
   /**
    * Action balance title
    */
