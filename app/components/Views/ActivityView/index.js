@@ -51,13 +51,25 @@ const ActivityView = () => {
     () => {
       const title =
         hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
+      // navigation.setOptions(
+      //   getNetworkNavbarOptions(
+      //     title,
+      //     true,
+      //     navigation,
+      //     colors,
+      //     openAccountSelector,
+      //     true,
+      //   ),
+      // );
       navigation.setOptions(
-        getNetworkNavbarOptions(
+        getNavbarOptions(
           title,
           false,
-          navigation,
+          drawerRef,
           colors,
-          undefined,
+          selectedAddress,
+          openAccountSelector,
+          navigation,
           true,
         ),
       );
