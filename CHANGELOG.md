@@ -1,6 +1,30 @@
 # Changelog
 
 ## Current Main Branch
+- [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
+- [#4913](https://github.com/MetaMask/metamask-mobile/pull/4913): 5.7.0
+- [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): Unable to Speedup/Cancel legacy transactions
+- [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): Implement new QA builds for both Android and iOS
+- [#4993](https://github.com/MetaMask/metamask-mobile/pull/4993): On-Ramp: Add scrolling to payment methods and make logo property optional
+- [#4997](https://github.com/MetaMask/metamask-mobile/pull/4997): [ENHANCEMENT] SRP Reveal Timestamp
+- [#5002](https://github.com/MetaMask/metamask-mobile/pull/5002): [FEAT] ENS Wildcard and offchain resolution
+- [#4430](https://github.com/MetaMask/metamask-mobile/pull/4430): [5.5] Keystone: fix 2 bugs
+- [#3438](https://github.com/MetaMask/metamask-mobile/pull/3438): Bump metro from 0.59.0 to 0.66.2
+- [#4649](https://github.com/MetaMask/metamask-mobile/pull/4649): [IMPROVEMENT] Url redirection
+- [#4980](https://github.com/MetaMask/metamask-mobile/pull/4980): On-ramp: Add compact payment method selector
+- [#4982](https://github.com/MetaMask/metamask-mobile/pull/4982): [FIX] typo in faucet name
+- [#4983](https://github.com/MetaMask/metamask-mobile/pull/4983): [FIX] Navigation comment spell
+- [#4755](https://github.com/MetaMask/metamask-mobile/pull/4755): [UPDATE] - New template fields added to reflect newer requirements for PRs
+- [#4978](https://github.com/MetaMask/metamask-mobile/pull/4978): Store distinct id for consistency
+- [#4958](https://github.com/MetaMask/metamask-mobile/pull/4958): [FIX] WebView Origin Whitelist
+- [#4941](https://github.com/MetaMask/metamask-mobile/pull/4941): Replace "@react-native-community/async-storage" for "@react-native-async-storage/async-storage"
+- [#4947](https://github.com/MetaMask/metamask-mobile/pull/4947): [IMPROVEMENT] WebView Error Copy
+- [#4916](https://github.com/MetaMask/metamask-mobile/pull/4916): Revert ENS CCIP Wildcard Support
+- [#4946](https://github.com/MetaMask/metamask-mobile/pull/4946): Swaps: Add copy for 0% fee in quotes info modal
+- [#4942](https://github.com/MetaMask/metamask-mobile/pull/4942): Add unit tests to useDeleteWallet hook
+- [#4939](https://github.com/MetaMask/metamask-mobile/pull/4939): Update "Usability enhancement" template
+- [#4938](https://github.com/MetaMask/metamask-mobile/pull/4938): Bump git-clone version to 6
+- [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): Detox version bump from 19.6.5 to 19.7.1
 
 ## 5.7.0 - Aug 25, 2022
 - [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
