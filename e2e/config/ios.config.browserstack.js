@@ -12,6 +12,9 @@ config.capabilities = [
     deviceName: 'iPhone 11 Pro',
     platformVersion: '15.5',
     app: '../ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
+    settings: {
+      snapshotMaxDepth: 100,
+    }
   },
 ];
 

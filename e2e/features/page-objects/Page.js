@@ -111,10 +111,10 @@ class Page  {
    * Swipe left based on a percentage
    */
 
-  static async swipeLeft(percentage = 1) {
+  static async swipeLeft(percentageX = 1, percentageY = 1) {
     await this.swipeOnPercentage(
-      this.calculateXY(SWIPE_DIRECTION.left.start, percentage),
-      this.calculateXY(SWIPE_DIRECTION.left.end, percentage),
+      this.calculateXY(SWIPE_DIRECTION.left.start, percentageX),
+      this.calculateXY(SWIPE_DIRECTION.left.end, percentageY),
     );
   }
   /**
@@ -149,34 +149,74 @@ class Page  {
    * Swipe from coordinates (from) to the new coordinates (to). The given coordinates are in pixels.
    */
 
-  static async swipe(from, to) {
+  static async improvedSwipe() {
+    // TODO
+    const startPercentage = 98;
+    const endPercentage = 0;
+    const anchorPercentage = 50;
+
+    const { width, height } = await driver.getWindowSize();
+    console.log("🚀 ~ file: Page.js ~ line 158 ~ Page ~ improvedSwipe ~ width, height", width, height)
+    const anchor = height * anchorPercentage / 100;
+    console.log("🚀 ~ file: Page.js ~ line 159 ~ Page ~ improvedSwipe ~ anchor", anchor)
+    const startPoint = width * startPercentage / 100;
+    console.log("🚀 ~ file: Page.js ~ line 160 ~ Page ~ improvedSwipe ~ startPoint", startPoint)
+    const endPoint = width * endPercentage / 100;
+    console.log("🚀 ~ file: Page.js ~ line 163 ~ Page ~ improvedSwipe ~ endPoint", endPoint)
     await driver.touchPerform([
       {
         action: 'press',
         options: {
-          x: from.x,
-          y: from.y,
-        }
+          x: startPoint,
+          y: anchor,
+        },
       },
       {
         action: 'wait',
         options: {
           ms: 100,
-        }
+        },
       },
       {
-        type: 'moveTo',
+        action: 'moveTo',
         options: {
-          x: to.x,
-          y: to.y,
-        }
+          x: endPoint,
+          y: anchor,
+        },
       },
       {
         action: 'release',
-        options: {}
+        options: {},
       },
     ]);
+  }
 
+  static async swipe(from, to) {
+    // TODO
+    await driver.performActions([
+      {
+        // a. Create the event
+        type: 'pointer',
+        id: 'finger1',
+        parameters: { pointerType: 'touch' },
+        actions: [
+          // b. Move finger into start position
+          { type: 'pointerMove', duration: 0, x: from.x, y: from.y },
+          // c. Finger comes down into contact with screen
+          { type: 'pointerDown', button: 0 },
+          // d. Pause for a little bit
+          { type: 'pause', duration: 100 },
+          // e. Finger moves to end position
+          //    We move our finger from the center of the element to the
+          //    starting position of the element.
+          //    Play with the duration to make the swipe go slower / faster
+          { type: 'pointerMove', duration: 1000, x: to.x, y: to.y },
+          // f. Finger gets up, off the screen
+          { type: 'pointerUp', button: 0 },
+        ],
+      },
+    ]);
+    // Add a pause, just to make sure the swipe is done
     await driver.pause(1000);
   }
   /**

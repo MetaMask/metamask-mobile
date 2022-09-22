@@ -310,8 +310,12 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  // after: function (result, capabilities, specs) {
-  // },
+  after: function (result, capabilities, specs) {
+    console.log("🚀 ~ file: wdio.conf.js ~ line 322 ~ capabilities", capabilities)
+    if (capabilities.bundleId) {
+      driver.terminateApp(capabilities.bundleId)
+    }
+  },
   /**
    * Gets executed right after terminating the webdriver session.
    * @param {Object} config wdio configuration object
@@ -328,7 +332,7 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {<Object>} results object containing test results
    */
-  // onComplete: function(exitCode, config, capabilities, results) {
+  // onComplete: function (exitCode, config, capabilities) {
   // },
   /**
    * Gets executed when a refresh happens.

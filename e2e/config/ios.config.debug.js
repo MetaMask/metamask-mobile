@@ -9,9 +9,13 @@ config.capabilities = [
     fullReset: false,
     maxInstances: 1,
     automationName: 'XCUITest',
-    deviceName: 'iPhone 11 Pro',
+    deviceName: 'iPhone 13',
     platformVersion: '15.5',
-    app: '../ios/build/Build/Products/Debug-iphonesimulator/MetaMask-QA.app',
+    // app: '../ios/build/Build/Products/Debug-iphonesimulator/MetaMask-QA.app',
+    bundleId: 'io.metamask.MetaMask-QA',
+    settings: {
+      snapshotMaxDepth: 100, // Enable testID on deep nested elements
+    }
   },
 ];
 

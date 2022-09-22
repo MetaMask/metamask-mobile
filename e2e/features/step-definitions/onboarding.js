@@ -11,10 +11,9 @@ When(/^I tap to open MetaMask mobile app/, async () => {
 });
 
 Then(/^MetaMask animated loading logo is displayed/, async () => {
-  /** This is automatically done by the automation framework **/
+  await WelcomePage.verifySplashScreen();
 });
 
 Then(/^(.*) screen is displayed after logo/, async (title) => {
   await WelcomePage.verifyCarouselOneTitle(title);
-  await WelcomePage.swipeCarouselRight();
 });

@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
 import React from 'react';
-import { Animated, Dimensions, View, StyleSheet } from 'react-native';
+import { Animated, Dimensions, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
+import generateTestId from '../../../../e2e/helpers/generateTestId';
+import { METAMASK_ANIMATION_ID } from '../../../../e2e/features/page-objects/WelcomePage';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -69,7 +71,10 @@ const MetaMaskAnimation = ({
 
   return (
     <View style={styles.main}>
-      <Animated.View style={[styles.logoWrapper, { opacity }]}>
+      <Animated.View
+        {...generateTestId(Platform, METAMASK_ANIMATION_ID)}
+        style={[styles.logoWrapper, { opacity }]}
+      >
         <View style={styles.fox}>
           <View style={styles.foxAndName}>
             <LottieView

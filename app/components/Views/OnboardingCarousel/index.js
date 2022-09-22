@@ -28,6 +28,7 @@ import {
   CAROUSEL_IMAGE_ID,
   CAROUSEL_TITLE_ID,
   GET_STARTED_BUTTON_ID,
+  ONBOARDING_CAROUSEL_CONTAINER_ID,
 } from '../../../../e2e/features/page-objects/WelcomePage';
 import generateTestId from '../../../../e2e/helpers/generateTestId';
 
@@ -195,13 +196,16 @@ class OnboardingCarousel extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-carousel-screen'}>
+      <View style={baseStyles.flexGrow}>
         <OnboardingScreenWithBg screen={'carousel'}>
           <ScrollView
             style={baseStyles.flexGrow}
             contentContainerStyle={styles.scroll}
           >
-            <View style={styles.wrapper}>
+            <View
+              style={styles.wrapper}
+              {...generateTestId(Platform, ONBOARDING_CAROUSEL_CONTAINER_ID)}
+            >
               <ScrollableTabView
                 style={styles.scrollTabs}
                 renderTabBar={this.renderTabBar}
@@ -212,14 +216,11 @@ class OnboardingCarousel extends PureComponent {
                   const imgStyleKey = `carouselImage${key}`;
                   return (
                     <View key={key} style={baseStyles.flexGrow}>
-                      <View style={styles.tab}>
-                        <Text
-                          style={styles.title}
-                          {...generateTestId(
-                            Platform,
-                            CAROUSEL_TITLE_ID(value),
-                          )}
-                        >
+                      <View
+                        style={styles.tab}
+                        {...generateTestId(Platform, CAROUSEL_TITLE_ID(value))}
+                      >
+                        <Text style={styles.title}>
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
                         <Text style={styles.subtitle}>
