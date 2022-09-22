@@ -6,7 +6,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
@@ -49,9 +48,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const permittedAccountsList = useSelector(
     (state: any) => state.engine.backgroundState.PermissionController,
   );
-  const thirdPartyApiMode = useSelector(
-    (state: any) => state.privacy.thirdPartyApiMode,
-  );
   const permittedAccountsByOrigin = getPermittedAccountsByOrigin(
     permittedAccountsList,
     origin,
@@ -89,12 +85,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
     return accountsByPermittedStatus;
   }, [accounts, permittedAccountsList]);
-
-  const onRefreshTransactionHistory = () =>
-    thirdPartyApiMode &&
-    InteractionManager.runAfterInteractions(async () => {
-      Engine.refreshTransactionHistory();
-    });
 
   const onCreateAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
