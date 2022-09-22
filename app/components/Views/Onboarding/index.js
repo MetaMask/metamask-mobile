@@ -10,7 +10,6 @@ import {
   Alert,
   Image,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import StyledButton from '../../UI/StyledButton';
@@ -47,10 +46,6 @@ import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import Routes from '../../../constants/navigation/Routes';
-import {
-  generateTestId,
-  WALLET_SETUP_SCREEN_CONTAINER_ID,
-} from '../../../../e2e/features/test-ids';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -415,9 +410,9 @@ class Onboarding extends PureComponent {
       <View style={styles.ctas}>
         <Text
           style={styles.title}
-          {...generateTestId(Platform, WALLET_SETUP_SCREEN_CONTAINER_ID)}
+          // {...generateTestId(Platform, WALLET_SETUP_SCREEN_CONTAINER_ID)}
         >
-          {strings('onboarding.title')}
+          {/* {strings('onboarding.title')} */}
         </Text>
         <View style={styles.importWrapper}>
           <Text style={styles.buttonDescription}>

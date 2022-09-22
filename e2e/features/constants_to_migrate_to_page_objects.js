@@ -1,13 +1,3 @@
-export const ONBOARDING_CAROUSEL_CONTAINER_ID = 'onboarding-carousel-screen';
-export const CAROUSEL_SCREEN_ONE_IMAGE_ID = 'carousel-one-image';
-export const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'carousel-two-image';
-export const CAROUSEL_SCREEN_THREE_IMAGE_ID = 'carousel-three-image';
-
-export const GET_STARTED_BUTTON_ID = 'onboarding-get-started-button';
-
-export const ONBOARDING_SCREEN_CONTAINER_ID = 'onboarding-screen';
-export const WALLET_SETUP_SCREEN_CONTAINER_ID = 'onboarding-screen-title';
-
 export const IMPORT_WALLET_BUTTON_ID = 'onboarding-import-button';
 export const IMPORT_WALLET_FROM_EXTENSION_BUTTON_ID =
   'onboarding-import-button';
@@ -101,10 +91,6 @@ export const WHATS_NEW_MODAL_GOT_IT_BUTTON_ID = 'whats-new-modal-got-it-button';
 
 export const INPUT_NETWORK_NAME = 'input-network-name';
 
-export const generateTestId = (Platform, id) => {
-  return Platform.OS === 'android'
-    ? { accessible: true, accessibilityLabel: id }
-    : { testID: id };
-};
+
 
 //https://stackoverflow.com/questions/64706072/how-to-set-the-testid-and-the-accessibilitylabel-together-with-react-native

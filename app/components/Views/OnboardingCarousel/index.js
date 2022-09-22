@@ -8,6 +8,7 @@ import {
   Image,
   Dimensions,
   InteractionManager,
+  Platform,
 } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles, baseStyles } from '../../../styles/common';
@@ -23,7 +24,12 @@ import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { GET_STARTED_BUTTON_ID } from '../../../../e2e/features/test-ids';
+import {
+  CAROUSEL_IMAGE_ID,
+  CAROUSEL_TITLE_ID,
+  GET_STARTED_BUTTON_ID,
+} from '../../../../e2e/features/page-objects/WelcomePage';
+import generateTestId from '../../../../e2e/helpers/generateTestId';
 
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
@@ -209,7 +215,10 @@ class OnboardingCarousel extends PureComponent {
                       <View style={styles.tab}>
                         <Text
                           style={styles.title}
-                          testID={`carousel-screen-${value}`}
+                          {...generateTestId(
+                            Platform,
+                            CAROUSEL_TITLE_ID(value),
+                          )}
                         >
                           {strings(`onboarding_carousel.title${key}`)}
                         </Text>
@@ -222,7 +231,10 @@ class OnboardingCarousel extends PureComponent {
                           source={carousel_images[index]}
                           style={[styles.carouselImage, styles[imgStyleKey]]}
                           resizeMethod={'auto'}
-                          testID={`carousel-${value}-image`}
+                          {...generateTestId(
+                            Platform,
+                            CAROUSEL_IMAGE_ID(value),
+                          )}
                         />
                       </View>
                     </View>
