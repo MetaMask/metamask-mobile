@@ -87,6 +87,8 @@ export const callbackBaseUrl = isDevelopment
   ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
+export const callbackBaseDeeplink = 'metamask://';
+
 const appConfig = {
   POLLING_INTERVAL: 20000,
   POLLING_INTERVAL_HIGHLIGHT: 10000,
