@@ -631,7 +631,7 @@ const MainNavigator = () => (
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen name="QRScanner" component={QrScanner} />
+    <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />

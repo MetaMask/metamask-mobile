@@ -1,4 +1,5 @@
 export const MAINNET = 'mainnet';
+export const HOMESTEAD = 'homestead';
 export const ROPSTEN = 'ropsten';
 export const KOVAN = 'kovan';
 export const RINKEBY = 'rinkeby';

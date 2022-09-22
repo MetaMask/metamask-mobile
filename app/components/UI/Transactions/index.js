@@ -480,21 +480,15 @@ class Transactions extends PureComponent {
     });
   };
 
-  speedUpTransaction = async (EIP1559TransactionData) => {
+  speedUpTransaction = async (transactionObject) => {
     try {
-      if (EIP1559TransactionData) {
-        await Engine.context.TransactionController.speedUpTransaction(
-          this.speedUpTxId,
-          {
-            maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
-          },
-        );
-      } else {
-        await Engine.context.TransactionController.speedUpTransaction(
-          this.speedUpTxId,
-        );
-      }
+      await Engine.context.TransactionController.speedUpTransaction(
+        this.speedUpTxId,
+        transactionObject?.suggestedMaxFeePerGasHex && {
+          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+        },
+      );
       this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -511,21 +505,15 @@ class Transactions extends PureComponent {
     await Engine.context.TransactionController.cancelTransaction(tx.id);
   };
 
-  cancelTransaction = async (EIP1559TransactionData) => {
+  cancelTransaction = async (transactionObject) => {
     try {
-      if (EIP1559TransactionData) {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-          {
-            maxFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxFeePerGasHex}`,
-            maxPriorityFeePerGas: `0x${EIP1559TransactionData?.suggestedMaxPriorityFeePerGasHex}`,
-          },
-        );
-      } else {
-        await Engine.context.TransactionController.stopTransaction(
-          this.cancelTxId,
-        );
-      }
+      await Engine.context.TransactionController.stopTransaction(
+        this.cancelTxId,
+        transactionObject?.suggestedMaxFeePerGasHex && {
+          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+        },
+      );
       this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);

@@ -14,6 +14,7 @@ const Routes = {
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
   },
+  QR_SCANNER: 'QRScanner',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -27,6 +28,12 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
+  },
+  SEND_FLOW: {
+    SEND_TO: 'SendTo',
+  },
+  SETTINGS: {
+    CONTACT_FORM: 'ContactForm',
   },
 };
 
