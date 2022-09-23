@@ -46,6 +46,7 @@ import AssetSwapButton from '../Swaps/components/AssetSwapButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { KeyringTypes } from '@metamask/controllers';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -377,6 +378,7 @@ class AccountOverview extends PureComponent {
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
     const isHardwareWalletAccount = isHardwareAccount(address);
+    const isLedgerAccount = isHardwareAccount(address, [KeyringTypes.ledger]);
 
     return (
       <View
@@ -456,7 +458,9 @@ class AccountOverview extends PureComponent {
                   {isHardwareWalletAccount && (
                     <View style={styles.tag}>
                       <Text style={styles.tagText}>
-                        {strings('transaction.hardware')}
+                        {isLedgerAccount
+                          ? strings('accounts.ledger')
+                          : strings('transaction.hardware')}
                       </Text>
                     </View>
                   )}
