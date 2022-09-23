@@ -25,6 +25,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { ToastOptions } from '../../../../component-library/components/Toast';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
+import getAccountNameWithENS from '../../../../util/accounts/utils';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
@@ -118,14 +119,15 @@ const AccountPermissionsRevoke = ({
                 ];
                 if (activeAddress === address) {
                   const nextActiveAddress = permittedAddresses[1];
-                  const newActiveAccount = accounts.find(
-                    ({ address }) => address === nextActiveAddress,
-                  );
-                  // Prompt user of auto account switch
+                  const newActiveAccountName = getAccountNameWithENS({
+                    accountAddress: nextActiveAddress,
+                    accounts,
+                    ensByAccountAddress,
+                  });
                   removePermittedAccount(origin, address);
                   labelOptions.push(
                     { label: `\nSwitched to account` },
-                    { label: ` ${newActiveAccount?.name}`, isBold: true },
+                    { label: ` ${newActiveAccountName}`, isBold: true },
                     { label: '.' },
                   );
                   toastRef?.current?.showToast({

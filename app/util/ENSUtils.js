@@ -16,7 +16,7 @@ const CACHE_REFRESH_THRESHOLD = 60 * 60 * 1000;
  * Utility class with the single responsibility
  * of caching ENS names
  */
-class ENSCache {
+export class ENSCache {
   static cache = {};
 }
 
