@@ -237,6 +237,7 @@ class TransactionEditor extends PureComponent {
       handleGasFeeSelection(
         hexToBN(LegacyGasData.suggestedGasLimitHex),
         hexToBN(LegacyGasData.suggestedGasPriceHex),
+        setTransactionObject,
       );
 
       let LegacyGasDataTemp;
@@ -652,6 +653,7 @@ class TransactionEditor extends PureComponent {
       handleGasFeeSelection(
         hexToBN(LegacyGasDataTemp.suggestedGasLimitHex),
         hexToBN(LegacyGasDataTemp.suggestedGasPriceHex),
+        setTransactionObject,
       );
     }
 
