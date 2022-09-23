@@ -13,6 +13,7 @@ import Text from '../../../Base/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
+import Device from '../../../../util/device';
 
 const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
 const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
@@ -102,6 +103,11 @@ const SearchingForDeviceStep = () => {
         <Text style={styles.ledgerInstructionText}>
           {strings('ledger.ledger_reminder_message_step_three')}
         </Text>
+        {Device.isAndroid() && (
+          <Text style={styles.ledgerInstructionText}>
+            {strings('ledger.ledger_reminder_message_step_four')}
+          </Text>
+        )}
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
         <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>

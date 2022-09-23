@@ -74,8 +74,8 @@ import {
   networkSwitched,
 } from '../../../actions/onboardNetwork';
 import { isHardwareKeyring } from '../../../util/keyring-helpers';
-// import LedgerTransactionModal from '../LedgerModals/LedgerTransactionModal';
 import Routes from '../../../constants/navigation/Routes';
+import { LEDGER_DEVICE } from '../../../constants/keyringTypes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -266,6 +266,9 @@ const createStyles = (colors) =>
       color: colors.icon.alternative,
       fontSize: 10,
       ...fontStyles.bold,
+    },
+    keyringTypeText: {
+      color: colors.text.default,
     },
     protectWalletContainer: {
       backgroundColor: colors.background.default,
@@ -509,6 +512,9 @@ class DrawerView extends PureComponent {
       if (!keyringOfSelectedAddress) {
         return strings('accounts.imported');
       } else if (isHardwareKeyring(keyringOfSelectedAddress.type)) {
+        if (keyringOfSelectedAddress.type === LEDGER_DEVICE) {
+          return strings('accounts.ledger');
+        }
         return strings('accounts.hardware');
       }
       return null;

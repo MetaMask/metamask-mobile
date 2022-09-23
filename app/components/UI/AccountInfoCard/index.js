@@ -123,6 +123,7 @@ class AccountInfoCard extends PureComponent {
 
   state = {
     isHardwareKeyring: false,
+    isLedgerKeyring: false,
   };
 
   componentDidMount() {
@@ -131,6 +132,10 @@ class AccountInfoCard extends PureComponent {
     KeyringController.getAccountKeyringType(selectedAddress).then((type) => {
       if ([QR_HARDWARE_WALLET_DEVICE, LEDGER_DEVICE].includes(type)) {
         this.setState({ isHardwareKeyring: true });
+
+        if (type === LEDGER_DEVICE) {
+          this.setState({ isLedgerKeyring: true });
+        }
       }
     });
   }
@@ -146,7 +151,7 @@ class AccountInfoCard extends PureComponent {
       ticker,
       showFiatBalance = true,
     } = this.props;
-    const { isHardwareKeyring } = this.state;
+    const { isHardwareKeyring, isLedgerKeyring } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
@@ -203,7 +208,9 @@ class AccountInfoCard extends PureComponent {
         {isHardwareKeyring && (
           <View style={styles.tag}>
             <Text style={styles.tagText}>
-              {strings('transaction.hardware')}
+              {isLedgerKeyring
+                ? strings('accounts.ledger')
+                : strings('transaction.hardware')}
             </Text>
           </View>
         )}
