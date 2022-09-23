@@ -585,13 +585,24 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
 
   const handleUrlPress = () => route.params?.showUrlModal?.();
 
+  const setAccountsPermissionsVisible =
+    route.params?.setAccountsPermissionsVisible;
+
+  const connectedAccounts = route.params?.connectedAccounts;
+
   return {
     gestureEnabled: false,
     headerLeft: () => (
       <BrowserUrlBar url={url} route={route} onPress={handleUrlPress} />
     ),
     headerTitle: null,
-    headerRight: () => <AccountRightButton />,
+    headerRight: () => (
+      <AccountRightButton
+        selectedAddress={connectedAccounts?.[0]}
+        isNetworkVisible
+        onPress={setAccountsPermissionsVisible}
+      />
+    ),
     headerStyle: innerStyles.headerStyle,
   };
 }
