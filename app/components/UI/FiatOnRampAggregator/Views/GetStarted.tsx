@@ -8,7 +8,7 @@ import { getFiatOnRampAggNavbar } from '../../Navbar';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useFiatOnRampSDK } from '../sdk';
-import ErrorViewWithReportingJS from '../components/ErrorViewWithReporting';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
 import Routes from '../../../../constants/navigation/Routes';
 import useAnalytics from '../hooks/useAnalytics';
 
@@ -17,8 +17,6 @@ const getStartedIcon = require('../components/images/WalletInfo.png');
 
 // TODO: Convert into typescript and correctly type optionals
 const Text = TextJS as any;
-
-const ErrorViewWithReporting = ErrorViewWithReportingJS as any;
 
 const styles = StyleSheet.create({
   listItem: {
@@ -98,7 +96,7 @@ const GetStarted: React.FC = () => {
           index: 0,
           routes: [
             {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED,
+              name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED,
               params: { showBack: false },
             },
           ],
@@ -116,7 +114,10 @@ const GetStarted: React.FC = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} />
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Get Started Screen'}
+          />
         </ScreenLayout.Body>
       </ScreenLayout>
     );

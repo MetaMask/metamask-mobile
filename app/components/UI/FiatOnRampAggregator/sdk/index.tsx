@@ -84,13 +84,13 @@ I18nEvents.addListener('localeChanged', (locale) => {
 });
 
 export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp-content.metaswap-dev.codefi.network/regions/fake-callback'
+  ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
 const appConfig = {
   POLLING_INTERVAL: 20000,
   POLLING_INTERVAL_HIGHLIGHT: 10000,
-  POLLING_CYCLES: 3,
+  POLLING_CYCLES: 6,
 };
 
 const SDKContext = createContext<IFiatOnRampSDK | undefined>(undefined);

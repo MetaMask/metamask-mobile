@@ -13,13 +13,13 @@ import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   CURRENT_APP_VERSION,
   WHATS_NEW_APP_VERSION_SEEN,
 } from '../../../constants/storage';
 import StyledButton from '../StyledButton';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
@@ -132,7 +132,7 @@ const WhatsNewModal = (props: WhatsNewModalProps) => {
   const modalRef = useRef<ReusableModalRef>(null);
   const slideIds = [0, 1];
   const [currentSlide, setCurrentSlide] = useState(slideIds[0]);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const recordSeenModal = async () => {

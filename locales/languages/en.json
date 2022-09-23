@@ -763,12 +763,17 @@
     "allow_camera_dialog_message": "We need your permission to scan QR codes",
     "scanning": "scanning...",
     "ok": "Ok",
+    "continue": "Continue",
     "cancel": "Cancel",
     "error": "Error",
     "attempting_to_scan_with_wallet_locked": "Looks like you're trying to scan a QR code, you need to unlock your wallet to be able to use it.",
     "attempting_sync_from_wallet_error": "Looks like you're trying to sync with the extension. In order to do so, you will need to erase your current wallet. \n\nOnce you've erased or reinstalled a fresh version of the app, select the option to \"Sync with MetaMask Extension\". Important! Before erasing your wallet, make sure you've backed up your Secret Recovery Phrase.",
     "not_allowed_error_title": "Enable camera access",
-    "not_allowed_error_desc": "Camera access needed to scan a QR code associated with an account address or a contract address"
+    "not_allowed_error_desc": "Camera access needed to scan a QR code associated with an account address or a contract address",
+    "unrecognized_address_qr_code_title": "Unrecognized QR Code",
+    "unrecognized_address_qr_code_desc": "Sorry, this QR code is not associated with an account address or a contract address.",
+    "url_redirection_alert_title": "You are about to visit  an external link",
+    "url_redirection_alert_desc": "Links can be used to try to defraud or phish people, so make sure to only visit websites that you trust."
   },
   "action_view": {
     "cancel": "Cancel",
@@ -1153,7 +1158,8 @@
     "empty_popular_networks": "You’ve added all the popular networks. You can discover more networks",
     "add_other_network_here": "here.",
     "you_can": "Or you can",
-    "add_network": "add more networks manually."
+    "add_network": "add more networks manually.",
+    "deprecated_network_msg": "Due to the protocol changes of Ethereum: Rinkeby, Ropsten, Kovan test networks may not work as reliably and will be deprecated soon."
   },
   "select": {
     "cancel": "Cancel",
@@ -1521,9 +1527,8 @@
     "total": "TOTAL:"
   },
   "webview_error": {
-    "title": "Ooops! something went wrong...",
-    "message": "We weren't able to load that page.",
-    "reason": "Reason",
+    "title": "Something went wrong",
+    "message": "We couldn't load that page",
     "return_home": "Return to home page"
   },
   "offline_mode": {
@@ -1864,7 +1869,8 @@
       "best_price": "best price",
       "from_the": "from the",
       "top_liquidity": "top liquidity sources every time.",
-      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better."
+      "fee_is_applied": "A fee of {{fee}} is automatically factored into each quote, which supports ongoing development to make MetaMask even better.",
+      "fee_is_not_applied": "MetaMask does not include an additional fee in this quote."
     },
     "enable": {
       "this_will": "This will",
@@ -2154,5 +2160,16 @@
     "placeholder": "Password",
     "description": "If you turn this option off, you'll need your password to unlock MetaMask from now on.",
     "action": "Turn off Remember me"
+  },
+  "dapp_connect": {
+    "warning": "In order to use this feature, please update the app to the newest version"
+  },
+  "confirmation_modal": {
+    "cancel_cta": "Cancel",
+    "confirm_cta": "Confirm"
+  },
+  "automatic_security_checks": {
+    "title": "Automatic security checks",
+    "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   }
 }
