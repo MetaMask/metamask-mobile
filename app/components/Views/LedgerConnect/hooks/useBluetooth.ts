@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { State } from 'react-native-ble-plx';
+import { Subscription } from 'rxjs';
 
 const useBluetooth = (hasBluetoothPermissions: boolean) => {
   const [bluetoothOn, setBluetoothOn] = useState(false);
@@ -10,21 +10,27 @@ const useBluetooth = (hasBluetoothPermissions: boolean) => {
   // Monitoring for the BLE adapter to be turned on
   useEffect(() => {
     if (hasBluetoothPermissions) {
-      const subscription = BluetoothTransport.observeState({
-        next: (e: { available: boolean; type: State }) => {
-          if (e.available && e.type === State.PoweredOn && !bluetoothOn) {
-            setBluetoothOn(true);
-            setBluetoothConnectionError(false);
-          }
+      let subscription: Subscription;
 
-          if (!e.available && e.type === State.PoweredOff) {
-            setBluetoothOn(false);
-            setBluetoothConnectionError(true);
-          }
+      import('@ledgerhq/react-native-hw-transport-ble').then(
+        (BluetoothTransport: any) => {
+          subscription = BluetoothTransport.default.observeState({
+            next: (e: { available: boolean; type: State }) => {
+              if (e.available && e.type === State.PoweredOn && !bluetoothOn) {
+                setBluetoothOn(true);
+                setBluetoothConnectionError(false);
+              }
+
+              if (!e.available && e.type === State.PoweredOff) {
+                setBluetoothOn(false);
+                setBluetoothConnectionError(true);
+              }
+            },
+          });
         },
-      });
+      );
 
-      return () => subscription.unsubscribe();
+      return () => subscription?.unsubscribe();
     }
   }, [hasBluetoothPermissions, bluetoothOn]);
 
