@@ -1,8 +1,9 @@
 import { errorCodes as rpcErrorCodes } from 'eth-rpc-errors';
+import { orderBy } from 'lodash';
 import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import { SelectedAccount } from '../../components/UI/AccountSelectorList/AccountSelectorList.types';
-import { orderBy } from 'lodash';
+import Logger from '../../util/Logger';
 const Engine = ImportedEngine as any;
 
 function getAccountsCaveatFromPermission(accountsPermission: any = {}) {
@@ -114,6 +115,20 @@ export const addPermittedAccounts = (
   );
 
   return newSortedAccounts[0].address;
+};
+
+export const removeAccountFromPermissions = async (address: string) => {
+  const { PermissionController } = Engine.context;
+  for (const subject in PermissionController.state.subjects) {
+    try {
+      removePermittedAccount(subject, address);
+    } catch (e) {
+      Logger.log(
+        e,
+        'Failed to remove account from permissions after deleting account from wallet.',
+      );
+    }
+  }
 };
 
 export const removePermittedAccount = (origin: string, account: string) => {

@@ -131,6 +131,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         ensByAccountAddress={ensByAccountAddress}
         key={ACCOUNT_LIST_ID}
         isLoading={isLoading}
+        isRemoveAccountEnabled
       />
       <View style={styles.sheet}>{renderSheetActions()}</View>
     </SheetBottom>

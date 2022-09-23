@@ -48,4 +48,8 @@ export interface AccountSelectorListProps
    * Optional boolean to disable selection of the account elements.
    */
   isSelectionDisabled?: boolean;
+  /**
+   * Optional boolean to enable removing accounts.
+   */
+  isRemoveAccountEnabled?: boolean;
 }

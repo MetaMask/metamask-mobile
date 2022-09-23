@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ListRenderItem, View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { Alert, ListRenderItem, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/controllers';
@@ -18,6 +18,8 @@ import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
 import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar.types';
 import { Account, Assets } from '../../../util/accounts/hooks/useAccounts';
+import UntypedEngine from '../../../core/Engine';
+import { removeAccountFromPermissions } from '../../../core/Permissions';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
@@ -32,8 +34,10 @@ const AccountSelectorList = ({
   isMultiSelect = false,
   renderRightAccessory,
   isSelectionDisabled,
+  isRemoveAccountEnabled = false,
   ...props
 }: AccountSelectorListProps) => {
+  const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
@@ -87,8 +91,62 @@ const AccountSelectorList = ({
     [styles.balancesContainer, styles.balanceLabel],
   );
 
+  const onLongPress = useCallback(
+    ({
+      address,
+      imported,
+      isSelected,
+      index,
+    }: {
+      address: string;
+      imported: boolean;
+      isSelected: boolean;
+      index: number;
+    }) => {
+      if (!imported || !isRemoveAccountEnabled) return;
+      Alert.alert(
+        strings('accounts.remove_account_title'),
+        strings('accounts.remove_account_message'),
+        [
+          {
+            text: strings('accounts.no'),
+            onPress: () => false,
+            style: 'cancel',
+          },
+          {
+            text: strings('accounts.yes_remove_it'),
+            onPress: async () => {
+              // TODO: Refactor account deletion logic to make more robust.
+              const { PreferencesController } = Engine.context;
+              const selectedAddressOverride = selectedAddresses?.[0];
+              const account = accounts.find(({ isSelected, address }) =>
+                selectedAddressOverride
+                  ? selectedAddressOverride === address
+                  : isSelected,
+              ) as Account;
+              let nextActiveAddress = account.address;
+              if (isSelected) {
+                const nextActiveIndex = index === 0 ? 1 : index - 1;
+                nextActiveAddress = accounts[nextActiveIndex].address;
+                PreferencesController.setSelectedAddress(nextActiveAddress);
+              }
+              await Engine.context.KeyringController.removeAccount(address);
+              removeAccountFromPermissions(address);
+              onSelectAccount?.(nextActiveAddress, isSelected);
+            },
+          },
+        ],
+        { cancelable: false },
+      );
+    },
+    [accounts, onSelectAccount],
+  );
+
   const renderAccountItem: ListRenderItem<Account> = useCallback(
-    ({ item: { name, address, assets, type, isSelected, balanceError } }) => {
+    ({
+      item: { name, address, assets, type, isSelected, balanceError },
+      index,
+    }) => {
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = getTagLabel(type);
       const ensName = ensByAccountAddress[address];
@@ -105,6 +163,14 @@ const AccountSelectorList = ({
 
       return (
         <Cell
+          onLongPress={() => {
+            onLongPress({
+              address,
+              imported: type !== KeyringTypes.hd,
+              isSelected: isSelectedAccount,
+              index,
+            });
+          }}
           variant={cellVariant}
           isSelected={isSelectedAccount}
           title={accountName}
@@ -136,6 +202,7 @@ const AccountSelectorList = ({
       isMultiSelect,
       renderRightAccessory,
       isSelectionDisabled,
+      onLongPress,
     ],
   );
 

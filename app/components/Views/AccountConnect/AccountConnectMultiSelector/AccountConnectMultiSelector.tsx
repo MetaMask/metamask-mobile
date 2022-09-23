@@ -171,6 +171,7 @@ const AccountConnectMultiSelector = ({
       <AccountSelectorList
         onSelectAccount={(accAddress) => {
           const selectedAddressIndex = selectedAddresses.indexOf(accAddress);
+          // Reconstruct selected addresses.
           const newAccountAddresses = accounts.reduce((acc, { address }) => {
             if (accAddress === address) {
               selectedAddressIndex === -1 && acc.push(address);
@@ -187,7 +188,7 @@ const AccountConnectMultiSelector = ({
         ensByAccountAddress={ensByAccountAddress}
         isLoading={isLoading}
         selectedAddresses={selectedAddresses}
-        isMultiSelect={true}
+        isMultiSelect
       />
       {renderSheetActions()}
       <View style={styles.body}>{renderCtaButtons()}</View>
