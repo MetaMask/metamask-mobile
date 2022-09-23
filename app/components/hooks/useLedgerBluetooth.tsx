@@ -205,8 +205,10 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         switch (e.statusCode) {
           case 0x6985:
           case 0x5501:
-          case 0x6b0c:
             setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
+            break;
+          case 0x6b0c:
+            setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
             break;
           default:
             break;
