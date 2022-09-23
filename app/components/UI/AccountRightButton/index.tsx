@@ -47,7 +47,10 @@ const AccountRightButton = ({
     (state: any) => state.engine.backgroundState.NetworkController.provider,
   );
   const dispatch = useDispatch();
+  // TODO: change onPressButton to a const, using a ternary
+
   let onPressButton = onPress;
+
   if (!selectedAddress && isNetworkVisible) {
     onPressButton = () => dispatch(toggleNetworkModal(false));
   }
