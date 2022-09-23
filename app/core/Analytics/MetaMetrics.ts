@@ -195,9 +195,7 @@ class MetaMetrics implements IMetaMetrics {
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
   #createSegmentDeleteRegulation = async (): Promise<void> => {
-    const segmentToken = __DEV__
-      ? process.env.SEGMENT_DEV_KEY
-      : process.env.SEGMENT_PROD_KEY;
+    const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
     const regulationType = 'Delete';
     try {
       const response = await axios({
@@ -210,14 +208,12 @@ class MetaMetrics implements IMetaMetrics {
         data: JSON.stringify({
           regulation_type: regulationType,
           attributes: {
-            name: this.#metametricsId,
-            values: [],
+            name: 'userId',
+            values: [this.#metametricsId],
           },
         }),
       });
       await this.#storeDeleteRegulationCreationDate();
-      // eslint-disable-next-line no-console
-      console.log(response.data);
     } catch (e: any) {
       // eslint-disable-next-line no-console
       console.log(e);

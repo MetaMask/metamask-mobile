@@ -15,6 +15,7 @@ import AnalyticsV2, {
   ANALYTICS_EVENTS_V2,
 } from '../../../../../util/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
+import { MetaMetrics } from '../../../../../core/Analytics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -87,6 +88,7 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
+      await MetaMetrics.createSegmentDeleteRegulation();
       const response = await Analytics.createDataDeletionTask();
       if (response.status === MixPanelResponseStatus.ok) {
         setDeletionTaskStatus(MixPanelDeletionTaskStatus.pending);

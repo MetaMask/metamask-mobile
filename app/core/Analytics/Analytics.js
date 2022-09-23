@@ -21,6 +21,7 @@ import {
   MixPanelResponseStatus,
   MixPanelDeletionTaskStatus,
 } from './MetaMetrics.types';
+import MetaMetrics from './MetaMetrics';
 
 const RCTAnalytics = NativeModules.Analytics;
 
@@ -128,39 +129,43 @@ class Analytics {
     name,
     { event, params = {}, value, info, anonymously = false },
   ) {
-    const isAnalyticsPreferenceSelectedEvent =
-      ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
-    if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
-    this._setUserProfileProperties();
-    if (!__DEV__) {
-      if (!anonymously) {
-        RCTAnalytics.trackEvent({
-          ...event,
-          ...params,
-          value,
-          info,
-        });
-      } else {
-        RCTAnalytics.trackEventAnonymously({
-          ...event,
-          ...params,
-          value,
-          info,
-        });
-      }
+    MetaMetrics.trackEvent(event.category, anonymously, {
+      ...params,
+      ...event,
+    });
+    // const isAnalyticsPreferenceSelectedEvent =
+    //   ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+    // if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
+    // this._setUserProfileProperties();
+    // if (!__DEV__) {
+    //   if (!anonymously) {
+    //     RCTAnalytics.trackEvent({
+    //       ...event,
+    //       ...params,
+    //       value,
+    //       info,
+    //     });
+    //   } else {
+    //     RCTAnalytics.trackEventAnonymously({
+    //       ...event,
+    //       ...params,
+    //       value,
+    //       info,
+    //     });
+    //   }
 
-      if (!this.isDataRecorded) {
-        this.isDataRecorded = true;
-        await DefaultPreference.set(
-          ANALYTICS_DATA_DELETION_TASK_ID,
-          this.dataDeletionTaskId,
-        );
+    //   if (!this.isDataRecorded) {
+    //     this.isDataRecorded = true;
+    //     await DefaultPreference.set(
+    //       ANALYTICS_DATA_DELETION_TASK_ID,
+    //       this.dataDeletionTaskId,
+    //     );
 
-        await DefaultPreference.set(ANALYTICS_DATA_RECORDED, 'true');
-      }
-    } else {
-      Logger.log(`Analytics '${name}' -`, event, params, value, info);
-    }
+    //     await DefaultPreference.set(ANALYTICS_DATA_RECORDED, 'true');
+    //   }
+    // } else {
+    //   Logger.log(`Analytics '${name}' -`, event, params, value, info);
+    // }
   }
 
   /**
