@@ -819,6 +819,7 @@
     "get_ether": "Get Ether for the {{networkName}} network.",
     "insufficient_tokens": "Insufficient {{token}}",
     "invalid_address": "Invalid address",
+    "invalid_from_address": "Invalid sender address",
     "invalid_amount": "Invalid amount",
     "invalid_gas": "Invalid gas amount",
     "invalid_gas_price": "Invalid gas price",
