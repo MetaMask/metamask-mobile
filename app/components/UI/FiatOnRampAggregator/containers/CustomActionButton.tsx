@@ -1,18 +1,25 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import { InAppBrowser } from 'react-native-inappbrowser-reborn';
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
-import CustomActionButtonComponent from '../components/CustomActionButton';
 import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
-import { Linking } from 'react-native';
+import CustomActionButtonComponent from '../components/CustomActionButton';
+import { setLockTime } from '../../../../actions/settings';
+import Device from '../../../../util/device';
 
 interface Props {
   customAction: PaymentCustomAction;
   amount: number;
+  disabled?: boolean;
 }
 
 const CustomActionButton: React.FC<
   Props & React.ComponentProps<typeof CustomActionButtonComponent>
-> = ({ customAction, amount, ...props }: Props) => {
+> = ({ customAction, amount, disabled, ...props }: Props) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const lockTime = useSelector((state: any) => state.settings.lockTime);
+
   /**
    * Grab the current state of the SDK via the context.
    */
@@ -33,6 +40,9 @@ const CustomActionButton: React.FC<
     if (!sdk || !customAction) {
       return;
     }
+    setIsLoading(true);
+    const prevLockTime = lockTime;
+    setLockTime(-1);
 
     const providerId = customAction.buy.providerId;
     const redirectUrl = `${callbackBaseDeeplink}${providerId}`;
@@ -54,7 +64,16 @@ const CustomActionButton: React.FC<
 
     try {
       if (await InAppBrowser.isAvailable()) {
-        const result = await InAppBrowser.openAuth(url, redirectUrl);
+        let result;
+        if (Device.isAndroid()) {
+          result = await InAppBrowser.open(url, { enableDefaultShare: false });
+        } else {
+          result = await InAppBrowser.openAuth(url, redirectUrl);
+        }
+
+        // eslint-disable-next-line no-console
+        console.log('RESULT', result);
+
         if (result.type === 'success' && result.url) {
           const orders = await SDK.orders();
           const orderId = await orders.getOrderIdFromCallback(
@@ -84,10 +103,15 @@ const CustomActionButton: React.FC<
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log('error', error);
+    } finally {
+      setIsLoading(false);
+      InAppBrowser.closeAuth();
+      setLockTime(prevLockTime);
     }
   }, [
     amount,
     customAction,
+    lockTime,
     sdk,
     selectedAddress,
     selectedAsset?.id,
@@ -100,6 +124,8 @@ const CustomActionButton: React.FC<
     <CustomActionButtonComponent
       customActionButton={customAction.button}
       onPress={handleCustomAction}
+      isLoading={isLoading}
+      disabled={disabled || isLoading}
       {...props}
     />
   );
