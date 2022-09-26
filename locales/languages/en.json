@@ -156,6 +156,7 @@
     "ledger_reminder_message_step_one": "1. Unlocked",
     "ledger_reminder_message_step_two": "2. The Ethereum app is installed",
     "ledger_reminder_message_step_three": "3. Bluetooth is enabled",
+    "ledger_reminder_message_step_four": "4. Location is enabled",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -504,6 +505,7 @@
   "accounts": {
     "create_new_account": "Create New Account",
     "hardware": "HARDWARE",
+    "ledger": "Ledger",
     "import_account": "Import an Account",
     "connect_hardware": "Connect Hardware Wallet",
     "imported": "IMPORTED",
@@ -858,6 +860,7 @@
     "save": "Save",
     "speedup": "Speed up",
     "sign_with_keystone": "Sign with Keystone",
+    "sign_with_ledger": "Sign with Ledger",
     "from": "From",
     "gas_fee": "Gas fee",
     "gas_fee_fast": "FAST",
