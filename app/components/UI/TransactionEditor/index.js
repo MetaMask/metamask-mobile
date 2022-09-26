@@ -144,7 +144,12 @@ class TransactionEditor extends PureComponent {
   };
 
   computeGasEstimates = (gasEstimateTypeChanged) => {
-    const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
+    const {
+      transaction,
+      gasEstimateType,
+      gasFeeEstimates,
+      setTransactionObject,
+    } = this.props;
     const { dappSuggestedGasPrice, dappSuggestedEIP1559Gas } = this.state;
 
     const gasSelected = gasEstimateTypeChanged
@@ -652,7 +657,7 @@ class TransactionEditor extends PureComponent {
   };
 
   saveGasEdition = (gasSelected) => {
-    const { gasEstimateType } = this.props;
+    const { gasEstimateType, setTransactionObject } = this.props;
     const { LegacyGasDataTemp } = this.state;
 
     if (gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET) {
