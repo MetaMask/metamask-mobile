@@ -32,6 +32,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 16,
     },
     downCaretContainer: { justifyContent: 'center', flex: 1 },
+    disconnectButton: { alignSelf: 'center' },
   });
 };
 

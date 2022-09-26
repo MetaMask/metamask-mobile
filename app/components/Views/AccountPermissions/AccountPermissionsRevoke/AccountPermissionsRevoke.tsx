@@ -147,7 +147,7 @@ const AccountPermissionsRevoke = ({
             }}
             label={strings('accounts.disconnect')}
             size={ButtonBaseSize.Sm}
-            style={{ alignSelf: 'center' }}
+            style={styles.disconnectButton}
           />
         )}
         isSelectionDisabled
