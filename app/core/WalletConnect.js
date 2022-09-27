@@ -18,7 +18,6 @@ import AppConstants from './AppConstants';
 import { msBetweenDates, msToHours } from '../util/date';
 import URL from 'url-parse';
 
-
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
