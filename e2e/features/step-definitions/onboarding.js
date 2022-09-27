@@ -2,7 +2,8 @@ import { Given, When, Then } from '@wdio/cucumber-framework';
 import WelcomePage from '../screen-objects/WelcomeScreen.js';
 
 
-Given(/^I have installed MetaMask mobile app on my device/, async () => {
+Given(/^I just installed MetaMask on my (.*)/, async (device) => {
+  console.log("🚀 ~ file: onboarding.js ~ line 6 ~ Given ~ device", device)
   /** This is automatically done by the automation framework **/
 });
 

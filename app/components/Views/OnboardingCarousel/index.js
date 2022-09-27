@@ -29,7 +29,7 @@ import {
   CAROUSEL_TITLE_ID,
   GET_STARTED_BUTTON_ID,
   ONBOARDING_CAROUSEL_CONTAINER_ID,
-} from '../../../../e2e/features/screen-objects/WelcomeScreen';
+} from '../../../constants/testIDs/WelcomeScreen.constants';
 import generateTestId from '../../../../e2e/utils/generateTestId';
 
 const IMAGE_3_RATIO = 215 / 315;
