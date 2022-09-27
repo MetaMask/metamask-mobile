@@ -3,8 +3,8 @@
 import { TildeIconSizeByTextVariant } from './TextEstimated.types';
 
 // External dependencies.
-import { IconSize } from '../../Icon';
-import { TextVariant } from '../Text/Text.types';
+import { IconSize } from '../../../component-library/components/Icon';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
 export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
   [TextVariant.sDisplayMD]: IconSize.Lg,
@@ -28,3 +28,7 @@ export const TILDE_ICON_SIZE_BY_TEXT_VARIANT: TildeIconSizeByTextVariant = {
   [TextVariant.lBodySMBold]: IconSize.Xs,
   [TextVariant.lBodyXS]: IconSize.Xss,
 };
+
+export const TEST_SAMPLE_TEXT = 'Sample Text';
+
+export const TEXT_ESTIMATED_TEST_ID = 'text-estimated';

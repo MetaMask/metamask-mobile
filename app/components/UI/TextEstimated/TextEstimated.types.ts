@@ -1,6 +1,9 @@
 // External dependencies.
-import { IconSize } from '../../Icon';
-import { TextProps, TextVariant } from '../Text/Text.types';
+import { IconSize } from '../../../component-library/components/Icon';
+import {
+  TextProps,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/Text.types';
 
 /**
  * TextEstimated component props.

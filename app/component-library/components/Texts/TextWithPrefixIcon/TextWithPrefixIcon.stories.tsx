@@ -9,6 +9,7 @@ import { TextVariant } from '../Text/Text.types';
 
 // Internal dependencies.
 import TextWithPrefixIcon from './TextWithPrefixIcon';
+import { TEST_SAMPLE_TEXT } from './TextWithPrefixIcon.constants';
 
 storiesOf('Component Library / TextWithPrefixIcon', module).add(
   'Default',
@@ -32,7 +33,7 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
       TextVariant.lBodyMD,
       groupId,
     );
-    const inputText = text('Text', 'Sample Text', groupId);
+    const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
     const iconProps: IconProps = {
       name: iconNameSelector,
       size: iconSizeSelector,

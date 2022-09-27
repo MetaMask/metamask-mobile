@@ -1,10 +1,18 @@
-# EstimatedText
+# TextWithPrefixIcon
 
-EstimatedText is a text component that standardizes on typography provided through theme via [@metamask/design-tokens](https://www.npmjs.com/package/@metamask/design-tokens) library.
+TextWithPrefixIcon is a [Text](../Text/Text.tsx) component with a prefix [Icon](../../Icon/Icon.tsx) component.
 
 ## Props
 
-This component extends [TextProps](https://reactnative.dev/docs/text-style-props) from React Native's [Text](https://reactnative.dev/docs/text) component.
+This component extends [TextProps](../Text/Text.types.ts#L33).
+
+### `iconProps`
+
+Props for the Prefix Icon.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| [IconProps](../../Icon/Icon.types.ts#L21)                                              | Yes                                                     |
 
 ### `variant`
 
@@ -18,7 +26,10 @@ Optional enum to select between Typography variants.
 
 ```javascript
 // Replace import with relative path.
-import Text, { TextVariant } from 'app/component-library/components/Text';
+import TextWithPrefixIcon from 'app/component-library/components/Texts/TextWithPrefixIcon';
+import { TextVariant } from 'app/component-library/components/Texts/Text';
 
-<Text variant={TextVariant.lBodyMDBold}>{TEXT_LABEL}</Text>;
+<TextWithPrefixIcon variant={TextVariant.lBodyMD} iconProps={SAMPLE_ICON_PROPS}>
+    {SAMPLE_TEXT}
+</TextWithPrefixIcon>;
 ```

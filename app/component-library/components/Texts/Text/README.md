@@ -18,7 +18,7 @@ Optional enum to select between Typography variants.
 
 ```javascript
 // Replace import with relative path.
-import Text, { TextVariant } from 'app/component-library/components/Text';
+import Text, { TextVariant } from 'app/component-library/components/Texts/Text';
 
 <Text variant={TextVariant.lBodyMDBold}>{TEXT_LABEL}</Text>;
 ```
