@@ -148,13 +148,15 @@ const PaymentOption: React.FC<Props> = ({
             </Text>
           </ListItem.Title>
         </ListItem.Body>
-        <ListItem.Amounts>
-          <ListItem.Amount>
-            <View style={styles.cardIcons}>
-              <PaymentTypeIcon style={styles.cardIcon} logosByTheme={logo} />
-            </View>
-          </ListItem.Amount>
-        </ListItem.Amounts>
+        {logo && (
+          <ListItem.Amounts>
+            <ListItem.Amount>
+              <View style={styles.cardIcons}>
+                <PaymentTypeIcon style={styles.cardIcon} logosByTheme={logo} />
+              </View>
+            </ListItem.Amount>
+          </ListItem.Amounts>
+        )}
       </ListItem.Content>
 
       <View style={[styles.line, compact && styles.compactLine]} />

@@ -17,12 +17,16 @@ export const getSeedPhrase = async (password = '') => {
 };
 
 /**
- * Recreates a vault with the same password for the purpose of using the newest encryption methods
+ * Recreates a vault with the new password
  *
- * @param password - Password to recreate and set the vault with
+ * @param password - current password
+ * @param newPassword - new password
+ * @param selectedAddress
  */
-export const recreateVaultWithSamePassword = async (
-  password = '',
+
+export const recreateVaultWithNewPassword = async (
+  password,
+  newPassword,
   selectedAddress,
 ) => {
   const { KeyringController, PreferencesController, AccountTrackerController } =
@@ -57,7 +61,7 @@ export const recreateVaultWithSamePassword = async (
   const serializedQRKeyring = await qrKeyring.serialize();
 
   // Recreate keyring with password given to this method
-  await KeyringController.createNewVaultAndRestore(password, seedPhrase);
+  await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
   // Get props to restore vault
   const hdKeyring = KeyringController.state.keyrings[0];
@@ -105,3 +109,13 @@ export const recreateVaultWithSamePassword = async (
   // Default to first account as fallback
   PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
 };
+
+/**
+ * Recreates a vault with the same password for the purpose of using the newest encryption methods
+ *
+ * @param password - Password to recreate and set the vault with
+ */
+export const recreateVaultWithSamePassword = async (
+  password = '',
+  selectedAddress,
+) => recreateVaultWithNewPassword(password, password, selectedAddress);
