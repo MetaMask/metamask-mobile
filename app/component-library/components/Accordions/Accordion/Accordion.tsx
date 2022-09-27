@@ -16,7 +16,11 @@ import AccordionHeader from './foundation/AccordionHeader';
 // Internal dependencies.
 import styleSheet from './Accordion.styles';
 import { AccordionProps } from './Accordion.types';
-import { ACCORDION_EXPAND_TRANSITION_DURATION } from './Accordion.constants';
+import {
+  ACCORDION_TEST_ID,
+  ACCORDION_CONTENT_TEST_ID,
+  ACCORDION_EXPAND_TRANSITION_DURATION,
+} from './Accordion.constants';
 
 const Accordion: React.FC<AccordionProps> = ({
   style,
@@ -49,14 +53,14 @@ const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <View style={styles.base}>
+    <View style={styles.base} testID={ACCORDION_TEST_ID}>
       <AccordionHeader
         {...props}
         isExpanded={expanded}
         onPress={onHeaderPressed}
       />
       <Transitioning.View {...{ ref, transition }}>
-        {expanded && children}
+        {expanded && <View testID={ACCORDION_CONTENT_TEST_ID}>{children}</View>}
       </Transitioning.View>
     </View>
   );

@@ -12,7 +12,7 @@ import Text, { TextVariant } from '../../Text';
 
 // Internal dependencies.
 import Accordion from './Accordion';
-import { TEST_ACCORDION_HEADER_TITLE } from './Accordion.constants';
+import { TEST_ACCORDION_HEADER_TITLE } from './foundation/AccordionHeader/AccordionHeader.constants';
 
 storiesOf('Component Library / Accordion', module)
   .addDecorator((getStory) => getStory())

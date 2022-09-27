@@ -2,11 +2,15 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
+// External dependencies.
+import { IconName } from '../../../../Icon';
+
 // Internal dependencies.
 import AccordionHeader from './AccordionHeader';
 import {
   ACCORDION_HEADER_TEST_ID,
   ACCORDION_HEADER_TITLE_TEST_ID,
+  ACCORDION_HEADER_ARROW_ICON_TEST_ID,
   TEST_ACCORDION_HEADER_TITLE,
 } from './AccordionHeader.constants';
 
@@ -44,4 +48,14 @@ describe('AccordionHeader', () => {
     );
     expect(titleElement.props().children).toBe(TEST_ACCORDION_HEADER_TITLE);
   });
+  it('should render the proper arrow up icon', () => {
+    const wrapper = shallow(
+      <AccordionHeader title={TEST_ACCORDION_HEADER_TITLE} />,
+    );
+    const iconElement = wrapper.findWhere(
+      (node) => node.prop('testID') === ACCORDION_HEADER_ARROW_ICON_TEST_ID,
+    );
+    expect(iconElement.props().name).toBe(IconName.ArrowUpOutline);
+  });
+  //TODO: Add Test for Pressed state and animation
 });

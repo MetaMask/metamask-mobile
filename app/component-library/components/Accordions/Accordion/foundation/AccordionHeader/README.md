@@ -1,26 +1,43 @@
-# CellAccountDisplayItemContainer
+# AccordionHeader
 
-CellAccountDisplayItemContainer is a wrapper component typically used for displaying CellAccount Content.
+AccordionHeader is a foundational component, used to create the [Accordion](../../Accordion.tsx).
 
 ## Props
 
-This component extends React Native's [View](https://reactnative.dev/docs/view) component.
+This component extends React Native's [TouchableOpacity](https://reactnative.dev/docs/touchableopacity) component.
 
-### `children`
+### `title`
 
-Content to wrap to display.
+Title of the Accordion Header.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
+| string                                              | Yes                                                     |
+
+### `isExpanded`
+
+Optional boolean to control the expanded state of the Accordion Header.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean    | No                                                     | false                                               |
+
+### `onPress`
+
+Optional function to trigger when pressing the Accordion Header.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ |
+| Function                                            | Yes                                                     |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
-import CellAccountDisplayItemContainer from 'app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer';
+import AccordionHeader from 'app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader';
 
-<CellAccountDisplayItemContainer>
-  <SampleContent />
-</CellAccountDisplayItemContainer>;
+<AccordionHeader 
+  title={TITLE} 
+  isExpanded 
+  onPress={ONPRESS_HANDLER}/>;
 ```

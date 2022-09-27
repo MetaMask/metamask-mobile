@@ -4,10 +4,10 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
-  Easing,
 } from 'react-native-reanimated';
 
 // External dependencies.
