@@ -12,6 +12,7 @@ function loadStories() {
   require('../app/components/UI/Fox/Fox.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
+  require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
   require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
   require('../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories');
@@ -64,6 +65,7 @@ const stories = [
   '../app/components/UI/Fox/Fox.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/components/UI/WarningAlert/WarningAlert.stories',
+  '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components/Accordions/Accordion/Accordion.stories',
   '../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories',
   '../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories',
