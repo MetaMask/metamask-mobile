@@ -97,6 +97,7 @@ describe('Onboarding wizard opt-in, metametrics opt out from settings', () => {
     await SettingsView.tapSecurityAndPrivacy();
 
     await SecurityAndPrivacy.scrollToBottomOfView();
+    TestHelpers.delay(2000);
     await SecurityAndPrivacy.isMetaMetricsToggleOn();
 
     TestHelpers.delay(1500);

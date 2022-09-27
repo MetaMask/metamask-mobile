@@ -4,7 +4,7 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 // eslint-disable-next-line import/no-nodejs-modules
 import { EventEmitter } from 'events';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CLIENT_OPTIONS, WALLET_CONNECT_ORIGIN } from '../util/walletconnect';
 import { WALLETCONNECT_SESSIONS } from '../constants/storage';
 import { WalletDevice } from '@metamask/controllers/';
@@ -16,6 +16,8 @@ import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
 import { msBetweenDates, msToHours } from '../util/date';
+import URL from 'url-parse';
+
 
 const hub = new EventEmitter();
 let connectors = [];
