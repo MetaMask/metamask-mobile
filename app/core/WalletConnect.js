@@ -19,7 +19,6 @@ import { strings } from '../../locales/i18n';
 import NotificationManager from './NotificationManager';
 import URL from 'url-parse';
 
-
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
