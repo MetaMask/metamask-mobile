@@ -16,13 +16,13 @@ storiesOf('Component Library / TextWithPrefixIcon', module).add(
   () => {
     const groupId = 'Props';
     const iconNameSelector = select(
-      'Icon name',
+      'iconProps.name',
       IconName,
       IconName.LockFilled,
       groupId,
     );
     const iconSizeSelector = select(
-      'Icon size',
+      'iconProps.size',
       IconSize,
       IconSize.Md,
       groupId,

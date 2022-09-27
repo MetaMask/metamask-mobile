@@ -1,13 +1,13 @@
 // External dependencies.
-import { TextProps, TextVariant } from '../Text/Text.types';
-import { IconProps, IconSize } from '../../Icon';
+import { TextProps } from '../Text/Text.types';
+import { IconProps } from '../../Icon';
 
 /**
  * TextWithPrefixIcon component props.
  */
 export interface TextWithPrefixIconProps extends TextProps {
   /**
-   * Props of the Icon used. The default size of icon will be mapped by IconSizeByTextVariant.
+   * Props of the Icon used.
    */
   iconProps: IconProps;
 }
@@ -19,10 +19,3 @@ export type TextWithPrefixIconStyleSheetVars = Pick<
   TextWithPrefixIconProps,
   'style'
 >;
-
-/**
- * Mapping of IconSize by TextVariant.
- */
-export type IconSizeByTextVariant = {
-  [key in TextVariant]: IconSize;
-};

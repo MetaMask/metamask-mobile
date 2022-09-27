@@ -8,6 +8,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text/Te
 
 // Internal dependencies.
 import TextEstimated from './TextEstimated';
+import { TEST_SAMPLE_TEXT } from './TextEstimated.constants';
 
 storiesOf('Component Library / TextEstimated', module).add('Default', () => {
   const groupId = 'Props';
@@ -17,7 +18,7 @@ storiesOf('Component Library / TextEstimated', module).add('Default', () => {
     TextVariant.lBodyMD,
     groupId,
   );
-  const inputText = text('Text', 'Sample Text', groupId);
+  const inputText = text('Text', TEST_SAMPLE_TEXT, groupId);
 
   return (
     <TextEstimated variant={textVariantsSelector}>{inputText}</TextEstimated>

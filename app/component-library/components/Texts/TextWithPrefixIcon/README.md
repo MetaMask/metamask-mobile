@@ -20,7 +20,7 @@ Optional enum to select between Typography variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [TextVariant](./Text.types.ts#L6)                   | No                                                      | sBodyMD                                                |
+| [TextVariant](../Text/Text.types.ts#L6)                   | No                                                      | sBodyMD                                                |
 
 ## Usage
 
