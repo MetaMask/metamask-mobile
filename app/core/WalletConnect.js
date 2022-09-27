@@ -15,6 +15,7 @@ import getRpcMethodMiddleware, {
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
+import { msBetweenDates, msToHours } from '../util/date';
 import URL from 'url-parse';
 
 const hub = new EventEmitter();
@@ -38,18 +39,13 @@ const METHODS_TO_REDIRECT = {
 
 const persistSessions = async () => {
   const sessions = connectors
-    .filter(
-      (connector) =>
-        connector &&
-        connector.walletConnector &&
-        connector &&
-        connector.walletConnector.connected,
-    )
+    .filter((connector) => connector?.walletConnector?.connected)
     .map((connector) => ({
       ...connector.walletConnector.session,
       autosign: connector.autosign,
       redirectUrl: connector.redirectUrl,
       requestOriginatedFrom: connector.requestOriginatedFrom,
+      lastTimeConnected: new Date(),
     }));
 
   await AsyncStorage.setItem(WALLETCONNECT_SESSIONS, JSON.stringify(sessions));
@@ -125,7 +121,7 @@ class WalletConnect {
         await waitForInitialization();
         await this.sessionRequest(sessionData);
 
-        this.startSession(sessionData, existing);
+        await this.startSession(sessionData, existing);
 
         this.redirect();
       } catch (e) {
@@ -363,8 +359,21 @@ const instance = {
     const sessionData = await AsyncStorage.getItem(WALLETCONNECT_SESSIONS);
     if (sessionData) {
       const sessions = JSON.parse(sessionData);
+
       sessions.forEach((session) => {
-        connectors.push(new WalletConnect({ session }, true));
+        if (session.lastTimeConnected) {
+          const sessionDate = new Date(session.lastTimeConnected);
+          const diffBetweenDatesInMs = msBetweenDates(sessionDate);
+          const diffInHours = msToHours(diffBetweenDatesInMs);
+
+          if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
+            connectors.push(new WalletConnect({ session }, true));
+          } else {
+            this.killSession(session.peerId);
+          }
+        } else {
+          connectors.push(new WalletConnect({ session }, true));
+        }
       });
     }
     initialized = true;
@@ -372,13 +381,23 @@ const instance = {
   connectors() {
     return connectors;
   },
-  newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
+  async newSession(uri, redirectUrl, autosign, requestOriginatedFrom) {
     const alreadyConnected = this.isSessionConnected(uri);
     if (alreadyConnected) {
       const errorMsg =
         'This session is already connected. Close the current session before starting a new one.';
       throw new Error(errorMsg);
     }
+
+    const sessions = connectors
+      .filter((connector) => connector?.walletConnector?.connected)
+      .map((connector) => ({
+        ...connector.walletConnector.session,
+      }));
+    if (sessions.length >= AppConstants.WALLET_CONNECT.LIMIT_SESSIONS) {
+      await this.killSession(sessions[0].peerId);
+    }
+
     const data = { uri, session: {} };
     if (redirectUrl) {
       data.session.redirectUrl = redirectUrl;
