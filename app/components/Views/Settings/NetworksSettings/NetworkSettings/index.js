@@ -219,7 +219,7 @@ class NetworkSettings extends PureComponent {
     enableAction: false,
     inputWidth: { width: '99%' },
     showPopularNetworkModal: false,
-    popularNetwork: undefined,
+    popularNetwork: {},
     showWarningModal: false,
   };
 
@@ -884,7 +884,7 @@ class NetworkSettings extends PureComponent {
     );
   };
 
-  toggleNetworkModal = (network) =>
+  showNetworkModal = (network) =>
     this.setState({
       showPopularNetworkModal: true,
       popularNetwork: {
@@ -895,7 +895,8 @@ class NetworkSettings extends PureComponent {
       },
     });
 
-  onCancel = () => this.setState({ showPopularNetworkModal: false });
+  onCancel = () =>
+    this.setState({ showPopularNetworkModal: false, popularNetwork: {} });
 
   toggleWarningModal = () =>
     this.setState({ showWarningModal: !this.state.showWarningModal });
@@ -945,7 +946,7 @@ class NetworkSettings extends PureComponent {
                   closeNetworkModal={this.onCancel}
                   selectedNetwork={this.state.popularNetwork}
                   toggleWarningModal={this.toggleWarningModal}
-                  toggleNetworkModal={this.toggleNetworkModal}
+                  showNetworkModal={this.showNetworkModal}
                   switchTab={this.tabView}
                 />
               </View>

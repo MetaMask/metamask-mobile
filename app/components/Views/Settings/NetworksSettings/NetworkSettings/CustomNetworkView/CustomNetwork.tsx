@@ -18,7 +18,7 @@ const CustomNetwork = ({
   closeNetworkModal,
   selectedNetwork,
   toggleWarningModal,
-  toggleNetworkModal,
+  showNetworkModal,
   switchTab,
 }: CustomNetworkProps) => {
   const savedNetworkList = useSelector(
@@ -39,12 +39,7 @@ const CustomNetwork = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const filteredPopularList = supportedNetworkList.filter(
-    (val) =>
-      !savedNetworkList.some(
-        (key: { chainId: string }) => val.chainId === key.chainId,
-      ),
-  );
+  const filteredPopularList = supportedNetworkList.filter((n) => !n.isAdded);
 
   if (filteredPopularList.length === 0) {
     return <EmptyPopularList goToCustomNetwork={() => switchTab.goToPage(1)} />;
@@ -64,7 +59,7 @@ const CustomNetwork = ({
         <TouchableOpacity
           key={index}
           style={styles.popularNetwork}
-          onPress={() => toggleNetworkModal(item)}
+          onPress={() => showNetworkModal(item)}
         >
           <View style={styles.popularWrapper}>
             <ImageIcons
