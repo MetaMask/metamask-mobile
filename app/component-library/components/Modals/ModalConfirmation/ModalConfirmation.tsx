@@ -13,7 +13,7 @@ import ButtonSecondary, {
 import ButtonPrimary, {
   ButtonPrimaryVariant,
 } from '../../Buttons/ButtonPrimary';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 

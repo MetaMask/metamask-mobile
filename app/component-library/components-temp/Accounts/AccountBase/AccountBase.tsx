@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { AccountBaseProps } from './AccountBase.types';
 import Text, {
   TextVariant,
-} from '../../../../component-library/components/Text';
+} from '../../../../component-library/components/Texts/Text';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import AvatarAccount from '../../../../component-library/components/Avatars/AvatarAccount';
 import {
