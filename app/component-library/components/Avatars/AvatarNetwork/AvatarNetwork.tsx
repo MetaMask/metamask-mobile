@@ -6,7 +6,7 @@ import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import AvatarBase, { AvatarBaseSize } from '../AvatarBase';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
