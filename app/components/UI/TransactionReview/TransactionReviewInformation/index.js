@@ -42,6 +42,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { allowedToBuy } from '../../FiatOrders';
+import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -100,6 +101,14 @@ const createStyles = (colors) =>
       lineHeight: 16,
       ...fontStyles.normal,
       textAlign: 'center',
+    },
+    estimateGasErrorWrapper: {
+      marginHorizontal: 24,
+      marginTop: 12,
+      backgroundColor: colors.error.muted,
+      borderColor: colors.error.default,
+      borderRadius: 8,
+      borderWidth: 1,
     },
     underline: {
       textDecorationLine: 'underline',
@@ -207,7 +216,19 @@ class TransactionReviewInformation extends PureComponent {
      * If it's a eip1559 network and dapp suggest legact gas then it should show a warning
      */
     originWarning: PropTypes.bool,
+    /**
+     * Returns the selected gas type
+     * @returns {string}
+     */
     gasSelected: PropTypes.string,
+    /**
+     * Function to determine if user wants to continue with the transaction or not
+     */
+    handleOnErrorContinue: PropTypes.func,
+    /**
+     * Boolean to determine if the transaction error is optional to confirm the transaction
+     */
+    errorContinue: PropTypes.bool,
   };
 
   state = {
@@ -610,13 +631,15 @@ class TransactionReviewInformation extends PureComponent {
     const { amountError, nonceModalVisible } = this.state;
     const {
       toggleDataView,
-      transaction: { warningGasPriceHigh },
+      transaction: { warningGasPriceHigh, estimateGasError },
       error,
       over,
       showCustomNonce,
       gasEstimateType,
       gasSelected,
       network,
+      handleOnErrorContinue,
+      errorContinue,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -673,6 +696,15 @@ class TransactionReviewInformation extends PureComponent {
             ) : (
               <Text style={styles.error}>{error}</Text>
             )}
+          </View>
+        )}
+        {Boolean(estimateGasError) && (
+          <View style={styles.estimateGasErrorWrapper} testID={'address-error'}>
+            <ErrorMessage
+              errorMessage={strings('transaction.estimate_gas_error')}
+              errorContinue={!!errorContinue}
+              onContinue={handleOnErrorContinue}
+            />
           </View>
         )}
         {!!warningGasPriceHigh && (

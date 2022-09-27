@@ -214,6 +214,14 @@ class TransactionReview extends PureComponent {
      * @returns {string}
      */
     gasSelected: PropTypes.string,
+    /**
+     * Function to determine if user wants to continue with the transaction or not
+     */
+    handleOnErrorContinue: PropTypes.func,
+    /**
+     * Boolean to determine if the transaction error is optional to confirm the transaction
+     */
+    errorContinue: PropTypes.bool,
   };
 
   state = {
@@ -385,6 +393,9 @@ class TransactionReview extends PureComponent {
       dappSuggestedGasWarning,
       gasSelected,
       chainId,
+      transaction: { estimateGasError },
+      errorContinue,
+      handleOnErrorContinue,
     } = this.props;
     const {
       actionKey,
@@ -423,7 +434,10 @@ class TransactionReview extends PureComponent {
               onConfirmPress={this.props.onConfirm}
               confirmed={transactionConfirmed}
               confirmDisabled={
-                transactionConfirmed || Boolean(error) || isAnimating
+                transactionConfirmed ||
+                Boolean(error) ||
+                isAnimating ||
+                (Boolean(estimateGasError) && errorContinue)
               }
             >
               <View style={styles.actionViewChildren}>
@@ -456,6 +470,8 @@ class TransactionReview extends PureComponent {
                       onUpdatingValuesEnd={onUpdatingValuesEnd}
                       animateOnChange={animateOnChange}
                       isAnimating={isAnimating}
+                      handleOnErrorContinue={handleOnErrorContinue}
+                      errorContinue={errorContinue}
                     />
                   </View>
                 </ScrollView>

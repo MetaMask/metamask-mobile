@@ -275,7 +275,8 @@ class TransactionEditor extends PureComponent {
 
   componentDidMount = async () => {
     const { transaction } = this.props;
-
+    const { estimateGasError } = transaction;
+    const errorContinue = Boolean(estimateGasError);
     const zeroGas = new BN('00');
     const hasGasPrice = Boolean(transaction.gasPrice);
     const hasGasLimit =
@@ -313,6 +314,7 @@ class TransactionEditor extends PureComponent {
     if (transaction && transaction.data) {
       this.setState({ data: transaction.data });
     }
+    this.setState({ errorContinue });
   };
 
   parseTransactionDataEIP1559 = (gasFee, options) => {
@@ -868,6 +870,9 @@ class TransactionEditor extends PureComponent {
   onUpdatingValuesEnd = () => {
     this.setState({ isAnimating: false });
   };
+  handleOnErrorContinue = () => {
+    this.setState({ errorContinue: false });
+  };
 
   render = () => {
     const {
@@ -890,6 +895,7 @@ class TransactionEditor extends PureComponent {
       dappSuggestedEIP1559Gas,
       animateOnChange,
       isAnimating,
+      errorContinue,
     } = this.state;
     return (
       <React.Fragment>
@@ -924,6 +930,8 @@ class TransactionEditor extends PureComponent {
                   Boolean(dappSuggestedGasPrice) &&
                   gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET
                 }
+                errorContinue={errorContinue}
+                handleOnErrorContinue={this.handleOnErrorContinue}
               />
               {/** View fixes layout issue after removing <CustomGas/> */}
               <View />
