@@ -15,6 +15,8 @@ import getRpcMethodMiddleware, {
 import { Linking } from 'react-native';
 import Minimizer from 'react-native-minimizer';
 import AppConstants from './AppConstants';
+import URL from 'url-parse';
+
 const hub = new EventEmitter();
 let connectors = [];
 let initialized = false;
