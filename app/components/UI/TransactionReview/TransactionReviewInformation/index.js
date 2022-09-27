@@ -698,7 +698,7 @@ class TransactionReviewInformation extends PureComponent {
             )}
           </View>
         )}
-        {Boolean(estimateGasError) && (
+        {!error && Boolean(estimateGasError) && (
           <View style={styles.estimateGasErrorWrapper} testID={'address-error'}>
             <ErrorMessage
               errorMessage={strings('transaction.estimate_gas_error')}
