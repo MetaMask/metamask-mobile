@@ -36,7 +36,7 @@ const styleSheet = (params: {
     title: {
       color: colors.primary.default,
     },
-    arrowDownIcon: {
+    arrowContainer: {
       marginLeft: 4,
     },
   });

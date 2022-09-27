@@ -1,39 +1,63 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View } from 'react-native';
+import {
+  Transitioning,
+  TransitioningView,
+  Transition,
+} from 'react-native-reanimated';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import AccordionHeader from './AccordionHeader';
+import AccordionHeader from './foundation/AccordionHeader';
 
 // Internal dependencies.
 import styleSheet from './Accordion.styles';
 import { AccordionProps } from './Accordion.types';
+import { ACCORDION_EXPAND_TRANSITION_DURATION } from './Accordion.constants';
 
 const Accordion: React.FC<AccordionProps> = ({
   style,
-  accordionHeaderProps,
   children,
   isExpanded = false,
+  onPress,
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   const [expanded, setExpanded] = useState(isExpanded);
-  const onHeaderClicked = () => {
+  const ref = useRef<TransitioningView>(null);
+  const transition = (
+    <Transition.Together>
+      <Transition.In
+        type="fade"
+        durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
+      />
+      <Transition.Out
+        type="fade"
+        durationMs={ACCORDION_EXPAND_TRANSITION_DURATION}
+      />
+    </Transition.Together>
+  );
+  const onHeaderPressed = () => {
+    if (ref.current) {
+      ref.current.animateNextTransition();
+    }
     setExpanded(!expanded);
-    accordionHeaderProps.onPress?.();
+    onPress?.();
   };
 
   return (
-    <View style={styles.base} {...props}>
+    <View style={styles.base}>
       <AccordionHeader
-        {...accordionHeaderProps}
+        {...props}
         isExpanded={expanded}
-        onPress={onHeaderClicked}
+        onPress={onHeaderPressed}
       />
-      {expanded && <View>{children}</View>}
+      <Transitioning.View {...{ ref, transition }}>
+        {expanded && children}
+      </Transitioning.View>
     </View>
   );
 };

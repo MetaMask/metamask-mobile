@@ -4,27 +4,26 @@
 import React from 'react';
 import { View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
+import { boolean, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import { AccordionHeaderProps } from './AccordionHeader/AccordionHeader.types';
 import Text, { TextVariant } from '../../Text';
 
 // Internal dependencies.
 import Accordion from './Accordion';
+import { TEST_ACCORDION_HEADER_TITLE } from './Accordion.constants';
 
 storiesOf('Component Library / Accordion', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
-    const accordionHeaderProps: AccordionHeaderProps = {
-      title: 'Sample Title',
-      onPress: () => console.log("I'm clicked!"),
-    };
+    const groupId = 'Props';
+    const titleText = text('title', TEST_ACCORDION_HEADER_TITLE, groupId);
+    const isExpanded = boolean('isExpanded?', false, groupId);
     return (
-      <Accordion accordionHeaderProps={accordionHeaderProps}>
+      <Accordion title={titleText} isExpanded={isExpanded}>
         <View
           style={{
-            height: 50,
             backgroundColor: mockTheme.colors.background.alternative,
             alignItems: 'center',
             justifyContent: 'center',
