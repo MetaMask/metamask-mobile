@@ -21,11 +21,16 @@ const CellDisplay = ({
   tertiaryText,
   tagLabel,
   children,
+  ...props
 }: CellDisplayProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <CellDisplayContainer style={styles.base} testID={CELL_DISPLAY_TEST_ID}>
+    <CellDisplayContainer
+      style={styles.base}
+      testID={CELL_DISPLAY_TEST_ID}
+      {...props}
+    >
       <CellBase
         avatarProps={avatarProps}
         title={title}
