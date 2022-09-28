@@ -314,9 +314,6 @@ class WalletConnect {
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
           navigation: null, //props.navigation,
-          getApprovedHosts: () => null,
-          setApprovedHosts: () => null,
-          approveHost: () => null, //props.approveHost,
           // Website info
           url: this.url,
           title: this.title,
