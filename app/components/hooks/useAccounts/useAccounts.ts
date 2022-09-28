@@ -1,5 +1,3 @@
-/* eslint-disable import/prefer-default-export */
-
 // Third party dependencies.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
@@ -8,14 +6,14 @@ import { KeyringTypes } from '@metamask/controllers';
 import { isEqual } from 'lodash';
 
 // External Dependencies.
-import UntypedEngine from '../../../../../core/Engine';
-import { Account } from '../..';
-import { doENSReverseLookup } from '../../../../../util/ENSUtils';
-import { hexToBN, renderFromWei, weiToFiat } from '../../../../../util/number';
-import { getTicker } from '../../../../..//util/transactions';
+import UntypedEngine from '../../../core/Engine';
+import { doENSReverseLookup } from '../../../util/ENSUtils';
+import { hexToBN, renderFromWei, weiToFiat } from '../../../util/number';
+import { getTicker } from '../../../util/transactions';
 
 // Internal dependencies
 import {
+  Account,
   EnsByAccountAddress,
   UseAccounts,
   UseAccountsParams,
@@ -26,7 +24,7 @@ import {
  *
  * @returns Object that contins both wallet accounts and ens name information.
  */
-export const useAccounts = ({
+const useAccounts = ({
   checkBalanceError,
   isLoading = false,
 }: UseAccountsParams = {}): UseAccounts => {
@@ -49,7 +47,7 @@ export const useAccounts = ({
   const accountInfoByAddress = useSelector(
     (state: any) =>
       state.engine.backgroundState.AccountTrackerController.accounts,
-    (left, right) => isEqual(left, right),
+    isEqual,
   );
   const conversionRate = useSelector(
     (state: any) =>
@@ -203,3 +201,5 @@ export const useAccounts = ({
 
   return { accounts, ensByAccountAddress };
 };
+
+export default useAccounts;
