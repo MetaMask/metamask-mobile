@@ -74,7 +74,7 @@ const transactionState = {
   selectedAsset: {
     address: '',
     isETH: true,
-    logo: '../images/eth-logo.png',
+    logo: '../images/eth-logo-new.png',
     name: 'Ether',
     symbol: 'ETH',
   },
