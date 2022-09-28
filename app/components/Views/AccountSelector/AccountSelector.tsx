@@ -1,5 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef, useState } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -14,14 +15,16 @@ import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { strings } from '../../../../locales/i18n';
+import { useAccounts } from '../../hooks/useAccounts';
+
+// Internal dependencies.
 import {
   ACCOUNT_LIST_ID,
   CREATE_ACCOUNT_BUTTON_ID,
   IMPORT_ACCOUNT_BUTTON_ID,
 } from './AccountSelector.constants';
-
-// Internal dependencies.
 import { AccountSelectorProps } from './AccountSelector.types';
+import styles from './AccountSelector.styles';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const {
@@ -36,17 +39,24 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const sheetRef = useRef<SheetBottomRef>(null);
   const navigation = useNavigation();
+  const { accounts, ensByAccountAddress } = useAccounts({
+    checkBalanceError,
+    isLoading,
+  });
 
   const _onSelectAccount = (address: string) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSelectedAddress(address);
     sheetRef.current?.hide();
     onSelectAccount?.(address);
   };
 
   const createNewAccount = useCallback(async () => {
-    const { KeyringController } = Engine.context;
+    const { KeyringController, PreferencesController } = Engine.context;
     try {
       setIsLoading(true);
-      await KeyringController.addNewAccount();
+      const { addedAccountAddress } = await KeyringController.addNewAccount();
+      PreferencesController.setSelectedAddress(addedAccountAddress);
       AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
@@ -115,14 +125,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   return (
     <SheetBottom ref={sheetRef}>
-      <SheetHeader title={strings('accounts.account_selector.title')} />
+      <SheetHeader title={strings('accounts.accounts_title')} />
       <AccountSelectorList
         onSelectAccount={_onSelectAccount}
-        checkBalanceError={checkBalanceError}
+        accounts={accounts}
+        ensByAccountAddress={ensByAccountAddress}
         key={ACCOUNT_LIST_ID}
         isLoading={isLoading}
+        isRemoveAccountEnabled
       />
-      {renderSheetActions()}
+      <View style={styles.sheet}>{renderSheetActions()}</View>
     </SheetBottom>
   );
 };

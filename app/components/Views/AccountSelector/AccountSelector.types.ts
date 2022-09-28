@@ -1,5 +1,5 @@
 // External dependencies.
-import { AccountSelectorListProps } from '../../../components/UI/AccountSelectorList';
+import { UseAccountsParams } from 'app/components/hooks/useAccounts';
 
 /**
  * AccountSelectorProps props.
@@ -34,7 +34,7 @@ export interface AccountSelectorProps {
        * Optional callback that is used to check for a balance requirement. Non-empty string will render the account item non-selectable.
        * @param balance - The ticker balance of an account in wei and hex string format.
        */
-      checkBalanceError?: AccountSelectorListProps['checkBalanceError'];
+      checkBalanceError?: UseAccountsParams['checkBalanceError'];
     };
   };
 }
