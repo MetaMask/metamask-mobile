@@ -457,9 +457,8 @@ export const BrowserTab = (props) => {
           name: hostname,
         });
         if (type === 'ipfs-ns') {
-          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
-            query || ''
-          }`;
+          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''
+            }`;
           const response = await fetch(gatewayUrl);
           const statusCode = response.status;
           if (statusCode >= 400) {
@@ -468,13 +467,11 @@ export const BrowserTab = (props) => {
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -870,12 +867,12 @@ export const BrowserTab = (props) => {
 
       switch (data.type) {
         /**
-				* Disabling iframes for now
-				case 'FRAME_READY': {
-					const { url } = data.payload;
-					onFrameLoadStarted(url);
-					break;
-				}*/
+        * Disabling iframes for now
+        case 'FRAME_READY': {
+          const { url } = data.payload;
+          onFrameLoadStarted(url);
+          break;
+        }*/
         case 'GET_WEBVIEW_URL': {
           const { url } = data.payload;
           if (url === nativeEvent.url)
@@ -916,8 +913,8 @@ export const BrowserTab = (props) => {
       await go(sanitizedInput);
     },
     /* we do not want to depend on the props object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
@@ -937,8 +934,8 @@ export const BrowserTab = (props) => {
       );
     },
     /* we do not want to depend on the props.navigation object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [onUrlInputSubmit],
   );
@@ -1022,8 +1019,8 @@ export const BrowserTab = (props) => {
       });
     }
     /* we do not want to depend on the entire props object
-		- since we are changing it here, this would give us a circular dependency and infinite re renders
-		*/
+    - since we are changing it here, this would give us a circular dependency and infinite re renders
+    */
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error, props.activeTab, props.id, toggleUrlModal]);
 
@@ -1381,6 +1378,8 @@ export const BrowserTab = (props) => {
               useWebkit
               testID={'browser-webview'}
               onFileDownload={handleOnFileDownload}
+              mediaPlaybackRequiresUserAction={false}
+              domStorageEnabled={true}
             />
           )}
         </View>
