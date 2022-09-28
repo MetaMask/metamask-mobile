@@ -307,7 +307,7 @@ const Wallet = ({ navigation }: any) => {
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo.png',
+          logo: '../images/eth-logo-new.png',
         },
         ...(tokens || []),
       ];

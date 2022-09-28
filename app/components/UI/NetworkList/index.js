@@ -274,11 +274,17 @@ export class NetworkList extends PureComponent {
           ) : (
             <View style={styles.networkIcon} />
           ))}
-        {!isCustomRpc && (
-          <View style={[styles.networkIcon, { backgroundColor: image }]}>
-            <Text style={styles.text}>{name[0]}</Text>
-          </View>
-        )}
+        {!isCustomRpc &&
+          (image ? (
+            <ImageIcon
+              image={network.toUpperCase()}
+              style={styles.networkIcon}
+            />
+          ) : (
+            <View style={[styles.networkIcon, { backgroundColor: image }]}>
+              <Text style={styles.text}>{name[0]}</Text>
+            </View>
+          ))}
         <View style={styles.networkInfo}>
           <Text numberOfLines={1} style={styles.networkLabel}>
             {name}
@@ -293,7 +299,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { color, name } = Networks[network];
+      const { name, imageSource } = Networks[network];
       const isCustomRpc = false;
       const selected =
         provider.type === network ? (
@@ -303,7 +309,7 @@ export class NetworkList extends PureComponent {
         selected,
         this.onNetworkChange,
         name,
-        color,
+        imageSource,
         i,
         network,
         isCustomRpc,
