@@ -136,16 +136,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         );
       }
       case ToastVariant.Network: {
-        {
-          const { networkImageSource } = toastOptions;
-          return (
-            <AvatarNetwork
-              imageSource={networkImageSource}
-              size={AvatarBaseSize.Md}
-              style={styles.avatar}
-            />
-          );
-        }
+        const { networkImageSource } = toastOptions;
+        return (
+          <AvatarNetwork
+            imageSource={networkImageSource}
+            size={AvatarBaseSize.Md}
+            style={styles.avatar}
+          />
+        );
       }
     }
   };

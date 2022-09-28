@@ -144,7 +144,6 @@ export const getRpcMethodMiddleware = ({
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
-    const Engine = ImportedEngine as any;
     const getAccounts = (): string[] => {
       const {
         privacy: { privacyMode },

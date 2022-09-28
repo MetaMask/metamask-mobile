@@ -67,7 +67,7 @@ import {
 } from '../../../constants/urls';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
-const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES, USER_AGENT } = AppConstants;
 const HOMEPAGE_HOST = 'home.metamask.io';
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 

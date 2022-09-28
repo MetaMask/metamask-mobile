@@ -31,7 +31,7 @@ const APPROVAL_DEEPLINK_URL =
 const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
 
 /*
-BROKEN. We need to revisit. Deep linking to a contract address does not work on a sim. 
+BROKEN. We need to revisit. Deep linking to a contract address does not work on a sim.
 */
 
 describe('Adding Contract Nickname', () => {

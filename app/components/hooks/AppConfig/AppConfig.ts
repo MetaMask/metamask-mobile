@@ -14,4 +14,5 @@ interface Security {
 */
 export default interface AppConfig {
   security: Security;
+  // eslint-disable-next-line semi
 }

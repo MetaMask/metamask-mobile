@@ -288,6 +288,7 @@ describe('Wallet Tests', () => {
     await WalletView.isNetworkNameVisible(GOERLI);
   });
 
+  // eslint-disable-next-line jest/no-identical-title
   it('should dismiss network education modal', async () => {
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.tapGotItButton();
