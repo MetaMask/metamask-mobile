@@ -56,6 +56,7 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
+import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 
 const Stack = createStackNavigator();
@@ -365,6 +366,10 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}
         component={AccountConnect}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+        component={AccountPermissions}
       />
       <Stack.Screen
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
