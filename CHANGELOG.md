@@ -1,6 +1,92 @@
 # Changelog
 
 ## Current Main Branch
+- bump build version
+- fixes podfile and bumps build
+- potential fix for bitrise compilation and build bump
+- Fixes linting errors and bumps build number
+- updates bitrise.yml
+- fixes some issues after rebase
+- rebase to v5.7.0 and bumps version to v5.7.1
+- Don't go back if there is another request
+- Fix analytics
+- Fix eth_requestAccounts minimizer
+- Remove screenshot for browserstack
+- Test remote comm lib
+- Fix lock event
+- [#4939](https://github.com/MetaMask/metamask-mobile/pull/4939): Update "Usability enhancement" template
+- [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): Detox version bump from 19.6.5 to 19.7.1
+- Update comm layer
+- Fix unlock state
+- wait keychain unlocked
+- Add download webrtc bitcode to bitrise
+- Add constants and timeout explanation
+- Add constants
+- Put constants
+- Fix small issues
+- Formatting
+- Minor changes
+- starts with
+- Remove forground service
+- Remove background actions
+- bumps version and build number for test release
+- Change SDK init
+- Update libraries
+- Install comm layer
+- Typescript
+- dapp connect analytics
+- adds ECDH key exchange class for compatibility with SDK options (todo: option support)
+- implements ECIES for key exchange and encryption
+- verify uuid
+- Fix only sending selected address if connect accepted
+- updates ECDH class and adds ECIES new class
+- Bump versions
+- Enable redirection
+- Bump version
+- Update CHANGELOG
+- [#4412](https://github.com/MetaMask/metamask-mobile/pull/4412): removes `metamask://dapp/` schema support until stable on Android
+- [#4391](https://github.com/MetaMask/metamask-mobile/pull/4391): Remove canOpenUrl from onramp linking
+- [#4396](https://github.com/MetaMask/metamask-mobile/pull/4396): Additional fixes for double tab opened with metamask://dapp/ schema
+- [#4362](https://github.com/MetaMask/metamask-mobile/pull/4362): Add On-Ramp Aggregator Analytics
+- [#4375](https://github.com/MetaMask/metamask-mobile/pull/4375): Refactor "Transaction" to "Order" when referring to fiat order
+- [#4359](https://github.com/MetaMask/metamask-mobile/pull/4359): bug patch - tx-details to display provider link and integrate the order object
+- [#4360](https://github.com/MetaMask/metamask-mobile/pull/4360): Error handling when no crypto currencies available on selected region
+- [#4383](https://github.com/MetaMask/metamask-mobile/pull/4383): Fixes double tab opening when using `metamask://dapp/` deep link schema
+- Update changelog
+- Update changelog
+- Format changelog
+- 5.2.0
+- Pause connection
+- Type
+- Working
+- Prevent dup
+- types
+- Working
+- isOriginator
+- Resume
+- Test resume
+- Test persist
+- Revert lockmanager code
+- Adds SDK connection keepalive ping
+- Testing lock timeout
+- Test disable lock screen
+- test background timer
+- Deeplink & notify address and chain
+- Fix send transaction
+- Bump version on bitrise yml
+- bitcode
+- change proguard rules for webrtc
+- Update build.gradle
+- fix webrtc lib installation
+- Lint
+- Update comm
+- Update RPCMethodMiddleware.ts
+- Disabling lavamoat for now
+- Update package.json
+- Clean disconnected hosts
+- Working on android
+- SDK Working
+- Change user agent on the browser and improve WC
 
 ## 5.2.0 - May 17, 2022
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
