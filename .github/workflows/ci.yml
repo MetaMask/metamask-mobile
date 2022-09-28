@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: main
+    branches: parallel-tests
   pull_request:
 jobs:
   setup:
@@ -91,8 +91,8 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - run: yarn test:tgz-check
-  test:
-    runs-on: macos-12
+  test-non-components:
+    runs-on: ubuntu-20.04
     needs: setup
     steps:
       - uses: actions/cache@v2
@@ -108,7 +108,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit --forceExit --silent
+      - run: NODE_OPTIONS=--max_old_space_size=20480 jest ./app/ !./app/components/ --forceExit --silent
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
