@@ -104,7 +104,10 @@
     "@storybook/addon-actions/**/highlight.js": "^10.4.1",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
     "detox/**/moment": "^2.29.4",
-    "oss-attribution-generator/**/debug": "^2.6.9"
+    "oss-attribution-generator/**/debug": "^2.6.9",
+    "**/pbkdf2": "3.1.1",
+    "**/**/pbkdf2": "3.1.1",
+    "**/**/**/pbkdf2": "3.1.1"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "^1.2.1",
@@ -219,7 +222,7 @@
     "react-native-level-fs": "3.0.1",
     "react-native-linear-gradient": "2.5.6",
     "react-native-material-textfield": "0.16.1",
-    "react-native-minimizer": "^1.3.0",
+    "react-native-minimizer": "1.3.0",
     "react-native-modal": "^12.1.0",
     "react-native-os": "^1.2.6",
     "react-native-progress": "3.5.0",

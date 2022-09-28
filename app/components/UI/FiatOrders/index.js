@@ -207,7 +207,6 @@ export async function processFiatOrder(order, updateFiatOrder) {
 }
 
 function FiatOrders({ pendingOrders, updateFiatOrder }) {
-  const trackEvent = useAnalytics();
   useInterval(
     async () => {
       await Promise.all(
