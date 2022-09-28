@@ -1,5 +1,6 @@
 const initialState = {
   networkModalVisible: false,
+  shouldNetworkSwitchPopToWallet: true,
   collectibleContractModalVisible: false,
   receiveModalVisible: false,
   receiveAsset: undefined,
@@ -13,6 +14,7 @@ const modalsReducer = (state = initialState, action) => {
       return {
         ...state,
         networkModalVisible: !state.networkModalVisible,
+        shouldNetworkSwitchPopToWallet: action.shouldNetworkSwitchPopToWallet,
       };
     case 'TOGGLE_RECEIVE_MODAL': {
       return {

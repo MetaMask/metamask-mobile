@@ -122,6 +122,8 @@ export default function getNavbarOptions(
   disableNetwork = false,
   drawerRef,
   themeColors,
+  selectedAddress,
+  onRightButtonPress,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -153,7 +155,12 @@ export default function getNavbarOptions(
         />
       </TouchableOpacity>
     ),
-    headerRight: () => <AccountRightButton />,
+    headerRight: () => (
+      <AccountRightButton
+        selectedAddress={selectedAddress}
+        onPress={onRightButtonPress}
+      />
+    ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
@@ -587,6 +594,10 @@ export function getBrowserViewNavbarOptions(
   const error = route.params?.error ?? '';
   const icon = route.params?.icon;
 
+  const setAccountsPermissionsVisible =
+    route.params?.setAccountsPermissionsVisible;
+  const connectedAccounts = route.params?.connectedAccounts;
+
   if (url && !isHomepage(url)) {
     isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
     const urlObj = new URL(url);
@@ -639,7 +650,11 @@ export function getBrowserViewNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.browserRightButton}>
-        <AccountRightButton />
+        <AccountRightButton
+          selectedAddress={connectedAccounts?.[0]}
+          isNetworkVisible
+          onPress={setAccountsPermissionsVisible}
+        />
       </View>
     ),
     headerStyle: innerStyles.headerStyle,
