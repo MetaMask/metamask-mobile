@@ -57,6 +57,7 @@ import { useTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../../UI/QRHardware/withQRHardwareAwareness';
 import QRSigningModal from '../../UI/QRHardware/QRSigningModal';
 import { networkSwitched } from '../../../actions/onboardNetwork';
+import Routes from '../../../constants/navigation/Routes';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -81,8 +82,6 @@ const RootRPCMethodsUI = (props) => {
 
   const [customNetworkToAdd, setCustomNetworkToAdd] = useState(null);
   const [customNetworkToSwitch, setCustomNetworkToSwitch] = useState(null);
-
-  const [hostToApprove, setHostToApprove] = useState(null);
 
   const [watchAsset, setWatchAsset] = useState(false);
   const [suggestedAssetMeta, setSuggestedAssetMeta] = useState(undefined);
@@ -603,47 +602,6 @@ const RootRPCMethodsUI = (props) => {
   );
 
   /**
-   * When user clicks on approve to connect with a dapp
-   */
-  const onAccountsConfirm = () => {
-    acceptPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    setShowPendingApproval(false);
-  };
-
-  /**
-   * When user clicks on reject to connect with a dapp
-   */
-  const onAccountsReject = () => {
-    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
-    setShowPendingApproval(false);
-  };
-
-  /**
-   * Render the modal that asks the user to approve/reject connections to a dapp
-   */
-  const renderAccountsApprovalModal = () => (
-    <Modal
-      isVisible={showPendingApproval?.type === ApprovalTypes.CONNECT_ACCOUNTS}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.bottomModal}
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      animationInTiming={300}
-      animationOutTiming={300}
-      onSwipeComplete={onAccountsReject}
-      onBackdropPress={onAccountsReject}
-      swipeDirection={'down'}
-    >
-      <AccountApproval
-        onCancel={onAccountsReject}
-        onConfirm={onAccountsConfirm}
-        currentPageInformation={currentPageMeta}
-      />
-    </Modal>
-  );
-
-  /**
    * On rejection addinga an asset
    */
   const onCancelWatchAsset = () => {
@@ -702,8 +660,17 @@ const RootRPCMethodsUI = (props) => {
         setCurrentPageMeta(requestData.pageMeta);
       }
       switch (request.type) {
+        case 'wallet_requestPermissions':
+          if (requestData?.permissions?.eth_accounts) {
+            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+              screen: Routes.SHEET.ACCOUNT_CONNECT,
+              params: {
+                hostInfo: requestData,
+              },
+            });
+          }
+          break;
         case ApprovalTypes.CONNECT_ACCOUNTS:
-          setHostToApprove({ data: requestData, id: request.id });
           showPendingApprovalModal({
             type: ApprovalTypes.CONNECT_ACCOUNTS,
             origin: request.origin,
@@ -783,7 +750,6 @@ const RootRPCMethodsUI = (props) => {
       {renderApproveModal()}
       {renderAddCustomNetworkModal()}
       {renderSwitchCustomNetworkModal()}
-      {renderAccountsApprovalModal()}
       {renderWatchAssetModal()}
       {renderQRSigningModal()}
     </React.Fragment>
