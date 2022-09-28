@@ -166,6 +166,10 @@ export class NetworkList extends PureComponent {
      * react-navigation object used for switching between screens
      */
     navigation: PropTypes.object,
+    /**
+     * Boolean indicating if switching network action should result in popping back to the wallet.
+     */
+    shouldNetworkSwitchPopToWallet: PropTypes.bool,
   };
 
   getOtherNetworks = () => getAllNetworks().slice(1);
@@ -373,12 +377,13 @@ export class NetworkList extends PureComponent {
   }
 
   goToNetworkSettings = () => {
+    const { shouldNetworkSwitchPopToWallet } = this.props;
     this.props.onClose(false);
     this.props.navigation.navigate('SettingsView', {
       screen: 'SettingsFlow',
       params: {
         screen: 'NetworkSettings',
-        params: { isFullScreenModal: true },
+        params: { isFullScreenModal: true, shouldNetworkSwitchPopToWallet },
       },
     });
   };
@@ -431,6 +436,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.PreferencesController.frequentRpcList,
   thirdPartyApiMode: state.privacy.thirdPartyApiMode,
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
+  shouldNetworkSwitchPopToWallet: state.modals.shouldNetworkSwitchPopToWallet,
 });
 
 NetworkList.contextType = ThemeContext;
