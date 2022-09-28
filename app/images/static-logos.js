@@ -2,6 +2,10 @@
 /* eslint-disable */
 
 export default {
+  'sushi.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sushi.svg'),
+  'prvg.svg': require('metamask/node_modules/@metamask/contract-metadata/images/prvg.svg'),
+  'prvd.svg': require('metamask/node_modules/@metamask/contract-metadata/images/prvd.svg'),
+  'XCHF.svg': require('metamask/node_modules/@metamask/contract-metadata/images/XCHF.svg'),
   'safe-white-token.svg': require('metamask/node_modules/@metamask/contract-metadata/images/safe-white-token.svg'),
   'nouns.svg': require('metamask/node_modules/@metamask/contract-metadata/images/nouns.svg'),
   'bayc.svg': require('metamask/node_modules/@metamask/contract-metadata/images/bayc.svg'),
@@ -26,6 +30,7 @@ export default {
   'sora-xstusd.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sora-xstusd.svg'),
   'sora-pswap.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sora-pswap.svg'),
   'sora-xor.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sora-xor.svg'),
+  'ZKP.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ZKP.svg'),
   'sora-val.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sora-val.svg'),
   'PEOPLE.svg': require('metamask/node_modules/@metamask/contract-metadata/images/PEOPLE.svg'),
   'BTBS.svg': require('metamask/node_modules/@metamask/contract-metadata/images/BTBS.svg'),
@@ -404,6 +409,8 @@ export default {
   'knownorigin.svg': require('metamask/node_modules/@metamask/contract-metadata/images/knownorigin.svg'),
   'originprotocol.png': require('metamask/node_modules/@metamask/contract-metadata/images/originprotocol.png'),
   'ousd.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ousd.svg'),
+  'ogv.svg': require('metamask/node_modules/@metamask/contract-metadata/images/ogv.svg'),
+  'veogv.svg': require('metamask/node_modules/@metamask/contract-metadata/images/veogv.svg'),
   'request.svg': require('metamask/node_modules/@metamask/contract-metadata/images/request.svg'),
   'kudos.svg': require('metamask/node_modules/@metamask/contract-metadata/images/kudos.svg'),
   'bether.jpg': require('metamask/node_modules/@metamask/contract-metadata/images/bether.jpg'),
@@ -556,4 +563,7 @@ export default {
   'mfg.svg': require('metamask/node_modules/@metamask/contract-metadata/images/mfg.svg'),
   'rETH.svg': require('metamask/node_modules/@metamask/contract-metadata/images/rETH.svg'),
   'rpl.svg': require('metamask/node_modules/@metamask/contract-metadata/images/rpl.svg'),
+  'xht.svg': require('metamask/node_modules/@metamask/contract-metadata/images/xht.svg'),
+  'gton.svg': require('metamask/node_modules/@metamask/contract-metadata/images/gton.svg'),
+  'sgton.svg': require('metamask/node_modules/@metamask/contract-metadata/images/sgton.svg'),
 };

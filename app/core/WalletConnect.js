@@ -292,42 +292,10 @@ class WalletConnect {
       persistSessions();
     }
 
-		this.backgroundBridge = new BackgroundBridge({
-			webview: null,
-			url: this.hostname,
-			isWalletConnect: true,
-			wcWalletConnector: this.walletConnector,
-			wcRequestActions: {
-				approveRequest: this.approveRequest,
-				rejectRequest: this.rejectRequest,
-				updateSession: this.updateSession,
-			},
-			getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
-				getRpcMethodMiddleware({
-					hostname: WALLET_CONNECT_ORIGIN + this.hostname,
-					getProviderState,
-					navigation: null, //props.navigation,
-					getApprovedHosts: () => null,
-					setApprovedHosts: () => null,
-					approveHost: () => null, //props.approveHost,
-					// Website info
-					url: this.url,
-					title: this.title,
-					icon: this.icon,
-					// Bookmarks
-					isHomepage: false,
-					// Show autocomplete
-					fromHomepage: false,
-					setAutocompleteValue: () => null,
-					setShowUrlModal: () => null,
-					// Wizard
-					wizardScrollAdjusted: () => null,
-					isTabActive: () => true,
-					isWalletConnect: true,
-				}),
-			isMainFrame: true,
-		});
-	};
+    this.url.current = sessionData.peerMeta.url;
+    this.title.current = sessionData.peerMeta?.name;
+    this.icon.current = sessionData.peerMeta?.icons?.[0];
+    this.dappScheme.current = sessionData.peerMeta?.dappScheme;
 
     this.hostname = new URL(this.url.current).hostname;
 
