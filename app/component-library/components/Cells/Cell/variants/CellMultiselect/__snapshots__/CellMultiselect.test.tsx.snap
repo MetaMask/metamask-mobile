@@ -3,8 +3,10 @@
 exports[`CellMultiselect - Snapshot should render default settings correctly 1`] = `
 <MultiselectItem
   isSelected={false}
+  onPress={[Function]}
   style={Object {}}
   testID="cell-multi-select"
+  variant="Multiselect"
 >
   <CellBase
     avatarProps={
@@ -22,8 +24,10 @@ exports[`CellMultiselect - Snapshot should render default settings correctly 1`]
 exports[`CellMultiselect - Snapshot should render the proper selected state 1`] = `
 <MultiselectItem
   isSelected={true}
+  onPress={[Function]}
   style={Object {}}
   testID="cell-multi-select"
+  variant="Multiselect"
 >
   <CellBase
     avatarProps={

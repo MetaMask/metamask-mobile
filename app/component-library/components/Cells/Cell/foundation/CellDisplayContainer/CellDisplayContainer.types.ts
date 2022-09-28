@@ -1,10 +1,10 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { TouchableOpacityProps } from 'react-native';
 
 /**
  * CellDisplayContainer component props.
  */
-export interface CellDisplayContainerProps extends ViewProps {
+export interface CellDisplayContainerProps extends TouchableOpacityProps {
   /**
    * Content to wrap to display.
    */

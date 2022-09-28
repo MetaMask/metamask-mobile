@@ -28,7 +28,7 @@ export interface BadgeNetworkProps extends Omit<BadgeBaseProps, 'children'> {
   /**
    * Image of the network from either a local or remote source.
    */
-  imageSource: ImageSourcePropType;
+  imageSource?: ImageSourcePropType;
   /**
    * Enum that represents the position of the network badge.
    * @defaults TopRight

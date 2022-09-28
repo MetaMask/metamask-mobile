@@ -12,6 +12,7 @@ exports[`ButtonBase should render correctly 1`] = `
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
+      "paddingHorizontal": 16,
     }
   }
 >
