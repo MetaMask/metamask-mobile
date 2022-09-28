@@ -52,6 +52,7 @@ import {
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
+import { createQRScannerNavDetails } from '../../QRScanner';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -570,13 +571,16 @@ class SendFlow extends PureComponent {
   };
 
   onScan = () => {
-    this.props.navigation.navigate('QRScanner', {
-      onScanSuccess: (meta) => {
-        if (meta.target_address) {
-          this.onToSelectedAddressChange(meta.target_address);
-        }
-      },
-    });
+    this.props.navigation.navigate(
+      ...createQRScannerNavDetails({
+        onScanSuccess: (meta) => {
+          if (meta.target_address) {
+            this.onToSelectedAddressChange(meta.target_address);
+          }
+        },
+        origin: Routes.SEND_FLOW.SEND_TO,
+      }),
+    );
   };
 
   onTransactionDirectionSet = async () => {

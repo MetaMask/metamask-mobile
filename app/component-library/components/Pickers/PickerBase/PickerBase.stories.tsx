@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import PickerBase from './PickerBase';

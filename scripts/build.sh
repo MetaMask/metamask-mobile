@@ -160,6 +160,11 @@ buildAndroidRunQA(){
 	react-native run-android --variant=qaDebug
 }
 
+buildAndroidRunQA(){
+	prebuild_android
+	react-native run-android --variant=qaDebug
+}
+
 buildAndroidRunE2E(){
   prebuild_android
 	cd android && ./gradlew assembleQaDebug --no-daemon --max-workers 2
@@ -175,6 +180,12 @@ buildIosSimulatorQA(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
 	react-native run-ios --simulator $SIM --scheme "MetaMask-QA"
+}
+
+buildIosSimulatorQA(){
+	prebuild_ios
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorE2E(){

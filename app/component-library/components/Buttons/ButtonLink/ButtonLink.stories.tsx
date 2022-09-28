@@ -5,7 +5,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import ButtonLink from './ButtonLink';

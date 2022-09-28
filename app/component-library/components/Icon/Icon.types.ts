@@ -172,6 +172,7 @@ export enum IconName {
   SwapHorizontalOutline = 'SwapHorizontalOutline',
   SwapVertivalFilled = 'SwapVertivalFilled',
   TagFilled = 'TagFilled',
+  TildeOutline = 'TildeOutline',
   TimerTimer = 'TimerTimer',
   TrashFilled = 'TrashFilled',
   TrendDownFilled = 'TrendDownFilled',
