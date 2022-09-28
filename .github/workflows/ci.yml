@@ -91,8 +91,15 @@ jobs:
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - run: yarn test:tgz-check
-  test-non-components:
+  test:
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        script:
+          - non-components
+          - components-ui
+          - components-views
+          - components-remaining
     needs: setup
     steps:
       - uses: actions/cache@v2
@@ -108,61 +115,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit:non-components --forceExit --silent
-  test-components-ui:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit:components-ui --forceExit --silent
-  test-components-views:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit:components-views --forceExit --silent
-  test-components-remaining:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit:components-remaining --forceExit --silent
+      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit:${{ matrix['script'] }} --forceExit --silent
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
@@ -171,10 +124,7 @@ jobs:
       lint,
       audit,
       tgz-check,
-      test-non-components,
-      test-components-ui,
-      test-components-views,
-      test-components-remaining
+      test
     ]
     steps:
       - run: echo "Great success!"
