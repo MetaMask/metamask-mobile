@@ -19,7 +19,7 @@ Function to trigger when pressing the link.
 ```javascript
 // Replace import with relative path.
 import ButtonLink, from 'app/component-library/components/ButtonLink';
-import { TextVariant } from 'app/component-library/components/Text';
+import { TextVariant } from 'app/component-library/components/Texts/Text';
 
 <ButtonLink
   variant={TextVariant.lBodyMDBold}
