@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
 import generateTestId from '../../../../e2e/utils/generateTestId';
-import { METAMASK_ANIMATION_ID } from '../../../../e2e/features/screen-objects/WelcomeScreen';
+import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../constants/testIDs/Generic.constants';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -71,12 +71,12 @@ const MetaMaskAnimation = ({
 
   return (
     <View style={styles.main}>
-      <Animated.View
-        {...generateTestId(Platform, METAMASK_ANIMATION_ID)}
-        style={[styles.logoWrapper, { opacity }]}
-      >
+      <Animated.View style={[styles.logoWrapper, { opacity }]}>
         <View style={styles.fox}>
-          <View style={styles.foxAndName}>
+          <View
+            style={styles.foxAndName}
+            {...generateTestId(Platform, SPLASH_SCREEN_METAMASK_ANIMATION_ID)}
+          >
             <LottieView
               ref={animation}
               style={styles.animation}

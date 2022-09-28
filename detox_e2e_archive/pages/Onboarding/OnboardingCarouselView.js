@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 
 const ONBOARDING_CAROUSEL_ID = 'onboarding-carousel-screen';
-const GET_STARTED_BUTTON_ID = 'onboarding-get-started-button';
+const WELCOME_SCREEN_GET_STARTED_BUTTON_ID = 'onboarding-get-started-button';
 const CAROUSEL_SCREEN_TWO_ID = 'carousel-screen-two';
 const CAROUSEL_SCREEN_THREE_ID = 'carousel-screen-three';
 
@@ -14,7 +14,7 @@ export default class OnboardingCarouselView {
     await TestHelpers.swipe(ONBOARDING_CAROUSEL_ID, 'left');
   }
   static async tapOnGetStartedButton() {
-    await TestHelpers.waitAndTap(GET_STARTED_BUTTON_ID);
+    await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
   static async isMetaMaskWelcomeTextVisible() {

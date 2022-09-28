@@ -25,10 +25,9 @@ import DefaultPreference from 'react-native-default-preference';
 import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
-  CAROUSEL_IMAGE_ID,
-  CAROUSEL_TITLE_ID,
-  GET_STARTED_BUTTON_ID,
-  ONBOARDING_CAROUSEL_CONTAINER_ID,
+  WELCOME_SCREEN_CAROUSEL_TITLE_ID,
+  WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
+  WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
 } from '../../../constants/testIDs/WelcomeScreen.constants';
 import generateTestId from '../../../../e2e/utils/generateTestId';
 
@@ -204,7 +203,10 @@ class OnboardingCarousel extends PureComponent {
           >
             <View
               style={styles.wrapper}
-              {...generateTestId(Platform, ONBOARDING_CAROUSEL_CONTAINER_ID)}
+              {...generateTestId(
+                Platform,
+                WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
+              )}
             >
               <ScrollableTabView
                 style={styles.scrollTabs}
@@ -218,7 +220,10 @@ class OnboardingCarousel extends PureComponent {
                     <View key={key} style={baseStyles.flexGrow}>
                       <View
                         style={styles.tab}
-                        {...generateTestId(Platform, CAROUSEL_TITLE_ID(value))}
+                        {...generateTestId(
+                          Platform,
+                          WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
+                        )}
                       >
                         <Text style={styles.title}>
                           {strings(`onboarding_carousel.title${key}`)}
@@ -232,10 +237,6 @@ class OnboardingCarousel extends PureComponent {
                           source={carousel_images[index]}
                           style={[styles.carouselImage, styles[imgStyleKey]]}
                           resizeMethod={'auto'}
-                          {...generateTestId(
-                            Platform,
-                            CAROUSEL_IMAGE_ID(value),
-                          )}
                         />
                       </View>
                     </View>
@@ -261,7 +262,7 @@ class OnboardingCarousel extends PureComponent {
               <StyledButton
                 type={'normal'}
                 onPress={this.onPressGetStarted}
-                testID={GET_STARTED_BUTTON_ID}
+                testID={WELCOME_SCREEN_GET_STARTED_BUTTON_ID}
               >
                 {strings('onboarding_carousel.get_started')}
               </StyledButton>
