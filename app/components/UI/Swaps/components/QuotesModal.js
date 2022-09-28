@@ -27,7 +27,6 @@ import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import Ratio from './Ratio';
 import { useTheme } from '../../../../util/theme';
-import { colors as importedColors } from '../../../../styles/common';
 
 const createStyles = (colors, shadows) =>
   StyleSheet.create({

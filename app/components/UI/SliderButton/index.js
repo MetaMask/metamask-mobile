@@ -32,6 +32,7 @@ const createStyles = (colors, shadows) =>
   StyleSheet.create({
     container: {
       ...shadows.size.sm,
+      shadowColor: colors.primary.shadow,
       elevation: 0, // shadow colors not supported on Android. nothing > gray shadow
     },
     disabledContainer: {

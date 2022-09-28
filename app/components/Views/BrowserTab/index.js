@@ -21,11 +21,7 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import {
-  baseStyles,
-  fontStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
 import {

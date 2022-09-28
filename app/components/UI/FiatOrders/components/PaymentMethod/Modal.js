@@ -11,7 +11,6 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../../locales/i18n';
 import Title from '../Title';
-import { colors as importedColors } from '../../../../../styles/common';
 import StyledButton from '../../../StyledButton';
 import Device from '../../../../../util/device';
 import { useTheme } from '../../../../../util/theme';

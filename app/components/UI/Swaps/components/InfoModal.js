@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, SafeAreaView } from 'react-native';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
-import { colors as importedColors } from '../../../../styles/common';
 import Text from '../../../Base/Text';
 import Title from '../../../Base/Title';
 import { useTheme } from '../../../../util/theme';

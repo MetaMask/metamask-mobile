@@ -14,7 +14,7 @@ import {
   Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import Svg, { Path } from 'react-native-svg';
 
