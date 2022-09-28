@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { TouchableOpacity, View, Linking } from 'react-native';
 import Summary from '../../../Base/Summary';
 import Text from '../../../Base/Text';
@@ -33,6 +33,7 @@ const TransactionReviewEIP1559Update = ({
   legacy,
   gasSelected,
   gasPriceObject,
+  updateTransactionState,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
@@ -67,6 +68,12 @@ const TransactionReviewEIP1559Update = ({
     timeEstimate,
     timeEstimateId,
   } = gasTransaction;
+
+  useEffect(() => {
+    if (animateOnChange) {
+      updateTransactionState(gasTransaction);
+    }
+  }, [animateOnChange, gasTransaction, updateTransactionState]);
 
   const openLinkAboutGas = useCallback(
     () => Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME),

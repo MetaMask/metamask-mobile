@@ -1148,6 +1148,12 @@ class Confirm extends PureComponent {
     this.setState({ isAnimating: false });
   };
 
+  updateTransactionState = (gas) => {
+    this.setState({
+      gasTransaction: gas,
+    });
+  };
+
   render = () => {
     const { transactionToName, selectedAsset, paymentRequest } =
       this.props.transactionState;
@@ -1316,6 +1322,7 @@ class Confirm extends PureComponent {
               gasEstimationReady={gasEstimationReady}
               chainId={chainId}
               gasPriceObject={this.state.gasPriceObject}
+              updateTransactionState={this.updateTransactionState}
             />
           )}
 

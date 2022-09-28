@@ -62,6 +62,10 @@ export interface TransactionEIP1559UpdateProps {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
+  /**
+   * update gas transaction state to parent
+   */
+  updateTransactionState: any;
 }
 
 export interface SkeletonProps {

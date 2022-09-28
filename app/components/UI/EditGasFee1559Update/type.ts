@@ -1,64 +1,43 @@
+import { GasFeeOptions } from '../../../core/GasPolling/types';
 export interface EditGasFee1559UpdateProps {
   /**
-   * Gas option selected (low, medium, high)
+   * The selected gas value (low, medium, high)
    */
   selectedGasValue: string;
-  suggestedGasLimit: string;
   /**
-   * Gas fee options to select from
+   * Initial suggested gas limit. Default is 21000.
+   * @default 21000
    */
-  gasOptions: {
-    baseFeeTrend: string;
-    estimatedBaseFee: string;
-    high: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    historicalBaseFeeRange: [string, string];
-    historicalPriorityFeeRange: [string, string];
-    latestPriorityFeeRange: [string, string];
-    low: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    medium: {
-      maxWaitTimeEstimate: number;
-      minWaitTimeEstimate: number;
-      suggestedMaxFeePerGas: string;
-      suggestedMaxPriorityFeePerGas: string;
-    };
-    networkCongestion: number;
-    priorityFeeTrend: string;
-    // suggestedEstimateOption
-  };
+  initialSuggestedGasLimit: string;
+  /**
+   * Gas fee options.
+   */
+  gasOptions: GasFeeOptions;
   /**
    * Primary currency, either ETH or Fiat
    */
   primaryCurrency: string;
-
   /**
    * Option to display speed up/cancel view
    */
-  updateOption: {
-    isCancel: boolean;
-    maxFeeThreshold: string;
-    maxPriortyFeeThreshold: string;
-    showAdvanced: boolean;
-  };
+  updateOption:
+    | {
+        isCancel: boolean;
+        maxFeeThreshold: string;
+        maxPriortyFeeThreshold: string;
+        showAdvanced: boolean;
+      }
+    | undefined;
   /**
    * If the values should animate upon update or not
    */
-  animateOnChange: boolean;
+  animateOnChange: boolean | undefined;
   /**
    * A string representing the network chainId
    */
   chainId: string;
   /**
-   * Function called when user selected or changed the gas
+   * Function to set the gas selected value
    */
   onChange: any;
   /**
@@ -66,10 +45,9 @@ export interface EditGasFee1559UpdateProps {
    */
   onCancel: any;
   /**
-   * Function called when user saves the new gas
+   * Function called when user saves the new gas data
    */
   onSave: any;
-
   /**
    * Error message to show
    */
@@ -81,11 +59,11 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Boolean that specifies if the gas price was suggested by the dapp
    */
-  dappSuggestedGas: boolean;
+  dappSuggestedGas: boolean | undefined;
   /**
-   * Ignore option array
+   * An array of selected gas value and lower that should be ignored.
    */
-  ignoreOptions: any;
+  ignoreOptions: string[] | undefined;
   /**
    * Extend options object. Object has option keys and properties will be spread
    */
@@ -101,7 +79,7 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Suggested estimate option to show recommended values
    */
-  //   suggestedEstimateOption: string;
+  suggestedEstimateOption: string;
   /**
    * Boolean to determine if the animation is happening
    */
@@ -109,11 +87,21 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Extra analytics params to be send with the gas analytics
    */
-  analyticsParams: any;
+  analyticsParams: {
+    chain_id: string;
+    gas_estimate_type: string;
+    gas_mode: string;
+    speed_set: string;
+    view: string;
+  };
   /**
-   * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
+   * This is used in calculating the new gas price from the advanced view.
+   * The maxFeePerGas is the max fee per gas that the user can set.
+   * The maxPriorityFeePerGas is the max fee per gas that the user can set for priority transactions.
    */
-  view: string;
-
-  existingGas: any;
+  currentGasPriceObject: {
+    suggestedMaxFeePerGas: string;
+    suggestedMaxPriorityFeePerGas: string;
+  };
+  onlyGas?: boolean;
 }
