@@ -55,10 +55,6 @@ target 'MetaMask' do
   common_target_logic
 end
 
-target 'MetaMask-QA' do
-  common_target_logic
-end
-
 post_install do |installer|
 	flipper_post_install(installer)
     react_native_post_install(installer)
