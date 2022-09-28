@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: parallel-tests
+    branches: main
   pull_request:
 jobs:
   setup:
