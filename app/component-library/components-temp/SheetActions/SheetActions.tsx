@@ -17,26 +17,29 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
 
   const renderActions = useCallback(
     () =>
-      actions.map(({ label, onPress, testID, isLoading, disabled }, index) => {
-        const key = `${label}-${index}`;
-        return (
-          <React.Fragment key={key}>
-            {actions.length > 1 && <View style={styles.separator} />}
-            <View>
-              <ButtonTertiary
-                testID={testID}
-                onPress={onPress}
-                label={label}
-                size={ButtonBaseSize.Lg}
-                disabled={disabled || isLoading}
-                /* eslint-disable-next-line */
-                style={{ opacity: disabled ? 0.5 : 1 }}
-              />
-              {isLoading && <Loader size={'small'} />}
-            </View>
-          </React.Fragment>
-        );
-      }),
+      actions.map(
+        ({ label, onPress, testID, isLoading, disabled, variant }, index) => {
+          const key = `${label}-${index}`;
+          return (
+            <React.Fragment key={key}>
+              {actions.length > 1 && <View style={styles.separator} />}
+              <View>
+                <ButtonTertiary
+                  testID={testID}
+                  onPress={onPress}
+                  label={label}
+                  size={ButtonBaseSize.Lg}
+                  disabled={disabled || isLoading}
+                  /* eslint-disable-next-line */
+                  style={{ opacity: disabled ? 0.5 : 1 }}
+                  variant={variant}
+                />
+                {isLoading && <Loader size={'small'} />}
+              </View>
+            </React.Fragment>
+          );
+        },
+      ),
     [actions, styles.separator],
   );
 

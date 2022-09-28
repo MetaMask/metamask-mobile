@@ -13,5 +13,5 @@ exports[`Card - Snapshot should render correctly 1`] = `
   }
 >
   <View />
-</View>
+</TouchableOpacity>
 `;

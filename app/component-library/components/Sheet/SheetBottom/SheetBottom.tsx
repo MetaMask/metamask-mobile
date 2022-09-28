@@ -11,7 +11,7 @@ import React, {
   useRef,
 } from 'react';
 import {
-  LayoutAnimation,
+  // LayoutAnimation,
   LayoutChangeEvent,
   TouchableOpacity,
   useWindowDimensions,
@@ -166,11 +166,14 @@ const SheetBottom = forwardRef<SheetBottomRef, SheetBottomProps>(
       [hide],
     );
 
-    useEffect(() => {
-      // Automatically handles animation when content changes
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      return () => debouncedHide.cancel();
-    }, [children, debouncedHide]);
+    useEffect(
+      () =>
+        // Automatically handles animation when content changes
+        // Disable for now since network switches causes the screen to hang with this on.
+        // LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        debouncedHide.cancel(),
+      [children, debouncedHide],
+    );
 
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
