@@ -62,6 +62,8 @@ import {
   SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
 } from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
+import generateTestId from '../../../../e2e/utils/generateTestId';
+import { IMPORT_WALLET_SCREEN_TITLE_ID } from '../../../constants/testIDs/ImportWalletScreen.constants';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -525,7 +527,10 @@ class ImportFromSeed extends PureComponent {
           resetScrollToCoords={{ x: 0, y: 0 }}
         >
           <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
-            <Text style={styles.title}>
+            <Text
+              style={styles.title}
+              {...generateTestId(Platform, IMPORT_WALLET_SCREEN_TITLE_ID)}
+            >
               {strings('import_from_seed.title')}
             </Text>
             <View style={styles.fieldRow}>

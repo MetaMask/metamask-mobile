@@ -26,6 +26,10 @@ class WalletSetupScreen {
   async verifyTermsAndConditionsButton() {
     await expect(await $(`~${TERMS_AND_CONDITIONS_BUTTON_ID}`)).toBeDisplayed();
   }
+
+  async clickImportWalletButton() {
+    await $(`~${WALLET_SETUP_SCREEN_IMPORT_WALLET_BUTTON_ID}`).click();
+  }
 }
 
 export default new WalletSetupScreen();

@@ -1,4 +1,5 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
+import ImportWalletScreen from '../screen-objects/ImportWalletScreen.js';
 import WalletSetupScreen from '../screen-objects/WalletSetupScreen.js';
 import WelcomeScreen from '../screen-objects/WelcomeScreen.js';
 
@@ -30,6 +31,9 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
     case 'By proceeding, you agree to these Terms and Conditions.':
       await WalletSetupScreen.verifyTermsAndConditionsButton();
       break;
+    case 'Import from seed':
+      await ImportWalletScreen.verifyScreenTitle();
+      break;
     default:
       throw new Error('Condition not found');
   }
@@ -59,6 +63,9 @@ When(/^I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Get started':
       await WelcomeScreen.clickGetStartedButton();
+      break;
+    case 'Import using Secret Recovery Phrase':
+      await WalletSetupScreen.clickImportWalletButton();
       break;
     default:
       throw new Error('Condition not found');
