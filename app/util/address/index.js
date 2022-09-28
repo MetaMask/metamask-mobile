@@ -12,6 +12,7 @@ import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
 import { PROTOCOLS } from '../../constants/deeplinks';
+import { ENSCache, isDefaultAccountName } from '../ENSUtils';
 
 /**
  * Returns full checksummed address
@@ -87,9 +88,15 @@ export function renderSlightlyLongAddress(
  * @returns {String} - String corresponding to account name. If there is no name, returns the original short format address
  */
 export function renderAccountName(address, identities) {
+  const { NetworkController } = Engine.context;
+  const network = NetworkController.state.network;
   address = safeToChecksumAddress(address);
   if (identities && address && address in identities) {
-    return identities[address].name;
+    const identityName = identities[address].name;
+    const ensName = ENSCache.cache[`${network}${address}`]?.name || '';
+    return isDefaultAccountName(identityName) && ensName
+      ? ensName
+      : identityName;
   }
   return renderShortAddress(address);
 }
