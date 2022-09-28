@@ -202,10 +202,6 @@ class ApproveTransactionReview extends PureComponent {
 
   static propTypes = {
     /**
-     * A string that represents the selected address
-     */
-    selectedAddress: PropTypes.string,
-    /**
      * Callback triggered when this transaction is cancelled
      */
     onCancel: PropTypes.func,
@@ -412,12 +408,7 @@ class ApproveTransactionReview extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const {
-        activeTabUrl,
-        transaction,
-        onSetAnalyticsParams,
-        selectedAddress,
-      } = this.props;
+      const { activeTabUrl, transaction, onSetAnalyticsParams } = this.props;
       const { tokenSymbol, originalApproveAmount, encodedAmount } = this.state;
       const { NetworkController } = Engine.context;
       const { chainId, type } = NetworkController?.state?.provider || {};
@@ -426,7 +417,7 @@ class ApproveTransactionReview extends PureComponent {
       );
       const unlimited = encodedAmount === UINT256_HEX_MAX_VALUE;
       const params = {
-        account_type: getAddressAccountType(selectedAddress),
+        account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
         dapp_url: isDapp ? activeTabUrl : undefined,
         network_name: type,
@@ -661,7 +652,7 @@ class ApproveTransactionReview extends PureComponent {
       primaryCurrency,
       gasError,
       activeTabUrl,
-      transaction: { origin },
+      transaction: { origin, from },
       network,
       over,
       EIP1559GasData,
@@ -776,7 +767,7 @@ class ApproveTransactionReview extends PureComponent {
               confirmDisabled={Boolean(gasError) || transactionConfirmed}
             >
               <View style={styles.paddingHorizontal}>
-                <AccountInfoCard />
+                <AccountInfoCard fromAddress={from} />
                 <View style={styles.section}>
                   {showFeeMarket ? (
                     <TransactionReviewEIP1559
@@ -947,7 +938,7 @@ class ApproveTransactionReview extends PureComponent {
     const { host, spenderAddress } = this.state;
     const {
       activeTabUrl,
-      transaction: { origin },
+      transaction: { origin, from },
       QRState,
     } = this.props;
     const styles = this.getStyles();
@@ -967,6 +958,7 @@ class ApproveTransactionReview extends PureComponent {
           showHint={false}
           showCancelButton
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     );
@@ -991,8 +983,6 @@ class ApproveTransactionReview extends PureComponent {
 
 const mapStateToProps = (state) => ({
   accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
   conversionRate:
     state.engine.backgroundState.CurrencyRateController.conversionRate,
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,

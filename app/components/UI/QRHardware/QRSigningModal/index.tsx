@@ -4,6 +4,8 @@ import { IQRState } from '../types';
 import { StyleSheet, View } from 'react-native';
 import QRSigningDetails from '../QRSigningDetails';
 import { useTheme } from '../../../../util/theme';
+import { useSelector } from 'react-redux';
+import { getNormalizedTxState } from '../../../../util/transactions';
 
 interface IQRSigningModalProps {
   isVisible: boolean;
@@ -39,6 +41,8 @@ const QRSigningModal = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [isModalCompleteShow, setModalCompleteShow] = useState(false);
+  const { from } = useSelector(getNormalizedTxState);
+
   return (
     <Modal
       isVisible={isVisible}
@@ -69,6 +73,7 @@ const QRSigningModal = ({
           cancelCallback={onCancel}
           failureCallback={onFailure}
           bypassAndroidCameraAccessCheck={false}
+          fromAddress={from}
         />
       </View>
     </Modal>
