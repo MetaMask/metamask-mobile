@@ -173,7 +173,7 @@ jobs:
       tgz-check,
       test-non-components,
       test-components-ui,
-      test-components-view,
+      test-components-views,
       test-components-remaining
     ]
     steps:
