@@ -24,6 +24,7 @@ const kovanLogo = require('../../images/kovan-logo-dark.png');
 const rinkebyLogo = require('../../images/rinkeby-logo-dark.png');
 const goerliLogo = require('../../images/goerli-logo-dark.png');
 /* eslint-enable */
+import PopularList from './customNetworks';
 
 /**
  * List of the supported networks
@@ -283,3 +284,39 @@ export function blockTagParamIndex(payload) {
       return undefined;
   }
 }
+
+/**
+ * Gets the current network name given the network provider.
+ *
+ * @param {Object} provider - Network provider state from the NetworkController.
+ * @returns {string} Name of the network.
+ */
+export const getNetworkNameFromProvider = (provider) => {
+  let name = '';
+  if (provider.nickname) {
+    name = provider.nickname;
+  } else {
+    const networkType = provider.type;
+    name = NetworkList?.[networkType]?.name || NetworkList.rpc.name;
+  }
+  return name;
+};
+
+/**
+ * Gets the image source given the chain ID.
+ *
+ * @param {string} chainId - ChainID of the network.
+ * @returns {Object} - Image source of the network.
+ */
+export const getNetworkImageSource = (chainId) => {
+  const defaultNetwork = getDefaultNetworkByChainId(chainId);
+  if (defaultNetwork) {
+    return defaultNetwork.imageSource;
+  }
+  const popularNetwork = PopularList.find(
+    (network) => network.chainId === chainId,
+  );
+  if (popularNetwork) {
+    return popularNetwork.rpcPrefs.imageSource;
+  }
+};
