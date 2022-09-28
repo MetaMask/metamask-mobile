@@ -15,6 +15,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import Animated, {
+  cancelAnimation,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -39,8 +40,9 @@ import {
   ToastVariant,
 } from './Toast.types';
 import styles from './Toast.styles';
+import { useSelector } from 'react-redux';
 
-const visibilityDuration = 2500;
+const visibilityDuration = 2750;
 const animationDuration = 250;
 const bottomPadding = 16;
 const screenHeight = Dimensions.get('window').height;
@@ -60,12 +62,22 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       /* eslint-disable-next-line */
       [],
     );
+  const accountAvatarType = useSelector((state: any) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   const showToast = (options: ToastOptions) => {
+    let timeoutDuration = 0;
     if (toastOptions) {
-      return;
+      // Reset animation.
+      cancelAnimation(translateYProgress);
+      timeoutDuration = 100;
     }
-    setToastOptions(options);
+    setTimeout(() => {
+      setToastOptions(options);
+    }, timeoutDuration);
   };
 
   useImperativeHandle(ref, () => ({
@@ -83,15 +95,16 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       translateYProgress.value = withTiming(
         translateYToValue,
         { duration: animationDuration },
-        () =>
-          (translateYProgress.value = withDelay(
+        () => {
+          translateYProgress.value = withDelay(
             visibilityDuration,
             withTiming(
               height,
               { duration: animationDuration },
               runOnJS(resetState),
             ),
-          )),
+          );
+        },
       );
     }
   };
@@ -129,23 +142,21 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         return (
           <AvatarAccount
             accountAddress={accountAddress}
-            type={AvatarAccountType.JazzIcon}
+            type={accountAvatarType}
             size={AvatarBaseSize.Md}
             style={styles.avatar}
           />
         );
       }
       case ToastVariant.Network: {
-        {
-          const { networkImageSource } = toastOptions;
-          return (
-            <AvatarNetwork
-              imageSource={networkImageSource}
-              size={AvatarBaseSize.Md}
-              style={styles.avatar}
-            />
-          );
-        }
+        const { networkImageSource } = toastOptions;
+        return (
+          <AvatarNetwork
+            imageSource={networkImageSource}
+            size={AvatarBaseSize.Md}
+            style={styles.avatar}
+          />
+        );
       }
     }
   };
