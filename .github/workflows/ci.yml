@@ -121,12 +121,6 @@ jobs:
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [
-      setup,
-      lint,
-      audit,
-      tgz-check,
-      test
-    ]
+    needs: [ setup, lint, audit, tgz-check, test ]
     steps:
       - run: echo "Great success!"
