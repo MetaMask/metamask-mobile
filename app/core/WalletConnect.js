@@ -369,7 +369,8 @@ const instance = {
           if (diffInHours <= AppConstants.WALLET_CONNECT.SESSION_LIFETIME) {
             connectors.push(new WalletConnect({ session }, true));
           } else {
-            this.killSession(session.peerId);
+            const connector = new WalletConnect({ session }, true);
+            connector.killSession();
           }
         } else {
           connectors.push(new WalletConnect({ session }, true));
