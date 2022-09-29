@@ -1,5 +1,4 @@
 import React, { useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
@@ -21,7 +20,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function ActivityView() {
+const ActivityView = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const selectedAddress = useSelector(
