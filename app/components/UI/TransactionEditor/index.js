@@ -18,7 +18,6 @@ import {
   getNormalizedTxState,
   getTicker,
   getActiveTabUrl,
-  parseTransactionEIP1559,
   parseTransactionLegacy,
 } from '../../../util/transactions';
 import { setTransactionObject } from '../../../actions/transaction';
@@ -162,7 +161,7 @@ class TransactionEditor extends PureComponent {
     const dappSuggestedGas = dappSuggestedGasPrice || dappSuggestedEIP1559Gas;
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      let initialGas, initialGasTemp;
+      let initialGas;
       if (dappSuggestedEIP1559Gas) {
         initialGas = {
           suggestedMaxFeePerGas: fromWei(
@@ -174,43 +173,19 @@ class TransactionEditor extends PureComponent {
             'gwei',
           ),
         };
-        initialGasTemp = initialGas;
       } else if (dappSuggestedGasPrice) {
         initialGas = {
           suggestedMaxFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
           suggestedMaxPriorityFeePerGas: fromWei(dappSuggestedGasPrice, 'gwei'),
         };
-        initialGasTemp = initialGas;
       } else {
         initialGas = gasFeeEstimates[gasSelected];
-        initialGasTemp = gasFeeEstimates[gasSelectedTemp];
-      }
-
-      const suggestedGasLimit = fromWei(transaction.gas, 'wei');
-
-      const EIP1559GasData = this.parseTransactionDataEIP1559({
-        ...initialGas,
-        suggestedGasLimit,
-        selectedOption: gasSelected,
-      });
-
-      let EIP1559GasDataTemp;
-      if (gasSelected === gasSelectedTemp) {
-        EIP1559GasDataTemp = EIP1559GasData;
-      } else {
-        EIP1559GasDataTemp = this.parseTransactionDataEIP1559({
-          ...initialGasTemp,
-          suggestedGasLimit,
-          selectedOption: gasSelectedTemp,
-        });
       }
 
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
           ready: true,
-          EIP1559GasData,
-          EIP1559GasDataTemp,
           LegacyGasData: {},
           LegacyGasDataTemp: {},
           advancedGasInserted: Boolean(dappSuggestedGas),
@@ -261,8 +236,6 @@ class TransactionEditor extends PureComponent {
           ready: true,
           LegacyGasData,
           LegacyGasDataTemp,
-          EIP1559GasData: {},
-          EIP1559GasDataTemp: {},
           advancedGasInserted: Boolean(dappSuggestedGasPrice),
           gasSelected: dappSuggestedGasPrice ? null : gasSelected,
           gasSelectedTemp,
@@ -635,10 +608,6 @@ class TransactionEditor extends PureComponent {
       gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
     }
     this.setState({
-      EIP1559GasDataTemp: this.parseTransactionDataEIP1559({
-        ...gas,
-        selectedOption: selected,
-      }),
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
@@ -671,7 +640,6 @@ class TransactionEditor extends PureComponent {
     this.setState(
       {
         LegacyGasData: { ...this.state.LegacyGasDataTemp },
-        EIP1559GasData: { ...this.state.EIP1559GasDataTemp },
         gasSelected,
         gasSelectedTemp: gasSelected,
         advancedGasInserted: !gasSelected,
@@ -686,7 +654,6 @@ class TransactionEditor extends PureComponent {
   cancelGasEdition = () => {
     this.setState({
       LegacyGasDataTemp: { ...this.state.LegacyGasData },
-      EIP1559GasDataTemp: { ...this.state.EIP1559GasData },
       stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
     });
@@ -736,7 +703,6 @@ class TransactionEditor extends PureComponent {
     const {
       ready,
       over,
-      EIP1559GasData,
       EIP1559GasDataTemp,
       LegacyGasDataTemp,
       gasSelected,
@@ -766,7 +732,6 @@ class TransactionEditor extends PureComponent {
                 transactionConfirmed={transactionConfirmed}
                 over={over}
                 gasEstimateType={gasEstimateType}
-                EIP1559GasData={EIP1559GasData}
                 onUpdatingValuesStart={this.onUpdatingValuesStart}
                 onUpdatingValuesEnd={this.onUpdatingValuesEnd}
                 animateOnChange={animateOnChange}

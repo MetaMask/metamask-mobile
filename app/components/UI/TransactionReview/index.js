@@ -178,7 +178,6 @@ class TransactionReview extends PureComponent {
      */
     over: PropTypes.bool,
     gasEstimateType: PropTypes.string,
-    EIP1559GasData: PropTypes.object,
     /**
      * Function to call when update animation starts
      */
@@ -382,7 +381,6 @@ class TransactionReview extends PureComponent {
       customGasHeight,
       over,
       gasEstimateType,
-      EIP1559GasData,
       onUpdatingValuesStart,
       onUpdatingValuesEnd,
       animateOnChange,
@@ -453,7 +451,6 @@ class TransactionReview extends PureComponent {
                       over={over}
                       onCancelPress={this.props.onCancel}
                       gasEstimateType={gasEstimateType}
-                      EIP1559GasData={EIP1559GasData}
                       origin={
                         dappSuggestedGas ? currentPageInformation?.url : null
                       }

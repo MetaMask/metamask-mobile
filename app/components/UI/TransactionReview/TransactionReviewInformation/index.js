@@ -33,7 +33,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
-import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
+import TransactionReviewEIP1559Update from '../TransactionReviewEIP1559Update';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
@@ -185,7 +185,6 @@ class TransactionReviewInformation extends PureComponent {
     setProposedNonce: PropTypes.func,
     nativeCurrency: PropTypes.string,
     gasEstimateType: PropTypes.string,
-    EIP1559GasData: PropTypes.object,
     origin: PropTypes.string,
     /**
      * Function to call when update animation starts
@@ -520,7 +519,6 @@ class TransactionReviewInformation extends PureComponent {
 
   renderTransactionReviewEIP1559 = () => {
     const {
-      EIP1559GasData,
       primaryCurrency,
       origin,
       originWarning,
@@ -529,37 +527,29 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       ready,
+      gasSelected,
     } = this.props;
     let host;
     if (origin) {
       host = new URL(origin).hostname;
     }
-    const [
-      renderableTotalMinNative,
-      renderableTotalMinConversion,
-      renderableTotalMaxNative,
-    ] = this.getRenderTotalsEIP1559(EIP1559GasData)();
     return (
-      <TransactionReviewEIP1559
-        totalNative={renderableTotalMinNative}
-        totalConversion={renderableTotalMinConversion}
-        totalMaxNative={renderableTotalMaxNative}
-        gasFeeNative={EIP1559GasData.renderableGasFeeMinNative}
-        gasFeeConversion={EIP1559GasData.renderableGasFeeMinConversion}
-        gasFeeMaxNative={EIP1559GasData.renderableGasFeeMaxNative}
-        gasFeeMaxConversion={EIP1559GasData.renderableGasFeeMaxConversion}
+      <TransactionReviewEIP1559Update
+        gasSelected={gasSelected}
         primaryCurrency={primaryCurrency}
-        timeEstimate={EIP1559GasData.timeEstimate}
-        timeEstimateColor={EIP1559GasData.timeEstimateColor}
-        timeEstimateId={EIP1559GasData.timeEstimateId}
+        hideTotal
+        noMargin
         onEdit={this.edit}
-        origin={host}
-        originWarning={originWarning}
         onUpdatingValuesStart={onUpdatingValuesStart}
         onUpdatingValuesEnd={onUpdatingValuesEnd}
         animateOnChange={animateOnChange}
         isAnimating={isAnimating}
+        origin={host}
+        originWarning={originWarning}
         gasEstimationReady={ready}
+        legacy={false}
+        gasPriceObject={{}}
+        onlyGas
       />
     );
   };
@@ -571,37 +561,35 @@ class TransactionReviewInformation extends PureComponent {
       transaction: { gas, gasPrice },
       currentCurrency,
       conversionRate,
-      ticker,
       over,
       onUpdatingValuesStart,
       onUpdatingValuesEnd,
       animateOnChange,
       isAnimating,
+      gasSelected,
     } = this.props;
 
     const totalGas =
       isBN(gas) && isBN(gasPrice) ? gas.mul(gasPrice) : hexToBN('0x0');
     const totalGasFiat = weiToFiat(totalGas, conversionRate, currentCurrency);
-    const totalGasEth = `${renderFromWei(totalGas)} ${getTicker(ticker)}`;
     const [totalFiat, totalValue] = this.getRenderTotals(
       totalGas,
       totalGasFiat,
     )();
     return (
-      <TransactionReviewEIP1559
-        totalNative={totalValue}
-        totalConversion={totalFiat}
-        gasFeeNative={totalGasEth}
-        gasFeeConversion={totalGasFiat}
+      <TransactionReviewEIP1559Update
+        gasSelected={gasSelected}
         primaryCurrency={primaryCurrency}
-        onEdit={() => this.edit()}
-        over={over}
+        onEdit={this.edit}
         onUpdatingValuesStart={onUpdatingValuesStart}
         onUpdatingValuesEnd={onUpdatingValuesEnd}
         animateOnChange={animateOnChange}
         isAnimating={isAnimating}
         gasEstimationReady={ready}
         legacy
+        over={over}
+        gasPriceObject={{}}
+        onlyGas
       />
     );
   };
