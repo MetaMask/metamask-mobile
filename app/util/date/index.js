@@ -29,3 +29,22 @@ export function toLocaleDate(timestamp) {
 export function toLocaleTime(timestamp) {
   return new Date(timestamp).toLocaleTimeString();
 }
+
+/**
+ * This function will return the difference between today and a provided date in milliseconds
+ * @param {Date} sessionTime - Date object
+ * @returns the difference between two dates in milliseconds
+ */
+export function msBetweenDates(date) {
+  const today = new Date();
+  return Math.abs(date.getTime() - today.getTime());
+}
+
+/**
+ * This function will return how many hours in on a determinated amount of milliseconds
+ * @param {number} milliseconds - Milliseconds number
+ * @returns how many hours in on a determinated amount of milliseconds
+ */
+export function msToHours(milliseconds) {
+  return milliseconds / (60 * 60 * 1000);
+}
