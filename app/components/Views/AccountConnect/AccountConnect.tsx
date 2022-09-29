@@ -32,6 +32,7 @@ import { IconName } from '../../../component-library/components/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
 
 // Internal dependencies.
 import {
@@ -63,6 +64,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
   });
   const { toastRef } = useContext(ToastContext);
+  const accountAvatarType = useSelector((state: any) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   const hostname = hostInfo.metadata.origin;
@@ -138,6 +144,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           variant: ToastVariant.Account,
           labelOptions,
           accountAddress: activeAddress,
+          accountAvatarType,
         });
       } catch (e: any) {
         Logger.error(e, 'Error while trying to connect to a dApp.');
@@ -147,7 +154,14 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
     },
     /* eslint-disable-next-line */
-    [selectedAddresses, hostInfo, accounts, ensByAccountAddress, hostname],
+    [
+      selectedAddresses,
+      hostInfo,
+      accounts,
+      ensByAccountAddress,
+      hostname,
+      accountAvatarType,
+    ],
   );
 
   const onCreateAccount = useCallback(async (isMultiSelect?: boolean) => {

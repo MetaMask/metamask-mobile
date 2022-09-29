@@ -78,6 +78,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { useAccounts } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -264,6 +265,11 @@ export const BrowserTab = (props) => {
    */
   const isTabActive = useSelector(
     (state) => state.browser.activeTab === props.id,
+  );
+  const accountAvatarType = useSelector((state) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
   );
 
   /**
@@ -680,6 +686,7 @@ export const BrowserTab = (props) => {
             { label: strings('toast.now_active') },
           ],
           accountAddress: activeAccountAddress,
+          accountAvatarType,
         });
       }
     }

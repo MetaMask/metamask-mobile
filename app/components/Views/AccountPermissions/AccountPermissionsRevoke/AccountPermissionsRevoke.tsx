@@ -40,6 +40,7 @@ const AccountPermissionsRevoke = ({
   hostname,
   favicon,
   secureIcon,
+  accountAvatarType,
 }: AccountPermissionsRevokeProps) => {
   const Engine = UntypedEngine as any;
   const { styles } = useStyles(styleSheet, {});
@@ -132,6 +133,7 @@ const AccountPermissionsRevoke = ({
                     variant: ToastVariant.Account,
                     labelOptions,
                     accountAddress: nextActiveAddress,
+                    accountAvatarType,
                   });
                 } else {
                   // Just disconnect
