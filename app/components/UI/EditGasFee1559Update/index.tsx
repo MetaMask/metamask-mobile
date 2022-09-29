@@ -52,7 +52,7 @@ const EditGasFee1559Update = ({
   isAnimating,
   analyticsParams,
   warning,
-  currentGasPriceObject,
+  selectedGasObject,
   onlyGas,
 }: EditGasFee1559UpdateProps) => {
   const [modalInfo, updateModalInfo] = useState({
@@ -67,10 +67,10 @@ const EditGasFee1559Update = ({
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [selectedOption, setSelectedOption] = useState(selectedGasValue);
   const [showInputs, setShowInputs] = useState(!dappSuggestedGas);
-  const [gasPriceObject, updateGasPriceObject] = useState({
-    suggestedMaxFeePerGas: currentGasPriceObject.suggestedMaxFeePerGas,
+  const [gasObject, updateGasObject] = useState({
+    suggestedMaxFeePerGas: selectedGasObject.suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas:
-      currentGasPriceObject.suggestedMaxPriorityFeePerGas,
+      selectedGasObject.suggestedMaxPriorityFeePerGas,
     gasLimit: initialSuggestedGasLimit,
   });
 
@@ -86,7 +86,7 @@ const EditGasFee1559Update = ({
     onlyGas,
     gasSelected: selectedOption,
     legacy: false,
-    gasPriceObject,
+    gasObject,
   });
 
   const {
@@ -148,19 +148,18 @@ const EditGasFee1559Update = ({
     );
 
     const newGasPriceObject = {
-      suggestedMaxFeePerGas: gasPriceObject?.suggestedMaxFeePerGas,
-      suggestedMaxPriorityFeePerGas:
-        gasPriceObject?.suggestedMaxPriorityFeePerGas,
-      suggestedGasLimit: gasPriceObject?.gasLimit,
+      suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+      suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
+      suggestedGasLimit: gasObject?.gasLimit,
     };
 
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasPriceObject]);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObject]);
 
   const changeGas = useCallback(
     (gas, option) => {
       setSelectedOption(option);
-      updateGasPriceObject(gas);
+      updateGasObject(gas);
       onChange(option);
     },
     [onChange],

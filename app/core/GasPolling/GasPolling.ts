@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import Engine from '../Engine';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { fromWei } from '../../util/number';
 import {
   parseTransactionEIP1559,
@@ -143,8 +142,7 @@ export const getLegacyTransactionData = ({
   currentCurrency,
   transactionState,
   ticker,
-  suggestedGasPrice,
-  suggestedGasLimit,
+  gas,
   onlyGas,
 }: LegacyProps) => {
   const parsedTransationData = parseTransactionLegacy(
@@ -155,12 +153,12 @@ export const getLegacyTransactionData = ({
       transactionState,
       ticker,
       selectedGasFee: {
-        suggestedGasLimit,
-        suggestedGasPrice,
+        ...gas,
       },
     },
     { onlyGas },
   );
+
   return parsedTransationData;
 };
 
@@ -172,11 +170,7 @@ export const useGasTransaction = ({
   onlyGas,
   gasSelected,
   legacy,
-  gasPriceObject: {
-    gasLimit,
-    suggestedMaxFeePerGas,
-    suggestedMaxPriorityFeePerGas,
-  },
+  gasObject,
 }: UseGasTransactionProps) => {
   const [gasEstimateTypeChange, updateGasEstimateTypeChange] =
     useState<string>('');
@@ -202,20 +196,21 @@ export const useGasTransaction = ({
     transaction: { gas: transactionGas },
   } = transactionState;
 
-  const suggestedGasLimit = gasLimit || fromWei(transactionGas, 'wei');
+  const suggestedGasLimit =
+    gasObject?.gasLimit || fromWei(transactionGas, 'wei');
 
   if (legacy) {
     return getLegacyTransactionData({
+      gas: {
+        suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
+        suggestedGasPrice:
+          gasFeeEstimates[gasSelected] || gasObject?.suggestedGasPrice,
+      },
       contractExchangeRates,
       conversionRate,
       currentCurrency,
       transactionState,
       ticker,
-      suggestedGasPrice:
-        gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimates[gasSelected]
-          : gasFeeEstimates.gasPrice,
-      suggestedGasLimit,
       onlyGas,
     });
   }
@@ -225,8 +220,9 @@ export const useGasTransaction = ({
       ...(gasSelected
         ? gasFeeEstimates[gasSelected]
         : {
-            suggestedMaxFeePerGas,
-            suggestedMaxPriorityFeePerGas,
+            suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
+            suggestedMaxPriorityFeePerGas:
+              gasObject?.suggestedMaxPriorityFeePerGas,
           }),
       suggestedGasLimit,
       selectedOption: gasSelected,

@@ -26,7 +26,6 @@ import {
   getTicker,
   decodeTransferData,
   getNormalizedTxState,
-  parseTransactionLegacy,
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import {
@@ -69,7 +68,6 @@ import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionReviewEIP1559';
 import TransactionReviewEIP1559Update from '../../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import EditGasFee1559Update from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
@@ -97,13 +95,6 @@ const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
 const EDIT_EIP1559 = 'edit_eip1559';
 const REVIEW = 'review';
-
-const EMPTY_LEGACY_TRANSACTION_DATA = {
-  transactionFeeFiat: '',
-  transactionFee: '',
-  transactionTotalAmount: '',
-  transactionTotalAmountFiat: '',
-};
 
 const { hexToBN, BNToHex } = util;
 
@@ -233,8 +224,6 @@ class Confirm extends PureComponent {
   state = {
     confusableCollection: [],
     gasEstimationReady: false,
-    customGas: undefined,
-    customGasPrice: undefined,
     fromAccountBalance: undefined,
     fromAccountName: this.props.transactionState.transactionFromName,
     fromSelectedAddress: this.props.transactionState.transaction.from,
@@ -243,9 +232,6 @@ class Confirm extends PureComponent {
     ready: false,
     transactionValue: undefined,
     transactionValueFiat: undefined,
-    transactionFee: undefined,
-    transactionTotalAmount: undefined,
-    transactionTotalAmountFiat: undefined,
     errorMessage: undefined,
     fromAccountModalVisible: false,
     warningModalVisible: false,
@@ -254,12 +240,12 @@ class Confirm extends PureComponent {
     gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
     stopUpdateGas: false,
     advancedGasInserted: false,
-    LegacyTransactionData: EMPTY_LEGACY_TRANSACTION_DATA,
-    LegacyTransactionDataTemp: {},
     gasSpeedSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     suggestedGasLimit: undefined,
-    gasTransaction: {},
-    gasPriceObject: {},
+    EIP1559GasTransaction: {},
+    EIP1559GasObject: {},
+    legacyGasObject: {},
+    legacyGasTransaction: {},
   };
 
   setNetworkNonce = async () => {
@@ -409,8 +395,6 @@ class Confirm extends PureComponent {
           this.setState(
             {
               gasEstimationReady: true,
-              LegacyTransactionData: EMPTY_LEGACY_TRANSACTION_DATA,
-              LegacyTransactionDataTemp: EMPTY_LEGACY_TRANSACTION_DATA,
               animateOnChange: true,
               gasSelected,
               gasSelectedTemp,
@@ -422,34 +406,12 @@ class Confirm extends PureComponent {
         } else if (this.props.gasEstimateType !== GAS_ESTIMATE_TYPES.NONE) {
           const suggestedGasLimit = fromWei(gas, 'wei');
 
-          const LegacyTransactionData = this.parseTransactionDataLegacy({
-            suggestedGasPrice:
-              this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-                ? this.props.gasFeeEstimates[gasSelected]
-                : this.props.gasFeeEstimates.gasPrice,
-            suggestedGasLimit,
-          });
-
-          let LegacyTransactionDataTemp;
-          if (gasSelected === gasSelectedTemp) {
-            LegacyTransactionDataTemp = LegacyTransactionData;
-          } else {
-            LegacyTransactionDataTemp = this.parseTransactionDataLegacy({
-              suggestedGasPrice:
-                this.props.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-                  ? this.props.gasFeeEstimates[gasSelectedTemp]
-                  : this.props.gasFeeEstimates.gasPrice,
-              suggestedGasLimit,
-            });
-          }
-          this.setError(LegacyTransactionData.error);
+          this.setError(this.state.legacyGasTransaction.error);
 
           // eslint-disable-next-line react/no-did-update-set-state
           this.setState(
             {
               gasEstimationReady: true,
-              LegacyTransactionData,
-              LegacyTransactionDataTemp,
               animateOnChange: true,
               gasSelected,
               gasSelectedTemp,
@@ -589,26 +551,6 @@ class Confirm extends PureComponent {
     });
   };
 
-  parseTransactionDataLegacy = (gasFee, options) => {
-    const { ticker } = this.props;
-    const parsedTransactionLegacy = parseTransactionLegacy(
-      {
-        ...this.props,
-        nativeCurrency: ticker,
-        selectedGasFee: gasFee,
-      },
-      options,
-    );
-    const { transaction } = this.props;
-
-    parsedTransactionLegacy.error = this.validateAmount({
-      transaction,
-      total: parsedTransactionLegacy.totalHex,
-    });
-
-    return parsedTransactionLegacy;
-  };
-
   handleSetGasSpeed = (speed) => {
     this.setState({ gasSpeedSelected: speed });
   };
@@ -634,27 +576,27 @@ class Confirm extends PureComponent {
       showCustomNonce,
       gasEstimateType,
     } = this.props;
-    const { fromSelectedAddress, LegacyTransactionData, gasTransaction } =
+    const { fromSelectedAddress, legacyGasTransaction, EIP1559GasTransaction } =
       this.state;
     const { nonce } = this.props.transaction;
     const transactionToSend = { ...transaction };
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      transactionToSend.gas = gasTransaction.gasLimitHex;
+      transactionToSend.gas = EIP1559GasTransaction.gasLimitHex;
       transactionToSend.maxFeePerGas = addHexPrefix(
-        gasTransaction.suggestedMaxFeePerGasHex,
+        EIP1559GasTransaction.suggestedMaxFeePerGasHex,
       ); //'0x2540be400'
       transactionToSend.maxPriorityFeePerGas = addHexPrefix(
-        gasTransaction.suggestedMaxPriorityFeePerGasHex,
+        EIP1559GasTransaction.suggestedMaxPriorityFeePerGasHex,
       ); //'0x3b9aca00';
       transactionToSend.estimatedBaseFee = addHexPrefix(
-        gasTransaction.estimatedBaseFeeHex,
+        EIP1559GasTransaction.estimatedBaseFeeHex,
       );
       delete transactionToSend.gasPrice;
     } else {
-      transactionToSend.gas = LegacyTransactionData.suggestedGasLimitHex;
+      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
       transactionToSend.gasPrice = addHexPrefix(
-        LegacyTransactionData.suggestedGasPriceHex,
+        legacyGasTransaction.suggestedGasPriceHex,
       );
     }
 
@@ -749,8 +691,12 @@ class Confirm extends PureComponent {
       resetTransaction,
       gasEstimateType,
     } = this.props;
-    const { LegacyTransactionData, transactionConfirmed, gasTransaction } =
-      this.state;
+
+    const {
+      legacyGasTransaction,
+      transactionConfirmed,
+      EIP1559GasTransaction,
+    } = this.state;
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
     try {
@@ -759,12 +705,12 @@ class Confirm extends PureComponent {
       if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
         error = this.validateAmount({
           transaction,
-          total: gasTransaction.totalMaxHex,
+          total: EIP1559GasTransaction.totalMaxHex,
         });
       } else {
         error = this.validateAmount({
           transaction,
-          total: LegacyTransactionData.totalHex,
+          total: legacyGasTransaction.totalHex,
         });
       }
       this.setError(error);
@@ -863,36 +809,57 @@ class Confirm extends PureComponent {
 
   cancelGasEdition = () => {
     this.setState({
-      LegacyTransactionDataTemp: { ...this.state.LegacyTransactionData },
       stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
     });
     this.review();
   };
 
-  saveGasEdition = (gasTransaction, gasPriceObject) => {
+  saveGasEdition = (EIP1559GasTransaction, EIP1559GasObject) => {
     const { transaction } = this.props;
-    gasTransaction.error = this.validateAmount({
+    EIP1559GasTransaction.error = this.validateAmount({
       transaction,
-      total: gasTransaction.totalMaxHex,
+      total: EIP1559GasTransaction.totalMaxHex,
     });
 
-    this.setState({ gasTransaction, gasPriceObject });
+    this.setState({ EIP1559GasTransaction, EIP1559GasObject });
 
+    this.review();
+  };
+
+  saveGasEditionLegacy = (
+    legacyGasTransaction,
+    legacyGasObject,
+    gasSelected,
+  ) => {
+    const { transaction } = this.props;
+
+    legacyGasTransaction.error = this.validateAmount({
+      transaction,
+      total: legacyGasTransaction.totalHex,
+    });
+    this.setState({
+      gasSelected,
+      gasSelectedTemp: gasSelected,
+      advancedGasInserted: !gasSelected,
+      stopUpdateGas: false,
+      legacyGasTransaction,
+      legacyGasObject,
+    });
     this.review();
   };
 
   renderCustomGasModalEIP1559 = () => {
     const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-    const { gasSelected, isAnimating, animateOnChange, gasPriceObject } =
+    const { gasSelected, isAnimating, animateOnChange, EIP1559GasObject } =
       this.state;
 
-    const currentGasPriceObject = {
+    const selectedGasObject = {
       suggestedMaxFeePerGas:
-        gasPriceObject.suggestedMaxFeePerGas ||
+        EIP1559GasObject.suggestedMaxFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas:
-        gasPriceObject.suggestedMaxPriorityFeePerGas ||
+        EIP1559GasObject.suggestedMaxPriorityFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
     };
 
@@ -931,7 +898,8 @@ class Confirm extends PureComponent {
             isAnimating={isAnimating}
             analyticsParams={this.getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
-            currentGasPriceObject={currentGasPriceObject}
+            selectedGasObject={selectedGasObject}
+            onlyGas={false}
           />
         </KeyboardAwareScrollView>
       </Modal>
@@ -941,12 +909,14 @@ class Confirm extends PureComponent {
   renderCustomGasModalLegacy = () => {
     const { primaryCurrency, chainId, gasEstimateType, gasFeeEstimates } =
       this.props;
-    const {
-      LegacyTransactionDataTemp,
-      gasSelected,
-      isAnimating,
-      animateOnChange,
-    } = this.state;
+    const { legacyGasObject, gasSelected, isAnimating, animateOnChange } =
+      this.state;
+
+    const selectedGasObject = {
+      legacyGasLimit: legacyGasObject?.legacyGasLimit,
+      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
+    };
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -971,22 +941,19 @@ class Confirm extends PureComponent {
         >
           <EditGasFeeLegacy
             selected={gasSelected}
-            gasFee={LegacyTransactionDataTemp}
             gasEstimateType={gasEstimateType}
             gasOptions={gasFeeEstimates}
             onChange={this.calculateTempGasFeeLegacy}
-            gasFeeNative={LegacyTransactionDataTemp.transactionFee}
-            gasFeeConversion={LegacyTransactionDataTemp.transactionFeeFiat}
-            gasPriceConversion={LegacyTransactionDataTemp.transactionFeeFiat}
-            error={LegacyTransactionDataTemp.error}
             primaryCurrency={primaryCurrency}
             chainId={chainId}
             onCancel={this.cancelGasEdition}
-            onSave={this.saveGasEdition}
+            onSave={this.saveGasEditionLegacy}
             animateOnChange={animateOnChange}
             isAnimating={isAnimating}
             analyticsParams={this.getGasAnalyticsParams()}
             view={'SendTo (Confirm)'}
+            onlyGas={false}
+            selectedGasObject={selectedGasObject}
           />
         </KeyboardAwareScrollView>
       </Modal>
@@ -1126,16 +1093,8 @@ class Confirm extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (gas, selected) => {
-    const {
-      transactionState: { transaction },
-    } = this.props;
-    if (selected && gas) {
-      gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-    }
-
+  calculateTempGasFeeLegacy = (selected) => {
     this.setState({
-      LegacyTransactionDataTemp: this.parseTransactionDataLegacy(gas),
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
@@ -1150,7 +1109,8 @@ class Confirm extends PureComponent {
 
   updateTransactionState = (gas) => {
     this.setState({
-      gasTransaction: gas,
+      EIP1559GasTransaction: gas,
+      legacyGasTransaction: gas,
     });
   };
 
@@ -1181,7 +1141,6 @@ class Confirm extends PureComponent {
       confusableCollection,
       mode,
       warningModalVisible,
-      LegacyTransactionData,
       isAnimating,
       animateOnChange,
     } = this.state;
@@ -1294,38 +1253,24 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {!showFeeMarket ? (
-            <TransactionReviewEIP1559
-              totalNative={LegacyTransactionData.transactionTotalAmount}
-              totalConversion={LegacyTransactionData.transactionTotalAmountFiat}
-              gasFeeNative={LegacyTransactionData.transactionFee}
-              gasFeeConversion={LegacyTransactionData.transactionFeeFiat}
-              primaryCurrency={primaryCurrency}
-              onEdit={() => this.edit(EDIT)}
-              over={Boolean(LegacyTransactionData.error)}
-              onUpdatingValuesStart={this.onUpdatingValuesStart}
-              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-              animateOnChange={animateOnChange}
-              isAnimating={isAnimating}
-              gasEstimationReady={gasEstimationReady}
-              legacy
-            />
-          ) : (
-            <TransactionReviewEIP1559Update
-              gasSelected={this.state.gasSelected}
-              primaryCurrency={primaryCurrency}
-              onEdit={() => this.edit(EDIT_EIP1559)}
-              onUpdatingValuesStart={this.onUpdatingValuesStart}
-              onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-              animateOnChange={animateOnChange}
-              isAnimating={isAnimating}
-              gasEstimationReady={gasEstimationReady}
-              chainId={chainId}
-              gasPriceObject={this.state.gasPriceObject}
-              updateTransactionState={this.updateTransactionState}
-            />
-          )}
-
+          <TransactionReviewEIP1559Update
+            gasSelected={this.state.gasSelected}
+            primaryCurrency={primaryCurrency}
+            onEdit={() => this.edit(!showFeeMarket ? EDIT : EDIT_EIP1559)}
+            onUpdatingValuesStart={this.onUpdatingValuesStart}
+            onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+            animateOnChange={animateOnChange}
+            isAnimating={isAnimating}
+            gasEstimationReady={gasEstimationReady}
+            chainId={chainId}
+            gasObject={
+              !showFeeMarket
+                ? this.state.legacyGasObject
+                : this.state.EIP1559GasObject
+            }
+            updateTransactionState={this.updateTransactionState}
+            legacy={!showFeeMarket}
+          />
           {showCustomNonce && (
             <CustomNonce
               nonce={nonce}

@@ -129,7 +129,9 @@ export interface UseGasTransactionProps extends GasTransactionProps {
   /**
    * gas object for calculating the gas transaction cost
    */
-  gasPriceObject: {
+  gasObject: {
+    legacyGasLimit: string;
+    suggestedGasPrice: any;
     gasLimit?: string;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
@@ -211,7 +213,6 @@ export interface LegacyProps {
   currentCurrency: string;
   transactionState: any;
   ticker: string;
-  suggestedGasPrice: any;
-  suggestedGasLimit: string;
   onlyGas?: boolean;
+  gas: any;
 }

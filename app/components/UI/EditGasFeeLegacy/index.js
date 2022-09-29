@@ -25,6 +25,7 @@ import FadeAnimationView from '../FadeAnimationView';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
+import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);
@@ -115,8 +116,6 @@ const EditGasFeeLegacy = ({
   onChange,
   onCancel,
   onSave,
-  gasFeeNative,
-  gasFeeConversion,
   primaryCurrency,
   chainId,
   gasEstimateType,
@@ -132,6 +131,8 @@ const EditGasFeeLegacy = ({
   isAnimating,
   analyticsParams,
   view,
+  onlyGas,
+  selectedGasObject,
 }) => {
   const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
   const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
@@ -140,8 +141,19 @@ const EditGasFeeLegacy = ({
   );
   const [selectedOption, setSelectedOption] = useState(selected);
   const [gasPriceError, setGasPriceError] = useState();
+  const [gasObject, updateLegacyGasObject] = useState({
+    legacyGasLimit: selectedGasObject.legacyGasLimit,
+    suggestedGasPrice: selectedGasObject.suggestedGasPrice,
+  });
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
+  const gasTransaction = useGasTransaction({
+    onlyGas,
+    gasSelected: selectedOption,
+    legacy: true,
+    gasObject,
+  });
 
   const getAnalyticsParams = useCallback(() => {
     try {
@@ -173,13 +185,22 @@ const EditGasFeeLegacy = ({
       getAnalyticsParams(),
     );
 
-    onSave(selectedOption);
-  }, [getAnalyticsParams, onSave, selectedOption]);
+    const newGasPriceObject = {
+      suggestedGasPrice: gasObject?.suggestedGasPrice,
+      legacyGasLimit: gasObject?.legacyGasLimit,
+    };
+
+    onSave(gasTransaction, newGasPriceObject, selectedOption);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, selectedOption]);
 
   const changeGas = useCallback(
     (gas, selectedOption) => {
       setSelectedOption(selectedOption);
-      onChange(gas, selectedOption);
+      updateLegacyGasObject({
+        legacyGasLimit: gas.suggestedGasLimit,
+        suggestedGasPrice: gas.suggestedGasPrice,
+      });
+      onChange(selectedOption);
     },
     [onChange],
   );
@@ -207,14 +228,14 @@ const EditGasFeeLegacy = ({
         setGasPriceError('');
       }
 
-      const newGas = { ...gasFee, suggestedGasPrice: value };
+      const newGas = { ...gasTransaction, suggestedGasPrice: value };
 
       changeGas(newGas, null);
     },
     [
       changeGas,
       gasEstimateType,
-      gasFee,
+      gasTransaction,
       gasOptions,
       warningMinimumEstimateOption,
     ],
@@ -222,20 +243,18 @@ const EditGasFeeLegacy = ({
 
   const changedGasLimit = useCallback(
     (value) => {
-      const newGas = { ...gasFee, suggestedGasLimit: value };
-
+      const newGas = { ...gasTransaction, suggestedGasLimit: value };
       changeGas(newGas, null);
     },
-    [changeGas, gasFee],
+    [changeGas, gasTransaction],
   );
 
   const selectOption = useCallback(
     (option) => {
       setGasPriceError('');
-      setSelectedOption(option);
-      changeGas({ ...gasFee, suggestedGasPrice: gasOptions[option] }, option);
+      changeGas({ suggestedGasPrice: gasOptions[option] }, option);
     },
-    [changeGas, gasFee, gasOptions],
+    [changeGas, gasOptions],
   );
 
   const shouldIgnore = useCallback(
@@ -332,18 +351,25 @@ const EditGasFeeLegacy = ({
     return error;
   }, [error, styles, colors]);
 
+  const {
+    suggestedGasLimit,
+    suggestedGasPrice,
+    transactionFee,
+    transactionFeeFiat,
+  } = gasTransaction;
+
   const isMainnet = isMainnetByChainId(chainId);
   const nativeCurrencySelected = primaryCurrency === 'ETH' || !isMainnet;
   let gasFeePrimary, gasFeeSecondary;
   if (nativeCurrencySelected) {
-    gasFeePrimary = gasFeeNative;
-    gasFeeSecondary = gasFeeConversion;
+    gasFeePrimary = transactionFee;
+    gasFeeSecondary = transactionFeeFiat;
   } else {
-    gasFeePrimary = gasFeeConversion;
-    gasFeeSecondary = gasFeeNative;
+    gasFeePrimary = transactionFeeFiat;
+    gasFeeSecondary = transactionFee;
   }
 
-  const valueToWatch = gasFeeNative;
+  const valueToWatch = transactionFee;
 
   return (
     <View style={styles.root}>
@@ -444,7 +470,7 @@ const EditGasFeeLegacy = ({
                             </TouchableOpacity>
                           </View>
                         }
-                        value={gasFee.suggestedGasLimit}
+                        value={suggestedGasLimit}
                         onChangeValue={changedGasLimit}
                         min={GAS_LIMIT_MIN}
                         name={strings('edit_gas_fee_eip1559.gas_limit')}
@@ -471,13 +497,13 @@ const EditGasFeeLegacy = ({
                             </TouchableOpacity>
                           </View>
                         }
-                        value={gasFee.suggestedGasPrice}
+                        value={suggestedGasPrice}
                         name={strings('edit_gas_fee_eip1559.gas_price')}
                         unit={'GWEI'}
                         increment={GAS_PRICE_INCREMENT}
                         min={GAS_PRICE_MIN}
                         inputInsideLabel={
-                          gasFeeConversion && `≈ ${gasFeeConversion}`
+                          transactionFeeFiat && `≈ ${transactionFeeFiat}`
                         }
                         onChangeValue={changedGasPrice}
                         error={gasPriceError}
@@ -557,14 +583,6 @@ EditGasFeeLegacy.propTypes = {
    */
   onSave: PropTypes.func,
   /**
-   * Gas fee in native currency
-   */
-  gasFeeNative: PropTypes.string,
-  /**
-   * Gas fee converted to chosen currency
-   */
-  gasFeeConversion: PropTypes.string,
-  /**
    * Primary currency, either ETH or Fiat
    */
   primaryCurrency: PropTypes.string,
@@ -632,6 +650,8 @@ EditGasFeeLegacy.propTypes = {
    * (For analytics purposes) View (Approve, Transfer, Confirm) where this component is being used
    */
   view: PropTypes.string.isRequired,
+  onlyGas: PropTypes.bool,
+  selectedGasObject: PropTypes.object,
 };
 
 export default EditGasFeeLegacy;

@@ -32,7 +32,7 @@ const TransactionReviewEIP1559Update = ({
   gasEstimationReady,
   legacy,
   gasSelected,
-  gasPriceObject,
+  gasObject,
   updateTransactionState,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
@@ -53,7 +53,7 @@ const TransactionReviewEIP1559Update = ({
     onlyGas: undefined,
     gasSelected,
     legacy: !!legacy,
-    gasPriceObject,
+    gasObject,
   });
 
   const {
@@ -67,6 +67,10 @@ const TransactionReviewEIP1559Update = ({
     timeEstimateColor,
     timeEstimate,
     timeEstimateId,
+    transactionFee,
+    transactionFeeFiat,
+    transactionTotalAmount,
+    transactionTotalAmountFiat,
   } = gasTransaction;
 
   useEffect(() => {
@@ -153,10 +157,15 @@ const TransactionReviewEIP1559Update = ({
                     adjustsFontSizeToFit
                     numberOfLines={2}
                   >
-                    {switchNativeCurrencyDisplayOptions(
-                      renderableGasFeeMinConversion,
-                      renderableGasFeeMinNative,
-                    )}
+                    {legacy
+                      ? switchNativeCurrencyDisplayOptions(
+                          transactionFeeFiat,
+                          transactionFee,
+                        )
+                      : switchNativeCurrencyDisplayOptions(
+                          renderableGasFeeMinConversion,
+                          renderableGasFeeMinNative,
+                        )}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -178,10 +187,15 @@ const TransactionReviewEIP1559Update = ({
                   adjustsFontSizeToFit
                   numberOfLines={2}
                 >
-                  {switchNativeCurrencyDisplayOptions(
-                    renderableGasFeeMinNative,
-                    renderableGasFeeMinConversion,
-                  )}
+                  {legacy
+                    ? switchNativeCurrencyDisplayOptions(
+                        transactionFee,
+                        transactionFeeFiat,
+                      )
+                    : switchNativeCurrencyDisplayOptions(
+                        renderableGasFeeMinNative,
+                        renderableGasFeeMinConversion,
+                      )}
                 </Text>
               </TouchableOpacity>
             </FadeAnimationView>
@@ -277,10 +291,15 @@ const TransactionReviewEIP1559Update = ({
                         adjustsFontSizeToFit
                         numberOfLines={2}
                       >
-                        {switchNativeCurrencyDisplayOptions(
-                          renderableTotalMinConversion,
-                          renderableTotalMinNative,
-                        )}
+                        {legacy
+                          ? switchNativeCurrencyDisplayOptions(
+                              transactionTotalAmountFiat,
+                              transactionTotalAmount,
+                            )
+                          : switchNativeCurrencyDisplayOptions(
+                              renderableTotalMinConversion,
+                              renderableTotalMinNative,
+                            )}
                       </Text>
                     )}
 
@@ -294,10 +313,15 @@ const TransactionReviewEIP1559Update = ({
                     adjustsFontSizeToFit
                     numberOfLines={2}
                   >
-                    {switchNativeCurrencyDisplayOptions(
-                      renderableTotalMinNative,
-                      renderableTotalMinConversion,
-                    )}
+                    {legacy
+                      ? switchNativeCurrencyDisplayOptions(
+                          transactionTotalAmount,
+                          transactionTotalAmountFiat,
+                        )
+                      : switchNativeCurrencyDisplayOptions(
+                          renderableTotalMinNative,
+                          renderableTotalMinConversion,
+                        )}
                   </Text>
                 </FadeAnimationView>
               ) : (
