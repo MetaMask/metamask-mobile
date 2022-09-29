@@ -63,7 +63,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
         ? IconName.LockFilled
-        : IconName.WarningFilled,
+        : IconName.LockSlashFilled,
     [origin],
   );
   /**

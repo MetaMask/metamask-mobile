@@ -27,9 +27,13 @@ const TagUrl = ({
   const { styles } = useStyles(styleSheet, { style });
   return (
     <View style={styles.base} {...props}>
-      <AvatarFavicon imageSource={imageSource} size={AvatarBaseSize.Md} />
+      <AvatarFavicon
+        imageSource={imageSource}
+        size={AvatarBaseSize.Md}
+        style={styles.favicon}
+      />
       {iconName ? (
-        <Icon style={styles.icon} name={iconName} size={IconSize.Md} />
+        <Icon style={styles.icon} name={iconName} size={IconSize.Sm} />
       ) : null}
       <Text style={styles.label} variant={TextVariant.sBodyMD}>
         {label}

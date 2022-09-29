@@ -1,10 +1,12 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-
 import { useStyles } from '../../../component-library/hooks';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import AppConstants from '../../../core/AppConstants';
-import Icon, { IconName } from '../../../component-library/components/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icon';
 import Text from '../../../component-library/components/Texts/Text';
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
@@ -42,6 +44,7 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
         <Icon
           color={theme.colors.icon.alternative}
           name={secureConnectionIcon}
+          size={IconSize.Sm}
         />
         <Text numberOfLines={1} style={styles.text}>
           {mainUrl}
