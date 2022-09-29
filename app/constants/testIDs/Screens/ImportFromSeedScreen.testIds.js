@@ -10,5 +10,3 @@ export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID =
   '**/XCUIElementTypeOther[`label == "New Password"`][6]';
 export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID =
   'import-from-seed-screen-confirm-password-input-id';
-export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_XPATH =
-  '//XCUIElementTypeOther[@name="import-from-seed-screen-new-password-input-id"]';
