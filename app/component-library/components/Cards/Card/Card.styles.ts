@@ -2,23 +2,20 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
-import { CellDisplayContainerStyleSheetVars } from './CellDisplayContainer.types';
+import { CardStyleSheetVars } from './Card.types';
 
 /**
- * Style sheet function for CellDisplayContainer component.
+ * Style sheet function for Card component.
  *
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: CellDisplayContainerStyleSheetVars;
-}) => {
+const styleSheet = (params: { theme: Theme; vars: CardStyleSheetVars }) => {
   const { vars, theme } = params;
   const { colors } = theme;
   const { style } = vars;
