@@ -5,8 +5,7 @@ import { useStyles } from '../../../component-library/hooks';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import AppConstants from '../../../core/AppConstants';
 import Icon, { IconName } from '../../../component-library/components/Icon';
-import Text from '../../../component-library/components/Text';
-
+import Text from '../../../component-library/components/Texts/Text';
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 
