@@ -423,15 +423,10 @@ const OrderDetails: React.FC<Props> = ({
                 <ListItem.Amounts style={styles.flexZero}>
                   {order.cryptocurrency &&
                   isFinite(exchangeRate) &&
-                  currency &&
-                  orderData?.fiatCurrency?.decimals !== undefined ? (
+                  currency ? (
                     <Text small bold primary>
                       1 {order.cryptocurrency} @{' '}
-                      {renderFiat(
-                        exchangeRate,
-                        currency,
-                        orderData.fiatCurrency.decimals,
-                      )}
+                      {renderFiat(exchangeRate, currency)}
                     </Text>
                   ) : (
                     <Text>...</Text>

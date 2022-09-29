@@ -116,6 +116,7 @@ function PaymentMethodModal({
                           amountTier={amountTier}
                           paymentTypeIcon={getPaymentMethodIcon(paymentType)}
                           logo={logo}
+                          compact
                         />
                       </View>
                     ),

@@ -9,29 +9,44 @@ import { AvatarBaseSize } from '../AvatarBase';
 import AvatarNetwork from './AvatarNetwork';
 import {
   NETWORK_AVATAR_IMAGE_ID,
-  TEST_IMAGE_SOURCE,
+  TEST_LOCAL_IMAGE_SOURCE,
+  TEST_NETWORK_NAME,
+  TEST_REMOTE_IMAGE_SOURCE,
 } from './AvatarNetwork.constants';
 
 describe('AvatarNetwork', () => {
-  const networkName = 'Ethereum';
-
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
-        name={networkName}
-        imageSource={TEST_IMAGE_SOURCE}
+        name={TEST_NETWORK_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should render network image', () => {
+  it('should render remote network image', () => {
     const wrapper = shallow(
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
-        name={networkName}
-        imageSource={TEST_IMAGE_SOURCE}
+        name={TEST_NETWORK_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
+      />,
+    );
+
+    const imageComponent = wrapper.findWhere(
+      (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,
+    );
+    expect(imageComponent.exists()).toBe(true);
+  });
+
+  it('should render local network image', () => {
+    const wrapper = shallow(
+      <AvatarNetwork
+        size={AvatarBaseSize.Xl}
+        name={TEST_NETWORK_NAME}
+        imageSource={TEST_LOCAL_IMAGE_SOURCE}
       />,
     );
 
@@ -45,8 +60,8 @@ describe('AvatarNetwork', () => {
     const wrapper = shallow(
       <AvatarNetwork
         size={AvatarBaseSize.Xl}
-        name={networkName}
-        imageSource={TEST_IMAGE_SOURCE}
+        name={TEST_NETWORK_NAME}
+        imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
     const prevImageComponent = wrapper.findWhere(
@@ -62,7 +77,7 @@ describe('AvatarNetwork', () => {
 
   it('should render fallback when image is not provided', () => {
     const wrapper = shallow(
-      <AvatarNetwork size={AvatarBaseSize.Xl} name={networkName} />,
+      <AvatarNetwork size={AvatarBaseSize.Xl} name={TEST_NETWORK_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,

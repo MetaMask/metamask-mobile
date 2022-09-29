@@ -52,6 +52,7 @@ import {
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
 import Routes from '../../../../constants/navigation/Routes';
+import { createQRScannerNavDetails } from '../../QRScanner';
 
 const { hexToBN } = util;
 const createStyles = (colors) =>
@@ -262,7 +263,7 @@ class SendFlow extends PureComponent {
     fromSelectedAddress: this.props.selectedAddress,
     fromAccountName: this.props.identities[this.props.selectedAddress].name,
     fromAccountBalance: undefined,
-    toSelectedAddress: undefined,
+    toAccount: undefined,
     toSelectedAddressName: undefined,
     toSelectedAddressReady: false,
     toEnsName: undefined,
@@ -365,16 +366,16 @@ class SendFlow extends PureComponent {
   };
   /**
    * This returns the address name from the address book or user accounts if the selectedAddress exist there
-   * @param {String} toSelectedAddress - Address input
-   * @returns {String | null} - Address or null if toSelectedAddress is not in the addressBook or identities array
+   * @param {String} toAccount - Address input
+   * @returns {String | null} - Address or null if toAccount is not in the addressBook or identities array
    */
-  getAddressNameFromBookOrIdentities = (toSelectedAddress) => {
-    if (!toSelectedAddress) return;
+  getAddressNameFromBookOrIdentities = (toAccount) => {
+    if (!toAccount) return;
 
     const { addressBook, network, identities } = this.props;
     const networkAddressBook = addressBook[network] || {};
 
-    const checksummedAddress = toChecksumAddress(toSelectedAddress);
+    const checksummedAddress = toChecksumAddress(toAccount);
 
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
@@ -384,16 +385,16 @@ class SendFlow extends PureComponent {
   };
 
   isAddressSaved = () => {
-    const { toSelectedAddress } = this.state;
+    const { toAccount } = this.state;
     const { addressBook, network, identities } = this.props;
     const networkAddressBook = addressBook[network] || {};
-    const checksummedAddress = toChecksumAddress(toSelectedAddress);
+    const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] || identities[checksummedAddress]
     );
   };
 
-  validateAddressOrENSFromInput = async (toSelectedAddress) => {
+  validateAddressOrENSFromInput = async (toAccount) => {
     const { AssetsContractController } = Engine.context;
     const { addressBook, network, identities, providerType } = this.props;
     const networkAddressBook = addressBook[network] || {};
@@ -405,8 +406,8 @@ class SendFlow extends PureComponent {
       confusableCollection,
       toEnsAddressResolved;
     let [addToAddressToAddressBook, toSelectedAddressReady] = [false, false];
-    if (isValidHexAddress(toSelectedAddress, { mixedCaseUseChecksum: true })) {
-      const checksummedAddress = toChecksumAddress(toSelectedAddress);
+    if (isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
+      const checksummedAddress = toChecksumAddress(toAccount);
       toSelectedAddressReady = true;
       const ens = await doENSReverseLookup(checksummedAddress);
       if (ens) {
@@ -421,7 +422,7 @@ class SendFlow extends PureComponent {
         !networkAddressBook[checksummedAddress] &&
         !identities[checksummedAddress]
       ) {
-        toAddressName = toSelectedAddress;
+        toAddressName = toAccount;
         // If not in the addressBook nor user accounts
         addToAddressToAddressBook = true;
       }
@@ -455,7 +456,7 @@ class SendFlow extends PureComponent {
       }
 
       /**
-       * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toSelectedAddress);
+       * Not using this for now; Import isSmartContractAddress from utils/transaction and use this for checking smart contract: await isSmartContractAddress(toEnsAddressResolved || toAccount);
        * Check if it's smart contract address
        */
       /*
@@ -466,13 +467,13 @@ class SendFlow extends PureComponent {
 				isOnlyWarning = true;
 			}
 			*/
-    } else if (isENS(toSelectedAddress)) {
-      toEnsName = toSelectedAddress;
+    } else if (isENS(toAccount)) {
+      toEnsName = toAccount;
       confusableCollection = collectConfusables(toEnsName);
-      const resolvedAddress = await doENSLookup(toSelectedAddress, network);
+      const resolvedAddress = await doENSLookup(toAccount, network);
       if (resolvedAddress) {
         const checksummedAddress = toChecksumAddress(resolvedAddress);
-        toAddressName = toSelectedAddress;
+        toAddressName = toAccount;
         toEnsAddressResolved = resolvedAddress;
         toSelectedAddressReady = true;
         if (
@@ -484,7 +485,7 @@ class SendFlow extends PureComponent {
       } else {
         addressError = strings('transaction.could_not_resolve_ens');
       }
-    } else if (toSelectedAddress && toSelectedAddress.length >= 42) {
+    } else if (toAccount && toAccount.length >= 42) {
       addressError = strings('transaction.invalid_address');
     }
 
@@ -501,9 +502,8 @@ class SendFlow extends PureComponent {
     });
   };
 
-  onToSelectedAddressChange = (toSelectedAddress) => {
-    const addressName =
-      this.getAddressNameFromBookOrIdentities(toSelectedAddress);
+  onToSelectedAddressChange = (toAccount) => {
+    const addressName = this.getAddressNameFromBookOrIdentities(toAccount);
 
     /**
      * If the address is from addressBook or identities
@@ -511,36 +511,34 @@ class SendFlow extends PureComponent {
      */
     if (addressName) {
       this.setState({
-        toSelectedAddress,
+        toAccount,
         toSelectedAddressReady: true,
         isFromAddressBook: true,
         toSelectedAddressName: addressName,
       });
     } else {
-      this.validateAddressOrENSFromInput(toSelectedAddress);
+      this.validateAddressOrENSFromInput(toAccount);
       /**
        * Because validateAddressOrENSFromInput is an asynchronous function
        * we are setting the state here synchronously, so it does not block the UI
        * */
       this.setState({
-        toSelectedAddress,
+        toAccount,
         isFromAddressBook: false,
       });
     }
   };
 
   validateToAddress = async () => {
-    const { toSelectedAddress } = this.state;
+    const { toAccount } = this.state;
     const { network } = this.props;
     let addressError;
-    if (isENS(toSelectedAddress)) {
-      const resolvedAddress = await doENSLookup(toSelectedAddress, network);
+    if (isENS(toAccount)) {
+      const resolvedAddress = await doENSLookup(toAccount, network);
       if (!resolvedAddress) {
         addressError = strings('transaction.could_not_resolve_ens');
       }
-    } else if (
-      !isValidHexAddress(toSelectedAddress, { mixedCaseUseChecksum: true })
-    ) {
+    } else if (!isValidHexAddress(toAccount, { mixedCaseUseChecksum: true })) {
       addressError = strings('transaction.invalid_address');
     }
     this.setState({ addressError });
@@ -557,9 +555,9 @@ class SendFlow extends PureComponent {
 
   onSaveToAddressBook = () => {
     const { network } = this.props;
-    const { toSelectedAddress, alias, toEnsAddressResolved } = this.state;
+    const { toAccount, alias, toEnsAddressResolved } = this.state;
     const { AddressBookController } = Engine.context;
-    const toAddress = toEnsAddressResolved || toSelectedAddress;
+    const toAddress = toEnsAddressResolved || toAccount;
     AddressBookController.set(toAddress, alias, network);
     this.toggleAddToAddressBookModal();
 
@@ -568,25 +566,28 @@ class SendFlow extends PureComponent {
       addToAddressToAddressBook: false,
       alias: undefined,
       isFromAddressBook: true,
-      toSelectedAddress: toAddress,
+      toAccount: toAddress,
     });
   };
 
   onScan = () => {
-    this.props.navigation.navigate('QRScanner', {
-      onScanSuccess: (meta) => {
-        if (meta.target_address) {
-          this.onToSelectedAddressChange(meta.target_address);
-        }
-      },
-    });
+    this.props.navigation.navigate(
+      ...createQRScannerNavDetails({
+        onScanSuccess: (meta) => {
+          if (meta.target_address) {
+            this.onToSelectedAddressChange(meta.target_address);
+          }
+        },
+        origin: Routes.SEND_FLOW.SEND_TO,
+      }),
+    );
   };
 
   onTransactionDirectionSet = async () => {
     const { setRecipient, navigation, providerType, addRecent } = this.props;
     const {
       fromSelectedAddress,
-      toSelectedAddress,
+      toAccount,
       toEnsName,
       toSelectedAddressName,
       fromAccountName,
@@ -596,7 +597,7 @@ class SendFlow extends PureComponent {
       const addressError = await this.validateToAddress();
       if (addressError) return;
     }
-    const toAddress = toEnsAddressResolved || toSelectedAddress;
+    const toAddress = toEnsAddressResolved || toAccount;
     addRecent(toAddress);
     setRecipient(
       fromSelectedAddress,
@@ -742,13 +743,12 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker } = this.props;
-    const { addressBook, network } = this.props;
+    const { ticker, addressBook, network } = this.props;
     const {
       fromSelectedAddress,
       fromAccountName,
       fromAccountBalance,
-      toSelectedAddress,
+      toAccount,
       toSelectedAddressReady,
       toSelectedAddressName,
       addToAddressToAddressBook,
@@ -760,12 +760,12 @@ class SendFlow extends PureComponent {
       isOnlyWarning,
       confusableCollection,
       isFromAddressBook,
+      toEnsAddressResolved,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    const checksummedAddress =
-      toSelectedAddress && toChecksumAddress(toSelectedAddress);
+    const checksummedAddress = toAccount && toChecksumAddress(toAccount);
     const existingContact =
       checksummedAddress &&
       addressBook[network] &&
@@ -797,7 +797,7 @@ class SendFlow extends PureComponent {
             inputRef={this.addressToInputRef}
             highlighted={toInputHighlighted}
             addressToReady={toSelectedAddressReady}
-            toSelectedAddress={toSelectedAddress}
+            toSelectedAddress={toEnsAddressResolved || toAccount}
             toAddressName={toSelectedAddressName}
             onToSelectedAddressChange={this.onToSelectedAddressChange}
             onScan={this.onScan}
@@ -813,11 +813,11 @@ class SendFlow extends PureComponent {
           />
         </View>
 
-        {!toSelectedAddressReady && !!toSelectedAddress && (
+        {!toSelectedAddressReady && !!toAccount && (
           <View style={styles.warningContainer}>
             <WarningMessage
               warningMessage={
-                toSelectedAddress.substring(0, 2) === '0x'
+                toAccount.substring(0, 2) === '0x'
                   ? strings('transaction.address_invalid')
                   : strings('transaction.ens_not_found')
               }
@@ -827,7 +827,7 @@ class SendFlow extends PureComponent {
 
         {!toSelectedAddressReady ? (
           <AddressList
-            inputSearch={toSelectedAddress}
+            inputSearch={toAccount}
             onAccountPress={this.onToSelectedAddressChange}
             onAccountLongPress={dummy}
           />
