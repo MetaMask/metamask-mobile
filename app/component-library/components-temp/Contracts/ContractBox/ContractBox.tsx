@@ -1,23 +1,23 @@
 import React from 'react';
-import CellDisplayContainer from '../../../components/Cells/Cell/foundation/CellDisplayContainer';
-import Text, { TextVariant } from '../../../components/Texts/Text';
+import Card from '../../../components/Cards/Card';
 import ContractBoxBase from '../ContractBoxBase';
 import styles from './ContractBox.styles';
 import { View } from 'react-native';
-import { ContractBaseProps } from '../ContractBoxBase/ContractBase.types';
+import { ContractBoxBaseProps } from '../ContractBoxBase/ContractBoxBase.types';
 
 const ContractBox = ({
-  address,
-  name,
-  icon,
-  type,
-  description,
-}: ContractBaseProps) => (
+  contractAddress,
+  contractPetName,
+  contractLocalImage,
+}: ContractBoxBaseProps) => (
   <View>
-    <Text variant={TextVariant.lBodyMD}>{description}</Text>
-    <CellDisplayContainer style={styles.container}>
-      <ContractBoxBase address={address} name={name} icon={icon} type={type} />
-    </CellDisplayContainer>
+    <Card style={styles.container}>
+      <ContractBoxBase
+        contractAddress={contractAddress}
+        contractPetName={contractPetName}
+        contractLocalImage={contractLocalImage}
+      />
+    </Card>
   </View>
 );
 

@@ -1,6 +1,10 @@
-export const TOKEN_DESCRIPTION = 'NFT contract';
-export const CONTRACT_DESCRIPTION = 'Contract requesting spending cap';
-export const TEST_ACCOUNT_ADDRESS =
-  '0x2990079bcdEe240329a520d2444386FC119da21a';
-export const SAVED_TEST_ACCOUNT_ADDRESS =
-  '0x2990079bcdEe240329a520d2444386FC119da21a';
+import { ImageSourcePropType } from 'react-native';
+
+const imageSource =
+  'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
+
+export const CONTRACT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
+export const CONTRACT_PET_NAME = 'DAI';
+export const CONTRACT_LOCAL_IMAGE: ImageSourcePropType = {
+  uri: imageSource,
+};

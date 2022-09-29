@@ -1,43 +1,26 @@
 // Third party dependencies.
 import React from 'react';
 import { storiesOf } from '@storybook/react-native';
-import ContractBox from './ContractBox';
-import {
-  TOKEN_DESCRIPTION,
-  CONTRACT_DESCRIPTION,
-  TEST_ACCOUNT_ADDRESS,
-  SAVED_TEST_ACCOUNT_ADDRESS,
-} from './ContractBox.constants';
-import { ContractType } from '../ContractBoxBase/ContractBase.types';
 
 // Internal dependencies.
+import ContractBox from './ContractBox';
+import {
+  CONTRACT_ADDRESS,
+  CONTRACT_PET_NAME,
+  CONTRACT_LOCAL_IMAGE,
+} from './ContractBox.constants';
 
-storiesOf('Component Library / ContractBox', module)
-  .add('TokenView', () => (
+storiesOf('Component Library / Contract Box', module)
+  .add('Address Not Saved', () => (
     <ContractBox
-      description={TOKEN_DESCRIPTION}
-      address={TEST_ACCOUNT_ADDRESS}
-      type={ContractType.token}
+      contractAddress={CONTRACT_ADDRESS}
+      contractLocalImage={CONTRACT_LOCAL_IMAGE}
     />
   ))
-  .add('ContractView', () => (
+  .add('Saved Address', () => (
     <ContractBox
-      description={CONTRACT_DESCRIPTION}
-      type={ContractType.contract}
-      address={TEST_ACCOUNT_ADDRESS}
-    />
-  ))
-  .add('TokenView with saved contact', () => (
-    <ContractBox
-      description={TOKEN_DESCRIPTION}
-      type={ContractType.token}
-      address={SAVED_TEST_ACCOUNT_ADDRESS}
-    />
-  ))
-  .add('ContractView with saved contact', () => (
-    <ContractBox
-      description={CONTRACT_DESCRIPTION}
-      type={ContractType.contract}
-      address={SAVED_TEST_ACCOUNT_ADDRESS}
+      contractAddress={CONTRACT_ADDRESS}
+      contractPetName={CONTRACT_PET_NAME}
+      contractLocalImage={CONTRACT_LOCAL_IMAGE}
     />
   ));

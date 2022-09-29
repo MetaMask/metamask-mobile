@@ -1,1 +1,1 @@
-export { default } from './ContractBase';
+export { default } from './ContractBoxBase';
