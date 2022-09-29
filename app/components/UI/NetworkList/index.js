@@ -262,6 +262,7 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
+    color,
   ) => {
     const styles = this.getStyles();
 
@@ -285,7 +286,7 @@ export class NetworkList extends PureComponent {
               style={styles.networkIcon}
             />
           ) : (
-            <View style={[styles.networkIcon, { backgroundColor: image }]}>
+            <View style={[styles.networkIcon, { backgroundColor: color }]}>
               <Text style={styles.text}>{name[0]}</Text>
             </View>
           ))}
@@ -303,7 +304,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { name, imageSource } = Networks[network];
+      const { name, imageSource, color } = Networks[network];
       const isCustomRpc = false;
       const selected =
         provider.type === network ? (
@@ -317,6 +318,7 @@ export class NetworkList extends PureComponent {
         i,
         network,
         isCustomRpc,
+        color,
       );
     });
   };
