@@ -154,12 +154,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           {
             label: `${strings('toast.accounts_connected')}\n`,
           },
+          { label: activeAccountName, isBold: true },
+          { label: strings('toast.now_active') },
+        ];
+      } else {
+        labelOptions = [
+          { label: activeAccountName, isBold: true },
+          { label: strings('toast.connected_and_active') },
         ];
       }
-      labelOptions = labelOptions.concat([
-        { label: activeAccountName, isBold: true },
-        { label: strings('toast.now_active') },
-      ]);
       toastRef?.current?.showToast({
         variant: ToastVariant.Account,
         labelOptions,

@@ -131,7 +131,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         } else {
           labelOptions = [
             { label: activeAccountName, isBold: true },
-            { label: strings('toast.connected') },
+            { label: strings('toast.connected_and_active') },
           ];
         }
         toastRef?.current?.showToast({
