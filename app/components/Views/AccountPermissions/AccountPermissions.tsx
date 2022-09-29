@@ -124,11 +124,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const onCreateAccount = useCallback(
     async () => {
-      const { KeyringController, PreferencesController } = Engine.context;
+      const { KeyringController } = Engine.context;
       try {
         setIsLoading(true);
-        const { addedAccountAddress } = await KeyringController.addNewAccount();
-        PreferencesController.setSelectedAddress(addedAccountAddress);
+        await KeyringController.addNewAccount();
         AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
