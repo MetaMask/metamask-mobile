@@ -27,7 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AvatarAccount, { AvatarAccountType } from '../Avatars/AvatarAccount';
 import AvatarNetwork from '../Avatars/AvatarNetwork';
 import { AvatarBaseSize } from '../Avatars/AvatarBase';
-import Text, { TextVariant } from '../Text';
+import Text, { TextVariant } from '../Texts/Text';
 import ButtonLink from '../Buttons/ButtonLink';
 
 // Internal dependencies.
