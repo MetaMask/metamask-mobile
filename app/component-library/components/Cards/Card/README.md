@@ -1,6 +1,6 @@
-# CellAccountDisplayItemContainer
+# Card
 
-CellAccountDisplayItemContainer is a wrapper component typically used for displaying CellAccount Content.
+Card is a wrapper component typically used for displaying Card Content.
 
 ## Props
 
@@ -18,9 +18,9 @@ Content to wrap to display.
 
 ```javascript
 // Replace import with relative path.
-import CellAccountDisplayItemContainer from 'app/component-library/components/Cells/CellAccountDisplayItemContainer/CellAccountDisplayItemContainer';
+import Card from 'app/component-library/components/Cards/Card/Card';
 
-<CellAccountDisplayItemContainer>
+<Card>
   <SampleContent />
-</CellAccountDisplayItemContainer>;
+</Card>;
 ```
