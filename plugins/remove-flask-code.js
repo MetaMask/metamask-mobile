@@ -207,15 +207,33 @@ module.exports = function (babel) {
       ImportDeclaration(path) {
         if (!path || path.removed) return;
         const { source } = path || path.node;
-        removeTargetRefs(t, path);
         if (!matches(flaskIdentifiers, source)) return;
+        removeTargetRefs(t, path);
         !path.removed && path.remove();
       },
       JSXElement(path) {
         if (!path || path.removed) return;
         const { name } = path.node.openingElement.name;
-        removeTargetRefs(t, path);
         if (!matches(flaskIdentifiers, name)) return;
+        removeTargetRefs(t, path);
+        !path.removed && path.remove();
+      },
+      FunctionDeclaration(path) {
+        if (!path || path.removed) return;
+        // const { name } = path.node.id;
+        // if (!matches(flaskIdentifiers, name)) return;
+        // console.log('FunctionDeclaration', name);
+        // !path.removed && path.remove();
+      },
+      CallExpression(path) {
+        if (!path || path.removed) return;
+
+        // It doesn't exist in the options
+        const pathHasIds =
+          path.type === 'CallExpression' ? path.get('callee') : path;
+        const ids = getObjItem(pathHasIds);
+        if (!matches(flaskIdentifiers, ids.join('.'))) return;
+
         !path.removed && path.remove();
       },
     },
