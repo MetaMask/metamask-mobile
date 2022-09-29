@@ -13,6 +13,7 @@ export const mockTheme = {
   colors: lightTheme.colors,
   themeAppearance: 'light',
   typography: lightTheme.typography,
+  shadows: lightTheme.shadows,
 };
 
 export const ThemeContext = React.createContext<any>(undefined);
