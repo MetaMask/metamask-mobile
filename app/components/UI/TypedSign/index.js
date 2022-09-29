@@ -120,8 +120,8 @@ class TypedSign extends PureComponent {
   ) => {
     InteractionManager.runAfterInteractions(() => {
       messageParams.origin &&
-        (messageParams.origin.startsWith(WALLET_CONNECT_ORIGIN) ||
-          messageParams.origin.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
+        (messageParams.origin?.startsWith(WALLET_CONNECT_ORIGIN) ||
+          messageParams.origin?.startsWith(MM_SDK_REMOTE_ORIGIN)) &&
         NotificationManager.showSimpleNotification({
           status: `simple_notification${!confirmation ? '_rejected' : ''}`,
           duration: 5000,
