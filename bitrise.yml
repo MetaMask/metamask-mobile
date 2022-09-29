@@ -446,7 +446,7 @@ app:
       VERSION_NAME: 5.7.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 978
+      VERSION_NUMBER: 979
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
