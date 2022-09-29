@@ -14,4 +14,4 @@ interface Security {
 */
 export default interface AppConfig {
   security: Security;
-};;;;;;;;;;
+};;;;;;;;;;;;;;;;;;;;
