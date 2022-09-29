@@ -978,17 +978,14 @@ export const BrowserTab = (props) => {
   };
 
   const sendActiveAccount = useCallback(async () => {
-    const hostname = new URL(url.current).hostname;
-    const accounts = await getPermittedAccounts(hostname);
-
     notifyAllConnections({
       method: NOTIFICATION_NAMES.accountsChanged,
-      params: accounts,
+      params: permittedAccountsList,
     });
 
     if (isTabActive) {
       props.navigation.setParams({
-        connectedAccounts: accounts,
+        connectedAccounts: permittedAccountsList,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
