@@ -172,7 +172,7 @@ const removeVar = (t, opts = [], path) => {
   toRemove && !toRemove.removed && toRemove.remove();
 };
 
-const removeTargetRefs = (t, opts = [], path) => {
+const removeTargetRefs = (t, path) => {
   const specifiers =
     (path && path.specifiers) ||
     (path && path.node && path.node.specifiers) ||
@@ -199,25 +199,23 @@ const removeTargetRefs = (t, opts = [], path) => {
 // eslint-disable-next-line import/no-commonjs
 module.exports = function (babel) {
   const { types: t } = babel;
-  const flaskIdentifiers = [];
+  const flaskIdentifiers = ['Flask', 'flask'];
 
   return {
     name: 'remove-flask-code',
     visitor: {
       ImportDeclaration(path) {
         if (!path || path.removed) return;
-        const source = path.source || path.node.source;
-
-        if (!matches(flaskIdentifiers, source.value)) return;
-
+        const { source } = path || path.node;
+        removeTargetRefs(t, path);
+        if (!matches(flaskIdentifiers, source)) return;
         !path.removed && path.remove();
       },
       JSXElement(path) {
-        // console.log(path);
         if (!path || path.removed) return;
         const { name } = path.node.openingElement.name;
+        removeTargetRefs(t, path);
         if (!matches(flaskIdentifiers, name)) return;
-
         !path.removed && path.remove();
       },
     },
