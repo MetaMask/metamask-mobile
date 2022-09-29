@@ -311,9 +311,9 @@ export const config = {
    * @param {Array.<String>} specs List of spec file paths that ran
    */
   after: function (result, capabilities) {
-    if (capabilities.bundleId) {
-      driver.terminateApp(capabilities.bundleId)
-    }
+    // if (capabilities.bundleId) {
+    //   driver.terminateApp(capabilities.bundleId)
+    // }
   },
   /**
    * Gets executed right after terminating the webdriver session.

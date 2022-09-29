@@ -173,19 +173,13 @@ buildAndroidRunE2E(){
 buildIosSimulator(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
-	react-native run-ios --simulator $SIM
+	react-native run-ios --simulator "$SIM"
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
-	react-native run-ios --simulator $SIM --scheme "MetaMask-QA"
-}
-
-buildIosSimulatorQA(){
-	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --simulator "$SIM" --scheme "MetaMask-QA"
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Debug  -sdk iphonesimulator -derivedDataPath build
 }
 
 buildIosSimulatorE2E(){

@@ -5,12 +5,10 @@ import {
   View,
   ViewPropTypes,
   TouchableNativeFeedback,
-  Platform,
 } from 'react-native';
 import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../e2e/utils/generateTestId';
 
 /**
  * UI component that wraps StyledButton
@@ -130,7 +128,8 @@ export default class StyledButton extends PureComponent {
       <TouchableNativeFeedback
         {...touchableProps}
         disabled={this.props.disabled}
-        {...generateTestId(Platform, this.props.testID)}
+        accessible
+        accessibilityLabel={this.props.testID}
       >
         <View style={containerStyles}>
           {this.renderGroupedChildren(fontStyle, containerStyles)}

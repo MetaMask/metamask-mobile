@@ -1,5 +1,5 @@
-export const IMPORT_WALLET_BUTTON_ID = 'onboarding-import-button';
-export const IMPORT_WALLET_FROM_EXTENSION_BUTTON_ID =
+export const IMPORT_FROM_SEED_BUTTON_ID = 'onboarding-import-button';
+export const IMPORT_FROM_SEED_FROM_EXTENSION_BUTTON_ID =
   'onboarding-import-button';
 
 export const CREATE_WALLET_BUTTON_ID = 'create-wallet-button';

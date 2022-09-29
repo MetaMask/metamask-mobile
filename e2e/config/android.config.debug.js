@@ -5,14 +5,12 @@ import { config } from '../wdio.conf';
 config.capabilities = [
   {
     platformName: 'Android',
-    noReset: true,
+    noReset: false,
     fullReset: false,
     maxInstances: 1,
     deviceName: 'Android 11 - Pixel 4a API 30',
     platformVersion: '11',
     app: '../android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
-    // appPackage: 'io.metamask',
-    // appActivity: '.MainActivity',
     automationName: 'uiautomator2'
   },
 ];

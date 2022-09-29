@@ -1,0 +1,14 @@
+export const IMPORT_FROM_SEED_SCREEN_TITLE_ID =
+  'import-from-seed-screen-title-id';
+export const IMPORT_FROM_SEED_SCREEN_DESCRIPTION_ID =
+  'import-from-seed-screen-description-id';
+export const IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID =
+  'import-from-seed-screen-submit-button-id';
+export const IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID =
+  'import-from-seed-screen-seed-phrase-input-id';
+export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID =
+  'import-from-seed-screen-new-password-input-id';
+export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID =
+  'import-from-seed-screen-confirm-password-input-id';
+export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_XPATH =
+  '//XCUIElementTypeOther[@name="import-from-seed-screen-new-password-input-id"]';

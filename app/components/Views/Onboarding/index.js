@@ -51,9 +51,9 @@ import generateTestId from '../../../../e2e/utils/generateTestId';
 import {
   WALLET_SETUP_SCREEN_TITLE_ID,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_IMPORT_WALLET_BUTTON_ID,
+  WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-} from '../../../constants/testIDs/WalletSetupScreen.constants';
+} from '../../../constants/testIDs/Screens/WalletSetupScreen.testIds';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 
@@ -435,7 +435,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'normal'}
               onPress={this.onPressImport}
-              testID={WALLET_SETUP_SCREEN_IMPORT_WALLET_BUTTON_ID}
+              testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
             >
               {strings('import_wallet.import_from_seed_button')}
             </StyledButton>

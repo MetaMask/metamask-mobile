@@ -55,15 +55,15 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  CREATE_PASSWORD_INPUT_BOX_ID,
-  CONFIRM_PASSWORD_INPUT_BOX_ID,
-  IMPORT_PASSWORD_CONTAINER_ID,
-  SECRET_RECOVERY_PHRASE_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import generateTestId from '../../../../e2e/utils/generateTestId';
-import { IMPORT_WALLET_SCREEN_TITLE_ID } from '../../../constants/testIDs/ImportWalletScreen.constants';
+import {
+  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
+} from '../../../constants/testIDs/Screens/ImportFromSeedScreen.testIds';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -526,10 +526,10 @@ class ImportFromSeed extends PureComponent {
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
         >
-          <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
+          <View>
             <Text
               style={styles.title}
-              {...generateTestId(Platform, IMPORT_WALLET_SCREEN_TITLE_ID)}
+              {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}
             >
               {strings('import_from_seed.title')}
             </Text>
@@ -559,8 +559,11 @@ class ImportFromSeed extends PureComponent {
                 placeholder={strings(
                   'import_from_seed.seed_phrase_placeholder',
                 )}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
+                )}
                 placeholderTextColor={colors.text.muted}
-                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
                 returnKeyType="next"
                 autoCapitalize="none"
                 secureTextEntry={hideSeedPhraseInput}
@@ -587,7 +590,6 @@ class ImportFromSeed extends PureComponent {
                 )}
                 placeholderTextColor={colors.text.muted}
                 onChangeText={this.onSeedWordsChange}
-                testID={SECRET_RECOVERY_PHRASE_INPUT_BOX_ID}
                 blurOnSubmit
                 onSubmitEditing={this.jumpToPassword}
                 returnKeyType="next"
@@ -634,10 +636,12 @@ class ImportFromSeed extends PureComponent {
               <OutlinedTextField
                 style={styles.input}
                 containerStyle={inputWidth}
-                // ref={this.passwordInput}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+                )}
                 placeholder={strings('import_from_seed.new_password')}
                 placeholderTextColor={colors.text.muted}
-                testID={CREATE_PASSWORD_INPUT_BOX_ID}
                 returnKeyType={'next'}
                 autoCapitalize="none"
                 secureTextEntry={secureTextEntry}
@@ -669,8 +673,10 @@ class ImportFromSeed extends PureComponent {
               <OutlinedTextField
                 style={styles.input}
                 containerStyle={inputWidth}
-                // ref={this.confirmPasswordInput}
-                testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
+                )}
                 onChangeText={this.onPasswordConfirmChange}
                 returnKeyType={'next'}
                 autoCapitalize="none"
@@ -708,7 +714,10 @@ class ImportFromSeed extends PureComponent {
               <StyledButton
                 type={'blue'}
                 onPress={this.onPressImport}
-                testID={'submit'}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
+                )}
                 disabled={!(password !== '' && password === confirmPassword)}
               >
                 {loading ? (

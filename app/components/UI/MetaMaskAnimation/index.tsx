@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
 import generateTestId from '../../../../e2e/utils/generateTestId';
-import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../constants/testIDs/Generic.constants';
+import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../constants/testIDs/Components/MetaMaskAnimation.testIds';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;

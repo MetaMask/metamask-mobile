@@ -2,10 +2,10 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID
-} from '../../../app/constants/testIDs/WelcomeScreen.constants';
+} from '../../../app/constants/testIDs/Screens/WelcomeScreen.testIds';
 import {
   SPLASH_SCREEN_METAMASK_ANIMATION_ID
-} from '../../../app/constants/testIDs/Generic.constants';
+} from '../../../app/constants/testIDs/Components/MetaMaskAnimation.testIds';
 import Gestures from '../helpers/Gestures';
 
 class WelcomeScreen {

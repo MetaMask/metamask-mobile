@@ -30,6 +30,13 @@ Feature: Onboarding
 
     Given I just installed MetaMask on my device
     When I launch MetaMask mobile app
-    And I tap "Get started"
-    And I tap "Import using Secret Recovery Phrase"
+    Then "METAMASK" is displayed
+    When I tap "Get started"
+    Then "Wallet setup" is displayed
+    When I tap "Import using Secret Recovery Phrase"
+    Then "Help us improve MetaMask" is displayed
+    When I tap "I agree"
     Then "Import from seed" is displayed
+    When I type my "Secret Recovery Phrase"
+    And I type my "New password"
+    And I type my "Confirm password"

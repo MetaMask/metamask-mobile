@@ -28,7 +28,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
-} from '../../../constants/testIDs/WelcomeScreen.constants';
+} from '../../../constants/testIDs/Screens/WelcomeScreen.testIds';
 import generateTestId from '../../../../e2e/utils/generateTestId';
 
 const IMAGE_3_RATIO = 215 / 315;
