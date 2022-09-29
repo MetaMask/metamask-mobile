@@ -48,6 +48,7 @@ const AccountRightButton = ({
   );
   const dispatch = useDispatch();
   let onPressButton = onPress;
+  
   if (!selectedAddress && isNetworkVisible) {
     onPressButton = () => dispatch(toggleNetworkModal(false));
   }
