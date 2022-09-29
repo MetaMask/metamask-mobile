@@ -213,6 +213,7 @@ class MetaMetrics implements IMetaMetrics {
           },
         }),
       });
+      console.log(response);
       await this.#storeDeleteRegulationCreationDate();
     } catch (e: any) {
       // eslint-disable-next-line no-console
