@@ -1,10 +1,10 @@
-# Text
+# TextEstimated
 
-Text is a text component that standardizes on typography provided through theme via [@metamask/design-tokens](https://www.npmjs.com/package/@metamask/design-tokens) library.
+TextEstimated is a [Text](../Text/Text.tsx) component with a prefix Tilde [Icon](../../Icon/Icon.tsx).
 
 ## Props
 
-This component extends [TextProps](https://reactnative.dev/docs/text-style-props) from React Native's [Text](https://reactnative.dev/docs/text) component.
+This component extends [TextProps](../Text/Text.types.ts#L33).
 
 ### `variant`
 
@@ -18,7 +18,10 @@ Optional enum to select between Typography variants.
 
 ```javascript
 // Replace import with relative path.
-import Text, { TextVariant } from 'app/component-library/components/Text';
+import TextEstimated from 'app/components/UI/TextEstimated';
+import { TextVariant } from 'app/component-library/components/Texts/Text';
 
-<Text variant={TextVariant.lBodyMDBold}>{TEXT_LABEL}</Text>;
+<TextEstimated variant={TextVariant.lBodyMD}>
+    {SAMPLE_TEXT}
+</TextEstimated>;
 ```

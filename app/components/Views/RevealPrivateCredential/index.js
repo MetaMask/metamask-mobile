@@ -26,6 +26,7 @@ import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import useScreenshotWarning from '../../hooks/useScreenshotWarning';
 import { showAlert } from '../../../actions/alert';
+import { recordSRPRevealTimestamp } from '../../../actions/privacy';
 import { WRONG_PASSWORD_ERROR } from '../../../constants/error';
 import {
   SRP_GUIDE_URL,
@@ -232,15 +233,18 @@ const RevealPrivateCredential = ({
   const tryUnlock = () => {
     const { KeyringController } = Engine.context;
     if (KeyringController.validatePassword(password)) {
-      if (!isPrivateKey())
+      if (!isPrivateKey()) {
+        const currentDate = new Date();
+        this.props.recordSRPRevealTimestamp(currentDate.toString());
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
         );
-      setIsModalVisible(true);
-      setWarningIncorrectPassword('');
-    } else {
-      const msg = strings('reveal_credential.warning_incorrect_password');
-      setWarningIncorrectPassword(msg);
+        setIsModalVisible(true);
+        setWarningIncorrectPassword('');
+      } else {
+        const msg = strings('reveal_credential.warning_incorrect_password');
+        setWarningIncorrectPassword(msg);
+      }
     }
   };
 
@@ -614,6 +618,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
+  recordSRPRevealTimestamp: (timestamp) =>
+    dispatch(recordSRPRevealTimestamp(timestamp)),
 });
 
 export default connect(
