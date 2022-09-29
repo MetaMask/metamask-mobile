@@ -310,6 +310,8 @@ PODS:
     - React-Core
   - react-native-cookies (6.2.1):
     - React-Core
+  - react-native-get-random-values (1.8.0):
+    - React-Core
   - react-native-in-app-review (3.2.3):
     - React
   - react-native-minimizer (1.3.0):
@@ -428,6 +430,8 @@ PODS:
     - React-Core
   - RNI18n (2.0.15):
     - React
+  - RNInAppBrowser (3.7.0):
+    - React-Core
   - RNKeychain (8.0.0):
     - React-Core
   - RNOS (1.2.6):
@@ -535,6 +539,7 @@ DEPENDENCIES:
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
+  - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
   - react-native-minimizer (from `../node_modules/react-native-minimizer`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
@@ -570,6 +575,7 @@ DEPENDENCIES:
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNI18n (from `../node_modules/react-native-i18n`)
+  - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - RNOS (from `../node_modules/react-native-os`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -655,6 +661,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-camera"
   react-native-cookies:
     :path: "../node_modules/@react-native-cookies/cookies"
+  react-native-get-random-values:
+    :path: "../node_modules/react-native-get-random-values"
   react-native-in-app-review:
     :path: "../node_modules/react-native-in-app-review"
   react-native-minimizer:
@@ -725,6 +733,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNI18n:
     :path: "../node_modules/react-native-i18n"
+  RNInAppBrowser:
+    :path: "../node_modules/react-native-inappbrowser-reborn"
   RNKeychain:
     :path: "../node_modules/react-native-keychain"
   RNOS:
@@ -790,6 +800,7 @@ SPEC CHECKSUMS:
   react-native-branch: 5b20bf032b3a1a20d2b76e57215bd3254a137dd5
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
+  react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
   react-native-minimizer: bd07450123d8c685acb2dff64f0213b0c7b5dbd6
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
@@ -825,6 +836,7 @@ SPEC CHECKSUMS:
   RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
+  RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
   RNKeychain: 4f63aada75ebafd26f4bc2c670199461eab85d94
   RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNReanimated: b04ef2a4f0cb61b062bbcf033f84a9e470f4f60b
@@ -839,6 +851,6 @@ SPEC CHECKSUMS:
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 5759da19ce141e5f8aca3a4f56ac232baa34e957
+PODFILE CHECKSUM: 7f7f2a91148820d72060690efb985d8d04e01f4b
 
 COCOAPODS: 1.11.3

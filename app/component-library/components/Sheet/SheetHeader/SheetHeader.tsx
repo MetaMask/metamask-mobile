@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import ButtonLink from '../../Buttons/ButtonLink';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import ButtonIcon, { ButtonIconVariant } from '../../Buttons/ButtonIcon';
 import { IconName } from '../../Icon';
 import { useStyles } from '../../../hooks';

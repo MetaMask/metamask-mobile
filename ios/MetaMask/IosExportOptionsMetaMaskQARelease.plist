@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>provisioningProfiles</key>
+    <dict>
+      <key>io.metamask.MetaMask-QA</key>
+      <string>Bitrise Internal Release - MetaMask-QA</string>
+    </dict>
+    <key>uploadSymbols</key>
+    <true/>
+    <key>teamID</key>
+    <string>48XVW22RCG</string>
+    <key>method</key>
+    <string>ad-hoc</string>
+  </dict>
+</plist>
