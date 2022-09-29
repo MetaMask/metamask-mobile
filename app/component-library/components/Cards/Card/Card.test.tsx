@@ -4,14 +4,14 @@ import { View } from 'react-native';
 import { shallow } from 'enzyme';
 
 // Internal dependencies.
-import CellDisplayContainer from './CellDisplayContainer';
+import Card from './Card';
 
-describe('CellDisplayContainer - Snapshot', () => {
+describe('Card - Snapshot', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <CellDisplayContainer>
+      <Card>
         <View />
-      </CellDisplayContainer>,
+      </Card>,
     );
     expect(wrapper).toMatchSnapshot();
   });
