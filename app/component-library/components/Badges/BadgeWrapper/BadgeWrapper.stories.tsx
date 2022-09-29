@@ -11,7 +11,7 @@ import {
   TEST_REMOTE_IMAGE_SOURCE,
 } from '../../Avatars/AvatarNetwork/AvatarNetwork.constants';
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
