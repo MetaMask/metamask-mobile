@@ -11,7 +11,6 @@ import {
   View,
   StyleSheet,
   Image,
-  Keyboard,
   InteractionManager,
 } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
@@ -117,13 +116,12 @@ const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
  * @param {bool} disableNetwork - Boolean that specifies if the network can be changed, defaults to false
  * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft, headerTruncatedBackTitle and headerRight
  */
-export default function getNavbarOptions(
+export function getTransactionsNavbarOptions(
   title,
-  disableNetwork = false,
-  drawerRef,
   themeColors,
+  navigation,
   selectedAddress,
-  onRightButtonPress,
+  handleRightButtonPress,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -134,31 +132,33 @@ export default function getNavbarOptions(
     headerIcon: {
       color: themeColors.primary.default,
     },
+    headerButtonText: {
+      color: themeColors.primary.default,
+      fontSize: 14,
+      ...fontStyles.normal,
+    },
   });
 
-  function onPress() {
-    Keyboard.dismiss();
-    drawerRef.current?.showDrawer?.();
-    trackEvent(ANALYTICS_EVENT_OPTS.COMMON_TAPS_HAMBURGER_MENU);
+  function handleLeftButtonPress() {
+    return navigation?.pop();
   }
 
   return {
-    headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork={disableNetwork} />
-    ),
+    headerTitle: () => <NavbarTitle title={title} />,
     headerLeft: () => (
-      <TouchableOpacity onPress={onPress} style={styles.backButton}>
-        <IonicIcon
-          name={Device.isAndroid() ? 'md-menu' : 'ios-menu'}
-          size={Device.isAndroid() ? 24 : 28}
-          style={innerStyles.headerIcon}
-        />
+      <TouchableOpacity
+        onPress={handleLeftButtonPress}
+        style={styles.backButton}
+      >
+        <Text style={innerStyles.headerButtonText}>
+          {strings('navigation.close')}
+        </Text>
       </TouchableOpacity>
     ),
     headerRight: () => (
       <AccountRightButton
         selectedAddress={selectedAddress}
-        onPress={onRightButtonPress}
+        onPress={handleRightButtonPress}
       />
     ),
     headerStyle: innerStyles.headerStyle,

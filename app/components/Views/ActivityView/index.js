@@ -1,16 +1,15 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { getHasOrders } from '../../../reducers/fiatOrders';
-import getNavbarOptions from '../../UI/Navbar';
+import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
 import FiatOrdersView from '../FiatOrdersView';
 import ErrorBoundary from '../ErrorBoundary';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -22,7 +21,6 @@ const styles = StyleSheet.create({
 });
 
 const ActivityView = () => {
-  const { drawerRef } = useContext(DrawerContext);
   const { colors } = useTheme();
   const navigation = useNavigation();
   const selectedAddress = useSelector(
@@ -34,7 +32,7 @@ const ActivityView = () => {
     (state) => state.engine.backgroundState.AccountTrackerController.accounts,
   );
 
-  const openAccountSelector = () => {
+  const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ACCOUNT_SELECTOR,
     });
@@ -45,18 +43,17 @@ const ActivityView = () => {
         number_of_accounts: Object.keys(accounts ?? {}).length,
       },
     );
-  };
+  }, [navigation, accounts]);
 
   useEffect(
     () => {
       const title =
         hasOrders ?? false ? 'activity_view.title' : 'transactions_view.title';
       navigation.setOptions(
-        getNavbarOptions(
+        getTransactionsNavbarOptions(
           title,
-          false,
-          drawerRef,
           colors,
+          navigation,
           selectedAddress,
           openAccountSelector,
         ),
@@ -84,6 +81,6 @@ const ActivityView = () => {
       </View>
     </ErrorBoundary>
   );
-};
+}
 
 export default ActivityView;
