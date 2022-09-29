@@ -46,7 +46,7 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
     "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/",
-    "test:unit:components-ui": "jest ./app/components/ui/",
+    "test:unit:components-ui": "jest ./app/components/UI/",
     "test:unit:components-views": "jest ./app/components/Views/",
     "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/",
     "test:unit:update": "time jest -u ./app/",
