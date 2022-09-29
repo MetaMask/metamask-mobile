@@ -19,7 +19,6 @@ module.exports = (async () => {
           experimentalImportSupport: true,
           inlineRequires: true,
         },
-        fencedCode: require.resolve('./tranformers/fencedCodeTransformer.js'),
       }),
       babelTransformerPath: require.resolve('react-native-svg-transformer'),
       assetPlugins: ['react-native-svg-asset-plugin'],
