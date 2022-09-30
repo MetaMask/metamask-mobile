@@ -1,6 +1,8 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
+import Accounts from '../helpers/Accounts.js';
 import ImportFromSeedScreen from '../screen-objects/ImportFromSeedScreen.js';
 import OptinMetricsScreen from '../screen-objects/OptinMetricsScreen.js';
+import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import WalletSetupScreen from '../screen-objects/WalletSetupScreen.js';
 import WelcomeScreen from '../screen-objects/WelcomeScreen.js';
 
@@ -38,6 +40,9 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
     case 'Import from seed':
       await ImportFromSeedScreen.verifyScreenTitle();
       break;
+    case 'Welcome to your new wallet!':
+      await WalletMainScreen.validateOnboardingWizard();
+      break;
     default:
       throw new Error('Condition not found');
   }
@@ -74,21 +79,25 @@ When(/^I tap "([^"]*)?"/, async (text) => {
     case 'I agree':
       await OptinMetricsScreen.clickIAgreeButton();
       break;
+    case 'Import':
+      await ImportFromSeedScreen.clickImportButton();
+      break;
     default:
       throw new Error('Condition not found');
   }
 });
 
-When(/^I type my "([^"]*)?"/, async (text) => {
+When(/^I type "([^"]*)?"/, async (text) => {
+  const validAccount = Accounts.getValidAccount()
   switch (text) {
-    case 'Secret Recovery Phrase':
-      await ImportFromSeedScreen.typeSecretRecoveryPhrase();
+    case 'a valid Secret Recovery Phrase':
+      await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
       break;
-    case 'New password':
-      await ImportFromSeedScreen.typeNewPassword();
+    case 'a valid New password':
+      await ImportFromSeedScreen.typeNewPassword(validAccount.password);
       break;
-    case 'Confirm password':
-      await ImportFromSeedScreen.typeConfirmPassword();
+    case 'a valid Confirm password':
+      await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
       break;
     default:
       throw new Error('Condition not found');

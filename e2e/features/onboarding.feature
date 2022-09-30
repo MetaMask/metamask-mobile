@@ -37,6 +37,8 @@ Feature: Onboarding
     Then "Help us improve MetaMask" is displayed
     When I tap "I agree"
     Then "Import from seed" is displayed
-    When I type my "Secret Recovery Phrase"
-    And I type my "New password"
-    And I type my "Confirm password"
+    When I type "a valid Secret Recovery Phrase"
+    And I type "a valid New password"
+    And I type "a valid Confirm password"
+    And I tap "Import"
+    Then "Welcome to your new wallet!" is displayed

@@ -714,10 +714,7 @@ class ImportFromSeed extends PureComponent {
               <StyledButton
                 type={'blue'}
                 onPress={this.onPressImport}
-                {...generateTestId(
-                  Platform,
-                  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-                )}
+                testID={IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID}
                 disabled={!(password !== '' && password === confirmPassword)}
               >
                 {loading ? (

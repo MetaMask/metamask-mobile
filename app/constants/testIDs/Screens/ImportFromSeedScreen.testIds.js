@@ -9,4 +9,4 @@ export const IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID =
 export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID =
   '**/XCUIElementTypeOther[`label == "New Password"`][6]';
 export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID =
-  'import-from-seed-screen-confirm-password-input-id';
+  '**/XCUIElementTypeOther[`label == "Confirm password"`][5]';
