@@ -10,7 +10,7 @@ import Engine from './Engine';
 import { generateApproveData } from '../util/transactions';
 import { NETWORK_ERROR_MISSING_NETWORK_ID } from '../constants/error';
 import { strings } from '../../locales/i18n';
-import { getNetworkTypeById } from '../util/networks';
+import { getNetworkTypeById, handleNetworkSwitch } from '../util/networks';
 import { WalletDevice } from '@metamask/controllers/';
 import {
   ACTIONS,
@@ -41,52 +41,21 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
-
-    // If not specified, use the current network
-    if (!switchToChainId) {
-      return;
-    }
-
-    // If current network is the same as the one we want to switch to, do nothing
-    if (
-      NetworkController?.state?.provider?.chainId === String(switchToChainId)
-    ) {
-      return;
-    }
-
-    const rpc = this.frequentRpcList.find(
-      ({ chainId }) => chainId === switchToChainId,
-    );
-
-    if (rpc) {
-      const { rpcUrl, chainId, ticker, nickname } = rpc;
-      CurrencyRateController.setNativeCurrency(ticker);
-      NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+    try {
+      const network = handleNetworkSwitch(
+        switchToChainId,
+        this.frequentRpcList,
+      );
       this.dispatch(
         showAlert({
           isVisible: true,
           autodismiss: 5000,
           content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + nickname },
+          data: { msg: strings('send.warn_network_change') + network },
         }),
       );
+    } catch {
       return;
-    }
-
-    const networkType = getNetworkTypeById(switchToChainId);
-
-    if (networkType) {
-      CurrencyRateController.setNativeCurrency('ETH');
-      NetworkController.setProviderType(networkType);
-      this.dispatch(
-        showAlert({
-          isVisible: true,
-          autodismiss: 5000,
-          content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + networkType },
-        }),
-      );
     }
   };
 
