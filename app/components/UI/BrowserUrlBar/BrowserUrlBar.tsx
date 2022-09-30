@@ -1,6 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+
 import { useStyles } from '../../../component-library/hooks';
+import { getURLProtocol } from '../../../util/general';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import AppConstants from '../../../core/AppConstants';
 import Icon, {
@@ -8,6 +11,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icon';
 import Text from '../../../component-library/components/Texts/Text';
+
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 
@@ -28,7 +32,8 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
     return urlObj.host.toLowerCase().replace(/^www\./, '');
   };
 
-  const isHttps = url && url.toLowerCase().substr(0, 6) === 'https:';
+  const contentProtocol = getURLProtocol(url);
+  const isHttps = contentProtocol === PROTOCOLS.HTTPS;
 
   const secureConnectionIcon = isHttps
     ? IconName.LockFilled
