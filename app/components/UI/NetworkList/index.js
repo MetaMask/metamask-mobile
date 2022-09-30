@@ -30,6 +30,8 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../constants/test-ids';
 import ImageIcon from '../ImageIcon';
+import AvatarNetwork from '../../../component-library/components/Avatars/AvatarNetwork';
+import { AvatarBaseSize } from '../../../component-library/components/Avatars/AvatarBase';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -277,7 +279,11 @@ export class NetworkList extends PureComponent {
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
           ) : (
-            <View style={styles.networkIcon} />
+            <AvatarNetwork
+              name={name}
+              size={AvatarBaseSize.Sm}
+              style={styles.networkIcon}
+            />
           ))}
         {!isCustomRpc &&
           (image ? (
