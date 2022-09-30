@@ -2858,10 +2858,10 @@
     web3 "^0.20.7"
     web3-provider-engine "^16.0.3"
 
-"@metamask/design-tokens@^1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.7.0.tgz#fab069c0101da9e25d35ae051df2ff6bb5ff7a38"
-  integrity sha512-ejakgcsnTlLQmMrKb8XixXgExsYuMjlv71lkqJXeT0wa2oe4skVhB2dZul7Y9W4vYvQzTkwsW2NLfaj273eeEw==
+"@metamask/design-tokens@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-1.9.0.tgz#2b173c671f36b0d3faa2e31ea4bf66e811a7ff49"
+  integrity sha512-L3oIhbE7MVQgiX7bEqdlU32jNyLbYXCj9sJNCOzACIHycB1TIO8TS34dEI7FAf9pC8o0qvMI3k8ur+SD9myVxw==
 
 "@metamask/eslint-config-typescript@^7.0.0":
   version "7.0.1"

@@ -5,17 +5,13 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../../../hooks';
+import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import styleSheet from './CellDisplayContainer.styles';
-import { CellDisplayContainerProps } from './CellDisplayContainer.types';
+import styleSheet from './Card.styles';
+import { CardProps } from './Card.types';
 
-const CellDisplayContainer: React.FC<CellDisplayContainerProps> = ({
-  style,
-  children,
-  ...props
-}) => {
+const Card: React.FC<CardProps> = ({ style, children, ...props }) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
@@ -25,4 +21,4 @@ const CellDisplayContainer: React.FC<CellDisplayContainerProps> = ({
   );
 };
 
-export default CellDisplayContainer;
+export default Card;
