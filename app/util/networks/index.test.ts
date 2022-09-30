@@ -14,10 +14,7 @@ import {
   RPC,
   KOVAN,
 } from '../../../app/constants/network';
-import {
-  NETWORK_ERROR_MISSING_NETWORK_ID,
-  NETWORK_ERROR_UNKNOWN_NETWORK_ID,
-} from '../../../app/constants/error';
+import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
@@ -106,7 +103,7 @@ describe('NetworkUtils::getNetworkTypeById', () => {
     try {
       getNetworkTypeById();
     } catch (error) {
-      expect(error.message).toEqual(NETWORK_ERROR_MISSING_NETWORK_ID);
+      expect(error.message).toEqual(NetworkSwitchErrorType.missingNetworkId);
     }
   });
   it('should fail if network Id is unknown', () => {
@@ -115,7 +112,7 @@ describe('NetworkUtils::getNetworkTypeById', () => {
       getNetworkTypeById(id);
     } catch (error) {
       expect(error.message).toEqual(
-        `${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`,
+        `${NetworkSwitchErrorType.unknownNetworkId} ${id}`,
       );
     }
   });
