@@ -660,7 +660,11 @@ class Engine {
       CollectiblesController,
       TokenBalancesController,
       TokenRatesController,
+      PermissionController,
     } = this.context;
+
+    // Remove all permissions.
+    PermissionController?.clearState?.();
 
     //Clear assets info
     TokensController.update({
