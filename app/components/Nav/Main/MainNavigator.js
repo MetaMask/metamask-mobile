@@ -161,9 +161,15 @@ const WalletTabStackFlow = () => (
   </Stack.Navigator>
 );
 
+const WalletTabModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
+  </Stack.Navigator>
+);
+
 const TransactionsHome = () => (
   <Stack.Navigator>
-    <Stack.Screen name="TransactionsView" component={ActivityView} />
+    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
     <Stack.Screen
       name={Routes.FIAT_ON_RAMP_AGGREGATOR.ORDER_DETAILS}
       component={OrderDetails}
@@ -171,23 +177,17 @@ const TransactionsHome = () => (
   </Stack.Navigator>
 );
 
-const WalletTabModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
-  </Stack.Navigator>
-);
-
 const BrowserFlow = () => (
   <Stack.Navigator
-    initialRouteName={Routes.BROWSER_VIEW}
+    initialRouteName={Routes.BROWSER.VIEW}
     mode={'modal'}
     screenOptions={{
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER_VIEW} component={Browser} />
+    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name={Routes.BROWSER_URL_MODAL}
+      name={Routes.BROWSER.URL_MODAL}
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
@@ -212,7 +212,7 @@ const HomeTabs = () => {
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
-          initialRouteName={'WalletTabHome'}
+          initialRouteName={Routes.WALLET.HOME}
           tabBar={({ state, descriptors, navigation }) => (
             <TabBar
               state={state}
@@ -222,12 +222,12 @@ const HomeTabs = () => {
           )}
         >
           <Tab.Screen
-            name="WalletTabHome"
+            name={Routes.WALLET.HOME}
             options={options.home}
             component={WalletTabModalFlow}
           />
           <Tab.Screen
-            name={Routes.BROWSER_TAB_HOME}
+            name={Routes.BROWSER.HOME}
             options={options.browser}
             component={BrowserFlow}
           />

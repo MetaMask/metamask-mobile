@@ -1,7 +1,4 @@
 const Routes = {
-  BROWSER_TAB_HOME: 'BrowserTabHome',
-  BROWSER_URL_MODAL: 'BrowserUrlModal',
-  BROWSER_VIEW: 'BrowserView',
   FIAT_ON_RAMP_AGGREGATOR: {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
@@ -15,6 +12,7 @@ const Routes = {
     ORDER_DETAILS: 'OrderDetails',
   },
   QR_SCANNER: 'QRScanner',
+  TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -39,6 +37,14 @@ const Routes = {
     ACCOUNT_SELECTOR: 'AccountSelector',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
+  },
+  BROWSER: {
+    HOME: 'BrowserTabHome',
+    URL_MODAL: 'BrowserUrlModal',
+    VIEW: 'BrowserView',
+  },
+  WALLET: {
+    HOME: 'WalletTabHome',
   },
 };
 
