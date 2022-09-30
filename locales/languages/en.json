@@ -461,7 +461,7 @@
     "disconnect_all_accounts": "Disconnect all accounts"
   },
   "toast": {
-    "connected": "connected.",
+    "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "revoked": "revoked.",
     "revoked_all": "All accounts revoked.",
