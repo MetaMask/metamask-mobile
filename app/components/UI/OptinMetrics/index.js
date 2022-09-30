@@ -31,7 +31,7 @@ import AppConstants from '../../../core/AppConstants';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../e2e/utils/generateTestId';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
   OPTIN_METRICS_NO_THANKS_BUTTON_ID,
