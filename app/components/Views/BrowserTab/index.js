@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useContext,
-} from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Text,
   StyleSheet,
@@ -72,13 +66,6 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { isEqual } from 'lodash';
-import {
-  ToastContext,
-  ToastVariant,
-} from '../../../component-library/components/Toast';
-import { useAccounts } from '../../hooks/useAccounts';
-import getAccountNameWithENS from '../../../util/accounts';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -244,8 +231,6 @@ export const BrowserTab = (props) => {
   const backgroundBridges = useRef([]);
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
-  const { toastRef } = useContext(ToastContext);
-  const { accounts, ensByAccountAddress } = useAccounts();
   const permittedAccountsList = useSelector((state) => {
     const permissionsControllerState =
       state.engine.backgroundState.PermissionController;
@@ -265,11 +250,6 @@ export const BrowserTab = (props) => {
    */
   const isTabActive = useSelector(
     (state) => state.browser.activeTab === props.id,
-  );
-  const accountAvatarType = useSelector((state) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
   );
 
   /**
@@ -665,31 +645,6 @@ export const BrowserTab = (props) => {
    * Handles state changes for when the url changes
    */
   const changeUrl = async (siteInfo) => {
-    if (siteInfo.url !== url.current) {
-      const hostname = new URL(siteInfo.url).hostname;
-      const permittedAccounts = await getPermittedAccounts(hostname);
-      const activeAccountAddress = permittedAccounts?.[0];
-      if (activeAccountAddress) {
-        const accountName = getAccountNameWithENS({
-          accountAddress: activeAccountAddress,
-          accounts,
-          ensByAccountAddress,
-        });
-        // Show active account toast
-        toastRef?.current?.showToast({
-          variant: ToastVariant.Account,
-          labelOptions: [
-            {
-              label: `${accountName} `,
-              isBold: true,
-            },
-            { label: strings('toast.now_active') },
-          ],
-          accountAddress: activeAccountAddress,
-          accountAvatarType,
-        });
-      }
-    }
     url.current = siteInfo.url;
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
