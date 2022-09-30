@@ -31,9 +31,9 @@ function loadStories() {
   require('../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
   require('../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
   require('../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
   require('../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories');
-  require('../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
@@ -84,9 +84,9 @@ const stories = [
   '../app/component-library/components/Buttons/ButtonPrimary/ButtonPrimary.stories',
   '../app/component-library/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
   '../app/component-library/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
+  '../app/component-library/components/Cards/Card/Card.stories',
   '../app/component-library/components/Cells/Cell/Cell.stories',
   '../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories',
-  '../app/component-library/components/Cells/Cell/foundation/CellDisplayContainer/CellDisplayContainer.stories',
   '../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories',
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',

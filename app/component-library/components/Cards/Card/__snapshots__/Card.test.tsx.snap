@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CellDisplayContainer - Snapshot should render correctly 1`] = `
+exports[`Card - Snapshot should render correctly 1`] = `
 <View
   style={
     Object {
