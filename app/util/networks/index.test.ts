@@ -5,6 +5,7 @@ import {
   getNetworkTypeById,
   findBlockExplorerForRpc,
   compareRpcUrls,
+  handleNetworkSwitch,
 } from '.';
 import {
   MAINNET,
@@ -17,6 +18,25 @@ import {
   NETWORK_ERROR_MISSING_NETWORK_ID,
   NETWORK_ERROR_UNKNOWN_NETWORK_ID,
 } from '../../../app/constants/error';
+import Engine from './../../core/Engine';
+
+jest.mock('./../../core/Engine', () => ({
+  context: {
+    CurrencyRateController: {
+      setNativeCurrency: () => jest.fn(),
+      setLocked: () => jest.fn(),
+    },
+    NetworkController: {
+      setRpcTarget: () => jest.fn(),
+      setProviderType: () => jest.fn(),
+      state: {
+        provider: {
+          chainId: '3',
+        },
+      },
+    },
+  },
+}));
 
 describe('NetworkUtils::getAllNetworks', () => {
   const allNetworks = getAllNetworks();
@@ -160,5 +180,43 @@ describe('NetworkUtils::compareRpcUrls', () => {
     const mockRpcOne = 'https://bsc-dataseed.binance.org/';
     const mockRpcTwo = 'https://mainnet.optimism.io/d03910331458';
     expect(compareRpcUrls(mockRpcOne, mockRpcTwo)).toBe(false);
+  });
+});
+
+describe('NetworkUtils::handleNetworkSwitch', () => {
+  const mockRPCFrequentList = [
+    {
+      rpcUrl: 'mainnet-rpc-url',
+      chainId: '1',
+      ticker: 'ETH',
+      nickname: 'Mainnet',
+    },
+    {
+      rpcUrl: 'polygon-rpc-url',
+      chainId: '2',
+      ticker: 'MATIC',
+      nickname: 'Polygon',
+    },
+    {
+      rpcUrl: 'avalanche-rpc-url',
+      chainId: '3',
+      ticker: 'AVAX',
+      nickname: 'Avalanche',
+    },
+  ];
+
+  const { NetworkController, CurrencyRateController } = Engine.context as any;
+
+  it('should change networks to the provided one', () => {
+    const network = mockRPCFrequentList[0];
+    const newNetwork = handleNetworkSwitch(
+      network.chainId,
+      mockRPCFrequentList,
+      {
+        networkController: NetworkController,
+        currencyRateController: CurrencyRateController,
+      },
+    );
+    expect(newNetwork).toBe(network.nickname);
   });
 });
