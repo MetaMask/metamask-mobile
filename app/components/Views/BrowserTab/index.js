@@ -680,7 +680,7 @@ export const BrowserTab = (props) => {
           variant: ToastVariant.Account,
           labelOptions: [
             {
-              label: accountName,
+              label: `${accountName} `,
               isBold: true,
             },
             { label: strings('toast.now_active') },

@@ -155,16 +155,16 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
         labelOptions = [
-          { label: `${connectedAccountLength}`, isBold: true },
+          { label: `${connectedAccountLength} `, isBold: true },
           {
             label: `${strings('toast.accounts_connected')}\n`,
           },
-          { label: activeAccountName, isBold: true },
+          { label: `${activeAccountName} `, isBold: true },
           { label: strings('toast.now_active') },
         ];
       } else {
         labelOptions = [
-          { label: activeAccountName, isBold: true },
+          { label: `${activeAccountName} `, isBold: true },
           { label: strings('toast.connected_and_active') },
         ];
       }

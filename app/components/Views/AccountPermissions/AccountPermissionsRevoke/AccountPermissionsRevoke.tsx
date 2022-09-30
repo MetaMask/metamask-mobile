@@ -109,7 +109,7 @@ const AccountPermissionsRevoke = ({
               } else {
                 const labelOptions: ToastOptions['labelOptions'] = [
                   {
-                    label: name,
+                    label: `${name} `,
                     isBold: true,
                   },
                   { label: strings('toast.revoked') },
@@ -124,7 +124,7 @@ const AccountPermissionsRevoke = ({
                   removePermittedAccount(hostname, address);
                   labelOptions.push(
                     {
-                      label: `\n${newActiveAccountName}`,
+                      label: `\n${newActiveAccountName} `,
                       isBold: true,
                     },
                     { label: strings('toast.now_active') },

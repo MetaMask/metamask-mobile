@@ -79,7 +79,7 @@ const AccountPermissionsConnected = ({
         variant: ToastVariant.Account,
         labelOptions: [
           {
-            label: activeAccountName,
+            label: `${activeAccountName} `,
             isBold: true,
           },
           { label: strings('toast.now_active') },
