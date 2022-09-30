@@ -5,6 +5,7 @@ import {
   TextInput,
   InteractionManager,
   ScrollView,
+  Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -51,6 +52,7 @@ import {
   ADD_ADDRESS_MODAL_CONTAINER_ID,
   ENTER_ALIAS_INPUT_BOX_ID,
 } from '../../../../constants/test-ids';
+import { NetworkSwitchErrorType } from '../../../../constants/error';
 import Routes from '../../../../constants/navigation/Routes';
 import { baseStyles } from '../../../../styles/common';
 import createStyles from './styles';
@@ -469,8 +471,18 @@ class SendFlow extends PureComponent {
         content: 'clipboard-alert',
         data: { msg: strings('send.warn_network_change') + network },
       });
-    } catch {
-      return;
+    } catch (e) {
+      let alertMessage;
+      switch (e.message) {
+        case NetworkSwitchErrorType.missingNetworkId:
+          alertMessage = strings('send.network_missing_id');
+          break;
+        default:
+          alertMessage = strings('send.network_not_found_description', {
+            chain_id: chainId,
+          });
+      }
+      Alert.alert(strings('send.network_not_found_title'), alertMessage);
     }
   };
 

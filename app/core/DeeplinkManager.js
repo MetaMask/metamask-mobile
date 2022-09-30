@@ -41,27 +41,19 @@ class DeeplinkManager {
    * @param switchToChainId - Corresponding chain id for new network
    */
   _handleNetworkSwitch = (switchToChainId) => {
-    try {
-      const { NetworkController, CurrencyRateController } = Engine.context;
-      const network = handleNetworkSwitch(
-        switchToChainId,
-        this.frequentRpcList,
-        {
-          networkController: NetworkController,
-          currencyRateController: CurrencyRateController,
-        },
-      );
-      this.dispatch(
-        showAlert({
-          isVisible: true,
-          autodismiss: 5000,
-          content: 'clipboard-alert',
-          data: { msg: strings('send.warn_network_change') + network },
-        }),
-      );
-    } catch {
-      return;
-    }
+    const { NetworkController, CurrencyRateController } = Engine.context;
+    const network = handleNetworkSwitch(switchToChainId, this.frequentRpcList, {
+      networkController: NetworkController,
+      currencyRateController: CurrencyRateController,
+    });
+    this.dispatch(
+      showAlert({
+        isVisible: true,
+        autodismiss: 5000,
+        content: 'clipboard-alert',
+        data: { msg: strings('send.warn_network_change') + network },
+      }),
+    );
   };
 
   _approveTransaction = (ethUrl, origin) => {
