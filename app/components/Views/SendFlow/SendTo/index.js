@@ -465,6 +465,9 @@ class SendFlow extends PureComponent {
         networkController: NetworkController,
         currencyRateController: CurrencyRateController,
       });
+
+      if (!network) return;
+
       showAlert({
         isVisible: true,
         autodismiss: 5000,

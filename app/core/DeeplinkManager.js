@@ -46,6 +46,9 @@ class DeeplinkManager {
       networkController: NetworkController,
       currencyRateController: CurrencyRateController,
     });
+
+    if (!network) return;
+
     this.dispatch(
       showAlert({
         isVisible: true,

@@ -1,5 +1,4 @@
 import { getNetworkTypeById } from './index';
-import { NetworkSwitchErrorType } from './../../constants/error';
 
 const handleNetworkSwitch = (
   switchToChainId: string,
@@ -13,12 +12,12 @@ const handleNetworkSwitch = (
 ): string | undefined => {
   // If not specified, use the current network
   if (!switchToChainId) {
-    throw new Error(NetworkSwitchErrorType.missingNetworkId);
+    return;
   }
 
   // If current network is the same as the one we want to switch to, do nothing
   if (networkController?.state?.provider?.chainId === String(switchToChainId)) {
-    throw new Error(NetworkSwitchErrorType.currentNetwork);
+    return;
   }
 
   const rpc = frequentRpcList.find(
