@@ -6,14 +6,11 @@ const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     main: {
       flexDirection: 'row',
-      marginLeft: 23,
-      marginRight: 23,
-      alignItems: 'center',
+      marginHorizontal: 16,
     },
     text: {
-      flex: 1,
-      marginLeft: 6,
-      color: params.theme.colors.icon.alternative,
+      marginLeft: 8,
+      color: params.theme.colors.text.alternative,
       width: 260,
     },
   });
