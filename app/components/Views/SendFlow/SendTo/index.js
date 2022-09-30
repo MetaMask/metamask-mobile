@@ -113,6 +113,10 @@ class SendFlow extends PureComponent {
      */
     setSelectedAsset: PropTypes.func,
     /**
+     * Show alert
+     */
+    showAlert: PropTypes.func,
+    /**
      * Network provider type as mainnet
      */
     providerType: PropTypes.string,
@@ -128,6 +132,10 @@ class SendFlow extends PureComponent {
      * Returns the recent address in a json with the type ADD_RECENT
      */
     addRecent: PropTypes.func,
+    /**
+     * Frequent RPC list from PreferencesController
+     */
+    frequentRpcList: PropTypes.array,
   };
 
   addressToInputRef = React.createRef();
@@ -447,10 +455,28 @@ class SendFlow extends PureComponent {
     });
   };
 
+  handleNetworkSwitch = (chainId) => {
+    try {
+      const { showAlert, frequentRpcList } = this.props;
+      const network = handleNetworkSwitch(chainId, frequentRpcList);
+      showAlert({
+        isVisible: true,
+        autodismiss: 5000,
+        content: 'clipboard-alert',
+        data: { msg: strings('send.warn_network_change') + network },
+      });
+    } catch {
+      return;
+    }
+  };
+
   onScan = () => {
     this.props.navigation.navigate(
       ...createQRScannerNavDetails({
         onScanSuccess: (meta) => {
+          if (meta.chain_id) {
+            this.handleNetworkSwitch(meta.chain_id);
+          }
           if (meta.target_address) {
             this.onToSelectedAddressChange(meta.target_address);
           }
@@ -823,6 +849,8 @@ const mapStateToProps = (state) => ({
   network: state.engine.backgroundState.NetworkController.network,
   providerType: state.engine.backgroundState.NetworkController.provider.type,
   isPaymentRequest: state.transaction.paymentRequest,
+  frequentRpcList:
+    state.engine.backgroundState.PreferencesController.frequentRpcList,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -847,6 +875,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(newAssetTransaction(selectedAsset)),
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
+  showAlert: (config) => dispatch(showAlert(config)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SendFlow);
