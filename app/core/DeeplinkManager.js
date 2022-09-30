@@ -42,9 +42,14 @@ class DeeplinkManager {
    */
   _handleNetworkSwitch = (switchToChainId) => {
     try {
+      const { NetworkController, CurrencyRateController } = Engine.context;
       const network = handleNetworkSwitch(
         switchToChainId,
         this.frequentRpcList,
+        {
+          networkController: NetworkController,
+          currencyRateController: CurrencyRateController,
+        },
       );
       this.dispatch(
         showAlert({

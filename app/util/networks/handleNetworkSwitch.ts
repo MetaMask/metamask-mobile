@@ -1,5 +1,9 @@
-import Engine from './../../core/Engine';
 import { getNetworkTypeById } from './index';
+
+export enum NetworkSwitchErrorType {
+  missingNetworkSwitch = 'Missing network id',
+  currentNetwork = 'Already in current network',
+}
 
 const handleNetworkSwitch = (
   switchToChainId: string,
@@ -9,18 +13,17 @@ const handleNetworkSwitch = (
     ticker: string;
     nickname: string;
   }[],
+  { networkController, currencyRateController }: any,
 ): string | undefined => {
-  const { NetworkController, CurrencyRateController } = Engine.context as any;
-
   // If not specified, use the current network
   if (!switchToChainId) {
-    const error = 'Missing network id';
+    const error = NetworkSwitchErrorType.missingNetworkSwitch;
     throw new Error(error);
   }
 
   // If current network is the same as the one we want to switch to, do nothing
-  if (NetworkController?.state?.provider?.chainId === String(switchToChainId)) {
-    const error = 'Already in current network';
+  if (networkController?.state?.provider?.chainId === String(switchToChainId)) {
+    const error = NetworkSwitchErrorType.currentNetwork;
     throw new Error(error);
   }
 
@@ -30,16 +33,16 @@ const handleNetworkSwitch = (
 
   if (rpc) {
     const { rpcUrl, chainId, ticker, nickname } = rpc;
-    CurrencyRateController.setNativeCurrency(ticker);
-    NetworkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
+    currencyRateController.setNativeCurrency(ticker);
+    networkController.setRpcTarget(rpcUrl, chainId, ticker, nickname);
     return nickname;
   }
 
   const networkType = getNetworkTypeById(switchToChainId);
 
   if (networkType) {
-    CurrencyRateController.setNativeCurrency('ETH');
-    NetworkController.setProviderType(networkType);
+    currencyRateController.setNativeCurrency('ETH');
+    networkController.setProviderType(networkType);
     return networkType;
   }
 };
