@@ -17,6 +17,11 @@ import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+
+import handleNetworkSwitch from './handleNetworkSwitch';
+
+export { handleNetworkSwitch };
+
 /**
  * List of the supported networks
  * including name, id, and color
