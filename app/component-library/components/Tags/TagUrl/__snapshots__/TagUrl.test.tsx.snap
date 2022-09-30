@@ -24,13 +24,17 @@ exports[`TagUrl should render correctly 1`] = `
       }
     }
     size="32"
+    style={
+      Object {
+        "marginRight": 8,
+      }
+    }
   />
   <Text
     style={
       Object {
         "color": "#535A61",
         "flexShrink": 1,
-        "marginLeft": 8,
       }
     }
     variant="sBodyMD"
