@@ -16,12 +16,8 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
-import AssetOptions from '../../Views/AssetOptions';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
-import DetectedTokens from '../../Views/DetectedTokens';
-import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
 import Collectible from '../../Views/Collectible';
 import Send from '../../Views/Send';
 import SendTo from '../../Views/SendFlow/SendTo';
@@ -94,20 +90,6 @@ const clearStackNavigatorOptions = {
   animationEnabled: false,
 };
 
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-    />
-  </Stack.Navigator>
-);
-
 const WalletModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
@@ -115,7 +97,6 @@ const WalletModalFlow = () => (
       component={Wallet}
       options={{ headerShown: true, animationEnabled: false }}
     />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
   </Stack.Navigator>
 );
 
@@ -145,11 +126,6 @@ const AssetModalFlow = (props) => (
       name={'AssetStackFlow'}
       component={AssetStackFlow}
       initialParams={props.route.params}
-    />
-    <Stack.Screen
-      name={'AssetOptions'}
-      component={AssetOptions}
-      initialParams={{ address: props.route.params?.address }}
     />
   </Stack.Navigator>
 );
@@ -198,10 +174,6 @@ const TransactionsHome = () => (
 const WalletTabModalFlow = () => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen name={'WalletTabStackFlow'} component={WalletTabStackFlow} />
-    <Stack.Screen
-      name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation}
-    />
   </Stack.Navigator>
 );
 
