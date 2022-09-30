@@ -4,7 +4,7 @@ import { Animated, Dimensions, View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
-import generateTestId from '../../../../e2e/utils/generateTestId';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../constants/testIDs/Generic.constants';
 
 const LOGO_SIZE = 175;

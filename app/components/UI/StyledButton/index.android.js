@@ -10,7 +10,7 @@ import {
 import coalesceNonElementChildren from 'react-native-button/coalesceNonElementChildren';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../e2e/utils/generateTestId';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 /**
  * UI component that wraps StyledButton

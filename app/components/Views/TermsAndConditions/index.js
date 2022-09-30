@@ -5,7 +5,7 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../e2e/utils/generateTestId';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../../../constants/testIDs/Generic.constants';
 
 const createStyles = (colors) =>

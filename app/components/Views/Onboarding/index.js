@@ -47,7 +47,7 @@ import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../e2e/utils/generateTestId';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   WALLET_SETUP_SCREEN_TITLE_ID,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
