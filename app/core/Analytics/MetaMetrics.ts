@@ -15,6 +15,7 @@ import {
   METAMETRICS_ID,
   ANALYTICS_DATA_DELETION_DATE,
   MIXPANEL_METAMETRICS_ID,
+  METAMETRICS_SEGMENT_REGULATION_ID,
 } from '../../constants/storage';
 
 import { IMetaMetrics, ISegmentClient, States } from './MetaMetrics.types';
