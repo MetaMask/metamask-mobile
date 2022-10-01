@@ -207,30 +207,39 @@ class MetaMetrics implements IMetaMetrics {
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
-  #createSegmentDeleteRegulation = async (): Promise<void> => {
+  #createSegmentDeleteRegulation = async (): Promise<{
+    status: string;
+    error?: string;
+  }> => {
     const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
     const regulationType = 'DELETE_ONLY';
     try {
       const response = await axios({
         url: SEGMENT_REGULATIONS_ENDPOINT,
-        method: 'post',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/vnd.segment.v1alpha+json',
           Authorization: `Bearer ${segmentToken}`,
         },
         data: JSON.stringify({
-          regulation_type: regulationType,
-          attributes: {
-            name: 'USER_ID',
-            values: [this.#metametricsId],
-          },
+          regulationType,
+          subjectType: 'USER_ID',
+          subjectIds: [this.#metametricsId],
         }),
       });
-      console.log(response);
-      await this.#storeDeleteRegulationCreationDate();
-    } catch (e: any) {
-      // eslint-disable-next-line no-console
-      console.log(e);
+      const { result, status } = response as any;
+
+      if (status === '200') {
+        const { regulateId } = result.data;
+        await this.#storeDeleteRegulationId(regulateId);
+        await this.#storeDeleteRegulationCreationDate();
+        return { status: 'OK' };
+      }
+
+      return { status: 'ERROR' };
+    } catch (error: any) {
+      Logger.error(error, 'Analytics Deletion Task Error');
+      return { status: 'ERROR', error };
     }
   };
 
