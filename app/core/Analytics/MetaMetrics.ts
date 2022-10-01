@@ -39,7 +39,7 @@ class MetaMetrics implements IMetaMetrics {
   constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    // this.#init();
+    this.#init();
   }
 
   // PRIVATE METHODS
@@ -61,7 +61,7 @@ class MetaMetrics implements IMetaMetrics {
 
     // Legacy ID from MixPanel integration
     metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
-    if (metametricsId) {
+    if (metametricsId && !__DEV__) {
       return metametricsId;
     }
 
