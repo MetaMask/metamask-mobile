@@ -60,20 +60,17 @@ export interface IMetaMetricsEventGroup {
   events: { [key: string]: IMetaMetricsEvent | IMetaMetricsEventGroup };
 }
 
-// MixPanel expected deletion task status
-export enum MixPanelDeletionTaskStatus {
+// Expected deletion task status
+export enum DataDeleteStatus {
   pending = 'PENDING',
-  staging = 'STAGING',
   started = 'STARTED',
   success = 'SUCCESS',
   failure = 'FAILURE',
-  revoked = 'REVOKED',
-  notFound = 'NOT_FOUND',
   unknown = 'UNKNOWN',
 }
 
 // MixPanel expected response status
-export enum MixPanelResponseStatus {
+export enum DataDeleteResponseStatus {
   ok = 'ok',
   error = 'error',
 }

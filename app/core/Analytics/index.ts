@@ -2,8 +2,8 @@ import Analytics from './Analytics';
 import MetaMetrics from './MetaMetrics';
 import MetaMetricsEvents from './MetaMetrics.events';
 import {
-  MixPanelDeletionTaskStatus,
-  MixPanelResponseStatus,
+  DataDeleteStatus,
+  DataDeleteResponseStatus,
   IMetaMetricsEvent,
 } from './MetaMetrics.types';
 
@@ -11,8 +11,8 @@ export {
   Analytics,
   MetaMetrics,
   MetaMetricsEvents,
-  MixPanelDeletionTaskStatus,
-  MixPanelResponseStatus,
+  DataDeleteStatus,
+  DataDeleteResponseStatus,
 };
 
 export type { IMetaMetricsEvent };

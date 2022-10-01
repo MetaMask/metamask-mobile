@@ -18,7 +18,12 @@ import {
   METAMETRICS_SEGMENT_REGULATION_ID,
 } from '../../constants/storage';
 
-import { IMetaMetrics, ISegmentClient, States } from './MetaMetrics.types';
+import {
+  IMetaMetrics,
+  ISegmentClient,
+  States,
+  DataDeleteResponseStatus,
+} from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
@@ -233,13 +238,13 @@ class MetaMetrics implements IMetaMetrics {
         const { regulateId } = result.data;
         await this.#storeDeleteRegulationId(regulateId);
         await this.#storeDeleteRegulationCreationDate();
-        return { status: 'OK' };
+        return { status: DataDeleteResponseStatus.ok };
       }
 
-      return { status: 'ERROR' };
+      return { status: DataDeleteResponseStatus.error };
     } catch (error: any) {
       Logger.error(error, 'Analytics Deletion Task Error');
-      return { status: 'ERROR', error };
+      return { status: DataDeleteResponseStatus.error, error };
     }
   };
 

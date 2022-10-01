@@ -18,8 +18,8 @@ import {
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
 import {
-  MixPanelResponseStatus,
-  MixPanelDeletionTaskStatus,
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
 } from './MetaMetrics.types';
 import MetaMetrics from './MetaMetrics';
 
@@ -129,43 +129,39 @@ class Analytics {
     name,
     { event, params = {}, value, info, anonymously = false },
   ) {
-    MetaMetrics.trackEvent(event.category, anonymously, {
-      ...params,
-      ...event,
-    });
-    // const isAnalyticsPreferenceSelectedEvent =
-    //   ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
-    // if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
-    // this._setUserProfileProperties();
-    // if (!__DEV__) {
-    //   if (!anonymously) {
-    //     RCTAnalytics.trackEvent({
-    //       ...event,
-    //       ...params,
-    //       value,
-    //       info,
-    //     });
-    //   } else {
-    //     RCTAnalytics.trackEventAnonymously({
-    //       ...event,
-    //       ...params,
-    //       value,
-    //       info,
-    //     });
-    //   }
+    const isAnalyticsPreferenceSelectedEvent =
+      ANALYTICS_EVENTS_V2.ANALYTICS_PREFERENCE_SELECTED === event;
+    if (!this.enabled && !isAnalyticsPreferenceSelectedEvent) return;
+    this._setUserProfileProperties();
+    if (!__DEV__) {
+      if (!anonymously) {
+        RCTAnalytics.trackEvent({
+          ...event,
+          ...params,
+          value,
+          info,
+        });
+      } else {
+        RCTAnalytics.trackEventAnonymously({
+          ...event,
+          ...params,
+          value,
+          info,
+        });
+      }
 
-    //   if (!this.isDataRecorded) {
-    //     this.isDataRecorded = true;
-    //     await DefaultPreference.set(
-    //       ANALYTICS_DATA_DELETION_TASK_ID,
-    //       this.dataDeletionTaskId,
-    //     );
+      if (!this.isDataRecorded) {
+        this.isDataRecorded = true;
+        await DefaultPreference.set(
+          ANALYTICS_DATA_DELETION_TASK_ID,
+          this.dataDeletionTaskId,
+        );
 
-    //     await DefaultPreference.set(ANALYTICS_DATA_RECORDED, 'true');
-    //   }
-    // } else {
-    //   Logger.log(`Analytics '${name}' -`, event, params, value, info);
-    // }
+        await DefaultPreference.set(ANALYTICS_DATA_RECORDED, 'true');
+      }
+    } else {
+      Logger.log(`Analytics '${name}' -`, event, params, value, info);
+    }
   }
 
   /**
@@ -177,7 +173,7 @@ class Analytics {
    *  {
    *    status: ResponseStatus,
    *    error?: string,
-   *    deletionTaskStatus?: DeletionTaskStatus
+   *    DataDeleteStatus?: DataDeleteStatus
    *  }
    */
   async _createDataDeletionTask(compliance) {
@@ -187,8 +183,8 @@ class Analytics {
         `Analytics Deletion Task Created for following ${compliance} compliance`,
       );
       return {
-        status: MixPanelResponseStatus.ok,
-        deletionTaskStatus: MixPanelDeletionTaskStatus.pending,
+        status: DataDeleteResponseStatus.ok,
+        DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
     const distinctId = await this.getDistinctId();
@@ -212,7 +208,7 @@ class Analytics {
 
       const result = response.data;
 
-      if (result.status === MixPanelResponseStatus.ok) {
+      if (result.status === DataDeleteResponseStatus.ok) {
         this.dataDeletionTaskId = result.results.task_id;
 
         await DefaultPreference.set(
@@ -239,14 +235,14 @@ class Analytics {
 
         return {
           status: result.status,
-          deletionTaskStatus: MixPanelResponseStatus.pending,
+          DataDeleteStatus: DataDeleteResponseStatus.pending,
         };
       }
       Logger.log(`Analytics Deletion Task Error - ${result.error}`);
       return { status: response.status, error: result.error };
     } catch (error) {
       Logger.log(`Analytics Deletion Task Error - ${error}`);
-      return { status: MixPanelResponseStatus.error, error };
+      return { status: DataDeleteResponseStatus.error, error };
     }
   }
 
@@ -258,22 +254,22 @@ class Analytics {
    * @returns Object with the response of the request
    *  {
    *    status: ResponseStatus,
-   *    deletionTaskStatus?: DeletionTaskStatus
+   *    dataDeleteStatus?: DataDeleteStatus
    *  }
    */
   async _checkStatusDataDeletionTask() {
     if (__DEV__) {
       // Mock response for DEV env
       return {
-        status: MixPanelResponseStatus.ok,
-        deletionTaskStatus: MixPanelDeletionTaskStatus.pending,
+        status: DataDeleteResponseStatus.ok,
+        DataDeleteStatus: DataDeleteStatus.pending,
       };
     }
 
     if (!this.dataDeletionTaskId) {
       return {
-        status: MixPanelResponseStatus.error,
-        deletionTaskStatus: MixPanelDeletionTaskStatus.unknown,
+        status: DataDeleteResponseStatus.error,
+        dataDeleteStatus: DataDeleteStatus.unknown,
       };
     }
 
@@ -292,17 +288,17 @@ class Analytics {
 
     const { status, results } = response.data;
 
-    if (results.status === MixPanelResponseStatus.success) {
+    if (results.status === DataDeleteResponseStatus.success) {
       this.dataDeletionTaskId = undefined;
       return {
-        status: MixPanelResponseStatus.ok,
-        deletionTaskStatus: MixPanelDeletionTaskStatus.success,
+        status: DataDeleteResponseStatus.ok,
+        dataDeleteStatus: DataDeleteStatus.success,
       };
     }
 
     return {
       status,
-      deletionTaskStatus: results.status || MixPanelDeletionTaskStatus.unknown,
+      DataDeleteStatus: results.status || DataDeleteStatus.unknown,
     };
   }
 

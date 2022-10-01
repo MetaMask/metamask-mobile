@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
 import {
-  MixPanelDeletionTaskStatus,
-  MixPanelResponseStatus,
+  DataDeleteStatus,
+  DataDeleteResponseStatus,
 } from '../../../../../core/Analytics/MetaMetrics.types';
 import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
@@ -15,7 +15,6 @@ import AnalyticsV2, {
   ANALYTICS_EVENTS_V2,
 } from '../../../../../util/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
-import { MetaMetrics } from '../../../../../core/Analytics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -42,22 +41,21 @@ const DeleteMetaMetricsData = () => {
   const [hasCollectedData, setHasCollectedData] = useState<boolean>(
     Analytics.checkEnabled() || Analytics.getIsDataRecorded(),
   );
-  const [deletionTaskStatus, setDeletionTaskStatus] =
-    useState<MixPanelDeletionTaskStatus>(MixPanelDeletionTaskStatus.unknown);
+  const [dataDeleteStatus, setDataDeleteStatus] = useState<DataDeleteStatus>(
+    DataDeleteStatus.unknown,
+  );
   const [deletionTaskDate, setDeletionTaskDate] = useState<
     string | undefined
   >();
 
   const enableDeleteData = useCallback(() => {
-    switch (deletionTaskStatus) {
-      case MixPanelDeletionTaskStatus.pending:
-      case MixPanelDeletionTaskStatus.staging:
-      case MixPanelDeletionTaskStatus.started:
+    switch (dataDeleteStatus) {
+      case DataDeleteStatus.started:
         return false;
       default:
         return true;
     }
-  }, [deletionTaskStatus]);
+  }, [dataDeleteStatus]);
 
   const showDeleteTaskError = () => {
     Alert.alert(
@@ -88,10 +86,9 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
-      await MetaMetrics.createSegmentDeleteRegulation();
       const response = await Analytics.createDataDeletionTask();
-      if (response.status === MixPanelResponseStatus.ok) {
-        setDeletionTaskStatus(MixPanelDeletionTaskStatus.pending);
+      if (response.status === DataDeleteResponseStatus.ok) {
+        setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
         setDeletionTaskDate(Analytics.getDeletionTaskDate());
         await trackDataDeletionRequest();
@@ -104,12 +101,12 @@ const DeleteMetaMetricsData = () => {
     }
   };
 
-  const checkDeletionTaskStatus = useCallback(async () => {
+  const checkDataDeleteStatus = useCallback(async () => {
     try {
       const response = await Analytics.checkStatusDataDeletionTask();
-      setDeletionTaskStatus(response.deletionTaskStatus);
+      setDataDeleteStatus(response.DataDeleteStatus);
     } catch (error: any) {
-      Logger.log('Error checkDeletionTaskStatus -', error);
+      Logger.log('Error checkDataDeleteStatus -', error);
     }
   }, []);
 
@@ -117,7 +114,7 @@ const DeleteMetaMetricsData = () => {
     const checkStatus = async () => {
       const deletionTaskId = Analytics.getDeletionTaskId();
       if (deletionTaskId) {
-        await checkDeletionTaskStatus();
+        await checkDataDeleteStatus();
         setDeletionTaskDate(Analytics.getDeletionTaskDate());
       }
     };
@@ -125,7 +122,7 @@ const DeleteMetaMetricsData = () => {
     setHasCollectedData(Analytics.getIsDataRecorded() || enableDeleteData());
 
     checkStatus();
-  }, [checkDeletionTaskStatus, enableDeleteData, deletionTaskStatus]);
+  }, [checkDataDeleteStatus, enableDeleteData, dataDeleteStatus]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
 
