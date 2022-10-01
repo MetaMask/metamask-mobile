@@ -21,7 +21,6 @@ import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
 } from './MetaMetrics.types';
-import MetaMetrics from './MetaMetrics';
 
 const RCTAnalytics = NativeModules.Analytics;
 
