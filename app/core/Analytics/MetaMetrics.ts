@@ -196,19 +196,19 @@ class MetaMetrics implements IMetaMetrics {
    */
   #createSegmentDeleteRegulation = async (): Promise<void> => {
     const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
-    const regulationType = 'Delete';
+    const regulationType = 'DELETE_ONLY';
     try {
       const response = await axios({
         url: SEGMENT_REGULATIONS_ENDPOINT,
         method: 'post',
         headers: {
-          Accept: 'application/json',
+          'Content-Type': 'application/vnd.segment.v1alpha+json',
           Authorization: `Bearer ${segmentToken}`,
         },
         data: JSON.stringify({
           regulation_type: regulationType,
           attributes: {
-            name: 'userId',
+            name: 'USER_ID',
             values: [this.#metametricsId],
           },
         }),
