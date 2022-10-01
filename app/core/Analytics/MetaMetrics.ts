@@ -190,6 +190,18 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Method to store segment's Regulation ID in DefaultPreference.
+   *
+   * @param regulationId - Segment's Regulation ID.
+   */
+  #storeDeleteRegulationId = async (regulationId: string): Promise<void> => {
+    await DefaultPreference.set(
+      METAMETRICS_SEGMENT_REGULATION_ID,
+      regulationId,
+    );
+  };
+
+  /**
    * Method to generate a new delete regulation for an user.
    * This is necessary to respect the GDPR and CCPA regulations.
    * Check Segment documentation for more information.
