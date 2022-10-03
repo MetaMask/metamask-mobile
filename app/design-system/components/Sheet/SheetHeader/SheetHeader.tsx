@@ -5,9 +5,11 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import ButtonLink from '../../Buttons/ButtonLink';
+import ButtonLink from '../../Buttons/Button/variants/ButtonLink';
 import Text, { TextVariant } from '../../Texts/Text';
-import ButtonIcon, { ButtonIconVariant } from '../../Buttons/ButtonIcon';
+import ButtonIcon, {
+  ButtonIconVariant,
+} from '../../Buttons/Button/variants/ButtonIcon';
 import { IconName } from '../../Icon';
 import { useStyles } from '../../../hooks';
 

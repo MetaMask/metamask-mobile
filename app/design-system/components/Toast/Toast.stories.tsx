@@ -7,10 +7,10 @@ import { storiesOf } from '@storybook/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
-import { ButtonBaseSize } from '../Buttons/ButtonBase';
+import { ButtonBaseSize } from '../Buttons/Button/foundation/ButtonBase';
 import ButtonTertiary, {
   ButtonTertiaryVariant,
-} from '../Buttons/ButtonTertiary';
+} from '../Buttons/Button/variants/ButtonTertiary';
 
 // Internal dependencies.
 import Toast from './Toast';

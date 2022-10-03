@@ -15,12 +15,12 @@ function loadStories() {
   require('../app/design-system/components/Badges/Badge/foundation/BadgeBase/BadgeBase.stories');
   require('../app/design-system/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/design-system/components/Badges/BadgeWrapper/BadgeWrapper.stories');
-  require('../app/design-system/components/Buttons/ButtonBase/ButtonBase.stories');
-  require('../app/design-system/components/Buttons/ButtonIcon/ButtonIcon.stories');
-  require('../app/design-system/components/Buttons/ButtonLink/ButtonLink.stories');
-  require('../app/design-system/components/Buttons/ButtonPrimary/ButtonPrimary.stories');
-  require('../app/design-system/components/Buttons/ButtonSecondary/ButtonSecondary.stories');
-  require('../app/design-system/components/Buttons/ButtonTertiary/ButtonTertiary.stories');
+  require('../app/design-system/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories');
+  require('../app/design-system/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories');
+  require('../app/design-system/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
+  require('../app/design-system/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
+  require('../app/design-system/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories');
+  require('../app/design-system/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories');
   require('../app/design-system/components/Cards/Card/Card.stories');
   require('../app/design-system/components/Cells/Cell/Cell.stories');
   require('../app/design-system/components/Cells/Cell/foundation/CellBase/CellBase.stories');
@@ -68,12 +68,12 @@ const stories = [
   '../app/design-system/components/Badges/Badge/foundation/BadgeBase/BadgeBase.stories',
   '../app/design-system/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/design-system/components/Badges/BadgeWrapper/BadgeWrapper.stories',
-  '../app/design-system/components/Buttons/ButtonBase/ButtonBase.stories',
-  '../app/design-system/components/Buttons/ButtonIcon/ButtonIcon.stories',
-  '../app/design-system/components/Buttons/ButtonLink/ButtonLink.stories',
-  '../app/design-system/components/Buttons/ButtonPrimary/ButtonPrimary.stories',
-  '../app/design-system/components/Buttons/ButtonSecondary/ButtonSecondary.stories',
-  '../app/design-system/components/Buttons/ButtonTertiary/ButtonTertiary.stories',
+  '../app/design-system/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories',
+  '../app/design-system/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories',
+  '../app/design-system/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
+  '../app/design-system/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
+  '../app/design-system/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.stories',
+  '../app/design-system/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories',
   '../app/design-system/components/Cards/Card/Card.stories',
   '../app/design-system/components/Cells/Cell/Cell.stories',
   '../app/design-system/components/Cells/Cell/foundation/CellBase/CellBase.stories',

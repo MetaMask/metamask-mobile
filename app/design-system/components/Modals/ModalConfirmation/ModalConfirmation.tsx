@@ -6,13 +6,13 @@ import { View } from 'react-native';
 import ReusableModal, {
   ReusableModalRef,
 } from '../../../../components/UI/ReusableModal';
-import { ButtonBaseSize } from '../../Buttons/ButtonBase';
+import { ButtonBaseSize } from '../../Buttons/Button/foundation/ButtonBase';
 import ButtonSecondary, {
   ButtonSecondaryVariant,
-} from '../../Buttons/ButtonSecondary';
+} from '../../Buttons/Button/variants/ButtonSecondary';
 import ButtonPrimary, {
   ButtonPrimaryVariant,
-} from '../../Buttons/ButtonPrimary';
+} from '../../Buttons/Button/variants/ButtonPrimary';
 import Text, { TextVariant } from '../../Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks';

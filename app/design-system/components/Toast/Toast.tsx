@@ -30,7 +30,7 @@ import AvatarAccount, {
 import AvatarNetwork from '../Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarBaseSize } from '../Avatars/Avatar/foundation/AvatarBase';
 import Text, { TextVariant } from '../Texts/Text';
-import ButtonLink from '../Buttons/ButtonLink';
+import ButtonLink from '../Buttons/Button/variants/ButtonLink';
 
 // Internal dependencies.
 import {
