@@ -28,13 +28,11 @@ const MARGIN = DIAMETER * 0.16;
 const COMPLETE_VERTICAL_THRESHOLD = DIAMETER * 2;
 const COMPLETE_THRESHOLD = 0.85;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     container: {
-      shadowRadius: 8,
-      shadowOpacity: 0.5,
-      shadowColor: colors.primary.default,
-      shadowOffset: { width: 0, height: 3 },
+      ...shadows.size.sm,
+      shadowColor: colors.primary.shadow,
       elevation: 0, // shadow colors not supported on Android. nothing > gray shadow
     },
     disabledContainer: {
@@ -117,8 +115,8 @@ function SliderButton({
 
   const onCompleteCallback = useRef(onComplete);
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   const handleIsPressed = useCallback(
     (isPressed) => {

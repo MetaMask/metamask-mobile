@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
-import Text, { TextVariant } from '../../../../Text';
+import Text, { TextVariant } from '../../../../Texts/Text';
 import { AvatarBaseSize } from '../../../../Avatars/AvatarBase';
 import Tag from '../../../../Tags/Tag';
 import Avatar from '../../../../Avatars/Avatar';

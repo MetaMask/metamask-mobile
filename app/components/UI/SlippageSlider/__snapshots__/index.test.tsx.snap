@@ -206,13 +206,13 @@ exports[`SlippageSlider should render correctly 1`] = `
           "bottom": 0,
           "height": 30,
           "position": "absolute",
-          "shadowColor": "#24292E",
+          "shadowColor": "#0000001A",
           "shadowOffset": Object {
-            "height": 0,
+            "height": 2,
             "width": 0,
           },
-          "shadowOpacity": 0.18,
-          "shadowRadius": 14,
+          "shadowOpacity": 1,
+          "shadowRadius": 16,
           "width": 30,
         },
         Object {

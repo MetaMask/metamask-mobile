@@ -102,14 +102,16 @@ export function renderAccountName(address, identities) {
  */
 
 export async function importAccountFromPrivateKey(private_key) {
+  const { KeyringController, PreferencesController } = Engine.context;
   // Import private key
   let pkey = private_key;
   // Handle PKeys with 0x
   if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
     pkey = pkey.substr(2);
   }
-  const { KeyringController } = Engine.context;
-  return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+  const { importedAccountAddress } =
+    await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+  return PreferencesController.setSelectedAddress(importedAccountAddress);
 }
 
 /**
