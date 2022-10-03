@@ -77,15 +77,6 @@ const styles = StyleSheet.create({
     paddingRight: Device.isAndroid() ? 22 : 18,
     marginTop: 5,
   },
-  browserRightButton: {
-    flex: 1,
-    marginRight: Device.isAndroid() ? 17 : 18,
-    marginLeft: Device.isAndroid() ? 7 : 0,
-    marginTop: 12,
-    marginBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   disabled: {
     opacity: 0.3,
   },

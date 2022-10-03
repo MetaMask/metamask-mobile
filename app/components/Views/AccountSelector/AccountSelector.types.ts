@@ -1,5 +1,5 @@
 // External dependencies.
-import { UseAccountsParams } from 'app/components/hooks/useAccounts';
+import { UseAccountsParams } from '../../../components/hooks/useAccounts';
 
 /**
  * AccountSelectorProps props.

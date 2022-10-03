@@ -56,7 +56,6 @@ interface RPCMethodsMiddleParameters {
 export const checkActiveAccountAndChainId = async ({
   address,
   chainId,
-  // activeAccounts,
   isWalletConnect,
   hostname,
 }: any) => {

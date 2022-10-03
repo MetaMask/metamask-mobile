@@ -25,7 +25,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import AvatarAccount, { AvatarAccountType } from '../Avatars/AvatarAccount';
+import AvatarAccount from '../Avatars/AvatarAccount';
 import AvatarNetwork from '../Avatars/AvatarNetwork';
 import { AvatarBaseSize } from '../Avatars/AvatarBase';
 import Text, { TextVariant } from '../Texts/Text';
@@ -40,7 +40,6 @@ import {
   ToastVariant,
 } from './Toast.types';
 import styles from './Toast.styles';
-import { useSelector } from 'react-redux';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -62,11 +61,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       /* eslint-disable-next-line */
       [],
     );
-  const accountAvatarType = useSelector((state: any) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
   const showToast = (options: ToastOptions) => {
     let timeoutDuration = 0;
@@ -138,7 +132,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       case ToastVariant.Plain:
         return null;
       case ToastVariant.Account: {
-        const { accountAddress } = toastOptions;
+        const { accountAddress, accountAvatarType } = toastOptions;
         return (
           <AvatarAccount
             accountAddress={accountAddress}

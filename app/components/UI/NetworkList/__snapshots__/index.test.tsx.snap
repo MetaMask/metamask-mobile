@@ -22,5 +22,6 @@ exports[`NetworkList should render correctly 1`] = `
       "type": "mainnet",
     }
   }
+  shouldNetworkSwitchPopToWallet={false}
 />
 `;

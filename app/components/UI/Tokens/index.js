@@ -28,6 +28,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import Text from '../../Base/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import { getDecimalChainId, isTestNet } from '../../../util/networks';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -323,7 +324,9 @@ class Tokens extends PureComponent {
   showDetectedTokens = () => {
     const { NetworkController } = Engine.context;
     const { detectedTokens } = this.props;
-    this.props.navigation.navigate('DetectedTokens');
+    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'DetectedTokens',
+    });
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
         AnalyticsV2.ANALYTICS_EVENTS.TOKEN_IMPORT_CLICKED,

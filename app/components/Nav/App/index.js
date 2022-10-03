@@ -58,6 +58,23 @@ import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
+import DetectedTokens from '../../Views/DetectedTokens';
+import DetectedTokensConfirmation from '../../Views/DetectedTokensConfirmation';
+import AssetOptions from '../../Views/AssetOptions';
+
+const clearStackNavigatorOptions = {
+  headerShown: false,
+  cardStyle: {
+    backgroundColor: 'transparent',
+    cardStyleInterpolator: () => ({
+      overlayStyle: {
+        opacity: 0,
+      },
+    }),
+  },
+  animationEnabled: false,
+};
 
 const Stack = createStackNavigator();
 /**
@@ -341,15 +358,22 @@ const App = ({ userLoggedIn }) => {
     return null;
   };
 
-  const RootModalFlow = () => (
+  const DetectedTokensFlow = () => (
     <Stack.Navigator
       mode={'modal'}
-      screenOptions={{
-        headerShown: false,
-        cardStyle: { backgroundColor: importedColors.transparent },
-        animationEnabled: false,
-      }}
+      screenOptions={clearStackNavigatorOptions}
+      initialRouteName={'DetectedTokens'}
     >
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+      <Stack.Screen
+        name={'DetectedTokensConfirmation'}
+        component={DetectedTokensConfirmation}
+      />
+    </Stack.Navigator>
+  );
+
+  const RootModalFlow = () => (
+    <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
       <Stack.Screen
         name={Routes.MODAL.DELETE_WALLET}
         component={DeleteWalletModal}
@@ -375,6 +399,12 @@ const App = ({ userLoggedIn }) => {
         name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
         component={TurnOffRememberMeModal}
       />
+      <Stack.Screen
+        name={'AssetHideConfirmation'}
+        component={AssetHideConfirmation}
+      />
+      <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+      <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
     </Stack.Navigator>
   );
 

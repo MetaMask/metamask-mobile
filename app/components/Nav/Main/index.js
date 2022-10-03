@@ -230,7 +230,7 @@ const Main = (props) => {
         variant: ToastVariant.Network,
         labelOptions: [
           {
-            label: networkName,
+            label: `${networkName} `,
             isBold: true,
           },
           { label: strings('toast.now_active') },

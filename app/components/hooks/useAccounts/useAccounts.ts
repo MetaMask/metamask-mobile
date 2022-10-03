@@ -141,11 +141,12 @@ const useAccounts = ({
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || 0x0;
         const balanceETH = renderFromWei(balanceWeiHex); // Gives ETH
-        const balanceFiat = weiToFiat(
-          hexToBN(balanceWeiHex) as any,
-          conversionRate,
-          currentCurrency,
-        );
+        const balanceFiat =
+          weiToFiat(
+            hexToBN(balanceWeiHex) as any,
+            conversionRate,
+            currentCurrency,
+          ) || '';
         const balanceTicker = getTicker(ticker);
         const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
         const balanceError = checkBalanceError?.(balanceWeiHex);

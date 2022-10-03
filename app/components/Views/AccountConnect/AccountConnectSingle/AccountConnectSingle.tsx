@@ -12,7 +12,7 @@ import Cell, {
   CellVariants,
 } from '../../../../component-library/components/Cells/Cell';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import ButtonPrimary, {
   ButtonPrimaryVariant,

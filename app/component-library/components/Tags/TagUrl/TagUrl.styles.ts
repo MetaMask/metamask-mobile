@@ -35,8 +35,10 @@ const styleSheet = (params: { theme: Theme; vars: TagUrlStyleSheetVars }) => {
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    favicon: {
+      marginRight: 8,
+    },
     label: {
-      marginLeft: 8,
       color: colors.text.alternative,
       flexShrink: 1,
     },
@@ -44,7 +46,8 @@ const styleSheet = (params: { theme: Theme; vars: TagUrlStyleSheetVars }) => {
       marginLeft: 16,
     },
     icon: {
-      marginLeft: 8,
+      color: colors.icon.alternative,
+      marginRight: 4,
     },
   });
 };

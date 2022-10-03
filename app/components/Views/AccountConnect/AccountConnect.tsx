@@ -2,7 +2,6 @@
 import React, {
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -32,6 +31,8 @@ import { IconName } from '../../../component-library/components/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
+import { safeToChecksumAddress } from '../../../util/address';
 
 // Internal dependencies.
 import {
@@ -46,8 +47,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
   const { hostInfo } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
-  const prevSelectedAddress = useRef();
-  const shouldAutoSwitchSelectedAccount = useRef(true);
   const selectedWalletAddress = useSelector(
     (state: any) =>
       state.engine.backgroundState.PreferencesController.selectedAddress,
@@ -63,6 +62,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
   });
   const { toastRef } = useContext(ToastContext);
+  const accountAvatarType = useSelector((state: any) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   const hostname = hostInfo.metadata.origin;
@@ -71,7 +75,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
         ? IconName.LockFilled
-        : IconName.WarningFilled,
+        : IconName.LockSlashFilled,
     [origin],
   );
   /**
@@ -121,23 +125,24 @@ const AccountConnect = (props: AccountConnectProps) => {
         let labelOptions: ToastOptions['labelOptions'] = [];
         if (connectedAccountLength > 1) {
           labelOptions = [
-            { label: `${connectedAccountLength}`, isBold: true },
+            { label: `${connectedAccountLength} `, isBold: true },
             {
               label: `${strings('toast.accounts_connected')}`,
             },
-            { label: `\n${activeAccountName}`, isBold: true },
+            { label: `\n${activeAccountName} `, isBold: true },
             { label: strings('toast.now_active') },
           ];
         } else {
           labelOptions = [
-            { label: activeAccountName, isBold: true },
-            { label: strings('toast.connected') },
+            { label: `${activeAccountName} `, isBold: true },
+            { label: strings('toast.connected_and_active') },
           ];
         }
         toastRef?.current?.showToast({
           variant: ToastVariant.Account,
           labelOptions,
           accountAddress: activeAddress,
+          accountAvatarType,
         });
       } catch (e: any) {
         Logger.error(e, 'Error while trying to connect to a dApp.');
@@ -147,16 +152,25 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
     },
     /* eslint-disable-next-line */
-    [selectedAddresses, hostInfo, accounts, ensByAccountAddress, hostname],
+    [
+      selectedAddresses,
+      hostInfo,
+      accounts,
+      ensByAccountAddress,
+      hostname,
+      accountAvatarType,
+    ],
   );
 
   const onCreateAccount = useCallback(async (isMultiSelect?: boolean) => {
-    const { KeyringController, PreferencesController } = Engine.context;
+    const { KeyringController } = Engine.context;
     try {
-      shouldAutoSwitchSelectedAccount.current = !isMultiSelect;
       setIsLoading(true);
       const { addedAccountAddress } = await KeyringController.addNewAccount();
-      PreferencesController.setSelectedAddress(addedAccountAddress);
+      const checksummedAddress = safeToChecksumAddress(
+        addedAccountAddress,
+      ) as string;
+      !isMultiSelect && setSelectedAddresses([checksummedAddress]);
       AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
@@ -165,18 +179,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
     /* eslint-disable-next-line */
   }, []);
-
-  // This useEffect is used for auto selecting the newly created account post account creation.
-  useEffect(() => {
-    if (isLoading && prevSelectedAddress.current !== selectedWalletAddress) {
-      shouldAutoSwitchSelectedAccount.current &&
-        setSelectedAddresses([selectedWalletAddress]);
-      prevSelectedAddress.current = selectedWalletAddress;
-    }
-    if (!prevSelectedAddress.current) {
-      prevSelectedAddress.current = selectedWalletAddress;
-    }
-  }, [selectedWalletAddress, isLoading, selectedAddresses]);
 
   const renderSingleConnectScreen = useCallback(() => {
     const selectedAddress = selectedAddresses[0];

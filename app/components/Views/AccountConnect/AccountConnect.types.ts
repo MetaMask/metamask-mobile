@@ -16,7 +16,9 @@ export interface AccountConnectProps {
    */
   route: {
     params: {
-      hostInfo: any;
+      hostInfo: {
+        metadata: { origin: string };
+      };
     };
   };
 }

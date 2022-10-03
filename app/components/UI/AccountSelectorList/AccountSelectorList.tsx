@@ -10,7 +10,7 @@ import Cell, {
   CellVariants,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
-import Text from '../../../component-library/components/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { formatAddress } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';

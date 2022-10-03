@@ -30,6 +30,8 @@ import {
   NETWORK_SCROLL_ID,
 } from '../../../constants/test-ids';
 import ImageIcon from '../ImageIcon';
+import AvatarNetwork from '../../../component-library/components/Avatars/AvatarNetwork';
+import { AvatarBaseSize } from '../../../component-library/components/Avatars/AvatarBase';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -262,6 +264,7 @@ export class NetworkList extends PureComponent {
     i,
     network,
     isCustomRpc,
+    color,
   ) => {
     const styles = this.getStyles();
 
@@ -276,7 +279,11 @@ export class NetworkList extends PureComponent {
           (image ? (
             <ImageIcon image={image} style={styles.networkIcon} />
           ) : (
-            <View style={styles.networkIcon} />
+            <AvatarNetwork
+              name={name}
+              size={AvatarBaseSize.Sm}
+              style={styles.networkIcon}
+            />
           ))}
         {!isCustomRpc &&
           (image ? (
@@ -285,7 +292,7 @@ export class NetworkList extends PureComponent {
               style={styles.networkIcon}
             />
           ) : (
-            <View style={[styles.networkIcon, { backgroundColor: image }]}>
+            <View style={[styles.networkIcon, { backgroundColor: color }]}>
               <Text style={styles.text}>{name[0]}</Text>
             </View>
           ))}
@@ -303,7 +310,7 @@ export class NetworkList extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
 
     return this.getOtherNetworks().map((network, i) => {
-      const { name, imageSource } = Networks[network];
+      const { name, imageSource, color } = Networks[network];
       const isCustomRpc = false;
       const selected =
         provider.type === network ? (
@@ -317,6 +324,7 @@ export class NetworkList extends PureComponent {
         i,
         network,
         isCustomRpc,
+        color,
       );
     });
   };
