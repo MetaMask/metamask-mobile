@@ -4,7 +4,7 @@ import { text, select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { TextVariant } from '../../../design-system/components/Texts/Text/Text.types';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
 // Internal dependencies.
 import TextEstimated from './TextEstimated';

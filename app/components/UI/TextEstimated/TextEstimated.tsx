@@ -4,9 +4,12 @@
 import React from 'react';
 
 // External dependencies.
-import { IconName, IconProps } from '../../../design-system/components/Icon';
-import TextWithPrefixIcon from '../../../design-system/components/Texts/TextWithPrefixIcon';
-import { TextVariant } from '../../../design-system/components/Texts/Text/Text.types';
+import {
+  IconName,
+  IconProps,
+} from '../../../component-library/components/Icon';
+import TextWithPrefixIcon from '../../../component-library/components/Texts/TextWithPrefixIcon';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
 
 // Internal dependencies.
 import {

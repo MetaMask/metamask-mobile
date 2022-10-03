@@ -345,9 +345,9 @@
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [
-        "./app/design-system/components",
+        "./app/component-library/components",
         "./app/components",
-        "./app/design-system/components-temp"
+        "./app/component-library/components-temp"
       ],
       "pattern": "**/*.stories.@(js|tsx)",
       "outputFile": "./storybook/storyLoader.js"
