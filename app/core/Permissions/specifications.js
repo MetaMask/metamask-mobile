@@ -148,7 +148,8 @@ function validateCaveatAccounts(accounts, getIdentities) {
   }
 
   const identities = getIdentities();
-  accounts.forEach(({ address }) => {
+  accounts.forEach((account) => {
+    const address = account?.address;
     if (!address || typeof address !== 'string') {
       throw new Error(
         `${PermissionKeys.eth_accounts} error: Expected an array of objects that contains an Ethereum addresses. Received: "${address}".`,

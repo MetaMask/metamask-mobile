@@ -5,9 +5,6 @@ import {
   unrestrictedMethods,
 } from './specifications';
 
-// Note: This causes Date.now() to return the number 1.
-jest.useFakeTimers('modern').setSystemTime(1);
-
 describe('PermissionController specifications', () => {
   describe('caveat specifications', () => {
     it('getCaveatSpecifications returns the expected specifications object', () => {
@@ -22,6 +19,10 @@ describe('PermissionController specifications', () => {
       describe('decorator', () => {
         it('returns the first array member included in the caveat value', async () => {
           const getIdentities = jest.fn();
+          const caveatValues = [
+            { address: '0x1', lastUsed: '1' },
+            { address: '0x2', lastUsed: '2' },
+          ];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -29,14 +30,16 @@ describe('PermissionController specifications', () => {
           const method = async () => ['0x1', '0x2', '0x3'];
           const caveat = {
             type: CaveatTypes.restrictReturnedAccounts,
-            value: ['0x1', '0x2'],
+            value: caveatValues,
           };
           const decorated = decorator(method, caveat);
-          expect(await decorated()).toStrictEqual(['0x1']);
+
+          expect(await decorated()).toStrictEqual([caveatValues[0]]);
         });
 
         it('returns an empty array if no array members are included in the caveat value', async () => {
           const getIdentities = jest.fn();
+          const caveatValues = [{ address: '0x5', lastUsed: '1' }];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -44,7 +47,7 @@ describe('PermissionController specifications', () => {
           const method = async () => ['0x1', '0x2', '0x3'];
           const caveat = {
             type: CaveatTypes.restrictReturnedAccounts,
-            value: ['0x5'],
+            value: caveatValues,
           };
           const decorated = decorator(method, caveat);
           expect(await decorated()).toStrictEqual([]);
@@ -52,6 +55,10 @@ describe('PermissionController specifications', () => {
 
         it('returns an empty array if the method result is an empty array', async () => {
           const getIdentities = jest.fn();
+          const caveatValues = [
+            { address: '0x1', lastUsed: '1' },
+            { address: '0x2', lastUsed: '2' },
+          ];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -59,7 +66,7 @@ describe('PermissionController specifications', () => {
           const method = async () => [];
           const caveat = {
             type: CaveatTypes.restrictReturnedAccounts,
-            value: ['0x1', '0x2'],
+            value: caveatValues,
           };
           const decorated = decorator(method, caveat);
           expect(await decorated()).toStrictEqual([]);
@@ -88,7 +95,7 @@ describe('PermissionController specifications', () => {
 
           [[{}], [[]], [null], ['']].forEach((invalidValue) => {
             expect(() => validator({ value: invalidValue })).toThrow(
-              /Expected an array of Ethereum addresses. Received:/u,
+              /Expected an array of objects that contains an Ethereum addresses. Received:/u,
             );
           });
         });
@@ -98,12 +105,17 @@ describe('PermissionController specifications', () => {
             '0x1': true,
             '0x3': true,
           }));
+          const caveatValues = [
+            { address: '0x1', lastUsed: '1' },
+            { address: '0x2', lastUsed: '2' },
+            { address: '0x3', lastUsed: '3' },
+          ];
 
           const { validator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
 
-          expect(() => validator({ value: ['0x1', '0x2', '0x3'] })).toThrow(
+          expect(() => validator({ value: caveatValues })).toThrow(
             /Received unrecognized address:/u,
           );
         });
@@ -140,7 +152,7 @@ describe('PermissionController specifications', () => {
                 value: ['0x1'],
               },
             ],
-            date: 1,
+            date: expect.any(Number),
             id: expect.any(String),
             invoker: 'foo.bar',
             parentCapability: 'eth_accounts',
