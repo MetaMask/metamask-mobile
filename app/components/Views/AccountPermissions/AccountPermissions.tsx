@@ -34,6 +34,7 @@ import { IconName } from '../../../component-library/components/Icon';
 import { getUrlObj } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
 
 // Internal dependencies.
 import {
@@ -50,6 +51,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       metadata: { origin: hostname },
     },
   } = props.route.params;
+  const accountAvatarType = useSelector((state: any) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
   const origin: string = useSelector(getActiveTabUrl, isEqual);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
@@ -57,7 +63,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     () =>
       (getUrlObj(origin) as URL).protocol === 'https:'
         ? IconName.LockFilled
-        : IconName.WarningFilled,
+        : IconName.LockSlashFilled,
     [origin],
   );
   /**
@@ -118,11 +124,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
   const onCreateAccount = useCallback(
     async () => {
-      const { KeyringController, PreferencesController } = Engine.context;
+      const { KeyringController } = Engine.context;
       try {
         setIsLoading(true);
-        const { addedAccountAddress } = await KeyringController.addNewAccount();
-        PreferencesController.setSelectedAddress(addedAccountAddress);
+        await KeyringController.addNewAccount();
         AnalyticsV2.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
       } catch (e: any) {
         Logger.error(e, 'Error while trying to add a new account.');
@@ -150,20 +155,24 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let labelOptions: ToastOptions['labelOptions'] = [];
       if (connectedAccountLength > 1) {
         labelOptions = [
-          { label: `${connectedAccountLength}`, isBold: true },
+          { label: `${connectedAccountLength} `, isBold: true },
           {
             label: `${strings('toast.accounts_connected')}\n`,
           },
+          { label: `${activeAccountName} `, isBold: true },
+          { label: strings('toast.now_active') },
+        ];
+      } else {
+        labelOptions = [
+          { label: `${activeAccountName} `, isBold: true },
+          { label: strings('toast.connected_and_active') },
         ];
       }
-      labelOptions = labelOptions.concat([
-        { label: activeAccountName, isBold: true },
-        { label: strings('toast.now_active') },
-      ]);
       toastRef?.current?.showToast({
         variant: ToastVariant.Account,
         labelOptions,
         accountAddress: newActiveAddress,
+        accountAvatarType,
       });
     } catch (e: any) {
       Logger.error(e, 'Error while trying to connect to a dApp.');
@@ -179,6 +188,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
     ensByAccountAddress,
     toastRef,
+    accountAvatarType,
   ]);
 
   const renderConnectedScreen = useCallback(
@@ -194,6 +204,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
+        accountAvatarType={accountAvatarType}
       />
     ),
     [
@@ -207,6 +218,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       favicon,
       hostname,
       secureIcon,
+      accountAvatarType,
     ],
   );
 
@@ -252,6 +264,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         favicon={favicon}
         hostname={hostname}
         secureIcon={secureIcon}
+        accountAvatarType={accountAvatarType}
       />
     ),
     [
@@ -264,6 +277,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       favicon,
       hostname,
       secureIcon,
+      accountAvatarType,
     ],
   );
 

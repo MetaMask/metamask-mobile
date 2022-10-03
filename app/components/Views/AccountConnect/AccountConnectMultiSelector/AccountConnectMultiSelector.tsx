@@ -8,7 +8,7 @@ import SheetActions from '../../../../component-library/components-temp/SheetAct
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import ButtonPrimary, {
   ButtonPrimaryVariant,

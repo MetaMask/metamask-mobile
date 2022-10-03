@@ -23,6 +23,8 @@ import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
+import AvatarNetwork from '../../../../component-library/components/Avatars/AvatarNetwork';
+import { AvatarBaseSize } from '../../../../component-library/components/Avatars/AvatarBase';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -207,7 +209,11 @@ class NetworksSettings extends PureComponent {
                 (image ? (
                   <ImageIcons image={image} style={styles.networkIcon} />
                 ) : (
-                  <View style={styles.networkIcon} />
+                  <AvatarNetwork
+                    name={name}
+                    size={AvatarBaseSize.Sm}
+                    style={styles.networkIcon}
+                  />
                 ))}
               {!isCustomRPC && (
                 <View style={[styles.networkIcon, { backgroundColor: image }]}>

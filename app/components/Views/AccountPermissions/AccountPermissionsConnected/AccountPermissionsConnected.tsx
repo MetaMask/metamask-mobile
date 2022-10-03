@@ -39,6 +39,7 @@ const AccountPermissionsConnected = ({
   hostname,
   favicon,
   secureIcon,
+  accountAvatarType,
 }: AccountPermissionsConnectedProps) => {
   const dispatch = useDispatch();
   const networkController = useSelector(
@@ -78,12 +79,13 @@ const AccountPermissionsConnected = ({
         variant: ToastVariant.Account,
         labelOptions: [
           {
-            label: activeAccountName,
+            label: `${activeAccountName} `,
             isBold: true,
           },
           { label: strings('toast.now_active') },
         ],
         accountAddress: address,
+        accountAvatarType,
       });
     },
     [
@@ -93,6 +95,7 @@ const AccountPermissionsConnected = ({
       ensByAccountAddress,
       hostname,
       toastRef,
+      accountAvatarType,
     ],
   );
 

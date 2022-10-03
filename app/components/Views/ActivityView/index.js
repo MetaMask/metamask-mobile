@@ -81,6 +81,6 @@ const ActivityView = () => {
       </View>
     </ErrorBoundary>
   );
-}
+};
 
 export default ActivityView;
