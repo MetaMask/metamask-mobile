@@ -1,6 +1,7 @@
 // Internal dependencies.
 import { AvatarAccountProps } from './variants/AvatarAccount/AvatarAccount.types';
 import { AvatarFaviconProps } from './variants/AvatarFavicon/AvatarFavicon.types';
+import { AvatarIconProps } from './variants/AvatarIcon/AvatarIcon.types';
 import { AvatarNetworkProps } from './variants/AvatarNetwork/AvatarNetwork.types';
 import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
 
@@ -21,6 +22,7 @@ export enum AvatarSize {
 export enum AvatarVariants {
   Account = 'Account',
   Favicon = 'Favicon',
+  Icon = 'Icon',
   Network = 'Network',
   Token = 'Token',
 }
@@ -30,5 +32,6 @@ export enum AvatarVariants {
 export type AvatarProps =
   | AvatarAccountProps
   | AvatarFaviconProps
+  | AvatarIconProps
   | AvatarNetworkProps
   | AvatarTokenProps;
