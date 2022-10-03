@@ -19,7 +19,7 @@ Optional enum to select between Typography variants.
 ```javascript
 // Replace import with relative path.
 import TextEstimated from 'app/components/UI/TextEstimated';
-import { TextVariant } from 'app/component-library/components/Texts/Text';
+import { TextVariant } from 'app/design-system/components/Texts/Text';
 
 <TextEstimated variant={TextVariant.lBodyMD}>
     {SAMPLE_TEXT}

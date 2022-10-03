@@ -50,10 +50,8 @@ import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
-import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
-import Toast, {
-  ToastContext,
-} from '../../../component-library/components/Toast';
+import ModalConfirmation from '../../../design-system/components/Modals/ModalConfirmation';
+import Toast, { ToastContext } from '../../../design-system/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 
 const Stack = createStackNavigator();

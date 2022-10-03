@@ -6,7 +6,7 @@ import { text, boolean } from '@storybook/addon-knobs';
 
 import Text from './Text';
 
-storiesOf('Base / Text', module)
+storiesOf('Components / Base / Text', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => (
     <Text

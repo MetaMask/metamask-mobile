@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import Text, {
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '../../../design-system/components/Texts/Text';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';

@@ -8,7 +8,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import Text from '../..//Base/Text';
 import { useTheme } from '../../../../app/util/theme';
 import { strings } from '../../../../locales/i18n';
-import { useStyles } from '../../../component-library/hooks';
+import { useStyles } from '../../../design-system/hooks';
 
 // Internal dependencies.
 import { WarningAlertProps } from './WarningAlert.types';
