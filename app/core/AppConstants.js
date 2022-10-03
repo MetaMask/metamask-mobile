@@ -65,13 +65,18 @@ export default {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
   },
+  WALLET_CONNECT: {
+    //One day in hours
+    SESSION_LIFETIME: 24,
+    LIMIT_SESSIONS: 20,
+  },
   SWAPS: {
     ACTIVE: true,
     ONLY_MAINNET: true,
     CLIENT_ID: 'mobile',
     LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
     POLL_COUNT_LIMIT: 3,
-    DEFAULT_SLIPPAGE: 3,
+    DEFAULT_SLIPPAGE: 2,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,

@@ -1,5 +1,5 @@
 // External dependencies.
-import { TextProps } from '../../Text/Text.types';
+import { TextProps } from '../../Texts/Text/Text.types';
 
 /**
  * ButtonLink component props.

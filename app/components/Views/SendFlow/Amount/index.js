@@ -655,6 +655,7 @@ class Amount extends PureComponent {
         amount: BNToHex(tokenAmount),
       });
       transactionObject.value = '0x0';
+      transactionObject.to = selectedAsset.address;
     }
 
     if (selectedAsset.erc20) {

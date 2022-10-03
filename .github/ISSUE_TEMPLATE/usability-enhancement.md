@@ -13,8 +13,8 @@ _A clear and concise description of the specific usability issue_
 **Screenshots**
 _If applicable, add screenshots or links to help explain the issue_
 
-**Expected behavior**
-_If possible, a clear and concise description / resolution of what you expected to happen_
+**Proposed behavior**
+_If possible, a clear and concise description / resolution of what you propose to happen_
 
 ------------------------------------------------------------------------------------------------------
 _filled out after submission_

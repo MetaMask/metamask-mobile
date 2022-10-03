@@ -8,7 +8,7 @@ import { TouchableOpacity } from 'react-native';
 import { AvatarBaseSize } from '../../Avatars/AvatarBase';
 import AvatarNetwork from '../../Avatars/AvatarNetwork';
 import Icon, { IconName, IconSize } from '../../Icon';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.

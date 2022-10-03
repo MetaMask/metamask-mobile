@@ -1996,5 +1996,15 @@
     "token_detection_mainnet_title": "Deteksi token diaktifkan sehingga banyak token akan muncul di dompet Anda secara otomatis.",
     "token_detection_mainnet_link": "Anda juga dapat menambahkan token secara manual.",
     "or": "atau"
+  },
+  "remember_me": {
+    "enable_remember_me": "Aktifkan Ingatkan saya",
+    "enable_remember_me_description": "Saat Ingatkan saya aktif, siapa pun yang memiliki akses ke ponsel Anda dapat mengakses akun MetaMask Anda."
+  },
+  "turn_off_remember_me": {
+    "title": "Masukkan kata sandi Anda untuk menonaktifkan Ingatkan saya",
+    "placeholder": "Kata sandi",
+    "description": "Jika Anda menonaktifkan opsi ini, Anda memerlukan kata sandi untuk membuka MetaMask mulai sekarang.",
+    "action": "Nonaktifkan Ingatkan saya"
   }
 }

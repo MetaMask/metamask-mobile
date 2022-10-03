@@ -1996,5 +1996,15 @@
     "token_detection_mainnet_title": "토큰 감지가 활성화되어 여러 토큰이 자동으로 지갑에 나타납니다.",
     "token_detection_mainnet_link": "또한 수동으로 토큰을 추가할 수도 있습니다.",
     "or": "또는"
+  },
+  "remember_me": {
+    "enable_remember_me": "로그인 정보 저장",
+    "enable_remember_me_description": "로그인 정보를 저장하면 회원님의 휴대폰을 이용하는 모든 사람이 회원님의 MetaMask 계정에 액세스할 수 있습니다."
+  },
+  "turn_off_remember_me": {
+    "title": "로그인 정보 저장 기능을 끄려면 비밀번호를 입력하세요",
+    "placeholder": "비밀번호",
+    "description": "이 기능을 끄면 지금부터 비밀번호를 사용하여 MetaMask를 잠금 해제해야 합니다.",
+    "action": "로그인 정보 저장 끄기"
   }
 }
