@@ -12,7 +12,6 @@ config.capabilities = [
     platformVersion: '11',
     app: '../android/app/build/outputs/apk/qa/debug/app-qa-debug.apk',
     automationName: 'uiautomator2',
-    language: 'en'
   },
 ];
 
