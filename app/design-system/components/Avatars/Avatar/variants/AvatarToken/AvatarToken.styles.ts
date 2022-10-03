@@ -2,7 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
@@ -47,7 +47,7 @@ const styleSheet = (params: {
     ...avatarSizeWithHalo,
   };
 
-  const haloSize = Number(AvatarBaseSize.Md);
+  const haloSize = Number(AvatarSize.Md);
 
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
@@ -62,7 +62,7 @@ const styleSheet = (params: {
       overflow: 'hidden',
       borderRadius: haloSize / 2,
     },
-    label: size === AvatarBaseSize.Xs ? { lineHeight: 16 } : {},
+    label: size === AvatarSize.Xs ? { lineHeight: 16 } : {},
     image: {
       flex: 1,
       height: undefined,

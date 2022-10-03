@@ -5,7 +5,7 @@ import { storiesOf } from '@storybook/react-native';
 import { boolean, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
@@ -26,12 +26,7 @@ storiesOf('Design System / AvatarToken', module)
     </View>
   ))
   .add('With remote image', () => {
-    const sizeSelector = select(
-      'size',
-      AvatarBaseSize,
-      AvatarBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
       'imageSource.uri',
@@ -53,12 +48,7 @@ storiesOf('Design System / AvatarToken', module)
     );
   })
   .add('With remote image & halo effect', () => {
-    const sizeSelector = select(
-      'size',
-      AvatarBaseSize,
-      AvatarBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const includesImage = boolean('Includes image', true, groupId);
     const imageUrlSelector = select(
       'imageSource.uri',
@@ -82,24 +72,19 @@ storiesOf('Design System / AvatarToken', module)
   })
   .add('With local image', () => (
     <AvatarToken
-      size={AvatarBaseSize.Lg}
+      size={AvatarSize.Lg}
       name={TEST_TOKEN_NAME}
       imageSource={TEST_LOCAL_IMAGE_SOURCE}
     />
   ))
   .add('Without image', () => {
-    const sizeSelector = select(
-      'size',
-      AvatarBaseSize,
-      AvatarBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
 
     return <AvatarToken size={sizeSelector} name={tokenNameSelector} />;
   })
   .add('Without image and name', () => {
-    const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
 
     return <AvatarToken size={sizeSelector} />;
   });

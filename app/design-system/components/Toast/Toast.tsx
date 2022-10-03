@@ -28,7 +28,7 @@ import AvatarAccount, {
   AvatarAccountType,
 } from '../Avatars/Avatar/variants/AvatarAccount';
 import AvatarNetwork from '../Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarBaseSize } from '../Avatars/Avatar/foundation/AvatarBase';
+import AvatarSize from '../Avatars/Avatar/Avatar';
 import Text, { TextVariant } from '../Texts/Text';
 import ButtonLink from '../Buttons/Button/variants/ButtonLink';
 
@@ -132,7 +132,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           <AvatarAccount
             accountAddress={accountAddress}
             type={AvatarAccountType.JazzIcon}
-            size={AvatarBaseSize.Md}
+            size={AvatarSize.Md}
             style={styles.avatar}
           />
         );
@@ -143,7 +143,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           return (
             <AvatarNetwork
               imageSource={networkImageSource}
-              size={AvatarBaseSize.Md}
+              size={AvatarSize.Md}
               style={styles.avatar}
             />
           );

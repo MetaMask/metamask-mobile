@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarBaseSize } from '../AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
@@ -18,7 +18,7 @@ describe('AvatarNetwork', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarNetwork
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_NETWORK_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
@@ -29,7 +29,7 @@ describe('AvatarNetwork', () => {
   it('should render remote network image', () => {
     const wrapper = shallow(
       <AvatarNetwork
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_NETWORK_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
@@ -44,7 +44,7 @@ describe('AvatarNetwork', () => {
   it('should render local network image', () => {
     const wrapper = shallow(
       <AvatarNetwork
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_NETWORK_NAME}
         imageSource={TEST_LOCAL_IMAGE_SOURCE}
       />,
@@ -59,7 +59,7 @@ describe('AvatarNetwork', () => {
   it('should render fallback when image fails to load', () => {
     const wrapper = shallow(
       <AvatarNetwork
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_NETWORK_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
@@ -77,7 +77,7 @@ describe('AvatarNetwork', () => {
 
   it('should render fallback when image is not provided', () => {
     const wrapper = shallow(
-      <AvatarNetwork size={AvatarBaseSize.Xl} name={TEST_NETWORK_NAME} />,
+      <AvatarNetwork size={AvatarSize.Xl} name={TEST_NETWORK_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === NETWORK_AVATAR_IMAGE_ID,

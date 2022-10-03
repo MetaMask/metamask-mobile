@@ -19,7 +19,7 @@ A favicon image from either a local or remote source.
 ```javascript
 // Replace import with relative path.
 import AvatarFavicon from 'app/design-system/components/Avatars/AvatarAccount';
-import { AvatarBaseSize } from 'app/design-system/components/Avatars/Avatar/foundation/AvatarBase';
+import { AvatarSize } from 'app/design-system/components/Avatars/Avatar/Avatar';
 
-<AvatarFavicon size={AvatarBaseSize.Md} imageSource={{ uri: IMAGE_URL }} />;
+<AvatarFavicon size={AvatarSize.Md} imageSource={{ uri: IMAGE_URL }} />;
 ```

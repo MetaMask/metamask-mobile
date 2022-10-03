@@ -4,7 +4,8 @@
 import React from 'react';
 
 // External dependencies.
-import AvatarBase, { AvatarBaseSize } from '../../foundation/AvatarBase';
+import AvatarBase from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import Icon from '../../../../Icon';
 import { useStyles } from '../../../../../hooks';
 
@@ -14,7 +15,7 @@ import { AvatarIconProps } from './AvatarIcon.types';
 import { ICON_SIZE_BY_AVATAR_SIZE } from './AvatarIcon.constants';
 
 const AvatarIcon = ({
-  size = AvatarBaseSize.Md,
+  size = AvatarSize.Md,
   name,
   style,
   ...props

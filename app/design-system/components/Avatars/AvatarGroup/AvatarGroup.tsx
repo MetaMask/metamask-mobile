@@ -4,7 +4,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import { AvatarBaseSize } from '../Avatar/foundation/AvatarBase';
+import { AvatarSize } from '../Avatar/Avatar.types';
 import Text, { TextVariant } from '../../Texts/Text';
 import AvatarToken from '../Avatar/variants/AvatarToken';
 
@@ -17,7 +17,7 @@ import {
 } from './AvatarGroup.constants';
 
 const AvatarGroup = ({ tokenList }: AvatarGroupProps) => {
-  const extraSmallSize = AvatarBaseSize.Xs;
+  const extraSmallSize = AvatarSize.Xs;
   const sizeAsNumber = Number(extraSmallSize);
   const overflowCounter = tokenList.length - MAX_STACKED_AVATARS;
   const avatarSpacing = sizeAsNumber / 2;

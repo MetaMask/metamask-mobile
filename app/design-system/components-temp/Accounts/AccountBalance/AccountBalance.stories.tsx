@@ -40,7 +40,7 @@ const badgeProps: BadgeProps = {
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };
 
-const unknownBadgeProps = {
+const unknownBadgeProps: BadgeProps = {
   variant: BadgeVariants.Network,
 };
 

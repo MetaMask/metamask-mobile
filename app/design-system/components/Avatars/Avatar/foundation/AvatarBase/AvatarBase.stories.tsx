@@ -9,13 +9,13 @@ import { toDataUrl } from '../../../../../../util/blockies';
 
 // Internal dependencies.
 import AvatarBase from './AvatarBase';
-import { AvatarBaseSize } from './AvatarBase.types';
+import { AvatarSize } from '../../Avatar.types';
 import { DUMMY_IMAGE_DATA } from './AvatarBase.constants';
 
 const styles = StyleSheet.create({ imageStyle: { flex: 1 } });
 
 storiesOf('Design System / AvatarBase', module).add('Default', () => {
-  const sizeSelector = select('Size', AvatarBaseSize, AvatarBaseSize.Md);
+  const sizeSelector = select('Size', AvatarSize, AvatarSize.Md);
 
   return (
     <AvatarBase size={sizeSelector}>

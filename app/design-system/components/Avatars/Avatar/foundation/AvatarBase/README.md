@@ -12,18 +12,17 @@ Optional enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarBaseSize](./AvatarBase.types.ts#L6)          | Yes                                                     | Md                                                     |
+| [AvatarSize](../../Avatar.types.ts#L10)          | Yes                                                     | Md                                                     |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
-import AvatarBase, {
-  AvatarBaseSize,
-} from 'app/design-system/components/Avatars/Avatar/foundation/AvatarBase';
+import AvatarBase from 'app/design-system/components/Avatars/Avatar/foundation/AvatarBase';
+import { AvatarSize } from 'app/design-system/components/Avatars/Avatar/Avatar';
 
 <AvatarBase 
-  size={AvatarBaseSize.Md}>
+  size={AvatarSize.Md}>
     <SampleImageComponent />
 </AvatarBase>;
 ```

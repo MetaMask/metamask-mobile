@@ -4,11 +4,11 @@ import { Image } from 'react-native';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { toDataUrl } from '../../../../util/blockies';
+import { toDataUrl } from '../../../../../../util/blockies';
 
 // Internal dependencies.
 import AvatarBase from './AvatarBase';
-import { AvatarBaseSize } from './AvatarBase.types';
+import { AvatarSize } from '../../Avatar.types';
 import { DUMMY_IMAGE_DATA } from './AvatarBase.constants';
 
 describe('AvatarBase', () => {
@@ -17,7 +17,7 @@ describe('AvatarBase', () => {
       flex: 1,
     };
     const wrapper = shallow(
-      <AvatarBase size={AvatarBaseSize.Xl}>
+      <AvatarBase size={AvatarSize.Xl}>
         <Image
           source={{ uri: toDataUrl(DUMMY_IMAGE_DATA) }}
           style={blockieStyles}

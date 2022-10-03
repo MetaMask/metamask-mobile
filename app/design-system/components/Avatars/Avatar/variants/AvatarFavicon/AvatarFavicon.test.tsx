@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarBaseSize } from '../AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
@@ -17,7 +17,7 @@ describe('AvatarFavicon', () => {
   it('should match the snapshot', () => {
     const wrapper = shallow(
       <AvatarFavicon
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -27,7 +27,7 @@ describe('AvatarFavicon', () => {
   it('should render favicon with remote image', () => {
     const wrapper = shallow(
       <AvatarFavicon
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );
@@ -40,7 +40,7 @@ describe('AvatarFavicon', () => {
   it('should render favicon with local image', () => {
     const wrapper = shallow(
       <AvatarFavicon
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         imageSource={TEST_LOCAL_IMAGE_SOURCE}
       />,
     );
@@ -53,7 +53,7 @@ describe('AvatarFavicon', () => {
   it('should render fallback', () => {
     const wrapper = shallow(
       <AvatarFavicon
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
     );

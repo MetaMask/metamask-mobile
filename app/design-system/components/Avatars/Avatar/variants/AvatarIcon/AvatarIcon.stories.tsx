@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
@@ -14,12 +14,7 @@ storiesOf(' Design System / AvatarIcon', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const sizeSelector = select(
-      'size',
-      AvatarBaseSize,
-      AvatarBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const iconNameSelector = select(
       'name',
       IconName,

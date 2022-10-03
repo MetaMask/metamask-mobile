@@ -5,7 +5,8 @@ import React, { useCallback, useState } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import AvatarBase, { AvatarBaseSize } from '../../foundation/AvatarBase';
+import AvatarBase from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import Text, { TextVariant } from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 
@@ -15,7 +16,7 @@ import { NETWORK_AVATAR_IMAGE_ID } from './AvatarNetwork.constants';
 import stylesheet from './AvatarNetwork.styles';
 
 const AvatarNetwork = ({
-  size = AvatarBaseSize.Md,
+  size = AvatarSize.Md,
   style,
   name,
   imageSource,
@@ -23,7 +24,7 @@ const AvatarNetwork = ({
   const [showFallback, setShowFallback] = useState(!imageSource);
   const { styles } = useStyles(stylesheet, { style, size, showFallback });
   const textVariant =
-    size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
+    size === AvatarSize.Sm || size === AvatarSize.Xs
       ? TextVariant.lBodySM
       : TextVariant.lBodyMD;
   const chainNameFirstLetter = name?.[0] ?? '?';

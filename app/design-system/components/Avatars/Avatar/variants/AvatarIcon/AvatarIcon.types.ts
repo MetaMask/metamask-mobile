@@ -1,6 +1,7 @@
 // External dependencies.
-import { AvatarBaseProps, AvatarBaseSize } from '../AvatarBase';
-import { IconProps, IconSize } from '../../Icon/Icon.types';
+import { AvatarBaseProps } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
+import { IconProps, IconSize } from '../../../../Icon/Icon.types';
 
 /**
  * AvatarIcon component props.
@@ -21,5 +22,5 @@ export type AvatarIconStyleSheetVars = Pick<AvatarIconProps, 'style'>;
  * Mapping of IconSize by AvatarSize.
  */
 export type IconSizeByAvatarSize = {
-  [key in AvatarBaseSize]: IconSize;
+  [key in AvatarSize]: IconSize;
 };

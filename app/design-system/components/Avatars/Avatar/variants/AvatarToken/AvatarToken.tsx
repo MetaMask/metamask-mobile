@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import AvatarBase, { AvatarBaseSize } from '../../foundation/AvatarBase';
+import AvatarBase from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import Text, { TextVariant } from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 
@@ -29,7 +30,7 @@ const AvatarToken = ({
   });
 
   const textVariant =
-    size === AvatarBaseSize.Sm || size === AvatarBaseSize.Xs
+    size === AvatarSize.Sm || size === AvatarSize.Xs
       ? TextVariant.lBodySM
       : TextVariant.lBodyMD;
   const tokenNameFirstLetter = name?.[0] ?? '?';

@@ -5,7 +5,7 @@ import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { IconSize } from '../../../../Icon';
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import { IconSizeByAvatarSize } from './AvatarFavicon.types';
@@ -22,9 +22,9 @@ export const TEST_LOCAL_IMAGE_SOURCE: ImageSourcePropType = require('../../../..
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 
 export const ICON_SIZE_BY_AVATAR_SIZE: IconSizeByAvatarSize = {
-  [AvatarBaseSize.Xs]: IconSize.Xs,
-  [AvatarBaseSize.Sm]: IconSize.Sm,
-  [AvatarBaseSize.Md]: IconSize.Md,
-  [AvatarBaseSize.Lg]: IconSize.Lg,
-  [AvatarBaseSize.Xl]: IconSize.Xl,
+  [AvatarSize.Xs]: IconSize.Xs,
+  [AvatarSize.Sm]: IconSize.Sm,
+  [AvatarSize.Md]: IconSize.Md,
+  [AvatarSize.Lg]: IconSize.Lg,
+  [AvatarSize.Xl]: IconSize.Xl,
 };

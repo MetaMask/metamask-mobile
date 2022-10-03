@@ -21,8 +21,8 @@ Name of icon to use.
 import AvatarIcon, {
   AvatarIcon,
 } from 'app/design-system/components/Avatars/AvatarAccount';
-import { AvatarBaseSize } from 'app/design-system/components/Avatars/Avatar/foundation/AvatarBase';
+import { AvatarSize } from 'app/design-system/components/Avatars/Avatar/Avatar';
 import { IconName } from 'app/design-system/components/Icon';
 
-<AvatarIcon size={AvatarBaseSize.Md} name={IconName.BankFilled} />;
+<AvatarIcon size={AvatarSize.Md} name={IconName.BankFilled} />;
 ```

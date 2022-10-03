@@ -29,11 +29,11 @@ An Ethereum wallet address.
 import AvatarAccount, {
   AvatarAccountType,
 } from 'app/design-system/components/Avatars/AvatarAccount';
-import { AvatarBaseSize } from 'app/design-system/components/Avatars/Avatar/foundation/AvatarBase';
+import { AvatarSize } from 'app/design-system/components/Avatars/Avatar/Avatar';
 
 <AvatarAccount
   type={AvatarAccountType.Jazzicon}
   accountAddress={ACCOUNT_ADDRESS}
-  size={AvatarBaseSize.Md}
+  size={AvatarSize.Md}
 />;
 ```

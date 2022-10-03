@@ -5,7 +5,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
@@ -19,12 +19,7 @@ const groupId = 'Props';
 storiesOf('Design System / AvatarFavicon', module)
   .addDecorator((getStory) => getStory())
   .add('Default with remote image', () => {
-    const sizeSelector = select(
-      'size',
-      AvatarBaseSize,
-      AvatarBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
     const imageUrl = text('imageSource.uri', TEST_REMOTE_IMAGE_URL, groupId);
     const imageSource: ImageSourcePropType = {
       uri: imageUrl,
@@ -33,16 +28,13 @@ storiesOf('Design System / AvatarFavicon', module)
     return <AvatarFavicon size={sizeSelector} imageSource={imageSource} />;
   })
   .add('With local image', () => (
-    <AvatarFavicon
-      size={AvatarBaseSize.Lg}
-      imageSource={TEST_LOCAL_IMAGE_SOURCE}
-    />
+    <AvatarFavicon size={AvatarSize.Lg} imageSource={TEST_LOCAL_IMAGE_SOURCE} />
   ))
   .add('With error', () => {
     const sizeSelector = select(
       'size',
-      AvatarBaseSize,
-      AvatarBaseSize.Md,
+      AvatarSize,
+      AvatarSize.Md,
       'Avatar Size',
     );
 

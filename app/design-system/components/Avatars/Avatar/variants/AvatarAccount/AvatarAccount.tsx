@@ -6,7 +6,8 @@ import { Image } from 'react-native';
 import JazzIcon from 'react-native-jazzicon';
 
 // External dependencies.
-import AvatarBase, { AvatarBaseSize } from '../../foundation/AvatarBase';
+import AvatarBase from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import { toDataUrl } from '../../../../../../util/blockies';
 
 // Internal dependencies.
@@ -16,7 +17,7 @@ import stylesheet from './AvatarAccount.styles';
 const AvatarAccount = ({
   type = AvatarAccountType.JazzIcon,
   accountAddress,
-  size = AvatarBaseSize.Md,
+  size = AvatarSize.Md,
   style,
 }: AvatarAccountProps) => (
   <AvatarBase size={size} style={style}>

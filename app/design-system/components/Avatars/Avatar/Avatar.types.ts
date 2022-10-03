@@ -5,6 +5,17 @@ import { AvatarNetworkProps } from './variants/AvatarNetwork/AvatarNetwork.types
 import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
 
 /**
+ * Avatar sizes.
+ */
+export enum AvatarSize {
+  Xs = '16',
+  Sm = '24',
+  Md = '32',
+  Lg = '40',
+  Xl = '48',
+}
+
+/**
  * Avatar variants.
  */
 export enum AvatarVariants {

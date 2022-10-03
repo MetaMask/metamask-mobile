@@ -5,7 +5,7 @@ import { select } from '@storybook/addon-knobs';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../../../Avatars/Avatar/foundation/AvatarBase';
+import { AvatarSize } from '../../../../Avatars/Avatar';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../../Avatars/Avatar/variants/AvatarAccount';
@@ -23,14 +23,14 @@ storiesOf('Design System / BadgeBase', module).add('Default', () => {
   const sampleTag = <Tag label={'Tag'} />;
   const sampleAvatarAccount = (
     <AvatarAccount
-      size={AvatarBaseSize.Md}
+      size={AvatarSize.Md}
       type={AvatarAccountType.JazzIcon}
       accountAddress={DUMMY_WALLET_ADDRESS}
     />
   );
   const sampleAvatarNetwork = (
     <AvatarNetwork
-      size={AvatarBaseSize.Md}
+      size={AvatarSize.Md}
       name={'Ethereum'}
       imageSource={TEST_REMOTE_IMAGE_SOURCE}
     />

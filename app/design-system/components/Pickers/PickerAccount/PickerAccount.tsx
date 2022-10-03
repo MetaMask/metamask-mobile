@@ -7,7 +7,7 @@ import { View } from 'react-native';
 // External dependencies.
 import AvatarAccount from '../../Avatars/Avatar/variants/AvatarAccount';
 import Text, { TextVariant } from '../../Texts/Text';
-import { AvatarBaseSize } from '../../Avatars/Avatar/foundation/AvatarBase';
+import AvatarSize from '../../Avatars/Avatar/Avatar';
 import { formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../hooks';
 
@@ -31,7 +31,7 @@ const PickerAccount = ({
       <AvatarAccount
         type={accountAvatarType}
         accountAddress={accountAddress}
-        size={AvatarBaseSize.Md}
+        size={AvatarSize.Md}
         style={styles.accountAvatar}
       />
       <View>

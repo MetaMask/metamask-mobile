@@ -27,10 +27,10 @@ Optional network image from either a local or remote source.
 ```javascript
 // Replace import with relative path.
 import AvatarNetwork from 'app/design-system/components/Avatars/AvatarNetwork';
-import { AvatarBaseSize } from 'app/design-system/components/Avatars/Avatar/foundation/AvatarBase';
+import { AvatarSize } from 'app/design-system/components/Avatars/Avatar/Avatar';
 
 <AvatarNetwork
-  size={AvatarBaseSize.Md}
+  size={AvatarSize.Md}
   name={NETWORK_NAME}
   imageSource={{ uri: NETWORK_IMAGE_URL }}
 />;

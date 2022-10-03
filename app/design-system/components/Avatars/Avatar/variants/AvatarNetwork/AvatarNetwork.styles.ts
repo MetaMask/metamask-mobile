@@ -2,7 +2,7 @@
 import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import { Theme } from '../../../../../../util/theme/models';
 
 // Internal dependencies.
@@ -32,7 +32,7 @@ const styleSheet = (params: {
     : {};
   return StyleSheet.create({
     base: Object.assign(baseStyle, style) as ViewStyle,
-    label: size === AvatarBaseSize.Xs ? { lineHeight: 16 } : {},
+    label: size === AvatarSize.Xs ? { lineHeight: 16 } : {},
     image: {
       flex: 1,
       height: undefined,

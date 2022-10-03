@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
@@ -17,7 +17,7 @@ import {
 storiesOf(' Design System / AvatarNetwork', module)
   .addDecorator((getStory) => getStory())
   .add('With remote image', () => {
-    const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
     const networkNameSelector = text('name', TEST_NETWORK_NAME);
 
     return (
@@ -30,19 +30,19 @@ storiesOf(' Design System / AvatarNetwork', module)
   })
   .add('With local image', () => (
     <AvatarNetwork
-      size={AvatarBaseSize.Lg}
+      size={AvatarSize.Lg}
       name={TEST_NETWORK_NAME}
       imageSource={TEST_LOCAL_IMAGE_SOURCE}
     />
   ))
   .add('Without image', () => {
-    const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
     const networkNameSelector = text('name', TEST_NETWORK_NAME);
 
     return <AvatarNetwork size={sizeSelector} name={networkNameSelector} />;
   })
   .add('Without image and name', () => {
-    const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
 
     return <AvatarNetwork size={sizeSelector} />;
   });

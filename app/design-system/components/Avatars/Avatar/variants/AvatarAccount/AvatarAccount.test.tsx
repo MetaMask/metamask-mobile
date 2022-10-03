@@ -3,7 +3,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 
 // External dependencies.
-import { AvatarBaseSize } from '../AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarAccount from './AvatarAccount';
@@ -14,7 +14,7 @@ describe('AvatarAccount', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarAccount
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         type={AvatarAccountType.JazzIcon}
         accountAddress={DUMMY_WALLET_ADDRESS}
       />,

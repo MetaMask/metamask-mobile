@@ -6,13 +6,13 @@ import { shallow } from 'enzyme';
 import AvatarIcon from './AvatarIcon';
 
 // Internal dependencies.
-import { AvatarBaseSize } from '../AvatarBase';
-import { IconName } from '../../Icon';
+import { AvatarSize } from '../../Avatar.types';
+import { IconName } from '../../../../Icon';
 
 describe('AvatarIcon', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <AvatarIcon size={AvatarBaseSize.Lg} name={IconName.AddSquareFilled} />,
+      <AvatarIcon size={AvatarSize.Lg} name={IconName.AddSquareFilled} />,
     );
     expect(wrapper).toMatchSnapshot();
   });

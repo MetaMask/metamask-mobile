@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react-native';
 import { text, select } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarAccount from './AvatarAccount';
@@ -15,7 +15,7 @@ storiesOf('Design System / AvatarAccount', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const accountAddress = text('accountAddress', DUMMY_WALLET_ADDRESS);
-    const sizeSelector = select('size', AvatarBaseSize, AvatarBaseSize.Md);
+    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
     const typeSelector = select(
       'type',
       AvatarAccountType,

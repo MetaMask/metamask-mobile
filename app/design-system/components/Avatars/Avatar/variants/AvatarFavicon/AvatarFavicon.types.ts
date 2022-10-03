@@ -3,8 +3,8 @@ import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { IconSize } from '../../../../Icon';
-import { AvatarBaseProps, AvatarBaseSize } from '../../foundation/AvatarBase';
-import { AvatarVariants } from '../../Avatar.types';
+import { AvatarBaseProps } from '../../foundation/AvatarBase';
+import { AvatarVariants, AvatarSize } from '../../Avatar.types';
 
 /**
  * AvatarFavicon component props.
@@ -32,5 +32,5 @@ export interface AvatarFaviconStyleSheetVars
  * Mapping of IconSize by AvatarSize.
  */
 export type IconSizeByAvatarSize = {
-  [key in AvatarBaseSize]: IconSize;
+  [key in AvatarSize]: IconSize;
 };

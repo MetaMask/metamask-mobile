@@ -2,18 +2,7 @@
 import { ViewProps } from 'react-native';
 
 // External dependencies
-import { AvatarVariants } from '../../Avatar.types';
-
-/**
- * AvatarBase sizes.
- */
-export enum AvatarBaseSize {
-  Xs = '16',
-  Sm = '24',
-  Md = '32',
-  Lg = '40',
-  Xl = '48',
-}
+import { AvatarVariants, AvatarSize } from '../../Avatar.types';
 
 /**
  * AvatarBase component props.
@@ -24,10 +13,10 @@ export interface AvatarBaseProps extends ViewProps {
    */
   variant?: AvatarVariants;
   /**
-   * Optional enum to select between AvatarBase sizes.
+   * Optional enum to select between Avatar sizes.
    * @default Md
    */
-  size?: AvatarBaseSize;
+  size?: AvatarSize;
 }
 
 /**
@@ -35,5 +24,5 @@ export interface AvatarBaseProps extends ViewProps {
  */
 export interface AvatarBaseStyleSheetVars
   extends Pick<AvatarBaseProps, 'style'> {
-  size: AvatarBaseSize;
+  size: AvatarSize;
 }

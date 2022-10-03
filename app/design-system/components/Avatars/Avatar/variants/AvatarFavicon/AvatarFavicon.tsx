@@ -5,7 +5,8 @@ import React, { useCallback, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 
 // External dependencies.
-import AvatarBase, { AvatarBaseSize } from '../../foundation/AvatarBase';
+import AvatarBase from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 import { useStyles } from '../../../../../hooks';
 import Icon, { IconName } from '../../../../Icon';
 
@@ -19,7 +20,7 @@ import stylesheet from './AvatarFavicon.styles';
 
 const AvatarFavicon = ({
   imageSource,
-  size = AvatarBaseSize.Md,
+  size = AvatarSize.Md,
   style,
 }: AvatarFaviconProps) => {
   const [error, setError] = useState(undefined);

@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 // External dependencies.
 // eslint-disable-next-line
 // @ts-ignore
-import { AvatarBaseSize } from '../AvatarBase';
+import { AvatarSize } from '../../foundation/AvatarBase';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
@@ -22,7 +22,7 @@ describe('AvatarToken', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_TOKEN_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
@@ -33,7 +33,7 @@ describe('AvatarToken', () => {
   it('should render remote network image', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_TOKEN_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
@@ -48,7 +48,7 @@ describe('AvatarToken', () => {
   it('should render local network image', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_TOKEN_NAME}
         imageSource={TEST_LOCAL_IMAGE_SOURCE}
       />,
@@ -63,7 +63,7 @@ describe('AvatarToken', () => {
   it('should render fallback when image fails to load', () => {
     const wrapper = shallow(
       <AvatarToken
-        size={AvatarBaseSize.Xl}
+        size={AvatarSize.Xl}
         name={TEST_TOKEN_NAME}
         imageSource={TEST_REMOTE_IMAGE_SOURCE}
       />,
@@ -81,7 +81,7 @@ describe('AvatarToken', () => {
 
   it('should render fallback when tokenImageUrl is not provided', () => {
     const wrapper = shallow(
-      <AvatarToken size={AvatarBaseSize.Xl} name={TEST_TOKEN_NAME} />,
+      <AvatarToken size={AvatarSize.Xl} name={TEST_TOKEN_NAME} />,
     );
     const imageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === TOKEN_AVATAR_IMAGE_ID,
