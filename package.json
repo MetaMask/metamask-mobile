@@ -186,6 +186,7 @@
     "json-rpc-engine": "^6.1.0",
     "json-rpc-middleware-stream": "3.0.0",
     "lottie-react-native": "git+https://github.com/MetaMask/lottie-react-native.git#7ce6a78ac4ac7b9891bc513cb3f12f8b9c9d9106",
+    "metamask/controllers": "git+https://github.com/MetaMask/controllers.git#dbff25e0632610c8101c488005885a9849d99b74",
     "metro-config": "^0.71.1",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",

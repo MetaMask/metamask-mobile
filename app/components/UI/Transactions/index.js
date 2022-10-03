@@ -29,7 +29,11 @@ import TransactionElement from '../TransactionElement';
 import Engine from '../../../core/Engine';
 import { showAlert } from '../../../actions/alert';
 import NotificationManager from '../../../core/NotificationManager';
-import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/controllers';
+import {
+  CANCEL_RATE,
+  KeyringTypes,
+  SPEED_UP_RATE,
+} from '@metamask/controllers';
 import { renderFromWei } from '../../../util/number';
 import Device from '../../../util/device';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
@@ -42,9 +46,10 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import RetryModal from './RetryModal';
 import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { isQRHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -194,6 +199,7 @@ class Transactions extends PureComponent {
     rpcBlockExplorer: undefined,
     errorMsg: undefined,
     isQRHardwareAccount: false,
+    isLedgerAccount: false,
   };
 
   existingGas = null;
@@ -212,7 +218,7 @@ class Transactions extends PureComponent {
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
     this.setState({
-      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
     });
   };
 
@@ -235,6 +241,14 @@ class Transactions extends PureComponent {
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
+    this.setState({
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress, [
+        KeyringTypes.qr,
+      ]),
+      isLedgerAccount: isHardwareAccount(this.props.selectedAddress, [
+        KeyringTypes.ledger,
+      ]),
+    });
   };
 
   componentDidUpdate() {
@@ -508,6 +522,25 @@ class Transactions extends PureComponent {
     await TransactionController.approveTransaction(tx.id);
   };
 
+  signLedgerTransaction = async (transaction) => {
+    const { KeyringController } = Engine.context;
+
+    const ledgerKeyring = await KeyringController.getLedgerKeyring();
+
+    return new Promise((resolve, reject) => {
+      this.props.navigation.navigate(
+        ...createLedgerTransactionModalNavDetails({
+          transactionId: transaction.id,
+          deviceId: ledgerKeyring.deviceId,
+          onConfirmationComplete: (confirmed) => {
+            confirmed ? resolve() : reject();
+          },
+          type: 'signTransaction',
+        }),
+      );
+    });
+  };
+
   cancelUnsignedQRTransaction = async (tx) => {
     await Engine.context.TransactionController.cancelTransaction(tx.id);
   };
@@ -534,6 +567,7 @@ class Transactions extends PureComponent {
       assetSymbol={this.props.assetSymbol}
       onSpeedUpAction={this.onSpeedUpAction}
       isQRHardwareAccount={this.state.isQRHardwareAccount}
+      isLedgerAccount={this.state.isLedgerAccount}
       signQRTransaction={this.signQRTransaction}
       cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
       onCancelAction={this.onCancelAction}

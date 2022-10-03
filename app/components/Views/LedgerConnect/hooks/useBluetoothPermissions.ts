@@ -1,6 +1,6 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { check, PERMISSIONS, RESULTS, request } from 'react-native-permissions';
+import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import Device from '../../../../util/device';
 
 export enum BluetoothPermissionErrors {
@@ -20,7 +20,7 @@ const useBluetoothPermissions = () => {
     setBluetoothPermissionError(undefined);
 
     if (Device.isIos()) {
-      const bluetoothPermissionStatus = await check(
+      const bluetoothPermissionStatus = await request(
         PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
       );
       const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;

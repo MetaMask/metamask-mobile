@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
-
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
+import { BluetoothInterface } from '../Views/LedgerConnect/hooks/useBluetoothDevices';
 
 export enum LedgerCommunicationErrors {
   LedgerDisconnected = 'LedgerDisconnected',
@@ -24,7 +23,7 @@ class LedgerError extends Error {
   }
 }
 
-type LedgerLogicToRunType = (transport: BluetoothTransport) => Promise<void>;
+type LedgerLogicToRunType = (transport: BluetoothInterface) => Promise<void>;
 
 interface UseLedgerBluetoothHook {
   isSendingLedgerCommands: boolean;
@@ -49,7 +48,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
   const [isAppLaunchConfirmationNeeded, setIsAppLaunchConfirmationNeeded] =
     useState<boolean>(false);
 
-  const transportRef = useRef<BluetoothTransport>();
+  const transportRef = useRef<BluetoothInterface>();
   const restartConnectionState = useRef<{
     shouldRestartConnection: boolean;
     restartCount: number;
@@ -88,9 +87,12 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
     if (!transportRef.current && deviceId) {
       try {
-        transportRef.current = await BluetoothTransport.open(deviceId);
+        const BluetoothTransport: any = await import(
+          '@ledgerhq/react-native-hw-transport-ble'
+        );
+        transportRef.current = await BluetoothTransport.default.open(deviceId);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        transportRef.current?.on('disconnect', (e) => {
+        transportRef.current?.on('disconnect', (e: any) => {
           transportRef.current = undefined;
           // Restart connection if more code is to be run
           if (
@@ -203,8 +205,10 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
         switch (e.statusCode) {
           case 0x6985:
           case 0x5501:
-          case 0x6b0c:
             setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
+            break;
+          case 0x6b0c:
+            setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
             break;
           default:
             break;
@@ -234,7 +238,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       setLedgerError(undefined);
       // Add code block as last item in stack
       workflowSteps.current.push(() =>
-        func(transportRef.current as BluetoothTransport),
+        func(transportRef.current as BluetoothInterface),
       );
       //  Start off workflow
       processLedgerWorkflow();

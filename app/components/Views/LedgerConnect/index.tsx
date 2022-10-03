@@ -131,11 +131,8 @@ const LedgerConnect = () => {
   const connectLedger = () => {
     setLoading(true);
     ledgerLogicToRun(async () => {
-      const defaultLedgerAccount =
-        await KeyringController.unlockDefaultLedgerAccount();
-      await AccountTrackerController.syncBalanceWithAddresses([
-        defaultLedgerAccount,
-      ]);
+      const account = await KeyringController.unlockDefaultLedgerAccount();
+      await AccountTrackerController.syncBalanceWithAddresses([account]);
 
       navigation.dispatch(StackActions.popToTop());
     });
@@ -151,6 +148,16 @@ const LedgerConnect = () => {
           setErrorDetails(undefined);
           connectLedger();
         },
+      },
+    });
+  };
+
+  const openHowToInstallEthApp = () => {
+    navigation.push('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true',
+        title: strings('ledger.how_to_install_eth_webview_title'),
       },
     });
   };
@@ -261,7 +268,18 @@ const LedgerConnect = () => {
               <Text style={styles.ledgerInstructionText}>
                 {strings('ledger.ledger_reminder_message_step_three')}
               </Text>
-              <Text style={styles.howToInstallEthAppText} bold big link>
+              {Device.isAndroid() && (
+                <Text style={styles.ledgerInstructionText}>
+                  {strings('ledger.ledger_reminder_message_step_four')}
+                </Text>
+              )}
+              <Text
+                style={styles.howToInstallEthAppText}
+                bold
+                big
+                link
+                onPress={openHowToInstallEthApp}
+              >
                 {strings('ledger.how_to_install_eth_app')}
               </Text>
             </>

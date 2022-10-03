@@ -69,11 +69,15 @@ const LedgerConfirmationModal = ({
   );
 
   const connectLedger = () => {
-    ledgerLogicToRun(async () => {
-      // Connection attempt
-      await KeyringController.unlockDefaultLedgerAccount();
-      await onConfirmation();
-    });
+    try {
+      ledgerLogicToRun(async () => {
+        await KeyringController.unlockDefaultLedgerAccount();
+        await onConfirmation();
+      });
+    } catch (_e) {
+      // Handle a super edge case of the user starting a transaction with the device connected
+      // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
+    }
   };
 
   // In case of manual rejection

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Observable, Observer, Subscription } from 'rxjs';
-import BluetoothTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 export interface BluetoothDevice {
   id: string;
@@ -15,12 +14,13 @@ export interface BluetoothInterface {
       descriptor: { id: string };
     }>,
   ): { unsubscribe: () => void };
+  on(event: string, callback: (event: any) => void): void;
+  close(): void;
 }
 
 const useBluetoothDevices = (
   hasBluetoothPermissions: boolean,
   bluetoothOn: boolean,
-  bluetoothInterface: BluetoothInterface = BluetoothTransport,
 ) => {
   const [devices, setDevices] = useState<Record<string, BluetoothDevice>>({});
   const [deviceScanError, setDeviceScanError] = useState<boolean>(false);
@@ -30,22 +30,28 @@ const useBluetoothDevices = (
     let subscription: Subscription;
 
     if (hasBluetoothPermissions && bluetoothOn) {
-      subscription = new Observable(bluetoothInterface.listen).subscribe({
-        next: (e: any) => {
-          const deviceFound = devices[e?.descriptor.id];
+      import('@ledgerhq/react-native-hw-transport-ble').then(
+        (bluetoothInterface: any) => {
+          subscription = new Observable(
+            bluetoothInterface.default.listen,
+          ).subscribe({
+            next: (e: any) => {
+              const deviceFound = devices[e?.descriptor.id];
 
-          if (e.type === 'add' && !deviceFound) {
-            setDevices((prevValues) => ({
-              ...prevValues,
-              [e.descriptor.id]: e.descriptor,
-            }));
-            setDeviceScanError(false);
-          }
+              if (e.type === 'add' && !deviceFound) {
+                setDevices((prevValues) => ({
+                  ...prevValues,
+                  [e.descriptor.id]: e.descriptor,
+                }));
+                setDeviceScanError(false);
+              }
+            },
+            error: (_error) => {
+              setDeviceScanError(true);
+            },
+          });
         },
-        error: (_error) => {
-          setDeviceScanError(true);
-        },
-      });
+      );
     }
 
     return () => {

@@ -70,6 +70,7 @@ const createStyles = (colors) =>
     keyringTypeLabelText: {
       color: colors.text.default,
       fontSize: 10,
+      textTransform: 'uppercase',
       ...fontStyles.bold,
     },
     keyringTypeLabelWrapper: {
@@ -79,6 +80,9 @@ const createStyles = (colors) =>
       borderRadius: 10,
       borderWidth: 1,
       borderColor: colors.border.default,
+      display: 'flex',
+      justifytContent: 'center',
+      alignItems: 'center',
     },
     hardwareKeyringLabelWrapper: {
       width: 80,
@@ -138,7 +142,9 @@ class AccountElement extends PureComponent {
     ) : null;
 
     const keyringLabelText = () => {
-      if (isHardwareKeyring(keyringType)) {
+      if (isHardwareKeyring(keyringType) && keyringType === LEDGER_DEVICE) {
+        return strings('accounts.ledger');
+      } else if (isHardwareKeyring(keyringType)) {
         return strings('accounts.hardware');
       } else if (keyringType === 'Imported') {
         return strings('accounts.imported');
