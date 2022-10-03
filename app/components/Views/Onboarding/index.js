@@ -53,7 +53,7 @@ import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_IMPORT_WALLET_BUTTON_ID,
   WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-} from '../../../constants/testIDs/WalletSetupScreen.constants';
+} from '../../../../wdio/features/testIDs/WalletSetupScreen.constants';
 
 const PUB_KEY = process.env.MM_PUBNUB_PUB_KEY;
 

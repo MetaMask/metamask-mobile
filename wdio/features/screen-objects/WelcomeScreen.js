@@ -2,14 +2,16 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID
-} from '../../../app/constants/testIDs/WelcomeScreen.constants';
+} from '../testIDs/WelcomeScreen.constants';
 import {
   SPLASH_SCREEN_METAMASK_ANIMATION_ID
-} from '../../../app/constants/testIDs/Generic.constants';
+} from '../testIDs/Generic.constants';
 import Gestures from '../helpers/Gestures';
 
 class WelcomeScreen {
-  CAROUSEL_RECTANGLES = null;
+  constructor() {
+    this.CAROUSEL_RECTANGLES = null;
+  }
 
   async verifySplashScreen() {
     const elem = await $(`~${SPLASH_SCREEN_METAMASK_ANIMATION_ID}`)
