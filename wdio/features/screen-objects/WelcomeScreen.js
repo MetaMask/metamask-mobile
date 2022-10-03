@@ -7,6 +7,7 @@ import {
   SPLASH_SCREEN_METAMASK_ANIMATION_ID
 } from '../testIDs/Generic.constants';
 import Gestures from '../helpers/Gestures';
+import Selectors from '../helpers/Selectors';
 
 class WelcomeScreen {
   constructor() {
@@ -20,7 +21,8 @@ class WelcomeScreen {
   }
 
   async verifyCarouselTitle(key) {
-    await expect(await $(`~${WELCOME_SCREEN_CAROUSEL_TITLE_ID(key)}`)).toBeDisplayed();
+    const elem = await Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_TITLE_ID(key));
+    await expect(elem).toBeDisplayed();
   }
 
   async swipeNextSlide() {

@@ -225,8 +225,11 @@ export const config = {
    * @param {Array.<String>} specs        List of spec file paths that are to be run
    * @param {Object}         browser      instance of created browser/device session
    */
-  // before: function (capabilities, specs) {
-  // },
+  before: function (capabilities) {
+    driver.getPlatform = function getPlatform() {
+      return capabilities.platformName;
+    }
+  },
   /**
    * Runs before a WebdriverIO command gets executed.
    * @param {String} commandName hook command name
@@ -310,11 +313,11 @@ export const config = {
    * @param {Array.<Object>} capabilities list of capabilities details
    * @param {Array.<String>} specs List of spec file paths that ran
    */
-  after: function (result, capabilities) {
-    if (capabilities.bundleId) {
-      driver.terminateApp(capabilities.bundleId)
-    }
-  },
+  // after: function (result, capabilities) {
+    // if (capabilities.bundleId) {
+    //   driver.terminateApp(capabilities.bundleId)
+    // }
+  // },
   /**
    * Gets executed right after terminating the webdriver session.
    * @param {Object} config wdio configuration object
