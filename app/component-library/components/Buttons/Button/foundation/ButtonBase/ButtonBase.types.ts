@@ -1,17 +1,9 @@
 // Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
 
-// Third party dependencies.
+// External dependencies.
 import { IconProps } from '../../../../Icon';
-
-/**
- * Size variants of ButtonBase.
- */
-export enum ButtonBaseSize {
-  Sm = '32',
-  Md = '40',
-  Lg = '48',
-}
+import { ButtonSize, ButtonVariants } from '../../Button.types';
 
 /**
  * ButtonBase component props.
@@ -21,6 +13,10 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * Button text.
    */
   label: string;
+  /**
+   * Variant of Button
+   */
+  variant?: ButtonVariants;
   /**
    * Color of label. Applies to icon too.
    */
@@ -32,7 +28,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   /**
    * Size of the button.
    */
-  size?: ButtonBaseSize;
+  size?: ButtonSize;
   /**
    * Function to trigger when pressing the button.
    */

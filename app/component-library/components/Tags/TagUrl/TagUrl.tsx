@@ -7,7 +7,7 @@ import { View } from 'react-native';
 // External dependencies.
 import { AvatarSize } from '../../Avatars/Avatar';
 import AvatarFavicon from '../../Avatars/Avatar/variants/AvatarFavicon';
-import ButtonLink from '../../Buttons/Button/variants/ButtonLink';
+import Button, { ButtonVariants } from '../../Buttons/Button';
 import Text, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
@@ -24,9 +24,13 @@ const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
         {label}
       </Text>
       {cta && (
-        <ButtonLink style={styles.cta} onPress={cta.onPress}>
+        <Button
+          variant={ButtonVariants.Link}
+          style={styles.cta}
+          onPress={cta.onPress}
+        >
           {cta.label}
-        </ButtonLink>
+        </Button>
       )}
     </View>
   );

@@ -40,6 +40,6 @@ import { IconName } from 'app/component-library/components/Icon';
 <ButtonIcon
   iconName={IconName.BankFilled}
   onPress={ONPRESS_HANDLER}
-  variant={ButtonIconVariant.}
+  buttonIconVariant={ButtonIconVariant.}
 />;
 ```

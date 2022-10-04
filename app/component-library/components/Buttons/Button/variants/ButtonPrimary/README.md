@@ -6,7 +6,7 @@ ButtonPrimary is used for primary call to actions.
 
 This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts#L14) from [ButtonBase](../ButtonBase/ButtonBase.tsx) component.
 
-### `variant`
+### `buttonPrimaryVariant`
 
 Optional enum use to select between variants.
 
@@ -21,13 +21,13 @@ Optional enum use to select between variants.
 import ButtonPrimary, {
   ButtonPrimaryVariant,
 } from 'app/component-library/components/ButtonPrimary';
-import { ButtonBaseSize } from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
+import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
 import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonPrimary
   label={LABEL}
   iconName={IconName.BankFilled}
-  size={ButtonBaseSize.Md}
+  size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
   variant={ButtonPrimaryVariant.Normal}
 />;

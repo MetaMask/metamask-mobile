@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import { ButtonBaseSize } from '../../foundation/ButtonBase';
+import { ButtonSize } from '../../Button.types';
 import { IconName } from '../../../../Icon';
 
 import ButtonTertiary from './ButtonTertiary';
@@ -12,10 +12,10 @@ describe('ButtonTertiary', () => {
     const wrapper = shallow(
       <ButtonTertiary
         iconName={IconName.BankFilled}
-        size={ButtonBaseSize.Md}
+        size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
-        variant={ButtonTertiaryVariant.Normal}
+        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
       />,
     );
     expect(wrapper).toMatchSnapshot();

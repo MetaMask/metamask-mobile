@@ -36,6 +36,10 @@ export interface TextProps extends RNTextProps {
    * @default sBodyMD
    */
   variant?: TextVariant;
+  /**
+   * Text to be displayed.
+   */
+  children: React.ReactNode;
 }
 
 /**

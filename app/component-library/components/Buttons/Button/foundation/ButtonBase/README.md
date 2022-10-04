@@ -28,7 +28,7 @@ Enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [ButtonBaseSize](./ButtonBase.types.ts#L4)          | Yes                                                     | Md                                                     |
+| [ButtonSize](../../Button.types.ts)          | Yes                                                     | Md                                                     |
 
 ### `onPress`
 
@@ -51,7 +51,7 @@ Icon name of the icon that will be displayed.
 ```javascript
 // Replace import with relative path.
 import ButtonBase, {
-  ButtonBaseSize,
+  ButtonSize,
 } from 'app/component-library/components/Avatars/Avatar/foundation/AvatarBase';
 import { IconName } from 'app/component-library/components/Icon';
 
@@ -59,7 +59,7 @@ import { IconName } from 'app/component-library/components/Icon';
   label={LABEL}
   labelColor={LABEL_COLOR}
   iconName={IconName.BankFilled}
-  size={ButtonBaseSize.Md}
+  size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
 />;
 ```

@@ -30,7 +30,7 @@ import AvatarAccount, {
 import AvatarNetwork from '../Avatars/Avatar/variants/AvatarNetwork';
 import AvatarSize from '../Avatars/Avatar/Avatar';
 import Text, { TextVariant } from '../Texts/Text';
-import ButtonLink from '../Buttons/Button/variants/ButtonLink';
+import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
@@ -114,12 +114,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
-      <ButtonLink
+      <Button
+        variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
-        variant={TextVariant.sBodyMD}
+        textVariant={TextVariant.sBodyMD}
       >
         {linkButtonOptions.label}
-      </ButtonLink>
+      </Button>
     );
 
   const renderAvatar = () => {

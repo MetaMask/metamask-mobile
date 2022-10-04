@@ -7,14 +7,14 @@ import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import ButtonBase from './ButtonBase';
-import { ButtonBaseSize } from './ButtonBase.types';
+import { ButtonSize } from '../../Button.types';
 
 describe('ButtonBase', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonBase
         iconName={IconName.BankFilled}
-        size={ButtonBaseSize.Md}
+        size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
       />,

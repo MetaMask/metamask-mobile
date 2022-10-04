@@ -19,14 +19,14 @@ const ButtonTertiary = ({
   style,
   onPressIn,
   onPressOut,
-  variant = ButtonTertiaryVariant.Normal,
+  buttonTertiaryVariant = ButtonTertiaryVariant.Normal,
   ...props
 }: ButtonTertiaryProps) => {
   const [pressed, setPressed] = useState(false);
   const { styles, theme } = useStyles(styleSheet, { style });
   const labelColor = useMemo(() => {
     let color: string;
-    switch (variant) {
+    switch (buttonTertiaryVariant) {
       case ButtonTertiaryVariant.Normal:
         color = pressed
           ? theme.colors.primary.alternative
@@ -39,7 +39,7 @@ const ButtonTertiary = ({
         break;
     }
     return color;
-  }, [theme, variant, pressed]);
+  }, [theme, buttonTertiaryVariant, pressed]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

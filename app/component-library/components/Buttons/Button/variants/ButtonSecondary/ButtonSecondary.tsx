@@ -19,14 +19,18 @@ const ButtonSecondary = ({
   style,
   onPressIn,
   onPressOut,
-  variant = ButtonSecondaryVariant.Normal,
+  buttonSecondaryVariant = ButtonSecondaryVariant.Normal,
   ...props
 }: ButtonSecondaryProps) => {
   const [pressed, setPressed] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, { style, variant, pressed });
+  const { styles, theme } = useStyles(styleSheet, {
+    style,
+    buttonSecondaryVariant,
+    pressed,
+  });
   const labelColor = useMemo(() => {
     let color: string;
-    switch (variant) {
+    switch (buttonSecondaryVariant) {
       case ButtonSecondaryVariant.Normal:
         color = pressed
           ? theme.colors.primary.alternative
@@ -39,7 +43,7 @@ const ButtonSecondary = ({
         break;
     }
     return color;
-  }, [theme, variant, pressed]);
+  }, [theme, buttonSecondaryVariant, pressed]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

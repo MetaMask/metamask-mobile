@@ -10,13 +10,13 @@ import Icon, { IconSize } from '../../../../Icon';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
-import { ButtonBaseProps, ButtonBaseSize } from './ButtonBase.types';
+import { ButtonBaseProps, ButtonSize } from './ButtonBase.types';
 import styleSheet from './ButtonBase.styles';
 
 const ButtonBase = ({
   label,
   iconName,
-  size = ButtonBaseSize.Md,
+  size = ButtonSize.Md,
   onPress,
   style,
   labelColor,

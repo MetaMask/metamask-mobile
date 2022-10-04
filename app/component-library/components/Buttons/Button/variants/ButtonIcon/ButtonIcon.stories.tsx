@@ -32,7 +32,7 @@ storiesOf(' Component Library / ButtonIcon', module)
 
     return (
       <ButtonIcon
-        variant={variantSelector}
+        buttonIconVariant={variantSelector}
         iconName={iconNameSelector}
         disabled={disabledSelector}
         onPress={() => console.log("I'm clicked!")}

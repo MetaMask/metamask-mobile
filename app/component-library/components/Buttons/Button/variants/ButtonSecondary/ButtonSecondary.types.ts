@@ -1,5 +1,6 @@
 // External dependencies.
 import { ButtonBaseProps } from '../../foundation/ButtonBase';
+import { ButtonVariants } from '../../Button.types';
 
 /**
  * Enum used to select between variants.
@@ -18,7 +19,11 @@ export interface ButtonSecondaryProps
    * Optional enum use to select between variants.
    * @default Normal
    */
-  variant?: ButtonSecondaryVariant;
+  buttonSecondaryVariant?: ButtonSecondaryVariant;
+  /**
+   * Variant of Button.
+   */
+  variant?: ButtonVariants.Secondary;
 }
 
 /**
@@ -26,6 +31,6 @@ export interface ButtonSecondaryProps
  */
 export interface ButtonSecondaryStyleSheetVars
   extends Pick<ButtonSecondaryProps, 'style'> {
-  variant: ButtonSecondaryVariant;
+  buttonSecondaryVariant: ButtonSecondaryVariant;
   pressed: boolean;
 }

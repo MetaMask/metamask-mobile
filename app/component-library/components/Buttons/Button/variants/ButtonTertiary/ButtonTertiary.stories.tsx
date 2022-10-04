@@ -6,7 +6,7 @@ import { storiesOf } from '@storybook/react-native';
 import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { ButtonBaseSize } from '../../foundation/ButtonBase';
+import { ButtonSize } from '../../Button.types';
 import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
@@ -17,12 +17,7 @@ storiesOf('Component Library / ButtonTertiary', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const sizeSelector = select(
-      'size',
-      ButtonBaseSize,
-      ButtonBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', ButtonSize, ButtonSize.Md, groupId);
     const iconNameSelector = select(
       'iconName',
       IconName,
@@ -37,23 +32,23 @@ storiesOf('Component Library / ButtonTertiary', module)
         size={sizeSelector}
         label={labelSelector}
         onPress={() => console.log("I'm clicked!")}
-        variant={ButtonTertiaryVariant.Normal}
+        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
       />
     );
   })
   .add('Without icon', () => (
     <ButtonTertiary
-      size={ButtonBaseSize.Md}
+      size={ButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
-      variant={ButtonTertiaryVariant.Normal}
+      buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
     />
   ))
   .add('Danger variant', () => (
     <ButtonTertiary
-      size={ButtonBaseSize.Md}
+      size={ButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
-      variant={ButtonTertiaryVariant.Danger}
+      buttonTertiaryVariant={ButtonTertiaryVariant.Danger}
     />
   ));

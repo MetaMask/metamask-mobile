@@ -1,5 +1,6 @@
 // External dependencies.
 import { ButtonBaseProps } from '../../foundation/ButtonBase';
+import { ButtonVariants } from '../../Button.types';
 
 /**
  * Enum used to select between variants.
@@ -18,7 +19,11 @@ export interface ButtonTertiaryProps
    * Optional enum use to select between variants.
    * @default Normal
    */
-  variant?: ButtonTertiaryVariant;
+  buttonTertiaryVariant?: ButtonTertiaryVariant;
+  /**
+   * Variant of Button.
+   */
+  variant?: ButtonVariants.Tertiary;
 }
 
 /**

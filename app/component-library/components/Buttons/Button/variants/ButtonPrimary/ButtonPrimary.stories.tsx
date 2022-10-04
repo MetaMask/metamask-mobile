@@ -7,7 +7,7 @@ import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { IconName } from '../../../../Icon';
-import { ButtonBaseSize } from '../../foundation/ButtonBase';
+import { ButtonSize } from '../../Button.types';
 
 // Internal dependencies.
 import ButtonPrimary from './ButtonPrimary';
@@ -17,12 +17,7 @@ storiesOf('Component Library / ButtonPrimary', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const sizeSelector = select(
-      'size',
-      ButtonBaseSize,
-      ButtonBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', ButtonSize, ButtonSize.Md, groupId);
     const iconNameSelector = select(
       'iconName',
       IconName,
@@ -37,23 +32,23 @@ storiesOf('Component Library / ButtonPrimary', module)
         size={sizeSelector}
         label={labelSelector}
         onPress={() => console.log("I'm clicked!")}
-        variant={ButtonPrimaryVariant.Normal}
+        buttonPrimaryVariant={ButtonPrimaryVariant.Normal}
       />
     );
   })
   .add('Without icon', () => (
     <ButtonPrimary
-      size={ButtonBaseSize.Md}
+      size={ButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
-      variant={ButtonPrimaryVariant.Normal}
+      buttonPrimaryVariant={ButtonPrimaryVariant.Normal}
     />
   ))
   .add('Danger variant', () => (
     <ButtonPrimary
-      size={ButtonBaseSize.Md}
+      size={ButtonSize.Md}
       label={'Click Me!'}
       onPress={() => console.log("I'm clicked!")}
-      variant={ButtonPrimaryVariant.Danger}
+      buttonPrimaryVariant={ButtonPrimaryVariant.Danger}
     />
   ));

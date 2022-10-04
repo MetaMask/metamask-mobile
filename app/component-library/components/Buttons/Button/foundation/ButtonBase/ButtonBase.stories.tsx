@@ -10,18 +10,13 @@ import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import ButtonBase from './ButtonBase';
-import { ButtonBaseSize } from './ButtonBase.types';
+import { ButtonSize } from '../../Button.types';
 
 storiesOf('Component Library / ButtonBase', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => {
     const groupId = 'Props';
-    const sizeSelector = select(
-      'size',
-      ButtonBaseSize,
-      ButtonBaseSize.Md,
-      groupId,
-    );
+    const sizeSelector = select('size', ButtonSize, ButtonSize.Md, groupId);
     const iconNameSelector = select(
       'iconName',
       IconName,
@@ -42,7 +37,7 @@ storiesOf('Component Library / ButtonBase', module)
   .add('With label color', () => (
     <ButtonBase
       iconName={IconName.BankTokenFilled}
-      size={ButtonBaseSize.Md}
+      size={ButtonSize.Md}
       label={"I'm a button!"}
       onPress={() => console.log("I'm clicked!")}
       labelColor={'blue'}
@@ -50,7 +45,7 @@ storiesOf('Component Library / ButtonBase', module)
   ))
   .add('Without icon', () => (
     <ButtonBase
-      size={ButtonBaseSize.Md}
+      size={ButtonSize.Md}
       label={"I'm a button!"}
       onPress={() => console.log("I'm clicked!")}
     />

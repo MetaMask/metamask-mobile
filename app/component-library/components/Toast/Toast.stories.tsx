@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
-import { ButtonBaseSize } from '../Buttons/Button/foundation/ButtonBase';
+import Button, { ButtonSize, ButtonVariants } from '../Buttons/Button';
 import ButtonTertiary, {
   ButtonTertiaryVariant,
 } from '../Buttons/Button/variants/ButtonTertiary';
@@ -26,9 +26,10 @@ const ToastExample = () => {
 
   return (
     <>
-      <ButtonTertiary
-        variant={ButtonTertiaryVariant.Normal}
-        size={ButtonBaseSize.Md}
+      <Button
+        variant={ButtonVariants.Tertiary}
+        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
+        size={ButtonSize.Md}
         label={'Show Account Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
@@ -41,9 +42,10 @@ const ToastExample = () => {
           });
         }}
       />
-      <ButtonTertiary
-        variant={ButtonTertiaryVariant.Normal}
-        size={ButtonBaseSize.Md}
+      <Button
+        variant={ButtonVariants.Tertiary}
+        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
+        size={ButtonSize.Md}
         label={'Show Network Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
@@ -63,9 +65,10 @@ const ToastExample = () => {
           });
         }}
       />
-      <ButtonTertiary
-        variant={ButtonTertiaryVariant.Normal}
-        size={ButtonBaseSize.Md}
+      <Button
+        variant={ButtonVariants.Tertiary}
+        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
+        size={ButtonSize.Md}
         label={'Show Plain Toast'}
         onPress={() => {
           toastRef?.current?.showToast({

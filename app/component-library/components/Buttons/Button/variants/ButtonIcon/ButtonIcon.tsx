@@ -14,7 +14,7 @@ import stylesheet from './ButtonIcon.styles';
 
 const ButtonIcon = ({
   iconName,
-  variant = ButtonIconVariant.Primary,
+  buttonIconVariant = ButtonIconVariant.Primary,
   disabled,
   onPressIn,
   onPressOut,
@@ -31,7 +31,7 @@ const ButtonIcon = ({
     if (disabled) {
       color = colors.icon.muted;
     } else {
-      switch (variant) {
+      switch (buttonIconVariant) {
         case ButtonIconVariant.Primary:
           color = pressed ? colors.primary.alternative : colors.primary.default;
           break;
@@ -41,7 +41,7 @@ const ButtonIcon = ({
       }
     }
     return color;
-  }, [colors, variant, disabled, pressed]);
+  }, [colors, buttonIconVariant, disabled, pressed]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

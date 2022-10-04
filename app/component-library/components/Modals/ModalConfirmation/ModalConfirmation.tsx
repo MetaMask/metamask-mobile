@@ -6,13 +6,9 @@ import { View } from 'react-native';
 import ReusableModal, {
   ReusableModalRef,
 } from '../../../../components/UI/ReusableModal';
-import { ButtonBaseSize } from '../../Buttons/Button/foundation/ButtonBase';
-import ButtonSecondary, {
-  ButtonSecondaryVariant,
-} from '../../Buttons/Button/variants/ButtonSecondary';
-import ButtonPrimary, {
-  ButtonPrimaryVariant,
-} from '../../Buttons/Button/variants/ButtonPrimary';
+import Button, { ButtonSize, ButtonVariants } from '../../Buttons/Button';
+import { ButtonSecondaryVariant } from '../../Buttons/Button/variants/ButtonSecondary';
+import { ButtonPrimaryVariant } from '../../Buttons/Button/variants/ButtonPrimary';
 import Text, { TextVariant } from '../../Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks';
@@ -56,20 +52,22 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
 
   const renderButtons = () => (
     <View style={styles.buttonsContainer}>
-      <ButtonSecondary
-        variant={ButtonSecondaryVariant.Normal}
+      <Button
+        variant={ButtonVariants.Secondary}
+        buttonSecondaryVariant={ButtonSecondaryVariant.Normal}
         onPress={triggerCancel}
         label={cancelLabel || strings('confirmation_modal.cancel_cta')}
-        size={ButtonBaseSize.Lg}
+        size={ButtonSize.Lg}
         style={styles.button}
       />
       <View style={styles.buttonDivider} />
-      <ButtonPrimary
+      <Button
+        variant={ButtonVariants.Primary}
         testID={BUTTON_TEST_ID_BY_VARIANT[variant]}
-        variant={ButtonPrimaryVariant[variant]}
+        buttonPrimaryVariant={ButtonPrimaryVariant[variant]}
         onPress={triggerConfirm}
         label={confirmLabel || strings('confirmation_modal.confirm_cta')}
-        size={ButtonBaseSize.Lg}
+        size={ButtonSize.Lg}
         style={styles.button}
       />
     </View>
