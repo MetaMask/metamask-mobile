@@ -107,9 +107,7 @@ export default class WebviewError extends PureComponent {
             {strings('webview_error.message')}
           </Text>
           {error.description ? (
-            <Text style={styles.errorInfo}>{`${strings(
-              'webview_error.reason',
-            )}: ${error.description}`}</Text>
+            <Text style={styles.errorInfo}>{error.description}</Text>
           ) : null}
         </View>
         <View style={styles.buttonWrapper}>
