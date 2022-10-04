@@ -583,10 +583,10 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
 
   return {
     gestureEnabled: false,
-    headerLeft: () => (
+    headerTitleAlign: 'left',
+    headerTitle: () => (
       <BrowserUrlBar url={url} route={route} onPress={handleUrlPress} />
     ),
-    headerTitle: null,
     headerRight: () => (
       <AccountRightButton
         selectedAddress={connectedAccounts?.[0]}
