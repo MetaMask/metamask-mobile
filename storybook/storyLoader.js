@@ -4,7 +4,7 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
-  require('../app/component-library/components/Avatars/Avatar/foundation/AvatarBase/AvatarBase.stories');
+  require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
@@ -57,7 +57,7 @@ function loadStories() {
 }
 
 const stories = [
-  '../app/component-library/components/Avatars/Avatar/foundation/AvatarBase/AvatarBase.stories',
+  '../app/component-library/components/Avatars/Avatar/Avatar.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',

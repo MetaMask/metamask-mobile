@@ -1,10 +1,10 @@
 // Third party dependencies.
 import React from 'react';
-import { ImageSourcePropType, View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
+import { ImageSourcePropType } from 'react-native';
 import { boolean, select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
@@ -15,76 +15,55 @@ import {
   TEST_TOKEN_NAME,
 } from './AvatarToken.constants';
 
-const groupId = 'props';
+const AvatarTokenStory = () => {
+  const sizeSelector = select(
+    'size',
+    AvatarSize,
+    AvatarSize.Md,
+    storybookPropsGroupID,
+  );
+  const imgSourceOptions = {
+    Remote: 'REMOTE',
+    Local: 'LOCAL',
+  };
 
-storiesOf('Component Library / AvatarToken', module)
-  // Component centered container
-  .addDecorator((storyFn) => (
-    //  eslint-disable-next-line
-    <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-      {storyFn()}
-    </View>
-  ))
-  .add('With remote image', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
-    const includesImage = boolean('Includes image', true, groupId);
+  const imgSourceSelector = select(
+    'imageSource.uri Source',
+    imgSourceOptions,
+    imgSourceOptions.Remote,
+    storybookPropsGroupID,
+  );
+
+  let image: ImageSourcePropType;
+
+  if (imgSourceSelector === imgSourceOptions.Local) {
+    image = TEST_LOCAL_IMAGE_SOURCE;
+  } else {
     const imageUrlSelector = select(
       'imageSource.uri',
       TEST_REMOTE_TOKEN_IMAGES,
       TEST_REMOTE_TOKEN_IMAGES[0],
-      groupId,
+      storybookPropsGroupID,
     );
-    const image = (includesImage && {
+    image = {
       uri: imageUrlSelector,
-    }) as ImageSourcePropType;
-    const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
+    };
+  }
+  const tokenNameSelector = text(
+    'name',
+    TEST_TOKEN_NAME,
+    storybookPropsGroupID,
+  );
 
-    return (
-      <AvatarToken
-        size={sizeSelector}
-        name={tokenNameSelector}
-        imageSource={image}
-      />
-    );
-  })
-  .add('With remote image & halo effect', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
-    const includesImage = boolean('Includes image', true, groupId);
-    const imageUrlSelector = select(
-      'imageSource.uri',
-      TEST_REMOTE_TOKEN_IMAGES,
-      TEST_REMOTE_TOKEN_IMAGES[0],
-      groupId,
-    );
-    const image = (includesImage && {
-      uri: imageUrlSelector,
-    }) as ImageSourcePropType;
-    const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
-
-    return (
-      <AvatarToken
-        size={sizeSelector}
-        name={tokenNameSelector}
-        imageSource={image}
-        isHaloEnabled
-      />
-    );
-  })
-  .add('With local image', () => (
+  const isHaloEnabled = boolean('isHaloEnabled', false, storybookPropsGroupID);
+  return (
     <AvatarToken
-      size={AvatarSize.Lg}
-      name={TEST_TOKEN_NAME}
-      imageSource={TEST_LOCAL_IMAGE_SOURCE}
+      size={sizeSelector}
+      name={tokenNameSelector}
+      imageSource={image}
+      isHaloEnabled={isHaloEnabled}
     />
-  ))
-  .add('Without image', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
-    const tokenNameSelector = text('name', TEST_TOKEN_NAME, groupId);
+  );
+};
 
-    return <AvatarToken size={sizeSelector} name={tokenNameSelector} />;
-  })
-  .add('Without image and name', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
-
-    return <AvatarToken size={sizeSelector} />;
-  });
+export default AvatarTokenStory;

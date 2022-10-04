@@ -1,9 +1,10 @@
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
+import { ImageSourcePropType } from 'react-native';
 import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
@@ -14,35 +15,43 @@ import {
   TEST_NETWORK_NAME,
 } from './AvatarNetwork.constants';
 
-storiesOf(' Component Library / AvatarNetwork', module)
-  .addDecorator((getStory) => getStory())
-  .add('With remote image', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
-    const networkNameSelector = text('name', TEST_NETWORK_NAME);
+const AvatarNetworkStory = () => {
+  const sizeSelector = select(
+    'size',
+    AvatarSize,
+    AvatarSize.Md,
+    storybookPropsGroupID,
+  );
+  const networkNameSelector = text(
+    'name',
+    TEST_NETWORK_NAME,
+    storybookPropsGroupID,
+  );
 
-    return (
-      <AvatarNetwork
-        size={sizeSelector}
-        name={networkNameSelector}
-        imageSource={TEST_REMOTE_IMAGE_SOURCE}
-      />
-    );
-  })
-  .add('With local image', () => (
+  const imgSourceOptions = {
+    Remote: 'REMOTE',
+    Local: 'LOCAL',
+  };
+
+  const imgSourceSelector = select(
+    'imageSource.uri Source',
+    imgSourceOptions,
+    imgSourceOptions.Remote,
+    storybookPropsGroupID,
+  );
+
+  const imgSrcToSrc = {
+    [imgSourceOptions.Local]: TEST_LOCAL_IMAGE_SOURCE,
+    [imgSourceOptions.Remote]: TEST_REMOTE_IMAGE_SOURCE,
+  };
+
+  return (
     <AvatarNetwork
-      size={AvatarSize.Lg}
-      name={TEST_NETWORK_NAME}
-      imageSource={TEST_LOCAL_IMAGE_SOURCE}
+      size={sizeSelector}
+      name={networkNameSelector}
+      imageSource={imgSrcToSrc[imgSourceSelector] as ImageSourcePropType}
     />
-  ))
-  .add('Without image', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
-    const networkNameSelector = text('name', TEST_NETWORK_NAME);
+  );
+};
 
-    return <AvatarNetwork size={sizeSelector} name={networkNameSelector} />;
-  })
-  .add('Without image and name', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md);
-
-    return <AvatarNetwork size={sizeSelector} />;
-  });
+export default AvatarNetworkStory;

@@ -1,42 +1,50 @@
 // Third party dependencies.
 import React from 'react';
 import { ImageSourcePropType } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-import { select, text } from '@storybook/addon-knobs';
+import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
 import {
-  TEST_REMOTE_IMAGE_URL,
   TEST_LOCAL_IMAGE_SOURCE,
+  TEST_REMOTE_IMAGE_SOURCE,
 } from './AvatarFavicon.constants';
 
-const groupId = 'Props';
+const AvatarFaviconStory = () => {
+  const sizeSelector = select(
+    'size',
+    AvatarSize,
+    AvatarSize.Md,
+    storybookPropsGroupID,
+  );
 
-storiesOf('Component Library / AvatarFavicon', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default with remote image', () => {
-    const sizeSelector = select('size', AvatarSize, AvatarSize.Md, groupId);
-    const imageUrl = text('imageSource.uri', TEST_REMOTE_IMAGE_URL, groupId);
-    const imageSource: ImageSourcePropType = {
-      uri: imageUrl,
-    };
+  const imgSourceOptions = {
+    Remote: 'REMOTE',
+    Local: 'LOCAL',
+  };
 
-    return <AvatarFavicon size={sizeSelector} imageSource={imageSource} />;
-  })
-  .add('With local image', () => (
-    <AvatarFavicon size={AvatarSize.Lg} imageSource={TEST_LOCAL_IMAGE_SOURCE} />
-  ))
-  .add('With error', () => {
-    const sizeSelector = select(
-      'size',
-      AvatarSize,
-      AvatarSize.Md,
-      'Avatar Size',
-    );
+  const imgSourceSelector = select(
+    'imageSource.uri Source',
+    imgSourceOptions,
+    imgSourceOptions.Remote,
+    storybookPropsGroupID,
+  );
 
-    return <AvatarFavicon size={sizeSelector} imageSource={{ uri: '' }} />;
-  });
+  const imgSrcToSrc = {
+    [imgSourceOptions.Local]: TEST_LOCAL_IMAGE_SOURCE,
+    [imgSourceOptions.Remote]: TEST_REMOTE_IMAGE_SOURCE,
+  };
+
+  return (
+    <AvatarFavicon
+      size={sizeSelector}
+      imageSource={imgSrcToSrc[imgSourceSelector] as ImageSourcePropType}
+    />
+  );
+};
+
+export default AvatarFaviconStory;
