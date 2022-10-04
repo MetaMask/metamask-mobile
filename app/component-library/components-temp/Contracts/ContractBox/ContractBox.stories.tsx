@@ -8,8 +8,8 @@ import {
   CONTRACT_ADDRESS,
   CONTRACT_PET_NAME,
   CONTRACT_LOCAL_IMAGE,
-  HANDLE_COPY_ADDRESS,
-  HANDLE_EXPORT_ADDRESS,
+  CONTRACT_COPY_ADDRESS,
+  CONTRACT_EXPORT_ADDRESS,
 } from './ContractBox.constants';
 
 storiesOf('Component Library / Contract Box', module)
@@ -17,8 +17,8 @@ storiesOf('Component Library / Contract Box', module)
     <ContractBox
       contractAddress={CONTRACT_ADDRESS}
       contractLocalImage={CONTRACT_LOCAL_IMAGE}
-      handleCopyAddress={HANDLE_COPY_ADDRESS}
-      handleExportAddress={HANDLE_EXPORT_ADDRESS}
+      onCopyAddress={CONTRACT_COPY_ADDRESS}
+      onExportAddress={CONTRACT_EXPORT_ADDRESS}
     />
   ))
   .add('Saved Address', () => (
@@ -26,7 +26,7 @@ storiesOf('Component Library / Contract Box', module)
       contractAddress={CONTRACT_ADDRESS}
       contractPetName={CONTRACT_PET_NAME}
       contractLocalImage={CONTRACT_LOCAL_IMAGE}
-      handleCopyAddress={HANDLE_COPY_ADDRESS}
-      handleExportAddress={HANDLE_EXPORT_ADDRESS}
+      onCopyAddress={CONTRACT_COPY_ADDRESS}
+      onExportAddress={CONTRACT_EXPORT_ADDRESS}
     />
   ));

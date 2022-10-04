@@ -8,11 +8,11 @@ export interface ContractBoxBaseProps {
   /**
    * function that copies the contract address to the clipboard
    */
-  handleCopyAddress: () => void;
+  onCopyAddress: () => void;
   /**
    * function that opens contract in block explorer
    */
-  handleExportAddress: () => void;
+  onExportAddress: () => void;
 }
 
 export interface IconViewProps {

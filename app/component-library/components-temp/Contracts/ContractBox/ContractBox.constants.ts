@@ -11,10 +11,10 @@ export const CONTRACT_LOCAL_IMAGE: ImageSourcePropType = {
   uri: imageSource,
 };
 
-export const HANDLE_COPY_ADDRESS = () => {
+export const CONTRACT_COPY_ADDRESS = () => {
   console.log('copy address');
 };
 
-export const HANDLE_EXPORT_ADDRESS = () => {
+export const CONTRACT_EXPORT_ADDRESS = () => {
   console.log('export address');
 };
