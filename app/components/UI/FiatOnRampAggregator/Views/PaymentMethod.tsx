@@ -58,6 +58,7 @@ const PaymentMethod = () => {
 
   const {
     selectedRegion,
+    setSelectedRegion,
     selectedPaymentMethodId,
     setSelectedPaymentMethodId,
     selectedChainId,
@@ -118,6 +119,26 @@ const PaymentMethod = () => {
     },
     [setSelectedPaymentMethodId, trackEvent],
   );
+
+  const handleResetState = useCallback(() => {
+    setSelectedRegion(null);
+    setSelectedPaymentMethodId(null);
+    // @ts-expect-error navigation params error
+    const needsReset = params?.showBack === false;
+    if (needsReset) {
+      navigation.reset({
+        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [
+    // @ts-expect-error navigation params error
+    params?.showBack,
+    setSelectedPaymentMethodId,
+    setSelectedRegion,
+    navigation,
+  ]);
 
   const handleContinueToAmount = useCallback(() => {
     navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY);
@@ -185,61 +206,83 @@ const PaymentMethod = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <ScrollView>
-          <ScreenLayout.Content>
-            {filteredPaymentMethods?.map(
-              ({ id, name, delay, amountTier, paymentType, logo }) => (
-                <View key={id} style={styles.row}>
-                  <PaymentOption
-                    highlighted={id === selectedPaymentMethodId}
-                    title={name}
-                    time={delay}
-                    id={id}
-                    onPress={
-                      id === selectedPaymentMethodId
-                        ? undefined
-                        : () => handlePaymentMethodPress(id)
-                    }
-                    amountTier={amountTier}
-                    paymentTypeIcon={getPaymentMethodIcon(paymentType)}
-                    logo={logo}
-                  />
-                </View>
-              ),
+        {filteredPaymentMethods?.length === 0 ? (
+          <ErrorView
+            title={strings(
+              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title',
+              { regionName: selectedRegion?.name },
             )}
-          </ScreenLayout.Content>
-        </ScrollView>
-      </ScreenLayout.Body>
-      <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
-            currentPaymentMethod?.paymentType ===
-              PaymentType.DebitCreditCard) && (
-            <View style={styles.row}>
-              <Text small grey centered>
-                {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
-                  strings(
-                    'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
-                  )}
-                {currentPaymentMethod?.paymentType ===
-                  PaymentType.DebitCreditCard &&
-                  strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
-              </Text>
-            </View>
-          )}
-          <View style={styles.row}>
-            <StyledButton
-              type={'confirm'}
-              onPress={handleContinueToAmount}
-              disabled={!selectedPaymentMethodId}
-            >
-              {strings(
-                'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
+            description={strings(
+              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description',
+              { regionName: selectedRegion?.name },
+            )}
+            ctaOnPress={handleResetState}
+            ctaLabel={strings(
+              'fiat_on_ramp_aggregator.payment_method.reset_region',
+            )}
+            location={'Payment Method Screen'}
+            icon="info"
+          />
+        ) : (
+          <ScrollView>
+            <ScreenLayout.Content>
+              {filteredPaymentMethods?.map(
+                ({ id, name, delay, amountTier, paymentType, logo }) => (
+                  <View key={id} style={styles.row}>
+                    <PaymentOption
+                      highlighted={id === selectedPaymentMethodId}
+                      title={name}
+                      time={delay}
+                      id={id}
+                      onPress={
+                        id === selectedPaymentMethodId
+                          ? undefined
+                          : () => handlePaymentMethodPress(id)
+                      }
+                      amountTier={amountTier}
+                      paymentTypeIcon={getPaymentMethodIcon(paymentType)}
+                      logo={logo}
+                    />
+                  </View>
+                ),
               )}
-            </StyledButton>
-          </View>
-        </ScreenLayout.Content>
-      </ScreenLayout.Footer>
+            </ScreenLayout.Content>
+          </ScrollView>
+        )}
+      </ScreenLayout.Body>
+
+      {filteredPaymentMethods && filteredPaymentMethods.length > 0 && (
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            {(currentPaymentMethod?.paymentType === PaymentType.ApplePay ||
+              currentPaymentMethod?.paymentType ===
+                PaymentType.DebitCreditCard) && (
+              <View style={styles.row}>
+                <Text small grey centered>
+                  {currentPaymentMethod?.paymentType === PaymentType.ApplePay &&
+                    strings(
+                      'fiat_on_ramp_aggregator.payment_method.apple_cash_not_supported',
+                    )}
+                  {currentPaymentMethod?.paymentType ===
+                    PaymentType.DebitCreditCard &&
+                    strings('fiat_on_ramp_aggregator.payment_method.card_fees')}
+                </Text>
+              </View>
+            )}
+            <View style={styles.row}>
+              <StyledButton
+                type={'confirm'}
+                onPress={handleContinueToAmount}
+                disabled={!selectedPaymentMethodId}
+              >
+                {strings(
+                  'fiat_on_ramp_aggregator.payment_method.continue_to_amount',
+                )}
+              </StyledButton>
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
+      )}
     </ScreenLayout>
   );
 };
