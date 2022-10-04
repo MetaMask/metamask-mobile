@@ -2139,12 +2139,11 @@ function SwapsQuotesView({
             <Text bold>{strings('swaps.fee_text.best_price')}</Text>{' '}
             {strings('swaps.fee_text.from_the')}{' '}
             <Text bold>{strings('swaps.fee_text.top_liquidity')}</Text>{' '}
-            {strings('swaps.fee_text.fee_is_applied', {
-              fee:
-                selectedQuote && selectedQuote?.fee
-                  ? `${selectedQuote.fee}%`
-                  : '0.875%',
-            })}
+            {selectedQuote && selectedQuote?.fee > 0
+              ? strings('swaps.fee_text.fee_is_applied', {
+                  fee: `${selectedQuote.fee}%`,
+                })
+              : strings('swaps.fee_text.fee_is_not_applied')}
           </Text>
         }
       />

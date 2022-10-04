@@ -37,8 +37,39 @@ jobs:
         with:
           path: ./*
           key: ${{ github.sha }}
-  lint:
+  scripts:
     runs-on: ubuntu-20.04
+    needs: setup
+    strategy:
+      matrix:
+        scripts:
+          - lint
+          - audit:ci
+          - test:tgz-check
+    steps:
+      - uses: actions/cache@v2
+        id: restore-build
+        with:
+          path: ./*
+          key: ${{ github.sha }}
+      - name: Get Node.js version
+        id: nvm
+        run: |
+          VERSION=$(cat .nvmrc)
+          echo ::set-output name=NODE_VERSION::$VERSION
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
+      - run: yarn ${{ matrix['scripts'] }}
+  tests:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        units:
+          - non-components
+          - components-ui
+          - components-views
+          - components-remaining
     needs: setup
     steps:
       - uses: actions/cache@v2
@@ -54,64 +85,12 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn lint
-  audit:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn audit:ci
-  tgz-check:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: yarn test:tgz-check
-  test:
-    runs-on: ubuntu-20.04
-    needs: setup
-    steps:
-      - uses: actions/cache@v2
-        id: restore-build
-        with:
-          path: ./*
-          key: ${{ github.sha }}
-      - name: Get Node.js version
-        id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
-      - run: NODE_OPTIONS=--max_old_space_size=20480 yarn test:unit --forceExit --silent
+      - run: yarn test:unit:${{ matrix['units'] }} --forceExit --silent
+        env:
+          NODE_OPTIONS: --max_old_space_size=20480
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-20.04
-    needs: [setup, lint, audit, tgz-check, test]
+    needs: [setup, scripts, tests]
     steps:
       - run: echo "Great success!"

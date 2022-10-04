@@ -501,6 +501,11 @@ const FiatOnRampAggregator = () => (
         component={PaymentMethod}
       />
       <Stack.Screen
+        name={Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED}
+        component={PaymentMethod}
+        options={{ animationEnabled: false }}
+      />
+      <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY}
         component={AmountToBuy}
       />
@@ -519,11 +524,6 @@ const FiatOnRampAggregator = () => (
       <Stack.Screen
         name={Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED}
         component={Region}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.FIAT_ON_RAMP_AGGREGATOR.AMOUNT_TO_BUY_HAS_STARTED}
-        component={AmountToBuy}
         options={{ animationEnabled: false }}
       />
     </Stack.Navigator>
@@ -631,7 +631,7 @@ const MainNavigator = () => (
     <Stack.Screen name="SendFlowView" component={SendFlowView} />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen name="QRScanner" component={QrScanner} />
+    <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="LockScreen" component={LockScreen} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />

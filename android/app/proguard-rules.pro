@@ -32,3 +32,10 @@
 # Hermes
 # -keep class com.facebook.hermes.unicode.** { *; }
 # -keep class com.facebook.jni.** { *; }#
+
+# :react-native-inappbrowser-reborn
+-keepattributes *Annotation*
+-keepclassmembers class ** {
+  @org.greenrobot.eventbus.Subscribe <methods>;
+}
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }
