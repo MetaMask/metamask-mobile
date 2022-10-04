@@ -63,7 +63,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
-} from '../../../constants/testIDs/Screens/ImportFromSeedScreen.testIds';
+} from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 

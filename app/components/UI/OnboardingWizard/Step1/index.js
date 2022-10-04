@@ -17,7 +17,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../../util/analytics';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../constants/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/features/testIDs/Components/OnboardingWizard.testIds';
 
 const styles = StyleSheet.create({
   main: {
