@@ -1,4 +1,4 @@
-import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../app/constants/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../testIDs/Components/OnboardingWizard.testIds';
 
 class WalletMainScreen {
   async validateOnboardingWizard() {

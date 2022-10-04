@@ -1,4 +1,4 @@
-import { OPTIN_METRICS_I_AGREE_BUTTON_ID, OPTIN_METRICS_TITLE_ID } from '../../../app/constants/testIDs/Screens/OptinMetricsScreen.testIds';
+import { OPTIN_METRICS_I_AGREE_BUTTON_ID, OPTIN_METRICS_TITLE_ID } from '../testIDs/Screens/OptinMetricsScreen.testIds';
 
 class OptinMetricsScreen {
   async verifyScreenTitle() {

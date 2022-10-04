@@ -36,7 +36,7 @@ import {
   OPTIN_METRICS_I_AGREE_BUTTON_ID,
   OPTIN_METRICS_NO_THANKS_BUTTON_ID,
   OPTIN_METRICS_TITLE_ID,
-} from '../../../constants/testIDs/Screens/OptinMetricsScreen.testIds';
+} from '../../../../wdio/features/testIDs/Screens/OptinMetricsScreen.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({

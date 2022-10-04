@@ -4,7 +4,7 @@ import {
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_SCREEN_TITLE_ID
-} from '../testIDs/WalletSetupScreen.constants.js';
+} from '../testIDs/Screens/WalletSetupScreen.testIds';
 
 class WalletSetupScreen {
   async verifyScreenTitle() {

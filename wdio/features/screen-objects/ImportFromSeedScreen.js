@@ -4,7 +4,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-} from '../../../app/constants/testIDs/Screens/ImportFromSeedScreen.testIds';
+} from '../testIDs/Screens/ImportFromSeedScreen.testIds';
 import Selectors from '../helpers/Selectors';
 
 class ImportFromSeed {
