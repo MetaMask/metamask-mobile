@@ -2,53 +2,56 @@
 
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { select, text } from '@storybook/addon-knobs';
+import { select, text, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { ButtonSize } from '../../Button.types';
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { IconName } from '../../../../Icon';
+import { ButtonSize } from '../../Button.types';
 
 // Internal dependencies.
 import ButtonTertiary from './ButtonTertiary';
-import { ButtonTertiaryVariant } from './ButtonTertiary.types';
+import {
+  ButtonTertiaryVariant,
+  ButtonTertiaryProps,
+} from './ButtonTertiary.types';
 
-storiesOf('Component Library / ButtonTertiary', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const sizeSelector = select('size', ButtonSize, ButtonSize.Md, groupId);
+export const getButtonTertiaryStoryProps = (): ButtonTertiaryProps => {
+  const sizeSelector = select(
+    'size',
+    ButtonSize,
+    ButtonSize.Md,
+    storybookPropsGroupID,
+  );
+  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
+  const buttonTertiaryVariantSelector = select(
+    'buttonTertiaryVariant',
+    ButtonTertiaryVariant,
+    ButtonTertiaryVariant.Normal,
+    storybookPropsGroupID,
+  );
+  const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
+
+  const buttonTertiaryStoryProps: ButtonTertiaryProps = {
+    size: sizeSelector,
+    label: labelSelector,
+    buttonTertiaryVariant: buttonTertiaryVariantSelector,
+    onPress: () => console.log("I'm clicked!"),
+  };
+  if (includesIcon) {
     const iconNameSelector = select(
       'iconName',
       IconName,
       IconName.AddSquareFilled,
-      groupId,
+      storybookPropsGroupID,
     );
-    const labelSelector = text('label', 'Click Me!', groupId);
+    buttonTertiaryStoryProps.iconName = iconNameSelector;
+  }
+  return buttonTertiaryStoryProps;
+};
 
-    return (
-      <ButtonTertiary
-        iconName={iconNameSelector}
-        size={sizeSelector}
-        label={labelSelector}
-        onPress={() => console.log("I'm clicked!")}
-        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
-      />
-    );
-  })
-  .add('Without icon', () => (
-    <ButtonTertiary
-      size={ButtonSize.Md}
-      label={'Click Me!'}
-      onPress={() => console.log("I'm clicked!")}
-      buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
-    />
-  ))
-  .add('Danger variant', () => (
-    <ButtonTertiary
-      size={ButtonSize.Md}
-      label={'Click Me!'}
-      onPress={() => console.log("I'm clicked!")}
-      buttonTertiaryVariant={ButtonTertiaryVariant.Danger}
-    />
-  ));
+const ButtonTertiaryStory = () => (
+  <ButtonTertiary {...getButtonTertiaryStoryProps()} />
+);
+
+export default ButtonTertiaryStory;

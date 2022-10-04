@@ -2,53 +2,56 @@
 
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { select, text } from '@storybook/addon-knobs';
+import { select, text, boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { ButtonSize } from '../../Button.types';
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { IconName } from '../../../../Icon';
+import { ButtonSize } from '../../Button.types';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';
-import { ButtonSecondaryVariant } from './ButtonSecondary.types';
+import {
+  ButtonSecondaryVariant,
+  ButtonSecondaryProps,
+} from './ButtonSecondary.types';
 
-storiesOf('Component Library / ButtonSecondary', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const sizeSelector = select('size', ButtonSize, ButtonSize.Md, groupId);
+export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
+  const sizeSelector = select(
+    'size',
+    ButtonSize,
+    ButtonSize.Md,
+    storybookPropsGroupID,
+  );
+  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
+  const buttonSecondaryVariantSelector = select(
+    'buttonSecondaryVariant',
+    ButtonSecondaryVariant,
+    ButtonSecondaryVariant.Normal,
+    storybookPropsGroupID,
+  );
+  const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
+
+  const buttonSecondaryStoryProps: ButtonSecondaryProps = {
+    size: sizeSelector,
+    label: labelSelector,
+    buttonSecondaryVariant: buttonSecondaryVariantSelector,
+    onPress: () => console.log("I'm clicked!"),
+  };
+  if (includesIcon) {
     const iconNameSelector = select(
       'iconName',
       IconName,
       IconName.AddSquareFilled,
-      groupId,
+      storybookPropsGroupID,
     );
-    const labelSelector = text('label', 'Click Me!', groupId);
+    buttonSecondaryStoryProps.iconName = iconNameSelector;
+  }
+  return buttonSecondaryStoryProps;
+};
 
-    return (
-      <ButtonSecondary
-        iconName={iconNameSelector}
-        size={sizeSelector}
-        label={labelSelector}
-        onPress={() => console.log("I'm clicked!")}
-        buttonSecondaryVariant={ButtonSecondaryVariant.Normal}
-      />
-    );
-  })
-  .add('Without icon', () => (
-    <ButtonSecondary
-      size={ButtonSize.Md}
-      label={'Click Me!'}
-      onPress={() => console.log("I'm clicked!")}
-      buttonSecondaryVariant={ButtonSecondaryVariant.Normal}
-    />
-  ))
-  .add('Danger variant', () => (
-    <ButtonSecondary
-      size={ButtonSize.Md}
-      label={'Click Me!'}
-      onPress={() => console.log("I'm clicked!")}
-      buttonSecondaryVariant={ButtonSecondaryVariant.Danger}
-    />
-  ));
+const ButtonSecondaryStory = () => (
+  <ButtonSecondary {...getButtonSecondaryStoryProps()} />
+);
+
+export default ButtonSecondaryStory;

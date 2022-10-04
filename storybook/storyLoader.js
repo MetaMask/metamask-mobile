@@ -15,7 +15,7 @@ function loadStories() {
   require('../app/component-library/components/Badges/Badge/foundation/BadgeBase/BadgeBase.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
-  require('../app/component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories');
+  require('../app/component-library/components/Buttons/Button/Button.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories');
   require('../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories');
@@ -68,7 +68,7 @@ const stories = [
   '../app/component-library/components/Badges/Badge/foundation/BadgeBase/BadgeBase.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',
   '../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories',
-  '../app/component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.stories',
+  '../app/component-library/components/Buttons/Button/Button.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonIcon/ButtonIcon.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.stories',
   '../app/component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.stories',
