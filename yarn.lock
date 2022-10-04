@@ -1398,15 +1398,16 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@consensys/on-ramp-sdk@^1.3.0-beta.3":
-  version "1.3.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.0-beta.3.tgz#77f859180e84b836cdcc3085001a3f21ddc68789"
-  integrity sha512-WOGHmga3K1GHmNZmTGTqgA2FmpS6bd8Ay/3IFodoValh8/xgdcfwPD8YnWt6VBHSfBw23Tkwr5JW/yjRTPhkUg==
+"@consensys/on-ramp-sdk@^1.3.0-beta.5":
+  version "1.3.0-beta.5"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.3.0-beta.5.tgz#8d9a2db4c26ba548005d99449e28030be7ff1524"
+  integrity sha512-HTecoUzQYFWUOPCNvzh78g7U9O/tyubTvm9lWDEH03PcTEKlsvM3HgJfvOUEDoyES/OisNPoUnhljmygDF2xsA==
   dependencies:
     async "^3.2.3"
     axios "^0.21.0"
     axios-retry "^3.1.2"
     crypto-js "^4.1.1"
+    uuid "^9.0.0"
 
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
@@ -17920,6 +17921,11 @@ uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
+
+uuid@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
+  integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
 v8-android@~8.84.0:
   version "8.84.0"
