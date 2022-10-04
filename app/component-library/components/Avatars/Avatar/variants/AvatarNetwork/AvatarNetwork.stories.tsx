@@ -1,6 +1,5 @@
 // Third party dependencies.
 import React from 'react';
-import { ImageSourcePropType } from 'react-native';
 import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
@@ -14,8 +13,9 @@ import {
   TEST_LOCAL_IMAGE_SOURCE,
   TEST_NETWORK_NAME,
 } from './AvatarNetwork.constants';
+import { AvatarNetworkProps } from './AvatarNetwork.types';
 
-const AvatarNetworkStory = () => {
+export const getAvatarNetworkStoryProps = (): AvatarNetworkProps => {
   const sizeSelector = select(
     'size',
     AvatarSize,
@@ -44,14 +44,14 @@ const AvatarNetworkStory = () => {
     [imgSourceOptions.Local]: TEST_LOCAL_IMAGE_SOURCE,
     [imgSourceOptions.Remote]: TEST_REMOTE_IMAGE_SOURCE,
   };
-
-  return (
-    <AvatarNetwork
-      size={sizeSelector}
-      name={networkNameSelector}
-      imageSource={imgSrcToSrc[imgSourceSelector] as ImageSourcePropType}
-    />
-  );
+  return {
+    size: sizeSelector,
+    name: networkNameSelector,
+    imageSource: imgSrcToSrc[imgSourceSelector],
+  };
 };
+const AvatarNetworkStory = () => (
+  <AvatarNetwork {...getAvatarNetworkStoryProps()} />
+);
 
 export default AvatarNetworkStory;

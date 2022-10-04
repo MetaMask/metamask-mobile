@@ -15,6 +15,10 @@ export enum AvatarAccountType {
  */
 export interface AvatarAccountProps extends AvatarBaseProps {
   /**
+   * An Ethereum wallet address.
+   */
+  accountAddress: string;
+  /**
    * Variant of Avatar
    */
   variant?: AvatarVariants.Account;
@@ -23,8 +27,4 @@ export interface AvatarAccountProps extends AvatarBaseProps {
    * @default JazzIcon
    */
   type?: AvatarAccountType;
-  /**
-   * An Ethereum wallet address.
-   */
-  accountAddress: string;
 }

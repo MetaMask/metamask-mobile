@@ -1,6 +1,5 @@
 // Third party dependencies.
 import React from 'react';
-import { ImageSourcePropType } from 'react-native';
 import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
@@ -13,8 +12,9 @@ import {
   TEST_LOCAL_IMAGE_SOURCE,
   TEST_REMOTE_IMAGE_SOURCE,
 } from './AvatarFavicon.constants';
+import { AvatarFaviconProps } from './AvatarFavicon.types';
 
-const AvatarFaviconStory = () => {
+export const getAvatarFaviconStoryProps = (): AvatarFaviconProps => {
   const sizeSelector = select(
     'size',
     AvatarSize,
@@ -38,13 +38,13 @@ const AvatarFaviconStory = () => {
     [imgSourceOptions.Local]: TEST_LOCAL_IMAGE_SOURCE,
     [imgSourceOptions.Remote]: TEST_REMOTE_IMAGE_SOURCE,
   };
-
-  return (
-    <AvatarFavicon
-      size={sizeSelector}
-      imageSource={imgSrcToSrc[imgSourceSelector] as ImageSourcePropType}
-    />
-  );
+  return {
+    size: sizeSelector,
+    imageSource: imgSrcToSrc[imgSourceSelector],
+  };
 };
+const AvatarFaviconStory = () => (
+  <AvatarFavicon {...getAvatarFaviconStoryProps()} />
+);
 
 export default AvatarFaviconStory;

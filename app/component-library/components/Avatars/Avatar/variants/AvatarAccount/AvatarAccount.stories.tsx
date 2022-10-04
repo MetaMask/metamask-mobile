@@ -8,34 +8,25 @@ import { storybookPropsGroupID } from '../../../../../constants/storybook.consta
 
 // Internal dependencies.
 import AvatarAccount from './AvatarAccount';
-import { AvatarAccountType } from './AvatarAccount.types';
+import { AvatarAccountType, AvatarAccountProps } from './AvatarAccount.types';
 import { DUMMY_WALLET_ADDRESS } from './AvatarAccount.constants';
 
-const AvatarAccountStory = () => {
-  const accountAddress = text(
+export const getAvatarAccountStoryProps = (): AvatarAccountProps => ({
+  accountAddress: text(
     'accountAddress',
     DUMMY_WALLET_ADDRESS,
     storybookPropsGroupID,
-  );
-  const sizeSelector = select(
-    'size',
-    AvatarSize,
-    AvatarSize.Md,
-    storybookPropsGroupID,
-  );
-  const typeSelector = select(
+  ),
+  size: select('size', AvatarSize, AvatarSize.Md, storybookPropsGroupID),
+  type: select(
     'type',
     AvatarAccountType,
     AvatarAccountType.JazzIcon,
     storybookPropsGroupID,
-  );
+  ),
+});
+const AvatarAccountStory = () => (
+  <AvatarAccount {...getAvatarAccountStoryProps()} />
+);
 
-  return (
-    <AvatarAccount
-      size={sizeSelector}
-      type={typeSelector}
-      accountAddress={accountAddress}
-    />
-  );
-};
 export default AvatarAccountStory;

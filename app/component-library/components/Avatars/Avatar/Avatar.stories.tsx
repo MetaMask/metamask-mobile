@@ -7,16 +7,29 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-import AvatarAccountStory from './variants/AvatarAccount/AvatarAccount.stories';
-import AvatarFaviconStory from './variants/AvatarFavicon/AvatarFavicon.stories';
-import AvatarIconStory from './variants/AvatarIcon/AvatarIcon.stories';
-import AvatarNetworkStory from './variants/AvatarNetwork/AvatarNetwork.stories';
-import AvatarTokenStory from './variants/AvatarToken/AvatarToken.stories';
+import AvatarAccountStory, {
+  getAvatarAccountStoryProps,
+} from './variants/AvatarAccount/AvatarAccount.stories';
+import AvatarFaviconStory, {
+  getAvatarFaviconStoryProps,
+} from './variants/AvatarFavicon/AvatarFavicon.stories';
+import AvatarIconStory, {
+  getAvatarIconStoryProps,
+} from './variants/AvatarIcon/AvatarIcon.stories';
+import AvatarNetworkStory, {
+  getAvatarNetworkStoryProps,
+} from './variants/AvatarNetwork/AvatarNetwork.stories';
+import AvatarTokenStory, {
+  getAvatarTokenStoryProps,
+} from './variants/AvatarToken/AvatarToken.stories';
 
 // Internal dependencies.
-import { AvatarVariants } from './Avatar.types';
+import { AvatarVariants, AvatarProps } from './Avatar.types';
+import Avatar from './Avatar';
 
-const AvatarStory = () => {
+export const getAvatarStoryProps = (): AvatarProps => {
+  let avatarProps: AvatarProps;
+
   const avatarVariantsSelector = select(
     'Avatar Variant',
     AvatarVariants,
@@ -25,26 +38,46 @@ const AvatarStory = () => {
   );
   switch (avatarVariantsSelector) {
     case AvatarVariants.Account:
-      return <AvatarAccountStory />;
+      avatarProps = {
+        variant: AvatarVariants.Account,
+        ...getAvatarAccountStoryProps(),
+      };
       break;
     case AvatarVariants.Favicon:
-      return <AvatarFaviconStory />;
+      avatarProps = {
+        variant: AvatarVariants.Favicon,
+        ...getAvatarFaviconStoryProps(),
+      };
       break;
     case AvatarVariants.Icon:
-      return <AvatarIconStory />;
+      avatarProps = {
+        variant: AvatarVariants.Icon,
+        ...getAvatarIconStoryProps(),
+      };
       break;
     case AvatarVariants.Network:
-      return <AvatarNetworkStory />;
+      avatarProps = {
+        variant: AvatarVariants.Network,
+        ...getAvatarNetworkStoryProps(),
+      };
       break;
     case AvatarVariants.Token:
-      return <AvatarTokenStory />;
+      avatarProps = {
+        variant: AvatarVariants.Token,
+        ...getAvatarTokenStoryProps(),
+      };
       break;
   }
+  return avatarProps;
 };
+const AvatarStory = () => <Avatar {...getAvatarStoryProps()} />;
 
-storiesOf('Component Library / Avatar', module)
-  .add('Default', AvatarStory)
+storiesOf('Component Library / Avatars', module)
+  .add('Avatar', AvatarStory)
   .add('Variants / AvatarAccount', AvatarAccountStory)
+  .add('Variants / AvatarFavicon', AvatarFaviconStory)
   .add('Variants / AvatarIcon', AvatarIconStory)
   .add('Variants / AvatarNetwork', AvatarNetworkStory)
   .add('Variants / AvatarToken', AvatarTokenStory);
+
+export default AvatarStory;

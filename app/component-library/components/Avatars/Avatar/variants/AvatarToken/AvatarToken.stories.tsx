@@ -14,8 +14,9 @@ import {
   TEST_REMOTE_TOKEN_IMAGES,
   TEST_TOKEN_NAME,
 } from './AvatarToken.constants';
+import { AvatarTokenProps } from './AvatarToken.types';
 
-const AvatarTokenStory = () => {
+export const getAvatarTokenStoryProps = (): AvatarTokenProps => {
   const sizeSelector = select(
     'size',
     AvatarSize,
@@ -56,14 +57,14 @@ const AvatarTokenStory = () => {
   );
 
   const isHaloEnabled = boolean('isHaloEnabled', false, storybookPropsGroupID);
-  return (
-    <AvatarToken
-      size={sizeSelector}
-      name={tokenNameSelector}
-      imageSource={image}
-      isHaloEnabled={isHaloEnabled}
-    />
-  );
+  return {
+    size: sizeSelector,
+    name: tokenNameSelector,
+    imageSource: image,
+    isHaloEnabled,
+  };
 };
+
+const AvatarTokenStory = () => <AvatarToken {...getAvatarTokenStoryProps()} />;
 
 export default AvatarTokenStory;

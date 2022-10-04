@@ -9,8 +9,9 @@ import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import AvatarIcon from './AvatarIcon';
+import { AvatarIconProps } from './AvatarIcon.types';
 
-const AvatarIconStory = () => {
+export const getAvatarIconStoryProps = (): AvatarIconProps => {
   const sizeSelector = select(
     'size',
     AvatarSize,
@@ -24,7 +25,11 @@ const AvatarIconStory = () => {
     storybookPropsGroupID,
   );
 
-  return <AvatarIcon size={sizeSelector} name={iconNameSelector} />;
+  return {
+    size: sizeSelector,
+    name: iconNameSelector,
+  };
 };
+const AvatarIconStory = () => <AvatarIcon {...getAvatarIconStoryProps()} />;
 
 export default AvatarIconStory;
