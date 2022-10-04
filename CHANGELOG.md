@@ -1,6 +1,58 @@
 # Changelog
 
 ## Current Main Branch
+- [#5019](https://github.com/MetaMask/metamask-mobile/pull/5019): 5.8.0
+- [#5035](https://github.com/MetaMask/metamask-mobile/pull/5035): On-Ramp: Fix autolock dispatch for apple pay
+- [#4804](https://github.com/MetaMask/metamask-mobile/pull/4804): Refactor UpdateEIP1559Transaction Component
+- [#4453](https://github.com/MetaMask/metamask-mobile/pull/4453): setup tests and amount screen test
+- [#5076](https://github.com/MetaMask/metamask-mobile/pull/5076): move scripts to matrix
+- [#5079](https://github.com/MetaMask/metamask-mobile/pull/5079): [FIX] Network switch during QR scan in Send Flow
+- [#5077](https://github.com/MetaMask/metamask-mobile/pull/5077): Feature/5074 translations for permission system
+- [#5075](https://github.com/MetaMask/metamask-mobile/pull/5075): Add translations
+- [#5044](https://github.com/MetaMask/metamask-mobile/pull/5044): Fix TypeError: undefined is not an object (evaluating ‘transaction.status’)
+- [#5040](https://github.com/MetaMask/metamask-mobile/pull/5040): Component/4721-card
+- [#5034](https://github.com/MetaMask/metamask-mobile/pull/5034): Merge of PR#4934 and PR#4861
+- [#5065](https://github.com/MetaMask/metamask-mobile/pull/5065): added shadows to useAppTheme
+- [#5039](https://github.com/MetaMask/metamask-mobile/pull/5039): Update/4692 update shadow tokens
+- [#5061](https://github.com/MetaMask/metamask-mobile/pull/5061): Run tests in parallel
+- [#5010](https://github.com/MetaMask/metamask-mobile/pull/5010): Add InApp Browser package
+- [#5057](https://github.com/MetaMask/metamask-mobile/pull/5057): only run ci on main
+- [#5058](https://github.com/MetaMask/metamask-mobile/pull/5058): patch vm2 via resolution
+- [#5045](https://github.com/MetaMask/metamask-mobile/pull/5045): revert entry file to point to root and not storybook
+- [#5042](https://github.com/MetaMask/metamask-mobile/pull/5042): Component/4723-estimatedtext
+- [#4999](https://github.com/MetaMask/metamask-mobile/pull/4999): Component: Account and balance component
+- [#5030](https://github.com/MetaMask/metamask-mobile/pull/5030): updated PR template with working link for mobile coding standards
+- [#5033](https://github.com/MetaMask/metamask-mobile/pull/5033): Update default iOS simulator
+- [#5028](https://github.com/MetaMask/metamask-mobile/pull/5028): Fix variable interpolation in build.sh
+- [#5031](https://github.com/MetaMask/metamask-mobile/pull/5031): [ENHANCEMENT] Deprecate snake case from feature flags
+- [#5025](https://github.com/MetaMask/metamask-mobile/pull/5025): Remove all "Ooops" copies
+- [#4404](https://github.com/MetaMask/metamask-mobile/pull/4404): [FIX] Fixed ERC20 token transfer from Dapps
+- [#5024](https://github.com/MetaMask/metamask-mobile/pull/5024): updated app name for release-to-store step
+- [#5006](https://github.com/MetaMask/metamask-mobile/pull/5006): Bump @keystonehq/ur-decoder from 0.3.0 to 0.6.1
+- [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
+- [#4913](https://github.com/MetaMask/metamask-mobile/pull/4913): 5.7.0
+- [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): Unable to Speedup/Cancel legacy transactions
+- [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): Implement new QA builds for both Android and iOS
+- [#4993](https://github.com/MetaMask/metamask-mobile/pull/4993): On-Ramp: Add scrolling to payment methods and make logo property optional
+- [#4997](https://github.com/MetaMask/metamask-mobile/pull/4997): [ENHANCEMENT] SRP Reveal Timestamp
+- [#5002](https://github.com/MetaMask/metamask-mobile/pull/5002): [FEAT] ENS Wildcard and offchain resolution
+- [#4430](https://github.com/MetaMask/metamask-mobile/pull/4430): [5.5] Keystone: fix 2 bugs
+- [#3438](https://github.com/MetaMask/metamask-mobile/pull/3438): Bump metro from 0.59.0 to 0.66.2
+- [#4649](https://github.com/MetaMask/metamask-mobile/pull/4649): [IMPROVEMENT] Url redirection
+- [#4980](https://github.com/MetaMask/metamask-mobile/pull/4980): On-ramp: Add compact payment method selector
+- [#4982](https://github.com/MetaMask/metamask-mobile/pull/4982): [FIX] typo in faucet name
+- [#4983](https://github.com/MetaMask/metamask-mobile/pull/4983): [FIX] Navigation comment spell
+- [#4755](https://github.com/MetaMask/metamask-mobile/pull/4755): [UPDATE] - New template fields added to reflect newer requirements for PRs
+- [#4978](https://github.com/MetaMask/metamask-mobile/pull/4978): Store distinct id for consistency
+- [#4958](https://github.com/MetaMask/metamask-mobile/pull/4958): [FIX] WebView Origin Whitelist
+- [#4941](https://github.com/MetaMask/metamask-mobile/pull/4941): Replace "@react-native-community/async-storage" for "@react-native-async-storage/async-storage"
+- [#4947](https://github.com/MetaMask/metamask-mobile/pull/4947): [IMPROVEMENT] WebView Error Copy
+- [#4916](https://github.com/MetaMask/metamask-mobile/pull/4916): Revert ENS CCIP Wildcard Support
+- [#4946](https://github.com/MetaMask/metamask-mobile/pull/4946): Swaps: Add copy for 0% fee in quotes info modal
+- [#4942](https://github.com/MetaMask/metamask-mobile/pull/4942): Add unit tests to useDeleteWallet hook
+- [#4939](https://github.com/MetaMask/metamask-mobile/pull/4939): Update "Usability enhancement" template
+- [#4938](https://github.com/MetaMask/metamask-mobile/pull/4938): Bump git-clone version to 6
+- [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): Detox version bump from 19.6.5 to 19.7.1
 
 ## 5.8.0 - Sept 22, 2022
 - [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log

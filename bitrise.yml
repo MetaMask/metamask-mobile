@@ -433,10 +433,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.8.0
+      VERSION_NAME: 5.9.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 973
+      VERSION_NUMBER: 983
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
