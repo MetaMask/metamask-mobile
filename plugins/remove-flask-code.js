@@ -197,8 +197,7 @@ const removeTargetRefs = (t, path) => {
 };
 
 // eslint-disable-next-line import/no-commonjs
-module.exports = function (babel) {
-  const { types: t } = babel;
+module.exports = function ({ types: t }) {
   const flaskIdentifiers = ['Flask', 'flask'];
 
   return {
