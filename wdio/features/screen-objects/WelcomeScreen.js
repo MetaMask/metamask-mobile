@@ -7,9 +7,12 @@ import {
   SPLASH_SCREEN_METAMASK_ANIMATION_ID
 } from '../../../app/constants/testIDs/Components/MetaMaskAnimation.testIds';
 import Gestures from '../helpers/Gestures';
+import Selectors from '../helpers/Selectors';
 
 class WelcomeScreen {
-  CAROUSEL_RECTANGLES = null;
+  constructor() {
+    this.CAROUSEL_RECTANGLES = null;
+  }
 
   async verifySplashScreen() {
     const elem = await $(`~${SPLASH_SCREEN_METAMASK_ANIMATION_ID}`)
@@ -18,7 +21,8 @@ class WelcomeScreen {
   }
 
   async verifyCarouselTitle(key) {
-    await expect(await $(`~${WELCOME_SCREEN_CAROUSEL_TITLE_ID(key)}`)).toBeDisplayed();
+    const elem = await Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_TITLE_ID(key));
+    await expect(elem).toBeDisplayed();
   }
 
   async swipeNextSlide() {

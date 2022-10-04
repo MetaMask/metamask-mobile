@@ -14,7 +14,8 @@ config.capabilities = [
     app: '../ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app',
     settings: {
       snapshotMaxDepth: 100,
-    }
+    },
+    language: 'en',
   },
 ];
 

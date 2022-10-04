@@ -5,6 +5,7 @@
     "devDependencies": {
         "@babel/core": "^7.19.1",
         "@babel/eslint-parser": "^7.19.1",
+        "@babel/preset-env": "^7.19.3",
         "@rpii/wdio-html-reporter": "^7.7.1",
         "@wdio/appium-service": "^7.19.1",
         "@wdio/browserstack-service": "^7.19.0",

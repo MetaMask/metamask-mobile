@@ -12,10 +12,10 @@ config.capabilities = [
     deviceName: 'iPhone 11 Pro',
     platformVersion: '15.5',
     app: '../ios/build/Build/Products/Debug-iphonesimulator/MetaMask-QA.app',
-    // bundleId: 'io.metamask.MetaMask-QA',
     settings: {
-      snapshotMaxDepth: 60, // Enable testID on deep nested elements
-    }
+      snapshotMaxDepth: 100, // Enable testID on deep nested elements
+    },
+    language: 'en'
   },
 ];
 
