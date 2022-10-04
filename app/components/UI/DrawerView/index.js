@@ -703,7 +703,7 @@ class DrawerView extends PureComponent {
   };
 
   goToBrowser = () => {
-    this.props.navigation.navigate(Routes.BROWSER_TAB_HOME);
+    this.props.navigation.navigate(Routes.BROWSER.HOME);
     this.hideDrawer();
     // Q: duplicated analytic event?
     this.trackOpenBrowserEvent();

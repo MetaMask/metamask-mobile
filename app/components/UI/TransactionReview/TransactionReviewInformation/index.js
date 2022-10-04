@@ -511,7 +511,7 @@ class TransactionReviewInformation extends PureComponent {
   goToFaucet = () => {
     InteractionManager.runAfterInteractions(() => {
       this.onCancelPress();
-      this.props.navigation.navigate(Routes.BROWSER_VIEW, {
+      this.props.navigation.navigate(Routes.BROWSER.VIEW, {
         newTabUrl: AppConstants.URLS.MM_FAUCET,
         timestamp: Date.now(),
       });

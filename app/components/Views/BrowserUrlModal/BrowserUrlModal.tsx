@@ -26,7 +26,7 @@ export interface BrowserUrlParams {
 }
 
 export const createBrowserUrlModalNavDetails =
-  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER_URL_MODAL);
+  createNavigationDetails<BrowserUrlParams>(Routes.BROWSER.URL_MODAL);
 
 const BrowserUrlModal = () => {
   const { onUrlInputSubmit, url } = useParams<BrowserUrlParams>();

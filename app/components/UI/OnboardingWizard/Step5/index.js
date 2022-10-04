@@ -72,8 +72,8 @@ const Step5 = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(6);
     drawerRef?.current?.dismissDrawer?.();
     navigation &&
-      navigation.navigate(Routes.BROWSER_TAB_HOME, {
-        screen: Routes.BROWSER_VIEW,
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
       });
     AnalyticsV2.trackEvent(
       AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_STEP_COMPLETED,
