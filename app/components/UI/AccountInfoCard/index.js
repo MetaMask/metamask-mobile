@@ -6,7 +6,11 @@ import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Identicon from '../Identicon';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
-import { renderAccountName, renderShortAddress } from '../../../util/address';
+import {
+  renderAccountName,
+  renderShortAddress,
+  safeToChecksumAddress,
+} from '../../../util/address';
 import { getTicker } from '../../../util/transactions';
 import Engine from '../../../core/Engine';
 import { QR_HARDWARE_WALLET_DEVICE } from '../../../constants/keyringTypes';
@@ -141,8 +145,9 @@ class AccountInfoCard extends PureComponent {
       operation,
       ticker,
       showFiatBalance = true,
-      fromAddress,
+      fromAddress: rawFromAddress,
     } = this.props;
+    const fromAddress = safeToChecksumAddress(rawFromAddress);
     const { isHardwareKeyring } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);

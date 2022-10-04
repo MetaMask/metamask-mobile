@@ -12,7 +12,7 @@ import Networks, {
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
-import { resemblesAddress } from '../../util/address';
+import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
@@ -59,24 +59,22 @@ export const checkActiveAccountAndChainId = async ({
   isWalletConnect,
   hostname,
 }: any) => {
-  let isInvalidAccount = true;
+  let isInvalidAccount = false;
   if (address) {
+    const formattedAddress = safeToChecksumAddress(address);
     if (isWalletConnect) {
       const selectedAddress =
         Engine.context.PreferencesController.state.selectedAddress;
-      if (address.toLowerCase() !== selectedAddress.toLowerCase()) {
-        isInvalidAccount = false;
+      if (formattedAddress !== safeToChecksumAddress(selectedAddress)) {
+        isInvalidAccount = true;
       }
     } else {
       // For Browser use permissions
       const accounts = await getPermittedAccounts(hostname);
-      const normalizedAccounts = accounts.map((_address: string) =>
-        _address.toLowerCase(),
-      );
-      const normalizedAddress = address.toLowerCase();
+      const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
-      if (!normalizedAccounts.includes(normalizedAddress)) {
-        isInvalidAccount = false;
+      if (!normalizedAccounts.includes(formattedAddress)) {
+        isInvalidAccount = true;
       }
     }
     if (isInvalidAccount) {
@@ -270,6 +268,7 @@ export const getRpcMethodMiddleware = ({
       eth_sendTransaction: async () => {
         checkTabActive();
         await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[0].from,
           chainId: req.params[0].chainId,
           isWalletConnect,
@@ -295,6 +294,7 @@ export const getRpcMethodMiddleware = ({
 
         if (req.params[1].length === 66 || req.params[1].length === 67) {
           await checkActiveAccountAndChainId({
+            hostname,
             address: req.params[0].from,
             isWalletConnect,
           });
@@ -337,6 +337,7 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         await checkActiveAccountAndChainId({
+          hostname,
           address: params.from,
           isWalletConnect,
         });
@@ -362,6 +363,7 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[1],
           isWalletConnect,
         });
@@ -395,6 +397,7 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[0],
           chainId,
           isWalletConnect,
@@ -429,6 +432,7 @@ export const getRpcMethodMiddleware = ({
 
         checkTabActive();
         await checkActiveAccountAndChainId({
+          hostname,
           address: req.params[0],
           chainId,
           isWalletConnect,
