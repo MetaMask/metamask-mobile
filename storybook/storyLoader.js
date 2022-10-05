@@ -22,6 +22,8 @@ function loadStories() {
   require('../app/component-library/components/Buttons/Button/variants/ButtonTertiary/ButtonTertiary.stories');
   require('../app/component-library/components/Cards/Card/Card.stories');
   require('../app/component-library/components/Cells/Cell/Cell.stories');
+  require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
+  require('../app/component-library/components/Cells/Cell/foundation/CellBase/CellBase.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellDisplay/CellDisplay.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories');
   require('../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories');
@@ -77,6 +79,7 @@ const stories = [
   '../app/component-library/components/Cells/Cell/variants/CellMultiselect/CellMultiselect.stories',
   '../app/component-library/components/Cells/Cell/variants/CellSelect/CellSelect.stories',
   '../app/component-library/components/Checkbox/Checkbox.stories',
+  '../app/component-library/components-temp/ContractBox/ContractBox.stories',
   '../app/component-library/components/Icon/Icon.stories',
   '../app/component-library/components/Modals/ModalConfirmation/ModalConfirmation.stories',
   '../app/component-library/components/Navigation/TabBar/TabBar.stories',
