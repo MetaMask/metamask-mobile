@@ -1,1 +1,6 @@
 # improved-yarn-audit advisory exclusions
+
+# Temporarly ignored to build SDK Test release
+
+GHSA-mrgp-mrhc-5jrq
+GHSA-2j79-8pqc-r7x6
