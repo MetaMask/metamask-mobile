@@ -2,7 +2,31 @@
 
 ## Current Main Branch
 
-## 5.7.0 - Aug 25, 2022
+## 5.8.0 - Sept 22, 2022
+- [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
+- [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): [FIX] Unable to Speedup/Cancel legacy transactions
+- [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): [ENHANCEMENT] Implement new QA builds for both Android and iOS
+- [#4993](https://github.com/MetaMask/metamask-mobile/pull/4993): [ENHANCEMENT] On-Ramp: Add scrolling to payment methods and make logo property optional
+- [#4997](https://github.com/MetaMask/metamask-mobile/pull/4997): [ENHANCEMENT] SRP Reveal Timestamp
+- [#5002](https://github.com/MetaMask/metamask-mobile/pull/5002): [FEAT] ENS Wildcard and offchain resolution
+- [#4430](https://github.com/MetaMask/metamask-mobile/pull/4430): [FIX] Keystone: Pagination and missing addresses
+- [#3438](https://github.com/MetaMask/metamask-mobile/pull/3438): [DEPENDENCIES] Bump metro from 0.59.0 to 0.66.2
+- [#4649](https://github.com/MetaMask/metamask-mobile/pull/4649): [ENHANCEMENT] Url redirection from QR code
+- [#4980](https://github.com/MetaMask/metamask-mobile/pull/4980): [DEPENDENCIES] On-ramp: Add compact payment method selector
+- [#4982](https://github.com/MetaMask/metamask-mobile/pull/4982): [FIX] typo in faucet name
+- [#4983](https://github.com/MetaMask/metamask-mobile/pull/4983): [FIX] Navigation comment spell
+- [#4755](https://github.com/MetaMask/metamask-mobile/pull/4755): [UPDATE] - New template fields added to reflect newer requirements for PRs
+- [#4978](https://github.com/MetaMask/metamask-mobile/pull/4978): [ENHANCEMENT] Store distinct id for consistency
+- [#4958](https://github.com/MetaMask/metamask-mobile/pull/4958): [FIX] WebView Origin Allowlist
+- [#4941](https://github.com/MetaMask/metamask-mobile/pull/4941): [DEPENDENCIES] Replace "@react-native-community/async-storage" for "@react-native-async-storage/async-storage"
+- [#4947](https://github.com/MetaMask/metamask-mobile/pull/4947): [IMPROVEMENT] WebView Error Copy
+- [#4946](https://github.com/MetaMask/metamask-mobile/pull/4946): [ENHANCEMENT] Swaps: Add copy for 0% fee in quotes info modal
+- [#4942](https://github.com/MetaMask/metamask-mobile/pull/4942): [ENHANCEMENT] Add unit tests to useDeleteWallet hook
+- [#4939](https://github.com/MetaMask/metamask-mobile/pull/4939): [ENHANCEMENT] Update "Usability enhancement" template
+- [#4938](https://github.com/MetaMask/metamask-mobile/pull/4938): [ENHANCEMENT] Bump git-clone version to 6 in Bitrise machines
+- [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): [DEPENDENCIES] Detox version bump from 19.6.5 to 19.7.1
+
+## 5.7.0 - Sept 21, 2022
 - [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
 - [#4897](https://github.com/MetaMask/metamask-mobile/pull/4897): [IMPROVEMENT] Automatic security checks settings
 - [#4902](https://github.com/MetaMask/metamask-mobile/pull/4902): [IMPROVEMENT] Deprecated networks Alert border fixed

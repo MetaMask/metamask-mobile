@@ -21,11 +21,7 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import {
-  baseStyles,
-  fontStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
 import {
@@ -71,7 +67,7 @@ const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     wrapper: {
       ...baseStyles.flexGrow,
@@ -113,18 +109,12 @@ const createStyles = (colors) =>
       paddingTop: 10,
     },
     optionsWrapperAndroid: {
-      shadowColor: importedColors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.5,
-      shadowRadius: 3,
+      ...shadows.size.xs,
       bottom: 65,
       right: 5,
     },
     optionsWrapperIos: {
-      shadowColor: importedColors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.5,
-      shadowRadius: 3,
+      ...shadows.size.xs,
       bottom: 90,
       right: 5,
     },
@@ -244,8 +234,8 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   /**
    * Is the current tab the active tab

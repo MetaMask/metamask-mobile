@@ -160,16 +160,6 @@ buildAndroidRunQA(){
 	react-native run-android --variant=qaDebug
 }
 
-buildAndroidRunQA(){
-	prebuild_android
-	react-native run-android --variant=qaDebug
-}
-
-buildAndroidRunE2E(){
-  prebuild_android
-	cd android && ./gradlew assembleQaDebug --no-daemon --max-workers 2
-}
-
 buildIosSimulator(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
@@ -357,8 +347,6 @@ buildAndroid() {
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
-	elif [ "$MODE" == "localE2E" ] ; then
-		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
 	else
@@ -372,8 +360,6 @@ buildIos() {
 		buildIosRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
-	elif [ "$MODE" == "localE2E" ] ; then
-		buildIosSimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then
