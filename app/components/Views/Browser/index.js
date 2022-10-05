@@ -52,7 +52,7 @@ const Browser = (props) => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
-  const prevSite = useRef(browserUrl);
+  const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
@@ -121,11 +121,12 @@ const Browser = (props) => {
 
     // Handle when the Browser initially mounts and when url changes.
     if (accounts.length && browserUrl) {
-      if (prevSite.current !== browserUrl || !hasAccounts.current) {
+      const hostname = new URL(browserUrl).hostname;
+      if (prevSiteHostname.current !== hostname || !hasAccounts.current) {
         checkIfActiveAccountChanged();
       }
       hasAccounts.current = true;
-      prevSite.current = browserUrl;
+      prevSiteHostname.current = hostname;
     }
   }, [browserUrl, accounts, ensByAccountAddress, accountAvatarType, toastRef]);
 
