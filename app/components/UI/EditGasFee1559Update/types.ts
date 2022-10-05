@@ -103,7 +103,7 @@ export interface EditGasFee1559UpdateProps {
    * The maxFeePerGas is the max fee per gas that the user can set.
    * The maxPriorityFeePerGas is the max fee per gas that the user can set for priority transactions.
    */
-  currentGasPriceObject: {
+  selectedGasObject: {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };

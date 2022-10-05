@@ -221,7 +221,6 @@ const UpdateEIP1559Tx = ({
 
   return (
     <EditGasFee1559Update
-      gasVal={gas}
       selectedGasValue={gasSelected}
       initialSuggestedGasLimit={suggestedGasLimit}
       gasOptions={gasFeeEstimates}
@@ -238,7 +237,7 @@ const UpdateEIP1559Tx = ({
       updateOption={updateTx1559Options.current}
       analyticsParams={getGasAnalyticsParams()}
       animateOnChange={animateOnGasChange}
-      existingGas={existingGas}
+      selectedGasObject={existingGas}
       onlyGas
     />
   );

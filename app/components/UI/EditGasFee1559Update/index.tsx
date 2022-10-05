@@ -23,7 +23,7 @@ import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { createStyles } from './styles';
+import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
@@ -207,7 +207,7 @@ const EditGasFee1559Update = ({
           strings('edit_gas_fee_eip1559.max_priority_fee_high'),
         );
       } else {
-        setMaxPriorityFeeError(null);
+        setMaxPriorityFeeError('');
       }
 
       const newGas = {
@@ -253,7 +253,7 @@ const EditGasFee1559Update = ({
       } else if (!higherValue.isNaN() && valueBN.gt(higherValue)) {
         setMaxFeeError(strings('edit_gas_fee_eip1559.max_fee_high'));
       } else {
-        setMaxFeeError(null);
+        setMaxFeeError('');
       }
 
       const newGas = {
