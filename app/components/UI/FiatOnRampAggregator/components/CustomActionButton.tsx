@@ -1,9 +1,15 @@
 import React from 'react';
-import { PaymentCustomActionButton } from '@consensys/on-ramp-sdk/dist/API';
+import { ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  PaymentCustomActionButton,
+  TextOrImage,
+} from '@consensys/on-ramp-sdk/dist/API';
 import { useAssetFromTheme } from '../../../../util/theme';
 import StyledButton from '../../StyledButton';
-import { ActivityIndicator, StyleSheet } from 'react-native';
 import RemoteImage from '../../../Base/RemoteImage';
+import CustomText from '../../../Base/Text';
+// TODO: Convert into typescript and correctly type optionals
+const Text = CustomText as any;
 
 interface Props {
   customActionButton: PaymentCustomActionButton;
@@ -12,6 +18,8 @@ interface Props {
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   buttonImage: {
@@ -19,20 +27,28 @@ const styles = StyleSheet.create({
   },
 });
 
-const renderImageIfURL = (value: string) => {
-  // TODO: transform this to object with dimensions
-  if (value.startsWith('https://')) {
+const renderButtonValue = (value: TextOrImage, textColor: string) => {
+  if (value.text) {
     return (
-      <RemoteImage
-        key={value}
-        source={{ uri: value }}
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={[styles.buttonImage, { width: 57.3, height: 17 }]}
-      />
+      <Text bold key={value.text} style={{ color: textColor }}>
+        {value.text}
+      </Text>
     );
   }
 
-  return value;
+  if (value.image) {
+    const { url, width, height } = value.image;
+    return (
+      <RemoteImage
+        key={url}
+        source={{ uri: url }}
+        style={[
+          styles.buttonImage,
+          { width: width / 0.9, height: height / 0.9 },
+        ]}
+      />
+    );
+  }
 };
 
 const CustomActionButton: React.FC<Props & React.ComponentProps<StyledButton>> =
@@ -54,7 +70,11 @@ const CustomActionButton: React.FC<Props & React.ComponentProps<StyledButton>> =
         {isLoading ? (
           <ActivityIndicator size={'small'} />
         ) : (
-          value.map(renderImageIfURL)
+          <>
+            {value.map((textOrImage) =>
+              renderButtonValue(textOrImage, textColor),
+            )}
+          </>
         )}
       </StyledButton>
     );

@@ -60,32 +60,32 @@ const CustomActionButton: React.FC<
     if (!sdk || !customAction) {
       return;
     }
-    setIsLoading(true);
     const prevLockTime = lockTime;
-    const providerId = customAction.buy.providerId;
-    const redirectUrl = `${callbackBaseDeeplink}on-ramp${providerId}`;
-    const provider = await sdk.getProvider(
-      selectedRegion?.id as string,
-      providerId,
-    );
-
-    const {
-      url,
-      // orderId: customOrderId
-    } = sdk.getBuyUrl(
-      provider.provider,
-      selectedRegion?.id as string,
-      selectedPaymentMethodId as string,
-      selectedAsset?.id as string,
-      selectedFiatCurrencyId as string,
-      amount,
-      selectedAddress,
-      redirectUrl,
-    );
-
-    // TODO: add customOrderId to customOrderIds state.
-
     try {
+      setIsLoading(true);
+      const providerId = customAction.buy.providerId;
+      const redirectUrl = `${callbackBaseDeeplink}on-ramp${providerId}`;
+      const provider = await sdk.getProvider(
+        selectedRegion?.id as string,
+        providerId,
+      );
+
+      const {
+        url,
+        // orderId: customOrderId
+      } = await sdk.getBuyUrl(
+        provider.provider,
+        selectedRegion?.id as string,
+        selectedPaymentMethodId as string,
+        selectedAsset?.id as string,
+        selectedFiatCurrencyId as string,
+        amount,
+        selectedAddress,
+        redirectUrl,
+      );
+
+      // TODO: add customOrderId to customOrderIds state.
+
       if (await InAppBrowser.isAvailable()) {
         dispatch(setLockTime(-1));
 
@@ -98,8 +98,7 @@ const CustomActionButton: React.FC<
           orderId = await orders.getOrderIdFromCallback(providerId, result.url);
         }
 
-        // TODO: remove undefined check once getOrderIdFromCallback is fixed
-        if (!orderId || orderId?.endsWith('undefined')) {
+        if (!orderId) {
           return;
         }
 
