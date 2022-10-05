@@ -42,10 +42,7 @@ const renderButtonValue = (value: TextOrImage, textColor: string) => {
       <RemoteImage
         key={url}
         source={{ uri: url }}
-        style={[
-          styles.buttonImage,
-          { width: width / 0.9, height: height / 0.9 },
-        ]}
+        style={[styles.buttonImage, { width, height }]}
       />
     );
   }
