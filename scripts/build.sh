@@ -160,11 +160,6 @@ buildAndroidRunQA(){
 	react-native run-android --variant=qaDebug
 }
 
-buildAndroidRunQA(){
-	prebuild_android
-	react-native run-android --variant=qaDebug
-}
-
 buildIosSimulator(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 11 Pro"}"
