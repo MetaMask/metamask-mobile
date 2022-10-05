@@ -24,12 +24,9 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import AvatarAccount, {
-  AvatarAccountType,
-} from '../Avatars/Avatar/variants/AvatarAccount';
-import AvatarNetwork from '../Avatars/Avatar/variants/AvatarNetwork';
-import AvatarSize from '../Avatars/Avatar/Avatar';
-import Text, { TextVariant } from '../Texts/Text';
+import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
+import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
+import Text, { TextVariants } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
@@ -99,11 +96,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <Text variant={TextVariant.sBodyMD}>
+    <Text variant={TextVariants.sBodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
         <Text
           key={`toast-label-${index}`}
-          variant={isBold ? TextVariant.sBodyMDBold : TextVariant.sBodyMD}
+          variant={isBold ? TextVariants.sBodyMDBold : TextVariants.sBodyMD}
           style={styles.label}
         >
           {label}
@@ -117,7 +114,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       <Button
         variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
-        textVariant={TextVariant.sBodyMD}
+        textVariants={TextVariants.sBodyMD}
       >
         {linkButtonOptions.label}
       </Button>
@@ -130,7 +127,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       case ToastVariant.Account: {
         const { accountAddress } = toastOptions;
         return (
-          <AvatarAccount
+          <Avatar
+            variant={AvatarVariants.Account}
             accountAddress={accountAddress}
             type={AvatarAccountType.JazzIcon}
             size={AvatarSize.Md}
@@ -139,16 +137,15 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         );
       }
       case ToastVariant.Network: {
-        {
-          const { networkImageSource } = toastOptions;
-          return (
-            <AvatarNetwork
-              imageSource={networkImageSource}
-              size={AvatarSize.Md}
-              style={styles.avatar}
-            />
-          );
-        }
+        const { networkImageSource } = toastOptions;
+        return (
+          <Avatar
+            variant={AvatarVariants.Network}
+            imageSource={networkImageSource}
+            size={AvatarSize.Md}
+            style={styles.avatar}
+          />
+        );
       }
     }
   };

@@ -6,26 +6,26 @@ import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { TextVariant } from '../../../../Texts/Text';
+import { TextVariants } from '../../../../Texts/Text';
 
 // Internal dependencies.
 import ButtonLink from './ButtonLink';
 import { ButtonLinkProps } from './ButtonLink.types';
 
 export const getButtonLinkStoryProps = (): ButtonLinkProps => {
-  const textVariantSelector = select(
-    'textVariant',
-    TextVariant,
-    TextVariant.lBodyMD,
+  const textVariantsSelector = select(
+    'textVariants',
+    TextVariants,
+    TextVariants.lBodyMD,
     storybookPropsGroupID,
   );
   const childrenText = text(
-    'textVariant',
+    'textVariants',
     'Sample Button Link Text',
     storybookPropsGroupID,
   );
   return {
-    textVariant: textVariantSelector,
+    textVariants: textVariantsSelector,
     children: childrenText,
     onPress: () => console.log("I'm clicked!"),
   };

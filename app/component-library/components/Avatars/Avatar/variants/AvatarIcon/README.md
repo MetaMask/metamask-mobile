@@ -20,7 +20,7 @@ Name of icon to use.
 // Replace import with relative path.
 import AvatarIcon, {
   AvatarIcon,
-} from 'app/component-library/components/Avatars/AvatarAccount';
+} from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
 import { IconName } from 'app/component-library/components/Icon';
 

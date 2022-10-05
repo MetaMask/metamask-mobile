@@ -8,9 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Button, { ButtonSize, ButtonVariants } from '../Buttons/Button';
-import ButtonTertiary, {
-  ButtonTertiaryVariant,
-} from '../Buttons/Button/variants/ButtonTertiary';
+import { ButtonTertiaryVariant } from '../Buttons/Button/variants/ButtonTertiary';
 
 // Internal dependencies.
 import Toast from './Toast';

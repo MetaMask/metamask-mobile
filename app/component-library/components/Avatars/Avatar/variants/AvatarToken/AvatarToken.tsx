@@ -5,7 +5,7 @@ import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
 import { AvatarSize } from '../../Avatar.types';
-import Text, { TextVariant } from '../../../../Texts/Text';
+import Text, { TextVariants } from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
@@ -29,10 +29,10 @@ const AvatarToken = ({
     showFallback,
   });
 
-  const textVariant =
+  const textVariants =
     size === AvatarSize.Sm || size === AvatarSize.Xs
-      ? TextVariant.lBodySM
-      : TextVariant.lBodyMD;
+      ? TextVariants.lBodySM
+      : TextVariants.lBodyMD;
   const tokenNameFirstLetter = name?.[0] ?? '?';
 
   const onError = () => setShowFallback(true);
@@ -40,7 +40,7 @@ const AvatarToken = ({
   const tokenImage = () => (
     <AvatarBase size={size} style={styles.base}>
       {showFallback ? (
-        <Text style={styles.label} variant={textVariant}>
+        <Text style={styles.label} variant={textVariants}>
           {tokenNameFirstLetter}
         </Text>
       ) : (

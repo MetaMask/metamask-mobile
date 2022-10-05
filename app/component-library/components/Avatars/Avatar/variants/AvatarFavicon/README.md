@@ -18,7 +18,7 @@ A favicon image from either a local or remote source.
 
 ```javascript
 // Replace import with relative path.
-import AvatarFavicon from 'app/component-library/components/Avatars/AvatarAccount';
+import AvatarFavicon from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
 
 <AvatarFavicon size={AvatarSize.Md} imageSource={{ uri: IMAGE_URL }} />;

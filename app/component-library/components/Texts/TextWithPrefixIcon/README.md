@@ -20,16 +20,16 @@ Optional enum to select between Typography variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [TextVariant](../Text/Text.types.ts#L6)                   | No                                                      | sBodyMD                                                |
+| [TextVariants](../Text/Text.types.ts#L6)                   | No                                                      | sBodyMD                                                |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
 import TextWithPrefixIcon from 'app/component-library/components/Texts/TextWithPrefixIcon';
-import { TextVariant } from 'app/component-library/components/Texts/Text';
+import { TextVariants } from 'app/component-library/components/Texts/Text';
 
-<TextWithPrefixIcon variant={TextVariant.lBodyMD} iconProps={SAMPLE_ICON_PROPS}>
+<TextWithPrefixIcon variant={TextVariants.lBodyMD} iconProps={SAMPLE_ICON_PROPS}>
     {SAMPLE_TEXT}
 </TextWithPrefixIcon>;
 ```

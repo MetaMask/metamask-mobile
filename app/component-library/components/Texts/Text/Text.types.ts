@@ -4,7 +4,7 @@ import { TextProps as RNTextProps } from 'react-native';
 /**
  * Text component variants.
  */
-export enum TextVariant {
+export enum TextVariants {
   sDisplayMD = 'sDisplayMD',
   sHeadingLG = 'sHeadingLG',
   sHeadingMD = 'sHeadingMD',
@@ -35,7 +35,7 @@ export interface TextProps extends RNTextProps {
    * Optional enum to select between Typography variants.
    * @default sBodyMD
    */
-  variant?: TextVariant;
+  variant?: TextVariants;
   /**
    * Text to be displayed.
    */
@@ -46,5 +46,5 @@ export interface TextProps extends RNTextProps {
  * Style sheet input parameters.
  */
 export interface TextStyleSheetVars extends Pick<TextProps, 'style'> {
-  variant: TextVariant;
+  variant: TextVariants;
 }

@@ -5,7 +5,7 @@ import { shallow } from 'enzyme';
 // External dependencies.
 // eslint-disable-next-line
 // @ts-ignore
-import { AvatarSize } from '../../foundation/AvatarBase';
+import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';

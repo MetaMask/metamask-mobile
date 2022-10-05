@@ -28,7 +28,7 @@ An Ethereum wallet address.
 // Replace import with relative path.
 import AvatarAccount, {
   AvatarAccountType,
-} from 'app/component-library/components/Avatars/AvatarAccount';
+} from 'app/component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from 'app/component-library/components/Avatars/Avatar/Avatar';
 
 <AvatarAccount
