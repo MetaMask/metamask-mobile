@@ -313,6 +313,7 @@ export const getRpcMethodMiddleware = ({
 
           res.result = rawSig;
         } else {
+          res.result = 'eth_sign requires 32 byte message hash';
           throw ethErrors.rpc.invalidParams(
             'eth_sign requires 32 byte message hash',
           );
@@ -416,6 +417,10 @@ export const getRpcMethodMiddleware = ({
           'V3',
         );
 
+        if (rawSig.error) {
+          res.result = rawSig.error;
+          return;
+        }
         res.result = rawSig;
       },
 
