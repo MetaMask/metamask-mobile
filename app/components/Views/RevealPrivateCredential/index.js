@@ -55,6 +55,7 @@ const PRIVATE_KEY = 'private_key';
 const RevealPrivateCredential = ({
   navigation,
   showAlert,
+  recordSRPRevealTimestamp,
   selectedAddress,
   passwordSet,
   credentialName,
@@ -235,7 +236,7 @@ const RevealPrivateCredential = ({
     if (KeyringController.validatePassword(password)) {
       if (!isPrivateKey()) {
         const currentDate = new Date();
-        this.props.recordSRPRevealTimestamp(currentDate.toString());
+        recordSRPRevealTimestamp(currentDate.toString());
         AnalyticsV2.trackEvent(
           AnalyticsV2.ANALYTICS_EVENTS.NEXT_REVEAL_SRP_CTA,
         );
