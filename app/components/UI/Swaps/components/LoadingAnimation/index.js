@@ -34,7 +34,7 @@ const PAN_RADIO = STAGE_SIZE * 0.6;
 // "finalizing" animationg
 const FINALIZING_PERCENTAGE = 80;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     screen: {
       flex: 1,
@@ -69,12 +69,7 @@ const createStyles = (colors) =>
       opacity: 0,
       top: '50%',
       left: '50%',
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.45,
-      shadowRadius: 10,
+      ...shadows.size.sm,
       elevation: 15,
     },
     aggImage: {
@@ -144,8 +139,8 @@ function LoadingAnimation({
     outputRange: ['0%', '100%'],
   });
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   /* Animation constructions */
 

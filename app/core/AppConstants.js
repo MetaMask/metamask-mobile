@@ -65,6 +65,11 @@ export default {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
   },
+  WALLET_CONNECT: {
+    //One day in hours
+    SESSION_LIFETIME: 24,
+    LIMIT_SESSIONS: 20,
+  },
   SWAPS: {
     ACTIVE: true,
     ONLY_MAINNET: true,
@@ -125,4 +130,6 @@ export default {
   LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
   ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',
   ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
+  CANCEL_RATE: 'Transactions (Cancel)',
+  SPEED_UP_RATE: 'Transactions (Speed Up)',
 };
