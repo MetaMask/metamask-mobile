@@ -609,6 +609,10 @@ RevealPrivateCredential.propTypes = {
    * Boolean that indicates if navbar should be disabled
    */
   navBarDisabled: PropTypes.bool,
+  /**
+   * Method to record the SRP reveal timestamp
+   */
+  recordSRPRevealTimestamp: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
