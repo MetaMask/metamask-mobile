@@ -12,7 +12,7 @@ import { ButtonSize } from '../../Button.types';
 // Internal dependencies.
 import ButtonTertiary from './ButtonTertiary';
 import {
-  ButtonTertiaryVariant,
+  ButtonTertiaryVariants,
   ButtonTertiaryProps,
 } from './ButtonTertiary.types';
 
@@ -24,10 +24,10 @@ export const getButtonTertiaryStoryProps = (): ButtonTertiaryProps => {
     storybookPropsGroupID,
   );
   const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const buttonTertiaryVariantSelector = select(
-    'buttonTertiaryVariant',
-    ButtonTertiaryVariant,
-    ButtonTertiaryVariant.Normal,
+  const ButtonTertiaryVariantsSelector = select(
+    'ButtonTertiaryVariants',
+    ButtonTertiaryVariants,
+    ButtonTertiaryVariants.Normal,
     storybookPropsGroupID,
   );
   const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
@@ -35,7 +35,7 @@ export const getButtonTertiaryStoryProps = (): ButtonTertiaryProps => {
   const buttonTertiaryStoryProps: ButtonTertiaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    buttonTertiaryVariant: buttonTertiaryVariantSelector,
+    ButtonTertiaryVariants: ButtonTertiaryVariantsSelector,
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {

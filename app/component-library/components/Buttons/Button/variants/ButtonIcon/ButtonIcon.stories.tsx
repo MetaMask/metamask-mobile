@@ -10,7 +10,7 @@ import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
-import { ButtonIconVariant, ButtonIconProps } from './ButtonIcon.types';
+import { ButtonIconVariants, ButtonIconProps } from './ButtonIcon.types';
 
 export const getButtonIconStoryProps = (): ButtonIconProps => {
   const iconNameSelector = select(
@@ -21,13 +21,13 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
   );
   const variantSelector = select(
     'variant',
-    ButtonIconVariant,
-    ButtonIconVariant.Primary,
+    ButtonIconVariants,
+    ButtonIconVariants.Primary,
     storybookPropsGroupID,
   );
   const disabledSelector = boolean('disabled', false, storybookPropsGroupID);
   return {
-    buttonIconVariant: variantSelector,
+    ButtonIconVariants: variantSelector,
     iconName: iconNameSelector,
     disabled: disabledSelector,
     onPress: () => console.log("I'm clicked!"),

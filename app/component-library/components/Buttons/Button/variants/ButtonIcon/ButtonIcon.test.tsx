@@ -7,13 +7,13 @@ import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import ButtonIcon from './ButtonIcon';
-import { ButtonIconVariant } from './ButtonIcon.types';
+import { ButtonIconVariants } from './ButtonIcon.types';
 
 describe('ButtonIcon', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <ButtonIcon
-        buttonIconVariant={ButtonIconVariant.Primary}
+        ButtonIconVariants={ButtonIconVariants.Primary}
         iconName={IconName.AddSquareFilled}
         onPress={jest.fn}
       />,

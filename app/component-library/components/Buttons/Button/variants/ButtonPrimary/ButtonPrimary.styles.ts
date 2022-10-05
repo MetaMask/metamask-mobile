@@ -7,7 +7,7 @@ import { Theme } from '../../../../../../util/theme/models';
 // Internal dependencies.
 import {
   ButtonPrimaryStyleSheetVars,
-  ButtonPrimaryVariant,
+  ButtonPrimaryVariants,
 } from './ButtonPrimary.types';
 
 /**
@@ -23,15 +23,15 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, buttonPrimaryVariant, pressed } = vars;
+  const { style, ButtonPrimaryVariants, pressed } = vars;
   let backgroundColor: string;
-  switch (buttonPrimaryVariant) {
-    case ButtonPrimaryVariant.Normal:
+  switch (ButtonPrimaryVariants) {
+    case ButtonPrimaryVariants.Normal:
       backgroundColor = pressed
         ? colors.primary.alternative
         : colors.primary.default;
       break;
-    case ButtonPrimaryVariant.Danger:
+    case ButtonPrimaryVariants.Danger:
       backgroundColor = pressed
         ? colors.error.alternative
         : colors.error.default;

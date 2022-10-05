@@ -5,7 +5,7 @@ import { ButtonVariants } from '../../Button.types';
 /**
  * ButtonPrimary variant
  */
-export enum ButtonPrimaryVariant {
+export enum ButtonPrimaryVariants {
   Normal = 'Normal',
   Danger = 'Danger',
 }
@@ -19,7 +19,7 @@ export interface ButtonPrimaryProps
    * Optional enum use to select between variants.
    * @default Normal
    */
-  buttonPrimaryVariant?: ButtonPrimaryVariant;
+  ButtonPrimaryVariants?: ButtonPrimaryVariants;
   /**
    * Variant of Button.
    */
@@ -31,6 +31,6 @@ export interface ButtonPrimaryProps
  */
 export interface ButtonPrimaryStyleSheetVars
   extends Pick<ButtonPrimaryProps, 'style'> {
-  buttonPrimaryVariant: ButtonPrimaryVariant;
+  ButtonPrimaryVariants: ButtonPrimaryVariants;
   pressed: boolean;
 }

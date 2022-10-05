@@ -35,7 +35,7 @@ import {
   ToastLinkButtonOptions,
   ToastOptions,
   ToastRef,
-  ToastVariant,
+  ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
 
@@ -122,9 +122,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
-      case ToastVariant.Plain:
+      case ToastVariants.Plain:
         return null;
-      case ToastVariant.Account: {
+      case ToastVariants.Account: {
         const { accountAddress } = toastOptions;
         return (
           <Avatar
@@ -136,7 +136,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           />
         );
       }
-      case ToastVariant.Network: {
+      case ToastVariants.Network: {
         const { networkImageSource } = toastOptions;
         return (
           <Avatar

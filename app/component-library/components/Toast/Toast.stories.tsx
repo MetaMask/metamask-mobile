@@ -8,12 +8,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Button, { ButtonSize, ButtonVariants } from '../Buttons/Button';
-import { ButtonTertiaryVariant } from '../Buttons/Button/variants/ButtonTertiary';
+import { ButtonTertiaryVariants } from '../Buttons/Button/variants/ButtonTertiary';
 
 // Internal dependencies.
 import Toast from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
-import { ToastVariant } from './Toast.types';
+import { ToastVariants } from './Toast.types';
 import {
   TEST_ACCOUNT_ADDRESS,
   TEST_NETWORK_IMAGE_URL,
@@ -26,12 +26,12 @@ const ToastExample = () => {
     <>
       <Button
         variant={ButtonVariants.Tertiary}
-        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
+        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Account Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
-            variant: ToastVariant.Account,
+            variant: ToastVariants.Account,
             labelOptions: [
               { label: 'Switching to' },
               { label: ' Account 2.', isBold: true },
@@ -42,12 +42,12 @@ const ToastExample = () => {
       />
       <Button
         variant={ButtonVariants.Tertiary}
-        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
+        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Network Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
-            variant: ToastVariant.Network,
+            variant: ToastVariants.Network,
             labelOptions: [
               { label: 'Added' },
               { label: ' Mainnet', isBold: true },
@@ -65,12 +65,12 @@ const ToastExample = () => {
       />
       <Button
         variant={ButtonVariants.Tertiary}
-        buttonTertiaryVariant={ButtonTertiaryVariant.Normal}
+        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Plain Toast'}
         onPress={() => {
           toastRef?.current?.showToast({
-            variant: ToastVariant.Plain,
+            variant: ToastVariants.Plain,
             labelOptions: [{ label: 'This is a plain message.' }],
           });
         }}

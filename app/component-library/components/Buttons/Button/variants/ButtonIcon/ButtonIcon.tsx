@@ -9,12 +9,12 @@ import Icon, { IconSize } from '../../../../Icon';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
-import { ButtonIconProps, ButtonIconVariant } from './ButtonIcon.types';
+import { ButtonIconProps, ButtonIconVariants } from './ButtonIcon.types';
 import stylesheet from './ButtonIcon.styles';
 
 const ButtonIcon = ({
   iconName,
-  buttonIconVariant = ButtonIconVariant.Primary,
+  ButtonIconVariants = ButtonIconVariants.Primary,
   disabled,
   onPressIn,
   onPressOut,
@@ -31,17 +31,17 @@ const ButtonIcon = ({
     if (disabled) {
       color = colors.icon.muted;
     } else {
-      switch (buttonIconVariant) {
-        case ButtonIconVariant.Primary:
+      switch (ButtonIconVariants) {
+        case ButtonIconVariants.Primary:
           color = pressed ? colors.primary.alternative : colors.primary.default;
           break;
-        case ButtonIconVariant.Secondary:
+        case ButtonIconVariants.Secondary:
           color = pressed ? colors.icon.alternative : colors.icon.default;
           break;
       }
     }
     return color;
-  }, [colors, buttonIconVariant, disabled, pressed]);
+  }, [colors, ButtonIconVariants, disabled, pressed]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

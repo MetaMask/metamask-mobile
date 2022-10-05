@@ -12,7 +12,7 @@ import { ButtonSize } from '../../Button.types';
 // Internal dependencies.
 import ButtonPrimary from './ButtonPrimary';
 import {
-  ButtonPrimaryVariant,
+  ButtonPrimaryVariants,
   ButtonPrimaryProps,
 } from './ButtonPrimary.types';
 
@@ -24,10 +24,10 @@ export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
     storybookPropsGroupID,
   );
   const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const buttonPrimaryVariantSelector = select(
-    'buttonPrimaryVariant',
-    ButtonPrimaryVariant,
-    ButtonPrimaryVariant.Normal,
+  const ButtonPrimaryVariantsSelector = select(
+    'ButtonPrimaryVariants',
+    ButtonPrimaryVariants,
+    ButtonPrimaryVariants.Normal,
     storybookPropsGroupID,
   );
   const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
@@ -35,7 +35,7 @@ export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
   const buttonPrimaryStoryProps: ButtonPrimaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    buttonPrimaryVariant: buttonPrimaryVariantSelector,
+    ButtonPrimaryVariants: ButtonPrimaryVariantsSelector,
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {

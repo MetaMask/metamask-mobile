@@ -11,7 +11,7 @@ import { useStyles } from '../../../../../hooks';
 // Internal dependencies.
 import {
   ButtonTertiaryProps,
-  ButtonTertiaryVariant,
+  ButtonTertiaryVariants,
 } from './ButtonTertiary.types';
 import styleSheet from './ButtonTertiary.styles';
 
@@ -19,27 +19,27 @@ const ButtonTertiary = ({
   style,
   onPressIn,
   onPressOut,
-  buttonTertiaryVariant = ButtonTertiaryVariant.Normal,
+  ButtonTertiaryVariants = ButtonTertiaryVariants.Normal,
   ...props
 }: ButtonTertiaryProps) => {
   const [pressed, setPressed] = useState(false);
   const { styles, theme } = useStyles(styleSheet, { style });
   const labelColor = useMemo(() => {
     let color: string;
-    switch (buttonTertiaryVariant) {
-      case ButtonTertiaryVariant.Normal:
+    switch (ButtonTertiaryVariants) {
+      case ButtonTertiaryVariants.Normal:
         color = pressed
           ? theme.colors.primary.alternative
           : theme.colors.primary.default;
         break;
-      case ButtonTertiaryVariant.Danger:
+      case ButtonTertiaryVariants.Danger:
         color = pressed
           ? theme.colors.error.alternative
           : theme.colors.error.default;
         break;
     }
     return color;
-  }, [theme, buttonTertiaryVariant, pressed]);
+  }, [theme, ButtonTertiaryVariants, pressed]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

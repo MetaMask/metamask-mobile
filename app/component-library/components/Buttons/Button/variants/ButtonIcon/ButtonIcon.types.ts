@@ -5,7 +5,7 @@ import { TouchableOpacityProps } from 'react-native';
 import { IconProps } from '../../../../Icon/Icon.types';
 import { ButtonVariants } from '../../Button.types';
 
-export enum ButtonIconVariant {
+export enum ButtonIconVariants {
   Primary = 'Primary',
   Secondary = 'Secondary',
 }
@@ -30,7 +30,7 @@ export interface ButtonIconProps extends TouchableOpacityProps {
    * Optional enum to select between variants.
    * @default Primary
    */
-  buttonIconVariant?: ButtonIconVariant;
+  ButtonIconVariants?: ButtonIconVariants;
 }
 
 /**

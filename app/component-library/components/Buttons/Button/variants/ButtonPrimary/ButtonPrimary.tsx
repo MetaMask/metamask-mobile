@@ -11,7 +11,7 @@ import Button from '../../foundation/ButtonBase';
 // Internal dependencies.
 import {
   ButtonPrimaryProps,
-  ButtonPrimaryVariant,
+  ButtonPrimaryVariants,
 } from './ButtonPrimary.types';
 import styleSheet from './ButtonPrimary.styles';
 
@@ -19,27 +19,27 @@ const ButtonPrimary = ({
   style,
   onPressIn,
   onPressOut,
-  buttonPrimaryVariant = ButtonPrimaryVariant.Normal,
+  ButtonPrimaryVariants = ButtonPrimaryVariants.Normal,
   ...props
 }: ButtonPrimaryProps) => {
   const [pressed, setPressed] = useState(false);
   const { styles, theme } = useStyles(styleSheet, {
     style,
-    buttonPrimaryVariant,
+    ButtonPrimaryVariants,
     pressed,
   });
   const labelColor = useMemo(() => {
     let color: string;
-    switch (buttonPrimaryVariant) {
-      case ButtonPrimaryVariant.Normal:
+    switch (ButtonPrimaryVariants) {
+      case ButtonPrimaryVariants.Normal:
         color = theme.colors.primary.inverse;
         break;
-      case ButtonPrimaryVariant.Danger:
+      case ButtonPrimaryVariants.Danger:
         color = theme.colors.error.inverse;
         break;
     }
     return color;
-  }, [theme, buttonPrimaryVariant]);
+  }, [theme, ButtonPrimaryVariants]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {

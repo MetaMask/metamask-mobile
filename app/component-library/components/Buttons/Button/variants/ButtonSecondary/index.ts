@@ -1,2 +1,2 @@
 export { default } from './ButtonSecondary';
-export { ButtonSecondaryVariant } from './ButtonSecondary.types';
+export { ButtonSecondaryVariants } from './ButtonSecondary.types';

@@ -7,7 +7,7 @@ import { Theme } from '../../../../../../util/theme/models';
 // Internal dependencies.
 import {
   ButtonSecondaryStyleSheetVars,
-  ButtonSecondaryVariant,
+  ButtonSecondaryVariants,
 } from './ButtonSecondary.types';
 
 /**
@@ -23,15 +23,15 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, buttonSecondaryVariant, pressed } = vars;
+  const { style, ButtonSecondaryVariants, pressed } = vars;
   let borderColor: string;
-  switch (buttonSecondaryVariant) {
-    case ButtonSecondaryVariant.Normal:
+  switch (ButtonSecondaryVariants) {
+    case ButtonSecondaryVariants.Normal:
       borderColor = pressed
         ? colors.primary.alternative
         : colors.primary.default;
       break;
-    case ButtonSecondaryVariant.Danger:
+    case ButtonSecondaryVariants.Danger:
       borderColor = pressed ? colors.error.alternative : colors.error.default;
       break;
   }

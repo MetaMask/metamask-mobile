@@ -6,20 +6,20 @@ ButtonSecondary is used for secondary call to actions.
 
 This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts#L14) from [ButtonBase](../ButtonBase/ButtonBase.tsx) component.
 
-### `buttonSecondaryVariant`
+### `ButtonSecondaryVariants`
 
 Optional enum use to select between variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span>     | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :------------------------------------------------------ | :------------------------------------------------------ | :----------------------------------------------------- |
-| [ButtonSecondaryVariant](./ButtonSecondary.types.ts#L7) | No                                                      | Normal                                                 |
+| [ButtonSecondaryVariants](./ButtonSecondary.types.ts#L7) | No                                                      | Normal                                                 |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
 import ButtonSecondary, {
-  ButtonSecondaryVariant,
+  ButtonSecondaryVariants,
 } from 'app/component-library/components/ButtonSecondary';
 import { ButtonSize } from 'app/component-library/components/Buttons/Button/Button';
 import { IconName } from 'app/component-library/components/Icon';
@@ -29,6 +29,6 @@ import { IconName } from 'app/component-library/components/Icon';
   iconName={IconName.BankFilled}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
-  variant={ButtonSecondaryVariant.Normal}
+  variant={ButtonSecondaryVariants.Normal}
 />;
 ```

@@ -28,18 +28,18 @@ Optional enum to select between variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [ButtonIconVariant](./ButtonIcon.types.ts#L5)       | No                                                      | Primary                                                |
+| [ButtonIconVariants](./ButtonIcon.types.ts#L5)       | No                                                      | Primary                                                |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
-import ButtonIcon, {ButtonIconVariant} from 'app/component-library/components/ButtonIcon';
+import ButtonIcon, {ButtonIconVariants} from 'app/component-library/components/ButtonIcon';
 import { IconName } from 'app/component-library/components/Icon';
 
 <ButtonIcon
   iconName={IconName.BankFilled}
   onPress={ONPRESS_HANDLER}
-  buttonIconVariant={ButtonIconVariant.}
+  ButtonIconVariants={ButtonIconVariants.}
 />;
 ```

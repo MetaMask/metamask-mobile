@@ -1,2 +1,2 @@
 export { default } from './ButtonPrimary';
-export { ButtonPrimaryVariant } from './ButtonPrimary.types';
+export { ButtonPrimaryVariants } from './ButtonPrimary.types';

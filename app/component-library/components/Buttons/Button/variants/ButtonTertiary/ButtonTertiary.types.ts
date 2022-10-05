@@ -5,7 +5,7 @@ import { ButtonVariants } from '../../Button.types';
 /**
  * Enum used to select between variants.
  */
-export enum ButtonTertiaryVariant {
+export enum ButtonTertiaryVariants {
   Normal = 'Normal',
   Danger = 'Danger',
 }
@@ -19,7 +19,7 @@ export interface ButtonTertiaryProps
    * Optional enum use to select between variants.
    * @default Normal
    */
-  buttonTertiaryVariant?: ButtonTertiaryVariant;
+  ButtonTertiaryVariants?: ButtonTertiaryVariants;
   /**
    * Variant of Button.
    */
