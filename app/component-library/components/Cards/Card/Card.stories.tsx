@@ -6,16 +6,16 @@ import { View } from 'react-native';
 import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import { mockTheme } from '../../../../../../util/theme';
-import Text, { TextVariant } from '../../../../Texts/Text';
+import { mockTheme } from '../../../../util/theme';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
-import CellDisplayContainer from './CellDisplayContainer';
+import Card from './Card';
 
-storiesOf('Component Library / CellDisplayContainer', module)
+storiesOf('Component Library / Card', module)
   .addDecorator((getStory) => getStory())
   .add('Default', () => (
-    <CellDisplayContainer>
+    <Card>
       <View
         style={{
           height: 50,
@@ -26,5 +26,5 @@ storiesOf('Component Library / CellDisplayContainer', module)
       >
         <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
       </View>
-    </CellDisplayContainer>
+    </Card>
   ));

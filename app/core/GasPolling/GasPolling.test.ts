@@ -1,14 +1,14 @@
 jest.useFakeTimers();
 
-import Engine from './Engine';
+import Engine from '../Engine';
 import {
   startGasPolling,
   getEIP1559TransactionData,
   stopGasPolling,
   useDataStore,
-} from './gasPolling';
-import { parseTransactionEIP1559 } from '../util/transactions';
-jest.mock('../util/transactions');
+} from './GasPolling';
+import { parseTransactionEIP1559 } from '../../util/transactions';
+jest.mock('../../util/transactions');
 const mockedParseTransactionEIP1559 =
   parseTransactionEIP1559 as jest.MockedFunction<
     typeof parseTransactionEIP1559
@@ -16,7 +16,7 @@ const mockedParseTransactionEIP1559 =
 
 const tokenValue = 'fba4a030-e1f5-11ec-a660-87ece4ac6cf7';
 
-jest.mock('./Engine', () => ({
+jest.mock('../Engine', () => ({
   context: {
     GasFeeController: {
       gasFeeEstimates: {},
@@ -28,33 +28,7 @@ jest.mock('./Engine', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({
-    engine: {
-      backgroundState: {
-        GasFeeController: {
-          gasEstimateType: '',
-          gasFeeEstimates: [],
-        },
-        TokenRatesController: {
-          constractExchangeRates: [],
-        },
-        CurrencyRateController: {
-          conversionRate: 1,
-          currentCurrency: 'ETH',
-          nativeCurrency: 'WEI',
-        },
-        AccountTrackerController: {
-          accounts: [],
-        },
-        TokenBalancesController: {
-          contractBalances: [],
-        },
-      },
-    },
-    transaction: {
-      selectedAsset: '',
-    },
-  })),
+  useSelector: jest.fn(() => ['', [], [], 1, 'ETH', 'wei', [], [], '', false]),
 }));
 
 const suggestedGasLimit = '0x123';
