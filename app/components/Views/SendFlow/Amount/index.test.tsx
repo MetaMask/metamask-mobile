@@ -1,10 +1,70 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Amount from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+// eslint-disable-next-line @typescript-eslint/no-shadow
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { createStackNavigator } from '@react-navigation/stack';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import configureStore from '../../../../util/test/configureStore';
+import Engine from '../../../../core/Engine';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
-const mockStore = configureMockStore();
+const mockEngine = Engine;
+const mockTransactionTypes = TransactionTypes;
+
+jest.unmock('react-redux');
+
+jest.mock('../../../../core/Engine', () => ({
+  init: () => mockEngine.init({}),
+  context: {
+    GasFeeController: {
+      fetchGasFeeEstimates: jest.fn(() =>
+        Promise.resolve({
+          gasEstimateType: 'fee-market',
+          gasFeeEstimates: {
+            baseFeeTrend: 'up',
+            estimatedBaseFee: '53.465906896',
+            high: {
+              maxWaitTimeEstimate: 60000,
+              minWaitTimeEstimate: 15000,
+              suggestedMaxFeePerGas: '71.505678965',
+              suggestedMaxPriorityFeePerGas: '2',
+            },
+            historicalBaseFeeRange: ['34.414135263', '97.938829873'],
+            historicalPriorityFeeRange: ['0.1', '100'],
+            latestPriorityFeeRange: ['1.5', '19.288193104'],
+            low: {
+              maxWaitTimeEstimate: 30000,
+              minWaitTimeEstimate: 15000,
+              suggestedMaxFeePerGas: '54.875906896',
+              suggestedMaxPriorityFeePerGas: '1.41',
+            },
+            medium: {
+              maxWaitTimeEstimate: 45000,
+              minWaitTimeEstimate: 15000,
+              suggestedMaxFeePerGas: '68.33238362',
+              suggestedMaxPriorityFeePerGas: '1.5',
+            },
+            networkCongestion: 0.4515,
+            priorityFeeTrend: 'down',
+          },
+        }),
+      ),
+    },
+    TransactionController: {
+      estimateGas: jest.fn(() =>
+        Promise.resolve({
+          gas: mockTransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+        }),
+      ),
+    },
+  },
+}));
+
+const mockNavigate = jest.fn();
+
+const CURRENT_ACCOUNT = '0x1a';
+const RECEIVER_ACCOUNT = '0x2a';
+
 const initialState = {
   engine: {
     backgroundState: {
@@ -17,70 +77,407 @@ const initialState = {
         },
       },
       AccountTrackerController: {
-        accounts: { '0x2': { balance: '0' } },
-      },
-      AddressBookController: {
-        addressBook: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
-            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
-            chainId: '1',
-            isEns: false,
-            memo: '',
-            name: 'aa',
-          },
-        },
+        accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
       PreferencesController: {
-        selectedAddress: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
+        selectedAddress: CURRENT_ACCOUNT,
         identities: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': {
-            address: '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b',
+          [CURRENT_ACCOUNT]: {
+            address: CURRENT_ACCOUNT,
             name: 'Account 1',
           },
         },
-      },
-      TransactionController: {
-        transactions: [],
       },
       TokensController: {
         tokens: [],
       },
       CollectiblesController: {
-        allCollectibles: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': { '1': [] },
-        },
-        allCollectibleContracts: {
-          '0x51239E13Fe029cD52asA8babEBafb6814bc8Ba4b': { '1': [] },
-        },
+        allCollectibles: { [CURRENT_ACCOUNT]: { '1': [] } },
+        allCollectibleContracts: { [CURRENT_ACCOUNT]: { '1': [] } },
       },
       TokenRatesController: {
         contractExchangeRates: {},
       },
-      CurrencyRateController: {
-        currentCurrency: 'USD',
-        conversionRate: 1,
-      },
+      CurrencyRateController: {},
       TokenBalancesController: {
         contractBalance: {},
       },
     },
   },
   settings: {
-    primaryCurrency: 'fiat',
-  },
-  transaction: {
-    selectedAsset: {},
+    primaryCurrency: 'ETH',
   },
 };
-const store = mockStore(initialState);
+
+const Stack = createStackNavigator();
+
+const renderComponent = (state: any = {}) => {
+  const store = configureStore(state);
+
+  return renderWithProvider(
+    <Stack.Navigator>
+      <Stack.Screen name="Amount" options={{}}>
+        {(props) => (
+          <Amount
+            {...props}
+            navigation={{
+              navigate: mockNavigate,
+              setOptions: jest.fn(),
+              setParams: jest.fn(),
+            }}
+          />
+        )}
+      </Stack.Screen>
+    </Stack.Navigator>,
+    store,
+  );
+};
 
 describe('Amount', () => {
+  beforeEach(() => {
+    mockNavigate.mockClear();
+  });
+
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Amount />
-      </Provider>,
-    );
-    expect(wrapper.dive()).toMatchSnapshot();
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should display correct balance', () => {
+    const { getByText, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            conversionRate: 1,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+          },
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: 'DE0B6B3A7640000',
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const balanceText = getByText(/Balance:/);
+    expect(balanceText.props.children).toBe('Balance: 1 ETH');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should proceed if balance is sufficient while on Native primary currency', async () => {
+    const { getByText, getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            conversionRate: 1,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+          },
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: '4563918244F40000',
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const balanceText = getByText(/Balance:/);
+    expect(balanceText.props.children).toBe('Balance: 5 ETH');
+
+    const nextButton = getByTestId('txn-amount-next-button');
+    await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
+
+    const textInput = getByTestId('txn-amount-input');
+    fireEvent.changeText(textInput, '1');
+
+    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    expect(amountConversionValue.props.children).toBe('$1');
+
+    await act(() => fireEvent.press(nextButton));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should show an error message if balance is insufficient', async () => {
+    const { getByText, getByTestId, queryByText, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            conversionRate: 1,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+          },
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: '0x0',
+              },
+            },
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const balanceText = getByText(/Balance:/);
+    expect(balanceText.props.children).toBe('Balance: 0 ETH');
+
+    const nextButton = getByTestId('txn-amount-next-button');
+    await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
+
+    const textInput = getByTestId('txn-amount-input');
+    fireEvent.changeText(textInput, '1');
+
+    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    expect(amountConversionValue.props.children).toBe('$1');
+
+    await act(() => fireEvent.press(nextButton));
+
+    expect(queryByText('Insufficient funds')).not.toBeNull();
+
+    expect(mockNavigate).toHaveBeenCalledTimes(0);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should convert ETH to USD', () => {
+    const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            conversionRate: 3000,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const textInput = getByTestId('txn-amount-input');
+
+    fireEvent.changeText(textInput, '1');
+
+    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    expect(amountConversionValue.props.children).toBe('$3000');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should convert ERC-20 token value to USD', () => {
+    const { getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            contractExchangeRates: {
+              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            },
+          },
+          CurrencyRateController: {
+            conversionRate: 3000,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+            usdConversionRate: 3000,
+          },
+        },
+      },
+      transaction: {
+        assetType: 'ERC20',
+        selectedAsset: {
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          decimals: 18,
+          isERC721: false,
+          symbol: 'LINK',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const textInput = getByTestId('txn-amount-input');
+
+    fireEvent.changeText(textInput, '1');
+
+    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    expect(amountConversionValue.props.children).toBe('$15.00');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should convert USD to ETH', () => {
+    const { getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          CurrencyRateController: {
+            ...initialState.engine.backgroundState.CurrencyRateController,
+            conversionRate: 3000,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+            usdConversionRate: 3000,
+          },
+        },
+      },
+      settings: {
+        primaryCurrency: 'Fiat',
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const textInput = getByTestId('txn-amount-input');
+
+    fireEvent.changeText(textInput, '10');
+
+    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    expect(amountConversionValue.props.children).toBe('0.00333 ETH');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should convert USD to ERC-20 token value', () => {
+    const { getByTestId, toJSON } = renderComponent({
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            contractExchangeRates: {
+              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            },
+          },
+          CurrencyRateController: {
+            conversionRate: 3000,
+            currentCurrency: 'usd',
+            nativeCurrency: 'ETH',
+            usdConversionRate: 3000,
+          },
+        },
+      },
+      settings: {
+        primaryCurrency: 'Fiat',
+      },
+      transaction: {
+        assetType: 'ERC20',
+        selectedAsset: {
+          address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+          decimals: 18,
+          isERC721: false,
+          symbol: 'LINK',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+        transactionFromName: 'Account 1',
+        transactionTo: RECEIVER_ACCOUNT,
+        transactionToName: 'Account 2',
+      },
+    });
+
+    const textInput = getByTestId('txn-amount-input');
+
+    fireEvent.changeText(textInput, '10');
+
+    const amountConversionValue = getByTestId('txn-amount-conversion-value');
+    expect(amountConversionValue.props.children).toBe('0.66667 LINK');
+    expect(toJSON()).toMatchSnapshot();
   });
 });

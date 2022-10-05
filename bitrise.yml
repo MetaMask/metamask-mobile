@@ -197,7 +197,7 @@ workflows:
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
       - deploy-to-bitrise-io@1:
           inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR/app-release.apk
+            - deploy_path: $BITRISE_DEPLOY_DIR/app-prod-release.apk
           title: Bitrise Deploy APK
       - yarn@0:
           inputs:
@@ -433,10 +433,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 5.7.0
+      VERSION_NAME: 5.8.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 972
+      VERSION_NUMBER: 973
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

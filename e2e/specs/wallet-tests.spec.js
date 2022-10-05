@@ -288,7 +288,7 @@ describe('Wallet Tests', () => {
     await WalletView.isNetworkNameVisible(GOERLI);
   });
 
-  it('should dismiss network education modal', async () => {
+  it('should close the education modal on Goerli network', async () => {
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.tapGotItButton();
     await NetworkEducationModal.isNotVisible();

@@ -111,11 +111,14 @@ const RootRPCMethodsUI = (props) => {
   };
 
   const initializeWalletConnect = () => {
+    WalletConnect.init();
+  };
+
+  const onWalletConnectSessionRequest = () => {
     WalletConnect.hub.on('walletconnectSessionRequest', (peerInfo) => {
       setWalletConnectRequest(true);
       setWalletConnectRequestInfo(peerInfo);
     });
-    WalletConnect.init();
   };
 
   const trackSwaps = useCallback(
@@ -730,6 +733,7 @@ const RootRPCMethodsUI = (props) => {
 
   useEffect(() => {
     initializeWalletConnect();
+    onWalletConnectSessionRequest();
 
     Engine.context.MessageManager.hub.on('unapprovedMessage', (messageParams) =>
       onUnapprovedMessage(messageParams, 'eth'),

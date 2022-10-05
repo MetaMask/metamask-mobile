@@ -8,7 +8,7 @@ import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../../util/theme';
-import Text, { TextVariant } from '../../../Text';
+import Text, { TextVariant } from '../../../Texts/Text';
 
 // Internal dependencies.
 import SelectItem from './SelectItem';
