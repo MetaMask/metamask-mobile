@@ -807,7 +807,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -1803,7 +1803,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -2816,7 +2816,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -3829,7 +3829,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -4824,7 +4824,7 @@ exports[`Amount should display correct balance 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -5815,7 +5815,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -6731,7 +6731,7 @@ exports[`Amount should render correctly 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
@@ -7791,7 +7791,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   Object {
                                     "address": "",
                                     "isETH": true,
-                                    "logo": "../images/eth-logo.png",
+                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ether",
                                     "symbol": "ETH",
                                   },
