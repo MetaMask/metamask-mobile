@@ -113,7 +113,8 @@
     "@storybook/addon-actions/**/highlight.js": "^10.4.1",
     "react-native-svg-asset-plugin/sharp": "^0.30.5",
     "detox/**/moment": "^2.29.4",
-    "oss-attribution-generator/**/debug": "^2.6.9"
+    "oss-attribution-generator/**/debug": "^2.6.9",
+    "vm2": "3.9.11"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "^1.2.1",
@@ -236,7 +237,7 @@
     "react-native-push-notification": "git+https://github.com/MetaMask/react-native-push-notification.git#975e0e6757c40e3dce2d1b6dd3d66fc91127ac4c",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-randombytes": "^3.5.3",
-    "react-native-reanimated": "2.2.3",
+    "react-native-reanimated": "3.0.0-rc.3",
     "react-native-redash": "16.2.2",
     "react-native-safe-area-context": "^3.1.9",
     "react-native-screens": "^3.3.0",
