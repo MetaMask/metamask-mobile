@@ -35,7 +35,7 @@ export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
   const buttonSecondaryStoryProps: ButtonSecondaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    ButtonSecondaryVariants: ButtonSecondaryVariantsSelector,
+    buttonSecondaryVariants: ButtonSecondaryVariantsSelector,
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {

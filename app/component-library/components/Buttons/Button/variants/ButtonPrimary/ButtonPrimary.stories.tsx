@@ -35,7 +35,7 @@ export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
   const buttonPrimaryStoryProps: ButtonPrimaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    ButtonPrimaryVariants: ButtonPrimaryVariantsSelector,
+    buttonPrimaryVariants: ButtonPrimaryVariantsSelector,
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {

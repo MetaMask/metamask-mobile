@@ -16,6 +16,7 @@ exports[`ButtonIcon should render correctly 1`] = `
   }
 >
   <Icon
+    color="#037DD6"
     name="AddSquareFilled"
     size="24"
   />

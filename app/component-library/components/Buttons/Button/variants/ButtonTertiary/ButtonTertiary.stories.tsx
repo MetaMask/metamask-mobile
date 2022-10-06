@@ -35,7 +35,7 @@ export const getButtonTertiaryStoryProps = (): ButtonTertiaryProps => {
   const buttonTertiaryStoryProps: ButtonTertiaryProps = {
     size: sizeSelector,
     label: labelSelector,
-    ButtonTertiaryVariants: ButtonTertiaryVariantsSelector,
+    buttonTertiaryVariants: ButtonTertiaryVariantsSelector,
     onPress: () => console.log("I'm clicked!"),
   };
   if (includesIcon) {

@@ -18,7 +18,7 @@ describe('ButtonPrimary', () => {
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
-        ButtonPrimaryVariants={ButtonPrimaryVariants.Normal}
+        buttonPrimaryVariants={ButtonPrimaryVariants.Normal}
       />,
     );
     expect(wrapper).toMatchSnapshot();

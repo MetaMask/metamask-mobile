@@ -19,7 +19,7 @@ export interface ButtonPrimaryProps
    * Optional enum use to select between variants.
    * @default Normal
    */
-  ButtonPrimaryVariants?: ButtonPrimaryVariants;
+  buttonPrimaryVariants?: ButtonPrimaryVariants;
   /**
    * Variant of Button.
    */
@@ -31,6 +31,6 @@ export interface ButtonPrimaryProps
  */
 export interface ButtonPrimaryStyleSheetVars
   extends Pick<ButtonPrimaryProps, 'style'> {
-  ButtonPrimaryVariants: ButtonPrimaryVariants;
+  buttonPrimaryVariants: ButtonPrimaryVariants;
   pressed: boolean;
 }

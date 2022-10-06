@@ -19,7 +19,7 @@ export interface ButtonTertiaryProps
    * Optional enum use to select between variants.
    * @default Normal
    */
-  ButtonTertiaryVariants?: ButtonTertiaryVariants;
+  buttonTertiaryVariants?: ButtonTertiaryVariants;
   /**
    * Variant of Button.
    */

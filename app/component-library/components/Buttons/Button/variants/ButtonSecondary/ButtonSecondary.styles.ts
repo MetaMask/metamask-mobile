@@ -23,9 +23,9 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors } = theme;
-  const { style, ButtonSecondaryVariants, pressed } = vars;
+  const { style, buttonSecondaryVariants, pressed } = vars;
   let borderColor: string;
-  switch (ButtonSecondaryVariants) {
+  switch (buttonSecondaryVariants) {
     case ButtonSecondaryVariants.Normal:
       borderColor = pressed
         ? colors.primary.alternative

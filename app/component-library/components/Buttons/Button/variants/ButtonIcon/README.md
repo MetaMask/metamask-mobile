@@ -22,7 +22,7 @@ Function to trigger when pressed.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | function                                            | Yes                                                     |
 
-### `variant`
+### `buttonIconVariants`
 
 Optional enum to select between variants.
 
@@ -40,6 +40,6 @@ import { IconName } from 'app/component-library/components/Icon';
 <ButtonIcon
   iconName={IconName.BankFilled}
   onPress={ONPRESS_HANDLER}
-  ButtonIconVariants={ButtonIconVariants.}
+  buttonIconVariants={ButtonIconVariants.}
 />;
 ```

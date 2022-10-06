@@ -30,7 +30,7 @@ export interface ButtonIconProps extends TouchableOpacityProps {
    * Optional enum to select between variants.
    * @default Primary
    */
-  ButtonIconVariants?: ButtonIconVariants;
+  buttonIconVariants?: ButtonIconVariants;
 }
 
 /**

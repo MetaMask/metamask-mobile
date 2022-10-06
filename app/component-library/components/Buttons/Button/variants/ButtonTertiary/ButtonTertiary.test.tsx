@@ -15,7 +15,7 @@ describe('ButtonTertiary', () => {
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
-        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
+        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
       />,
     );
     expect(wrapper).toMatchSnapshot();

@@ -26,7 +26,7 @@ const ToastExample = () => {
     <>
       <Button
         variant={ButtonVariants.Tertiary}
-        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
+        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Account Toast'}
         onPress={() => {
@@ -42,7 +42,7 @@ const ToastExample = () => {
       />
       <Button
         variant={ButtonVariants.Tertiary}
-        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
+        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Network Toast'}
         onPress={() => {
@@ -65,7 +65,7 @@ const ToastExample = () => {
       />
       <Button
         variant={ButtonVariants.Tertiary}
-        ButtonTertiaryVariants={ButtonTertiaryVariants.Normal}
+        buttonTertiaryVariants={ButtonTertiaryVariants.Normal}
         size={ButtonSize.Md}
         label={'Show Plain Toast'}
         onPress={() => {

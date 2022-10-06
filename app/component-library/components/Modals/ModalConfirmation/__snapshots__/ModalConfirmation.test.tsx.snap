@@ -57,7 +57,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
       }
     >
       <Button
-        ButtonSecondaryVariants="Normal"
+        buttonSecondaryVariants="Normal"
         label="Cancel"
         onPress={[Function]}
         size="48"
@@ -76,7 +76,7 @@ exports[`ModalConfirmation should render correctly 1`] = `
         }
       />
       <Button
-        ButtonPrimaryVariants="Normal"
+        buttonPrimaryVariants="Normal"
         label="Confirm"
         onPress={[Function]}
         size="48"

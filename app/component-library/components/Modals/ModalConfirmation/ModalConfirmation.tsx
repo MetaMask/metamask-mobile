@@ -54,7 +54,7 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
     <View style={styles.buttonsContainer}>
       <Button
         variant={ButtonVariants.Secondary}
-        ButtonSecondaryVariants={ButtonSecondaryVariants.Normal}
+        buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
         onPress={triggerCancel}
         label={cancelLabel || strings('confirmation_modal.cancel_cta')}
         size={ButtonSize.Lg}
@@ -64,7 +64,7 @@ const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
       <Button
         variant={ButtonVariants.Primary}
         testID={BUTTON_TEST_ID_BY_VARIANT[variant]}
-        ButtonPrimaryVariants={ButtonPrimaryVariants[variant]}
+        buttonPrimaryVariants={ButtonPrimaryVariants[variant]}
         onPress={triggerConfirm}
         label={confirmLabel || strings('confirmation_modal.confirm_cta')}
         size={ButtonSize.Lg}

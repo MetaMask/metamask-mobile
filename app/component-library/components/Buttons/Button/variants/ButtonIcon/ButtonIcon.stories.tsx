@@ -27,7 +27,7 @@ export const getButtonIconStoryProps = (): ButtonIconProps => {
   );
   const disabledSelector = boolean('disabled', false, storybookPropsGroupID);
   return {
-    ButtonIconVariants: variantSelector,
+    buttonIconVariants: variantSelector,
     iconName: iconNameSelector,
     disabled: disabledSelector,
     onPress: () => console.log("I'm clicked!"),

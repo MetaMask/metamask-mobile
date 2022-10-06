@@ -6,7 +6,7 @@ ButtonSecondary is used for secondary call to actions.
 
 This component extends [ButtonBaseProps](../ButtonBase/ButtonBase.types.ts#L14) from [ButtonBase](../ButtonBase/ButtonBase.tsx) component.
 
-### `ButtonSecondaryVariants`
+### `buttonSecondaryVariants`
 
 Optional enum use to select between variants.
 
@@ -29,6 +29,6 @@ import { IconName } from 'app/component-library/components/Icon';
   iconName={IconName.BankFilled}
   size={ButtonSize.Md}
   onPress={ONPRESS_HANDLER}
-  variant={ButtonSecondaryVariants.Normal}
+  buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
 />;
 ```
