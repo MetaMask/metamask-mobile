@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { JsonMap } from '@segment/analytics-react-native';
-import { MetaMetrics, IMetaMetricsEvent } from '../../../core/Analytics';
+import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 
 const useMetaMetrics = () => {
   const trackEventHook = useCallback(

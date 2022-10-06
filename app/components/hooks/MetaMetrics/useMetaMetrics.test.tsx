@@ -1,8 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import useMetaMetrics from './useMetaMetrics';
-import { MetaMetrics } from '../../../core/Analytics';
+import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 
-jest.mock('../../../core/Analytics', () => ({
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   MetaMetrics: {
     trackEvent: () => jest.fn(),
     trackAnonymousEvent: () => jest.fn(),
