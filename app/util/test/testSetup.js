@@ -193,8 +193,3 @@ jest.mock('@segment/analytics-react-native', () => ({
     group: jest.fn(),
   }),
 }));
-
-jest.mock(
-  '@react-native-async-storage/async-storage',
-  () => mockRNAsyncStorage,
-);
