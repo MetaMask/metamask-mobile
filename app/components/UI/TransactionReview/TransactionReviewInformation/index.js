@@ -43,6 +43,7 @@ import AppConstants from '../../../../core/AppConstants';
 import WarningMessage from '../../../Views/SendFlow/WarningMessage';
 import { allowedToBuy } from '../../FiatOrders';
 import ErrorMessage from '../../../Views/SendFlow/ErrorMessage';
+import { ADDRESS_ERROR_ID } from '../../../../constants/test-ids';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -699,7 +700,10 @@ class TransactionReviewInformation extends PureComponent {
           </View>
         )}
         {!error && Boolean(estimateGasError) && (
-          <View style={styles.estimateGasErrorWrapper} testID={'address-error'}>
+          <View
+            style={styles.estimateGasErrorWrapper}
+            testID={ADDRESS_ERROR_ID}
+          >
             <ErrorMessage
               errorMessage={strings('transaction.estimate_gas_error')}
               errorContinue={!!errorContinue}
