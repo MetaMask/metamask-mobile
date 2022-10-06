@@ -71,7 +71,7 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 const VERBOSE_SDK = isDevelopment;
 
 export const SDK = OnRampSdk.create(
-  isDevelopment ? Environment.Staging : Environment.Production,
+  isDevelopment ? Environment.Staging : Environment.Staging,
   Context.Mobile,
   {
     verbose: VERBOSE_SDK,
