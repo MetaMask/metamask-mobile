@@ -15,7 +15,7 @@ describe('useMetaMetrics', () => {
     expect(typeof result.current).toBe('function');
   });
 
-  test('it should call MetaMetrics.trackEvent for anonymous event', () => {
+  test('it should call MetaMetrics.trackAnonymousEvent for anonymous event', () => {
     const { result } = renderHook(() => useMetaMetrics());
     const trackEventSpy = jest.spyOn(MetaMetrics, 'trackAnonymousEvent');
     act(() => {
