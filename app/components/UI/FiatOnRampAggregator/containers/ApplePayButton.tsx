@@ -52,7 +52,7 @@ const ApplePayButton = ({
 
   const handlePress = useCallback(async () => {
     const prevLockTime = lockTime;
-    setLockTime(-1);
+    dispatch(setLockTime(-1));
     try {
       const order = await pay();
       if (order !== ABORTED) {
@@ -80,8 +80,6 @@ const ApplePayButton = ({
             has_zero_native_balance: accounts[selectedAddress]?.balance
               ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
               : undefined,
-            currency_destination: (fiatOrder?.data as Order)?.cryptoCurrency
-              .symbol,
           });
         } else {
           Logger.error('FiatOnRampAgg::ApplePay empty order response', order);
@@ -98,7 +96,7 @@ const ApplePayButton = ({
       });
       Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
     } finally {
-      setLockTime(prevLockTime);
+      dispatch(setLockTime(prevLockTime));
     }
   }, [
     accounts,
@@ -111,6 +109,7 @@ const ApplePayButton = ({
     quote.crypto?.symbol,
     selectedAddress,
     trackEvent,
+    dispatch,
   ]);
 
   return <ApplePayButtonComponent label={label} onPress={handlePress} />;

@@ -655,6 +655,7 @@ class Amount extends PureComponent {
         amount: BNToHex(tokenAmount),
       });
       transactionObject.value = '0x0';
+      transactionObject.to = selectedAsset.address;
     }
 
     if (selectedAsset.erc20) {
@@ -1128,7 +1129,11 @@ class Amount extends PureComponent {
                 style={styles.actionSwitch}
                 onPress={this.switchCurrency}
               >
-                <Text style={styles.textSwitch} numberOfLines={1}>
+                <Text
+                  style={styles.textSwitch}
+                  numberOfLines={1}
+                  testID={'txn-amount-conversion-value'}
+                >
                   {renderableInputValueConversion}
                 </Text>
                 <View styles={styles.switchWrapper}>

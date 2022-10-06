@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PickerBase should render correctly 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 4,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <View />
+  <Icon
+    color="#6A737D"
+    name="ArrowDownOutline"
+    size="20"
+    style={
+      Object {
+        "marginLeft": 16,
+      }
+    }
+  />
+</TouchableOpacity>
+`;

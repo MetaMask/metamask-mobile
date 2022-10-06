@@ -28,7 +28,7 @@ import {
   NEXT_MAKER_REMINDER,
   TRUE,
 } from '../../../constants/storage';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import SecureKeychain from '../../../core/SecureKeychain';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
@@ -45,7 +45,7 @@ import {
 import { setLockTime as lockTimeSet } from '../../../actions/settings';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import scaling from '../../../util/scaling';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -107,7 +107,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
   const seedWordsRef = useRef(null);
   const importedAccountsRef = useRef(null);
   const dataToSyncRef = useRef<any>(null);
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const passwordSet = useSelector((state: any) => state.user.passwordSet);

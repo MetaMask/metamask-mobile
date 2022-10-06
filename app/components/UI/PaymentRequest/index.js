@@ -46,6 +46,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { getTokenListArray } from '../../../reducers/tokens';
 import { utils as ethersUtils } from 'ethers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { isTestNet } from '../../../util/networks';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/controllers/dist/util';
 
 const KEYBOARD_OFFSET = 120;
@@ -54,10 +55,6 @@ const createStyles = (colors) =>
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
-    },
-    contentWrapper: {
-      paddingTop: 24,
-      paddingHorizontal: 24,
     },
     title: {
       ...fontStyles.normal,
@@ -107,6 +104,13 @@ const createStyles = (colors) =>
       paddingTop: Device.isAndroid() ? 3 : 0,
       paddingLeft: 10,
       textTransform: 'uppercase',
+      color: colors.text.default,
+    },
+    testNetEth: {
+      ...fontStyles.normal,
+      fontSize: 24,
+      paddingTop: Device.isAndroid() ? 3 : 0,
+      paddingLeft: 10,
       color: colors.text.default,
     },
     fiatValue: {
@@ -168,7 +172,7 @@ const createStyles = (colors) =>
       alignSelf: 'flex-end',
     },
     scrollViewContainer: {
-      flexGrow: 1,
+      padding: 24,
     },
     errorWrapper: {
       backgroundColor: colors.error.muted,
@@ -421,7 +425,9 @@ class PaymentRequest extends PureComponent {
           : [{ ...defaultEth, symbol: getTicker(ticker), name: '' }];
       results = this.state.searchInputValue ? this.state.results : defaults;
     } else if (
-      Object.values(NetworksChainId).find((value) => value === chainId)
+      //Check to see if it is not a test net ticker symbol
+      Object.values(NetworksChainId).find((value) => value === chainId) &&
+      !(parseInt(chainId, 10) > 1 && parseInt(chainId, 10) < 6)
     ) {
       results = [defaultEth];
     } else {
@@ -714,6 +720,7 @@ class PaymentRequest extends PureComponent {
       showError,
       selectedAsset,
       internalPrimaryCurrency,
+      chainId,
     } = this.state;
     const currencySymbol = currencySymbols[currentCurrency];
     const exchangeRate =
@@ -761,7 +768,10 @@ class PaymentRequest extends PureComponent {
                     testID={'request-amount-input'}
                     keyboardAppearance={themeAppearance}
                   />
-                  <Text style={styles.eth} numberOfLines={1}>
+                  <Text
+                    style={isTestNet(chainId) ? styles.testNetEth : styles.eth}
+                    numberOfLines={1}
+                  >
                     {symbol}
                   </Text>
                 </View>
@@ -839,7 +849,6 @@ class PaymentRequest extends PureComponent {
     return (
       <SafeAreaView style={styles.wrapper}>
         <KeyboardAwareScrollView
-          style={styles.contentWrapper}
           contentContainerStyle={styles.scrollViewContainer}
           keyboardShouldPersistTaps="handled"
         >

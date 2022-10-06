@@ -1,4 +1,10 @@
-import { capitalize, tlc, toLowerCaseEquals, renderShortText } from '.';
+import {
+  capitalize,
+  tlc,
+  toLowerCaseEquals,
+  renderShortText,
+  getURLProtocol,
+} from '.';
 
 describe('capitalize', () => {
   const my_string = 'string';
@@ -48,5 +54,23 @@ describe('renderShortText', () => {
   it('should return the same text if the shorter version has the same length or bigger', () => {
     const input = '123456789';
     expect(renderShortText(input, 2)).toStrictEqual(input);
+  });
+});
+
+describe('isValidUrl', () => {
+  it('should return https for https urls', () => {
+    expect(getURLProtocol('https://metamask.io/')).toBe('https');
+  });
+  it('should return http for http urls', () => {
+    expect(getURLProtocol('http://metamask.io/')).toBe('http');
+  });
+  it('should return ftp for ftp urls', () => {
+    expect(getURLProtocol('ftp://metamask.io/')).toBe('ftp');
+  });
+  it('should return an empty string for a random string', () => {
+    expect(getURLProtocol('wjidnciewncie')).toBe('');
+  });
+  it('should return an empty string for an empty string', () => {
+    expect(getURLProtocol('')).toBe('');
   });
 });

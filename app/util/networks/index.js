@@ -8,15 +8,16 @@ import {
   GOERLI,
   RPC,
 } from '../../../app/constants/network';
-import {
-  NETWORK_ERROR_MISSING_NETWORK_ID,
-  NETWORK_ERROR_UNKNOWN_NETWORK_ID,
-  NETWORK_ERROR_MISSING_CHAIN_ID,
-} from '../../../app/constants/error';
+import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+
+import handleNetworkSwitch from './handleNetworkSwitch';
+
+export { handleNetworkSwitch };
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -114,7 +115,7 @@ export const isTestNet = (networkId) => {
 
 export function getNetworkTypeById(id) {
   if (!id) {
-    throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);
+    throw new Error(NetworkSwitchErrorType.missingNetworkId);
   }
   const network = NetworkListKeys.filter(
     (key) => NetworkList[key].networkId === parseInt(id, 10),
@@ -123,12 +124,12 @@ export function getNetworkTypeById(id) {
     return network[0];
   }
 
-  throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
+  throw new Error(`${NetworkSwitchErrorType.unknownNetworkId} ${id}`);
 }
 
 export function getDefaultNetworkByChainId(chainId) {
   if (!chainId) {
-    throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
+    throw new Error(NetworkSwitchErrorType.missingChainId);
   }
 
   let returnNetwork;
@@ -165,17 +166,33 @@ export function isprivateConnection(hostname) {
 /**
  * Returns custom block explorer for specific rpcTarget
  *
- * @param {string} rpcTarget
+ * @param {string} rpcTargetUrl
  * @param {array<object>} frequentRpcList
  */
-export function findBlockExplorerForRpc(rpcTarget, frequentRpcList) {
-  const frequentRpc = frequentRpcList.find(
-    ({ rpcUrl }) => rpcTarget === rpcUrl,
+export function findBlockExplorerForRpc(rpcTargetUrl, frequentRpcList) {
+  const frequentRpc = frequentRpcList.find(({ rpcUrl }) =>
+    compareRpcUrls(rpcUrl, rpcTargetUrl),
   );
   if (frequentRpc) {
     return frequentRpc.rpcPrefs && frequentRpc.rpcPrefs.blockExplorerUrl;
   }
   return undefined;
+}
+
+/**
+ * Returns a boolean indicating if both URLs have the same host
+ *
+ * @param {string} rpcOne
+ * @param {string} rpcTwo
+ */
+export function compareRpcUrls(rpcOne, rpcTwo) {
+  // First check that both objects are of the type string
+  if (typeof rpcOne === 'string' && typeof rpcTwo === 'string') {
+    const rpcUrlOne = new URL(rpcOne);
+    const rpcUrlTwo = new URL(rpcTwo);
+    return rpcUrlOne.host === rpcUrlTwo.host;
+  }
+  return false;
 }
 
 /**

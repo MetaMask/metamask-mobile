@@ -21,13 +21,9 @@ import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import {
-  baseStyles,
-  fontStyles,
-  colors as importedColors,
-} from '../../../styles/common';
+import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, { getHost, getUrlObj } from '../../../util/browser';
+import onUrlSubmit, { getHost, getUrlObj, isTLD } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
@@ -56,7 +52,7 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 import {
@@ -65,12 +61,13 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
+import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 
 const { HOMEPAGE_URL, USER_AGENT, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     wrapper: {
       ...baseStyles.flexGrow,
@@ -112,18 +109,12 @@ const createStyles = (colors) =>
       paddingTop: 10,
     },
     optionsWrapperAndroid: {
-      shadowColor: importedColors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.5,
-      shadowRadius: 3,
+      ...shadows.size.xs,
       bottom: 65,
       right: 5,
     },
     optionsWrapperIos: {
-      shadowColor: importedColors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.5,
-      shadowRadius: 3,
+      ...shadows.size.xs,
       bottom: 90,
       right: 5,
     },
@@ -243,8 +234,8 @@ export const BrowserTab = (props) => {
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
 
-  const { colors } = useAppThemeFromContext() || mockTheme;
-  const styles = createStyles(colors);
+  const { colors, shadows } = useTheme();
+  const styles = createStyles(colors, shadows);
 
   /**
    * Is the current tab the active tab
@@ -481,12 +472,8 @@ export const BrowserTab = (props) => {
           type,
         };
       } catch (err) {
-        // This is a TLD that might be a normal website
-        // For example .XYZ and might be more in the future
-        if (
-          hostname.substr(-4) !== '.eth' &&
-          err.toString().indexOf('is not standard') !== -1
-        ) {
+        //if it's not a ENS but a TLD (Top Level Domain)
+        if (isTLD(hostname, err)) {
           ensIgnoreList.push(hostname);
           return { url: fullUrl, reload: true };
         }
@@ -519,6 +506,7 @@ export const BrowserTab = (props) => {
       const sanitizedURL = hasProtocol ? url : `${props.defaultProtocol}${url}`;
       const { hostname, query, pathname } = new URL(sanitizedURL);
       let urlToGo = sanitizedURL;
+      urlToGo = sanitizeUrlInput(urlToGo);
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
       if (isEnsUrl) {
@@ -819,7 +807,6 @@ export const BrowserTab = (props) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
       changeUrl(nativeEvent);
-      changeAddressBar(nativeEvent);
     }
   };
 
@@ -983,7 +970,11 @@ export const BrowserTab = (props) => {
   const onLoadStart = async ({ nativeEvent }) => {
     const { hostname } = new URL(nativeEvent.url);
 
-    if (nativeEvent.url !== url.current) {
+    if (
+      nativeEvent.url !== url.current &&
+      nativeEvent.loading &&
+      nativeEvent.navigationType === 'backforward'
+    ) {
       changeAddressBar({ ...nativeEvent });
     }
 
@@ -993,12 +984,7 @@ export const BrowserTab = (props) => {
     webviewUrlPostMessagePromiseResolve.current = null;
     setError(false);
 
-    changeUrl(nativeEvent, 'start');
-
-    //For Android url on the navigation bar should only update upon load.
-    if (Device.isAndroid()) {
-      changeAddressBar(nativeEvent);
-    }
+    changeUrl(nativeEvent);
 
     icon.current = null;
     if (isHomepage(nativeEvent.url)) {
@@ -1362,6 +1348,7 @@ export const BrowserTab = (props) => {
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <WebView
+              originWhitelist={['https://*', 'http://*']}
               decelerationRate={'normal'}
               ref={webviewRef}
               renderError={() => (

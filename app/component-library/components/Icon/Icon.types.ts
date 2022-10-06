@@ -1,3 +1,4 @@
+// Third party dependencies.
 import React from 'react';
 import { ViewProps } from 'react-native';
 import { SvgProps } from 'react-native-svg';
@@ -19,9 +20,10 @@ export enum IconSize {
  */
 export interface IconProps extends ViewProps {
   /**
-   * Enum to select between icon sizes.
+   * Optional enum to select between icon sizes.
+   * @default Md
    */
-  size: IconSize;
+  size?: IconSize;
   /**
    * Enum to select between icon names.
    */
@@ -35,7 +37,9 @@ export interface IconProps extends ViewProps {
 /**
  * Style sheet input parameters.
  */
-export type IconStyleSheetVars = Pick<IconProps, 'size' | 'style'>;
+export interface IconStyleSheetVars extends Pick<IconProps, 'style'> {
+  size: IconSize;
+}
 
 /**
  * Asset stored by icon name
@@ -168,6 +172,7 @@ export enum IconName {
   SwapHorizontalOutline = 'SwapHorizontalOutline',
   SwapVertivalFilled = 'SwapVertivalFilled',
   TagFilled = 'TagFilled',
+  TildeOutline = 'TildeOutline',
   TimerTimer = 'TimerTimer',
   TrashFilled = 'TrashFilled',
   TrendDownFilled = 'TrendDownFilled',

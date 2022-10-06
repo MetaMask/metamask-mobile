@@ -2,6 +2,142 @@
 
 ## Current Main Branch
 
+## 5.8.0 - Sept 22, 2022
+- [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
+- [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): [FIX] Unable to Speedup/Cancel legacy transactions
+- [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): [ENHANCEMENT] Implement new QA builds for both Android and iOS
+- [#4993](https://github.com/MetaMask/metamask-mobile/pull/4993): [ENHANCEMENT] On-Ramp: Add scrolling to payment methods and make logo property optional
+- [#4997](https://github.com/MetaMask/metamask-mobile/pull/4997): [ENHANCEMENT] SRP Reveal Timestamp
+- [#5002](https://github.com/MetaMask/metamask-mobile/pull/5002): [FEAT] ENS Wildcard and offchain resolution
+- [#4430](https://github.com/MetaMask/metamask-mobile/pull/4430): [FIX] Keystone: Pagination and missing addresses
+- [#3438](https://github.com/MetaMask/metamask-mobile/pull/3438): [DEPENDENCIES] Bump metro from 0.59.0 to 0.66.2
+- [#4649](https://github.com/MetaMask/metamask-mobile/pull/4649): [ENHANCEMENT] Url redirection from QR code
+- [#4980](https://github.com/MetaMask/metamask-mobile/pull/4980): [DEPENDENCIES] On-ramp: Add compact payment method selector
+- [#4982](https://github.com/MetaMask/metamask-mobile/pull/4982): [FIX] typo in faucet name
+- [#4983](https://github.com/MetaMask/metamask-mobile/pull/4983): [FIX] Navigation comment spell
+- [#4755](https://github.com/MetaMask/metamask-mobile/pull/4755): [UPDATE] - New template fields added to reflect newer requirements for PRs
+- [#4978](https://github.com/MetaMask/metamask-mobile/pull/4978): [ENHANCEMENT] Store distinct id for consistency
+- [#4958](https://github.com/MetaMask/metamask-mobile/pull/4958): [FIX] WebView Origin Allowlist
+- [#4941](https://github.com/MetaMask/metamask-mobile/pull/4941): [DEPENDENCIES] Replace "@react-native-community/async-storage" for "@react-native-async-storage/async-storage"
+- [#4947](https://github.com/MetaMask/metamask-mobile/pull/4947): [IMPROVEMENT] WebView Error Copy
+- [#4946](https://github.com/MetaMask/metamask-mobile/pull/4946): [ENHANCEMENT] Swaps: Add copy for 0% fee in quotes info modal
+- [#4942](https://github.com/MetaMask/metamask-mobile/pull/4942): [ENHANCEMENT] Add unit tests to useDeleteWallet hook
+- [#4939](https://github.com/MetaMask/metamask-mobile/pull/4939): [ENHANCEMENT] Update "Usability enhancement" template
+- [#4938](https://github.com/MetaMask/metamask-mobile/pull/4938): [ENHANCEMENT] Bump git-clone version to 6 in Bitrise machines
+- [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): [DEPENDENCIES] Detox version bump from 19.6.5 to 19.7.1
+
+## 5.7.0 - Sept 21, 2022
+- [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
+- [#4897](https://github.com/MetaMask/metamask-mobile/pull/4897): [IMPROVEMENT] Automatic security checks settings
+- [#4902](https://github.com/MetaMask/metamask-mobile/pull/4902): [IMPROVEMENT] Deprecated networks Alert border fixed
+- [#4885](https://github.com/MetaMask/metamask-mobile/pull/4885): [IMPROVEMENT] Implement warning for deprecated test networks, kovan, ropsten and rinkeby
+- [#4898](https://github.com/MetaMask/metamask-mobile/pull/4898): [FIX] Test sanitizeUrlInput error
+- [#4882](https://github.com/MetaMask/metamask-mobile/pull/4882): [FIX] Missing token detection event properties
+- [#4869](https://github.com/MetaMask/metamask-mobile/pull/4869): [FIX] Remove decimals for on-ramp order details exchange rate
+- [#4896](https://github.com/MetaMask/metamask-mobile/pull/4896): [DEPENDENCIES] Upgrade on-ramp-sdk to 1.2.0
+- [#4860](https://github.com/MetaMask/metamask-mobile/pull/4860): [IMPROVEMENT] Change skip to payment method in on-ramp flow
+- [#4892](https://github.com/MetaMask/metamask-mobile/pull/4892): [IMPROVEMENT] Increase polling cycles for on-ramp quotes to 6
+- [#4407](https://github.com/MetaMask/metamask-mobile/pull/4407): [FIX] Add browser cookies support on Android
+- [#4530](https://github.com/MetaMask/metamask-mobile/pull/4530): [IMPROVEMENT] Apply Test network prefix to token values to help educate users
+- [#4841](https://github.com/MetaMask/metamask-mobile/pull/4841): [IMPROVEMENT] Component/4080 Badge
+- [#4856](https://github.com/MetaMask/metamask-mobile/pull/4856): [IMPROVEMENT] Update Cell Account component
+- [#4799](https://github.com/MetaMask/metamask-mobile/pull/4799): [FIX] Reveal SRP or Private Key wrong password error
+- [#4305](https://github.com/MetaMask/metamask-mobile/pull/4305): [FEAT] Hide remember me
+- [#4878](https://github.com/MetaMask/metamask-mobile/pull/4878): [FIX] Add testnets condition to blockchain explorer
+- [#4862](https://github.com/MetaMask/metamask-mobile/pull/4862): [IMPROVEMENT] Fetch and parse app config
+- [#4798](https://github.com/MetaMask/metamask-mobile/pull/4798): [ANALYTICS] Improve SRP reveal metrics
+- [#4016](https://github.com/MetaMask/metamask-mobile/pull/4016): [FIX] ypo in conversion/index.js
+- [#4503](https://github.com/MetaMask/metamask-mobile/pull/4503): [FIX] Jazz icons constantly changing
+- [#4595](https://github.com/MetaMask/metamask-mobile/pull/4595): [DEPENDENCIES] Upgrade react-native-device-info to 9.0.2
+- [#4684](https://github.com/MetaMask/metamask-mobile/pull/4684): [FIX] Account nickname is always defined
+- [#4830](https://github.com/MetaMask/metamask-mobile/pull/4830): [FIX] Add user agent from property as default
+- [#4828](https://github.com/MetaMask/metamask-mobile/pull/4828): [FIX] Image styling
+- [#4839](https://github.com/MetaMask/metamask-mobile/pull/4839): [DEPENDENCIES] Introduce @testing-library/react-hooks dependency
+- [#4748](https://github.com/MetaMask/metamask-mobile/pull/4748): [UPGRADE] Patch bump for SoLoader version on Android
+- [#4824](https://github.com/MetaMask/metamask-mobile/pull/4824): [Fix] Fix password not being set as authentication type for login metrics
+- [#4809](https://github.com/MetaMask/metamask-mobile/pull/4809): [IMPROVEMENT] Component/4779 Audit
+
+## 5.6.1 - Sept 9, 2022
+- [#4966](https://github.com/MetaMask/metamask-mobile/pull/4966): [FIX] Add http and https protocol to webview origin whitelist
+- [#4967](https://github.com/MetaMask/metamask-mobile/pull/4967): [FIX] Correct url parse
+
+## 5.6.0 - Aug 15, 2022
+- [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): [FIX] Staging env redirection url for onramp
+- [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): [ADD] On-Ramp generic error view event
+- [#4743](https://github.com/MetaMask/metamask-mobile/pull/4743): [ADD] Payment Method logos
+- [#4818](https://github.com/MetaMask/metamask-mobile/pull/4818): [ADD] Provider user agent to on-ramp Checkout WebView
+- [#4640](https://github.com/MetaMask/metamask-mobile/pull/4640): [ADD] Confirmation modal component
+- [#4749](https://github.com/MetaMask/metamask-mobile/pull/4749): [ADD] Current network to Fiat On-ramp titles
+- [#4718](https://github.com/MetaMask/metamask-mobile/pull/4718): [ADD] Component/4226 bottom sheet
+- [#4780](https://github.com/MetaMask/metamask-mobile/pull/4780): [FIX] Block explorer crash
+- [#4740](https://github.com/MetaMask/metamask-mobile/pull/4740): [FIX] Duplicate property
+- [#4793](https://github.com/MetaMask/metamask-mobile/pull/4793): [ADD] Dapp connect Warning
+- [#4634](https://github.com/MetaMask/metamask-mobile/pull/4634): [IMPROVEMENT] safeNumberToBN Method
+- [#4795](https://github.com/MetaMask/metamask-mobile/pull/4795): [UPDATE] urls updated
+- [#4756](https://github.com/MetaMask/metamask-mobile/pull/4756): [PS] Componentize Cell #4083
+- [#4784](https://github.com/MetaMask/metamask-mobile/pull/4784): [ADD] Hide Remember me strings
+- [#4639](https://github.com/MetaMask/metamask-mobile/pull/4639): [FIX] Use default QR code colors
+- [#4613](https://github.com/MetaMask/metamask-mobile/pull/4613): [ADD] Component/4079 avatar group
+- [#4636](https://github.com/MetaMask/metamask-mobile/pull/4636): [FIX] NFT transfer with big token id
+
+## 5.5.1 - Aug 16, 2022
+- [UPDATE](https://github.com/MetaMask/dapps/pull/137): [UPDATE] Disable iOS explore links
+
+## 5.5.0 - Jul 27, 2022
+- [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [IMPROVEMENT] Swaps support for hardware wallet
+- [#4627](https://github.com/MetaMask/metamask-mobile/pull/4627): [IMPROVEMENT] Add typing support for payment methods to be used instead of payment IDs
+- [#4625](https://github.com/MetaMask/metamask-mobile/pull/4625): [FIX] Handle SecureKeychain failed access while passcode enabled
+- [#4655](https://github.com/MetaMask/metamask-mobile/pull/4655): [IMPROVEMENT] Add log for vault corruption
+- [#4629](https://github.com/MetaMask/metamask-mobile/pull/4629): [IMPROVEMENT] Add EventEmitter for locale change events and update On-ramp SDK
+- [#4685](https://github.com/MetaMask/metamask-mobile/pull/4685): [FIX] Fix `allowsInlineMediaPlayback` prop name
+- [#4329](https://github.com/MetaMask/metamask-mobile/pull/4329): [IMPROVEMENT] Improve transaction activy for custom networks
+- [#4643](https://github.com/MetaMask/metamask-mobile/pull/4643): [IMPROVEMENT] Add On-Ramp Aggregator a11y improvements
+- [#4173](https://github.com/MetaMask/metamask-mobile/pull/4173): [FIX] Dapp domain resolver for ENS
+- [#4676](https://github.com/MetaMask/metamask-mobile/pull/4676): [IMPROVEMENT] Componentize Toast
+- [#4704](https://github.com/MetaMask/metamask-mobile/pull/4704): [IMPROVEMENT] Add word 'buy' to limit description
+- [#4711](https://github.com/MetaMask/metamask-mobile/pull/4711): [FIX] Token Texts
+- [#4677](https://github.com/MetaMask/metamask-mobile/pull/4677): [IMPROVEMENT] Network Picker component
+- [#4689](https://github.com/MetaMask/metamask-mobile/pull/4689): [IMPROVEMENT] Componentize Account Picker
+- [#4612](https://github.com/MetaMask/metamask-mobile/pull/4612): [IMPROVEMENT] Componentize Token Avatar
+
+## 5.4.0 - Jul 12, 2022
+- [#4604](https://github.com/MetaMask/metamask-mobile/pull/4604): [IMPROVEMENT] Change quotes error to individual events
+- [#4497](https://github.com/MetaMask/metamask-mobile/pull/4497): [IMPROVEMENT] Add amount to onramp analytics events
+- [#4496](https://github.com/MetaMask/metamask-mobile/pull/4496): [IMPROVEMENT] Add currency destination symbol to purchase submitted
+- [#4498](https://github.com/MetaMask/metamask-mobile/pull/4498): [IMPROVEMENT] Add decimals optional prop to keypad in onramp amount view
+- [#4600](https://github.com/MetaMask/metamask-mobile/pull/4600): [IMPROVEMENT] Add onramp extra properties to events
+- [#4656](https://github.com/MetaMask/metamask-mobile/pull/4656): [FIX] Plain texts in code
+- [#4388](https://github.com/MetaMask/metamask-mobile/pull/4388): [IMPROVEMENT] Introduce token detection v2
+- [#4582](https://github.com/MetaMask/metamask-mobile/pull/4582): [IMPROVEMENT] Updated package name to be consistent with our npm namespace
+- [#4609](https://github.com/MetaMask/metamask-mobile/pull/4609): [FEAT] Add pull to refresh and new design to Fiat Order Details view
+- [#4527](https://github.com/MetaMask/metamask-mobile/pull/4527): [IMPROVEMENT] changed launch mode to singleInstance
+- [#4644](https://github.com/MetaMask/metamask-mobile/pull/4644): [IMPROVEMENT] Update url formats popular networks
+- [#4420](https://github.com/MetaMask/metamask-mobile/pull/4420): [IMPROVEMENT] Refactor transaction component
+- [#4263](https://github.com/MetaMask/metamask-mobile/pull/4263): [FIX] Swaps approval transaction
+- [#4618](https://github.com/MetaMask/metamask-mobile/pull/4618): [IMPROVEMENT] Componentize SelectableListItem
+- [#4606](https://github.com/MetaMask/metamask-mobile/pull/4606): [IMPROVEMENT] Componentize multiselect list item
+- [#4610](https://github.com/MetaMask/metamask-mobile/pull/4610): [FIX] Remove TouchableOpacity from DeleteMetaMetricsData component
+- [#4554](https://github.com/MetaMask/metamask-mobile/pull/4554): [IMPROVEMENT] Allow for env variable to customise the simulator that gets launched on iOS
+- [#4575](https://github.com/MetaMask/metamask-mobile/pull/4575): [IMPROVEMENT] Componentize tag url
+- [#4572](https://github.com/MetaMask/metamask-mobile/pull/4572): [IMPROVEMENT] Componentize tag
+- [#4549](https://github.com/MetaMask/metamask-mobile/pull/4549): [IMPROVEMENT] Componentize tab bar
+- [#4599](https://github.com/MetaMask/metamask-mobile/pull/4599): [IMPROVEMENT] Componentize Checkbox
+- [#4583](https://github.com/MetaMask/metamask-mobile/pull/4583): [IMPROVEMENT] Componentize icon button
+- [#4548](https://github.com/MetaMask/metamask-mobile/pull/4548): [IMPROVEMENT] Componentize tab bar item
+- [#4525](https://github.com/MetaMask/metamask-mobile/pull/4525): [IMPROVEMENT] Componentize button tertiary
+- [#4524](https://github.com/MetaMask/metamask-mobile/pull/4524): [IMPROVEMENT] Componentize button secondary
+- [#4523](https://github.com/MetaMask/metamask-mobile/pull/4523): [IMPROVEMENT] Componentize button primary
+- [#4522](https://github.com/MetaMask/metamask-mobile/pull/4522): [IMPROVEMENT] Componentize buttons
+- [#4602](https://github.com/MetaMask/metamask-mobile/pull/4602): [FIX] Fix color types
+- [#4603](https://github.com/MetaMask/metamask-mobile/pull/4603): [FIX] Remove yarn audit exclusions
+- [#4580](https://github.com/MetaMask/metamask-mobile/pull/4580): [IMPROVEMENT] Componentize NetworkAvatar
+- [#4414](https://github.com/MetaMask/metamask-mobile/pull/4414): [IMPROVEMENT] Componentize FaviconAvatar
+- [#4587](https://github.com/MetaMask/metamask-mobile/pull/4587): [FIX] Remove codecov
+- [#4499](https://github.com/MetaMask/metamask-mobile/pull/4499): [IMPROVEMENT] Componentize icon
+- [#4481](https://github.com/MetaMask/metamask-mobile/pull/4481): [IMPROVEMENT] Updating colors and typography to use theme objects
+- [#4559](https://github.com/MetaMask/metamask-mobile/pull/4559): [FIX] Add resolution for shell-quote & got
+- [#4531](https://github.com/MetaMask/metamask-mobile/pull/4531): [IMPROVEMENT] Add delete wallet step spec
+
 ## 5.3.0 - Jun 16, 2022
 - [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
 - [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
@@ -16,7 +152,7 @@
 - [#4469](https://github.com/MetaMask/metamask-mobile/pull/4469): [FIX] Displaying notification when state changes
 - [#4443](https://github.com/MetaMask/metamask-mobile/pull/4443): [FIX] Wrong analytics property for region event
 - [#4468](https://github.com/MetaMask/metamask-mobile/pull/4468): [FIX] Wrong amount out for onramp analytics
-- [#4418](https://github.com/MetaMask/metamask-mobile/pull/4418): [IMPROVEMENT] Address Verification
+- [#4418](https://github.com/MetaMask/metamask-mobile/pull/4418): [IMPROVEMENT] Import address verification in send flow
 - [#3783](https://github.com/MetaMask/metamask-mobile/pull/3783): [FEAT] Add custom networks
 - [#4131](https://github.com/MetaMask/metamask-mobile/pull/4131): [FIX] Add method for crypto that are not in ISO4217
 - [#4187](https://github.com/MetaMask/metamask-mobile/pull/4187): [IMPROVEMENT] Update copy in Edit & Advance Screens
