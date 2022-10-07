@@ -55,11 +55,6 @@ export interface IMetaMetricsEvent {
   anonymous: boolean;
 }
 
-// Represents an MetaMetrics event group
-export interface IMetaMetricsEventGroup {
-  events: { [key: string]: IMetaMetricsEvent | IMetaMetricsEventGroup };
-}
-
 // Expected deletion task status
 export enum DataDeleteStatus {
   pending = 'PENDING',
