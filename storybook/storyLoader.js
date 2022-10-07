@@ -4,6 +4,8 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
+  require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
+  require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
   require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
@@ -56,6 +58,8 @@ function loadStories() {
 }
 
 const stories = [
+  '../app/component-library/components/Accordions/Accordion/Accordion.stories',
+  '../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories',
   '../app/component-library/components/Avatars/Avatar/Avatar.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories',
