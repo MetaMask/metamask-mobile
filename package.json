@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.7.0",
+  "version": "5.8.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -45,6 +45,10 @@
     "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
+    "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/",
+    "test:unit:components-ui": "jest ./app/components/UI/",
+    "test:unit:components-views": "jest ./app/components/Views/",
+    "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
@@ -92,6 +96,7 @@
     "**/elliptic": "^6.5.4",
     "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
+    "**/vm2": "3.9.11",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
@@ -122,7 +127,7 @@
     "@keystonehq/ur-decoder": "^0.6.1",
     "@metamask/contract-metadata": "^1.35.0",
     "@metamask/controllers": "30.3.0",
-    "@metamask/design-tokens": "^1.7.0",
+    "@metamask/design-tokens": "^1.9.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.6.0",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -142,6 +147,8 @@
     "@rnhooks/keyboard": "^0.0.3",
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "2.4.2",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/react-native": "^9.1.0",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",
@@ -219,6 +226,7 @@
     "react-native-get-random-values": "1.8.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^3.2.3",
+    "react-native-inappbrowser-reborn": "^3.7.0",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keychain": "^8.0.0",
@@ -339,8 +347,9 @@
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [
+        "./app/component-library/components",
         "./app/components",
-        "./app/component-library"
+        "./app/component-library/components-temp"
       ],
       "pattern": "**/*.stories.@(js|tsx)",
       "outputFile": "./storybook/storyLoader.js"
@@ -438,7 +447,8 @@
       "core-js": false,
       "sharp": true,
       "highlight.js": false,
-      "es5-ext": false
+      "es5-ext": false,
+      "react-native-inappbrowser-reborn": false
     }
   }
 }
