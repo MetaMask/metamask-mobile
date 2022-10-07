@@ -4,29 +4,14 @@
 // https://github.com/elderfo/react-native-storybook-loader.git
 
 function loadStories() {
-<<<<<<< HEAD
-  require('../app/components/Base/Alert.stories');
-  require('../app/components/Base/ListItem.stories');
-  require('../app/components/Base/Text.stories');
-  require('../app/components/Base/Title.stories');
-  require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
-  require('../app/components/UI/Fox/Fox.stories');
-  require('../app/components/UI/StyledButton/StyledButton.stories');
-  require('../app/components/UI/WarningAlert/WarningAlert.stories');
-  require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components/Accordions/Accordion/Accordion.stories');
   require('../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories');
-  require('../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories');
-  require('../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories');
-  require('../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories');
-=======
   require('../app/component-library/components/Avatars/Avatar/Avatar.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories');
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
->>>>>>> 38b21337db8a0dfade9a70d54a8df97be4d41e2b
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
@@ -73,29 +58,14 @@ function loadStories() {
 }
 
 const stories = [
-<<<<<<< HEAD
-  '../app/components/Base/Alert.stories',
-  '../app/components/Base/ListItem.stories',
-  '../app/components/Base/Text.stories',
-  '../app/components/Base/Title.stories',
-  '../app/components/UI/ButtonReveal/ButtonReveal.stories',
-  '../app/components/UI/Fox/Fox.stories',
-  '../app/components/UI/StyledButton/StyledButton.stories',
-  '../app/components/UI/WarningAlert/WarningAlert.stories',
-  '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components/Accordions/Accordion/Accordion.stories',
   '../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories',
-  '../app/component-library/components/Avatars/AvatarAccount/AvatarAccount.stories',
-  '../app/component-library/components/Avatars/AvatarBase/AvatarBase.stories',
-  '../app/component-library/components/Avatars/AvatarFavicon/AvatarFavicon.stories',
-=======
   '../app/component-library/components/Avatars/Avatar/Avatar.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories',
   '../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
->>>>>>> 38b21337db8a0dfade9a70d54a8df97be4d41e2b
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',

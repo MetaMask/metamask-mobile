@@ -13,7 +13,7 @@ import Animated, {
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import Icon, { IconSize, IconName } from '../../../../Icon';
-import Text, { TextVariant } from '../../../../Text';
+import Text, { TextVariants } from '../../../../Texts/Text';
 import { ACCORDION_EXPAND_TRANSITION_DURATION } from '../../Accordion.constants';
 
 // Internal dependencies.
@@ -61,7 +61,7 @@ const AccordionHeader = ({
       testID={ACCORDION_HEADER_TEST_ID}
     >
       <Text
-        variant={TextVariant.sBodyMD}
+        variant={TextVariants.sBodyMD}
         style={styles.title}
         testID={ACCORDION_HEADER_TITLE_TEST_ID}
       >
