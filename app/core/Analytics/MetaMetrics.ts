@@ -29,6 +29,7 @@ import {
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MetaMetrics implements IMetaMetrics {
   static #instance: MetaMetrics;
 
@@ -310,4 +311,4 @@ class MetaMetrics implements IMetaMetrics {
   }
 }
 
-export default MetaMetrics.getInstance();
+// export default MetaMetrics.getInstance();
