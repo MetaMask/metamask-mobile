@@ -46,6 +46,7 @@ exports[`SendTo should render correctly 1`] = `
   selectedAsset={Object {}}
   setRecipient={[Function]}
   setSelectedAsset={[Function]}
+  showAlert={[Function]}
   ticker="ETH"
 />
 `;

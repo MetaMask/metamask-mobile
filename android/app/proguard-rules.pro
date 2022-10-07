@@ -35,3 +35,10 @@
 
 # react-native-webrt https://github.com/react-native-webrtc/react-native-webrtc/issues/590
 -keep class org.webrtc.** { *; }
+
+# :react-native-inappbrowser-reborn
+-keepattributes *Annotation*
+-keepclassmembers class ** {
+  @org.greenrobot.eventbus.Subscribe <methods>;
+}
+-keep enum org.greenrobot.eventbus.ThreadMode { *; }

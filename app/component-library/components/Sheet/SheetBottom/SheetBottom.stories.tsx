@@ -5,7 +5,7 @@ import { storiesOf } from '@storybook/react-native';
 import { boolean } from '@storybook/addon-knobs';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
 import SheetBottom from './SheetBottom';
