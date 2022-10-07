@@ -4,12 +4,12 @@ import { MetaMetrics, IMetaMetricsEvent } from '../../../core/Analytics';
 
 const useMetaMetrics = () => {
   const trackEventHook = useCallback(
-    (event: IMetaMetricsEvent, params: JsonMap = {}) => {
-      const { name, anonymous } = event;
+    (event: IMetaMetricsEvent, anonymous: boolean, params: JsonMap = {}) => {
+      const { name, properties } = event;
       if (anonymous) {
-        MetaMetrics.trackAnonymousEvent(name, params);
+        MetaMetrics.trackAnonymousEvent(name, { ...properties, ...params });
       } else {
-        MetaMetrics.trackEvent(name, params);
+        MetaMetrics.trackEvent(name, { ...properties, ...params });
       }
     },
     [],

@@ -19,7 +19,7 @@ describe('useMetaMetrics', () => {
     const { result } = renderHook(() => useMetaMetrics());
     const trackEventSpy = jest.spyOn(MetaMetrics, 'trackAnonymousEvent');
     act(() => {
-      result.current({ name: 'Mock Anonymous Event', anonymous: true }, {});
+      result.current({ name: 'Mock Anonymous Event' }, true, {});
     });
     expect(trackEventSpy).toHaveBeenCalled();
   });
@@ -28,10 +28,7 @@ describe('useMetaMetrics', () => {
     const { result } = renderHook(() => useMetaMetrics());
     const trackEventSpy = jest.spyOn(MetaMetrics, 'trackEvent');
     act(() => {
-      result.current(
-        { name: 'Mock Non-Anonymous Event', anonymous: false },
-        {},
-      );
+      result.current({ name: 'Mock Non-Anonymous Event' }, false, {});
     });
     expect(trackEventSpy).toHaveBeenCalled();
   });
