@@ -50,6 +50,7 @@ const DeleteMetaMetricsData = () => {
 
   const enableDeleteData = useCallback(() => {
     switch (dataDeleteStatus) {
+      case DataDeleteStatus.pending:
       case DataDeleteStatus.started:
         return false;
       default:
