@@ -69,6 +69,8 @@ jest.mock('../../core/NotificationManager', () => ({
   gotIncomingTransaction: () => null,
 }));
 
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+
 jest.mock('../../core/Engine', () => ({
   init: () => Engine.init({}),
   context: {
