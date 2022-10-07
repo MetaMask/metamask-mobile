@@ -6,9 +6,16 @@
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const generateOpt = (name: string, anonymous?: boolean): IMetaMetricsEvent => ({
-  name,
-  anonymous: anonymous || false,
+const generateOpt = (
+  category: string,
+  action?: string,
+  name?: string,
+): IMetaMetricsEvent => ({
+  name: category,
+  properties: {
+    action,
+    name,
+  },
 });
 
 const MetaMetricsEvents = {};

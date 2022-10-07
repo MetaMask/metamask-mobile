@@ -49,10 +49,10 @@ export interface IMetaMetrics {
 export interface IMetaMetricsEvent {
   // Event name to track
   name: string;
-  // Anonymity property to indicate if the MetaMetric ID
-  // or METAMETRICS_ANONYMOUS_ID should be associated
-  // with the data.
-  anonymous: boolean;
+  properties?: {
+    name?: string;
+    action?: string;
+  };
 }
 
 // Expected deletion task status
