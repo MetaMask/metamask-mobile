@@ -184,3 +184,7 @@ jest.mock('../../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
+
+// eslint-disable-next-line import/no-commonjs
+require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
+global.__reanimatedWorkletInit = jest.fn();
