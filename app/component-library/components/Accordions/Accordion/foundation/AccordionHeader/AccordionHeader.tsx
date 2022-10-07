@@ -26,12 +26,12 @@ import {
   ACCORDION_HEADER_ARROW_ICON_ANIMATION_TEST_ID,
 } from './AccordionHeader.constants';
 
-const AccordionHeader: React.FC<AccordionHeaderProps> = ({
+const AccordionHeader = ({
   style,
   title,
   isExpanded = false,
   onPress,
-}) => {
+}: AccordionHeaderProps) => {
   const { styles } = useStyles(styleSheet, { style });
   const rotation = useSharedValue(isExpanded ? 180 : 0);
   const animatedStyles = useAnimatedStyle(

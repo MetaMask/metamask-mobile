@@ -12,7 +12,7 @@ import { TEST_ACCORDION_HEADER_TITLE } from './AccordionHeader.constants';
 storiesOf('Component Library / AccordionHeader', module).add('Default', () => {
   const groupId = 'Props';
   const titleText = text('title', TEST_ACCORDION_HEADER_TITLE, groupId);
-  const isExpanded = boolean('isExpanded?', false, groupId);
+  const isExpanded = boolean('isExpanded', false, groupId);
 
   return <AccordionHeader title={titleText} isExpanded={isExpanded} />;
 });

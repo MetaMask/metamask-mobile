@@ -28,7 +28,7 @@ Optional function to trigger when pressing the Accordion Header.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| Function                                            | Yes                                                     |
+| Function                                            | No                                                     |
 
 ## Usage
 

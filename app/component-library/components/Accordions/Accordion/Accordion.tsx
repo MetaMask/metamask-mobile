@@ -26,6 +26,7 @@ const Accordion: React.FC<AccordionProps> = ({
   style,
   children,
   isExpanded = false,
+  title,
   onPress,
   ...props
 }) => {
@@ -53,9 +54,9 @@ const Accordion: React.FC<AccordionProps> = ({
   };
 
   return (
-    <View style={styles.base} testID={ACCORDION_TEST_ID}>
+    <View style={styles.base} testID={ACCORDION_TEST_ID} {...props}>
       <AccordionHeader
-        {...props}
+        title={title}
         isExpanded={expanded}
         onPress={onHeaderPressed}
       />

@@ -14,23 +14,21 @@ import Text, { TextVariant } from '../../Text';
 import Accordion from './Accordion';
 import { TEST_ACCORDION_HEADER_TITLE } from './foundation/AccordionHeader/AccordionHeader.constants';
 
-storiesOf('Component Library / Accordion', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => {
-    const groupId = 'Props';
-    const titleText = text('title', TEST_ACCORDION_HEADER_TITLE, groupId);
-    const isExpanded = boolean('isExpanded?', false, groupId);
-    return (
-      <Accordion title={titleText} isExpanded={isExpanded}>
-        <View
-          style={{
-            backgroundColor: mockTheme.colors.background.alternative,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
-        </View>
-      </Accordion>
-    );
-  });
+storiesOf('Component Library / Accordion', module).add('Default', () => {
+  const groupId = 'Props';
+  const titleText = text('title', TEST_ACCORDION_HEADER_TITLE, groupId);
+  const isExpanded = boolean('isExpanded', false, groupId);
+  return (
+    <Accordion title={titleText} isExpanded={isExpanded}>
+      <View
+        style={{
+          backgroundColor: mockTheme.colors.background.alternative,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
+      </View>
+    </Accordion>
+  );
+});

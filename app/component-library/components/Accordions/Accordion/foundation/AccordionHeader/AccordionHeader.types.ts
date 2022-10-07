@@ -10,11 +10,12 @@ export interface AccordionHeaderProps extends TouchableOpacityProps {
    */
   title: string;
   /**
-   * Function to trigger when pressing the button.
+   * Optional function to trigger when pressing the button.
    */
   onPress?: () => void;
   /**
    * Optional prop to control the default expanded state of the accordion header
+   * @default false
    */
   isExpanded?: boolean;
 }
