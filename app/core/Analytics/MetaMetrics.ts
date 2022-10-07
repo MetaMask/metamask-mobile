@@ -252,6 +252,7 @@ class MetaMetrics implements IMetaMetrics {
 
   public static getInstance(): IMetaMetrics {
     if (!MetaMetrics.#instance) {
+      // This central client manages all the tracking events
       const segmentClient = createClient({
         writeKey: (__DEV__
           ? process.env.SEGMENT_DEV_KEY
