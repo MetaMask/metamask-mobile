@@ -59,7 +59,7 @@ import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2, { ANALYTICS_EVENTS_V2 } from '../../../util/analyticsV2';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -722,7 +722,7 @@ class DrawerView extends PureComponent {
   showWallet = () => {
     this.props.navigation.navigate('WalletTabHome');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENTS_V2.WALLET_OPENED);
+    this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
   };
 
   goToTransactionHistory = () => {
