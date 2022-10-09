@@ -10,13 +10,12 @@ const generateOpt = (
   category: string,
   action?: string,
   name?: string,
-): IMetaMetricsEvent => ({
-  name: category,
-  properties: {
-    action,
-    name,
-  },
-});
+): IMetaMetricsEvent => {
+  if (action && name) {
+    return { name: category, properties: { action, name } };
+  }
+  return { name: category };
+};
 
 const MetaMetricsEvents = {
   // Approval

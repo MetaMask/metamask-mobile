@@ -10,15 +10,15 @@ const generateOpt = (name) => ({ category: name });
  * @param {Object} eventName
  * @param {Object} params
  */
-export const trackEventV2 = (eventName, params) => {
+export const trackEventV2 = (event, params) => {
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {
-      if (!params) {
-        MetaMetrics.trackEvent(eventName.category, {});
+      if (!params && !event.properties) {
+        MetaMetrics.trackEvent(event.name, {});
       }
 
-      const userParams = {};
+      const userParams = { ...event.properties };
       const anonymousParams = {};
 
       for (const key in params) {
@@ -47,12 +47,12 @@ export const trackEventV2 = (eventName, params) => {
 
       // Log all non-anonymous properties
       if (Object.keys(userParams).length) {
-        MetaMetrics.trackEvent(eventName.category, userParams);
+        MetaMetrics.trackEvent(event.name, userParams);
       }
 
       // Log all anonymous properties
       if (anonymousEvent && Object.keys(anonymousParams).length) {
-        MetaMetrics.trackAnonymousEvent(eventName.category, anonymousParams);
+        MetaMetrics.trackAnonymousEvent(event.name, anonymousParams);
       }
     } catch (error) {
       Logger.error(error, 'Error logging analytics');
