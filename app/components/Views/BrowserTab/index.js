@@ -1077,12 +1077,9 @@ export const BrowserTab = (props) => {
    * Track change network event
    */
   const trackSwitchNetworkEvent = ({ from }) => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.BROWSER_SWITCH_NETWORK,
-      {
-        from_chain_id: from,
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_NETWORK, {
+      from_chain_id: from,
+    });
   };
 
   /**

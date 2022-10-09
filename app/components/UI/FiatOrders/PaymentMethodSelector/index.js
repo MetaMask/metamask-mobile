@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Analytics from '../../../../core/Analytics/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getTicker } from '../../../../util/transactions';
@@ -78,14 +79,11 @@ function PaymentMethodSelectorView({
     }
 
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ONRAMP_PURCHASE_STARTED,
-        {
-          payment_rails: PAYMENT_RAILS.APPLE_PAY,
-          payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
-          'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_STARTED, {
+        payment_rails: PAYMENT_RAILS.APPLE_PAY,
+        payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+        'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+      });
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_APPLE_PAY);
     });
   }, [navigation, gasEducationCarouselSeen, setGasEducationCarouselSeen]);
@@ -107,14 +105,11 @@ function PaymentMethodSelectorView({
     }
 
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ONRAMP_PURCHASE_STARTED,
-        {
-          payment_rails: PAYMENT_RAILS.MULTIPLE,
-          payment_category: PAYMENT_CATEGORY.MULTIPLE,
-          'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_STARTED, {
+        payment_rails: PAYMENT_RAILS.MULTIPLE,
+        payment_category: PAYMENT_CATEGORY.MULTIPLE,
+        'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
+      });
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
     });
   }, [
@@ -143,14 +138,11 @@ function PaymentMethodSelectorView({
     }
 
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ONRAMP_PURCHASE_STARTED,
-        {
-          payment_rails: PAYMENT_RAILS.MULTIPLE,
-          payment_category: PAYMENT_CATEGORY.MULTIPLE,
-          'on-ramp_provider': FIAT_ORDER_PROVIDERS.MOONPAY,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_STARTED, {
+        payment_rails: PAYMENT_RAILS.MULTIPLE,
+        payment_category: PAYMENT_CATEGORY.MULTIPLE,
+        'on-ramp_provider': FIAT_ORDER_PROVIDERS.MOONPAY,
+      });
       Analytics.trackEvent(ANALYTICS_EVENT_OPTS.PAYMENTS_SELECTS_DEBIT_OR_ACH);
     });
   }, [

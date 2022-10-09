@@ -383,15 +383,12 @@ class Tokens extends PureComponent {
     this.setState({ isAddTokenEnabled: false });
     this.props.navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.TOKEN_IMPORT_CLICKED,
-        {
-          source: 'manual',
-          chain_id: getDecimalChainId(
-            NetworkController?.state?.provider?.chainId,
-          ),
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+        source: 'manual',
+        chain_id: getDecimalChainId(
+          NetworkController?.state?.provider?.chainId,
+        ),
+      });
       this.setState({ isAddTokenEnabled: true });
     });
   };

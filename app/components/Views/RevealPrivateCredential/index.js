@@ -370,9 +370,7 @@ class RevealPrivateCredential extends PureComponent {
       if (!this.isPrivateKey()) {
         const currentDate = new Date();
         this.props.recordSRPRevealTimestamp(currentDate.toString());
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.NEXT_REVEAL_SRP_CTA,
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
       }
       this.setState({
         isModalVisible: true,

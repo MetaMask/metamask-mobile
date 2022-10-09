@@ -553,13 +553,10 @@ class Settings extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: true,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: true,
+      });
     });
   };
 
@@ -588,9 +585,7 @@ class Settings extends PureComponent {
   };
 
   goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
     this.props.navigation.navigate('RevealPrivateCredentialView', {
       privateCredentialName: 'private_key',
     });
@@ -603,12 +598,9 @@ class Settings extends PureComponent {
   goToBackup = () => {
     this.props.navigation.navigate('AccountBackupStep1B');
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_STARTED,
-        {
-          source: 'Settings',
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
+        source: 'Settings',
+      });
     });
   };
 

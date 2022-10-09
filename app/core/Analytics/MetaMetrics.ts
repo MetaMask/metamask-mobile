@@ -14,6 +14,7 @@ import {
   METRICS_OPT_IN,
   METAMETRICS_ID,
   ANALYTICS_DATA_DELETION_DATE,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   MIXPANEL_METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
 } from '../../constants/storage';
