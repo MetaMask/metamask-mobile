@@ -58,7 +58,7 @@ function PaymentMethodSelectorView({
         navigation,
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+            AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_CLOSED);
           });
         },
         colors,
@@ -79,7 +79,7 @@ function PaymentMethodSelectorView({
 
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED,
+        MetaMetricsEvents.ONRAMP_PURCHASE_STARTED,
         {
           payment_rails: PAYMENT_RAILS.APPLE_PAY,
           payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
@@ -108,7 +108,7 @@ function PaymentMethodSelectorView({
 
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED,
+        MetaMetricsEvents.ONRAMP_PURCHASE_STARTED,
         {
           payment_rails: PAYMENT_RAILS.MULTIPLE,
           payment_category: PAYMENT_CATEGORY.MULTIPLE,
@@ -144,7 +144,7 @@ function PaymentMethodSelectorView({
 
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_STARTED,
+        MetaMetricsEvents.ONRAMP_PURCHASE_STARTED,
         {
           payment_rails: PAYMENT_RAILS.MULTIPLE,
           payment_category: PAYMENT_CATEGORY.MULTIPLE,

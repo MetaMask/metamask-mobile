@@ -11,6 +11,7 @@ import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -116,7 +117,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     await TokensController.addToken(address, symbol, decimals, image);
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
+      MetaMetricsEvents.TOKEN_ADDED as any,
       getAnalyticsParams(),
     );
 

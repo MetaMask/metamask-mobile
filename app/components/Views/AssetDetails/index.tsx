@@ -8,6 +8,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
 import ClipboardManager from '../../../core/ClipboardManager';
@@ -179,7 +180,7 @@ const AssetDetails = (props: Props) => {
                 tokenSymbol: symbol,
               }),
             });
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
+            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
               location: 'token_details',
               token_standard: 'ERC20',
               asset_type: 'token',

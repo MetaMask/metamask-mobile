@@ -14,6 +14,7 @@ import { util } from '@metamask/controllers';
 import Modal from 'react-native-modal';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import Analytics from '../../../../core/Analytics/Analytics';
 import AddressList from './../AddressList';
@@ -637,7 +638,7 @@ class SendFlow extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED, {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         button_location: 'Send Flow warning',
         button_copy: 'Buy Native Token',
         chain_id_destination: this.props.chainId,

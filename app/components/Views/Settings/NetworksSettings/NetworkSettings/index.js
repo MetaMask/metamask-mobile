@@ -9,6 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { fontStyles } from '../../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../../UI/Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -484,7 +485,7 @@ class NetworkSettings extends PureComponent {
         network_name: nickname || RPC,
       };
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       this.props.showNetworkOnboardingAction({

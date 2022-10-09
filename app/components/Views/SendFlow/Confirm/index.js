@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { connect } from 'react-redux';
-import { getSendFlowTitle } from '../../../UI/Navbar';
-import { AddressFrom, AddressTo } from '../AddressInputs';
+
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -75,6 +76,8 @@ import TransactionReviewEIP1559 from '../../../UI/TransactionReview/TransactionR
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import CustomNonce from '../../../UI/CustomNonce';
+import { getSendFlowTitle } from '../../../UI/Navbar';
+import { AddressFrom, AddressTo } from '../AddressInputs';
 import AppConstants from '../../../../core/AppConstants';
 import {
   getAddressAccountType,
@@ -485,7 +488,7 @@ class Confirm extends PureComponent {
     this.setState({ pollToken });
     // For analytics
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_STARTED,
+      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
 
@@ -990,7 +993,7 @@ class Confirm extends PureComponent {
         });
         this.checkRemoveCollectible();
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.SEND_TRANSACTION_COMPLETED,
+          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
         resetTransaction();
@@ -1006,7 +1009,7 @@ class Confirm extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
     }

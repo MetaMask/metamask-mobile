@@ -1,5 +1,6 @@
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
+import { MetaMetricsEvents } from '../Analytics';
 import {
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
@@ -115,10 +116,7 @@ const wallet_switchEthereumChain = async ({
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED,
-      analyticsParams,
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;

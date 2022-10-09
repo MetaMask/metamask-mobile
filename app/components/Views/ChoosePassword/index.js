@@ -11,10 +11,13 @@ import {
   Image,
   InteractionManager,
 } from 'react-native';
+import zxcvbn from 'zxcvbn';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
+import AnimatedFox from 'react-native-animated-fox';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   logIn,
   passwordSet,
@@ -32,7 +35,6 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -51,7 +53,6 @@ import {
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
 
 import {
   CREATE_PASSWORD_CONTAINER_ID,
@@ -352,9 +353,7 @@ class ChoosePassword extends PureComponent {
       return;
     }
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATION_ATTEMPTED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATION_ATTEMPTED);
     });
 
     try {
@@ -399,16 +398,13 @@ class ChoosePassword extends PureComponent {
       this.setState({ loading: false });
       this.props.navigation.replace('AccountBackupStep1');
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_CREATED, {
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_CREATED, {
           biometrics_enabled: Boolean(this.state.biometryType),
         });
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED,
-          {
-            wallet_setup_type: 'new',
-            new_wallet: true,
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          wallet_setup_type: 'new',
+          new_wallet: true,
+        });
       });
     } catch (error) {
       await this.recreateVault('');
@@ -430,13 +426,10 @@ class ChoosePassword extends PureComponent {
         this.setState({ loading: false, error: error.toString() });
       }
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
-          {
-            wallet_setup_type: 'new',
-            error_type: error.toString(),
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'new',
+          error_type: error.toString(),
+        });
       });
     }
   };

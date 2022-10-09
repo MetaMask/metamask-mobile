@@ -6,15 +6,16 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { UR } from '@ngraveio/bc-ur';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import SelectQRAccounts from './SelectQRAccounts';
 import ConnectQRInstruction from './Instruction';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
-import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -162,12 +163,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [QRState.sync, hideScanner, showScanner]);
 
   const onConnectHardware = useCallback(async () => {
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTINUE_QR_HARDWARE_WALLET,
-      {
-        device_type: 'QR Hardware',
-      },
-    );
+    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
+      device_type: 'QR Hardware',
+    });
     resetError();
     const _accounts = await KeyringController.connectQRHardware(0);
     setAccounts(_accounts);
@@ -177,7 +175,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     (ur: UR) => {
       hideScanner();
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.CONNECT_HARDWARE_WALLET_SUCCESS,
+        MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS,
         {
           device_type: 'QR Hardware',
         },

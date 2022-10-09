@@ -5,7 +5,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import Engine from '../../../core/Engine';
 import {
   StyleSheet,
   Text,
@@ -17,6 +16,8 @@ import {
   AppState,
   AppStateStatus,
 } from 'react-native';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import AnimatedQRCode from './AnimatedQRCode';
 import AnimatedQRScannerModal from './AnimatedQRScanner';
@@ -223,13 +224,10 @@ const QRSigningDetails = ({
         setSentOrCanceled(true);
         successCallback?.();
       } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR,
-          {
-            error:
-              'received signature request id is not matched with origin request',
-          },
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+          error:
+            'received signature request id is not matched with origin request',
+        });
         setErrorMessage(strings('transaction.mismatched_qr_request_id'));
         failureCallback?.(strings('transaction.mismatched_qr_request_id'));
       }

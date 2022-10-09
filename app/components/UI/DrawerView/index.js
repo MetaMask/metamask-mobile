@@ -11,9 +11,15 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Share from 'react-native-share';
+import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ScrollView } from 'react-native-gesture-handler';
+import { KeyringTypes } from '@metamask/controllers';
+import URL from 'url-parse';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import {
   hasBlockExplorer,
@@ -26,7 +32,6 @@ import AccountList from '../AccountList';
 import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
-import Modal from 'react-native-modal';
 import SecureKeychain from '../../../core/SecureKeychain';
 import {
   toggleNetworkModal,
@@ -38,7 +43,6 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../util/etherscan';
-import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
@@ -46,7 +50,6 @@ import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -64,9 +67,7 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
-import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { KeyringTypes } from '@metamask/controllers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
 import sanitizeUrl from '../../../util/sanitizeUrl';
@@ -558,7 +559,7 @@ class DrawerView extends PureComponent {
         this.setState({ showProtectWalletModal: true });
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_VIEWED,
+            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
             {
               wallet_protection_required: false,
               source: 'Backup Alert',
@@ -693,7 +694,7 @@ class DrawerView extends PureComponent {
 
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_OPENED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       referral_source: 'In-app Navigation',
       chain_id: network,
     });
@@ -1101,7 +1102,7 @@ class DrawerView extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: true,
           source: 'Modal',

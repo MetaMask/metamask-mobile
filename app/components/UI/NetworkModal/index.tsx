@@ -14,6 +14,7 @@ import URLPARSE from 'url-parse';
 import scaling from '../../../util/scaling';
 import { isWebUri } from 'valid-url';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
@@ -174,7 +175,7 @@ const NetworkModals = (props: NetworkProps) => {
       };
 
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.NETWORK_ADDED,
+        MetaMetricsEvents.NETWORK_ADDED,
         analyticsParamsAdd,
       );
       setNetworkAdded(true);

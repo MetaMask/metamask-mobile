@@ -12,6 +12,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
@@ -299,14 +300,14 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+        this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ChoosePassword', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_STARTED);
+            this.track(MetaMetricsEvents.WALLET_SETUP_STARTED);
           },
         });
       }
@@ -329,14 +330,14 @@ class Onboarding extends PureComponent {
         this.props.navigation.navigate('ExtensionSync', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+        this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ExtensionSync', {
               [PREVIOUS_SCREEN]: ONBOARDING,
             });
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SYNC_STARTED);
+            this.track(MetaMetricsEvents.WALLET_SYNC_STARTED);
           },
         });
       }
@@ -349,12 +350,12 @@ class Onboarding extends PureComponent {
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
       if (metricsOptIn) {
         this.props.navigation.push('ImportFromSeed');
-        this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+        this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
       } else {
         this.props.navigation.navigate('OptinMetrics', {
           onContinue: () => {
             this.props.navigation.replace('ImportFromSeed');
-            this.track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_STARTED);
+            this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
           },
         });
       }

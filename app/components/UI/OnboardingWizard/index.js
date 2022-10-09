@@ -8,6 +8,7 @@ import {
   Dimensions,
   InteractionManager,
 } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -99,16 +100,11 @@ const OnboardingWizard = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(0);
     drawerRef?.current?.dismissDrawer?.();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_SKIPPED,
-        {
-          tutorial_step_count: step,
-          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
-        },
-      );
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ONBOARDING_TOUR_COMPLETED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
+        tutorial_step_count: step,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
+      });
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
     });
   };
 

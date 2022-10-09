@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -211,7 +212,7 @@ const AccountBackupStep1B = (props) => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
+        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
       );
     });
   };

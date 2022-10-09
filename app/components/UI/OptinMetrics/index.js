@@ -11,6 +11,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
@@ -214,13 +215,10 @@ class OptinMetrics extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.ANALYTICS_PREFERENCE_SELECTED,
-        {
-          analytics_option_selected: AnalyticsOptionSelected,
-          updated_after_onboarding: false,
-        },
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: AnalyticsOptionSelected,
+        updated_after_onboarding: false,
+      });
     });
   };
 

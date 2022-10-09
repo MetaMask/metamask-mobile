@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
@@ -288,7 +289,7 @@ class ManualBackupStep2 extends PureComponent {
         const words = route.params?.words;
         navigation.navigate('ManualBackupStep3', { steps: this.steps, words });
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PHRASE_CONFIRMED,
+          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         );
       });
     } else {

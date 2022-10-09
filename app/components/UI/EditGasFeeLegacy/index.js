@@ -10,12 +10,13 @@ import {
 import PropTypes from 'prop-types';
 import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import BigNumber from 'bignumber.js';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Text from '../../Base/Text';
 import StyledButton from '../StyledButton';
 import RangeInput from '../../Base/RangeInput';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import InfoModal from '../Swaps/components/InfoModal';
-import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
@@ -160,7 +161,7 @@ const EditGasFeeLegacy = ({
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.GAS_ADVANCED_OPTIONS_CLICKED,
+        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
@@ -169,7 +170,7 @@ const EditGasFeeLegacy = ({
 
   const save = useCallback(() => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.GAS_FEE_CHANGED,
+      MetaMetricsEvents.GAS_FEE_CHANGED,
       getAnalyticsParams(),
     );
 

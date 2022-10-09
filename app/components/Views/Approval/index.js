@@ -1,13 +1,15 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, AppState, Alert, InteractionManager } from 'react-native';
-import Engine from '../../../core/Engine';
 import PropTypes from 'prop-types';
-import TransactionEditor from '../../UI/TransactionEditor';
+import { connect } from 'react-redux';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import Modal from 'react-native-modal';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import TransactionEditor from '../../UI/TransactionEditor';
 import { addHexPrefix, BNToHex } from '../../../util/number';
 import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
-import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
 import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
@@ -25,7 +27,6 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
@@ -187,7 +188,7 @@ class Approval extends PureComponent {
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_STARTED,
+      MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
   };
@@ -300,7 +301,7 @@ class Approval extends PureComponent {
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_CANCELLED,
+      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
       this.getAnalyticsParams(),
     );
   };
@@ -372,13 +373,13 @@ class Approval extends PureComponent {
         );
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
       this.setState({ transactionHandled: false });
     }
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.DAPP_TRANSACTION_COMPLETED,
+      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       this.getAnalyticsParams({ gasEstimateType, gasSelected }),
     );
     this.setState({ transactionConfirmed: false });

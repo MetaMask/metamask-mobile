@@ -9,10 +9,12 @@ import {
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import ElevatedView from 'react-native-elevated-view';
+import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { strings } from '../../../../locales/i18n';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
-import { connect } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -147,7 +149,7 @@ class BackupAlert extends PureComponent {
     });
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: false,
           source: 'Backup Alert',
@@ -161,7 +163,7 @@ class BackupAlert extends PureComponent {
     backUpSeedphraseAlertNotVisible();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
         {
           wallet_protection_required: false,
           source: 'Backup Alert',

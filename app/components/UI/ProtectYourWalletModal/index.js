@@ -8,11 +8,12 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
+import { connect } from 'react-redux';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import ActionModal from '../ActionModal';
 import { fontStyles } from '../../../styles/common';
-import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -103,7 +104,7 @@ class ProtectYourWalletModal extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: false,
           source: 'Modal',
@@ -127,7 +128,7 @@ class ProtectYourWalletModal extends PureComponent {
     this.props.protectWalletModalNotVisible();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
+        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
         {
           wallet_protection_required: false,
           source: 'Modal',

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { connect } from 'react-redux';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import NotificationManager from '../../../../core/NotificationManager';
 import Device from '../../../../util/device';
 import Logger from '../../../../util/Logger';
@@ -344,7 +345,7 @@ function PaymentMethodApplePay({
               getNotificationDetails(order),
             );
             AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
+              MetaMetricsEvents.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
               {
                 fiat_amount: { value: order.amount, anonymous: true },
                 fiat_currency: { value: order.currency, anonymous: true },
@@ -385,7 +386,7 @@ function PaymentMethodApplePay({
       Logger.error(error, 'FiatOrders::WyreApplePayProcessor Error');
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMISSION_FAILED,
+          MetaMetricsEvents.ONRAMP_PURCHASE_SUBMISSION_FAILED,
           {
             'on-ramp_provider': {
               value: FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
@@ -443,19 +444,16 @@ function PaymentMethodApplePay({
         navigation,
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED,
-              {
-                payment_rails: PAYMENT_RAILS.APPLE_PAY,
-                payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
-                'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
-              },
-            );
+            AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_EXITED, {
+              payment_rails: PAYMENT_RAILS.APPLE_PAY,
+              payment_category: PAYMENT_CATEGORY.CARD_PAYMENT,
+              'on-ramp_provider': FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
+            });
           });
         },
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_CLOSED);
+            AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_CLOSED);
           });
         },
         colors,

@@ -6,21 +6,24 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
-import ActionView from '../../UI/ActionView';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
+import { withNavigation } from '@react-navigation/compat';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import ActionView from '../../UI/ActionView';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
-import { connect } from 'react-redux';
 import { getHost } from '../../../util/browser';
 import {
   safeToChecksumAddress,
   renderShortAddress,
   getAddressAccountType,
 } from '../../../util/address';
-import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
-import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { fromTokenMinimalUnit } from '../../../util/number';
 import EthereumAddress from '../EthereumAddress';
 import {
@@ -35,7 +38,6 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
-import Analytics from '../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
@@ -45,7 +47,6 @@ import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { withNavigation } from '@react-navigation/compat';
 import { isTestNet, isMainnetByChainId } from '../../../util/networks';
 import scaling from '../../../util/scaling';
 import EditPermission from './EditPermission';
@@ -403,7 +404,7 @@ class ApproveTransactionReview extends PureComponent {
       },
       () => {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_STARTED,
+          MetaMetricsEvents.APPROVAL_STARTED,
           this.getAnalyticsParams(),
         );
       },
@@ -515,7 +516,7 @@ class ApproveTransactionReview extends PureComponent {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.CONTRACT_ADDRESS_COPIED,
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       this.getAnalyticsParams(),
     );
   };
@@ -567,7 +568,7 @@ class ApproveTransactionReview extends PureComponent {
     }
     this.toggleEditPermission();
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.APPROVAL_PERMISSION_UPDATED,
+      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       this.getAnalyticsParams(),
     );
   };

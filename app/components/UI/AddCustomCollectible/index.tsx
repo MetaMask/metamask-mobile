@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
@@ -172,7 +173,7 @@ const AddCustomCollectible = ({
     CollectiblesController.addCollectible(address, tokenId);
 
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.COLLECTIBLE_ADDED,
+      MetaMetricsEvents.COLLECTIBLE_ADDED,
       getAnalyticsParams(),
     );
 

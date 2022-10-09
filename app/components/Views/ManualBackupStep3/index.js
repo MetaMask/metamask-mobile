@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import Emoji from 'react-native-emoji';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -138,9 +139,7 @@ class ManualBackupStep3 extends PureComponent {
       hintText: manualBackup,
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_COMPLETED,
-      );
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
     });
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
@@ -189,7 +188,7 @@ class ManualBackupStep3 extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       );
     });
   };

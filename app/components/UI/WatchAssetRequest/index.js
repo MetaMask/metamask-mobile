@@ -1,19 +1,20 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
+import URL from 'url-parse';
 import ActionView from '../ActionView';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
-import URL from 'url-parse';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
+import { fontStyles } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -133,7 +134,7 @@ const WatchAssetRequest = ({
     onConfirm && onConfirm();
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED,
+        MetaMetricsEvents.TOKEN_ADDED,
         getAnalyticsParams(),
       );
       NotificationManager.showSimpleNotification({

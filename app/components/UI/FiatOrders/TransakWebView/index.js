@@ -6,6 +6,7 @@ import { WebView } from 'react-native-webview';
 import NotificationManager from '../../../../core/NotificationManager';
 import { handleTransakRedirect } from '../orderProcessor/transak';
 import AppConstants from '../../../../core/AppConstants';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNotificationDetails } from '..';
 
 import { getTransakWebviewNavbar } from '../../../UI/Navbar';
@@ -54,14 +55,11 @@ class TransakWebView extends PureComponent {
         route,
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(
-              AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_EXITED,
-              {
-                payment_rails: PAYMENT_RAILS.MULTIPLE,
-                payment_category: PAYMENT_CATEGORY.MULTIPLE,
-                'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
-              },
-            );
+            AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_EXITED, {
+              payment_rails: PAYMENT_RAILS.MULTIPLE,
+              payment_category: PAYMENT_CATEGORY.MULTIPLE,
+              'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
+            });
           });
         },
         colors,
@@ -106,7 +104,7 @@ class TransakWebView extends PureComponent {
       this.props.navigation.dangerouslyGetParent()?.pop();
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
+          MetaMetricsEvents.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
           {
             fiat_amount: { value: order.amount, anonymous: true },
             fiat_currency: { value: order.currency, anonymous: true },

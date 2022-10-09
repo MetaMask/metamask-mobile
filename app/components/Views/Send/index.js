@@ -7,6 +7,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import EditAmount from '../../Views/SendFlow/Amount';
 import ConfirmSend from '../../Views/SendFlow/Confirm';
@@ -580,7 +581,7 @@ class Send extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.QR_HARDWARE_TRANSACTION_CANCELED,
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
       this.setState({ transactionConfirmed: false });

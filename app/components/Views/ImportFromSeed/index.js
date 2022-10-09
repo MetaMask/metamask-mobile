@@ -12,10 +12,15 @@ import {
   InteractionManager,
   Platform,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
+import zxcvbn from 'zxcvbn';
+import { OutlinedTextField } from 'react-native-material-textfield';
+import DefaultPreference from 'react-native-default-preference';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Clipboard from '@react-native-clipboard/clipboard';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
@@ -26,7 +31,6 @@ import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
-import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
 import {
@@ -35,7 +39,6 @@ import {
   parseSeedPhrase,
   parseVaultValue,
 } from '../../../util/validators';
-import { OutlinedTextField } from 'react-native-material-textfield';
 import {
   SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
@@ -52,8 +55,6 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
-import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   CREATE_PASSWORD_INPUT_BOX_ID,
@@ -291,7 +292,7 @@ class ImportFromSeed extends PureComponent {
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
       AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORT_ATTEMPTED,
+        MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED,
       );
     });
     let error = null;
@@ -311,7 +312,7 @@ class ImportFromSeed extends PureComponent {
       Alert.alert(strings('import_from_seed.error'), error);
       InteractionManager.runAfterInteractions(() => {
         AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
+          MetaMetricsEvents.WALLET_SETUP_FAILURE,
           {
             wallet_setup_type: 'import',
             error_type: error,
@@ -351,11 +352,11 @@ class ImportFromSeed extends PureComponent {
         this.props.seedphraseBackedUp();
         this.props.logIn();
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
+          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(this.state.biometryType),
           });
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_COMPLETED,
+            MetaMetricsEvents.WALLET_SETUP_COMPLETED,
             {
               wallet_setup_type: 'import',
               new_wallet: false,
@@ -383,7 +384,7 @@ class ImportFromSeed extends PureComponent {
         }
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(
-            AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE,
+            MetaMetricsEvents.WALLET_SETUP_FAILURE,
             {
               wallet_setup_type: 'import',
               error_type: error.toString(),

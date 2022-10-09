@@ -9,14 +9,16 @@ import {
   BackHandler,
   InteractionManager,
 } from 'react-native';
+import PropTypes from 'prop-types';
+import Share from 'react-native-share';
+import { connect } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
 import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
-import PropTypes from 'prop-types';
-import Share from 'react-native-share';
-import { connect } from 'react-redux';
+
 import BackgroundBridge from '../../../core/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
@@ -779,7 +781,7 @@ export const BrowserTab = (props) => {
   );
 
   const trackEventSearchUsed = useCallback(() => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SEARCH_USED, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
       option_chosen: 'Search on URL',
       number_of_tabs: undefined,
     });
@@ -1048,7 +1050,7 @@ export const BrowserTab = (props) => {
    * Track new tab event
    */
   const trackNewTabEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_NEW_TAB, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
       option_chosen: 'Browser Options',
       number_of_tabs: undefined,
     });
@@ -1058,7 +1060,7 @@ export const BrowserTab = (props) => {
    * Track add site to favorites event
    */
   const trackAddToFavoritesEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_ADD_FAVORITES, {
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
       dapp_name: title.current || '',
       dapp_url: url.current || '',
     });
@@ -1068,7 +1070,7 @@ export const BrowserTab = (props) => {
    * Track share site event
    */
   const trackShareEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SHARE_SITE);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
   };
 
   /**
@@ -1076,7 +1078,7 @@ export const BrowserTab = (props) => {
    */
   const trackSwitchNetworkEvent = ({ from }) => {
     AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.BROWSER_SWITCH_NETWORK,
+      MetaMetricsEvents.BROWSER_SWITCH_NETWORK,
       {
         from_chain_id: from,
       },
@@ -1087,7 +1089,7 @@ export const BrowserTab = (props) => {
    * Track reload site event
    */
   const trackReloadEvent = () => {
-    AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.BROWSER_RELOAD);
+    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
   };
 
   /**
