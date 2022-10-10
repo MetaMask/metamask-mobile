@@ -417,10 +417,6 @@ export const getRpcMethodMiddleware = ({
           'V3',
         );
 
-        if (rawSig.error) {
-          res.result = rawSig.error;
-          return;
-        }
         res.result = rawSig;
       },
 
