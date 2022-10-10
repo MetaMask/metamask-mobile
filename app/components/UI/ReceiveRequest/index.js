@@ -238,9 +238,7 @@ class ReceiveRequest extends PureComponent {
       params: { receiveAsset: this.props.receiveAsset },
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 
