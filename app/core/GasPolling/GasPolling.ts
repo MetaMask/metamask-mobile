@@ -145,6 +145,8 @@ export const getLegacyTransactionData = ({
   gas,
   onlyGas,
 }: LegacyProps) => {
+  // hack: selectedAsset becomes an empty object when transaction is submitted and it breaks the app. See Line 1241 in util/transactions.js
+  transactionState.selectedAsset.isETH = true;
   const parsedTransationData = parseTransactionLegacy(
     {
       contractExchangeRates,
