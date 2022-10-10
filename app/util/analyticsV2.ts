@@ -1,8 +1,6 @@
 import { InteractionManager } from 'react-native';
-import { MetaMetrics } from '../core/Analytics';
+import { MetaMetrics, IMetaMetricsEvent } from '../core/Analytics';
 import Logger from './Logger';
-
-const generateOpt = (name) => ({ category: name });
 
 /**
  * This takes params with the following structure:
@@ -10,7 +8,7 @@ const generateOpt = (name) => ({ category: name });
  * @param {Object} eventName
  * @param {Object} params
  */
-export const trackEventV2 = (event, params) => {
+const trackEventV2 = (event: IMetaMetricsEvent, params: any) => {
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {
@@ -18,8 +16,8 @@ export const trackEventV2 = (event, params) => {
         MetaMetrics.trackEvent(event.name, {});
       }
 
-      const userParams = { ...event.properties };
-      const anonymousParams = {};
+      const userParams = { ...event.properties } as any;
+      const anonymousParams = {} as any;
 
       for (const key in params) {
         const property = params[key];
@@ -54,7 +52,7 @@ export const trackEventV2 = (event, params) => {
       if (anonymousEvent && Object.keys(anonymousParams).length) {
         MetaMetrics.trackAnonymousEvent(event.name, anonymousParams);
       }
-    } catch (error) {
+    } catch (error: any) {
       Logger.error(error, 'Error logging analytics');
     }
   });
@@ -69,15 +67,19 @@ export const trackEventV2 = (event, params) => {
  * @param {String} errorMessage
  * @param {String} otherInfo
  */
-export const trackErrorAsAnalytics = (type, errorMessage, otherInfo) => {
+const trackErrorAsAnalytics = (
+  type: string,
+  errorMessage: string,
+  otherInfo: string,
+) => {
   try {
-    MetaMetrics.trackEvent(generateOpt('Error occurred'), {
+    MetaMetrics.trackEvent('Error occurred', {
       error: true,
       type,
       errorMessage,
       otherInfo,
     });
-  } catch (error) {
+  } catch (error: any) {
     Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
   }
 };
