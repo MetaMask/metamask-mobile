@@ -17,6 +17,8 @@ import { connect } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   balanceToFiat,
@@ -27,8 +29,6 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 
 import {
   setSwapsHasOnboarded,
@@ -247,11 +247,11 @@ function SwapsAmountView({
               chain_id: chainId,
             };
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               {},
             );
             Analytics.trackEventWithParameters(
-              ANALYTICS_EVENT_OPTS.SWAPS_OPENED,
+              MetaMetricsEvents.SWAPS_OPENED,
               parameters,
               true,
             );

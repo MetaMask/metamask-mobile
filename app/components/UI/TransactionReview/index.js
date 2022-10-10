@@ -7,8 +7,10 @@ import {
   Animated,
   ScrollView,
 } from 'react-native';
-import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
+import { withNavigation } from '@react-navigation/compat';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import {
   getTransactionReviewActionKey,
@@ -30,7 +32,6 @@ import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
 import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountInfoCard from '../AccountInfoCard';
 import ActionView from '../ActionView';
@@ -39,7 +40,6 @@ import { getTokenList } from '../../../reducers/tokens';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
-import { withNavigation } from '@react-navigation/compat';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -266,7 +266,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_CONFIRM_STARTED);
+      Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     });
   };
 
@@ -319,7 +319,7 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange } = this.props;
-    Analytics.trackEvent(ANALYTICS_EVENT_OPTS.TRANSACTIONS_EDIT_TRANSACTION);
+    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 

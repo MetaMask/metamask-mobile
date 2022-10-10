@@ -58,7 +58,6 @@ import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
@@ -652,7 +651,7 @@ class Confirm extends PureComponent {
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEvent(
-          ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
         );
       });
     }
@@ -1328,9 +1327,7 @@ class Confirm extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

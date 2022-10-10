@@ -49,7 +49,6 @@ import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
 import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -622,7 +621,7 @@ class DrawerView extends PureComponent {
       }, 500);
     }
     !this.props.accountsModalVisible &&
-      this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_ACCOUNT_NAME);
+      this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
   };
 
   toggleReceiveModal = () => {
@@ -702,21 +701,21 @@ class DrawerView extends PureComponent {
 
   onReceive = () => {
     this.toggleReceiveModal();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_RECEIVE);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
   };
 
   onSend = async () => {
     this.props.newAssetTransaction(getEther(this.props.ticker));
     this.props.navigation.navigate('SendFlowView');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND);
   };
 
   goToBrowser = () => {
     this.props.navigation.navigate(Routes.BROWSER_TAB_HOME);
     this.hideDrawer();
     this.trackOpenBrowserEvent();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_BROWSER);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER);
   };
 
   showWallet = () => {
@@ -728,13 +727,13 @@ class DrawerView extends PureComponent {
   goToTransactionHistory = () => {
     this.props.navigation.navigate('TransactionsHome');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_TRANSACTION_HISTORY);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
   };
 
   showSettings = async () => {
     this.props.navigation.navigate('SettingsView');
     this.hideDrawer();
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
   };
 
   logOut = () => {
@@ -774,7 +773,7 @@ class DrawerView extends PureComponent {
       ],
       { cancelable: false },
     );
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_LOGOUT);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
   };
 
   viewInEtherscan = () => {
@@ -802,11 +801,11 @@ class DrawerView extends PureComponent {
       );
       this.goToBrowserUrl(url, etherscan_url);
     }
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
   };
 
   submitFeedback = () => {
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SEND_FEEDBACK);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
     this.goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
@@ -818,7 +817,7 @@ class DrawerView extends PureComponent {
       'https://support.metamask.io',
       strings('drawer.metamask_support'),
     );
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_GET_HELP);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
   };
 
   goToBrowserUrl(url, title) {
@@ -1064,7 +1063,7 @@ class DrawerView extends PureComponent {
       .catch((err) => {
         Logger.log('Error while trying to share address', err);
       });
-    this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
   };
 
   closeInvalidCustomNetworkAlert = () => {

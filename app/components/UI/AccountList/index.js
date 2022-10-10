@@ -21,7 +21,6 @@ import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
 import AccountElement from './AccountElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -209,7 +208,7 @@ class AccountList extends PureComponent {
   importAccount = () => {
     this.props.onImportAccount();
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
     });
   };
 
@@ -245,7 +244,7 @@ class AccountList extends PureComponent {
       }
     });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.ACCOUNTS_ADDED_NEW_ACCOUNT);
+      Analytics.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
     });
   };
 

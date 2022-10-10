@@ -8,8 +8,11 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { fontStyles } from '../../../../styles/common';
 import { connect } from 'react-redux';
+import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+
+import { fontStyles } from '../../../../styles/common';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   isBN,
   weiToFiat,
@@ -29,12 +32,10 @@ import {
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
 import CustomNonce from '../../../UI/CustomNonce';
 import Logger from '../../../../util/Logger';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -275,9 +276,7 @@ class TransactionReviewInformation extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(
-        ANALYTICS_EVENT_OPTS.RECEIVE_OPTIONS_PAYMENT_REQUEST,
-      );
+      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

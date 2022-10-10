@@ -28,7 +28,6 @@ import ActionModal from '../../../UI/ActionModal';
 import StyledButton from '../../../UI/StyledButton';
 import { allowedToBuy } from '../../../UI/FiatOrders';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import { doENSLookup, doENSReverseLookup } from '../../../../util/ENSUtils';
 import NetworkList, { handleNetworkSwitch } from '../../../../util/networks';
 import { renderFromWei } from '../../../../util/number';
@@ -531,7 +530,7 @@ class SendFlow extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       Analytics.trackEventWithParameters(
-        ANALYTICS_EVENT_OPTS.SEND_FLOW_ADDS_RECIPIENT,
+        MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
         {
           network: providerType,
         },

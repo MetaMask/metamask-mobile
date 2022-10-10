@@ -8,12 +8,13 @@ import {
   Image,
 } from 'react-native';
 import { connect } from 'react-redux';
+import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
+import AppConstants from '../../../core/AppConstants';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
-import Analytics from '../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import {
   collectibleContractsSelector,
   collectiblesSelector,
@@ -22,7 +23,6 @@ import {
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { setNftDetectionDismissed } from '../../../actions/user';
 import Text from '../../Base/Text';
-import AppConstants from '../../../core/AppConstants';
 import { toLowerCaseEquals } from '../../../util/general';
 import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
@@ -147,7 +147,7 @@ const CollectibleContracts = ({
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_ADD_COLLECTIBLES);
+      Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
   };

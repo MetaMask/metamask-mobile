@@ -30,7 +30,6 @@ import {
 import { getGasLimit } from '../../../../util/custom-gas';
 import NotificationManager from '../../../../core/NotificationManager';
 import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
@@ -563,7 +562,7 @@ class Approve extends PureComponent {
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEvent(
-          ANALYTICS_EVENT_OPTS.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
         );
       });
     }
