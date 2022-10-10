@@ -1,18 +1,34 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import EditGasFeeLegacy from './';
+import configureMockStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
+
+const mockStore = configureMockStore();
+const initialState = {
+  engine: {
+    backgroundState: {
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        conversionRate: 0.1,
+      },
+      NetworkController: {
+        provider: {
+          ticker: 'ETH',
+          chainId: '1',
+        },
+      },
+    },
+  },
+};
+const store = mockStore(initialState);
 
 describe('EditGasFeeLegacy', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <EditGasFeeLegacy
-        gasFee={{
-          maxWaitTimeEstimate: 150000,
-          minWaitTimeEstimate: 0,
-          suggestedGasLimit: '21000',
-          suggestedGasPrice: '10',
-        }}
-      />,
+      <Provider store={store}>
+        <EditGasFeeLegacy view={'SendTo (Confirm)'} />
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
