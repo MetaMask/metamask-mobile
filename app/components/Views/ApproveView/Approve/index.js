@@ -29,9 +29,8 @@ import {
 } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import NotificationManager from '../../../../core/NotificationManager';
-import Analytics from '../../../../core/Analytics/Analytics';
 import Logger from '../../../../util/Logger';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
 import EditGasFee1559 from '../../../UI/EditGasFee1559';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
@@ -391,7 +390,7 @@ class Approve extends PureComponent {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
+      trackLegacyEvent(event, {
         view: transaction.origin,
         numberOfTokens: tokensLength,
         numberOfAccounts: accountsLength,
@@ -523,7 +522,7 @@ class Approve extends PureComponent {
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
       await TransactionController.approveTransaction(transaction.id);
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
@@ -536,9 +535,7 @@ class Approve extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
       this.setState({ transactionHandled: false });
     }
@@ -546,10 +543,7 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.APPROVAL_CANCELLED,
-      this.getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, this.getAnalyticsParams());
     this.props.toggleApproveModal(false);
   };
 
@@ -561,9 +555,7 @@ class Approve extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
+        trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
       });
     }
   };

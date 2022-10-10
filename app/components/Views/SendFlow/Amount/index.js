@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { BN } from 'ethereumjs-util';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Modal from 'react-native-modal';
@@ -51,15 +52,14 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../util/transactions';
-import ErrorMessage from '../ErrorMessage';
 import { getGasLimit } from '../../../../util/custom-gas';
+import { trackLegacyEvent } from '../../../../util/analyticsV2';
+import ErrorMessage from '../ErrorMessage';
 import Engine from '../../../../core/Engine';
 import CollectibleMedia from '../../../UI/CollectibleMedia';
 import collectiblesTransferInformation from '../../../../util/collectibles-transfer';
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
-import { BN } from 'ethereumjs-util';
-import Analytics from '../../../../core/Analytics/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { isMainNet } from '../../../../util/networks';
@@ -573,10 +573,9 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
-        { network: providerType },
-      );
+      trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
+        network: providerType,
+      });
     });
 
     setSelectedAsset(selectedAsset);

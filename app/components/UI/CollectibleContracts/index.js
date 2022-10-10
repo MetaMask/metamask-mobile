@@ -10,7 +10,6 @@ import {
 import { connect } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -28,6 +27,7 @@ import { compareTokenIds } from '../../../util/tokens';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { isMainNet } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -147,7 +147,7 @@ const CollectibleContracts = ({
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
+      trackLegacyEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
   };

@@ -39,8 +39,11 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
+import {
+  trackLegacyEvent,
+  trackLegacyAnonymousEvent,
+} from '../../../util/analyticsV2';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 
@@ -246,14 +249,10 @@ function SwapsAmountView({
               )?.symbol,
               chain_id: chainId,
             };
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              {},
-            );
-            Analytics.trackEventWithParameters(
+            trackLegacyEvent(MetaMetricsEvents.SWAPS_OPENED, {});
+            trackLegacyAnonymousEvent(
               MetaMetricsEvents.SWAPS_OPENED,
               parameters,
-              true,
             );
           });
         } else {

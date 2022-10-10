@@ -47,7 +47,6 @@ import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import OnboardingWizard from '../OnboardingWizard';
 import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
@@ -58,7 +57,7 @@ import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -557,13 +556,10 @@ class DrawerView extends PureComponent {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: true });
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-            {
-              wallet_protection_required: false,
-              source: 'Backup Alert',
-            },
-          );
+          trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED, {
+            wallet_protection_required: false,
+            source: 'Backup Alert',
+          });
         });
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
@@ -687,13 +683,13 @@ class DrawerView extends PureComponent {
 
   trackEvent = (event) => {
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(event);
+      trackLegacyEvent(event);
     });
   };
 
   trackOpenBrowserEvent = () => {
     const { network } = this.props;
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+    trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       referral_source: 'In-app Navigation',
       chain_id: network,
     });
@@ -1100,13 +1096,10 @@ class DrawerView extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: true,
-          source: 'Modal',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+        wallet_protection_required: true,
+        source: 'Modal',
+      });
     });
   };
 

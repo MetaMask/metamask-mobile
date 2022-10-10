@@ -12,7 +12,6 @@ import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { withNavigation } from '@react-navigation/compat';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import ActionView from '../../UI/ActionView';
 import { getApproveNavbar } from '../../UI/Navbar';
 import { fontStyles } from '../../../styles/common';
@@ -38,7 +37,7 @@ import {
 import Feather from 'react-native-vector-icons/Feather';
 import Identicon from '../../UI/Identicon';
 import { showAlert } from '../../../actions/alert';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import AccountInfoCard from '../../UI/AccountInfoCard';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
@@ -402,7 +401,7 @@ class ApproveTransactionReview extends PureComponent {
         spendLimitCustomValue: minTokenAllowance,
       },
       () => {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.APPROVAL_STARTED,
           this.getAnalyticsParams(),
         );
@@ -452,7 +451,7 @@ class ApproveTransactionReview extends PureComponent {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
+      trackLegacyEvent(event, {
         view: transaction.origin,
         numberOfTokens: tokensLength,
         numberOfAccounts: accountsLength,
@@ -468,7 +467,7 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
-    Analytics.trackEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
+    trackLegacyEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
     this.setState({ viewDetails: !viewDetails });
   };
 
@@ -514,7 +513,7 @@ class ApproveTransactionReview extends PureComponent {
       content: 'clipboard-alert',
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       this.getAnalyticsParams(),
     );
@@ -522,7 +521,7 @@ class ApproveTransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange } = this.props;
-    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    trackLegacyEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -566,7 +565,7 @@ class ApproveTransactionReview extends PureComponent {
       Logger.log('Failed to setTransactionObject', err);
     }
     this.toggleEditPermission();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       this.getAnalyticsParams(),
     );
@@ -917,7 +916,7 @@ class ApproveTransactionReview extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

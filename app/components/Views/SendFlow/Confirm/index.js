@@ -57,7 +57,6 @@ import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
@@ -65,7 +64,7 @@ import {
   isMainnetByChainId,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../../util/analyticsV2';
 import { collectConfusables } from '../../../../util/confusables';
 import InfoModal from '../../../UI/Swaps/components/InfoModal';
 import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
@@ -486,7 +485,7 @@ class Confirm extends PureComponent {
     );
     this.setState({ pollToken });
     // For analytics
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -650,9 +649,7 @@ class Confirm extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
+        trackLegacyEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
       });
     }
   };
@@ -991,7 +988,7 @@ class Confirm extends PureComponent {
           assetType,
         });
         this.checkRemoveCollectible();
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           this.getAnalyticsParams(),
         );
@@ -1007,9 +1004,7 @@ class Confirm extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
     }
     this.setState({ transactionConfirmed: false });
@@ -1327,7 +1322,7 @@ class Confirm extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

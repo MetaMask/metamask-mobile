@@ -20,8 +20,7 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { safeToChecksumAddress } from '../../../util/address';
-import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent, trackLegacyEvent } from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { getTokenList } from '../../../reducers/tokens';
 import { isZero } from '../../../util/lodash';
@@ -310,7 +309,7 @@ class Tokens extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate('FiatOnRampAggregator');
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
         chain_id_destination: this.props.chainId,
@@ -323,7 +322,7 @@ class Tokens extends PureComponent {
     const { detectedTokens } = this.props;
     this.props.navigation.navigate('DetectedTokens');
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'detected',
         chain_id: getDecimalChainId(
           NetworkController?.state?.provider?.chainId,
@@ -383,7 +382,7 @@ class Tokens extends PureComponent {
     this.setState({ isAddTokenEnabled: false });
     this.props.navigation.push('AddAsset', { assetType: 'token' });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
         source: 'manual',
         chain_id: getDecimalChainId(
           NetworkController?.state?.provider?.chainId,
@@ -413,7 +412,7 @@ class Tokens extends PureComponent {
         }),
       });
       InteractionManager.runAfterInteractions(() =>
-        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+        trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
           location: 'assets_list',
           token_standard: 'ERC20',
           asset_type: 'token',

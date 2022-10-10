@@ -31,8 +31,8 @@ import {
   calculateEthEIP1559,
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { getNetworkNonce, isTestNet } from '../../../../util/networks';
+import { trackLegacyEvent } from '../../../../util/analyticsV2';
 import CustomNonceModal from '../../../UI/CustomNonceModal';
 import { setNonce, setProposedNonce } from '../../../../actions/transaction';
 import TransactionReviewEIP1559 from '../TransactionReviewEIP1559';
@@ -276,7 +276,7 @@ class TransactionReviewInformation extends PureComponent {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
+      trackLegacyEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
     });
   };
 

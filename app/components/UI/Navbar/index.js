@@ -18,7 +18,6 @@ import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
@@ -29,19 +28,20 @@ import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
 import { getHost } from '../../../util/browser';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { BACK_ARROW_BUTTON_ID } from '../../../constants/test-ids';
 
 const { HOMEPAGE_URL } = AppConstants;
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
+    trackLegacyEvent(event);
   });
 };
 
 const trackEventWithParameters = (event, params) => {
   InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
+    trackLegacyEvent(event, params);
   });
 };
 
@@ -1380,13 +1380,10 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        });
       });
     }
     navigation.pop();
@@ -1398,13 +1395,10 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
       InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+        trackLegacyEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        });
       });
     }
     navigation.dangerouslyGetParent()?.pop();

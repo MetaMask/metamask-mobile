@@ -11,7 +11,6 @@ import { connect } from 'react-redux';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import Analytics from '../../../core/Analytics/Analytics';
 import AssetActionButton from '../AssetActionButton';
 import TokenImage from '../../UI/TokenImage';
 import { fontStyles } from '../../../styles/common';
@@ -24,6 +23,7 @@ import {
   weiToFiat,
   hexToBN,
 } from '../../../util/number';
+import { trackLegacyEvent } from '../../../util/analyticsV2';
 import { safeToChecksumAddress } from '../../../util/address';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -189,7 +189,7 @@ class AssetOverview extends PureComponent {
   onBuy = () => {
     this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      trackLegacyEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'Token Screen',
         chain_id_destination: this.props.chainId,
