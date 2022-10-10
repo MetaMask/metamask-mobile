@@ -23,7 +23,7 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 
@@ -160,7 +160,7 @@ const EditGasFeeLegacy = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
@@ -169,10 +169,7 @@ const EditGasFeeLegacy = ({
   }, [getAnalyticsParams, showAdvancedOptions]);
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     onSave(selectedOption);
   }, [getAnalyticsParams, onSave, selectedOption]);

@@ -17,7 +17,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { IAccount } from './types';
 import Alert, { AlertType } from '../../Base/Alert';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
@@ -163,7 +163,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [QRState.sync, hideScanner, showScanner]);
 
   const onConnectHardware = useCallback(async () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
+    trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
       device_type: 'QR Hardware',
     });
     resetError();
@@ -174,12 +174,9 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const onScanSuccess = useCallback(
     (ur: UR) => {
       hideScanner();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS,
-        {
-          device_type: 'QR Hardware',
-        },
-      );
+      trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
+        device_type: 'QR Hardware',
+      });
       if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
         KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
       } else {

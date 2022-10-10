@@ -9,7 +9,7 @@ import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
 import NotificationManager from '../../../core/NotificationManager';
@@ -133,10 +133,7 @@ const WatchAssetRequest = ({
     await TokensController.acceptWatchAsset(suggestedAssetMeta.id);
     onConfirm && onConfirm();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.TOKEN_ADDED,
-        getAnalyticsParams(),
-      );
+      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

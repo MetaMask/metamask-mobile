@@ -10,7 +10,7 @@ import {
   isSafeChainId,
 } from '../../util/networks';
 import URL from 'url-parse';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { trackEvent } from '../../util/analyticsV2';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -141,10 +141,7 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
         },
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-        analyticsParams,
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_REQUEST_REJECTED, analyticsParams);
       throw ethErrors.provider.userRejectedRequest();
     }
 
@@ -156,7 +153,7 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
       existingNetwork.nickname,
     );
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
 
     res.result = null;
     return;
@@ -263,10 +260,7 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
     network_name: 'rpc',
   };
 
-  AnalyticsV2.trackEvent(
-    MetaMetricsEvents.NETWORK_REQUESTED,
-    analyticsParamsAdd,
-  );
+  trackEvent(MetaMetricsEvents.NETWORK_REQUESTED, analyticsParamsAdd);
 
   try {
     await requestUserApproval({
@@ -274,10 +268,7 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
       requestData,
     });
   } catch (e) {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-      analyticsParamsAdd,
-    );
+    trackEvent(MetaMetricsEvents.NETWORK_REQUEST_REJECTED, analyticsParamsAdd);
     throw ethErrors.provider.userRejectedRequest();
   }
 
@@ -291,7 +282,7 @@ const wallet_addEthereumChain = async ({ req, res, requestUserApproval }) => {
     },
   );
 
-  AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+  trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
   await waitForInteraction();
 

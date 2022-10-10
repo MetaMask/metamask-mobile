@@ -23,7 +23,7 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -211,9 +211,7 @@ const AccountBackupStep1B = (props) => {
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
     });
   };
 

@@ -18,7 +18,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import sanitizeUrl from '../../../util/sanitizeUrl';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
@@ -30,7 +30,7 @@ import {
   APPROVE_NETWORK_APPROVE_BUTTON_ID,
 } from '../../../constants/test-ids';
 
-const createStyles = (colors) =>
+const createStyles = (colors: any) =>
   StyleSheet.create({
     bottomModal: {
       justifyContent: 'flex-end',
@@ -141,7 +141,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const addNetwork = async () => {
-    const { PreferencesController } = Engine.context;
+    const { PreferencesController } = Engine.context as any;
     let formChainId = chainId.trim().toLowerCase();
 
     if (!formChainId.startsWith('0x')) {
@@ -174,10 +174,7 @@ const NetworkModals = (props: NetworkProps) => {
         network_name: nickname,
       };
 
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       setNetworkAdded(true);
     } else {
       setNetworkAdded(false);
@@ -193,7 +190,7 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context as any;
     const url = new URLPARSE(rpcUrl);
     const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);

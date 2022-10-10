@@ -42,7 +42,7 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -366,7 +366,7 @@ class Onboarding extends PureComponent {
   track = (...eventArgs) => {
     InteractionManager.runAfterInteractions(async () => {
       if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
+        trackEvent(...eventArgs);
         return;
       }
       const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);

@@ -30,7 +30,7 @@ import {
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -180,7 +180,7 @@ const AssetDetails = (props: Props) => {
                 tokenSymbol: symbol,
               }),
             });
-            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+            trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
               location: 'token_details',
               token_standard: 'ERC20',
               asset_type: 'token',

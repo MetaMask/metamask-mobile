@@ -9,7 +9,7 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors: any) =>
@@ -172,10 +172,7 @@ const AddCustomCollectible = ({
     const { CollectiblesController } = Engine.context as any;
     CollectiblesController.addCollectible(address, tokenId);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.COLLECTIBLE_ADDED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
 
     navigation.goBack();
   };

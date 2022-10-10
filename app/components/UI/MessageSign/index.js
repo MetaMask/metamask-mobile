@@ -12,7 +12,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import URL from 'url-parse';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -95,7 +95,7 @@ class MessageSign extends PureComponent {
   };
 
   componentDidMount = () => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_STARTED,
       this.getAnalyticsParams(),
     );
@@ -141,7 +141,7 @@ class MessageSign extends PureComponent {
 
   cancelSignature = () => {
     this.rejectMessage();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGN_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -151,14 +151,14 @@ class MessageSign extends PureComponent {
   confirmSignature = async () => {
     try {
       await this.signMessage();
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SIGN_REQUEST_COMPLETED,
         this.getAnalyticsParams(),
       );
       this.props.onConfirm();
     } catch (e) {
       if (e?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           this.getAnalyticsParams(),
         );

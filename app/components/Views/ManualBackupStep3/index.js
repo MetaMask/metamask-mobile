@@ -29,7 +29,7 @@ import {
   ONBOARDING_WIZARD,
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -139,7 +139,7 @@ class ManualBackupStep3 extends PureComponent {
       hintText: manualBackup,
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
     });
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
@@ -187,9 +187,7 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED);
     });
   };
 

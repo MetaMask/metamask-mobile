@@ -28,7 +28,7 @@ import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -160,7 +160,7 @@ const AccountBackupStep1 = (props) => {
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
     });
   };
 
@@ -169,7 +169,7 @@ const AccountBackupStep1 = (props) => {
 
     setRemindLaterModal(true);
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
     });
   };
 
@@ -189,7 +189,7 @@ const AccountBackupStep1 = (props) => {
   const skip = async () => {
     hideRemindLaterModal();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     });
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);

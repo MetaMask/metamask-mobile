@@ -35,7 +35,7 @@ import {
 
 import { CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID } from '../../../constants/test-ids';
 
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const createStyles = (colors) =>
@@ -288,7 +288,7 @@ class ManualBackupStep1 extends PureComponent {
   revealSeedPhrase = () => {
     this.setState({ seedPhraseHidden: false });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
     });
   };
 

@@ -28,7 +28,7 @@ import {
   AGREED,
 } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -215,7 +215,7 @@ class OptinMetrics extends PureComponent {
    */
   trackOptInEvent = (AnalyticsOptionSelected) => {
     InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
         analytics_option_selected: AnalyticsOptionSelected,
         updated_after_onboarding: false,
       });
@@ -230,7 +230,7 @@ class OptinMetrics extends PureComponent {
     const metricsOptionSelected = 'Metrics Opt Out';
     setTimeout(async () => {
       if (events && events.length) {
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
+        events.forEach((eventArgs) => trackEvent(...eventArgs));
       }
       this.trackOptInEvent(metricsOptionSelected);
       this.props.clearOnboardingEvents();
@@ -249,7 +249,7 @@ class OptinMetrics extends PureComponent {
     Analytics.enable();
     setTimeout(async () => {
       if (events && events.length) {
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
+        events.forEach((eventArgs) => trackEvent(...eventArgs));
       }
       this.trackOptInEvent(metricsOptionSelected);
       this.props.clearOnboardingEvents();

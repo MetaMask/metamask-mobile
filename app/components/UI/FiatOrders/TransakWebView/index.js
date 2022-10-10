@@ -13,7 +13,7 @@ import { getTransakWebviewNavbar } from '../../../UI/Navbar';
 import { baseStyles } from '../../../../styles/common';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { addFiatOrder } from '../../../../reducers/fiatOrders';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { trackEvent } from '../../../../util/analyticsV2';
 import {
   FIAT_ORDER_PROVIDERS,
   NETWORK_ALLOWED_TOKENS,
@@ -55,7 +55,7 @@ class TransakWebView extends PureComponent {
         route,
         () => {
           InteractionManager.runAfterInteractions(() => {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_EXITED, {
+            trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_EXITED, {
               payment_rails: PAYMENT_RAILS.MULTIPLE,
               payment_category: PAYMENT_CATEGORY.MULTIPLE,
               'on-ramp_provider': FIAT_ORDER_PROVIDERS.TRANSAK,
@@ -103,23 +103,20 @@ class TransakWebView extends PureComponent {
       this.props.protectWalletModalVisible();
       this.props.navigation.dangerouslyGetParent()?.pop();
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ONRAMP_PURCHASE_SUBMITTED_LEGACY,
-          {
-            fiat_amount: { value: order.amount, anonymous: true },
-            fiat_currency: { value: order.currency, anonymous: true },
-            crypto_currency: { value: order.cryptocurrency, anonymous: true },
-            crypto_amount: { value: order.cryptoAmount, anonymous: true },
-            fee_in_fiat: { value: order.fee, anonymous: true },
-            fee_in_crypto: { value: order.cryptoFee, anonymous: true },
-            fiat_amount_in_usd: { value: order.amountInUSD, anonymous: true },
-            order_id: { value: order.id, anonymous: true },
-            'on-ramp_provider': {
-              value: FIAT_ORDER_PROVIDERS.TRANSAK,
-              anonymous: true,
-            },
+        trackEvent(MetaMetricsEvents.ONRAMP_PURCHASE_SUBMITTED_LEGACY, {
+          fiat_amount: { value: order.amount, anonymous: true },
+          fiat_currency: { value: order.currency, anonymous: true },
+          crypto_currency: { value: order.cryptocurrency, anonymous: true },
+          crypto_amount: { value: order.cryptoAmount, anonymous: true },
+          fee_in_fiat: { value: order.fee, anonymous: true },
+          fee_in_crypto: { value: order.cryptoFee, anonymous: true },
+          fiat_amount_in_usd: { value: order.amountInUSD, anonymous: true },
+          order_id: { value: order.id, anonymous: true },
+          'on-ramp_provider': {
+            value: FIAT_ORDER_PROVIDERS.TRANSAK,
+            anonymous: true,
           },
-        );
+        });
         NotificationManager.showSimpleNotification(
           getNotificationDetails(order),
         );

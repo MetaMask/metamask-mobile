@@ -16,7 +16,7 @@ import { fontStyles } from '../../../styles/common';
 import { protectWalletModalNotVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -103,13 +103,10 @@ class ProtectYourWalletModal extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: false,
-          source: 'Modal',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+        wallet_protection_required: false,
+        source: 'Modal',
+      });
     });
   };
 
@@ -127,13 +124,10 @@ class ProtectYourWalletModal extends PureComponent {
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
-        {
-          wallet_protection_required: false,
-          source: 'Modal',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
+        wallet_protection_required: false,
+        source: 'Modal',
+      });
     });
   };
 

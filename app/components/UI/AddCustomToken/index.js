@@ -15,7 +15,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import AppConstants from '../../../core/AppConstants';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import Alert, { AlertType } from '../../Base/Alert';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -104,10 +104,7 @@ export default class AddCustomToken extends PureComponent {
     const { address, symbol, decimals } = this.state;
     await TokensController.addToken(address, symbol, decimals);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.TOKEN_ADDED,
-      this.getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, this.getAnalyticsParams());
 
     // Clear state before closing
     this.setState(

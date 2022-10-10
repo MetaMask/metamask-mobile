@@ -5,7 +5,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import Identicon from '../Identicon';
 import { toggleAccountsModal } from '../../../actions/modals';
 import Device from '../../../util/device';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const styles = StyleSheet.create({
@@ -51,7 +51,7 @@ class AccountRightButton extends PureComponent {
       }, 500);
     }
     // Track Event: "Opened Acount Switcher"
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
+    trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
       number_of_accounts: Object.keys(accounts ?? {}).length,
     });
   };

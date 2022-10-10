@@ -11,7 +11,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { fontStyles } from '../../../../../styles/common';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
+import { trackEvent } from '../../../../../util/analyticsV2';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
@@ -74,7 +74,7 @@ const DeleteMetaMetricsData = () => {
     const deviceOSVersion = Platform.Version;
     const deviceBrand = await getBrand();
     const deviceId = await getDeviceId();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION, {
+    trackEvent(MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION, {
       os: deviceOS,
       os_version: deviceOSVersion,
       device_model: `${deviceBrand} ${deviceId}`,

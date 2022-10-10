@@ -54,7 +54,7 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   CREATE_PASSWORD_INPUT_BOX_ID,
@@ -291,7 +291,7 @@ class ImportFromSeed extends PureComponent {
 
     if (loading) return;
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
+      trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     });
     let error = null;
     if (!passwordRequirementsMet(password)) {
@@ -309,7 +309,7 @@ class ImportFromSeed extends PureComponent {
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
       InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: error,
         });
@@ -347,10 +347,10 @@ class ImportFromSeed extends PureComponent {
         this.props.seedphraseBackedUp();
         this.props.logIn();
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
+          trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(this.state.biometryType),
           });
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
             wallet_setup_type: 'import',
             new_wallet: false,
           });
@@ -375,7 +375,7 @@ class ImportFromSeed extends PureComponent {
           Logger.log('Error with seed phrase import', error);
         }
         InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
             wallet_setup_type: 'import',
             error_type: error.toString(),
           });

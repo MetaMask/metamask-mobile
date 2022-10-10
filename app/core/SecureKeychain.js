@@ -12,7 +12,7 @@ import {
   TRUE,
 } from '../constants/storage';
 import Device from '../util/device';
-import AnalyticsV2 from '../util/analyticsV2';
+import { trackEvent } from '../util/analyticsV2';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor();
@@ -60,7 +60,7 @@ export default {
     instance = new SecureKeychain(salt);
 
     if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE);
+      trackEvent(MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE);
 
     Object.freeze(instance);
     return instance;

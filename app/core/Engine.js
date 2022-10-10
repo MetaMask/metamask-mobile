@@ -46,7 +46,7 @@ import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
 import { LAST_INCOMING_TX_BLOCK_INFO } from '../constants/storage';
 import { isZero } from '../util/lodash';
-import AnalyticsV2 from '../util/analyticsV2';
+import { trackEvent } from '../util/analyticsV2';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -254,7 +254,7 @@ class Engine {
             ),
           addDetectedTokens: (tokens) => {
             // Track detected tokens event
-            AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
+            trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
               token_standard: 'ERC20',
               asset_type: 'token',
               chain_id: getDecimalChainId(

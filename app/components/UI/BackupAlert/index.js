@@ -17,7 +17,7 @@ import { fontStyles, baseStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const BROWSER_ROUTE = 'BrowserView';
@@ -148,13 +148,10 @@ class BackupAlert extends PureComponent {
       screen: 'AccountBackupStep1',
     });
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+        wallet_protection_required: false,
+        source: 'Backup Alert',
+      });
     });
   };
 
@@ -162,13 +159,10 @@ class BackupAlert extends PureComponent {
     const { onDismiss, backUpSeedphraseAlertNotVisible } = this.props;
     backUpSeedphraseAlertNotVisible();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+      trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
+        wallet_protection_required: false,
+        source: 'Backup Alert',
+      });
     });
     if (onDismiss) onDismiss();
   };

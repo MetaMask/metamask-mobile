@@ -25,7 +25,7 @@ import Modal from 'react-native-modal';
 import Device from '../../../util/device';
 import { ONBOARDING_WIZARD_STEP_DESCRIPTION } from '../../../util/analytics';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { trackEvent } from '../../../util/analyticsV2';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 
@@ -100,11 +100,11 @@ const OnboardingWizard = (props) => {
     setOnboardingWizardStep && setOnboardingWizardStep(0);
     drawerRef?.current?.dismissDrawer?.();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
+      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
         tutorial_step_count: step,
         tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
       });
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
+      trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
     });
   };
 
