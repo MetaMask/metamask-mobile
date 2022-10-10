@@ -43,6 +43,10 @@ export interface IMetaMetrics {
   // delete user's data from Segment and all related
   // destinations.
   createSegmentDeleteRegulation(): void;
+  // TO DO: Add commentary
+  getMetaMetricsId(): string;
+  // TO DO: Add commentary
+  checkEnabled(): boolean;
 }
 
 // Represents an MetaMetrics event

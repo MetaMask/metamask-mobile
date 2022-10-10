@@ -280,6 +280,10 @@ class MetaMetrics implements IMetaMetrics {
     return this.#state;
   }
 
+  public checkEnabled(): boolean {
+    return this.#state === States.enabled;
+  }
+
   public addTraitsToUser(userTraits: UserTraits): void {
     this.#identify(userTraits);
   }
@@ -293,7 +297,6 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
     this.#trackEvent(event, true, properties);
-    this.#trackEvent(event, false, {});
   }
 
   public trackEvent(event: string, properties: JsonMap = {}): void {
@@ -310,6 +313,13 @@ class MetaMetrics implements IMetaMetrics {
   public createSegmentDeleteRegulation(): void {
     this.#createSegmentDeleteRegulation();
   }
+
+  public getMetaMetricsId(): string {
+    if (this.#state === States.disabled) {
+      throw new Error('MetaMetrics must be enabled to retrieve ID');
+    }
+    return this.#metametricsId;
+  }
 }
 
-// export default MetaMetrics.getInstance();
+export default MetaMetrics.getInstance();

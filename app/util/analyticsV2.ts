@@ -2,13 +2,38 @@ import { InteractionManager } from 'react-native';
 import { MetaMetrics, IMetaMetricsEvent } from '../core/Analytics';
 import Logger from './Logger';
 
+export const checkEnabled = (): boolean => MetaMetrics.checkEnabled();
+
+export const getMetaMetricsId = (): string | undefined => {
+  try {
+    return MetaMetrics.getMetaMetricsId();
+  } catch {
+    // Skip error
+  }
+};
+
+export const trackLegacyEvent = (event: IMetaMetricsEvent, params?: any) => {
+  MetaMetrics.trackEvent(event.name, { ...event.properties, ...params });
+};
+
+export const trackLegacyAnonymousEvent = (
+  event: IMetaMetricsEvent,
+  params?: any,
+) => {
+  MetaMetrics.trackAnonymousEvent(event.name, {
+    ...event.properties,
+    ...params,
+  });
+};
+
 /**
  * This takes params with the following structure:
  * { foo : 'this is not anonymous', bar: {value: 'this is anonymous', anonymous: true} }
+ *
  * @param {Object} eventName
  * @param {Object} params
  */
-const trackEventV2 = (event: IMetaMetricsEvent, params: any) => {
+export const trackEvent = (event: IMetaMetricsEvent, params: any): void => {
   InteractionManager.runAfterInteractions(() => {
     let anonymousEvent = false;
     try {
@@ -67,7 +92,7 @@ const trackEventV2 = (event: IMetaMetricsEvent, params: any) => {
  * @param {String} errorMessage
  * @param {String} otherInfo
  */
-const trackErrorAsAnalytics = (
+export const trackErrorAsAnalytics = (
   type: string,
   errorMessage: string,
   otherInfo: string,
@@ -82,9 +107,4 @@ const trackErrorAsAnalytics = (
   } catch (error: any) {
     Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
   }
-};
-
-export default {
-  trackEvent: trackEventV2,
-  trackErrorAsAnalytics,
 };
