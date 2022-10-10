@@ -145,7 +145,7 @@ export const getLegacyTransactionData = ({
   gas,
   onlyGas,
 }: LegacyProps) => {
-  // hack: selectedAsset becomes an empty object when transaction is submitted and it breaks the app. See Line 1241 in util/transactions.js
+  // hack: selectedAsset becomes an empty object when legacy transaction is submitted and it breaks the app. See Line 1241 in util/transactions.js
   transactionState.selectedAsset.isETH = true;
   const parsedTransationData = parseTransactionLegacy(
     {
@@ -199,7 +199,7 @@ export const useGasTransaction = ({
   } = transactionState;
 
   const suggestedGasLimit =
-    gasObject?.gasLimit || fromWei(transactionGas, 'wei');
+    gasObject?.suggestedGasLimit || fromWei(transactionGas, 'wei');
 
   if (legacy) {
     return getLegacyTransactionData({

@@ -113,10 +113,6 @@ export interface UseGasTransactionProps extends GasTransactionProps {
    * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
    */
   gasSelected: string | null;
-  /**
-   * Suggested gas limit. Default is 21000.
-   */
-  gasLimit: string;
   onlyGas?: boolean;
   /**
    * The type of transaction (EIP1559, legacy)
@@ -132,7 +128,7 @@ export interface UseGasTransactionProps extends GasTransactionProps {
   gasObject: {
     legacyGasLimit: string;
     suggestedGasPrice: any;
-    gasLimit?: string;
+    suggestedGasLimit?: string;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };

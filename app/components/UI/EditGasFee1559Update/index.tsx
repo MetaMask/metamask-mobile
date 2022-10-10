@@ -33,7 +33,6 @@ const GAS_MIN = new BigNumber(0);
 
 const EditGasFee1559Update = ({
   selectedGasValue,
-  initialSuggestedGasLimit,
   gasOptions,
   primaryCurrency,
   chainId,
@@ -71,7 +70,7 @@ const EditGasFee1559Update = ({
     suggestedMaxFeePerGas: selectedGasObject.suggestedMaxFeePerGas,
     suggestedMaxPriorityFeePerGas:
       selectedGasObject.suggestedMaxPriorityFeePerGas,
-    gasLimit: initialSuggestedGasLimit,
+    suggestedGasLimit: selectedGasObject.suggestedGasLimit,
   });
 
   const [
@@ -150,7 +149,7 @@ const EditGasFee1559Update = ({
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas: gasObject?.suggestedMaxPriorityFeePerGas,
-      suggestedGasLimit: gasObject?.gasLimit,
+      suggestedGasLimit: gasObject?.suggestedGasLimit,
     };
 
     onSave(gasTransaction, newGasPriceObject);
@@ -159,10 +158,15 @@ const EditGasFee1559Update = ({
   const changeGas = useCallback(
     (gas, option) => {
       setSelectedOption(option);
-      updateGasObject(gas);
+      updateGasObject({
+        ...gasObject,
+        suggestedMaxFeePerGas: gas.suggestedMaxFeePerGas,
+        suggestedMaxPriorityFeePerGas: gas.suggestedMaxPriorityFeePerGas,
+        suggestedGasLimit: gas.suggestedGasLimit,
+      });
       onChange(option);
     },
-    [onChange],
+    [onChange, gasObject],
   );
 
   const changedGasLimit = useCallback(

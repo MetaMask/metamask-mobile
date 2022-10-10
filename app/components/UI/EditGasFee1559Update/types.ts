@@ -16,11 +16,6 @@ export interface EditGasFee1559UpdateProps {
    */
   selectedGasValue: string;
   /**
-   * Initial suggested gas limit. Default is 21000.
-   * @default 21000
-   */
-  initialSuggestedGasLimit: string;
-  /**
    * Gas fee options.
    */
   gasOptions: GasFeeOptions;
@@ -106,6 +101,7 @@ export interface EditGasFee1559UpdateProps {
   selectedGasObject: {
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
+    suggestedGasLimit: string;
   };
   onlyGas?: boolean;
 }

@@ -851,8 +851,13 @@ class Confirm extends PureComponent {
 
   renderCustomGasModalEIP1559 = () => {
     const { primaryCurrency, chainId, gasFeeEstimates } = this.props;
-    const { gasSelected, isAnimating, animateOnChange, EIP1559GasObject } =
-      this.state;
+    const {
+      gasSelected,
+      isAnimating,
+      animateOnChange,
+      EIP1559GasObject,
+      EIP1559GasTransaction,
+    } = this.state;
 
     const selectedGasObject = {
       suggestedMaxFeePerGas:
@@ -861,6 +866,9 @@ class Confirm extends PureComponent {
       suggestedMaxPriorityFeePerGas:
         EIP1559GasObject.suggestedMaxPriorityFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+      suggestedGasLimit:
+        EIP1559GasObject.suggestedGasLimit ||
+        EIP1559GasTransaction.suggestedGasLimit,
     };
 
     const colors = this.context.colors || mockTheme.colors;
