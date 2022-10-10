@@ -1,6 +1,6 @@
 import Analytics from './Analytics';
 import MetaMetrics from './MetaMetrics';
-import MetaMetricsEvents from './MetaMetrics.events';
+import { MetaMetricsEvents } from './MetaMetrics.events';
 import {
   DataDeleteStatus,
   DataDeleteResponseStatus,
