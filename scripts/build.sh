@@ -347,6 +347,8 @@ buildAndroid() {
 		buildAndroidReleaseE2E
 	elif [ "$MODE" == "QAE2E" ] ; then
 		buildAndroidQAE2E
+  elif [ "$MODE" == "debugE2E" ] ; then
+		buildAndroidRunE2E
 	elif [ "$MODE" == "qaDebug" ] ; then
 		buildAndroidRunQA
 	else
@@ -360,6 +362,8 @@ buildIos() {
 		buildIosRelease
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
+  elif [ "$MODE" == "debugE2E" ] ; then
+		buildIosSimulatorE2E
 	elif [ "$MODE" == "QA" ] ; then
 		buildIosQA
 	elif [ "$MODE" == "qaDebug" ] ; then
