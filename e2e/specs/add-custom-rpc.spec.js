@@ -21,7 +21,7 @@ import OnboardingWizardModal from '../pages/modals/OnboardingWizardModal';
 import ProtectYourWalletModal from '../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../pages/modals/WhatsNewModal';
 
-const RINKEBY = 'Rinkeby Test Network';
+const GORELI = 'Goerli Test Network';
 const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 const PASSWORD = '12345678';
@@ -153,11 +153,11 @@ describe('Custom RPC Tests', () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
   });
-  it('should switch to Rinkeby then dismiss the network education modal', async () => {
-    await NetworkListModal.changeNetwork(RINKEBY);
+  it('should switch to Goreli then dismiss the network education modal', async () => {
+    await NetworkListModal.changeNetwork(GORELI);
 
     await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect('Rinkeby Testnet');
+    await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
 
     await NetworkEducationModal.tapGotItButton();
     await NetworkEducationModal.isNotVisible();
@@ -166,7 +166,7 @@ describe('Custom RPC Tests', () => {
   });
 
   it('should switch back to xDAI', async () => {
-    await WalletView.isNetworkNameVisible(RINKEBY);
+    await WalletView.isNetworkNameVisible(GORELI);
     await WalletView.tapNetworksButtonOnNavBar();
 
     await NetworkListModal.isVisible();
