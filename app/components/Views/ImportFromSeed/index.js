@@ -64,6 +64,7 @@ import {
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
 } from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
+import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -526,7 +527,7 @@ class ImportFromSeed extends PureComponent {
           style={styles.wrapper}
           resetScrollToCoords={{ x: 0, y: 0 }}
         >
-          <View>
+          <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
             <Text
               style={styles.title}
               {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}

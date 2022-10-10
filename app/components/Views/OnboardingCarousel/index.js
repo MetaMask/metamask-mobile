@@ -195,7 +195,10 @@ class OnboardingCarousel extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow}>
+      <View
+        style={baseStyles.flexGrow}
+        testID={'onboarding-carouselcarousel-screen--screen'}
+      >
         <OnboardingScreenWithBg screen={'carousel'}>
           <ScrollView
             style={baseStyles.flexGrow}
@@ -237,6 +240,7 @@ class OnboardingCarousel extends PureComponent {
                           source={carousel_images[index]}
                           style={[styles.carouselImage, styles[imgStyleKey]]}
                           resizeMethod={'auto'}
+                          testID={`carousel-${value}-image`}
                         />
                       </View>
                     </View>
