@@ -24,6 +24,7 @@ export const NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID =
 export const NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID =
   'network-education-modal-network-name';
 
+export const CREATE_PASSWORD_INPUT_BOX_ID = 'create-password-first-input-field';
 export const CREATE_PASSWORD_CONTAINER_ID = 'create-password-screen';
 export const CONFIRM_PASSWORD_INPUT_BOX_ID =
   'create-password-second-input-field';
