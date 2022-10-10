@@ -162,7 +162,7 @@ const EditGasFee1559Update = ({
         ...gasObject,
         suggestedMaxFeePerGas: gas.suggestedMaxFeePerGas,
         suggestedMaxPriorityFeePerGas: gas.suggestedMaxPriorityFeePerGas,
-        suggestedGasLimit: gas.suggestedGasLimit,
+        suggestedGasLimit: gas.suggestedGasLimit || gasObject.suggestedGasLimit,
       });
       onChange(option);
     },
