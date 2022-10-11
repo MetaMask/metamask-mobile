@@ -25,7 +25,7 @@ class WalletSetupScreen {
     return Selectors.getElementByPlatform(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
   }
 
-  get verifyTermsAndConditionsButton() {
+  get termsAndConditionsButton() {
     return Selectors.getElementByPlatform(TERMS_AND_CONDITIONS_BUTTON_ID);
   }
 
@@ -50,7 +50,7 @@ class WalletSetupScreen {
   }
 
   async verifyTermsAndConditionsButton() {
-    await expect(this.verifyTermsAndConditionsButton).toBeDisplayed();
+    await expect(this.termsAndConditionsButton).toBeDisplayed();
   }
 
   async clickImportWalletButton() {

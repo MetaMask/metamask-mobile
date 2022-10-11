@@ -23,17 +23,19 @@ class WelcomeScreen {
   }
 
   async verifySplashScreen() {
-    await expect(await this.splashScreenMetamaskAnimationId).toBeDisplayed();
-    (await this.splashScreenMetamaskAnimationId).waitForDisplayed({ reverse: true });
+    const elem = await this.splashScreenMetamaskAnimationId
+    await expect(elem).toBeDisplayed();
+    await elem.waitForDisplayed({ reverse: true });
   }
 
   async verifyCarouselTitle(key) {
-    const elem = Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_TITLE_ID(key));
+    const elem = Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_TITLE_ID(key), true);
     await expect(elem).toBeDisplayed();
   }
 
   async swipeNextSlide() {
     const carouselRectangles = await this.getCarouselRect()
+    console.log('carouselRectangles', carouselRectangles);
     const y = Math.round(carouselRectangles.y + (carouselRectangles.height / 2));
     await Gestures.swipe(
       { x: Math.round(carouselRectangles.width - (carouselRectangles.width * 0.10)), y },
