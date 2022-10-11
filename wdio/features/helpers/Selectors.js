@@ -1,5 +1,9 @@
 class Selectors {
-  static async getElementByPlatform(id) {
+  static async getElementByPlatform(id, isNested = false) {
+    if (!isNested) {
+      return $(`~${id}`);
+    }
+
     const platform = await driver.getPlatform();
     if (platform === 'Android') {
       return $(`~${id}`);

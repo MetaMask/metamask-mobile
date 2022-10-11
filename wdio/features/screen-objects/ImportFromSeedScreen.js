@@ -6,30 +6,49 @@ import {
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
 } from '../testIDs/Screens/ImportFromSeedScreen.testIds';
 import Selectors from '../helpers/Selectors';
+import Gestures from '../helpers/Gestures';
 
 class ImportFromSeed {
+
+  get screenTitle() {
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_TITLE_ID);
+  }
+
+  get seedPhraseInput() {
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID);
+  }
+
+  get newPasswordInput() {
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID);
+  }
+
+  get confirmPasswordInput() {
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID);
+  }
+
+  get importButton() {
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID);
+  }
+
   async verifyScreenTitle() {
-    await expect(await $(`~${IMPORT_FROM_SEED_SCREEN_TITLE_ID}`)).toBeDisplayed();
+    await expect(this.screenTitle).toBeDisplayed();
   }
 
   async typeSecretRecoveryPhrase(phrase) {
-    const elem = await $(`~${IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID}`)
-    await elem.setValue(phrase);
+    await Gestures.typeText(this.seedPhraseInput, phrase);
   }
 
   async typeNewPassword(newPassword) {
-    const elem = await Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID)
-    await elem.setValue(newPassword);
+    await Gestures.typeText(this.newPasswordInput, newPassword);
   }
 
   async typeConfirmPassword(confirmPassword) {
-    const elem = await Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID)
-    await elem.setValue(confirmPassword);
+    await Gestures.typeText(this.confirmPasswordInput, confirmPassword);
   }
 
   async clickImportButton() {
-    await $(`~${IMPORT_FROM_SEED_SCREEN_TITLE_ID}`).click();
-    await $(`~${IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID}`).click();
+    await Gestures.waitAndTap(this.screenTitle);
+    await Gestures.waitAndTap(this.importButton);
   }
 }
 

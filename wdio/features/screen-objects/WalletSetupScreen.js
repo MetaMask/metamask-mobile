@@ -5,30 +5,56 @@ import {
   WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
   WALLET_SETUP_SCREEN_TITLE_ID
 } from '../testIDs/Screens/WalletSetupScreen.testIds';
+import Gestures from '../helpers/Gestures';
+import Selectors from '../helpers/Selectors';
 
 class WalletSetupScreen {
+  get title () {
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_TITLE_ID)
+  }
+
+  get description() {
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_DESCRIPTION_ID);
+  }
+
+  get seedButton() {
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID);
+  }
+
+  get createNewWalletButton() {
+    return Selectors.getElementByPlatform(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
+  }
+
+  get verifyTermsAndConditionsButton() {
+    return Selectors.getElementByPlatform(TERMS_AND_CONDITIONS_BUTTON_ID);
+  }
+
+  get importWalletButton() {
+    return Selectors.getElementByPlatform(WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID);
+  }
+
   async verifyScreenTitle() {
-    await expect(await $(`~${WALLET_SETUP_SCREEN_TITLE_ID}`)).toBeDisplayed();
+    await expect(this.title).toBeDisplayed();
   }
 
   async verifyScreenDescription() {
-    await expect(await $(`~${WALLET_SETUP_SCREEN_DESCRIPTION_ID}`)).toBeDisplayed();
+    await expect(this.description).toBeDisplayed();
   }
 
   async verifyImportWalletButton() {
-    await expect(await $(`~${WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}`)).toBeDisplayed();
+    await expect(this.seedButton).toBeDisplayed();
   }
 
   async verifyCreateNewWalletButton() {
-    await expect(await $(`~${WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID}`)).toBeDisplayed();
+    await expect(this.createNewWalletButton).toBeDisplayed();
   }
 
   async verifyTermsAndConditionsButton() {
-    await expect(await $(`~${TERMS_AND_CONDITIONS_BUTTON_ID}`)).toBeDisplayed();
+    await expect(this.verifyTermsAndConditionsButton).toBeDisplayed();
   }
 
   async clickImportWalletButton() {
-    await $(`~${WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}`).click();
+    await Gestures.tap(this.importWalletButton);
   }
 }
 

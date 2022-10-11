@@ -54,20 +54,23 @@ const SWIPE_DIRECTION = {
 };
 
 class Gestures  {
-  static async waitAndTap(elementId) {
-    $(`~${elementId}`).waitForDisplayed();
-    return $(`~${elementId}`).click();
+  static async waitAndTap(element) {
+    const elem = await element;
+    await elem.waitForDisplayed();
+    return elem.click();
   }
 
-  static async tap(elementId) {
+  static async tap(element) {
     // simple touch action on element
-    return $(`~${elementId}`).click();
+    const elem = await element;
+    return elem.click();
   }
 
-  static async typeText(elementId, text) {
-    $(`~${elementId}`).waitForDisplayed();
-    await $(`~${elementId}`).click();
-    return $(`~${elementId}`).setValue(text + '\n');
+  static async typeText(element, text) {
+    const elem = await element;
+    await elem.waitForDisplayed();
+    await elem.click();
+    return elem.setValue(text, + '\n');
   }
 
   /**

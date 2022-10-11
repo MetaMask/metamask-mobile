@@ -14,14 +14,21 @@ class WelcomeScreen {
     this.CAROUSEL_RECTANGLES = null;
   }
 
+  get splashScreenMetamaskAnimationId() {
+    return Selectors.getElementByPlatform(SPLASH_SCREEN_METAMASK_ANIMATION_ID);
+  }
+
+  get getStartedButton() {
+    return Selectors.getElementByPlatform(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
+  }
+
   async verifySplashScreen() {
-    const elem = await $(`~${SPLASH_SCREEN_METAMASK_ANIMATION_ID}`)
-    await expect(elem).toBeDisplayed();
-    await elem.waitForDisplayed({ reverse: true });
+    await expect(await this.splashScreenMetamaskAnimationId).toBeDisplayed();
+    (await this.splashScreenMetamaskAnimationId).waitForDisplayed({ reverse: true });
   }
 
   async verifyCarouselTitle(key) {
-    const elem = await Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_TITLE_ID(key));
+    const elem = Selectors.getElementByPlatform(WELCOME_SCREEN_CAROUSEL_TITLE_ID(key));
     await expect(elem).toBeDisplayed();
   }
 
@@ -44,7 +51,7 @@ class WelcomeScreen {
   }
 
   async clickGetStartedButton() {
-    await $(`~${WELCOME_SCREEN_GET_STARTED_BUTTON_ID}`).click();
+    await Gestures.tap(this.getStartedButton);
   }
 }
 
