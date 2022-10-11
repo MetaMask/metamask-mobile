@@ -17,12 +17,21 @@ export enum AvatarSize {
  */
 export interface Avatar2Props extends ViewProps {
   /**
-   * Content to wrap to display.
+   * Optional enum to select between Avatar sizes.
+   * @default Md
    */
-  children: React.ReactNode;
+  size?: AvatarSize;
+  /**
+   * Optional boolean to activate halo effect.
+   * @default false
+   */
+  isHaloEnabled?: boolean;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type Avatar2StyleSheetVars = Pick<Avatar2Props, 'style'>;
+export type Avatar2StyleSheetVars = Pick<
+  Avatar2Props,
+  'size' | 'isHaloEnabled' | 'style'
+>;

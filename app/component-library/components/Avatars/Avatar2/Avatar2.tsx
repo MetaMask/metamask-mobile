@@ -6,17 +6,23 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
+import AvatarAsset from './foundation/AvatarAsset';
 
 // Internal dependencies.
 import styleSheet from './Avatar2.styles';
-import { Avatar2Props } from './Avatar2.types';
+import { Avatar2Props, AvatarSize } from './Avatar2.types';
 
-const Avatar2: React.FC<Avatar2Props> = ({ style, children, ...props }) => {
-  const { styles } = useStyles(styleSheet, { style });
+const Avatar2 = ({
+  style,
+  size = AvatarSize.Md,
+  isHaloEnabled = false,
+  ...props
+}: Avatar2Props) => {
+  const { styles } = useStyles(styleSheet, { style, size, isHaloEnabled });
 
   return (
-    <View style={styles.base} {...props}>
-      {children}
+    <View style={styles.base}>
+      <AvatarAsset {...props} />
     </View>
   );
 };
