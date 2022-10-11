@@ -174,7 +174,7 @@ buildIosSimulatorQA(){
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Release  -sdk iphonesimulator -derivedDataPath build
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug  -sdk iphonesimulator -derivedDataPath build
 }
 
 runIosE2E(){
@@ -354,6 +354,16 @@ buildAndroid() {
 	else
 		buildAndroidRun
 	fi
+}
+
+buildAndroidRunE2E(){
+	prebuild_android
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	fi
+	cd android && ./gradlew assembleAndroidTest -PminSdkVersion=26 -DtestBuildType=debug && cd ..
+	react-native run-android
 }
 
 buildIos() {
