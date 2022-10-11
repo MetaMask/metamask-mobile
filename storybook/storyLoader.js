@@ -14,6 +14,8 @@ function loadStories() {
   require('../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories');
   require('../app/component-library/components/Avatars/Avatar2/Avatar2.stories');
   require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/AvatarAsset.stories');
+  require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetIcon/AvatarAssetIcon.stories');
+  require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetImage/AvatarAssetImage.stories');
   require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetInitial/AvatarAssetInitial.stories');
   require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetJazzIcon/AvatarAssetJazzIcon.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
@@ -72,6 +74,8 @@ const stories = [
   '../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories',
   '../app/component-library/components/Avatars/Avatar2/Avatar2.stories',
   '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/AvatarAsset.stories',
+  '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetIcon/AvatarAssetIcon.stories',
+  '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetImage/AvatarAssetImage.stories',
   '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetInitial/AvatarAssetInitial.stories',
   '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetJazzIcon/AvatarAssetJazzIcon.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
