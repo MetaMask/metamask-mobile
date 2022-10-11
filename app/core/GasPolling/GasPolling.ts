@@ -206,7 +206,9 @@ export const useGasTransaction = ({
       gas: {
         suggestedGasLimit: gasObject?.legacyGasLimit || suggestedGasLimit,
         suggestedGasPrice:
-          gasFeeEstimates[gasSelected] || gasObject?.suggestedGasPrice,
+          gasFeeEstimates[gasSelected] ||
+          gasFeeEstimates?.gasPrice ||
+          gasObject?.suggestedGasPrice,
       },
       contractExchangeRates,
       conversionRate,
