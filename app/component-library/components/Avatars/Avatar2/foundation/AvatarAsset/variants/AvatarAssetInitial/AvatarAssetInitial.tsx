@@ -1,5 +1,3 @@
-/* eslint-disable react/prop-types */
-
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';

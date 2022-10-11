@@ -15,6 +15,7 @@ function loadStories() {
   require('../app/component-library/components/Avatars/Avatar2/Avatar2.stories');
   require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/AvatarAsset.stories');
   require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetInitial/AvatarAssetInitial.stories');
+  require('../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetJazzIcon/AvatarAssetJazzIcon.stories');
   require('../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories');
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
@@ -72,6 +73,7 @@ const stories = [
   '../app/component-library/components/Avatars/Avatar2/Avatar2.stories',
   '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/AvatarAsset.stories',
   '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetInitial/AvatarAssetInitial.stories',
+  '../app/component-library/components/Avatars/Avatar2/foundation/AvatarAsset/variants/AvatarAssetJazzIcon/AvatarAssetJazzIcon.stories',
   '../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories',
   '../app/component-library/components/Badges/Badge/Badge.stories',
   '../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories',

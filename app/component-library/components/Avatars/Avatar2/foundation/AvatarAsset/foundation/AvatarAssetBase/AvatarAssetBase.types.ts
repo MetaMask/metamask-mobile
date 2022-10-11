@@ -12,10 +12,6 @@ export interface AvatarAssetBaseProps extends ViewProps {
    * Avatar Asset variants.
    */
   variant: AvatarAssetVariants;
-  /**
-   * Content to wrap to display.
-   */
-  children: React.ReactNode;
 }
 
 /**
