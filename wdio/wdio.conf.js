@@ -226,6 +226,14 @@ export const config = {
    * @param {Object}         browser      instance of created browser/device session
    */
   before: function (capabilities) {
+    if (capabilities.platformName === 'iOS') {
+      driver.updateSettings({
+        snapshotMaxDepth: 500, 
+        customSnapshotTimeout: 60,
+        includeNonModalElements: true 
+      });
+    }
+    // driver.updateSettings({allowInvisibleElements: false});
     driver.getPlatform = function getPlatform() {
       return capabilities.platformName;
     }

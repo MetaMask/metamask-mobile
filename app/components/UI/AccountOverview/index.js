@@ -368,6 +368,8 @@ class AccountOverview extends PureComponent {
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
+    // console.log('collectiblesController', this.props.collectiblesController);
+
     const fiatBalance = `${renderFiat(
       Engine.getTotalFiatAccountBalance(),
       currentCurrency,
@@ -520,6 +522,7 @@ const mapStateToProps = (state) => ({
   ticker: state.engine.backgroundState.NetworkController.provider.ticker,
   network: state.engine.backgroundState.NetworkController.network,
   swapsIsLive: swapsLivenessSelector(state),
+  collectiblesController: state.engine.backgroundState.TokenListController
 });
 
 const mapDispatchToProps = (dispatch) => ({

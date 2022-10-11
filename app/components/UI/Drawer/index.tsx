@@ -54,7 +54,7 @@ interface Props {
 const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   const { style, children } = props;
   const hiddenOffset = -screenWidth;
-  const visibleOffset = 0;
+  const visibleOffset = -1;
   const navigation = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -234,7 +234,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
   return (
     <View style={styles.fill}>
       {children}
-      {renderDrawer()}
+      { /** renderDrawer() **/}
     </View>
   );
 });

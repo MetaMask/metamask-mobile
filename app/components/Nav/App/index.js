@@ -340,11 +340,13 @@ const App = ({ userLoggedIn }) => {
 
   const RootModalFlow = () => (
     <Stack.Navigator
+      accessible={false}
       mode={'modal'}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: importedColors.transparent },
         animationEnabled: false,
+        presentation: 'modal',
       }}
     >
       <Stack.Screen
@@ -364,10 +366,25 @@ const App = ({ userLoggedIn }) => {
   );
 
   return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName='Main' screenOptions={{ presentation: 'modal' }}>
+        <Stack.Screen
+        accessible={false}
+        name="HomeNav"
+        component={Main}
+        options={{ headerShown: false, presentation: 'modal' }}
+      />
+
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+
+  return (
     // do not render unless a route is defined
     (route && (
       <>
         <NavigationContainer
+          accessible={false}
           // Prevents artifacts when navigating between screens
           theme={{
             colors: {
@@ -384,10 +401,12 @@ const App = ({ userLoggedIn }) => {
           <Stack.Navigator
             initialRouteName={route}
             mode={'modal'}
+            accessibible={false}
             screenOptions={{
               headerShown: false,
               cardStyle: { backgroundColor: importedColors.transparent },
               animationEnabled: false,
+              presentation: 'modal',
             }}
           >
             <Stack.Screen
@@ -402,19 +421,20 @@ const App = ({ userLoggedIn }) => {
             />
             {userLoggedIn && (
               <Stack.Screen
+                accessible={false}
                 name="HomeNav"
                 component={Main}
                 options={{ headerShown: false }}
               />
             )}
-            <Stack.Screen
+              { /** <Stack.Screen
               name={Routes.MODAL.ROOT_MODAL_FLOW}
               component={RootModalFlow}
-            />
+            /> **/ }
           </Stack.Navigator>
         </NavigationContainer>
-        {renderSplash()}
-        <Toast ref={toastRef} />
+      {/** {renderSplash()}
+        <Toast ref={toastRef} /> **/ }
       </>
     )) ||
     null

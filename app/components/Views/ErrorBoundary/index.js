@@ -209,8 +209,7 @@ class ErrorBoundary extends Component {
     this.setState({ backupSeedphrase: false });
   };
 
-  getErrorMessage = () =>
-    `View: ${this.props.view}\n${this.state.error.toString()}`;
+  getErrorMessage = () => `View: ${this.props.view}\n${this.state.error.toString()}`;
 
   copyErrorToClipboard = async () => {
     await ClipboardManager.setString(this.getErrorMessage());

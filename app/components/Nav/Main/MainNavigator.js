@@ -230,32 +230,32 @@ const HomeTabs = () => {
   const drawerRef = useRef(null);
 
   return (
-    <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-        <Tab.Navigator
-          initialRouteName={'WalletTabHome'}
-          tabBarOptions={{ style: styles.hidden }}
-          screenOptions={{ tabBarVisible: false }}
-        >
+    <Tab.Navigator
+    initialRouteName={'WalletTabHome'}
+    tabBarOptions={{ style: styles.hidden }}
+    screenOptions={{ tabBarVisible: false }}
+  >
+      <Tab.Screen
+      name="WalletTabHome"
+      component={WalletTabModalFlow}
+      options={{ tabBarVisible: false }}
+    />
+        <Tab.Screen
+        name={Routes.BROWSER_TAB_HOME}
+        component={BrowserFlow}
+        options={{ tabBarVisible: false }}
+      />
           <Tab.Screen
-            name="WalletTabHome"
-            component={WalletTabModalFlow}
-            options={{ tabBarVisible: false }}
-          />
-          <Tab.Screen
-            name={Routes.BROWSER_TAB_HOME}
-            component={BrowserFlow}
-            options={{ tabBarVisible: false }}
-          />
-          <Tab.Screen
-            name="TransactionsHome"
-            component={TransactionsHome}
-            options={{ tabBarVisible: false }}
-          />
-        </Tab.Navigator>
-      </Drawer>
-    </DrawerContext.Provider>
+          name="TransactionsHome"
+          component={TransactionsHome}
+          options={{ tabBarVisible: false }}
+        />
+          </Tab.Navigator>
   );
+    { /** <DrawerContext.Provider value={{ drawerRef }}>
+      <Drawer ref={drawerRef}>
+      </Drawer>
+    </DrawerContext.Provider> **/ }
 };
 
 const Webview = () => (
@@ -599,11 +599,13 @@ const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
+      presentation: 'modal',
     }}
+    accessible={false}
     mode={'modal'}
     initialRouteName={'Home'}
   >
-    <Stack.Screen
+    { /** <Stack.Screen
       name="CollectiblesDetails"
       component={CollectiblesDetails}
       options={{
@@ -615,9 +617,9 @@ const MainNavigator = () => (
           },
         }),
       }}
-    />
+  /> **/}
     <Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
-    <Stack.Screen name="Webview" component={Webview} />
+    { /** <Stack.Screen name="Webview" component={Webview} />
     <Stack.Screen name="SettingsView" component={SettingsModalStack} />
     <Stack.Screen
       name="ImportPrivateKeyView"
@@ -652,7 +654,7 @@ const MainNavigator = () => (
       )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
-    />
+      /> **/ }
   </Stack.Navigator>
 );
 

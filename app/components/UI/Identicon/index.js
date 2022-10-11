@@ -6,6 +6,7 @@ import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
 import { connect } from 'react-redux';
 import { useTheme } from '../../../util/theme';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 
 /**
  * UI component that renders an Identicon
@@ -43,6 +44,7 @@ const Identicon = React.memo((props) => {
   }
   return (
     <FadeIn
+      {...generateTestId('identicon')}
       placeholderStyle={{ backgroundColor: colors.background.alternative }}
     >
       {image}

@@ -291,7 +291,7 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
-        <GlobalAlert />
+          { /** <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <FiatOrders />
@@ -312,7 +312,7 @@ const Main = (props) => {
           toggleSkipCheckbox={toggleSkipCheckbox}
         />
         <ProtectYourWalletModal navigation={props.navigation} />
-        <RootRPCMethodsUI navigation={props.navigation} />
+        <RootRPCMethodsUI navigation={props.navigation} /> **/ }
       </View>
     </React.Fragment>
   );
@@ -399,13 +399,14 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => (
-  <Stack.Navigator
+const MainFlow = () => <ConnectedMain />
+  { /** <Stack.Navigator
     initialRouteName={'Main'}
     mode={'modal'}
     screenOptions={{
       headerShown: false,
       cardStyle: { backgroundColor: importedColors.transparent },
+      presentation: 'modal',
     }}
   >
     <Stack.Screen name={'Main'} component={ConnectedMain} />
@@ -414,7 +415,7 @@ const MainFlow = () => (
       component={ReviewModal}
       options={{ animationEnabled: false }}
     />
-  </Stack.Navigator>
-);
+  </Stack.Navigator> **/ }
+//);
 
 export default MainFlow;
