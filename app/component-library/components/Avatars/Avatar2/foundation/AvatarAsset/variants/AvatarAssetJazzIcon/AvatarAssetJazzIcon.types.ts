@@ -16,11 +16,3 @@ export interface AvatarAssetJazzIconProps
    */
   variant: AvatarAssetVariants.JazzIcon;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type AvatarAssetJazzIconStyleSheetVars = Pick<
-  AvatarAssetJazzIconProps,
-  'style'
->;
