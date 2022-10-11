@@ -1,15 +1,13 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
-
 // External dependencies.
 import { TextVariants } from '../../../../../../Texts/Text';
 import { AvatarAssetVariants } from '../../AvatarAsset.types';
 import { AvatarSize } from '../../../../Avatar2.types';
+import { AvatarAssetBaseProps } from '../../foundation/AvatarAssetBase/AvatarAssetBase.types';
 
 /**
  * AvatarAssetInitial component props.
  */
-export interface AvatarAssetInitialProps extends ViewProps {
+export interface AvatarAssetInitialProps extends AvatarAssetBaseProps {
   /**
    * Avatar Asset variants.
    */
