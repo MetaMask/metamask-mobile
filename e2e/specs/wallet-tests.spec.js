@@ -27,12 +27,11 @@ const SECRET_RECOVERY_PHRASE =
   'fold media south add since false relax immense pause cloth just raven';
 const PASSWORD = `12345678`;
 const TEST_PUBLIC_ADDRESS = '0xd3B9Cbea7856AECf4A6F7c3F4E8791F79cBeeD62';
-const RINKEBY = 'Rinkeby Test Network';
 const GOERLI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 const COLLECTIBLE_CONTRACT_ADDRESS =
-  '0x16baf0de678e52367adc69fd067e5edd1d33e3bf';
-const COLLECTIBLE_IDENTIFIER = '404';
+  '0x306d717D109e0995e0f56027Eb93D9C1d5686dE1';
+const COLLECTIBLE_IDENTIFIER = '179';
 const BLT_TOKEN_ADDRESS = '0x107c4504cd79c5d2696ea0030a8dd4e92601b82e';
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
@@ -148,11 +147,11 @@ describe('Wallet Tests', () => {
     await WalletView.isVisible();
   });
 
-  it('should switch to Rinkeby network', async () => {
+  it('should switch to Goerli network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
-    await NetworkListModal.changeNetwork(RINKEBY);
-    await WalletView.isNetworkNameVisible(RINKEBY);
+    await NetworkListModal.changeNetwork(GOERLI);
+    await WalletView.isNetworkNameVisible(GOERLI);
   });
 
   it('should dismiss network education modal', async () => {
@@ -189,11 +188,11 @@ describe('Wallet Tests', () => {
     // Wait for asset to load
     await TestHelpers.delay(3000);
     // Check that the crypto kitty was added
-    await WalletView.isNFTVisibleInWallet('CryptoKitties');
+    await WalletView.isNFTVisibleInWallet('Refinable721');
     // Tap on Crypto Kitty
-    await WalletView.tapOnNFTInWallet('CryptoKitties');
+    await WalletView.tapOnNFTInWallet('Refinable721');
 
-    await WalletView.isNFTNameVisible('1 CryptoKitties');
+    await WalletView.isNFTNameVisible('Refinable721 #179');
   });
 
   it('should switch back to Mainnet network', async () => {
@@ -286,12 +285,6 @@ describe('Wallet Tests', () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.changeNetwork(GOERLI);
     await WalletView.isNetworkNameVisible(GOERLI);
-  });
-
-  it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
   });
 
   it('should input a valid address', async () => {

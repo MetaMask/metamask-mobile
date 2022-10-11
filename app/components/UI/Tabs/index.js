@@ -28,7 +28,7 @@ const ROWS_VISIBLE = Math.floor(
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
-const createStyles = (colors) =>
+const createStyles = (colors, shadows) =>
   StyleSheet.create({
     noTabs: {
       flex: 1,
@@ -86,13 +86,7 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       marginBottom: Device.isIphoneX() ? 0 : 0,
       paddingTop: 17,
-      shadowColor: importedColors.black,
-      shadowOffset: {
-        width: 0,
-        height: 12,
-      },
-      shadowOpacity: 0.58,
-      shadowRadius: 15.0,
+      ...shadows.size.md,
       backgroundColor: colors.background.default,
       height: Device.isIphoneX() ? 80 : 50,
     },
@@ -219,7 +213,8 @@ export default class Tabs extends PureComponent {
 
   getStyles = () => {
     const colors = this.context.colors || mockTheme.colors;
-    return createStyles(colors);
+    const shadows = this.context.shadows || mockTheme.shadows;
+    return createStyles(colors, shadows);
   };
 
   renderNoTabs() {

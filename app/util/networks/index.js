@@ -8,15 +8,16 @@ import {
   GOERLI,
   RPC,
 } from '../../../app/constants/network';
-import {
-  NETWORK_ERROR_MISSING_NETWORK_ID,
-  NETWORK_ERROR_UNKNOWN_NETWORK_ID,
-  NETWORK_ERROR_MISSING_CHAIN_ID,
-} from '../../../app/constants/error';
+import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { util } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from './../general';
 import { fastSplit } from '../../util/number';
+
+import handleNetworkSwitch from './handleNetworkSwitch';
+
+export { handleNetworkSwitch };
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -114,7 +115,7 @@ export const isTestNet = (networkId) => {
 
 export function getNetworkTypeById(id) {
   if (!id) {
-    throw new Error(NETWORK_ERROR_MISSING_NETWORK_ID);
+    throw new Error(NetworkSwitchErrorType.missingNetworkId);
   }
   const network = NetworkListKeys.filter(
     (key) => NetworkList[key].networkId === parseInt(id, 10),
@@ -123,12 +124,12 @@ export function getNetworkTypeById(id) {
     return network[0];
   }
 
-  throw new Error(`${NETWORK_ERROR_UNKNOWN_NETWORK_ID} ${id}`);
+  throw new Error(`${NetworkSwitchErrorType.unknownNetworkId} ${id}`);
 }
 
 export function getDefaultNetworkByChainId(chainId) {
   if (!chainId) {
-    throw new Error(NETWORK_ERROR_MISSING_CHAIN_ID);
+    throw new Error(NetworkSwitchErrorType.missingChainId);
   }
 
   let returnNetwork;
