@@ -22,7 +22,6 @@ import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
 import {
   getNormalizedTxState,
   getTicker,
-  parseTransactionEIP1559,
   parseTransactionLegacy,
 } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
@@ -158,6 +157,7 @@ class Approve extends PureComponent {
     suggestedGasLimit: undefined,
     gasTransaction: {},
     gasPriceObject: {},
+    gasTransactionObject: {},
   };
 
   computeGasEstimates = (
@@ -293,28 +293,6 @@ class Approve extends PureComponent {
         this.computeGasEstimates(null, null, gasEstimateTypeChanged);
       }
     }
-  };
-
-  parseTransactionDataEIP1559 = (gasFee, options) => {
-    const { ticker } = this.props;
-
-    const parsedTransactionEIP1559 = parseTransactionEIP1559(
-      {
-        ...this.props,
-        nativeCurrency: ticker,
-        selectedGasFee: {
-          ...gasFee,
-          estimatedBaseFee: this.props.gasFeeEstimates.estimatedBaseFee,
-        },
-      },
-      { onlyGas: true },
-    );
-
-    parsedTransactionEIP1559.error = this.validateGas(
-      parsedTransactionEIP1559.totalMaxHex,
-    );
-
-    return parsedTransactionEIP1559;
   };
 
   parseTransactionDataLegacy = (gasFee, options) => {
@@ -601,6 +579,10 @@ class Approve extends PureComponent {
     this.setState({ isAnimating: false });
   };
 
+  updateTransactionState = (gasTransactionObject) => {
+    this.setState({gasTransactionObject})
+  };
+
   render = () => {
     const {
       mode,
@@ -614,6 +596,7 @@ class Approve extends PureComponent {
       transactionConfirmed,
       gasPriceObject,
       gasTransaction,
+      gasTransactionObject,
     } = this.state;
 
     const {
@@ -626,17 +609,17 @@ class Approve extends PureComponent {
       chainId,
     } = this.props;
 
-    const currentGasPriceObject = {
+    const selectedGasObject = {
       suggestedMaxFeePerGas:
         gasPriceObject.suggestedMaxFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxFeePerGas,
       suggestedMaxPriorityFeePerGas:
         gasPriceObject.suggestedMaxPriorityFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
+        suggestedGasLimit: gasPriceObject.suggestedGasLimit || gasTransactionObject.suggestedGasLimit,
     };
 
     const colors = this.context.colors || mockTheme.colors;
-    console.log('prroval')
 
     const addressData = checkIfAddressIsSaved(
       addressBook,
@@ -707,6 +690,7 @@ class Approve extends PureComponent {
                       : ''
                   }
                   chainId={chainId}
+                  updateTransactionState={this.updateTransactionState}
                   gasPriceObject={this.state.gasPriceObject}
                 />
                 {/** View fixes layout issue after removing <CustomGas/> */}
@@ -725,12 +709,12 @@ class Approve extends PureComponent {
                   chainId={chainId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEditionUpdate}
-                  animateOnChange={animateOnChange}                  
+                  animateOnChange={animateOnChange}
                   isAnimating={isAnimating}
                   view={'Approve'}
                   analyticsParams={this.getGasAnalyticsParams()}
-                  onlyGas={true}
-                  selectedGasObject={currentGasPriceObject}
+                  onlyGas
+                  selectedGasObject={selectedGasObject}
                 />
               ) : (
                 <EditGasFeeLegacy
@@ -755,21 +739,6 @@ class Approve extends PureComponent {
                   analyticsParams={this.getGasAnalyticsParams()}
                 />
               ))}
-
-{/* selected={gasSelected}
-            gasEstimateType={gasEstimateType}
-            gasOptions={gasFeeEstimates}
-            onChange={this.calculateTempGasFeeLegacy}
-            primaryCurrency={primaryCurrency}
-            chainId={chainId}
-            onCancel={this.cancelGasEdition}
-            onSave={this.saveGasEditionLegacy}
-            animateOnChange={animateOnChange}
-            isAnimating={isAnimating}
-            analyticsParams={this.getGasAnalyticsParams()}
-            view={'SendTo (Confirm)'}
-            onlyGas={false}
-            selectedGasObject={selectedGasObject} */}
           </KeyboardAwareScrollView>
         )}
         <GlobalAlert />

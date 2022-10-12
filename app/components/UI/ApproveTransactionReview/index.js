@@ -219,6 +219,7 @@ class ApproveTransactionReview extends PureComponent {
     transaction: this.props.transaction,
     token: {},
     showGasTooltip: false,
+    gasTransactionObject: {}
   };
 
   customSpendLimitInput = React.createRef();
@@ -534,10 +535,6 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleDisplay = () => this.props.onUpdateContractNickname();
 
-  updateTransactionState = (transaction) => {
-    // save this state
-  }
-
   renderDetails = () => {
     const {
       host,
@@ -681,8 +678,8 @@ class ApproveTransactionReview extends PureComponent {
                     gasEstimationReady={gasEstimationReady}
                     legacy={!showFeeMarket}
                     gasObject={gasPriceObject}
-                    updateTransactionState={this.updateTransactionState}
-                    onlyGas={true}
+                    updateTransactionState={this.props.updateTransactionState}
+                    onlyGas
                   />
 
                   {gasError && (
