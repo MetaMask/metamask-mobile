@@ -32,7 +32,7 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
 import AnalyticsV2 from '../../../../util/analyticsV2';
-import EditGasFee1559Update from '../../../UI/EditGasFee1559Update';
+import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
@@ -636,6 +636,7 @@ class Approve extends PureComponent {
     };
 
     const colors = this.context.colors || mockTheme.colors;
+    console.log('prroval')
 
     const addressData = checkIfAddressIsSaved(
       addressBook,
@@ -715,29 +716,27 @@ class Approve extends PureComponent {
 
             {mode !== 'review' &&
               (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
-                <EditGasFee1559Update
+                <EditGasFee1559
                   selectedGasValue={gasSelected}
                   initialSuggestedGasLimit={this.state.suggestedGasLimit}
+                  gasOptions={gasFeeEstimates}
                   onChange={this.updateGasSelected}
                   primaryCurrency={primaryCurrency}
                   chainId={chainId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEditionUpdate}
-                  nUpdatingValuesStart={this.onUpdatingValuesStart}
-                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
-                  animateOnChange={animateOnChange}
+                  animateOnChange={animateOnChange}                  
                   isAnimating={isAnimating}
                   view={'Approve'}
                   analyticsParams={this.getGasAnalyticsParams()}
-                  onlyGas
-                  gasOptions={gasFeeEstimates}
-                  currentGasPriceObject={currentGasPriceObject}
+                  onlyGas={true}
+                  selectedGasObject={currentGasPriceObject}
                 />
               ) : (
                 <EditGasFeeLegacy
                   selected={gasSelected}
-                  gasFee={LegacyGasDataTemp}
                   gasEstimateType={gasEstimateType}
+                  gasFee={LegacyGasDataTemp}
                   gasOptions={gasFeeEstimates}
                   onChange={this.calculateTempGasFeeLegacy}
                   gasFeeNative={LegacyGasDataTemp.transactionFee}
@@ -756,6 +755,21 @@ class Approve extends PureComponent {
                   analyticsParams={this.getGasAnalyticsParams()}
                 />
               ))}
+
+{/* selected={gasSelected}
+            gasEstimateType={gasEstimateType}
+            gasOptions={gasFeeEstimates}
+            onChange={this.calculateTempGasFeeLegacy}
+            primaryCurrency={primaryCurrency}
+            chainId={chainId}
+            onCancel={this.cancelGasEdition}
+            onSave={this.saveGasEditionLegacy}
+            animateOnChange={animateOnChange}
+            isAnimating={isAnimating}
+            analyticsParams={this.getGasAnalyticsParams()}
+            view={'SendTo (Confirm)'}
+            onlyGas={false}
+            selectedGasObject={selectedGasObject} */}
           </KeyboardAwareScrollView>
         )}
         <GlobalAlert />

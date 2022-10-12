@@ -33,6 +33,7 @@ const TransactionReviewEIP1559Update = ({
   legacy,
   gasSelected,
   gasObject,
+  onlyGas,
   updateTransactionState,
 }: TransactionEIP1559UpdateProps) => {
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);

@@ -49,7 +49,7 @@ import Logger from '../../../util/Logger';
 import InfoModal from '../Swaps/components/InfoModal';
 import Text from '../../Base/Text';
 import { getTokenList } from '../../../reducers/tokens';
-import TransactionReviewEIP1559Update from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
+import TransactionReview from '../../UI/TransactionReview/TransactionReviewEIP1559Update';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -534,6 +534,10 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleDisplay = () => this.props.onUpdateContractNickname();
 
+  updateTransactionState = (transaction) => {
+    // save this state
+  }
+
   renderDetails = () => {
     const {
       host,
@@ -663,20 +667,22 @@ class ApproveTransactionReview extends PureComponent {
               <View style={styles.paddingHorizontal}>
                 <AccountInfoCard />
                 <View style={styles.section}>
-                  <TransactionReviewEIP1559Update
+                  <TransactionReview
                     gasSelected={gasSelected}
                     primaryCurrency={primaryCurrency}
                     hideTotal
                     noMargin
                     onEdit={this.edit}
+                    chainId={this.props.chainId}
                     onUpdatingValuesStart={onUpdatingValuesStart}
                     onUpdatingValuesEnd={onUpdatingValuesEnd}
                     animateOnChange={animateOnChange}
                     isAnimating={isAnimating}
                     gasEstimationReady={gasEstimationReady}
                     legacy={!showFeeMarket}
-                    gasPriceObject={gasPriceObject}
-                    onlyGas
+                    gasObject={gasPriceObject}
+                    updateTransactionState={this.updateTransactionState}
+                    onlyGas={true}
                   />
 
                   {gasError && (
