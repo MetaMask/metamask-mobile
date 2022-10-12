@@ -143,7 +143,7 @@ const createStyles = (colors) =>
   });
 
 /**
- * In the near future (ideally Q3 2022), the EditGasFee1559 component will be replaced with EditGasFee1559Update as part of the gas polling refactor that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFee1559Update will be renamed EditGasFee1559 and this component will be removed. The EditGasFee1559Update is currently being used in the Update Transaction (Speed Up/Cancel) flow.
+ * The EditGasFee1559 component will be deprecated in favor of EditGasFee1559Update as part of the gas polling refactor code that moves gas fee modifications to `app/core/GasPolling`. When the refactoring is completed, the EditGasFee1559Update will be renamed EditGasFee1559 and this component will be removed. The EditGasFee1559Update is currently being used in the Update Transaction(Speed Up/Cancel) flow.
  */
 
 const EditGasFee1559 = ({
