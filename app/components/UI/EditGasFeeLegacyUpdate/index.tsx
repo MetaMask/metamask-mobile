@@ -56,13 +56,16 @@ const EditGasFeeLegacy = ({
   selectedGasObject,
 }: EditGasFeeLegacyUpdateProps) => {
   const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
-  const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
-  const [showAdvancedOptions, setShowAdvancedOptions] = useState(
+  const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(
     !selected || onlyAdvanced,
   );
-  const [selectedOption, setSelectedOption] = useState(selected);
-  const [gasPriceError, setGasPriceError] = useState();
-  const [gasObject, updateLegacyGasObject] = useState({
+  const [selectedOption, setSelectedOption] = useState<string>(selected);
+  const [gasPriceError, setGasPriceError] = useState<string>('');
+  const [gasObject, updateLegacyGasObject] = useState<{
+    legacyGasLimit: string;
+    suggestedGasPrice: string;
+  }>({
     legacyGasLimit: selectedGasObject.legacyGasLimit,
     suggestedGasPrice: selectedGasObject.suggestedGasPrice,
   });
@@ -127,7 +130,7 @@ const EditGasFeeLegacy = ({
   );
 
   const changedGasPrice = useCallback(
-    (value) => {
+    (value: string) => {
       const lowerValue = new BigNumber(
         gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
           ? gasOptions?.[warningMinimumEstimateOption]
@@ -163,7 +166,7 @@ const EditGasFeeLegacy = ({
   );
 
   const changedGasLimit = useCallback(
-    (value) => {
+    (value: string) => {
       const newGas = { ...gasTransaction, suggestedGasLimit: value };
       changeGas(newGas, null);
     },
@@ -171,7 +174,7 @@ const EditGasFeeLegacy = ({
   );
 
   const selectOption = useCallback(
-    (option) => {
+    (option: string) => {
       setGasPriceError('');
       changeGas({ suggestedGasPrice: gasOptions[option] }, option);
     },
@@ -202,7 +205,7 @@ const EditGasFeeLegacy = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
-          label: (selectedValue: any, disabled: any) => (
+          label: (selectedValue: string, disabled: boolean) => (
             <Text bold primary={selectedValue && !disabled}>
               {label}
             </Text>
