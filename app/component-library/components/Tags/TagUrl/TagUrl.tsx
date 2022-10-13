@@ -5,43 +5,35 @@ import React from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
-import { AvatarBaseSize } from '../../Avatars/AvatarBase';
-import AvatarFavicon from '../../Avatars/AvatarFavicon';
-import ButtonLink from '../../Buttons/ButtonLink';
-import Text, { TextVariant } from '../../Texts/Text';
-import Icon, { IconSize } from '../../Icon';
+import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Button, { ButtonVariants } from '../../Buttons/Button';
+import Text, { TextVariants } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
 import styleSheet from './TagUrl.styles';
 import { TagUrlProps } from './TagUrl.types';
 
-const TagUrl = ({
-  imageSource,
-  label,
-  cta,
-  style,
-  iconName,
-  ...props
-}: TagUrlProps) => {
+const TagUrl = ({ imageSource, label, cta, style, ...props }: TagUrlProps) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
     <View style={styles.base} {...props}>
-      <AvatarFavicon
+      <Avatar
+        variant={AvatarVariants.Favicon}
         imageSource={imageSource}
-        size={AvatarBaseSize.Md}
-        style={styles.favicon}
+        size={AvatarSize.Md}
       />
-      {iconName ? (
-        <Icon style={styles.icon} name={iconName} size={IconSize.Sm} />
-      ) : null}
-      <Text style={styles.label} variant={TextVariant.sBodyMD}>
+      <Text style={styles.label} variant={TextVariants.sBodyMD}>
         {label}
       </Text>
       {cta && (
-        <ButtonLink style={styles.cta} onPress={cta.onPress}>
+        <Button
+          variant={ButtonVariants.Link}
+          style={styles.cta}
+          onPress={cta.onPress}
+        >
           {cta.label}
-        </ButtonLink>
+        </Button>
       )}
     </View>
   );

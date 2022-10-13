@@ -25,11 +25,10 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
-import AvatarAccount from '../Avatars/AvatarAccount';
-import AvatarNetwork from '../Avatars/AvatarNetwork';
-import { AvatarBaseSize } from '../Avatars/AvatarBase';
-import Text, { TextVariant } from '../Texts/Text';
-import ButtonLink from '../Buttons/ButtonLink';
+import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
+import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
+import Text, { TextVariants } from '../Texts/Text';
+import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
@@ -37,7 +36,7 @@ import {
   ToastLinkButtonOptions,
   ToastOptions,
   ToastRef,
-  ToastVariant,
+  ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
 
@@ -104,11 +103,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <Text variant={TextVariant.sBodyMD}>
+    <Text variant={TextVariants.sBodyMD}>
       {labelOptions.map(({ label, isBold }, index) => (
         <Text
           key={`toast-label-${index}`}
-          variant={isBold ? TextVariant.sBodyMDBold : TextVariant.sBodyMD}
+          variant={isBold ? TextVariants.sBodyMDBold : TextVariants.sBodyMD}
           style={styles.label}
         >
           {label}
@@ -119,35 +118,38 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const renderButtonLink = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
-      <ButtonLink
+      <Button
+        variant={ButtonVariants.Link}
         onPress={linkButtonOptions.onPress}
-        variant={TextVariant.sBodyMD}
+        textVariants={TextVariants.sBodyMD}
       >
         {linkButtonOptions.label}
-      </ButtonLink>
+      </Button>
     );
 
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
-      case ToastVariant.Plain:
+      case ToastVariants.Plain:
         return null;
-      case ToastVariant.Account: {
-        const { accountAddress, accountAvatarType } = toastOptions;
+      case ToastVariants.Account: {
+        const { accountAddress } = toastOptions;
         return (
-          <AvatarAccount
+          <Avatar
+            variant={AvatarVariants.Account}
             accountAddress={accountAddress}
-            type={accountAvatarType}
-            size={AvatarBaseSize.Md}
+            type={AvatarAccountType.JazzIcon}
+            size={AvatarSize.Md}
             style={styles.avatar}
           />
         );
       }
-      case ToastVariant.Network: {
+      case ToastVariants.Network: {
         const { networkImageSource } = toastOptions;
         return (
-          <AvatarNetwork
+          <Avatar
+            variant={AvatarVariants.Network}
             imageSource={networkImageSource}
-            size={AvatarBaseSize.Md}
+            size={AvatarSize.Md}
             style={styles.avatar}
           />
         );

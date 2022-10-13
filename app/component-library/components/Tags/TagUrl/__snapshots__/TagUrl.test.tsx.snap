@@ -17,18 +17,14 @@ exports[`TagUrl should render correctly 1`] = `
     }
   }
 >
-  <AvatarFavicon
+  <Avatar
     imageSource={
       Object {
         "uri": "https://uniswap.org/favicon.ico",
       }
     }
     size="32"
-    style={
-      Object {
-        "marginRight": 8,
-      }
-    }
+    variant="Favicon"
   />
   <Text
     style={

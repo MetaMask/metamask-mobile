@@ -479,9 +479,14 @@ PODS:
     - React
   - RNVectorIcons (6.4.2):
     - React
+  - segment-analytics-react-native (2.7.0):
+    - React-Core
+    - sovran-react-native
   - Sentry (6.1.4):
     - Sentry/Core (= 6.1.4)
   - Sentry/Core (6.1.4)
+  - sovran-react-native (0.4.4):
+    - React-Core
   - TcpSockets (4.0.0):
     - CocoaAsyncSocket
     - React
@@ -585,6 +590,8 @@ DEPENDENCIES:
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
+  - "segment-analytics-react-native (from `../node_modules/@segment/analytics-react-native`)"
+  - "sovran-react-native (from `../node_modules/@segment/sovran-react-native`)"
   - TcpSockets (from `../node_modules/react-native-tcp`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -753,6 +760,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
+  segment-analytics-react-native:
+    :path: "../node_modules/@segment/analytics-react-native"
+  sovran-react-native:
+    :path: "../node_modules/@segment/sovran-react-native"
   TcpSockets:
     :path: "../node_modules/react-native-tcp"
   Yoga:
@@ -846,7 +857,9 @@ SPEC CHECKSUMS:
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
+  segment-analytics-react-native: e4be824133efd888616f6e6654a2cd4b1b8a3102
   Sentry: 9d055e2de30a77685e86b219acf02e59b82091fc
+  sovran-react-native: 5f9715a62b50008d72c0cf904cb08c8377777b62
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

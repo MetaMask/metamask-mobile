@@ -8,7 +8,7 @@ export interface PickerNetworkProps extends TouchableOpacityProps {
   /**
    * Optional Network image from either a local or remote source.
    */
-  imageSource?: ImageSourcePropType;
+  imageSource: ImageSourcePropType;
   /**
    * Network label to display.
    */
