@@ -22,16 +22,16 @@ import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import {
   ToastContext,
-  ToastVariant,
-  ToastOptions,
+  ToastVariants,
 } from '../../../component-library/components/Toast';
+import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
 import { IconName } from '../../../component-library/components/Icon';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { safeToChecksumAddress } from '../../../util/address';
 
 // Internal dependencies.
@@ -139,7 +139,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           ];
         }
         toastRef?.current?.showToast({
-          variant: ToastVariant.Account,
+          variant: ToastVariants.Account,
           labelOptions,
           accountAddress: activeAddress,
           accountAvatarType,

@@ -23,8 +23,8 @@ import { MAINNET, RPC } from '../../../../constants/network';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import ImageIcons from '../../../UI/ImageIcon';
-import AvatarNetwork from '../../../../component-library/components/Avatars/AvatarNetwork';
-import { AvatarBaseSize } from '../../../../component-library/components/Avatars/AvatarBase';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarBaseSize } from '../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
 
 const createStyles = (colors) =>
   StyleSheet.create({

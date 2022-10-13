@@ -19,7 +19,7 @@ import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
 import {
   ToastContext,
-  ToastVariant,
+  ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -76,7 +76,7 @@ const AccountPermissionsConnected = ({
         ensByAccountAddress,
       });
       toastRef?.current?.showToast({
-        variant: ToastVariant.Account,
+        variant: ToastVariants.Account,
         labelOptions: [
           {
             label: `${activeAccountName} `,

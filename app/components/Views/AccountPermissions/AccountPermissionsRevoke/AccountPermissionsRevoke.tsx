@@ -10,19 +10,19 @@ import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import ButtonSecondary, {
-  ButtonSecondaryVariant,
-} from '../../../../component-library/components/Buttons/ButtonSecondary';
-import { ButtonBaseSize } from '../../../../component-library/components/Buttons/ButtonBase';
+  ButtonSecondaryVariants,
+} from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
-import { ButtonTertiaryVariant } from '../../../../component-library/components/Buttons/ButtonTertiary';
+import { ButtonTertiaryVariants } from '../../../../component-library/components/Buttons/Button/variants/ButtonTertiary';
 import { removePermittedAccount } from '../../../../core/Permissions';
 import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import {
   ToastContext,
-  ToastVariant,
-  ToastOptions,
+  ToastVariants,
 } from '../../../../component-library/components/Toast';
+import { ToastOptions } from '../../../../component-library/components/Toast/Toast.types';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 
@@ -55,7 +55,7 @@ const AccountPermissionsRevoke = ({
         );
         onDismissSheet();
         toastRef?.current?.showToast({
-          variant: ToastVariant.Plain,
+          variant: ToastVariants.Plain,
           labelOptions: [{ label: strings('toast.revoked_all') }],
         });
       } catch (e) {
@@ -75,7 +75,7 @@ const AccountPermissionsRevoke = ({
               label: strings('accounts.disconnect_all_accounts'),
               onPress: revokeAllAccounts,
               disabled: isLoading,
-              variant: ButtonTertiaryVariant.Danger,
+              variant: ButtonTertiaryVariants.Danger,
             },
           ]}
         />
@@ -101,7 +101,7 @@ const AccountPermissionsRevoke = ({
       <AccountSelectorList
         renderRightAccessory={(address, name) => (
           <ButtonSecondary
-            variant={ButtonSecondaryVariant.Danger}
+            variant={ButtonSecondaryVariants.Danger}
             onPress={() => {
               if (permittedAddresses.length === 1) {
                 // Dismiss and show toast
@@ -130,7 +130,7 @@ const AccountPermissionsRevoke = ({
                     { label: strings('toast.now_active') },
                   );
                   toastRef?.current?.showToast({
-                    variant: ToastVariant.Account,
+                    variant: ToastVariants.Account,
                     labelOptions,
                     accountAddress: nextActiveAddress,
                     accountAvatarType,
@@ -139,14 +139,14 @@ const AccountPermissionsRevoke = ({
                   // Just disconnect
                   removePermittedAccount(hostname, address);
                   toastRef?.current?.showToast({
-                    variant: ToastVariant.Plain,
+                    variant: ToastVariants.Plain,
                     labelOptions,
                   });
                 }
               }
             }}
             label={strings('accounts.disconnect')}
-            size={ButtonBaseSize.Sm}
+            size={ButtonSize.Sm}
             style={styles.disconnectButton}
           />
         )}

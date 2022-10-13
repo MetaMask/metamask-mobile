@@ -63,7 +63,7 @@ import {
 } from '../../../util/networks';
 import {
   ToastContext,
-  ToastVariant,
+  ToastVariants,
 } from '../../../component-library/components/Toast';
 
 const Stack = createStackNavigator();
@@ -227,7 +227,7 @@ const Main = (props) => {
       const networkImage = getNetworkImageSource(networkProvider.chainId);
       const networkName = getNetworkNameFromProvider(networkProvider);
       toastRef?.current?.showToast({
-        variant: ToastVariant.Network,
+        variant: ToastVariants.Network,
         labelOptions: [
           {
             label: `${networkName} `,

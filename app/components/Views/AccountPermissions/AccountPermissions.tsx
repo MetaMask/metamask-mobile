@@ -23,9 +23,9 @@ import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSe
 import Logger from '../../../util/Logger';
 import {
   ToastContext,
-  ToastOptions,
-  ToastVariant,
+  ToastVariants,
 } from '../../../component-library/components/Toast';
+import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
@@ -34,7 +34,7 @@ import { IconName } from '../../../component-library/components/Icon';
 import { getUrlObj } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 // Internal dependencies.
 import {
@@ -169,7 +169,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ];
       }
       toastRef?.current?.showToast({
-        variant: ToastVariant.Account,
+        variant: ToastVariants.Account,
         labelOptions,
         accountAddress: newActiveAddress,
         accountAvatarType,

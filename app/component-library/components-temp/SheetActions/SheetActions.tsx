@@ -4,8 +4,8 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
-import ButtonTertiary from '../../components/Buttons/ButtonTertiary';
-import { ButtonBaseSize } from '../../components/Buttons/ButtonBase';
+import ButtonTertiary from '../../components/Buttons/Button/variants/ButtonTertiary';
+import { ButtonSize } from '../../components/Buttons/Button';
 import Loader from '../Loader';
 
 // Internal dependencies.
@@ -28,7 +28,7 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
                   testID={testID}
                   onPress={onPress}
                   label={label}
-                  size={ButtonBaseSize.Lg}
+                  size={ButtonSize.Lg}
                   disabled={disabled || isLoading}
                   /* eslint-disable-next-line */
                   style={{ opacity: disabled ? 0.5 : 1 }}

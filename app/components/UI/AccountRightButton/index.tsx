@@ -4,15 +4,15 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
-} from '../../../component-library/components/Avatars/AvatarAccount';
+} from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
-import AvatarNetwork from '../../../component-library/components/Avatars/AvatarNetwork';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import {
   getNetworkImageSource,
   getNetworkNameFromProvider,
 } from '../../../util/networks';
 import { toggleNetworkModal } from '../../../actions/modals';
-import { BadgeVariants } from '../../../component-library/components/Badges/Badge';
+import { BadgeVariants } from '../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 
 const styles = StyleSheet.create({

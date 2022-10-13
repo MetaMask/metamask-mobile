@@ -15,14 +15,14 @@ import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import ButtonPrimary, {
-  ButtonPrimaryVariant,
-} from '../../../../component-library/components/Buttons/ButtonPrimary';
+  ButtonPrimaryVariants,
+} from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import ButtonSecondary, {
-  ButtonSecondaryVariant,
-} from '../../../../component-library/components/Buttons/ButtonSecondary';
-import { ButtonBaseSize } from '../../../../component-library/components/Buttons/ButtonBase';
-import { AvatarVariants } from '../../../../component-library/components/Avatars';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/AvatarAccount';
+  ButtonSecondaryVariants,
+} from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
+import { AvatarVariants } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { formatAddress } from '../../../../util/address';
 import Icon, { IconName } from '../../../../component-library/components/Icon';
 import { AccountConnectScreens } from '../AccountConnect.types';
@@ -86,18 +86,18 @@ const AccountConnectSingle = ({
     () => (
       <View style={[styles.ctaButtonsContainer, isLoading && styles.disabled]}>
         <ButtonSecondary
-          variant={ButtonSecondaryVariant.Normal}
+          variant={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={onDismissSheet}
-          size={ButtonBaseSize.Lg}
+          size={ButtonSize.Lg}
           style={styles.button}
         />
         <View style={styles.buttonSeparator} />
         <ButtonPrimary
-          variant={ButtonPrimaryVariant.Normal}
+          variant={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect')}
           onPress={onConnect}
-          size={ButtonBaseSize.Lg}
+          size={ButtonSize.Lg}
           style={styles.button}
         />
       </View>

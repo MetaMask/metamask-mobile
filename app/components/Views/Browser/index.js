@@ -23,10 +23,10 @@ import getAccountNameWithENS from '../../../util/accounts';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import {
   ToastContext,
-  ToastVariant,
+  ToastVariants,
 } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/AvatarAccount';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -105,7 +105,7 @@ const Browser = (props) => {
         });
         // Show active account toast
         toastRef?.current?.showToast({
-          variant: ToastVariant.Account,
+          variant: ToastVariants.Account,
           labelOptions: [
             {
               label: `${accountName} `,

@@ -11,14 +11,14 @@ import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import ButtonPrimary, {
-  ButtonPrimaryVariant,
-} from '../../../../component-library/components/Buttons/ButtonPrimary';
+  ButtonPrimaryVariants,
+} from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
 import ButtonSecondary, {
-  ButtonSecondaryVariant,
-} from '../../../../component-library/components/Buttons/ButtonSecondary';
-import { ButtonBaseSize } from '../../../../component-library/components/Buttons/ButtonBase';
+  ButtonSecondaryVariants,
+} from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
 import AccountSelectorList from '../../../UI/AccountSelectorList';
-import ButtonLink from '../../../../component-library/components/Buttons/ButtonLink';
+import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 
@@ -120,22 +120,22 @@ const AccountConnectMultiSelector = ({
     return (
       <View style={styles.ctaButtonsContainer}>
         <ButtonSecondary
-          variant={ButtonSecondaryVariant.Normal}
+          variant={ButtonSecondaryVariants.Normal}
           label={strings('accounts.cancel')}
           onPress={() => onDismissSheetWithCallback()}
-          size={ButtonBaseSize.Lg}
+          size={ButtonSize.Lg}
           style={styles.button}
         />
         <View style={styles.buttonSeparator} />
         <ButtonPrimary
-          variant={ButtonPrimaryVariant.Normal}
+          variant={ButtonPrimaryVariants.Normal}
           label={strings('accounts.connect_with_count', {
             countLabel: selectedAddresses.length
               ? ` (${selectedAddresses.length})`
               : '',
           })}
           onPress={onConnect}
-          size={ButtonBaseSize.Lg}
+          size={ButtonSize.Lg}
           style={{
             ...styles.button,
             ...(isConnectDisabled && styles.disabled),
