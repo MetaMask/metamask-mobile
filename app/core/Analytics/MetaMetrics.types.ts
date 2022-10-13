@@ -79,3 +79,14 @@ export enum States {
   enabled = 'ENABLED',
   disabled = 'DISABLED',
 }
+
+// TO DO: Add commentary
+export const USER_PROFILE_PROPERTY = {
+  ENABLE_OPENSEA_API: 'Enable OpenSea API',
+  NFT_AUTODETECTION: 'NFT Autodetection',
+  THEME: 'Theme',
+  ON: 'ON',
+  OFF: 'OFF',
+  AUTHENTICATION_TYPE: 'Authentication Type',
+  TOKEN_DETECTION: 'token_detection_enable',
+};

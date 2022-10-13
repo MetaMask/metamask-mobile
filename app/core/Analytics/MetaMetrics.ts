@@ -1,3 +1,4 @@
+import { Appearance } from 'react-native';
 import {
   createClient,
   JsonMap,
@@ -18,12 +19,15 @@ import {
   MIXPANEL_METAMETRICS_ID,
   METAMETRICS_SEGMENT_REGULATION_ID,
 } from '../../constants/storage';
+import { store } from '../../store';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
 
 import {
   IMetaMetrics,
   ISegmentClient,
   States,
   DataDeleteResponseStatus,
+  USER_PROFILE_PROPERTY,
 } from './MetaMetrics.types';
 import {
   METAMETRICS_ANONYMOUS_ID,
@@ -250,6 +254,63 @@ class MetaMetrics implements IMetaMetrics {
     }
   };
 
+  #setInitialUserProperties() {
+    const reduxState = store.getState();
+    const preferencesController =
+      reduxState?.engine?.backgroundState?.PreferencesController;
+    const appTheme = reduxState?.user?.appTheme;
+    // This will return either "light" or "dark"
+    const appThemeStyle =
+      appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
+
+    this.#identify({
+      'Enable OpenSea API': preferencesController?.openSeaEnabled
+        ? USER_PROFILE_PROPERTY.ON
+        : USER_PROFILE_PROPERTY.OFF,
+      'NFT AutoDetection': preferencesController?.useCollectibleDetection
+        ? USER_PROFILE_PROPERTY.ON
+        : USER_PROFILE_PROPERTY.OFF,
+      'Token Detection': preferencesController.useTokenDetection
+        ? USER_PROFILE_PROPERTY.ON
+        : USER_PROFILE_PROPERTY.OFF,
+      Theme: appThemeStyle,
+    });
+  }
+
+  /**
+   * Apply User Property
+   *
+   * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
+   */
+  #applyAuthenticationUserProperty = (property: AUTHENTICATION_TYPE) => {
+    switch (property) {
+      case AUTHENTICATION_TYPE.BIOMETRIC:
+        this.#identify({
+          'Authentication Type': AUTHENTICATION_TYPE.BIOMETRIC,
+        });
+        break;
+      case AUTHENTICATION_TYPE.PASSCODE:
+        this.#identify({
+          'Authentication Type': AUTHENTICATION_TYPE.PASSCODE,
+        });
+        break;
+      case AUTHENTICATION_TYPE.REMEMBER_ME:
+        this.#identify({
+          'Authentication Type': AUTHENTICATION_TYPE.REMEMBER_ME,
+        });
+        break;
+      case AUTHENTICATION_TYPE.PASSWORD:
+        this.#identify({
+          'Authentication Type': AUTHENTICATION_TYPE.PASSWORD,
+        });
+        break;
+      default:
+        this.#identify({
+          'Authentication Type': AUTHENTICATION_TYPE.UNKNOWN,
+        });
+    }
+  };
+
   // PUBLIC METHODS
 
   public static getInstance(): IMetaMetrics {
@@ -319,6 +380,10 @@ class MetaMetrics implements IMetaMetrics {
       throw new Error('MetaMetrics must be enabled to retrieve ID');
     }
     return this.#metametricsId;
+  }
+
+  public applyAuthenticationUserProperty(property: AUTHENTICATION_TYPE) {
+    this.#applyAuthenticationUserProperty(property);
   }
 }
 
