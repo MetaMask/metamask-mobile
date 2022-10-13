@@ -10,6 +10,8 @@ import {
   PersonalMessageManager,
   MessageManager,
   NetworkController,
+  NetworkControllerOptions,
+  NetworkControllerMessenger,
   PhishingController,
   PreferencesController,
   TokenBalancesController,
@@ -84,49 +86,104 @@ class Engine {
           openSeaEnabled: false,
         },
       );
-      const networkController = new NetworkController({
+
+      const networkControllerOpts = {
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        providerConfig: {
-          static: {
-            eth_sendTransaction: async (
-              payload: { params: any[], origin: any },
-              next: any,
-              end: (arg0: undefined, arg1: undefined) => void,
-            ) => {
-              const { TransactionController } = this.context;
-              try {
-                const hash = await (
-                  await TransactionController.addTransaction(
-                    payload.params[0],
-                    payload.origin,
-                    WalletDevice.MM_MOBILE,
-                  )
-                ).result;
-                end(undefined, hash);
-              } catch (error) {
-                end(error);
-              }
-            },
+        state: {
+          //Need to figure out where these values will come from
+          network: '0',
+          provider: {
+            type: pType,
+            chainId: NetworksChainId[pType],
           },
-          getAccounts: (
-            end: (arg0: null, arg1: any[]) => void,
-            payload: { hostname: string | number },
+          properties: { isEIP1559Compatible: false },
+        },
+        messenger,
+      };
+
+      const networkController = new NetworkController(networkControllerOpts);
+      networkController.providerConfig = {
+        static: {
+          eth_sendTransaction: async (
+            payload: { params: any[], origin: any },
+            next: any,
+            end: (arg0: undefined, arg1: undefined) => void,
           ) => {
-            const { approvedHosts, privacyMode } = store.getState();
-            const isEnabled = !privacyMode || approvedHosts[payload.hostname];
-            const { KeyringController } = this.context;
-            const isUnlocked = KeyringController.isUnlocked();
-            const selectedAddress =
-              this.context.PreferencesController.state.selectedAddress;
-            end(
-              null,
-              isUnlocked && isEnabled && selectedAddress
-                ? [selectedAddress]
-                : [],
-            );
+            const { TransactionController } = this.context;
+            try {
+              const hash = await (
+                await TransactionController.addTransaction(
+                  payload.params[0],
+                  payload.origin,
+                  WalletDevice.MM_MOBILE,
+                )
+              ).result;
+              end(undefined, hash);
+            } catch (error) {
+              end(error);
+            }
           },
         },
-      });
+        getAccounts: (
+          end: (arg0: null, arg1: any[]) => void,
+          payload: { hostname: string | number },
+        ) => {
+          const { approvedHosts, privacyMode } = store.getState();
+          const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+          const { KeyringController } = this.context;
+          const isUnlocked = KeyringController.isUnlocked();
+          const selectedAddress =
+            this.context.PreferencesController.state.selectedAddress;
+          end(
+            null,
+            isUnlocked && isEnabled && selectedAddress ? [selectedAddress] : [],
+          );
+        },
+      };
+      //Existing Implementation
+      // const networkController = new NetworkController({
+      //   infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      //   providerConfig: {
+      //     static: {
+      //       eth_sendTransaction: async (
+      //         payload: { params: any[], origin: any },
+      //         next: any,
+      //         end: (arg0: undefined, arg1: undefined) => void,
+      //       ) => {
+      //         const { TransactionController } = this.context;
+      //         try {
+      //           const hash = await (
+      //             await TransactionController.addTransaction(
+      //               payload.params[0],
+      //               payload.origin,
+      //               WalletDevice.MM_MOBILE,
+      //             )
+      //           ).result;
+      //           end(undefined, hash);
+      //         } catch (error) {
+      //           end(error);
+      //         }
+      //       },
+      //     },
+      //     getAccounts: (
+      //       end: (arg0: null, arg1: any[]) => void,
+      //       payload: { hostname: string | number },
+      //     ) => {
+      //       const { approvedHosts, privacyMode } = store.getState();
+      //       const isEnabled = !privacyMode || approvedHosts[payload.hostname];
+      //       const { KeyringController } = this.context;
+      //       const isUnlocked = KeyringController.isUnlocked();
+      //       const selectedAddress =
+      //         this.context.PreferencesController.state.selectedAddress;
+      //       end(
+      //         null,
+      //         isUnlocked && isEnabled && selectedAddress
+      //           ? [selectedAddress]
+      //           : [],
+      //       );
+      //     },
+      //   },
+      // });
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
