@@ -87,19 +87,14 @@ When(/^I tap "([^"]*)?"/, async (text) => {
   }
 });
 
-When(/^I type "([^"]*)?"/, async (text) => {
-  const validAccount = Accounts.getValidAccount()
-  switch (text) {
-    case 'a valid Secret Recovery Phrase':
-      await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
-      break;
-    case 'a valid New password':
-      await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-      break;
-    case 'a valid Confirm password':
-      await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-})
+When(/^I type (.*) in SRP field/, async (text) => {
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(text);
+});
+
+When(/^I type (.*) in new password field/, async (text) => {
+  await ImportFromSeedScreen.typeNewPassword(text);
+});
+
+When(/^I type (.*) in confirm password field/, async (text) => {
+  await ImportFromSeedScreen.typeConfirmPassword(text);
+});
