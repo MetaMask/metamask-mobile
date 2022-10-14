@@ -71,6 +71,7 @@ When(/^I swipe left on the carousel/, async () => {
 When(/^I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Get started':
+      await driver.pause(7000) //TODO: Needs a smarter set timeout 
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':
@@ -103,3 +104,27 @@ When(/^I type "([^"]*)?"/, async (text) => {
       throw new Error('Condition not found');
   }
 })
+
+When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
+  switch (text) {
+    case 'Create a new wallet':
+      await WalletSetupScreen.tapCreateNewWalletBtn();
+      break;
+      case 'Agree':
+      await WalletSetupScreen.tapAgreeDataGathering();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
+});
+
+When(/^I input a new password and create account/, async () => {
+  await WalletSetupScreen.assertNewAccountScreenFields();
+  await WalletSetupScreen.createNewAccountPassword();
+});
+
+When(/^I select remind me later on secure wallet screen and proceed to account/, async () => {
+  await WalletSetupScreen.accountCreatedAssertion()
+  await WalletSetupScreen.proceedWithoutWalletSecure();
+
+});
