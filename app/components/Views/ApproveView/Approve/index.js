@@ -19,11 +19,7 @@ import { strings } from '../../../../../locales/i18n';
 import { setTransactionObject } from '../../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES, util } from '@metamask/controllers';
 import { addHexPrefix, fromWei, renderFromWei } from '../../../../util/number';
-import {
-  getNormalizedTxState,
-  getTicker,
-  parseTransactionLegacy,
-} from '../../../../util/transactions';
+import { getNormalizedTxState, getTicker } from '../../../../util/transactions';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
@@ -32,7 +28,7 @@ import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
 import Logger from '../../../../util/Logger';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
-import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacy';
+import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
@@ -150,22 +146,18 @@ class Approve extends PureComponent {
     analyticsParams: {},
     gasSelected: AppConstants.GAS_OPTIONS.MEDIUM,
     gasSelectedTemp: AppConstants.GAS_OPTIONS.MEDIUM,
-    LegacyGasData: {},
-    LegacyGasDataTemp: {},
     transactionConfirmed: false,
     addNickname: false,
     suggestedGasLimit: undefined,
     gasTransaction: {},
     gasPriceObject: {},
     gasTransactionObject: {},
+    legacyGasObject: {},
+    legacyGasTransaction: {},
   };
 
-  computeGasEstimates = (
-    overrideGasPrice,
-    overrideGasLimit,
-    gasEstimateTypeChanged,
-  ) => {
-    const { transaction, gasEstimateType, gasFeeEstimates } = this.props;
+  computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
+    const { transaction, gasEstimateType } = this.props;
 
     const gasSelected = gasEstimateTypeChanged
       ? AppConstants.GAS_OPTIONS.MEDIUM
@@ -184,8 +176,6 @@ class Approve extends PureComponent {
       this.setState(
         {
           ready: true,
-          LegacyGasData: {},
-          LegacyGasDataTemp: {},
           animateOnChange: true,
           gasSelected,
           gasSelectedTemp,
@@ -201,40 +191,10 @@ class Approve extends PureComponent {
         'wei',
       );
 
-      const getGas = (selected) =>
-        overrideGasPrice
-          ? fromWei(overrideGasPrice, 'gwei')
-          : gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? gasFeeEstimates[selected]
-          : gasFeeEstimates.gasPrice;
-
-      const LegacyGasData = this.parseTransactionDataLegacy(
-        {
-          suggestedGasPrice: getGas(gasSelected),
-          suggestedGasLimit,
-        },
-        { onlyGas: true },
-      );
-
-      let LegacyGasDataTemp;
-      if (gasSelected === gasSelectedTemp) {
-        LegacyGasDataTemp = LegacyGasData;
-      } else {
-        LegacyGasDataTemp = this.parseTransactionDataLegacy(
-          {
-            suggestedGasPrice: getGas(gasSelectedTemp),
-            suggestedGasLimit,
-          },
-          { onlyGas: true },
-        );
-      }
-
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
           ready: true,
-          LegacyGasData,
-          LegacyGasDataTemp,
           animateOnChange: true,
           gasSelected,
           gasSelectedTemp,
@@ -295,24 +255,6 @@ class Approve extends PureComponent {
     }
   };
 
-  parseTransactionDataLegacy = (gasFee, options) => {
-    const { ticker } = this.props;
-
-    const parsedTransactionLegacy = parseTransactionLegacy(
-      {
-        ...this.props,
-        nativeCurrency: ticker,
-        selectedGasFee: gasFee,
-      },
-      { onlyGas: true },
-    );
-    parsedTransactionLegacy.error = this.validateGas(
-      parsedTransactionLegacy.totalHex,
-    );
-
-    return parsedTransactionLegacy;
-  };
-
   componentWillUnmount = async () => {
     const { approved } = this.state;
     const { transaction } = this.props;
@@ -351,7 +293,6 @@ class Approve extends PureComponent {
 
   cancelGasEdition = () => {
     this.setState({
-      LegacyGasDataTemp: { ...this.state.LegacyGasData },
       stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
     });
@@ -360,20 +301,23 @@ class Approve extends PureComponent {
 
   cancelGasEditionUpdate = () => {
     this.setState({
-      LegacyGasDataTemp: { ...this.state.LegacyGasData },
       stopUpdateGas: false,
       gasSelectedTemp: this.state.gasSelected,
     });
     this.review();
   };
 
-  saveGasEdition = (gasSelected) => {
+  saveGasEdition = (legacyGasTransaction, legacyGasObject, gasSelected) => {
+    legacyGasTransaction.error = this.validateGas(
+      legacyGasTransaction.totalHex,
+    );
     this.setState({
-      LegacyGasData: { ...this.state.LegacyGasDataTemp },
       gasSelected,
       gasSelectedTemp: gasSelected,
       advancedGasInserted: !gasSelected,
       stopUpdateGas: false,
+      legacyGasTransaction,
+      legacyGasObject,
     });
     this.review();
   };
@@ -409,7 +353,7 @@ class Approve extends PureComponent {
 
   prepareTransaction = (transaction) => {
     const { gasEstimateType } = this.props;
-    const { LegacyGasData, gasTransaction } = this.state;
+    const { legacyGasTransaction, gasTransaction } = this.state;
     const transactionToSend = {
       ...transaction,
       value: BNToHex(transaction.value),
@@ -427,9 +371,9 @@ class Approve extends PureComponent {
       ); //'0x3b9aca00';
       delete transactionToSend.gasPrice;
     } else {
-      transactionToSend.gas = LegacyGasData.suggestedGasLimitHex;
+      transactionToSend.gas = legacyGasTransaction.suggestedGasLimitHex;
       transactionToSend.gasPrice = addHexPrefix(
-        LegacyGasData.suggestedGasPriceHex,
+        legacyGasTransaction.suggestedGasPriceHex,
       );
     }
 
@@ -454,11 +398,12 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController } = Engine.context;
     const { transactions, gasEstimateType } = this.props;
-    const { LegacyGasData, transactionConfirmed, gasTransaction } = this.state;
+    const { legacyGasTransaction, transactionConfirmed, gasTransaction } =
+      this.state;
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       if (this.validateGas(gasTransaction.totalMaxHex)) return;
-    } else if (this.validateGas(LegacyGasData.totalHex)) return;
+    } else if (this.validateGas(legacyGasTransaction.totalHex)) return;
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true });
     try {
@@ -560,13 +505,8 @@ class Approve extends PureComponent {
     });
   };
 
-  calculateTempGasFeeLegacy = (gas, selected) => {
-    const { transaction } = this.props;
-    if (selected && gas) {
-      gas.suggestedGasLimit = fromWei(transaction.gas, 'wei');
-    }
+  calculateTempGasFeeLegacy = (selected) => {
     this.setState({
-      LegacyGasDataTemp: this.parseTransactionDataLegacy(gas),
       stopUpdateGas: !selected,
       gasSelectedTemp: selected,
     });
@@ -580,7 +520,7 @@ class Approve extends PureComponent {
   };
 
   updateTransactionState = (gasTransactionObject) => {
-    this.setState({gasTransactionObject})
+    this.setState({ gasTransactionObject });
   };
 
   render = () => {
@@ -588,8 +528,6 @@ class Approve extends PureComponent {
       mode,
       ready,
       over,
-      LegacyGasData,
-      LegacyGasDataTemp,
       gasSelected,
       animateOnChange,
       isAnimating,
@@ -597,6 +535,8 @@ class Approve extends PureComponent {
       gasPriceObject,
       gasTransaction,
       gasTransactionObject,
+      legacyGasObject,
+      legacyGasTransaction,
     } = this.state;
 
     const {
@@ -616,7 +556,14 @@ class Approve extends PureComponent {
       suggestedMaxPriorityFeePerGas:
         gasPriceObject.suggestedMaxPriorityFeePerGas ||
         gasFeeEstimates[gasSelected]?.suggestedMaxPriorityFeePerGas,
-        suggestedGasLimit: gasPriceObject.suggestedGasLimit || gasTransactionObject.suggestedGasLimit,
+      suggestedGasLimit:
+        gasPriceObject.suggestedGasLimit ||
+        gasTransactionObject.suggestedGasLimit,
+    };
+
+    const selectedLegacyGasObject = {
+      legacyGasLimit: legacyGasObject?.legacyGasLimit,
+      suggestedGasPrice: legacyGasObject?.suggestedGasPrice,
     };
 
     const colors = this.context.colors || mockTheme.colors;
@@ -668,13 +615,12 @@ class Approve extends PureComponent {
                 review={this.review}
               >
                 <ApproveTransactionReview
-                  gasError={gasTransaction.error || LegacyGasData.error}
+                  gasError={gasTransaction.error || legacyGasTransaction.error}
                   onCancel={this.onCancel}
                   onConfirm={this.onConfirm}
                   over={over}
                   gasSelected={gasSelected}
                   onSetAnalyticsParams={this.setAnalyticsParams}
-                  LegacyGasData={LegacyGasData}
                   gasEstimateType={gasEstimateType}
                   onUpdatingValuesStart={this.onUpdatingValuesStart}
                   onUpdatingValuesEnd={this.onUpdatingValuesEnd}
@@ -720,23 +666,18 @@ class Approve extends PureComponent {
                 <EditGasFeeLegacy
                   selected={gasSelected}
                   gasEstimateType={gasEstimateType}
-                  gasFee={LegacyGasDataTemp}
                   gasOptions={gasFeeEstimates}
                   onChange={this.calculateTempGasFeeLegacy}
-                  gasFeeNative={LegacyGasDataTemp.transactionFee}
-                  gasFeeConversion={LegacyGasDataTemp.transactionFeeFiat}
-                  gasPriceConversion={LegacyGasDataTemp.transactionFeeFiat}
                   primaryCurrency={primaryCurrency}
                   chainId={chainId}
                   onCancel={this.cancelGasEdition}
                   onSave={this.saveGasEdition}
-                  error={LegacyGasDataTemp.error}
-                  onUpdatingValuesStart={this.onUpdatingValuesStart}
-                  onUpdatingValuesEnd={this.onUpdatingValuesEnd}
                   animateOnChange={animateOnChange}
                   isAnimating={isAnimating}
                   view={'Approve'}
                   analyticsParams={this.getGasAnalyticsParams()}
+                  onlyGas
+                  selectedGasObject={selectedLegacyGasObject}
                 />
               ))}
           </KeyboardAwareScrollView>

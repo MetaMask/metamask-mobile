@@ -202,6 +202,10 @@ class ApproveTransactionReview extends PureComponent {
      * gas object for calculating the gas transaction cost
      */
     gasPriceObject: PropTypes.object,
+    /**
+     * update gas transaction state to parent
+     */
+    updateTransactionState: PropTypes.func,
   };
 
   state = {
@@ -219,7 +223,7 @@ class ApproveTransactionReview extends PureComponent {
     transaction: this.props.transaction,
     token: {},
     showGasTooltip: false,
-    gasTransactionObject: {}
+    gasTransactionObject: {},
   };
 
   customSpendLimitInput = React.createRef();
@@ -559,6 +563,7 @@ class ApproveTransactionReview extends PureComponent {
       transactionConfirmed,
       gasSelected,
       gasPriceObject,
+      updateTransactionState,
     } = this.props;
     const styles = this.getStyles();
     const isTestNetwork = isTestNet(network);
@@ -678,7 +683,7 @@ class ApproveTransactionReview extends PureComponent {
                     gasEstimationReady={gasEstimationReady}
                     legacy={!showFeeMarket}
                     gasObject={gasPriceObject}
-                    updateTransactionState={this.props.updateTransactionState}
+                    updateTransactionState={updateTransactionState}
                     onlyGas
                   />
 
