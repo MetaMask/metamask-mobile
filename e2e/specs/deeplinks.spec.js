@@ -126,14 +126,14 @@ describe('Deep linking Tests', () => {
     await WalletView.isVisible();
   });
 
-  // it('should deep link to Binance Smart Chain & show a network not found error message', async () => {
-  //   await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
-  //   await TestHelpers.delay(3000);
-  //   await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
-  //   await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
+  it('should deep link to Binance Smart Chain & show a network not found error message', async () => {
+    await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
+    await TestHelpers.delay(3000);
+    await TestHelpers.checkIfElementWithTextIsVisible(networkNotFoundText);
+    await TestHelpers.checkIfElementWithTextIsVisible(networkErrorBodyMessage);
 
-  //   await WalletView.tapOKAlertButton();
-  // });
+    await WalletView.tapOKAlertButton();
+  });
 
   it('should go to settings then networks', async () => {
     // Open Drawer
@@ -168,77 +168,77 @@ describe('Deep linking Tests', () => {
     //await WalletView.isVisible();
   });
 
-  // it('should add polygon network', async () => {
-  //   await NetworkView.tapPopularNetworkByName('Polygon Mainnet');
+  it('should add polygon network', async () => {
+    await NetworkView.tapPopularNetworkByName('Polygon Mainnet');
 
-  //   await NetworkApprovalModal.isVisible();
-  //   await NetworkApprovalModal.isDisplayNameVisible('Polygon Mainnet');
-  //   //await NetworkApprovalModal.isNetworkURLVisible(POLYGON_RPC_URL);
-  //   await NetworkApprovalModal.isChainIDVisible('137');
+    await NetworkApprovalModal.isVisible();
+    await NetworkApprovalModal.isDisplayNameVisible('Polygon Mainnet');
+    //await NetworkApprovalModal.isNetworkURLVisible(POLYGON_RPC_URL);
+    await NetworkApprovalModal.isChainIDVisible('137');
 
-  //   await NetworkApprovalModal.tapApproveButton();
-  //   await TestHelpers.delay(1000);
+    await NetworkApprovalModal.tapApproveButton();
+    await TestHelpers.delay(1000);
 
-  //   await NetworkAddedModal.isVisible();
-  //   await NetworkAddedModal.tapSwitchToNetwork();
+    await NetworkAddedModal.isVisible();
+    await NetworkAddedModal.tapSwitchToNetwork();
 
-  //   await WalletView.isVisible();
-  //   await WalletView.isNetworkNameVisible('Polygon Mainnet');
-  // });
+    await WalletView.isVisible();
+    await WalletView.isNetworkNameVisible('Polygon Mainnet');
+  });
 
-  // it('should deep link to the send flow on matic', async () => {
-  //   await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL);
+  it('should deep link to the send flow on matic', async () => {
+    await TestHelpers.openDeepLink(POLYGON_DEEPLINK_URL);
 
-  //   await TestHelpers.delay(4500);
-  //   await TransactionConfirmationView.isVisible();
-  //   await TransactionConfirmationView.isNetworkNameVisible('Polygon Mainnet');
-  //   await TestHelpers.delay(1500);
-  //   await TransactionConfirmationView.tapCancelButton();
-  // });
-  // it('should deep link to the send flow on BSC', async () => {
-  //   await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
-  //   await TestHelpers.delay(4500);
-  //   await TransactionConfirmationView.isVisible();
-  //   await TransactionConfirmationView.isNetworkNameVisible('BNB Smart Chain');
-  // });
+    await TestHelpers.delay(4500);
+    await TransactionConfirmationView.isVisible();
+    await TransactionConfirmationView.isNetworkNameVisible('Polygon Mainnet');
+    await TestHelpers.delay(1500);
+    await TransactionConfirmationView.tapCancelButton();
+  });
+  it('should deep link to the send flow on BSC', async () => {
+    await TestHelpers.openDeepLink(BINANCE_DEEPLINK_URL);
+    await TestHelpers.delay(4500);
+    await TransactionConfirmationView.isVisible();
+    await TransactionConfirmationView.isNetworkNameVisible('BNB Smart Chain');
+  });
 
-  // it('should deep link to the send flow on Goerli and submit the transaction', async () => {
-  //   await TestHelpers.openDeepLink(GOERLI_DEEPLINK_URL);
-  //   await TestHelpers.delay(4500);
-  //   await TransactionConfirmationView.isVisible();
-  //   await TransactionConfirmationView.isNetworkNameVisible(
-  //     'Goerli Test Network',
-  //   );
-  //   await TransactionConfirmationView.isTransactionTotalCorrect(
-  //     '0.00001 GoerliETH',
-  //   );
-  //   // Tap on the Send CTA
-  //   await TransactionConfirmationView.tapConfirmButton();
-  //   // Check that we are on the wallet screen
-  //   await WalletView.isVisible();
-  // });
+  it('should deep link to the send flow on Goerli and submit the transaction', async () => {
+    await TestHelpers.openDeepLink(GOERLI_DEEPLINK_URL);
+    await TestHelpers.delay(4500);
+    await TransactionConfirmationView.isVisible();
+    await TransactionConfirmationView.isNetworkNameVisible(
+      'Goerli Test Network',
+    );
+    await TransactionConfirmationView.isTransactionTotalCorrect(
+      '0.00001 GoerliETH',
+    );
+    // Tap on the Send CTA
+    await TransactionConfirmationView.tapConfirmButton();
+    // Check that we are on the wallet screen
+    await WalletView.isVisible();
+  });
 
-  // it('should deep link to the send flow on mainnet', async () => {
-  //   await TestHelpers.openDeepLink(ETHEREUM_DEEPLINK_URL);
-  //   await TestHelpers.delay(4500);
+  it('should deep link to the send flow on mainnet', async () => {
+    await TestHelpers.openDeepLink(ETHEREUM_DEEPLINK_URL);
+    await TestHelpers.delay(4500);
 
-  //   await TransactionConfirmationView.isVisible();
-  //   await TransactionConfirmationView.isNetworkNameVisible(
-  //     'Ethereum Main Network',
-  //   );
-  //   await TransactionConfirmationView.tapCancelButton();
-  // });
+    await TransactionConfirmationView.isVisible();
+    await TransactionConfirmationView.isNetworkNameVisible(
+      'Ethereum Main Network',
+    );
+    await TransactionConfirmationView.tapCancelButton();
+  });
 
-  // it('should deep link to a dapp (Sushi swap)', async () => {
-  //   await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
-  //   await TestHelpers.delay(4500);
+  it('should deep link to a dapp (Sushi swap)', async () => {
+    await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
+    await TestHelpers.delay(4500);
 
-  //   await ConnectModal.isVisible();
-  //   await ConnectModal.tapConnectButton();
+    await ConnectModal.isVisible();
+    await ConnectModal.tapConnectButton();
 
-  //   await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
+    await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
-  //   await Browser.isVisible();
-  //   await ConnectModal.isNotVisible();
-  // });
+    await Browser.isVisible();
+    await ConnectModal.isNotVisible();
+  });
 });
