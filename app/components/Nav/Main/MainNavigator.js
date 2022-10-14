@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
@@ -69,6 +69,7 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/FiatOnRampAggregator/Views/OrderDetails';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 import Routes from '../../../constants/navigation/Routes';
+import Text from '../../../components/Base/Text';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -99,7 +100,7 @@ const clearStackNavigatorOptions = {
 const DetectedTokensFlow = () => (
   <Stack.Navigator
     mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{ presentation: 'modal', headerShown: false }}
     initialRouteName={'DetectedTokens'}
   >
     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
@@ -111,7 +112,10 @@ const DetectedTokensFlow = () => (
 );
 
 const WalletModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+  <Stack.Navigator
+    mode={'modal'}
+    screenOptions={{ presentation: 'modal', headerShown: false }}
+  >
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
@@ -158,7 +162,11 @@ const AssetModalFlow = (props) => (
 /* eslint-enable react/prop-types */
 
 const WalletTabStackFlow = () => (
-  <Stack.Navigator initialRouteName={'WalletView'}>
+  <Stack.Navigator
+    screenOptions={{ presentation: 'modal' }}
+    accessible={false}
+    initialRouteName={'WalletView'}
+  >
     <Stack.Screen
       name="WalletView"
       component={WalletModalFlow}
@@ -229,33 +237,33 @@ export const DrawerContext = React.createContext({ drawerRef: null });
 const HomeTabs = () => {
   const drawerRef = useRef(null);
 
+  //  return <>
+  //    <Text style={{ marginTop: 100}}>HomeTabs</Text>
+  //    </>;
+
   return (
     <Tab.Navigator
-    initialRouteName={'WalletTabHome'}
-    tabBarOptions={{ style: styles.hidden }}
-    screenOptions={{ tabBarVisible: false }}
-  >
+      initialRouteName={'WalletTabHome'}
+      accessible={false}
+      screenOptions={{ tabBarVisible: false, presentation: 'modal' }}
+    >
       <Tab.Screen
-      name="WalletTabHome"
-      component={WalletTabModalFlow}
-      options={{ tabBarVisible: false }}
-    />
-        <Tab.Screen
+        name="WalletTabHome"
+        component={WalletTabModalFlow}
+        options={{ tabBarVisible: false }}
+      />
+      {/** <Tab.Screen
         name={Routes.BROWSER_TAB_HOME}
         component={BrowserFlow}
         options={{ tabBarVisible: false }}
       />
-          <Tab.Screen
-          name="TransactionsHome"
-          component={TransactionsHome}
-          options={{ tabBarVisible: false }}
-        />
-          </Tab.Navigator>
+      <Tab.Screen
+        name="TransactionsHome"
+        component={TransactionsHome}
+        options={{ tabBarVisible: false }
+      /> */}
+    </Tab.Navigator>
   );
-    { /** <DrawerContext.Provider value={{ drawerRef }}>
-      <Drawer ref={drawerRef}>
-      </Drawer>
-    </DrawerContext.Provider> **/ }
 };
 
 const Webview = () => (
@@ -595,66 +603,15 @@ const ConnectQRHardwareFlow = () => (
   </Stack.Navigator>
 );
 
+/** <Text testId="testtttt" style={{ backgroundColor: 'red', marginTop: 100 }}>SOME TEXT</Text> */
 const MainNavigator = () => (
   <Stack.Navigator
+    initialRouteName="Home"
     screenOptions={{
       headerShown: false,
-      presentation: 'modal',
     }}
-    accessible={false}
-    mode={'modal'}
-    initialRouteName={'Home'}
   >
-    { /** <Stack.Screen
-      name="CollectiblesDetails"
-      component={CollectiblesDetails}
-      options={{
-        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-        cardStyle: { backgroundColor: importedColors.transparent },
-        cardStyleInterpolator: () => ({
-          overlayStyle: {
-            opacity: 0,
-          },
-        }),
-      }}
-  /> **/}
     <Stack.Screen name="Home" tabBarVisible={false} component={HomeTabs} />
-    { /** <Stack.Screen name="Webview" component={Webview} />
-    <Stack.Screen name="SettingsView" component={SettingsModalStack} />
-    <Stack.Screen
-      name="ImportPrivateKeyView"
-      component={ImportPrivateKeyView}
-    />
-    <Stack.Screen
-      name="ConnectQRHardwareFlow"
-      component={ConnectQRHardwareFlow}
-    />
-    <Stack.Screen name="SendView" component={SendView} />
-    <Stack.Screen name="SendFlowView" component={SendFlowView} />
-    <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
-    <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
-    <Stack.Screen name="LockScreen" component={LockScreen} />
-    <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="FiatOnRamp" component={FiatOnRamp} />
-    <Stack.Screen
-      name={Routes.FIAT_ON_RAMP_AGGREGATOR.ID}
-      component={FiatOnRampAggregator}
-    />
-    <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen
-      name="SetPasswordFlow"
-      component={SetPasswordFlow}
-      headerTitle={() => (
-        <Image
-          style={styles.headerLogo}
-          source={require('../../../images/metamask-name.png')}
-          resizeMode={'contain'}
-        />
-      )}
-      // eslint-disable-next-line react-native/no-inline-styles
-      headerStyle={{ borderBottomWidth: 0 }}
-      /> **/ }
   </Stack.Navigator>
 );
 

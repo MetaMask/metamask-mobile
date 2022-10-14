@@ -51,6 +51,7 @@ import { colors as importedColors } from '../../../styles/common';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { KOVAN, RINKEBY, ROPSTEN } from '../../../constants/network';
 import { MM_DEPRECATED_NETWORKS } from '../../../constants/urls';
+import Text from '../../../components/Base/Text';
 
 const Stack = createStackNavigator();
 
@@ -284,38 +285,42 @@ const Main = (props) => {
   };
 
   return (
-    <React.Fragment>
-      <View style={styles.flex}>
-        {!forceReload ? (
-          <MainNavigator navigation={props.navigation} />
-        ) : (
-          renderLoader()
-        )}
-          { /** <GlobalAlert />
-        <FadeOutOverlay />
-        <Notification navigation={props.navigation} />
-        <FiatOrders />
-        <SwapsLiveness />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
-        {renderDeprecatedNetworkAlert(
-          props.network,
-          props.backUpSeedphraseVisible,
-        )}
-        <SkipAccountSecurityModal
-          modalVisible={showRemindLaterModal}
-          onCancel={skipAccountModalSecureNow}
-          onConfirm={skipAccountModalSkip}
-          skipCheckbox={skipCheckbox}
-          toggleSkipCheckbox={toggleSkipCheckbox}
-        />
-        <ProtectYourWalletModal navigation={props.navigation} />
-        <RootRPCMethodsUI navigation={props.navigation} /> **/ }
-      </View>
-    </React.Fragment>
-  );
+    <MainNavigator navigation={props.navigation} />
+  ) 
+
+//  return (
+//    <React.Fragment>
+//      <View style={styles.flex}>
+//        {!forceReload ? (
+//          <MainNavigator navigation={props.navigation} />
+//        ) : (
+//          renderLoader()
+//        )}
+//          { /** <GlobalAlert />
+//        <FadeOutOverlay />
+//        <Notification navigation={props.navigation} />
+//        <FiatOrders />
+//        <SwapsLiveness />
+//        <BackupAlert
+//          onDismiss={toggleRemindLater}
+//          navigation={props.navigation}
+//        />
+//        {renderDeprecatedNetworkAlert(
+//          props.network,
+//          props.backUpSeedphraseVisible,
+//        )}
+//        <SkipAccountSecurityModal
+//          modalVisible={showRemindLaterModal}
+//          onCancel={skipAccountModalSecureNow}
+//          onConfirm={skipAccountModalSkip}
+//          skipCheckbox={skipCheckbox}
+//          toggleSkipCheckbox={toggleSkipCheckbox}
+//        />
+//        <ProtectYourWalletModal navigation={props.navigation} />
+//        <RootRPCMethodsUI navigation={props.navigation} /> **/ }
+//      </View>
+//    </React.Fragment>
+//  );
 };
 
 Main.router = MainNavigator.router;

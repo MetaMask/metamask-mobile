@@ -419,6 +419,28 @@ export const getRpcMethodMiddleware = ({
         res.result = rawSig;
       },
 
+      wallet_invokeSnap: async (params: any) => {
+        const { method, params: snapParams } = params[0];
+        const { SnapController } = Engine.context;
+
+        const snap = SnapController.get(method);
+        if (!snap) {
+          throw new Error(`No snap with name '${method}' found`);
+        }
+
+        const result = await snap.request(snapParams);
+        res.result = result;
+      },
+
+      snapConfirm: async (params: any) => {
+        const { SnapController } = Engine.context;
+        const { id, result } = params[0];
+        const snap = SnapController.get(id);
+        if (!snap) {
+          throw new Error(`No snap with id '${id}' found`);
+        }
+      },
+
       eth_signTypedData_v4: async () => {
         const { TypedMessageManager } = Engine.context;
 

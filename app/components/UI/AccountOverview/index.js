@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
-import Engine from '../../../core/Engine';
+// import Engine from '../../../core/Engine';
 import Analytics from '../../../core/Analytics/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
@@ -47,10 +47,19 @@ import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 
+const Engine = {
+  getTotalFiatAccountBalance: () => {},
+  context: {
+    PreferencesController: {
+      setSelectedAddress: () => {},
+    },
+  }
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
     scrollView: {
-      backgroundColor: colors.background.default,
+      backgroundColor: 'yellow',
     },
     wrapper: {
       paddingTop: 20,
@@ -382,7 +391,7 @@ class AccountOverview extends PureComponent {
 
     return (
       <View
-        style={baseStyles.flexGrow}
+        style={{ backgroundColor: 'green', flex: 1 }}
         ref={this.scrollViewContainer}
         collapsable={false}
       >

@@ -40,7 +40,7 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
       flex: 1,
-      backgroundColor: colors.background.default,
+      backgroundColor: 'green',
     },
     tabUnderlineStyle: {
       height: 2,
@@ -327,8 +327,9 @@ const Wallet = ({ navigation }: any) => {
 
   return (
     <ErrorBoundary view="Wallet">
-      <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-        <ScrollView
+      <View style={{...baseStyles.flexGrow, backgroundColor: 'red'}} {...generateTestId('wallet-screen')}>
+      {selectedAddress ? renderContent() : renderLoader()}
+        {/**<ScrollView
           style={styles.wrapper}
           refreshControl={
             <RefreshControl
@@ -339,9 +340,8 @@ const Wallet = ({ navigation }: any) => {
             />
           }
         >
-          {selectedAddress ? renderContent() : renderLoader()}
-        </ScrollView>
-        {renderOnboardingWizard()}
+        </ScrollView> */ }
+        { /** renderOnboardingWizard() */}
       </View>
     </ErrorBoundary>
   );

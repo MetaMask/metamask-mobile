@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import { Animated, Linking, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
@@ -55,6 +55,7 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
+import Text from '../../../components/Base/Text';
 
 const Stack = createStackNavigator();
 /**
@@ -365,19 +366,40 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
-  return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName='Main' screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen
-        accessible={false}
-        name="HomeNav"
-        component={Main}
-        options={{ headerShown: false, presentation: 'modal' }}
-      />
-
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+  /**
+   * NOTE:
+   * Even with few screens, this does not work in e2e
+   */
+  // return (
+  //   <NavigationContainer accessible={false}>
+  //     {/** <Stack.Navigator initialRouteName='Main' accessible={false} screenOptions={{ presentation: 'modal' }}>
+  //       <Stack.Screen
+  //       accessible={false}
+  //       name="HomeNav"
+  //       component={Main}
+  //       options={{ headerShown: false, presentation: 'modal' }}
+  //     />
+  //     </Stack.Navigator> */}
+  //     <Stack.Navigator
+  //       initialRouteName="Home"
+  //       screenOptions={{
+  //         headerShown: false,
+  //       }}
+  //     >
+  //       <Stack.Screen
+  //         name="Home"
+  //         tabBarVisible={false}
+  //         component={function () {
+  //           return (
+  //             <View style={{ flex: 1, backgroundColor: 'red' }}>
+  //               <Text style={{ marginTop: 100 }}>Home</Text>
+  //             </View>
+  //           );
+  //         }}
+  //       />
+  //     </Stack.Navigator>
+  //   </NavigationContainer>
+  // );
 
   return (
     // do not render unless a route is defined
@@ -427,14 +449,16 @@ const App = ({ userLoggedIn }) => {
                 options={{ headerShown: false }}
               />
             )}
-              { /** <Stack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
-            /> **/ }
+            {
+              <Stack.Screen
+                name={Routes.MODAL.ROOT_MODAL_FLOW}
+                component={RootModalFlow}
+              />
+            }
           </Stack.Navigator>
         </NavigationContainer>
-      {/** {renderSplash()}
-        <Toast ref={toastRef} /> **/ }
+        {renderSplash()}
+        <Toast ref={toastRef} />
       </>
     )) ||
     null
