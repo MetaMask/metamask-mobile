@@ -954,6 +954,9 @@ class NetworkSettings extends PureComponent {
                   toggleWarningModal={this.toggleWarningModal}
                   showNetworkModal={this.showNetworkModal}
                   switchTab={this.tabView}
+                  shouldNetworkSwitchPopToWallet={
+                    shouldNetworkSwitchPopToWallet
+                  }
                 />
               </View>
               <View
