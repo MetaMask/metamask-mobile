@@ -231,7 +231,7 @@ function SwapsAmountView({
           AppConstants.SWAPS.CLIENT_ID,
         );
         const liveness =
-          typeof data === 'boolean' ? data : data?.mobile_active ?? false;
+          typeof data === 'boolean' ? data : data?.mobileActive ?? false;
         setLiveness(liveness, chainId);
         if (liveness) {
           // Triggered when a user enters the MetaMask Swap feature

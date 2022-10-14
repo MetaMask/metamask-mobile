@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "5.5.0",
+  "version": "5.8.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -17,30 +17,43 @@
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "setup": "yarn clean && yarn allow-scripts && ./scripts/postinstall.sh",
     "start:ios": "./scripts/build.sh ios debug",
+    "start:ios:qa": "./scripts/build.sh ios qaDebug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:device": "./scripts/build.sh ios debug --device",
     "start:android": "./scripts/build.sh android debug",
+    "start:android:qa": "./scripts/build.sh android qaDebug",
     "start:android:e2e": "./scripts/build.sh android debugE2E",
     "build:static-logos": "node ./scripts/metamask-bot-build-generate-static-assets",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
     "build:android:release:e2e": "./scripts/build.sh android releaseE2E",
+    "build:android:qa:e2e": "./scripts/build.sh android QAE2E",
     "build:android:checksum": "./scripts/checksum.sh",
+    "build:android:checksum:qa": "./scripts/checksum.sh QA",
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
+    "build:android:pre-release:bundle:qa": "GENERATE_BUNDLE=true ./scripts/build.sh android QA --pre",
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:release:e2e": "./scripts/build.sh ios releaseE2E",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
+    "build:ios:qa": "./scripts/build.sh ios QA",
+    "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",
     "build:attribution": "./scripts/generate-attributions.sh",
     "release:android": "./scripts/build.sh android release && open android/app/build/outputs/apk/release/",
     "release:ios": "./scripts/build.sh ios release",
+    "release:android:qa": "./scripts/build.sh android QA && open android/app/build/outputs/apk/release/",
     "test": "yarn test:unit && yarn test:e2e",
     "test:unit": "jest ./app/ ./locales/",
+    "test:unit:non-components": "jest ./app/ ./locales/ --testPathIgnorePatterns=./app/components/",
+    "test:unit:components-ui": "jest ./app/components/UI/",
+    "test:unit:components-views": "jest ./app/components/Views/",
+    "test:unit:components-remaining": "jest ./app/components/Base/ ./app/components/hooks/ ./app/components/Nav/",
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release --record-videos failing",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
+    "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
     "test:tgz-check": "./scripts/tgz-check.sh",
     "test:attribution-check": "./scripts/attributions-check.sh",
     "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
@@ -83,6 +96,7 @@
     "**/elliptic": "^6.5.4",
     "**/y18n": "^3.2.2",
     "pubnub/**/netmask": "^2.0.1",
+    "**/vm2": "3.9.11",
     "**/optimist/minimist": "^1.2.5",
     "react-native-level-fs/**/bl": "^1.2.3",
     "react-native-level-fs/**/semver": "^4.3.2",
@@ -106,25 +120,24 @@
     "oss-attribution-generator/**/debug": "^2.6.9"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "^1.1.1",
-    "@ethersproject/shims": "^5.6.0",
+    "@consensys/on-ramp-sdk": "^1.2.1",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
-    "@keystonehq/ur-decoder": "^0.3.0",
+    "@keystonehq/ur-decoder": "^0.6.1",
     "@metamask/contract-metadata": "^1.35.0",
     "@metamask/controllers": "30.3.0",
-    "@metamask/design-tokens": "^1.7.0",
+    "@metamask/design-tokens": "^1.9.0",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/swaps-controller": "^6.6.0",
     "@ngraveio/bc-ur": "^1.1.6",
+    "@react-native-async-storage/async-storage": "1.17.10",
     "@react-native-clipboard/clipboard": "^1.8.4",
-    "@react-native-community/async-storage": "1.12.1",
     "@react-native-community/blur": "^3.6.0",
     "@react-native-community/checkbox": "^0.5.12",
-    "@react-native-community/cookies": "^5.0.1",
     "@react-native-community/netinfo": "6.0.0",
     "@react-native-community/viewpager": "3.3.1",
+    "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-masked-view/masked-view": "^0.2.6",
     "@react-native-picker/picker": "^2.2.1",
     "@react-navigation/bottom-tabs": "^5.11.11",
@@ -132,8 +145,12 @@
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
     "@rnhooks/keyboard": "^0.0.3",
+    "@segment/analytics-react-native": "2.7.0",
+    "@segment/sovran-react-native": "0.4.4",
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "2.4.2",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/react-native": "^9.1.0",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/utils": "^1.7.1",
@@ -153,11 +170,11 @@
     "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.4",
-    "ethereum-ens-network-map": "^1.0.2",
     "ethereumjs-abi": "0.6.6",
     "ethereumjs-util": "6.1.0",
-    "ethers": "^5.6.5",
+    "ethers": "^5.0.14",
     "ethjs-contract": "0.2.3",
+    "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
     "ethjs-unit": "0.1.6",
     "events": "3.0.0",
@@ -208,8 +225,10 @@
     "react-native-flash-message": "0.1.11",
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.10.3",
+    "react-native-get-random-values": "1.8.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^3.2.3",
+    "react-native-inappbrowser-reborn": "^3.7.0",
     "react-native-jazzicon": "^0.1.2",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keychain": "^8.0.0",
@@ -293,7 +312,7 @@
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.2.3",
     "concat-cli": "4.0.0",
-    "detox": "19.6.5",
+    "detox": "^19.11.0",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
@@ -310,8 +329,8 @@
     "jest-serializer": "26.6.2",
     "jetifier": "2.0.0",
     "lint-staged": "10.5.4",
-    "metro": "^0.66.2",
-    "metro-react-native-babel-preset": "^0.66.2",
+    "metro": "0.72.3",
+    "metro-react-native-babel-preset": "0.72.3",
     "octonode": "0.9.5",
     "patch-package": "^6.2.2",
     "prettier": "^2.2.1",
@@ -330,8 +349,9 @@
   "config": {
     "react-native-storybook-loader": {
       "searchDir": [
+        "./app/component-library/components",
         "./app/components",
-        "./app/component-library"
+        "./app/component-library/components-temp"
       ],
       "pattern": "**/*.stories.@(js|tsx)",
       "outputFile": "./storybook/storyLoader.js"
@@ -356,7 +376,7 @@
         }
       },
       "android.emu.debug": {
-        "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
+        "binaryPath": "android/app/build/outputs/apk/prod/debug/app-prod-debug.apk",
         "build": "yarn start:android:e2e",
         "type": "android.emulator",
         "device": {
@@ -364,8 +384,16 @@
         }
       },
       "android.emu.release": {
-        "binaryPath": "android/app/build/outputs/apk/release/app-release.apk",
+        "binaryPath": "android/app/build/outputs/apk/prod/release/app-prod-release.apk",
         "build": "METAMASK_ENVIRONMENT='production' yarn build:android:release:e2e",
+        "type": "android.emulator",
+        "device": {
+          "avdName": "emulator"
+        }
+      },
+      "android.emu.release.qa": {
+        "binaryPath": "android/app/build/outputs/apk/qa/release/app-qa-release.apk",
+        "build": "METAMASK_ENVIRONMENT='qa' yarn build:android:qa:e2e",
         "type": "android.emulator",
         "device": {
           "avdName": "emulator"
@@ -421,7 +449,8 @@
       "core-js": false,
       "sharp": true,
       "highlight.js": false,
-      "es5-ext": false
+      "es5-ext": false,
+      "react-native-inappbrowser-reborn": false
     }
   }
 }

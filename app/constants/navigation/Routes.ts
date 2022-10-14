@@ -6,14 +6,15 @@ const Routes = {
     ID: 'FiatOnRampAggregator',
     GET_STARTED: 'GetStarted',
     PAYMENT_METHOD: 'PaymentMethod',
+    PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     AMOUNT_TO_BUY: 'AmountToBuy',
-    AMOUNT_TO_BUY_HAS_STARTED: 'AmountToBuyHasStarted',
     GET_QUOTES: 'GetQuotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
     REGION_HAS_STARTED: 'RegionHasStarted',
     ORDER_DETAILS: 'OrderDetails',
   },
+  QR_SCANNER: 'QRScanner',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -31,6 +32,12 @@ const Routes = {
   COLLECTIBLES_DETAILS: 'CollectiblesDetails',
   TRANSACTIONS_HOME: 'TransactionsHome',
   SEND_FLOW_VIEW: 'SendFlowView',
+  SEND_FLOW: {
+    SEND_TO: 'SendTo',
+  },
+  SETTINGS: {
+    CONTACT_FORM: 'ContactForm',
+  },
 };
 
 export default Routes;

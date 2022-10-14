@@ -51,7 +51,7 @@ const LoginOptionsSwitch = ({
   // if both are disabled then this component returns null
   if (shouldRenderBiometricOption !== null) {
     return (
-      <View style={styles.container} testID={LOGIN_WITH_BIOMETRICS_SWITCH}>
+      <View style={styles.container}>
         <Text style={styles.label}>
           {strings(
             `biometrics.enable_${shouldRenderBiometricOption.toLowerCase()}`,
@@ -67,12 +67,13 @@ const LoginOptionsSwitch = ({
           }}
           thumbColor={colors.white}
           ios_backgroundColor={colors.border.muted}
+          testID={LOGIN_WITH_BIOMETRICS_SWITCH}
         />
       </View>
     );
   } else if (shouldRenderBiometricOption === null && allowLoginWithRememberMe) {
     return (
-      <View style={styles.container} testID={LOGIN_WITH_REMEMBER_ME_SWITCH}>
+      <View style={styles.container}>
         <Text style={styles.label}>
           {strings(`choose_password.remember_me`)}
         </Text>
@@ -86,6 +87,7 @@ const LoginOptionsSwitch = ({
           }}
           thumbColor={colors.white}
           ios_backgroundColor={colors.border.muted}
+          testID={LOGIN_WITH_REMEMBER_ME_SWITCH}
         />
       </View>
     );

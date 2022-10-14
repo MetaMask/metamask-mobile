@@ -8,7 +8,7 @@ import React, {
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-community/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -142,7 +142,11 @@ const OnboardingRootNav = () => (
       name="SyncWithExtensionSuccess"
       component={SyncWithExtensionSuccess}
     />
-    <Stack.Screen name="QRScanner" component={QRScanner} header={null} />
+    <Stack.Screen
+      name={Routes.QR_SCANNER}
+      component={QRScanner}
+      header={null}
+    />
     <Stack.Screen
       name="Webview"
       header={null}
@@ -365,7 +369,11 @@ const App = ({ userLoggedIn }) => {
       <>
         <NavigationContainer
           // Prevents artifacts when navigating between screens
-          theme={{ colors: { background: colors.background.default } }}
+          theme={{
+            colors: {
+              background: colors.background.default,
+            },
+          }}
           ref={setNavigatorRef}
           onStateChange={(state) => {
             // Updates redux with latest route. Used by DrawerView component.

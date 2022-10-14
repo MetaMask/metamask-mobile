@@ -65,13 +65,18 @@ export default {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
   },
+  WALLET_CONNECT: {
+    //One day in hours
+    SESSION_LIFETIME: 24,
+    LIMIT_SESSIONS: 20,
+  },
   SWAPS: {
     ACTIVE: true,
     ONLY_MAINNET: true,
     CLIENT_ID: 'mobile',
     LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
     POLL_COUNT_LIMIT: 3,
-    DEFAULT_SLIPPAGE: 3,
+    DEFAULT_SLIPPAGE: 2,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
@@ -88,6 +93,8 @@ export default {
     TOKEN_BALANCE:
       'https://metamask.zendesk.com/hc/en-us/articles/360028059272-What-to-do-when-your-balance-of-ETH-and-or-ERC20-tokens-is-incorrect-inaccurate',
     MM_FAUCET: 'https://faucet.metamask.io/',
+    WHY_TRANSACTION_TAKE_TIME:
+      'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -125,4 +132,6 @@ export default {
   LEAST_SUPPORTED_ANDROID_API_LEVEL: 29,
   ADD_CUSTOM_NETWORK_POPULAR_TAB_ID: 'popular-tab',
   ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID: 'custom-tab',
+  CANCEL_RATE: 'Transactions (Cancel)',
+  SPEED_UP_RATE: 'Transactions (Speed Up)',
 };
