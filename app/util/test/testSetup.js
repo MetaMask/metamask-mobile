@@ -184,3 +184,16 @@ jest.mock('../../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
+
+jest.mock('@segment/analytics-react-native', () => ({
+  ...jest.requireActual('@segment/analytics-react-native'),
+  createClient: () => ({
+    identify: jest.fn(),
+    track: jest.fn(),
+    group: jest.fn(),
+  }),
+}));
+
+// eslint-disable-next-line import/no-commonjs
+require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
+global.__reanimatedWorkletInit = jest.fn();

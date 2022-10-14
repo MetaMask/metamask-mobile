@@ -7,7 +7,7 @@ import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariant } from '../../Texts/Text';
+import Text, { TextVariants } from '../../Texts/Text';
 
 // Internal dependencies.
 import Card from './Card';
@@ -24,7 +24,7 @@ storiesOf('Component Library / Card', module)
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
       </View>
     </Card>
   ));
