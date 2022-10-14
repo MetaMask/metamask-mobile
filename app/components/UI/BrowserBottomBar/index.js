@@ -55,7 +55,7 @@ const createStyles = (colors) =>
   });
 
 /**
- * Browser bottom bar that contains icons for navigatio
+ * Browser bottom bar that contains icons for navigation
  * tab management, url change and other options
  */
 export default class BrowserBottomBar extends PureComponent {

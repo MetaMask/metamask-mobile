@@ -29,6 +29,8 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../constants/error';
+import Routes from '../../../../../constants/navigation/Routes';
+import { createQRScannerNavDetails } from '../../../QRScanner';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -282,13 +284,16 @@ class ContactForm extends PureComponent {
   };
 
   onScan = () => {
-    this.props.navigation.navigate('QRScanner', {
-      onScanSuccess: (meta) => {
-        if (meta.target_address) {
-          this.onChangeAddress(meta.target_address);
-        }
-      },
-    });
+    this.props.navigation.navigate(
+      ...createQRScannerNavDetails({
+        onScanSuccess: (meta) => {
+          if (meta.target_address) {
+            this.onChangeAddress(meta.target_address);
+          }
+        },
+        origin: Routes.SETTINGS.CONTACT_FORM,
+      }),
+    );
   };
 
   createActionSheetRef = (ref) => {

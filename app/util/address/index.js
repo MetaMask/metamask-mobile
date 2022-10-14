@@ -5,11 +5,12 @@ import {
   addHexPrefix,
   isValidChecksumAddress,
 } from 'ethereumjs-util';
+import URL from 'url-parse';
+import punycode from 'punycode/punycode';
+import { KeyringTypes } from '@metamask/controllers';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { tlc } from '../general';
-import punycode from 'punycode/punycode';
-import { KeyringTypes } from '@metamask/controllers';
 import { doENSLookup, doENSReverseLookup } from '../../util/ENSUtils';
 import NetworkList from '../../util/networks';
 import { collectConfusables } from '../../util/confusables';
@@ -17,6 +18,8 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../app/constants/error';
+import { PROTOCOLS } from '../../constants/deeplinks';
+
 /**
  * Returns full checksummed address
  *
@@ -106,14 +109,16 @@ export function renderAccountName(address, identities) {
  */
 
 export async function importAccountFromPrivateKey(private_key) {
+  const { KeyringController, PreferencesController } = Engine.context;
   // Import private key
   let pkey = private_key;
   // Handle PKeys with 0x
   if (pkey.length === 66 && pkey.substr(0, 2) === '0x') {
     pkey = pkey.substr(2);
   }
-  const { KeyringController } = Engine.context;
-  return KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+  const { importedAccountAddress } =
+    await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
+  return PreferencesController.setSelectedAddress(importedAccountAddress);
 }
 
 /**
@@ -402,4 +407,19 @@ export async function validateAddressOrENS(params) {
     errorContinue,
     confusableCollection,
   };
+}
+/** Method to evaluate if an input is a valid ethereum address
+ * via QR code scanning.
+ *
+ * @param {string} input - a random string.
+ * @returns {boolean} indicates if the string is a valid input.
+ */
+export function isValidAddressInputViaQRCode(input) {
+  if (input.includes(PROTOCOLS.ETHEREUM)) {
+    const { pathname } = new URL(input);
+    // eslint-disable-next-line no-unused-vars
+    const [address, _] = pathname.split('@');
+    return isValidHexAddress(address);
+  }
+  return isValidHexAddress(input);
 }

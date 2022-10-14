@@ -7,7 +7,7 @@ import { text, select } from '@storybook/addon-knobs';
 
 // Internal dependencies.
 import ModalConfirmation from './ModalConfirmation';
-import { ModalConfirmationVariant } from './ModalConfirmation.types';
+import { ModalConfirmationVariants } from './ModalConfirmation.types';
 
 storiesOf('Component Library / ModalConfirmation', module).add(
   'Default',
@@ -15,8 +15,8 @@ storiesOf('Component Library / ModalConfirmation', module).add(
     const groupId = 'Props';
     const variantSelector = select(
       'route.params.variant',
-      ModalConfirmationVariant,
-      ModalConfirmationVariant.Normal,
+      ModalConfirmationVariants,
+      ModalConfirmationVariants.Normal,
       groupId,
     );
     const titleSelector = text('route.params.title', 'Title!', groupId);

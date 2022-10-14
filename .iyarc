@@ -1,1 +1,5 @@
 # improved-yarn-audit advisory exclusions
+
+# This advisory should be fixed before the next release.
+# Current release: 5.9.0
+GHSA-2j79-8pqc-r7x6

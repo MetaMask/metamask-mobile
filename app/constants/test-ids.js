@@ -71,7 +71,7 @@ export const INPUT_NETWORK_NAME = 'input-network-name';
 
 export const ADDRESS_BOOK_NEXT_BUTTON = 'address-book-next-button';
 
-// Component library test ids
+// Design System test ids
 export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
 export const NETWORK_AVATAR_IMAGE_ID = 'network-avatar-image';
 export const CHECKBOX_ICON_ID = 'checkbox-icon';

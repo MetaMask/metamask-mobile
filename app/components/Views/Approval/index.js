@@ -145,11 +145,11 @@ class Approval extends PureComponent {
 
   isTxStatusCancellable = (transaction) => {
     if (
-      transaction.status === TX_SUBMITTED ||
-      transaction.status === TX_REJECTED ||
-      transaction.status === TX_CONFIRMED ||
-      transaction.status === TX_CANCELLED ||
-      transaction.status === TX_FAILED
+      transaction?.status === TX_SUBMITTED ||
+      transaction?.status === TX_REJECTED ||
+      transaction?.status === TX_CONFIRMED ||
+      transaction?.status === TX_CANCELLED ||
+      transaction?.status === TX_FAILED
     ) {
       return false;
     }

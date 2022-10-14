@@ -9,9 +9,9 @@ import { mockTheme } from '../../../../util/theme';
 import {
   TEST_NETWORK_NAME,
   TEST_REMOTE_IMAGE_SOURCE,
-} from '../../Avatars/AvatarNetwork/AvatarNetwork.constants';
+} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
-import Text, { TextVariant } from '../../Text';
+import Text, { TextVariants } from '../../Texts/Text';
 
 // Internal dependencies.
 import BadgeWrapper from './BadgeWrapper';
@@ -34,7 +34,7 @@ storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariant.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
       </View>
     </BadgeWrapper>
   );
