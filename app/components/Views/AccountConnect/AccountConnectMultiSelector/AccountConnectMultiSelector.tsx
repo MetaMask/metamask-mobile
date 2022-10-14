@@ -114,6 +114,25 @@ const AccountConnectMultiSelector = ({
     [accounts, isLoading, onSelectAddress, styles],
   );
 
+  const renderUnselectAllButton = useCallback(
+    () =>
+      Boolean(accounts.length) && (
+        <ButtonLink
+          onPress={() => {
+            if (isLoading) return;
+            onSelectAddress([]);
+          }}
+          style={{
+            ...styles.selectAllButton,
+            ...(isLoading && styles.disabled),
+          }}
+        >
+          {strings('accounts.unselect_all')}
+        </ButtonLink>
+      ),
+    [accounts, isLoading, onSelectAddress, styles],
+  );
+
   const renderCtaButtons = useCallback(() => {
     const isConnectDisabled = Boolean(!selectedAddresses.length) || isLoading;
 
@@ -152,6 +171,10 @@ const AccountConnectMultiSelector = ({
     styles,
   ]);
 
+  const areAllAccountsSelected = accounts
+    .map(({ address }) => address)
+    .every((address) => selectedAddresses.includes(address));
+
   return (
     <>
       <SheetHeader title={strings('accounts.connect_accounts_title')} />
@@ -160,7 +183,9 @@ const AccountConnectMultiSelector = ({
         <Text style={styles.description}>
           {strings('accounts.connect_description')}
         </Text>
-        {renderSelectAllButton()}
+        {areAllAccountsSelected
+          ? renderUnselectAllButton()
+          : renderSelectAllButton()}
       </View>
       <AccountSelectorList
         onSelectAccount={(accAddress) => {

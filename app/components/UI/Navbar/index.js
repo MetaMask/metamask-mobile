@@ -566,6 +566,8 @@ export function getBrowserViewNavbarOptions(route, themeColors) {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
+      borderBottomWidth: 0.5,
+      borderColor: themeColors.border.muted,
     },
     headerIcon: {
       color: themeColors.primary.default,
@@ -871,6 +873,7 @@ export function getWalletNavbarOptions(
     },
     headerTitle: {
       justifyContent: 'center',
+      marginTop: 5,
       flex: 1,
     },
   });

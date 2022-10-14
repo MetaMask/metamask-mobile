@@ -25,6 +25,7 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       height: 82,
+      paddingHorizontal: 16,
       marginBottom: bottomInset,
       borderTopWidth: 0.5,
       borderColor: colors.border.muted,

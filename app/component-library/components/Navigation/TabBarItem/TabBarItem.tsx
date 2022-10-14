@@ -30,7 +30,7 @@ const TabBarItem = ({
   return (
     <TouchableOpacity {...props} style={styles.base}>
       <Icon size={IconSize.Lg} name={icon} color={tabColor} />
-      <Text variant={TextVariants.sBodyMD} style={styles.label}>
+      <Text variant={TextVariants.sBodySM} style={styles.label}>
         {label}
       </Text>
     </TouchableOpacity>

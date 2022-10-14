@@ -87,6 +87,7 @@ const createStyles = (colors) =>
     footer: {
       marginVertical: 10,
       flexDirection: 'row',
+      paddingBottom: 8,
     },
     footerButton: {
       flex: 1,

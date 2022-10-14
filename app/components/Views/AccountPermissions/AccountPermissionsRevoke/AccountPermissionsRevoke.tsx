@@ -72,7 +72,7 @@ const AccountPermissionsRevoke = ({
         <SheetActions
           actions={[
             {
-              label: strings('accounts.disconnect_all_accounts'),
+              label: strings('accounts.revoke_all'),
               onPress: revokeAllAccounts,
               disabled: isLoading,
               variant: ButtonTertiaryVariants.Danger,
@@ -145,7 +145,7 @@ const AccountPermissionsRevoke = ({
                 }
               }
             }}
-            label={strings('accounts.disconnect')}
+            label={strings('accounts.revoke')}
             size={ButtonSize.Sm}
             style={styles.disconnectButton}
           />

@@ -20,9 +20,14 @@ const SheetActions = ({ actions }: SheetActionsProps) => {
       actions.map(
         ({ label, onPress, testID, isLoading, disabled, variant }, index) => {
           const key = `${label}-${index}`;
+          // Avoid drawing separator above the first element
+          const isFirstElement = index === 0;
+
           return (
             <React.Fragment key={key}>
-              {actions.length > 1 && <View style={styles.separator} />}
+              {actions.length > 1 && !isFirstElement && (
+                <View style={styles.separator} />
+              )}
               <View>
                 <ButtonTertiary
                   testID={testID}
