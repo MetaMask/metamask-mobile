@@ -71,7 +71,6 @@
     "get_started": "Get started"
   },
   "onboarding_wizard": {
-    "skip_tutorial": "Skip Tutorial",
     "coachmark": {
       "action_back": "No, Thanks",
       "action_next": "Take the tour",
@@ -95,10 +94,9 @@
       "content3": "now to edit account name."
     },
     "step4": {
-      "title": "Main Navigation",
-      "content1": "Tap here",
-      "content2": "to access your Wallet, Browser, and Transaction activity.",
-      "content3": "You can take more actions with your accounts & access MetaMask settings."
+      "title": "Main Menu",
+      "content1": "You can access Transaction history, Settings, and Support from this menu.",
+      "content2": "You can take more actions with your accounts & access MetaMask settings."
     },
     "step5": {
       "title": "Explore the Browser",

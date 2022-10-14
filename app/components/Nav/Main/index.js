@@ -313,10 +313,12 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (network, backUpSeedphraseVisible) => {
+    const { wizardStep } = props;
     const { type } = network.provider;
     if (
       (type === ROPSTEN || type === RINKEBY || type === KOVAN) &&
-      showDeprecatedAlert
+      showDeprecatedAlert &&
+      !wizardStep
     ) {
       return (
         <WarningAlert
@@ -420,6 +422,10 @@ Main.propTypes = {
    * redux flag that indicates if the alert should be shown
    */
   backUpSeedphraseVisible: PropTypes.bool,
+  /**
+   * Onboarding wizard step.
+   */
+  wizardStep: PropTypes.number,
 };
 
 const mapStateToProps = (state) => ({
@@ -428,6 +434,7 @@ const mapStateToProps = (state) => ({
   providerType: state.engine.backgroundState.NetworkController.provider.type,
   network: state.engine.backgroundState.NetworkController,
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  wizardStep: state.wizard.step,
 });
 
 const mapDispatchToProps = (dispatch) => ({

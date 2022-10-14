@@ -99,6 +99,12 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       marginLeft: 30,
     },
+    bottomRight: {
+      marginBottom: 10,
+      top: -2,
+      alignItems: 'flex-end',
+      marginRight: 30,
+    },
     circle: {
       width: 6,
       height: 6,
@@ -166,6 +172,7 @@ export default class Coachmark extends PureComponent {
       false,
       'bottomCenter',
       'bottomLeft',
+      'bottomRight',
     ]),
   };
 
@@ -244,6 +251,7 @@ export default class Coachmark extends PureComponent {
     const positions = {
       bottomCenter: styles.bottomCenter,
       bottomLeft: styles.bottomLeft,
+      bottomRight: styles.bottomRight,
       [undefined]: styles.bottomCenter,
     };
     return positions[bottomIndicatorPosition];
