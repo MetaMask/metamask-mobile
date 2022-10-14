@@ -637,10 +637,11 @@ class ImportFromSeed extends PureComponent {
               <OutlinedTextField
                 style={styles.input}
                 containerStyle={inputWidth}
-                {...generateTestId(
-                  Platform,
-                  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-                )}
+                // {...generateTestId(
+                //   Platform,
+                //   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+                // )}
+                testID={'create-password-first-input-field'}
                 placeholder={strings('import_from_seed.new_password')}
                 placeholderTextColor={colors.text.muted}
                 returnKeyType={'next'}
@@ -678,6 +679,7 @@ class ImportFromSeed extends PureComponent {
                   Platform,
                   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
                 )}
+                testID={'create-password-second-input-field'}
                 onChangeText={this.onPasswordConfirmChange}
                 returnKeyType={'next'}
                 autoCapitalize="none"

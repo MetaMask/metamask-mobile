@@ -245,6 +245,7 @@ const AccountBackupStep1 = (props) => {
                   onPress={showRemindLater}
                   hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
                   testID={'remind-me-later-button'}
+                  accessibilityLabel={'remind-me-later-button'}
                 >
                   <Text style={styles.remindLaterText}>
                     {strings('account_backup_step_1.remind_me_later')}
