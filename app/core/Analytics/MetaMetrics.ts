@@ -7,17 +7,7 @@ import {
 import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import { bufferToHex, keccak } from 'ethereumjs-util';
-import Logger from '../../util/Logger';
-import {
-  AGREED,
-  DENIED,
-  METRICS_OPT_IN,
-  METAMETRICS_ID,
-  ANALYTICS_DATA_DELETION_DATE,
-  MIXPANEL_METAMETRICS_ID,
-  METAMETRICS_SEGMENT_REGULATION_ID,
-} from '../../constants/storage';
-
+import Analytics from './Analytics';
 import {
   IMetaMetrics,
   ISegmentClient,
@@ -28,6 +18,16 @@ import {
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
+import Logger from '../../util/Logger';
+import {
+  AGREED,
+  DENIED,
+  METRICS_OPT_IN,
+  METAMETRICS_ID,
+  ANALYTICS_DATA_DELETION_DATE,
+  MIXPANEL_METAMETRICS_ID,
+  METAMETRICS_SEGMENT_REGULATION_ID,
+} from '../../constants/storage';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class MetaMetrics implements IMetaMetrics {
@@ -40,6 +40,7 @@ class MetaMetrics implements IMetaMetrics {
   #state: States = States.disabled;
   #deleteRegulationDate = '';
   #isDataRecorded = false;
+  #mixPanelBackwardsCompatibilityFlag = false;
 
   // CONSTRUCTOR
 
@@ -69,6 +70,7 @@ class MetaMetrics implements IMetaMetrics {
     // Legacy ID from MixPanel integration
     metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
     if (metametricsId && !__DEV__) {
+      this.#mixPanelBackwardsCompatibilityFlag = true;
       return metametricsId;
     }
 
@@ -149,8 +151,8 @@ class MetaMetrics implements IMetaMetrics {
         this.#metametricsId,
         METAMETRICS_ANONYMOUS_ID,
       );
+      this.#isDataRecorded = true;
     }
-    this.#isDataRecorded = true;
   }
 
   /**
@@ -208,6 +210,15 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Creates a deletion task to delete all data, including events and user profile data,
+   * for the user specified by mixpanelUserId
+   *
+   * @returns Promise with the response of the request
+   */
+  #createMixPanelDeleteRegulation = async () =>
+    Analytics.createDataDeletionTask('GDPR');
+
+  /**
    * Method to generate a new delete regulation for an user.
    * This is necessary to respect the GDPR and CCPA regulations.
    * Check Segment documentation for more information.
@@ -247,6 +258,22 @@ class MetaMetrics implements IMetaMetrics {
       Logger.error(error, 'Analytics Deletion Task Error');
       return { status: DataDeleteResponseStatus.error, error };
     }
+  };
+
+  /**
+   *
+   * @returns
+   */
+  #createDataDeletionRequests = async () => {
+    if (!this.#isDataRecorded) {
+      // return new Promise((resolve) => {});
+      return;
+    }
+    const dataDeletionRequests = [this.#createSegmentDeleteRegulation];
+    if (this.#mixPanelBackwardsCompatibilityFlag) {
+      dataDeletionRequests.push(this.#createMixPanelDeleteRegulation);
+    }
+    return Promise.all(dataDeletionRequests);
   };
 
   // PUBLIC METHODS
@@ -306,8 +333,8 @@ class MetaMetrics implements IMetaMetrics {
     this.#reset();
   }
 
-  public createSegmentDeleteRegulation(): void {
-    this.#createSegmentDeleteRegulation();
+  public createDataDeletionRequests(): void {
+    this.#createDataDeletionRequests();
   }
 }
 
