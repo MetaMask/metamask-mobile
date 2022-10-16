@@ -108,7 +108,7 @@ class MetaMetrics implements IMetaMetrics {
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
-    this.#segmentClient.identify(this.#metametricsId, userTraits);
+    this.#segmentClient.identify(this.#metametricsId, userTraits as UserTraits);
   }
 
   /**
@@ -257,7 +257,7 @@ class MetaMetrics implements IMetaMetrics {
     }
   };
 
-  async #setInitialUserProperties() {
+  async #setInitialUserProperties(): Promise<void> {
     if (!this.#metametricsId) {
       this.#metametricsId = await this.#getMetaMetricsId();
     }
@@ -274,7 +274,9 @@ class MetaMetrics implements IMetaMetrics {
       'NFT AutoDetection': preferencesController?.useCollectibleDetection
         ? ON
         : OFF,
-      'Token Detection': preferencesController.useTokenDetection ? ON : OFF,
+      token_detection_enable: preferencesController.useTokenDetection
+        ? ON
+        : OFF,
       Theme: appThemeStyle,
     });
   }
@@ -284,7 +286,9 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
    */
-  #applyAuthenticationUserProperty = async (property: AUTHENTICATION_TYPE) => {
+  #applyAuthenticationUserProperty = async (
+    property: AUTHENTICATION_TYPE,
+  ): Promise<void> => {
     if (!this.#metametricsId) {
       this.#metametricsId = await this.#getMetaMetricsId();
     }
@@ -350,7 +354,7 @@ class MetaMetrics implements IMetaMetrics {
     return this.#state === States.enabled;
   }
 
-  public addTraitsToUser(userTraits: UserTraits): void {
+  public addTraitsToUser(userTraits: UserIdentityProperties): void {
     this.#identify(userTraits);
   }
 

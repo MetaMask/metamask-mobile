@@ -60,9 +60,9 @@ export interface IMetaMetricsEvent {
 }
 
 // Interface to asign user properties
-export interface UserIdentityProperties extends UserTraits {
+export interface UserIdentityProperties {
   'Enable OpenSea API'?: string;
-  'NFT Autodetection'?: string;
+  'NFT AutoDetection'?: string;
   Theme?: string;
   'Authentication Type'?: string;
   token_detection_enable?: string;
