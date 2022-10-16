@@ -27,9 +27,11 @@ import {
   ISegmentClient,
   States,
   DataDeleteResponseStatus,
-  USER_PROFILE_PROPERTY,
+  UserIdentityProperties,
 } from './MetaMetrics.types';
 import {
+  ON,
+  OFF,
   METAMETRICS_ANONYMOUS_ID,
   SEGMENT_REGULATIONS_ENDPOINT,
 } from './MetaMetrics.constants';
@@ -61,6 +63,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   async #init() {
     this.#metametricsId = await this.#getMetaMetricsId();
+    await this.#setInitialUserProperties();
   }
 
   /**
@@ -101,7 +104,7 @@ class MetaMetrics implements IMetaMetrics {
    * @param userId - User ID generated for Segment
    * @param userTraits - Object containing user relevant traits or properties (optional).
    */
-  #identify(userTraits: UserTraits): void {
+  #identify(userTraits: UserIdentityProperties): void {
     // The identify method lets you tie a user to their actions
     // and record traits about them. This includes a unique user ID
     // and any optional traits you know about them
@@ -254,7 +257,10 @@ class MetaMetrics implements IMetaMetrics {
     }
   };
 
-  #setInitialUserProperties() {
+  async #setInitialUserProperties() {
+    if (!this.#metametricsId) {
+      this.#metametricsId = await this.#getMetaMetricsId();
+    }
     const reduxState = store.getState();
     const preferencesController =
       reduxState?.engine?.backgroundState?.PreferencesController;
@@ -264,15 +270,11 @@ class MetaMetrics implements IMetaMetrics {
       appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
 
     this.#identify({
-      'Enable OpenSea API': preferencesController?.openSeaEnabled
-        ? USER_PROFILE_PROPERTY.ON
-        : USER_PROFILE_PROPERTY.OFF,
+      'Enable OpenSea API': preferencesController?.openSeaEnabled ? ON : OFF,
       'NFT AutoDetection': preferencesController?.useCollectibleDetection
-        ? USER_PROFILE_PROPERTY.ON
-        : USER_PROFILE_PROPERTY.OFF,
-      'Token Detection': preferencesController.useTokenDetection
-        ? USER_PROFILE_PROPERTY.ON
-        : USER_PROFILE_PROPERTY.OFF,
+        ? ON
+        : OFF,
+      'Token Detection': preferencesController.useTokenDetection ? ON : OFF,
       Theme: appThemeStyle,
     });
   }
@@ -282,7 +284,10 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @param {string} property - A string representing the login method of the user. One of biometrics, device_passcode, remember_me, password, unknown
    */
-  #applyAuthenticationUserProperty = (property: AUTHENTICATION_TYPE) => {
+  #applyAuthenticationUserProperty = async (property: AUTHENTICATION_TYPE) => {
+    if (!this.#metametricsId) {
+      this.#metametricsId = await this.#getMetaMetricsId();
+    }
     switch (property) {
       case AUTHENTICATION_TYPE.BIOMETRIC:
         this.#identify({
