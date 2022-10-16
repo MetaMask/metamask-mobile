@@ -261,8 +261,10 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
+   * Method to create a new delete request for the current user.
+   * This method is also backwards compatible aith MixPanel
    *
-   * @returns
+   * @returns Resolved promises from deletion requests
    */
   #createDataDeletionRequests = async () => {
     if (!this.#isDataRecorded) {
@@ -273,7 +275,13 @@ class MetaMetrics implements IMetaMetrics {
     if (this.#mixPanelBackwardsCompatibilityFlag) {
       dataDeletionRequests.push(this.#createMixPanelDeleteRegulation);
     }
-    return Promise.all(dataDeletionRequests);
+
+    try {
+      return Promise.all(dataDeletionRequests);
+    } catch {
+      // eslint-disable-next-line no-console
+      console.log('Some error');
+    }
   };
 
   // PUBLIC METHODS
