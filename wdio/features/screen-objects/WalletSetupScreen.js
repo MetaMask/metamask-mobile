@@ -126,12 +126,9 @@ class WalletSetupScreen {
   async tapAgreeDataGathering(){
     await Gestures.tap(this.agreeButton);
  }
-// Assert password input fields for new account
+// Assert password input field for new account
  async assertNewAccountScreenFields(){
   await expect(this.newWalletPasswordField).toBeDisplayed();
-  await expect(this.newWalletPasswordConfirm).toBeDisplayed();
-  await expect(this.tandCTickBoxField).toBeDisplayed();
-  await expect(this.newWalletSubmitBtn).toBeDisplayed();
 }
 //Create account password and submit 
  async createNewAccountPassword() {

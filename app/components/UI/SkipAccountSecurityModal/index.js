@@ -128,7 +128,6 @@ const SkipAccountSecurityModal = ({
           <Text
             onPress={toggleSkipCheckbox}
             style={styles.skipModalText}
-            //testID={'skip-backup-text'}
             {...generateTestId(Platform, 'skip-backup-text')}
           >
             {strings('account_backup_step_1.skip_check')}

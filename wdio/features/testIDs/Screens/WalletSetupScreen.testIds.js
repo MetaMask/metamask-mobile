@@ -19,7 +19,7 @@ export const WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID =
   'remind-me-later-button';
   export const SKIP_BACKUP_TEXT =
   'skip-backup-text';
-  export const SKIP_BACKUP_BUTTON =
+  export const SKIP_BACKUP_MODAL =
   'skip-backup-modal';
   export const SKIP_BUTTON =
   'Skip-button';
