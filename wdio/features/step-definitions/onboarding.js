@@ -118,13 +118,40 @@ When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
   }
 });
 
-When(/^I input a new password and create account/, async () => {
+When(/^I am presented with a new Account screen with password fields/, async () => {
   await WalletSetupScreen.assertNewAccountScreenFields();
-  await WalletSetupScreen.createNewAccountPassword();
 });
 
-When(/^I select remind me later on secure wallet screen and proceed to account/, async () => {
-  await WalletSetupScreen.accountCreatedAssertion()
-  await WalletSetupScreen.proceedWithoutWalletSecure();
+When(/^I input a new password "([^"]*)?"/, async (password) => {
+  await WalletSetupScreen.inputPasswordInFirstField(password);
+});
 
+When(/^I confirm the new password "([^"]*)?"/, async (password) => {
+  await WalletSetupScreen.inputConfirmPasswordField(password);
+});
+
+When(/^Select "([^"]*)?" on remind secure modal/, async (btn) => {
+  await WalletSetupScreen.assertSkipSecurityModal();
+  switch (btn) {
+    case 'Skip':
+      await WalletSetupScreen.proceedWithoutWalletSecure();
+      break;
+      case 'Cancel':
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
+});
+
+When(/^I select remind me later on secure wallet screen/, async () => {
+  await WalletSetupScreen.selectRemindMeLater();
+});
+
+When(/^secure wallet page is presented/, async () => {
+  await WalletSetupScreen.accountCreatedAssertion()
+});
+
+
+Then(/^I should proceed to the new wallet/, async () => {
+  await WalletSetupScreen.assertNewWalletWelcomeTutorial();
 });

@@ -141,22 +141,39 @@ class WalletSetupScreen {
   await Gestures.tap(this.newWalletSubmitBtn)
   await this.accountCreatedAssertion()
 }
+async inputPasswordInFirstField(firstPassword) {
+  await Gestures.typeText(this.newWalletPasswordField, firstPassword)
+}
+
+async inputConfirmPasswordField(secondPassword) {
+  await Gestures.typeText(this.newWalletPasswordConfirm, secondPassword)
+  await Gestures.tap(this.tandCTickBoxField)
+  await Gestures.tap(this.newWalletSubmitBtn)
+}
 // Assert account created and secure your wallet screen visible
 async accountCreatedAssertion(){
-  await expect(this.secureWalletScreenText).toBeDisplayed();
   await expect(this.remindMeLaterBtn).toBeDisplayed();
+  await expect(this.secureWalletScreenText).toBeDisplayed();
 }
+// function to select remind me later button
+async selectRemindMeLater(){
+  await Gestures.tap(this.remindMeLaterBtn)
+}
+
 async assertSkipSecurityModal(){
   await expect(this.skipBackupText).toBeDisplayed();
-  await expect(this.skipButton).toBeDisplayed();
 }
 // Proceed on wallet creation without securing
 async proceedWithoutWalletSecure(){
-  await Gestures.tap(this.remindMeLaterBtn)
   await Gestures.tap(this.skipBackupText)
   await Gestures.tap(this.skipButton)
   await expect(this.newWalletWelcomeTutorial).toBeDisplayed()
 }
+
+async assertNewWalletWelcomeTutorial(){
+  await expect(this.newWalletWelcomeTutorial).toBeDisplayed()
+}
+
 }
 
 export default new WalletSetupScreen();
