@@ -26,7 +26,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariants } from '../Avatars/Avatar';
-import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import Text, { TextVariants } from '../Texts/Text';
 import Button, { ButtonVariants } from '../Buttons/Button';
 
@@ -133,11 +132,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         return null;
       case ToastVariants.Account: {
         const { accountAddress } = toastOptions;
+        const { accountAvatarType } = toastOptions;
         return (
           <Avatar
             variant={AvatarVariants.Account}
             accountAddress={accountAddress}
-            type={AvatarAccountType.JazzIcon}
+            // TODO PS: respect avatar global configs
+            // should receive avatar type as props
+            type={accountAvatarType}
             size={AvatarSize.Md}
             style={styles.avatar}
           />
