@@ -71,6 +71,7 @@ When(/^I swipe left on the carousel/, async () => {
 When(/^I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Get started':
+      await driver.pause(7000) //TODO: Needs a smarter set timeout 
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':
@@ -103,3 +104,54 @@ When(/^I type "([^"]*)?"/, async (text) => {
       throw new Error('Condition not found');
   }
 })
+
+When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
+  switch (text) {
+    case 'Create a new wallet':
+      await WalletSetupScreen.tapCreateNewWalletBtn();
+      break;
+      case 'Agree':
+      await WalletSetupScreen.tapAgreeDataGathering();
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
+});
+
+When(/^I am presented with a new Account screen with password fields/, async () => {
+  await WalletSetupScreen.assertNewAccountScreenFields();
+});
+
+When(/^I input a new password "([^"]*)?"/, async (password) => {
+  await WalletSetupScreen.inputPasswordInFirstField(password);
+});
+
+When(/^I confirm the new password "([^"]*)?"/, async (password) => {
+  await WalletSetupScreen.inputConfirmPasswordField(password);
+});
+
+When(/^Select "([^"]*)?" on remind secure modal/, async (btn) => {
+  await WalletSetupScreen.assertSkipSecurityModal();
+  switch (btn) {
+    case 'Skip':
+      await WalletSetupScreen.proceedWithoutWalletSecure();
+      break;
+      case 'Cancel':
+      break;
+    default:
+      throw new Error('Condition not found');
+  }
+});
+
+When(/^I select remind me later on secure wallet screen/, async () => {
+  await WalletSetupScreen.selectRemindMeLater();
+});
+
+When(/^secure wallet page is presented/, async () => {
+  await WalletSetupScreen.accountCreatedAssertion()
+});
+
+
+Then(/^I should proceed to the new wallet/, async () => {
+  await WalletSetupScreen.assertNewWalletWelcomeTutorial();
+});
