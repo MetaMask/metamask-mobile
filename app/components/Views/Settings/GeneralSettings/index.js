@@ -249,6 +249,7 @@ class Settings extends PureComponent {
     this.searchEngineOptions = [
       { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
       { value: 'Google', label: 'Google', key: 'Google' },
+      { value: 'Presearch', label: 'Presearch', key: 'Presearch' },
     ];
     this.primaryCurrencyOptions = [
       {

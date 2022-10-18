@@ -32,6 +32,20 @@ describe('Browser utils :: onUrlSubmit', () => {
     expect(url).toBe(expectedUrl);
   });
 
+  it('should choose the search engine based on the params', () => {
+    const keyword = 'test';
+    const url = onUrlSubmit(keyword, 'Presearch');
+    const expectedUrl = 'https://presearch.com/?q=' + escape(keyword);
+    expect(url).toBe(expectedUrl);
+  });
+
+  it('should detect keywords with several words', () => {
+    const keyword = 'what is a test';
+    const url = onUrlSubmit(keyword, 'Presearch');
+    const expectedUrl = 'https://presearch.com/?q=' + escape(keyword);
+    expect(url).toBe(expectedUrl);
+  });
+
   it('should detect urls without path', () => {
     const input = 'https://metamask.io';
     const url = onUrlSubmit(input, 'DuckDuckGo');
