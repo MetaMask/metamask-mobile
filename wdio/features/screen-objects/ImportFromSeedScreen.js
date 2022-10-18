@@ -19,11 +19,11 @@ class ImportFromSeed {
   }
 
   get newPasswordInput() {
-    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID);
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID, true);
   }
 
   get confirmPasswordInput() {
-    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID);
+    return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID, true);
   }
 
   get importButton() {

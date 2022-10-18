@@ -15,7 +15,7 @@ Feature: Onboarding
     When I swipe left on the carousel
     Then "Your gateway to web3" carousel item is displayed
     When I swipe left on the carousel
-    When I tap "Get started"
+    And I tap "Get started"
     Then "Wallet setup" is displayed
     And "Import an existing wallet or create a new one" is displayed
     And "Import using Secret Recovery Phrase" is displayed

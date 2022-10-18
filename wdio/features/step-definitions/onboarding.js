@@ -88,6 +88,18 @@ When(/^I tap "([^"]*)?"/, async (text) => {
   }
 });
 
+When(/^I type (.*) in SRP field/, async (text) => {
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(text);
+});
+
+When(/^I type (.*) in new password field/, async (text) => {
+  await ImportFromSeedScreen.typeNewPassword(text);
+});
+
+When(/^I type (.*) in confirm password field/, async (text) => {
+  await ImportFromSeedScreen.typeConfirmPassword(text);
+});
+
 When(/^I type "([^"]*)?"/, async (text) => {
   const validAccount = Accounts.getValidAccount()
   switch (text) {
