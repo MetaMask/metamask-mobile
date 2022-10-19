@@ -185,9 +185,9 @@ class DeeplinkManager {
     let params;
     let wcCleanUrl;
 
-    if (urlObj.query.length) {
+    if (urlObj.search.length) {
       try {
-        params = qs.parse(urlObj.query.substring(1));
+        params = qs.parse(urlObj.search.substring(1));
       } catch (e) {
         if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
       }
