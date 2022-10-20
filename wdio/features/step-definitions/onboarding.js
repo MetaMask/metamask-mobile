@@ -1,4 +1,5 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
+import assert from 'assert';
 import Accounts from '../helpers/Accounts.js';
 import ImportFromSeedScreen from '../screen-objects/ImportFromSeedScreen.js';
 import OptinMetricsScreen from '../screen-objects/OptinMetricsScreen.js';
@@ -41,6 +42,7 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
       await ImportFromSeedScreen.verifyScreenTitle();
       break;
     case 'Welcome to your new wallet!':
+      // await driver.pause(10000);
       await WalletMainScreen.validateOnboardingWizard();
       break;
     default:
@@ -100,22 +102,21 @@ When(/^I type (.*) in confirm password field/, async (text) => {
   await ImportFromSeedScreen.typeConfirmPassword(text);
 });
 
-When(/^I type "([^"]*)?"/, async (text) => {
-  const validAccount = Accounts.getValidAccount()
-  switch (text) {
-    case 'a valid Secret Recovery Phrase':
-      await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
-      break;
-    case 'a valid New password':
-      await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-      break;
-    case 'a valid Confirm password':
-      await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-      break;
-    default:
-      throw new Error('Condition not found');
-  }
-})
+Then(/^device alert (.*) is displayed/, async (text) => {
+  await ImportFromSeedScreen.assertDeviceAlertError(text);
+});
+
+When(/^I retype (.*) in new password field/, async (text) => {
+  await ImportFromSeedScreen.retypeNewPassword(text);
+});
+
+Then(/^password strength (.*) is displayed/, async (text) => {
+  //await ImportFromSeedScreen.assertPasswordStrength(text);
+  const elem = await $("-ios class chain:**/XCUIElementTypeStaticText[`label == \"Password strength: Weak\"`]");
+  const strength = await elem.getValue();
+  console.log(`## Password strength is: ${strength}`);
+  assert.strictEqual(strength, text);
+});
 
 When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
   switch (text) {
@@ -163,7 +164,7 @@ When(/^secure wallet page is presented/, async () => {
   await WalletSetupScreen.accountCreatedAssertion()
 });
 
-
 Then(/^I should proceed to the new wallet/, async () => {
   await WalletSetupScreen.assertNewWalletWelcomeTutorial();
 });
+
