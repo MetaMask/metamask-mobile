@@ -54,12 +54,14 @@ const ConnectedRoot = () => {
   const theme = useAppTheme();
 
   return (
-    <ThemeContext.Provider value={theme}>
-      <ToastContextWrapper>
-        <ErrorBoundary onError={this.errorHandler} view="Root">
-          <App />
-        </ErrorBoundary>
-      </ToastContextWrapper>
-    </ThemeContext.Provider>
+    <SafeAreaProvider>
+      <ThemeContext.Provider value={theme}>
+        <ToastContextWrapper>
+          <ErrorBoundary onError={this.errorHandler} view="Root">
+            <App />
+          </ErrorBoundary>
+        </ToastContextWrapper>
+      </ThemeContext.Provider>
+    </SafeAreaProvider>
   );
 };
