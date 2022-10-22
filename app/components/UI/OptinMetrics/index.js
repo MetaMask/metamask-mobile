@@ -11,7 +11,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
@@ -19,7 +19,6 @@ import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import StyledButton from '../StyledButton';
-import Analytics from '../../../core/Analytics/Analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import {
   ONBOARDING_WIZARD,
@@ -235,7 +234,7 @@ class OptinMetrics extends PureComponent {
       this.trackOptInEvent(metricsOptionSelected);
       this.props.clearOnboardingEvents();
       await DefaultPreference.set(METRICS_OPT_IN, DENIED);
-      Analytics.disableInstance();
+      MetaMetrics.disable();
     }, 200);
     this.continue();
   };
@@ -246,7 +245,7 @@ class OptinMetrics extends PureComponent {
   onConfirm = async () => {
     const { events } = this.props;
     const metricsOptionSelected = 'Metrics Opt In';
-    Analytics.enable();
+    MetaMetrics.enable();
     setTimeout(async () => {
       if (events && events.length) {
         events.forEach((eventArgs) => trackEvent(...eventArgs));

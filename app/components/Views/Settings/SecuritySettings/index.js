@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import SecureKeychain from '../../../../core/SecureKeychain';
@@ -37,7 +37,6 @@ import Device from '../../../../util/device';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -375,7 +374,7 @@ class Settings extends PureComponent {
     this.updateNavBar();
     trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS);
     const biometryType = await SecureKeychain.getSupportedBiometryType();
-    const analyticsEnabled = Analytics.checkEnabled();
+    const analyticsEnabled = MetaMetrics.checkEnabled();
     const currentSeedphraseHints = await AsyncStorage.getItem(
       SEED_PHRASE_HINTS,
     );
@@ -563,12 +562,12 @@ class Settings extends PureComponent {
 
   toggleMetricsOptIn = async (value) => {
     if (value) {
-      Analytics.enable();
+      MetaMetrics.enable();
       this.setState({ analyticsEnabled: true });
       await this.trackOptInEvent('Metrics Opt In');
     } else {
       await this.trackOptInEvent('Metrics Opt Out');
-      Analytics.disable();
+      MetaMetrics.disable();
       this.setState({ analyticsEnabled: false });
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
