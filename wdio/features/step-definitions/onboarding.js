@@ -103,7 +103,10 @@ When(/^I type (.*) in confirm password field/, async (text) => {
 });
 
 Then(/^device alert (.*) is displayed/, async (text) => {
-  await ImportFromSeedScreen.assertDeviceAlertError(text);
+  const msg = await driver.getAlertText();
+  console.log(`## Alert text is: ${msg}`);
+  assert(msg.includes(text));
+  driver.acceptAlert();
 });
 
 When(/^I retype (.*) in new password field/, async (text) => {
@@ -111,11 +114,7 @@ When(/^I retype (.*) in new password field/, async (text) => {
 });
 
 Then(/^password strength (.*) is displayed/, async (text) => {
-  //await ImportFromSeedScreen.assertPasswordStrength(text);
-  const elem = await $("-ios class chain:**/XCUIElementTypeStaticText[`label == \"Password strength: Weak\"`]");
-  const strength = await elem.getValue();
-  console.log(`## Password strength is: ${strength}`);
-  assert.strictEqual(strength, text);
+  await ImportFromSeedScreen.assertPasswordStrength(text);
 });
 
 When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {

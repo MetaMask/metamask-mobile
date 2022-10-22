@@ -10,9 +10,5 @@ export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID =
   '**/XCUIElementTypeOther[`label == "New Password"`][6]';
 export const IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID =
   '**/XCUIElementTypeOther[`label == "Confirm password"`][5]';
-export const IMPORT_FROM_SEED_SCREEN_DEVICE_ALERT_OK =
-  '**/XCUIElementTypeButton[`label == "OK"`]';
-export const IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_MODIFIED =
-  '**/XCUIElementTypeOther[`label == "New Password Show Password strength: Weak"`]/XCUIElementTypeOther[2]/XCUIElementTypeOther[1]/XCUIElementTypeOther[4]/XCUIElementTypeOther';
-export const IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_WEAK =
-  '**/XCUIElementTypeStaticText[`label == "Password strength: Weak"`]';
+export const IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID =
+  'import-from-seed-screen-seed-password-strength-id';
