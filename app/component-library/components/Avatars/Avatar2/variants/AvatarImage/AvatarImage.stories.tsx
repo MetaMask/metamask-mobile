@@ -1,23 +1,31 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
+import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { AvatarSize, AvatarVariants } from '../../Avatar2.types';
 
 // Internal dependencies.
 import AvatarImage from './AvatarImage';
+import { AvatarImageProps } from './AvatarImage.types';
 
-storiesOf('Component Library / AvatarImage', module).add('Default', () => {
-  const imageSource = {
-    uri: 'https://uniswap.org/favicon.ico',
-  };
-  return (
-    <AvatarImage
-      variant={AvatarVariants.Image}
-      imageSource={imageSource}
-      size={AvatarSize.Md}
-    />
+export const getAvatarImageStoryProps = (): AvatarImageProps => {
+  const sizeSelector = select(
+    'size',
+    AvatarSize,
+    AvatarSize.Md,
+    storybookPropsGroupID,
   );
-});
+
+  return {
+    variant: AvatarVariants.Image,
+    size: sizeSelector,
+    imageSource: {
+      uri: 'https://uniswap.org/favicon.ico',
+    },
+  };
+};
+const AvatarImageStory = () => <AvatarImage {...getAvatarImageStoryProps()} />;
+
+export default AvatarImageStory;

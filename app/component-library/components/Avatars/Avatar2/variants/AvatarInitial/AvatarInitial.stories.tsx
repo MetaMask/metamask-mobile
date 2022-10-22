@@ -1,19 +1,32 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
+import { select, text } from '@storybook/addon-knobs';
 
 // External dependencies.
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
 import { AvatarSize, AvatarVariants } from '../../Avatar2.types';
 
 // Internal dependencies.
 import AvatarInitial from './AvatarInitial';
+import { AvatarInitialProps } from './AvatarInitial.types';
 
-storiesOf('Component Library / AvatarInitial', module).add('Default', () => (
-  <AvatarInitial
-    variant={AvatarVariants.Initial}
-    initial="Brian"
-    size={AvatarSize.Md}
-  />
-));
+export const getAvatarInitialStoryProps = (): AvatarInitialProps => {
+  const sizeSelector = select(
+    'size',
+    AvatarSize,
+    AvatarSize.Md,
+    storybookPropsGroupID,
+  );
+  const initialText = text('initial', 'Sample Text', storybookPropsGroupID);
+
+  return {
+    variant: AvatarVariants.Initial,
+    size: sizeSelector,
+    initial: initialText,
+  };
+};
+const AvatarInitialStory = () => (
+  <AvatarInitial {...getAvatarInitialStoryProps()} />
+);
+
+export default AvatarInitialStory;

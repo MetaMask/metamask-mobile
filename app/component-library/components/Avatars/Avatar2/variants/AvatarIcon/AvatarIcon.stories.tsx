@@ -1,19 +1,36 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
+import { select } from '@storybook/addon-knobs';
 
 // External dependencies.
-import { AvatarVariants, AvatarSize } from '../../Avatar2.types';
+import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
+import { AvatarSize, AvatarVariants } from '../../Avatar2.types';
 import { IconName } from '../../../../Icon';
 
 // Internal dependencies.
 import AvatarIcon from './AvatarIcon';
+import { AvatarIconProps } from './AvatarIcon.types';
 
-storiesOf('Component Library / AvatarIcon', module).add('Default', () => (
-  <AvatarIcon
-    variant={AvatarVariants.Icon}
-    name={IconName.LockFilled}
-    size={AvatarSize.Md}
-  />
-));
+export const getAvatarIconStoryProps = (): AvatarIconProps => {
+  const sizeSelector = select(
+    'size',
+    AvatarSize,
+    AvatarSize.Md,
+    storybookPropsGroupID,
+  );
+  const iconNameSelector = select(
+    'name',
+    IconName,
+    IconName.LockFilled,
+    storybookPropsGroupID,
+  );
+
+  return {
+    variant: AvatarVariants.Icon,
+    size: sizeSelector,
+    name: iconNameSelector,
+  };
+};
+const AvatarIconStory = () => <AvatarIcon {...getAvatarIconStoryProps()} />;
+
+export default AvatarIconStory;
