@@ -62,6 +62,8 @@ import {
   IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
   IMPORT_FROM_SEED_SCREEN_TITLE_ID,
+  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
 } from '../../../../wdio/features/testIDs/Screens/ImportFromSeedScreen.testIds';
 import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
 
@@ -636,11 +638,11 @@ class ImportFromSeed extends PureComponent {
               <OutlinedTextField
                 style={styles.input}
                 containerStyle={inputWidth}
-                // {...generateTestId(
-                //   Platform,
-                //   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-                // )}
-                testID={'create-password-first-input-field'}
+                {...generateTestId(
+                  Platform,
+                  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
+                )}
+                //testID={'create-password-first-input-field'}
                 placeholder={strings('import_from_seed.new_password')}
                 placeholderTextColor={colors.text.muted}
                 returnKeyType={'next'}
@@ -655,7 +657,13 @@ class ImportFromSeed extends PureComponent {
               />
 
               {(password !== '' && (
-                <Text style={styles.passwordStrengthLabel}>
+                <Text
+                  style={styles.passwordStrengthLabel}
+                  {...generateTestId(
+                    Platform,
+                    IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
+                  )}
+                >
                   {strings('choose_password.password_strength')}
                   <Text style={styles[`strength_${passwordStrengthWord}`]}>
                     {' '}
