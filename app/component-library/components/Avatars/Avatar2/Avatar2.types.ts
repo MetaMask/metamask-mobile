@@ -1,5 +1,8 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
+// External dependencies.
+import { AvatarIconProps } from './variants/AvatarIcon/AvatarIcon.types';
+import { AvatarImageProps } from './variants/AvatarImage/AvatarImage.types';
+import { AvatarInitialProps } from './variants/AvatarInitial/AvatarInitial.types';
+import { AvatarJazzIconProps } from './variants/AvatarJazzIcon/AvatarJazzIcon.types';
 
 /**
  * Avatar sizes.
@@ -13,25 +16,20 @@ export enum AvatarSize {
 }
 
 /**
- * Avatar2 component props.
+ * Avatar variants.
  */
-export interface Avatar2Props extends ViewProps {
-  /**
-   * Optional enum to select between Avatar sizes.
-   * @default Md
-   */
-  size?: AvatarSize;
-  /**
-   * Optional boolean to activate halo effect.
-   * @default false
-   */
-  isHaloEnabled?: boolean;
+export enum AvatarVariants {
+  Icon = 'Icon',
+  Image = 'Image',
+  Initial = 'Initial',
+  JazzIcon = 'JazzIcon',
 }
 
 /**
- * Style sheet input parameters.
+ * Avatar component props.
  */
-export type Avatar2StyleSheetVars = Pick<
-  Avatar2Props,
-  'size' | 'isHaloEnabled' | 'style'
->;
+export type Avatar2Props =
+  | AvatarIconProps
+  | AvatarImageProps
+  | AvatarInitialProps
+  | AvatarJazzIconProps;

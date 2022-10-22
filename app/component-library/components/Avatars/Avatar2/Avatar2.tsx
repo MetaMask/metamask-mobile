@@ -1,30 +1,28 @@
 /* eslint-disable react/prop-types */
-
-// Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
 
 // External dependencies.
-import { useStyles } from '../../../hooks';
-import AvatarAsset from './foundation/AvatarAsset';
+import AvatarIcon from './variants/AvatarIcon';
+import AvatarImage from './variants/AvatarImage';
+import AvatarInitial from './variants/AvatarInitial';
+import AvatarJazzIcon from './variants/AvatarJazzIcon';
 
 // Internal dependencies.
-import styleSheet from './Avatar2.styles';
-import { Avatar2Props, AvatarSize } from './Avatar2.types';
+import { Avatar2Props, AvatarVariants } from './Avatar2.types';
 
-const Avatar2 = ({
-  style,
-  size = AvatarSize.Md,
-  isHaloEnabled = false,
-  ...props
-}: Avatar2Props) => {
-  const { styles } = useStyles(styleSheet, { style, size, isHaloEnabled });
-
-  return (
-    <View style={styles.base}>
-      <AvatarAsset {...props} />
-    </View>
-  );
+const Avatar2 = (avatar2Props: Avatar2Props) => {
+  switch (avatar2Props.variant) {
+    case AvatarVariants.Icon:
+      return <AvatarIcon {...avatar2Props} />;
+    case AvatarVariants.Image:
+      return <AvatarImage {...avatar2Props} />;
+    case AvatarVariants.Initial:
+      return <AvatarInitial {...avatar2Props} />;
+    case AvatarVariants.JazzIcon:
+      return <AvatarJazzIcon {...avatar2Props} />;
+    default:
+      throw new Error('Invalid Avatar Variant');
+  }
 };
 
 export default Avatar2;
