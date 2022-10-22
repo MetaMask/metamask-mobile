@@ -510,8 +510,11 @@ const RootRPCMethodsUI = (props) => {
 
   const rejectPendingApproval = (id, error) => {
     const { ApprovalController } = Engine.context;
-    ApprovalController.reject(id, error);
-    setHostToApprove(null);
+    try {
+      ApprovalController.reject(id, error);
+    } catch (error) {
+      Logger.error(error);
+    }
   };
 
   const acceptPendingApproval = (id, requestData) => {
@@ -615,10 +618,8 @@ const RootRPCMethodsUI = (props) => {
    * When user clicks on reject to connect with a dapp
    */
   const onAccountsReject = () => {
-    if (hostToApprove) {
-      rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
-      setShowPendingApproval(false);
-    }
+    rejectPendingApproval(hostToApprove.id, hostToApprove.requestData);
+    setShowPendingApproval(false);
   };
 
   /**
