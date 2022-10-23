@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text } from 'react-native';
 import Analytics from '../../../../../core/Analytics/Analytics';
 import {
+  MetaMetrics,
   DataDeleteStatus,
   DataDeleteResponseStatus,
-} from '../../../../../core/Analytics/MetaMetrics.types';
+} from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
@@ -87,7 +88,7 @@ const DeleteMetaMetricsData = () => {
 
   const deleteMetaMetrics = async () => {
     try {
-      const response = await Analytics.createDataDeletionTask();
+      const response = await MetaMetrics.createDeletionRegulation();
       if (response.status === DataDeleteResponseStatus.ok) {
         setDataDeleteStatus(DataDeleteStatus.pending);
         setHasCollectedData(false);
