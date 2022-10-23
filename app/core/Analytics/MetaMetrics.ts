@@ -7,7 +7,6 @@ import {
 import axios from 'axios';
 import DefaultPreference from 'react-native-default-preference';
 import { bufferToHex, keccak } from 'ethereumjs-util';
-import Analytics from './Analytics';
 import {
   IMetaMetrics,
   ISegmentClient,
@@ -47,7 +46,7 @@ class MetaMetrics implements IMetaMetrics {
   constructor(segmentClient: any) {
     this.#segmentClient = segmentClient;
     this.#state = States.enabled;
-    // this.#init();
+    this.#init();
   }
 
   // PRIVATE METHODS
@@ -210,22 +209,13 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * Creates a deletion task to delete all data, including events and user profile data,
-   * for the user specified by mixpanelUserId
-   *
-   * @returns Promise with the response of the request
-   */
-  #createMixPanelDeleteRegulation = async () =>
-    Analytics.createDataDeletionTask('GDPR');
-
-  /**
    * Method to generate a new delete regulation for an user.
    * This is necessary to respect the GDPR and CCPA regulations.
    * Check Segment documentation for more information.
    * https://segment.com/docs/privacy/user-deletion-and-suppression/
    */
   #createSegmentDeleteRegulation = async (): Promise<{
-    status: string;
+    status: DataDeleteResponseStatus;
     error?: string;
   }> => {
     const segmentToken = process.env.SEGMENT_DELETION_API_KEY;
@@ -244,10 +234,10 @@ class MetaMetrics implements IMetaMetrics {
           subjectIds: [this.#metametricsId],
         }),
       });
-      const { result, status } = response as any;
+      const { data, status } = response as any;
 
-      if (status === '200') {
-        const { regulateId } = result.data;
+      if (status === 200) {
+        const { regulateId } = data.data;
         await this.#storeDeleteRegulationId(regulateId);
         await this.#storeDeleteRegulationCreationDate();
         return { status: DataDeleteResponseStatus.ok };
@@ -257,30 +247,6 @@ class MetaMetrics implements IMetaMetrics {
     } catch (error: any) {
       Logger.error(error, 'Analytics Deletion Task Error');
       return { status: DataDeleteResponseStatus.error, error };
-    }
-  };
-
-  /**
-   * Method to create a new delete request for the current user.
-   * This method is also backwards compatible aith MixPanel
-   *
-   * @returns Resolved promises from deletion requests
-   */
-  #createDataDeletionRequests = async () => {
-    if (!this.#isDataRecorded) {
-      // return new Promise((resolve) => {});
-      return;
-    }
-    const dataDeletionRequests = [this.#createSegmentDeleteRegulation];
-    if (this.#mixPanelBackwardsCompatibilityFlag) {
-      dataDeletionRequests.push(this.#createMixPanelDeleteRegulation);
-    }
-
-    try {
-      return Promise.all(dataDeletionRequests);
-    } catch {
-      // eslint-disable-next-line no-console
-      console.log('Some error');
     }
   };
 
@@ -341,9 +307,12 @@ class MetaMetrics implements IMetaMetrics {
     this.#reset();
   }
 
-  public createDataDeletionRequests(): void {
-    this.#createDataDeletionRequests();
+  public createDeletionRegulation(): Promise<{
+    status: DataDeleteResponseStatus;
+    error?: string;
+  }> {
+    return this.#createSegmentDeleteRegulation();
   }
 }
 
-// export default MetaMetrics.getInstance();
+export default MetaMetrics.getInstance();
