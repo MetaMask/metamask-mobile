@@ -39,10 +39,11 @@ export interface IMetaMetrics {
   trackEvent(event: string, properties?: JsonMap): void;
   // Method to clear the internal state of the library for the current user and group.
   reset(): void;
-  // Method to create a new request to suppress and
-  // delete user's data from MixPanel, Segment, and all
-  // related destinations.
-  createDataDeletionRequests(): void;
+  // Method to create a new deletion regulation
+  createDeletionRegulation(): Promise<{
+    status: DataDeleteResponseStatus;
+    error?: string;
+  }>;
 }
 
 // Represents an MetaMetrics event
