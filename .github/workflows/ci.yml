@@ -7,13 +7,13 @@ jobs:
   setup:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Node.js version
         id: nvm
         run: |
           VERSION=$(cat .nvmrc)
           echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Get Yarn cache directory
@@ -57,7 +57,7 @@ jobs:
         run: |
           VERSION=$(cat .nvmrc)
           echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - run: yarn ${{ matrix['scripts'] }}
@@ -82,7 +82,7 @@ jobs:
         run: |
           VERSION=$(cat .nvmrc)
           echo ::set-output name=NODE_VERSION::$VERSION
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - run: yarn test:unit:${{ matrix['units'] }} --forceExit --silent
