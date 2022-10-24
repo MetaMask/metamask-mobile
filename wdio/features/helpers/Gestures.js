@@ -71,7 +71,7 @@ class Gestures  {
     await elem.waitForDisplayed();
     await elem.click();
     await elem.clearValue();
-    return elem.setValue(text, + '\n');
+    await elem.setValue(text, + '\n');
   }
 
   /**
