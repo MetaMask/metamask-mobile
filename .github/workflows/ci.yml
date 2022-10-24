@@ -10,21 +10,15 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $NODE_VERSION
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Get Yarn cache directory
-        run: |
-          YARN_CACHE_DIR=$(yarn cache dir)
-          echo "::set-output name=YARN_CACHE_DIR::$YARN_CACHE_DIR"
+        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $YARN_CACHE_DIR
         id: yarn-cache-dir
       - name: Get Yarn version
-        run: |
-          YARN_VERSION=$(yarn --version)
-          echo "::set-output name=YARN_VERSION::$YARN_VERSION"
+        run: echo "YARN_VERSION=$(yarn --version)" >> $YARN_VERSION
         id: yarn-version
       - name: Cache yarn dependencies
         uses: actions/cache@v2
@@ -48,9 +42,7 @@ jobs:
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $NODE_VERSION
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
@@ -66,9 +58,7 @@ jobs:
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $NODE_VERSION
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
@@ -84,9 +74,7 @@ jobs:
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $NODE_VERSION
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
@@ -109,9 +97,7 @@ jobs:
           key: ${{ github.sha }}
       - name: Get Node.js version
         id: nvm
-        run: |
-          VERSION=$(cat .nvmrc)
-          echo ::set-output name=NODE_VERSION::$VERSION
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $NODE_VERSION
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
