@@ -642,7 +642,7 @@ class ImportFromSeed extends PureComponent {
                   Platform,
                   IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
                 )}
-                //testID={'create-password-first-input-field'}
+                testID={'create-password-first-input-field'}
                 placeholder={strings('import_from_seed.new_password')}
                 placeholderTextColor={colors.text.muted}
                 returnKeyType={'next'}
