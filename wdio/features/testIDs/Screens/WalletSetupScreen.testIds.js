@@ -11,7 +11,7 @@ export const WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID =
   'create-password-first-input-field';
   export const CONFIRM_PASSWORD_INPUT_FIRST_FIELD =
   'create-password-second-input-field';
-  export const TANDC_UNDERSTAND =
+  export const I_UNDERSTAND_BUTTON_ID =
   'password-understand-box';
   export const SUBMIT_BUTTON =
   'submit-button';
@@ -23,8 +23,6 @@ export const WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID =
   'skip-backup-modal';
   export const SKIP_BUTTON =
   'Skip-button';
-  export const WALLET_WELCOME_BOX =
-  'onboarding-wizard-step1-container-id';
   export const SKIP_ACCOUNT_SECURITY_MODAL =
   'skip_backup_warning';
   

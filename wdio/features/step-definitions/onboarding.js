@@ -1,11 +1,16 @@
 import { Given, When, Then } from '@wdio/cucumber-framework';
 import assert from 'assert';
 import Accounts from '../helpers/Accounts.js';
-import ImportFromSeedScreen from '../screen-objects/ImportFromSeedScreen.js';
-import OptinMetricsScreen from '../screen-objects/OptinMetricsScreen.js';
+import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
+import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
+
+import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
 import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
-import WalletSetupScreen from '../screen-objects/WalletSetupScreen.js';
-import WelcomeScreen from '../screen-objects/WelcomeScreen.js';
+import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
+import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
+
+import SkipAccountSecurityModal from '../screen-objects/Modals/SkipAccountSecurityModal'
+import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModal.js'
 
 Given(/^I just installed MetaMask on my device/, async () => {
   /** This is automatically done by the automation framework **/
@@ -18,31 +23,32 @@ When(/^I launch MetaMask mobile app/, async () => {
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
-      await WelcomeScreen.verifySplashScreen();
+      await WelcomeScreen.isSplashScreenVisible();
       break;
     case 'Wallet setup':
-      await WalletSetupScreen.verifyScreenTitle();
+      await OnboardingScreen.isScreenTitleVisible();
       break;
     case 'Import an existing wallet or create a new one':
-      await WalletSetupScreen.verifyScreenDescription();
+      await OnboardingScreen.isScreenDescriptionVisible();
       break;
     case 'Import using Secret Recovery Phrase':
-      await WalletSetupScreen.verifyImportWalletButton();
+      await OnboardingScreen.isImportWalletButtonVisible();
       break;
     case 'Create a new wallet':
-      await WalletSetupScreen.verifyCreateNewWalletButton();
+      await OnboardingScreen.isCreateNewWalletButtonVisible();
       break;
     case 'By proceeding, you agree to these Terms and Conditions.':
-      await WalletSetupScreen.verifyTermsAndConditionsButton();
+      await OnboardingScreen.isTermsAndConditionsButtonVisible();
       break;
     case 'Help us improve MetaMask':
-      await OptinMetricsScreen.verifyScreenTitle();
+      await MetaMetricsScreen.isScreenTitleVisible();
       break;
     case 'Import from seed':
-      await ImportFromSeedScreen.verifyScreenTitle();
+      await ImportFromSeedScreen.isScreenTitleVisible();
       break;
     case 'Welcome to your new wallet!':
-      await WalletMainScreen.validateOnboardingWizard();
+      await OnboardingWizardModal.isVisible();
+      
       break;
     default:
       throw new Error('Condition not found');
@@ -76,10 +82,10 @@ When(/^I tap "([^"]*)?"/, async (text) => {
       await WelcomeScreen.clickGetStartedButton();
       break;
     case 'Import using Secret Recovery Phrase':
-      await WalletSetupScreen.clickImportWalletButton();
+      await OnboardingScreen.clickImportWalletButton();
       break;
     case 'I agree':
-      await OptinMetricsScreen.clickIAgreeButton();
+      await MetaMetricsScreen.tapIAgreeButton();
       break;
     case 'Import':
       await ImportFromSeedScreen.clickImportButton();
@@ -102,7 +108,9 @@ When(/^I type (.*) in confirm password field/, async (text) => {
 });
 
 Then(/^device alert (.*) is displayed/, async (text) => {
-  await ImportFromSeedScreen.assertDeviceAlertText(text);
+  await ImportFromSeedScreen.isAlertTextCorrect(text);
+  await ImportFromSeedScreen.tapOkInAlertMessage();
+
 });
 
 Then(/^password strength (.*) is displayed/, async (text) => {
@@ -112,10 +120,10 @@ Then(/^password strength (.*) is displayed/, async (text) => {
 When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
   switch (text) {
     case 'Create a new wallet':
-      await WalletSetupScreen.tapCreateNewWalletBtn();
+      await OnboardingScreen.tapCreateNewWalletButton();
       break;
       case 'Agree':
-      await WalletSetupScreen.tapAgreeDataGathering();
+      await MetaMetricsScreen.tapIAgreeButton();
       break;
     default:
       throw new Error('Condition not found');
@@ -123,22 +131,22 @@ When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
 });
 
 When(/^I am presented with a new Account screen with password fields/, async () => {
-  await WalletSetupScreen.assertNewAccountScreenFields();
+  await CreateNewWalletScreen.assertNewAccountScreenFields();
 });
 
 When(/^I input a new password "([^"]*)?"/, async (password) => {
-  await WalletSetupScreen.inputPasswordInFirstField(password);
+  await CreateNewWalletScreen.inputPasswordInFirstField(password);
 });
 
 When(/^I confirm the new password "([^"]*)?"/, async (password) => {
-  await WalletSetupScreen.inputConfirmPasswordField(password);
+  await CreateNewWalletScreen.inputConfirmPasswordField(password);
 });
 
-When(/^Select "([^"]*)?" on remind secure modal/, async (btn) => {
-  await WalletSetupScreen.assertSkipSecurityModal();
-  switch (btn) {
+When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
+  await SkipAccountSecurityModal.isSkipSecurityModalVisible();
+  switch (button) {
     case 'Skip':
-      await WalletSetupScreen.proceedWithoutWalletSecure();
+      await SkipAccountSecurityModal.proceedWithoutWalletSecure();
       break;
       case 'Cancel':
       break;
@@ -148,14 +156,14 @@ When(/^Select "([^"]*)?" on remind secure modal/, async (btn) => {
 });
 
 When(/^I select remind me later on secure wallet screen/, async () => {
-  await WalletSetupScreen.selectRemindMeLater();
+  await CreateNewWalletScreen.selectRemindMeLater();
 });
 
 When(/^secure wallet page is presented/, async () => {
-  await WalletSetupScreen.accountCreatedAssertion()
+  await CreateNewWalletScreen.isAccountCreated();
 });
 
 Then(/^I should proceed to the new wallet/, async () => {
-  await WalletSetupScreen.assertNewWalletWelcomeTutorial();
+  await OnboardingWizardModal.isVisible();
 });
 

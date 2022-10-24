@@ -5,9 +5,9 @@ import {
   IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
   IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
   IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID
-} from '../testIDs/Screens/ImportFromSeedScreen.testIds';
-import Selectors from '../helpers/Selectors';
-import Gestures from '../helpers/Gestures';
+} from '../../testIDs/Screens/ImportFromSeedScreen.testIds';
+import Selectors from '../../helpers/Selectors';
+import Gestures from '../../helpers/Gestures';
 import assert from 'assert';
 
 class ImportFromSeed {
@@ -36,7 +36,7 @@ class ImportFromSeed {
     return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID);
   }
 
-  async verifyScreenTitle() {
+  async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
 
@@ -61,9 +61,12 @@ class ImportFromSeed {
     await expect(this.passwordStrengthLabel).toHaveText(text);  
   }
 
-  async assertDeviceAlertText(text){
+  async isAlertTextCorrect(text){
     const msg = await driver.getAlertText();
     assert(msg.includes(text));
+  }
+
+  async tapOkInAlertMessage(){
     await driver.acceptAlert();
   }
 }

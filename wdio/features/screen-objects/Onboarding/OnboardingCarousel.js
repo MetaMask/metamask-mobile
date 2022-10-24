@@ -2,12 +2,12 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
   WELCOME_SCREEN_CAROUSEL_CONTAINER_ID,
   WELCOME_SCREEN_GET_STARTED_BUTTON_ID
-} from '../testIDs/Screens/WelcomeScreen.testIds';
+} from '../../testIDs/Screens/WelcomeScreen.testIds';
 import {
   SPLASH_SCREEN_METAMASK_ANIMATION_ID
-} from '../testIDs/Components/MetaMaskAnimation.testIds';
-import Gestures from '../helpers/Gestures';
-import Selectors from '../helpers/Selectors';
+} from '../../testIDs/Components/MetaMaskAnimation.testIds';
+import Gestures from '../../helpers/Gestures';
+import Selectors from '../../helpers/Selectors';
 
 class WelcomeScreen {
   constructor() {
@@ -22,7 +22,7 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
-  async verifySplashScreen() {
+  async isSplashScreenVisible() {
     const elem = await this.splashScreenMetamaskAnimationId
     await expect(elem).toBeDisplayed();
     await elem.waitForDisplayed({ reverse: true });
