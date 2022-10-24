@@ -105,10 +105,6 @@ Then(/^device alert (.*) is displayed/, async (text) => {
   await ImportFromSeedScreen.assertDeviceAlert(text);
 });
 
-When(/^I retype (.*) in new password field/, async (text) => {
-  await ImportFromSeedScreen.retypeNewPassword(text);
-});
-
 Then(/^password strength (.*) is displayed/, async (text) => {
   await ImportFromSeedScreen.assertPasswordStrength(text);
 });
