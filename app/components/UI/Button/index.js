@@ -20,7 +20,7 @@ const createStyles = (colors) =>
 
 /**
  * UI component that wraps GenericButton
- * which renders the appropiate UI elements for each platform (android & iOS)
+ * which renders the appropriate UI elements for each platform (android & iOS)
  */
 const Button = (props) => {
   const { colors } = useTheme();
