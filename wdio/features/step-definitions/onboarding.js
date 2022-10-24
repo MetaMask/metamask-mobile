@@ -102,7 +102,7 @@ When(/^I type (.*) in confirm password field/, async (text) => {
 });
 
 Then(/^device alert (.*) is displayed/, async (text) => {
-  await ImportFromSeedScreen.assertDeviceAlert(text);
+  await ImportFromSeedScreen.assertDeviceAlertText(text);
 });
 
 Then(/^password strength (.*) is displayed/, async (text) => {

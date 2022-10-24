@@ -32,7 +32,7 @@ class ImportFromSeed {
     return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID);
   }
 
-  get passwordStrength(){
+  get passwordStrengthLabel(){
     return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID);
   }
 
@@ -58,15 +58,13 @@ class ImportFromSeed {
   }
 
   async assertPasswordStrength(text){
-    const elem = await this.passwordStrength;
-    const passwordStrengthText = await elem.getText();
-    assert.strictEqual(passwordStrengthText, text);      
+    await expect(this.passwordStrengthLabel).toHaveText(text);  
   }
 
-  async assertDeviceAlert(text){
+  async assertDeviceAlertText(text){
     const msg = await driver.getAlertText();
     assert(msg.includes(text));
-    await driver.acceptAlert();  
+    await driver.acceptAlert();
   }
 }
 
