@@ -42,7 +42,6 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
       await ImportFromSeedScreen.verifyScreenTitle();
       break;
     case 'Welcome to your new wallet!':
-      // await driver.pause(10000);
       await WalletMainScreen.validateOnboardingWizard();
       break;
     default:
@@ -103,10 +102,7 @@ When(/^I type (.*) in confirm password field/, async (text) => {
 });
 
 Then(/^device alert (.*) is displayed/, async (text) => {
-  const msg = await driver.getAlertText();
-  console.log(`## Alert text is: ${msg}`);
-  assert(msg.includes(text));
-  driver.acceptAlert();
+  await ImportFromSeedScreen.assertDeviceAlert(text);
 });
 
 When(/^I retype (.*) in new password field/, async (text) => {

@@ -59,9 +59,14 @@ class ImportFromSeed {
 
   async assertPasswordStrength(text){
     const elem = await this.passwordStrength;
-    const strength = await elem.getText();
-    console.log(`## Password strength is: ${strength}`);
-    assert.strictEqual(strength, text);      
+    const passwordStrengthText = await elem.getText();
+    assert.strictEqual(passwordStrengthText, text);      
+  }
+
+  async assertDeviceAlert(text){
+    const msg = await driver.getAlertText();
+    assert(msg.includes(text));
+    await driver.acceptAlert();  
   }
 }
 
