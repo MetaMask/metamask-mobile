@@ -53,23 +53,23 @@ class OnBoardingScreen {
   
 // functions and assertions ======================================
   
-  async isScreenTitleVisible() {
+  async verifyScreenTitle() {
     await expect(this.title).toBeDisplayed();
   }
 
-  async isScreenDescriptionVisible() {
+  async verifyScreenDescription() {
     await expect(this.description).toBeDisplayed();
   }
 
-  async isImportWalletButtonVisible() {
+  async verifyImportWalletButton() {
     await expect(this.seedButton).toBeDisplayed();
   }
 
-  async isCreateNewWalletButtonVisible() {
+  async verifyCreateNewWalletButton() {
     await expect(this.createNewWalletButton).toBeDisplayed();
   }
 
-  async isTermsAndConditionsButtonVisible() {
+  async verifyTermsAndConditionsButton() {
     await expect(this.termsAndConditionsButton).toBeDisplayed();
   }
 

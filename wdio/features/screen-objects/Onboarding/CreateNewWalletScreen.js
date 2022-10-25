@@ -87,25 +87,25 @@ async selectRemindMeLater(){
 }
 
 
-async isAccountCreated(){
+async verifyAccountCreated(){
   await expect(this.remindMeLaterButton).toBeDisplayed();
   await expect(this.secureWalletScreenText).toBeDisplayed();
 }
   
-async isScreenTitleVisible() {
+async verifyScreenTitle() {
   await expect(this.title).toBeDisplayed();
 }
 
-async isScreenDescriptionVisible() {
+async verifyScreenDescription() {
   await expect(this.description).toBeDisplayed();
 }
 
-async isTermsAndConditionsButtonVisible() {
+async verifyTermsAndConditionsButton() {
   await expect(this.termsAndConditionsButton).toBeDisplayed();
 }
 
 // Assert password input field for new account
-async assertNewAccountScreenFields(){
+async verifyNewAccountScreenFields(){
 await expect(this.newWalletPasswordField).toBeDisplayed();
 }
 

@@ -36,7 +36,7 @@ class ImportFromSeed {
     return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID);
   }
 
-  async isScreenTitleVisible() {
+  async verifyScreenTitle() {
     await expect(this.screenTitle).toBeDisplayed();
   }
 
@@ -57,11 +57,11 @@ class ImportFromSeed {
     await Gestures.waitAndTap(this.importButton);
   }
 
-  async assertPasswordStrength(text){
+  async verifyPasswordStrength(text){
     await expect(this.passwordStrengthLabel).toHaveText(text);  
   }
 
-  async isAlertTextCorrect(text){
+  async verifyAlertText(text){
     const msg = await driver.getAlertText();
     assert(msg.includes(text));
   }
