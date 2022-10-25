@@ -45,7 +45,7 @@ import {
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
 import { syncPrefs } from '../../../util/sync';
-import { passcodeType } from '../../../util/auth';
+import { passcodeType } from '../../../util/authentication/passcodeType';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';

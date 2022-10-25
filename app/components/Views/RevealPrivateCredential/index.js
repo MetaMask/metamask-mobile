@@ -148,7 +148,7 @@ const createStyles = (colors) =>
     },
     qrCode: {
       padding: 8,
-      backgroundColor: importedColors.white,
+      backgroundColor: colors.white,
     },
     tabUnderlineStyle: {
       height: 2,

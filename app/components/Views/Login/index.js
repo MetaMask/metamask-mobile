@@ -23,7 +23,7 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe } from '../../../actions/security';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
-import { passcodeType } from '../../../util/auth';
+import { passcodeType } from '../../../util/authentication/passcodeType';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import BiometryButton from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';

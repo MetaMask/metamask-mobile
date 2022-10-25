@@ -51,6 +51,7 @@ export default class LockManager {
 
   gotoLockScreen = () => {
     this.navigation?.navigate('LockScreen', { backgroundMode: true });
+  };
 
   lockApp = async () => {
     const { KeyringController } = Engine.context;
