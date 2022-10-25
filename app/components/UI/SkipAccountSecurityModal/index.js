@@ -123,7 +123,7 @@ const SkipAccountSecurityModal = ({
               true: colors.primary.default,
               false: colors.border.default,
             }}
-            // {...generateTestId(Platform, 'skip-backup-check')}
+            testID={'skip-backup-check'}
           />
           <Text
             onPress={toggleSkipCheckbox}
