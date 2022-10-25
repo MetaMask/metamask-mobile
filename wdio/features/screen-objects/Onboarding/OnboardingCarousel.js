@@ -22,7 +22,7 @@ class WelcomeScreen {
     return Selectors.getElementByPlatform(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
   }
 
-  async verifyScreenTitle() {
+  async isScreenTitleVisible() {
     const elem = await this.splashScreenMetamaskAnimationId
     await expect(elem).toBeDisplayed();
     await elem.waitForDisplayed({ reverse: true });

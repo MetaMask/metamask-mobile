@@ -9,7 +9,7 @@ class OnboardingWizardModal {
   }
 
 
-  async verifyModalAppears(){
+  async isVisible(){
     await expect(this.onBoardingWizardContainer).toBeDisplayed();
   }
 

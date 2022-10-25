@@ -25,5 +25,6 @@ export const WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID =
   'Skip-button';
   export const SKIP_ACCOUNT_SECURITY_MODAL =
   'skip_backup_warning';
-  
+  export const SECURE_WALLET_SCREEN = 'protect-your-account-screen';
+
   

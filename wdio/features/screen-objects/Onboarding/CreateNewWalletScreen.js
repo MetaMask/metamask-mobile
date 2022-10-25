@@ -1,9 +1,7 @@
 import { TERMS_AND_CONDITIONS_BUTTON_ID } from '../../testIDs/Components/TermsAndConditions.testIds';
 import {
-  WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
   WALLET_SETUP_SCREEN_DESCRIPTION_ID,
   WALLET_SETUP_SCREEN_TITLE_ID,
-  I_AGREE_BUTTON,
   CREATE_PASSWORD_INPUT_FIRST_FIELD,
   CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
   I_UNDERSTAND_BUTTON_ID,
@@ -11,14 +9,10 @@ import {
   REMIND_LATER_BUTTON,
   SKIP_BACKUP_TEXT,
   SKIP_BUTTON,
+  SECURE_WALLET_SCREEN
 } from '../../testIDs/Screens/WalletSetupScreen.testIds';
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-
-export const Input_Phrase = 'fold media south add since false relax immense pause cloth just raven';
-export const password = '123454321';
-export const createNewPassword = '123454321';
-export const SECURE_WALLET_SCREEN = 'protect-your-account-screen';
 
 class CreateNewWalletScren {
 
@@ -64,14 +58,6 @@ class CreateNewWalletScren {
     return Selectors.getElementByPlatform(SUBMIT_BUTTON);
   }
   
-//Create account password and submit 
- async createNewAccountPassword() {
-  await Gestures.typeText(this.newWalletPasswordField, password)
-  await Gestures.typeText(this.newWalletPasswordConfirm, password)
-  await Gestures.tap(this.termsAndConditionCheckBox)
-  await Gestures.tap(this.newWalletSubmitButton)
-  await this.isAccountCreated()
-}
 async inputPasswordInFirstField(firstPassword) {
   await Gestures.typeText(this.newWalletPasswordField, firstPassword)
 }
@@ -86,30 +72,26 @@ async selectRemindMeLater(){
   await Gestures.tap(this.remindMeLaterButton)
 }
 
-
-async verifyAccountCreated(){
+async isAccountCreated(){
   await expect(this.remindMeLaterButton).toBeDisplayed();
   await expect(this.secureWalletScreenText).toBeDisplayed();
 }
   
-async verifyScreenTitle() {
+async isScreenTitleVisible() {
   await expect(this.title).toBeDisplayed();
 }
 
-async verifyScreenDescription() {
+async isScreenDescriptionVisible() {
   await expect(this.description).toBeDisplayed();
 }
 
-async verifyTermsAndConditionsButton() {
+async isTermsAndConditionsButtonVisible() {
   await expect(this.termsAndConditionsButton).toBeDisplayed();
 }
 
-// Assert password input field for new account
-async verifyNewAccountScreenFields(){
+async isNewAccountScreenFieldsVisible(){
 await expect(this.newWalletPasswordField).toBeDisplayed();
 }
-
-
 
 }
 

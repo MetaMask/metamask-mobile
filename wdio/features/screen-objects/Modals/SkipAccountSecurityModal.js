@@ -20,7 +20,7 @@ class SkipAccountSecurityModal {
   }
 
 
-  async verifySkipSecurityModal(){
+  async isVisible(){
     await expect(this.skipBackupText).toBeDisplayed();
   }
 

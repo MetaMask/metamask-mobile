@@ -23,31 +23,31 @@ When(/^I launch MetaMask mobile app/, async () => {
 Then(/^"([^"]*)?" is displayed/, async (text) => {
   switch (text) {
     case 'METAMASK':
-      await WelcomeScreen.verifyScreenTitle();
+      await WelcomeScreen.isScreenTitleVisible();
       break;
     case 'Wallet setup':
-      await OnboardingScreen.verifyScreenTitle();
+      await OnboardingScreen.isScreenTitleVisible();
       break;
     case 'Import an existing wallet or create a new one':
-      await OnboardingScreen.verifyScreenDescription();
+      await OnboardingScreen.isScreenDescriptionVisible();
       break;
     case 'Import using Secret Recovery Phrase':
-      await OnboardingScreen.verifyImportWalletButton();
+      await OnboardingScreen.isImportWalletButtonVisible();
       break;
     case 'Create a new wallet':
-      await OnboardingScreen.verifyCreateNewWalletButton();
+      await OnboardingScreen.isCreateNewWalletButtonVisible();
       break;
     case 'By proceeding, you agree to these Terms and Conditions.':
-      await OnboardingScreen.verifyTermsAndConditionsButton();
+      await OnboardingScreen.isTermsAndConditionsButtonVisible();
       break;
     case 'Help us improve MetaMask':
-      await MetaMetricsScreen.verifyScreenTitle();
+      await MetaMetricsScreen.isScreenTitleVisible();
       break;
     case 'Import from seed':
-      await ImportFromSeedScreen.verifyScreenTitle();
+      await ImportFromSeedScreen.isScreenTitleVisible();
       break;
     case 'Welcome to your new wallet!':
-      await OnboardingWizardModal.verifyModalAppears();
+      await OnboardingWizardModal.isVisible();
       
       break;
     default:
@@ -131,7 +131,7 @@ When(/^On Wallet Setup Screen I tap "([^"]*)?"/, async (text) => {
 });
 
 When(/^I am presented with a new Account screen with password fields/, async () => {
-  await CreateNewWalletScreen.verifyNewAccountScreenFields();
+  await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
 });
 
 When(/^I input a new password "([^"]*)?"/, async (password) => {
@@ -143,7 +143,7 @@ When(/^I confirm the new password "([^"]*)?"/, async (password) => {
 });
 
 When(/^Select "([^"]*)?" on remind secure modal/, async (button) => {
-  await SkipAccountSecurityModal.verifySkipSecurityModal();
+  await SkipAccountSecurityModal.isVisible();
   switch (button) {
     case 'Skip':
       await SkipAccountSecurityModal.proceedWithoutWalletSecure();
@@ -160,10 +160,10 @@ When(/^I select remind me later on secure wallet screen/, async () => {
 });
 
 When(/^secure wallet page is presented/, async () => {
-  await CreateNewWalletScreen.verifyAccountCreated();
+  await CreateNewWalletScreen.isAccountCreated();
 });
 
 Then(/^I should proceed to the new wallet/, async () => {
-  await OnboardingWizardModal.verifyModalAppears();
+  await OnboardingWizardModal.isVisible();
 });
 

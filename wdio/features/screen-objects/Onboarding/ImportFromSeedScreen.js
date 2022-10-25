@@ -36,7 +36,7 @@ class ImportFromSeed {
     return Selectors.getElementByPlatform(IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID);
   }
 
-  async verifyScreenTitle() {
+  async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
 

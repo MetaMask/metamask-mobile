@@ -6,7 +6,7 @@ class MetaMetricsScreen {
     return $(`~${OPTIN_METRICS_TITLE_ID}`);
   }
 
-  async verifyScreenTitle() {
+  async isScreenTitleVisible() {
     await expect(this.screenTitle).toBeDisplayed();
   }
 
