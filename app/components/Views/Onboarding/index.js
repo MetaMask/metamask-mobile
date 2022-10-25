@@ -23,8 +23,6 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from 'react-native-button';
 import { connect } from 'react-redux';
-import SecureKeychain from '../../../core/SecureKeychain';
-import Engine from '../../../core/Engine';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import TermsAndConditions from '../TermsAndConditions';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -44,6 +42,7 @@ import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import Routes from '../../../constants/navigation/Routes';
@@ -182,7 +181,6 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    logOut: PropTypes.func,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -274,21 +272,14 @@ class Onboarding extends PureComponent {
     }
   }
 
-  logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
-  };
-
   onLogin = async () => {
     const { passwordSet } = this.props;
     if (!passwordSet) {
-      const { KeyringController } = Engine.context;
-      // Restore vault with empty password
-      await KeyringController.submitPassword('');
-      await SecureKeychain.resetGenericPassword();
+      await Authentication.resetVault();
       this.props.navigation.navigate('HomeNav');
     } else {
-      this.logOut();
+      await Authentication.logout();
+      this.props.navigation.navigate('Login');
     }
   };
 

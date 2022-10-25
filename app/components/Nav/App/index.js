@@ -43,9 +43,9 @@ import {
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import { checkedAuth } from '../../../actions/user';
 import { setCurrentRoute } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
+import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect';
@@ -143,11 +143,7 @@ const OnboardingRootNav = () => (
       name="SyncWithExtensionSuccess"
       component={SyncWithExtensionSuccess}
     />
-    <Stack.Screen
-      name={Routes.QR_SCANNER}
-      component={QRScanner}
-      header={null}
-    />
+    <Stack.Screen name="QRScanner" component={QRScanner} header={null} />
     <Stack.Screen
       name="Webview"
       header={null}
@@ -156,25 +152,49 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({ selectedAddress, userLoggedIn }) => {
   const animation = useRef(null);
   const animationName = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
+  const authOnLoadAuthLock = useRef(false);
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
-  const [animationPlayed, setAnimationPlayed] = useState();
+  const [authCancelled, setAuthCancelled] = useState(false);
+  const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-
-  const isAuthChecked = useSelector((state) => state.user.isAuthChecked);
   const dispatch = useDispatch();
-  const triggerCheckedAuth = () => dispatch(checkedAuth('onboarding'));
   const triggerSetCurrentRoute = (route) => dispatch(setCurrentRoute(route));
   const frequentRpcList = useSelector(
     (state) =>
       state?.engine?.backgroundState?.PreferencesController?.frequentRpcList,
   );
+
+  useEffect(() => {
+    const appTriggeredAuth = async () => {
+      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      try {
+        if (existingUser && !authOnLoadAuthLock.current && selectedAddress) {
+          await Authentication.appTriggeredAuth(selectedAddress);
+        }
+
+        //Cancel auth if the existing user has not been set
+        if (existingUser === null) setAuthCancelled(true);
+      } catch (error) {
+        await Authentication.logout(false);
+        trackErrorAsAnalytics(
+          'App: Max Attempts Reached',
+          error?.message,
+          `Unlock attempts: 1`,
+        );
+        setAuthCancelled(true);
+      } finally {
+        authOnLoadAuthLock.current = true;
+      }
+    };
+    appTriggeredAuth();
+  }, [authOnLoadAuthLock, selectedAddress]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -256,25 +276,22 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
-    async function checkExsiting() {
+    async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;
       setRoute(route);
-      if (!existingUser) {
-        triggerCheckedAuth();
-      }
     }
-
-    checkExsiting();
-  });
+    checkExisting();
+  }, [userLoggedIn, authCancelled]);
 
   useEffect(() => {
     async function startApp() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        const currentVersion = await getVersion();
+        await Authentication.logout(false);
+        const currentVersion = getVersion();
         const savedVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
         if (currentVersion !== savedVersion) {
           if (savedVersion)
@@ -295,22 +312,13 @@ const App = ({ userLoggedIn }) => {
       } catch (error) {
         Logger.error(error);
       }
+
+      animation?.current?.play();
+      animationName?.current?.play();
     }
 
     startApp();
   }, []);
-
-  useEffect(() => {
-    if (!isAuthChecked) {
-      return;
-    }
-    const startAnimation = async () => {
-      await new Promise((res) => setTimeout(res, 50));
-      animation?.current?.play();
-      animationName?.current?.play();
-    };
-    startAnimation();
-  }, [isAuthChecked]);
 
   const setNavigatorRef = (ref) => {
     if (!prevNavigator.current) {
@@ -396,19 +404,20 @@ const App = ({ userLoggedIn }) => {
             }}
           >
             <Stack.Screen
-              name="Login"
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
               name="OnboardingRootNav"
               component={OnboardingRootNav}
               options={{ headerShown: false }}
             />
-            {userLoggedIn && (
+            {userLoggedIn ? (
               <Stack.Screen
                 name="HomeNav"
                 component={Main}
+                options={{ headerShown: false }}
+              />
+            ) : (
+              <Stack.Screen
+                name="Login"
+                component={Login}
                 options={{ headerShown: false }}
               />
             )}
@@ -428,6 +437,8 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  selectedAddress:
+    state.engine.backgroundState?.PreferencesController?.selectedAddress,
 });
 
 export default connect(mapStateToProps)(App);

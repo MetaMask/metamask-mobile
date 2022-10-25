@@ -183,6 +183,8 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
   const finishSync = useCallback(
     async (opts) => {
+      //TODO refactor to use Authentication instead of SecureKeychain when the sync feature is enabled
+
       if (opts.biometrics) {
         try {
           await SecureKeychain.setGenericPassword(
@@ -220,7 +222,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
 
         navigation.push('SyncWithExtensionSuccess');
         unsetLoading();
-      } catch (e) {
+      } catch (e: any) {
         track(AnalyticsV2.ANALYTICS_EVENTS.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'sync',
           error_type: e.toString(),
@@ -352,7 +354,7 @@ const ExtensionSync = ({ navigation, route }: any) => {
       initWebsockets();
       await pubnubWrapperRef.current?.startSync?.();
       return true;
-    } catch (e) {
+    } catch (e: any) {
       unsetLoading();
       if (e.message === 'Sync::timeout') {
         Alert.alert(

@@ -6,6 +6,7 @@ import NotificationManager from '../../core/NotificationManager';
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
+import { decode, encode } from 'base-64';
 /* eslint-disable import/no-namespace */
 import * as themeUtils from '../theme';
 
@@ -62,7 +63,7 @@ jest.mock('react-native-fs', () => ({
 
 Date.now = jest.fn(() => 123);
 
-jest.mock('../../core/NotificationManager', () => ({
+jest.mock('../core/NotificationManager', () => ({
   init: () => NotificationManager.init({}),
   getTransactionToView: () => null,
   setTransactionToView: (id) => NotificationManager.setTransactionToView(id),
@@ -176,26 +177,60 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   setDeadline: jest.fn(),
 }));
 
-jest.mock('../../images/static-logos.js', () => ({}));
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux-test'),
-}));
-
+jest.mock('../images/static-logos.js', () => ({}));
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
-jest.mock('../../util/theme', () => ({
+
+// crypto.getRandomValues
+if (!window.crypto) {
+  window.crypto = {};
+}
+if (!window.crypto.getRandomValues) {
+  window.crypto.getRandomValues = require('polyfill-crypto.getrandomvalues');
+}
+
+// btoa
+if (!global.btoa) {
+  global.btoa = encode;
+}
+
+if (!global.atob) {
+  global.atob = decode;
+}
+
+const mockAes = {
+  encrypt: jest.fn(() => Promise.resolve()),
+  decrypt: jest.fn(),
+  pbkdf2: jest.fn(() => '0'),
+  hmac256: jest.fn(),
+  hmac512: jest.fn(),
+  sha1: jest.fn(),
+  sha256: jest.fn(),
+  sha512: jest.fn(),
+  randomUuid: jest.fn(),
+  randomKey: jest.fn(),
+};
+
+// Aes https://github.com/tectiv3/react-native-aes
+NativeModules.Aes = {
+  ...mockAes,
+};
+
+const mockAesForked = {
+  encrypt: jest.fn(() => Promise.resolve()),
+  decrypt: jest.fn(),
+  pbkdf2: jest.fn(() => '0'),
+  hmac256: jest.fn(),
+  sha1: jest.fn(),
+  sha256: jest.fn(),
+  sha512: jest.fn(),
+};
+
+// AesForked: https://github.com/MetaMask/react-native-aes-crypto-forked
+NativeModules.AesForked = {
+  ...mockAesForked,
+};
+
+jest.mock('../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
-
-jest.mock('@segment/analytics-react-native', () => ({
-  ...jest.requireActual('@segment/analytics-react-native'),
-  createClient: () => ({
-    identify: jest.fn(),
-    track: jest.fn(),
-    group: jest.fn(),
-  }),
-}));
-
-// eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
-global.__reanimatedWorkletInit = jest.fn();

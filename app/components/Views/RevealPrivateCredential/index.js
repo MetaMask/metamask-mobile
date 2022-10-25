@@ -34,11 +34,11 @@ import {
   KEEP_SRP_SAFE_URL,
 } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
+import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import PreventScreenshot from '../../../core/PreventScreenshot';
-import SecureKeychain from '../../../core/SecureKeychain';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
@@ -254,15 +254,14 @@ class RevealPrivateCredential extends PureComponent {
     if (!this.isPrivateKey()) {
       AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.REVEAL_SRP_SCREEN);
     }
-    // Try to use biometrics to unloc
-    // (if available)
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
+    // Try to use biometrics to unlock
+    const { biometryType } = await Authentication.getType();
     if (!this.props.passwordSet) {
       this.tryUnlockWithPassword('');
     } else if (biometryType) {
       const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
       if (biometryChoice !== '' && biometryChoice === biometryType) {
-        const credentials = await SecureKeychain.getGenericPassword();
+        const credentials = await Authentication.getPassword();
         if (credentials) {
           this.tryUnlockWithPassword(credentials.password);
         }

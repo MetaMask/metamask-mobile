@@ -16,19 +16,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { connect } from 'react-redux';
-import { logIn, passwordSet, seedphraseBackedUp } from '../../../actions/user';
+import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
-import Engine from '../../../core/Engine';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import SecureKeychain from '../../../core/SecureKeychain';
 import AppConstants from '../../../core/AppConstants';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import TermsAndConditions from '../TermsAndConditions';
 import zxcvbn from 'zxcvbn';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Device from '../../../util/device';
+import { passcodeType } from '../../../util/auth';
 import {
   failedSeedPhraseRequirements,
   isValidMnemonic,
@@ -37,11 +36,9 @@ import {
 } from '../../../util/validators';
 import { OutlinedTextField } from 'react-native-material-textfield';
 import {
-  SEED_PHRASE_HINTS,
   BIOMETRY_CHOICE_DISABLED,
-  NEXT_MAKER_REMINDER,
+  PASSCODE_DISABLED,
   ONBOARDING_WIZARD,
-  EXISTING_USER,
   TRUE,
 } from '../../../constants/storage';
 import Logger from '../../../util/Logger';
@@ -53,6 +50,8 @@ import {
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
+import { Authentication } from '../../../core/';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
@@ -231,7 +230,6 @@ class ImportFromSeed extends PureComponent {
      * Action to set onboarding wizard step
      */
     setOnboardingWizardStep: PropTypes.func,
-    logIn: PropTypes.func,
     route: PropTypes.object,
   };
 
@@ -260,21 +258,28 @@ class ImportFromSeed extends PureComponent {
   };
 
   async componentDidMount() {
-    this.updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
-    if (biometryType) {
-      let enabled = true;
-      const previouslyDisabled = await AsyncStorage.removeItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      if (previouslyDisabled && previouslyDisabled === TRUE) {
-        enabled = false;
-      }
+    const { type } = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+    if (type === AUTHENTICATION_TYPE.BIOMETRIC)
       this.setState({
-        biometryType: Device.isAndroid() ? 'biometrics' : biometryType,
-        biometryChoice: enabled,
+        biometryType: type,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
       });
-    }
+    else if (type === AUTHENTICATION_TYPE.PASSCODE)
+      this.setState({
+        biometryType: passcodeType(type),
+        biometryChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
+      });
+
+    this.updateNavBar();
+
     // Workaround https://github.com/facebook/react-native/issues/9958
     setTimeout(() => {
       this.setState({ inputWidth: { width: '100%' } });
@@ -327,34 +332,24 @@ class ImportFromSeed extends PureComponent {
       try {
         this.setState({ loading: true });
 
-        const { KeyringController } = Engine.context;
-        await Engine.resetState();
-        await AsyncStorage.removeItem(NEXT_MAKER_REMINDER);
-        await KeyringController.createNewVaultAndRestore(password, parsedSeed);
+        const type = await Authentication.componentAuthenticationType(
+          this.state.biometryChoice,
+          this.state.rememberMe,
+        );
 
-        if (this.state.biometryType && this.state.biometryChoice) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-        } else if (this.state.rememberMe) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-        } else {
-          await SecureKeychain.resetGenericPassword();
-        }
+        await Authentication.newWalletAndRestore(
+          password,
+          type,
+          parsedSeed,
+          true,
+        );
+
         // Get onboarding wizard state
         const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-        // mark the user as existing so it doesn't see the create password screen again
-        await AsyncStorage.setItem(EXISTING_USER, TRUE);
-        await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
         this.setState({ loading: false });
-        this.props.passwordSet();
         this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
+        this.props.passwordSet();
         this.props.seedphraseBackedUp();
-        this.props.logIn();
         InteractionManager.runAfterInteractions(() => {
           AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.WALLET_IMPORTED, {
             biometrics_enabled: Boolean(this.state.biometryType),
@@ -766,7 +761,6 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   passwordSet: () => dispatch(passwordSet()),
   seedphraseBackedUp: () => dispatch(seedphraseBackedUp()),
-  logIn: () => dispatch(logIn()),
 });
 
 export default connect(null, mapDispatchToProps)(ImportFromSeed);

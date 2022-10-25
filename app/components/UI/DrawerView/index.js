@@ -28,7 +28,6 @@ import NetworkList from '../NetworkList';
 import { renderFromWei, renderFiat } from '../../../util/number';
 import { strings } from '../../../../locales/i18n';
 import Modal from 'react-native-modal';
-import SecureKeychain from '../../../core/SecureKeychain';
 import {
   toggleNetworkModal,
   toggleAccountsModal,
@@ -51,7 +50,7 @@ import URL from 'url-parse';
 import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { logOut, protectWalletModalVisible } from '../../../actions/user';
+import { protectWalletModalVisible } from '../../../actions/user';
 import DeeplinkManager from '../../../core/DeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import InvalidCustomNetworkAlert from '../InvalidCustomNetworkAlert';
@@ -67,6 +66,7 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
+import { Authentication } from '../../../core/';
 import { KeyringTypes } from '@metamask/controllers';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import NetworkInfo from '../NetworkInfo';
@@ -419,7 +419,6 @@ class DrawerView extends PureComponent {
      * Prompts protect wallet modal
      */
     protectWalletModalVisible: PropTypes.func,
-    logOut: PropTypes.func,
     /**
      * Callback to close drawer
      */
@@ -739,23 +738,17 @@ class DrawerView extends PureComponent {
     this.trackEvent(ANALYTICS_EVENT_OPTS.NAVIGATION_TAPS_SETTINGS);
   };
 
-  logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
-  };
-
-  onPress = async () => {
+  onPressLogout = async () => {
     const { passwordSet } = this.props;
-    const { KeyringController } = Engine.context;
-    await SecureKeychain.resetGenericPassword();
-    await KeyringController.setLocked();
+    await Authentication.logout();
     if (!passwordSet) {
       this.props.navigation.navigate('OnboardingRootNav', {
         screen: Routes.ONBOARDING.NAV,
         params: { screen: 'Onboarding' },
       });
     } else {
-      this.logOut();
+      // This param is used to hide the biometric buttons in the login textbox
+      this.props.navigation.navigate('Login', { params: { logout: true } });
     }
   };
 
@@ -771,7 +764,7 @@ class DrawerView extends PureComponent {
         },
         {
           text: strings('drawer.lock_ok'),
-          onPress: this.onPress,
+          onPress: this.onPressLogout,
         },
       ],
       { cancelable: false },
@@ -1505,7 +1498,6 @@ const mapDispatchToProps = (dispatch) => ({
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
-  logOut: () => dispatch(logOut()),
   onboardNetworkAction: (network) => dispatch(onboardNetworkAction(network)),
   networkSwitched: ({ networkUrl, networkStatus }) =>
     dispatch(networkSwitched({ networkUrl, networkStatus })),
