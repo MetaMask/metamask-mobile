@@ -2,7 +2,6 @@
 
 exports[`ImportFromSeed should render correctly 1`] = `
 <ImportFromSeed
-  logIn={[Function]}
   passwordSet={[Function]}
   seedphraseBackedUp={[Function]}
   setLockTime={[Function]}
