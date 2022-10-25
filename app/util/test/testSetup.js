@@ -63,7 +63,7 @@ jest.mock('react-native-fs', () => ({
 
 Date.now = jest.fn(() => 123);
 
-jest.mock('../core/NotificationManager', () => ({
+jest.mock('../../core/NotificationManager', () => ({
   init: () => NotificationManager.init({}),
   getTransactionToView: () => null,
   setTransactionToView: (id) => NotificationManager.setTransactionToView(id),
@@ -177,9 +177,12 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   setDeadline: jest.fn(),
 }));
 
-jest.mock('../images/static-logos.js', () => ({}));
-jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
+jest.mock('../../images/static-logos.js', () => ({}));
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux-test'),
+}));
 
+jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 // crypto.getRandomValues
 if (!window.crypto) {
   window.crypto = {};
@@ -230,7 +233,20 @@ NativeModules.AesForked = {
   ...mockAesForked,
 };
 
-jest.mock('../util/theme', () => ({
+jest.mock('../../util/theme', () => ({
   ...themeUtils,
   useAppThemeFromContext: () => themeUtils.mockTheme,
 }));
+
+jest.mock('@segment/analytics-react-native', () => ({
+  ...jest.requireActual('@segment/analytics-react-native'),
+  createClient: () => ({
+    identify: jest.fn(),
+    track: jest.fn(),
+    group: jest.fn(),
+  }),
+}));
+
+// eslint-disable-next-line import/no-commonjs
+require('react-native-reanimated/lib/reanimated2/jestUtils').setUpTests();
+global.__reanimatedWorkletInit = jest.fn();
