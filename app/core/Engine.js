@@ -10,7 +10,6 @@ import {
   PersonalMessageManager,
   MessageManager,
   NetworkController,
-  NetworkControllerOptions,
   NetworkControllerMessenger,
   PhishingController,
   PreferencesController,
@@ -75,6 +74,7 @@ class Engine {
    */
   constructor(initialState = {}) {
     if (!Engine.instance) {
+      this.controllerMessenger = new ControllerMessenger();
       const preferencesController = new PreferencesController(
         {},
         {
@@ -89,16 +89,7 @@ class Engine {
 
       const networkControllerOpts = {
         infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-        state: {
-          //Need to figure out where these values will come from
-          network: '0',
-          provider: {
-            type: pType,
-            chainId: NetworksChainId[pType],
-          },
-          properties: { isEIP1559Compatible: false },
-        },
-        messenger,
+        messenger: this.controllerMessenger,
       };
 
       const networkController = new NetworkController(networkControllerOpts);
@@ -140,62 +131,24 @@ class Engine {
           );
         },
       };
-      //Existing Implementation
-      // const networkController = new NetworkController({
-      //   infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      //   providerConfig: {
-      //     static: {
-      //       eth_sendTransaction: async (
-      //         payload: { params: any[], origin: any },
-      //         next: any,
-      //         end: (arg0: undefined, arg1: undefined) => void,
-      //       ) => {
-      //         const { TransactionController } = this.context;
-      //         try {
-      //           const hash = await (
-      //             await TransactionController.addTransaction(
-      //               payload.params[0],
-      //               payload.origin,
-      //               WalletDevice.MM_MOBILE,
-      //             )
-      //           ).result;
-      //           end(undefined, hash);
-      //         } catch (error) {
-      //           end(error);
-      //         }
-      //       },
-      //     },
-      //     getAccounts: (
-      //       end: (arg0: null, arg1: any[]) => void,
-      //       payload: { hostname: string | number },
-      //     ) => {
-      //       const { approvedHosts, privacyMode } = store.getState();
-      //       const isEnabled = !privacyMode || approvedHosts[payload.hostname];
-      //       const { KeyringController } = this.context;
-      //       const isUnlocked = KeyringController.isUnlocked();
-      //       const selectedAddress =
-      //         this.context.PreferencesController.state.selectedAddress;
-      //       end(
-      //         null,
-      //         isUnlocked && isEnabled && selectedAddress
-      //           ? [selectedAddress]
-      //           : [],
-      //       );
-      //     },
-      //   },
-      // });
       const assetsContractController = new AssetsContractController({
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `${networkController.name}:stateChange`,
+            listener,
+          ),
       });
       const collectiblesController = new CollectiblesController(
         {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              `${networkController.name}:stateChange`,
+              listener,
+            ),
           getERC721AssetName: assetsContractController.getERC721AssetName.bind(
             assetsContractController,
           ),
@@ -225,14 +178,19 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `${networkController.name}:providerChange`,
+            listener,
+          ),
         config: { provider: networkController.provider },
       });
-      this.controllerMessenger = new ControllerMessenger();
       const tokenListController = new TokenListController({
         chainId: networkController.provider.chainId,
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `${networkController.name}:providerChange`,
+            listener,
+          ),
         messenger: this.controllerMessenger,
       });
       const currencyRateController = new CurrencyRateController({
@@ -245,7 +203,10 @@ class Engine {
         messenger: this.controllerMessenger,
         getProvider: () => networkController.provider,
         onNetworkStateChange: (listener) =>
-          networkController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `${networkController.name}:providerChange`,
+            listener,
+          ),
         getCurrentNetworkEIP1559Compatibility: async () =>
           await networkController.getEIP1559Compatibility(),
         getChainId: () => networkController.state.provider.chainId,
@@ -302,7 +263,10 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              `${networkController.name}:providerChange`,
+              listener,
+            ),
           onTokenListStateChange: (listener) =>
             this.controllerMessenger.subscribe(
               `${tokenListController.name}:stateChange`,
@@ -337,7 +301,10 @@ class Engine {
           onPreferencesStateChange: (listener) =>
             preferencesController.subscribe(listener),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              `${networkController.name}:providerChange`,
+              listener,
+            ),
           getOpenSeaApiKey: () => collectiblesController.openSeaApiKey,
           addCollectible: collectiblesController.addCollectible.bind(
             collectiblesController,
@@ -371,12 +338,18 @@ class Engine {
               listener,
             ),
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              `${networkController.name}:providerChange`,
+              listener,
+            ),
         }),
         new TransactionController({
           getNetworkState: () => networkController.state,
           onNetworkStateChange: (listener) =>
-            networkController.subscribe(listener),
+            this.controllerMessenger.subscribe(
+              `${networkController.name}:providerChange`,
+              listener,
+            ),
           getProvider: () => networkController.provider,
         }),
         new TypedMessageManager(),
@@ -442,7 +415,7 @@ class Engine {
       collectibles.setApiKey(process.env.MM_OPENSEA_KEY);
       network.refreshNetwork();
       transaction.configure({ sign: keyring.signTransaction.bind(keyring) });
-      network.subscribe(
+      this.controllerMessenger.subscribe(
         (state: { network: string, provider: { chainId: any } }) => {
           if (
             state.network !== 'loading' &&
